@@ -1,12 +1,15 @@
 node_modules
-dist
-dist-web
-dist-export
-.expo
+# Keep environment variables out of version control
 .env
-.git
-npm-debug.log
 
+/generated/prisma
+# OS / Editor lock/temp files
+*~
+.~lock.*
 
+# Office / Documents
+*.doc
+*.docx
+*.odt
+*.pdf
 *.md
-
