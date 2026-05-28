@@ -10,6 +10,12 @@ interface LoadingSpinnerProps {
   thickness?: number;
 }
 
+interface SpinnerGlyphProps {
+  size: SpinnerSize;
+  color?: string;
+  thickness: number;
+}
+
 const sizeMap: Record<SpinnerSize, string> = {
   small: "size-5",
   default: "size-10",
@@ -22,17 +28,11 @@ const dotMap: Record<SpinnerSize, string> = {
   large: "size-2.5",
 };
 
-export default function LoadingSpinner({
-  size = "default",
-  fullScreen = false,
-  overlay = false,
-  color,
-  thickness = 3,
-}: LoadingSpinnerProps) {
+function SpinnerGlyph({ size, color, thickness }: SpinnerGlyphProps) {
   const spinnerColor = color ?? "var(--primary)";
   const trackColor = color ? `${color}24` : "color-mix(in oklab, var(--primary) 16%, white)";
 
-  const Spinner = () => (
+  return (
     <div className="flex flex-col items-center gap-3">
       <div className="relative">
         <div
@@ -60,9 +60,17 @@ export default function LoadingSpinner({
       ) : null}
     </div>
   );
+}
 
+export default function LoadingSpinner({
+  size = "default",
+  fullScreen = false,
+  overlay = false,
+  color,
+  thickness = 3,
+}: LoadingSpinnerProps) {
   if (!fullScreen && !overlay) {
-    return <Spinner />;
+    return <SpinnerGlyph size={size} color={color} thickness={thickness} />;
   }
 
   if (fullScreen) {
@@ -72,7 +80,7 @@ export default function LoadingSpinner({
           <div className="flex size-12 items-center justify-center rounded-2xl bg-primary text-sm font-semibold text-primary-foreground">
             CO
           </div>
-          <Spinner />
+          <SpinnerGlyph size={size} color={color} thickness={thickness} />
         </div>
       </div>
     );
@@ -81,7 +89,7 @@ export default function LoadingSpinner({
   return (
     <div className="absolute inset-0 z-10 flex items-center justify-center rounded-[inherit] bg-background/70 backdrop-blur-sm">
       <div className="rounded-3xl border border-border/70 bg-card/92 px-6 py-5 shadow-[0_20px_60px_-36px_rgba(15,23,42,0.35)]">
-        <Spinner />
+        <SpinnerGlyph size={size} color={color} thickness={thickness} />
       </div>
     </div>
   );

@@ -7,6 +7,14 @@ import AuthShell from "@/components/common/AuthShell";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 
+interface ApiError {
+  response?: {
+    data?: {
+      message?: string;
+    };
+  };
+}
+
 const SignUp = () => {
   const {
     register,
@@ -21,8 +29,8 @@ const SignUp = () => {
     setErr(null);
     createManager.mutate(data, {
       onSuccess: () => reset(),
-      onError: (error: any) => {
-        setErr(error.response?.data?.message || "Something went wrong");
+      onError: (error: unknown) => {
+        setErr((error as ApiError).response?.data?.message || "Something went wrong");
       },
     });
   };

@@ -16,6 +16,22 @@ import {
 
 const CHART_COLORS = ["#0d9488", "#0ea5e9", "#8b5cf6", "#10b981", "#f59e0b", "#ef4444"];
 
+interface DashboardLocation {
+  id: number;
+  name: string;
+  address: string;
+  isActive: boolean;
+  _count?: {
+    staff?: number;
+    taskTemplates?: number;
+  };
+}
+
+interface StaffDistributionEntry {
+  name: string;
+  value: number;
+}
+
 export default function DashboardPage() {
   const user = useSelector((s: RootState) => s.auth.user);
   const navigate = useNavigate();
@@ -23,34 +39,34 @@ export default function DashboardPage() {
 
   if (isLoading) return <LoadingSpinner fullScreen />;
 
-  const locations = data?.data ?? [];
+  const locations = (data?.data ?? []) as DashboardLocation[];
 
   const totalLocations = locations.length;
   const totalStaff = locations.reduce(
-    (sum: number, l: any) => sum + (l._count?.staff ?? 0), 0
+    (sum, l) => sum + (l._count?.staff ?? 0), 0
   );
   const totalTemplates = locations.reduce(
-    (sum: number, l: any) => sum + (l._count?.taskTemplates ?? 0), 0
+    (sum, l) => sum + (l._count?.taskTemplates ?? 0), 0
   );
   const averageTemplates =
     totalLocations > 0 ? (totalTemplates / totalLocations).toFixed(1) : "0";
   const busiestLocations = [...locations]
-    .sort((a: any, b: any) => (b._count?.staff ?? 0) - (a._count?.staff ?? 0))
+    .sort((a, b) => (b._count?.staff ?? 0) - (a._count?.staff ?? 0))
     .slice(0, 3);
 
   const hour = new Date().getHours();
   const greeting =
     hour < 12 ? "Good Morning" : hour < 17 ? "Good Afternoon" : "Good Evening";
 
-  const barData = locations.map((l: any) => ({
+  const barData = locations.map((l) => ({
     name: l.name.length > 15 ? l.name.slice(0, 15) + "…" : l.name,
     staff: l._count?.staff ?? 0,
     templates: l._count?.taskTemplates ?? 0,
   }));
 
   const pieData = locations
-    .filter((l: any) => (l._count?.staff ?? 0) > 0)
-    .map((l: any) => ({
+    .filter((l) => (l._count?.staff ?? 0) > 0)
+    .map((l): StaffDistributionEntry => ({
       name: l.name,
       value: l._count?.staff ?? 0,
     }));
@@ -192,7 +208,7 @@ export default function DashboardPage() {
           <SurfaceCard title="Highest load locations" description="Sites with the most assigned staff right now.">
             {busiestLocations.length > 0 ? (
               <div className="space-y-3">
-                {busiestLocations.map((location: any, index: number) => (
+                {busiestLocations.map((location, index) => (
                   <button
                     key={location.id}
                     onClick={() => navigate(`/locations/${location.id}`)}
@@ -247,7 +263,7 @@ export default function DashboardPage() {
               </tr>
             </thead>
             <tbody className="divide-y divide-border/60">
-              {locations.map((loc: any) => (
+              {locations.map((loc) => (
                 <tr
                   key={loc.id}
                   onClick={() => navigate(`/locations/${loc.id}`)}
@@ -319,8 +335,8 @@ export default function DashboardPage() {
                   dataKey="value"
                   label={({ name, value }) => `${name}: ${value}`}
                 >
-                  {pieData.map((_: any, idx: number) => (
-                    <Cell key={idx} fill={CHART_COLORS[idx % CHART_COLORS.length]} />
+                  {pieData.map((entry, idx) => (
+                    <Cell key={entry.name} fill={CHART_COLORS[idx % CHART_COLORS.length]} />
                   ))}
                 </Pie>
                 <Legend wrapperStyle={{ fontSize: "12px" }} />

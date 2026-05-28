@@ -12,7 +12,7 @@ import { Button } from "@/components/ui/button";
 interface FormDialogProps {
   title: string;
   triggerText: string;
-  onSubmit: (e:any) => void;
+  onSubmit: React.FormEventHandler<HTMLFormElement>;
   children: React.ReactNode;
 }
 

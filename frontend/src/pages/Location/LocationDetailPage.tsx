@@ -4,6 +4,7 @@ import { useParams, useNavigate, Link } from "react-router-dom";
 import { useQueryClient } from "@tanstack/react-query";
 import { useGetLocationById } from "./queries";
 import type { LocationStatsFilter } from "./queries";
+import type { EditTaskTemplateInput } from "@/pages/Task/api";
 import StatusBadge from "@/components/common/StatusBadge";
 import LoadingSpinner from "@/components/common/LoadingSpinner";
 import { useCreateTaskTemplate, useDeleteTaskTemplate, useEditTaskTemplate } from "@/pages/Task/queries";
@@ -85,6 +86,66 @@ const TABS: { key: Tab; label: string; icon: React.ElementType }[] = [
 
 interface TaskStatEntry { status: string; _count: { status: number } }
 
+interface ApiErrorBody {
+  message?: string;
+  errors?: { message: string }[];
+}
+
+interface ApiError {
+  response?: {
+    data?: ApiErrorBody;
+  };
+  message?: string;
+}
+
+interface LocationStaff {
+  id: number;
+  name: string;
+  email: string;
+  shiftStart: string | null;
+  shiftEnd: string | null;
+  isActive: boolean;
+}
+
+interface TaskTemplate {
+  id: number;
+  title: string;
+  description?: string | null;
+  staffId?: number | null;
+  staff?: { name: string } | null;
+  shiftStart: string | null;
+  shiftEnd: string | null;
+  recurringType?: "DAILY" | "ONCE";
+  effectiveDate?: string | null;
+  isActive?: boolean;
+  qrToken?: string | null;
+}
+
+interface TaskInstance {
+  id: number;
+  title: string;
+  date: string;
+  shiftStart: string | null;
+  shiftEnd: string | null;
+  status: string;
+  isLate?: boolean;
+  lateMinutes?: number | null;
+  proofImageUrls?: string[];
+}
+
+interface LocationInfo {
+  id: number;
+  name: string;
+  address: string;
+  latitude: string;
+  longitude: string;
+  radiusMeters: number;
+  isActive: boolean;
+  staff: LocationStaff[];
+  taskTemplates: TaskTemplate[];
+  taskInstances: TaskInstance[];
+}
+
 interface TemplateCreateForm {
   title: string;
   description: string;
@@ -100,8 +161,8 @@ function TemplatesTab({
   staffList,
   locationId,
 }: {
-  templates: any[];
-  staffList: any[];
+  templates: TaskTemplate[];
+  staffList: LocationStaff[];
   locationId: number;
 }) {
   const queryClient = useQueryClient();
@@ -110,7 +171,7 @@ function TemplatesTab({
   const editTemplate = useEditTaskTemplate();
   const assignStaff = useAssignStaffToTemplate();
   const [openMenu, setOpenMenu] = useState<number | null>(null);
-  const [editingTemplate, setEditingTemplate] = useState<any | null>(null);
+  const [editingTemplate, setEditingTemplate] = useState<TaskTemplate | null>(null);
   const [editError, setEditError] = useState<string | null>(null);
   const [createError, setCreateError] = useState<string | null>(null);
   const [createDialogOpen, setCreateDialogOpen] = useState(false);
@@ -134,13 +195,13 @@ function TemplatesTab({
   });
   const todayDate = toDateStr(new Date());
 
-  const toTimeValue = (iso: string | null) => {
+  const toTimeValue = (iso?: string | null) => {
     if (!iso) return "";
     const d = new Date(iso);
     return `${String(d.getHours()).padStart(2, "0")}:${String(d.getMinutes()).padStart(2, "0")}`;
   };
 
-  const toDateValue = (iso: string | null) => {
+  const toDateValue = (iso?: string | null) => {
     if (!iso) return "";
     return new Date(iso).toISOString().split("T")[0];
   };
@@ -167,13 +228,15 @@ function TemplatesTab({
     return new Date(`${dateValue}T12:00:00`);
   };
 
-  const extractError = (err: any) =>
-    err?.response?.data?.errors?.map((e: any) => e.message).join(", ") ||
-    err?.response?.data?.message ||
-    err?.message ||
+  const extractError = (err: unknown) => {
+    const error = err as ApiError;
+    return error.response?.data?.errors?.map((e) => e.message).join(", ") ||
+    error.response?.data?.message ||
+    error.message ||
     "An unknown error occurred";
+  };
 
-  const handleDelete = (t: any) => {
+  const handleDelete = (t: TaskTemplate) => {
     setOpenMenu(null);
     if (confirm(`Delete "${t.title}"? This will cancel all pending task instances.`)) {
       deleteTemplate.mutate(t.id);
@@ -224,6 +287,7 @@ function TemplatesTab({
         try {
           await deleteTemplate.mutateAsync(createdId);
         } catch {
+          // Keep showing the original assignment failure if rollback also fails.
         }
       }
       await queryClient.invalidateQueries({ queryKey: ["location"] });
@@ -231,7 +295,7 @@ function TemplatesTab({
     }
   };
 
-  const handleEditOpen = (t: any) => {
+  const handleEditOpen = (t: TaskTemplate) => {
     setOpenMenu(null);
     setEditError(null);
     setEditingTemplate(t);
@@ -250,20 +314,23 @@ function TemplatesTab({
     if (!editingTemplate) return;
     setEditError(null);
 
-    const payload: Record<string, any> = {};
+    const payload: EditTaskTemplateInput = {};
     if (editForm.title !== editingTemplate.title) payload.title = editForm.title;
     if (editForm.description !== (editingTemplate.description || "")) payload.description = editForm.description || undefined;
-    if (editForm.recurringType && editForm.recurringType !== editingTemplate.recurringType) {
+    if (
+      (editForm.recurringType === "DAILY" || editForm.recurringType === "ONCE") &&
+      editForm.recurringType !== editingTemplate.recurringType
+    ) {
       payload.recurringType = editForm.recurringType;
     }
     if (editForm.shiftStart && editForm.shiftStart !== toTimeValue(editingTemplate.shiftStart)) {
-      const base = new Date(editingTemplate.shiftStart);
+      const base = new Date(editingTemplate.shiftStart ?? new Date());
       const [h, m] = editForm.shiftStart.split(":").map(Number);
       base.setHours(h, m, 0, 0);
       payload.shiftStart = base.toISOString();
     }
     if (editForm.shiftEnd && editForm.shiftEnd !== toTimeValue(editingTemplate.shiftEnd)) {
-      const base = new Date(editingTemplate.shiftEnd);
+      const base = new Date(editingTemplate.shiftEnd ?? new Date());
       const [h, m] = editForm.shiftEnd.split(":").map(Number);
       base.setHours(h, m, 0, 0);
       payload.shiftEnd = base.toISOString();
@@ -402,7 +469,7 @@ function TemplatesTab({
                   className={inputCls}
                 >
                   <option value="">Select staff</option>
-                  {staffList.map((s: any) => (
+                  {staffList.map((s) => (
                     <option key={s.id} value={s.id}>
                       {s.name}
                     </option>
@@ -442,7 +509,7 @@ function TemplatesTab({
       ) : null}
 
       <div className="grid grid-cols-1 gap-4 md:grid-cols-2 lg:grid-cols-3">
-        {templates.map((t: any) => (
+        {templates.map((t) => (
           <div
             key={t.id}
             className="relative rounded-xl border border-gray-200 bg-white p-5 shadow-sm transition-all hover:border-gray-300 hover:shadow-md"
@@ -571,7 +638,7 @@ function TemplatesTab({
                   className={inputCls}
                 >
                   <option value="">Unassigned</option>
-                  {staffList.map((s: any) => (
+                  {staffList.map((s) => (
                     <option key={s.id} value={s.id}>
                       {s.name}
                     </option>
@@ -661,10 +728,8 @@ const LocationDetailPage: React.FC = () => {
   const filter = currentFilter.toFilter();
 
   const { data, isLoading, isFetching } = useGetLocationById(id!, filter);
-  const locationInfo = data?.data?.locationInfo;
+  const locationInfo = data?.data?.locationInfo as LocationInfo | undefined;
   const taskStats: TaskStatEntry[] = data?.data?.taskStats ?? [];
-
-  console.log("location info is::",locationInfo);
 
   const staffCount = locationInfo?.staff?.length ?? 0;
   const templateCount = locationInfo?.taskTemplates?.length ?? 0;
@@ -797,7 +862,7 @@ const LocationDetailPage: React.FC = () => {
             </thead>
             <tbody className="divide-y divide-gray-100">
               {locationInfo.staff?.length > 0 ? (
-                locationInfo.staff.map((s: any) => (
+                locationInfo.staff.map((s) => (
                   <tr key={s.id} className="transition-colors hover:bg-gray-100/50">
                     <td className="px-5 py-3.5">
                       <div className="flex items-center gap-3">
@@ -851,7 +916,7 @@ const LocationDetailPage: React.FC = () => {
             </thead>
             <tbody className="divide-y divide-gray-100">
               {locationInfo.taskInstances?.length > 0 ? (
-                locationInfo.taskInstances.map((ti: any) => (
+                locationInfo.taskInstances.map((ti) => (
                   <tr key={ti.id} className="transition-colors hover:bg-gray-100/50">
                     <td className="px-5 py-3.5 font-medium text-gray-900">{ti.title}</td>
                     <td className="px-5 py-3.5 text-gray-600">

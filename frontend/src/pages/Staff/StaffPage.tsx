@@ -2,6 +2,7 @@ import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { useForm } from "react-hook-form";
 import { useGetStaff, useCreateStaff, useDeactivateStaff, useEditStaff, getStaffDetailsQueryOptions } from "./queries";
+import type { EditStaffInput } from "./api";
 import { useGetLocations } from "../Location/queries";
 import { useAssignStaffToLocation } from "../Assignment/queries";
 import PageHeader from "@/components/common/PageHeader";
@@ -31,6 +32,23 @@ interface StaffMember {
   shiftStart: string | null;
   shiftEnd: string | null;
   isActive: boolean;
+}
+
+interface LocationOption {
+  id: number;
+  name: string;
+}
+
+interface ApiErrorBody {
+  message?: string;
+  errors?: { message: string }[];
+}
+
+interface ApiError {
+  response?: {
+    data?: ApiErrorBody;
+  };
+  message?: string;
 }
 
 interface CreateStaffForm {
@@ -79,7 +97,7 @@ export default function StaffPage() {
   if (isLoading) return <LoadingSpinner fullScreen />;
 
   const staff: StaffMember[] = data?.data ?? [];
-  const locations = locationsQuery.data?.data ?? [];
+  const locations = (locationsQuery.data?.data ?? []) as LocationOption[];
 
   const filtered = staff.filter((s) => {
     const matchesSearch = s.name.toLowerCase().includes(search.toLowerCase()) || s.email.toLowerCase().includes(search.toLowerCase());
@@ -89,10 +107,15 @@ export default function StaffPage() {
   const assignedStaffCount = staff.filter((s) => s.locationId !== null).length;
   const activeStaffCount = staff.filter((s) => s.isActive).length;
 
-  const locMap = new Map(locations.map((l: any) => [l.id, l.name]));
+  const locMap = new Map(locations.map((l) => [l.id, l.name]));
 
-  const extractError = (err: any) =>
-    err?.response?.data?.message || err?.response?.data?.errors?.map((e: any) => e.message).join(", ") || err?.message || "An error occurred";
+  const extractError = (err: unknown) => {
+    const error = err as ApiError;
+    return error.response?.data?.message ||
+      error.response?.data?.errors?.map((e) => e.message).join(", ") ||
+      error.message ||
+      "An error occurred";
+  };
 
   const handleEditOpen = (s: StaffMember) => {
     setEditError(null);
@@ -108,7 +131,7 @@ export default function StaffPage() {
     if (!editingStaff) return;
     setEditError(null);
     try {
-      const payload: Record<string, any> = {};
+      const payload: EditStaffInput = {};
       if (editForm.name !== editingStaff.name) payload.name = editForm.name;
       if (editForm.email !== editingStaff.email) payload.email = editForm.email;
       if (editForm.shiftStart && editForm.shiftStart !== toTimeValue(editingStaff.shiftStart)) {
@@ -209,7 +232,7 @@ export default function StaffPage() {
                 <label className="mb-1.5 block text-sm font-medium text-foreground">Location (optional)</label>
                 <select {...register("locationId")} className={inputCls}>
                   <option value="">No location</option>
-                  {locations.map((l: any) => <option key={l.id} value={l.id}>{l.name}</option>)}
+                  {locations.map((l) => <option key={l.id} value={l.id}>{l.name}</option>)}
                 </select>
               </div>
               <div className="flex gap-3 pt-2">
@@ -237,7 +260,7 @@ export default function StaffPage() {
           <select value={locationFilter} onChange={(e) => setLocationFilter(e.target.value)} className={`${inputCls} appearance-none pl-10 pr-8`}>
             <option value="all">All Locations</option>
             <option value="unassigned">Unassigned</option>
-            {locations.map((l: any) => <option key={l.id} value={l.id}>{l.name}</option>)}
+            {locations.map((l) => <option key={l.id} value={l.id}>{l.name}</option>)}
           </select>
         </div>
       </FilterBar>
@@ -264,7 +287,7 @@ export default function StaffPage() {
               <div><label className="mb-1.5 block text-sm font-medium text-foreground">Location</label>
                 <select value={editForm.locationId} onChange={(e) => setEditForm({ ...editForm, locationId: e.target.value })} className={inputCls}>
                   <option value="">Unassigned</option>
-                  {locations.map((l: any) => <option key={l.id} value={l.id}>{l.name}</option>)}
+                  {locations.map((l) => <option key={l.id} value={l.id}>{l.name}</option>)}
                 </select>
               </div>
               <div className="grid grid-cols-2 gap-4">

@@ -1,11 +1,18 @@
 import { Plus } from "lucide-react";
 
+interface ActionButtonProps {
+  label?: string;
+  onClick?: () => void;
+  className?: string;
+  icon?: boolean;
+}
+
 export function ActionButton({
   label = "Add New",
   onClick,
   className = "",
   icon = true,
-}:any) {
+}: ActionButtonProps) {
   return (
     <button
       onClick={onClick}

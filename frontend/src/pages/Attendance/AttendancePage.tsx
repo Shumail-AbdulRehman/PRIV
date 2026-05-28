@@ -31,6 +31,11 @@ interface AttendanceRecord {
   location: { id: number; name: string };
 }
 
+interface StaffOption {
+  id: number;
+  name: string;
+}
+
 const fmtDate = (d: string) =>
   new Date(d).toLocaleDateString("en-US", { day: "numeric", month: "short", year: "numeric" });
 
@@ -85,7 +90,7 @@ export default function AttendancePage() {
   if (isLoading) return <LoadingSpinner fullScreen />;
 
   const records: AttendanceRecord[] = data?.data ?? [];
-  const allStaff = staffQuery.data?.data ?? [];
+  const allStaff = (staffQuery.data?.data ?? []) as StaffOption[];
   const displayStatuses = records.map((record) => getAttendanceDisplayStatus(record));
 
   const presentCount = displayStatuses.filter((status) => status === "CHECKED_IN" || status === "CHECKED_OUT").length;
@@ -253,7 +258,7 @@ export default function AttendancePage() {
           <label className="mb-1.5 block text-xs font-medium uppercase tracking-[0.18em] text-muted-foreground">Staff</label>
           <select value={staffFilter} onChange={(e) => setStaffFilter(e.target.value)} className={inputCls}>
             <option value="">All Staff</option>
-            {allStaff.map((s: any) => <option key={s.id} value={s.id}>{s.name}</option>)}
+            {allStaff.map((s) => <option key={s.id} value={s.id}>{s.name}</option>)}
           </select>
         </div>
         <div>
