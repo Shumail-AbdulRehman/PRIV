@@ -1,0 +1,45 @@
+{
+  "expo": {
+    "name": "CleanOps Staff",
+    "slug": "cleanops-staff",
+    "version": "1.0.0",
+    "orientation": "portrait",
+    "icon": "./assets/icon.png",
+    "userInterfaceStyle": "light",
+    "newArchEnabled": true,
+    "splash": {
+      "image": "./assets/splash-icon.png",
+      "resizeMode": "contain",
+      "backgroundColor": "#ffffff"
+    },
+    "ios": {
+      "supportsTablet": false,
+      "infoPlist": {
+        "NSCameraUsageDescription": "CleanOps Staff uses the camera to scan task QR codes and capture attendance/task images.",
+        "NSLocationWhenInUseUsageDescription": "CleanOps Staff uses your location to verify check-in, check-out, and on-site task activity.",
+        "NSPhotoLibraryUsageDescription": "CleanOps Staff uses your photo library when you attach completion images.",
+        "NSAppTransportSecurity": {
+          "NSAllowsArbitraryLoads": true
+        }
+      }
+    },
+    "android": {
+      "adaptiveIcon": {
+        "foregroundImage": "./assets/adaptive-icon.png",
+        "backgroundColor": "#ffffff"
+      },
+      "usesCleartextTraffic": true,
+      "permissions": [
+        "CAMERA",
+        "ACCESS_COARSE_LOCATION",
+        "ACCESS_FINE_LOCATION"
+      ],
+      "edgeToEdgeEnabled": true,
+      "predictiveBackGestureEnabled": false
+    },
+    "web": {
+      "favicon": "./assets/favicon.png"
+    },
+    "scheme": "cleanopsstaff"
+  }
+}

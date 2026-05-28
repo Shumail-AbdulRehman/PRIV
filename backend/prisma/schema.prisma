@@ -1,0 +1,184 @@
+generator client {
+  provider   = "prisma-client-js"
+  engineType = "library"
+}
+
+datasource db {
+  provider = "postgresql"
+}
+
+model Company {
+  id        Int        @id @default(autoincrement())
+  name      String
+  isActive  Boolean    @default(true)
+  managers  Manager[]
+  staff     Staff[]
+  locations Location[]
+  createdAt DateTime   @default(now())
+  updatedAt DateTime   @updatedAt
+}
+
+model Manager {
+  id           Int      @id @default(autoincrement())
+  name         String
+  email        String   @unique
+  password     String
+  role         Role     @default(MANAGER)
+  isActive     Boolean  @default(true)
+  refreshToken String?
+  company      Company  @relation(fields: [companyId], references: [id])
+  companyId    Int
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+}
+
+model Staff {
+  id            Int            @id @default(autoincrement())
+  name          String
+  email         String         @unique
+  password      String
+  role          Role           @default(STAFF)
+  isActive      Boolean        @default(true)
+  refreshToken  String?
+  company       Company        @relation(fields: [companyId], references: [id])
+  companyId     Int
+  location      Location?      @relation(fields: [locationId], references: [id], onDelete: SetNull)
+  locationId    Int?
+  shiftStart    DateTime?
+  shiftEnd      DateTime?
+  taskTemplates TaskTemplate[]
+  taskInstances TaskInstance[]
+  attendances   Attendance[]
+  createdAt     DateTime       @default(now())
+  updatedAt     DateTime       @updatedAt
+
+  @@index([companyId])
+  @@index([locationId])
+  @@index([isActive])
+}
+
+model Location {
+  id            Int            @id @default(autoincrement())
+  name          String
+  address       String
+  isActive      Boolean        @default(true)
+  company       Company        @relation(fields: [companyId], references: [id])
+  companyId     Int
+  staff         Staff[]
+  taskTemplates TaskTemplate[]
+  taskInstances TaskInstance[]
+  attendances   Attendance[]
+  createdAt     DateTime       @default(now())
+  updatedAt     DateTime       @updatedAt
+  latitude      String
+  longitude     String
+  radiusMeters  Int            @default(500)
+
+  @@index([companyId])
+  @@index([isActive])
+}
+
+model TaskTemplate {
+  id               Int            @id @default(autoincrement())
+  title            String
+  description      String?
+  isActive         Boolean        @default(true)
+  staff            Staff?         @relation(fields: [staffId], references: [id], onDelete: SetNull)
+  staffId          Int?
+  location         Location       @relation(fields: [locationId], references: [id])
+  locationId       Int
+  shiftStart       DateTime
+  shiftEnd         DateTime
+  recurringType    RecurringType?
+  recurringEndDate DateTime?
+  instances        TaskInstance[]
+  createdAt        DateTime       @default(now())
+  updatedAt        DateTime       @updatedAt
+  effectiveDate    DateTime
+  qrToken          String         @unique @default(uuid())
+
+  @@index([locationId])
+  @@index([isActive])
+  @@index([staffId, isActive])
+}
+
+model TaskInstance {
+  id             Int           @id @default(autoincrement())
+  template       TaskTemplate? @relation(fields: [templateId], references: [id], onDelete: SetNull)
+  templateId     Int?
+  title          String
+  date           DateTime
+  lateMinutes    Int?
+  shiftStart     DateTime
+  shiftEnd       DateTime
+  status         TaskStatus    @default(PENDING)
+  isLate         Boolean       @default(false)
+  startedAt      DateTime?
+  completedAt    DateTime?
+  proofImageUrls String[]      @default([])
+  staff          Staff?        @relation(fields: [staffId], references: [id], onDelete: SetNull)
+  staffId        Int?
+  location       Location      @relation(fields: [locationId], references: [id])
+  locationId     Int
+  createdAt      DateTime      @default(now())
+  updatedAt      DateTime      @updatedAt
+  isActive       Boolean       @default(true)
+
+  @@unique([templateId, date])
+  @@index([locationId, isActive, date])
+  @@index([locationId, status])
+  @@index([staffId, isActive, date])
+  @@index([staffId, status])
+}
+
+model Attendance {
+  id            Int              @id @default(autoincrement())
+  staff         Staff            @relation(fields: [staffId], references: [id])
+  staffId       Int
+  location      Location         @relation(fields: [locationId], references: [id])
+  locationId    Int
+  date          DateTime
+  checkInTime   DateTime?
+  checkOutTime  DateTime?
+  expectedStart DateTime
+  expectedEnd   DateTime
+  status        AttendanceStatus @default(ABSENT)
+  isLateCheckIn Boolean          @default(false)
+  lateMinutes   Int?
+  createdAt     DateTime         @default(now())
+  updatedAt     DateTime         @updatedAt
+  checkInImage  String?
+  checkOutImage String?
+
+  @@unique([staffId, date])
+  @@index([locationId, date])
+  @@index([staffId])
+  @@index([staffId, date, status])
+}
+
+enum AttendanceStatus {
+  ABSENT
+  CHECKED_IN
+  CHECKED_OUT
+  LATE
+  MISSED_CHECKOUT
+}
+
+enum RecurringType {
+  DAILY
+  ONCE
+}
+
+enum Role {
+  MANAGER
+  STAFF
+}
+
+enum TaskStatus {
+  PENDING
+  IN_PROGRESS
+  COMPLETED
+  NOT_COMPLETED_INTIME
+  MISSED
+  CANCELLED
+}

@@ -1,0 +1,12 @@
+node_modules
+dist
+dist-web
+dist-export
+.expo
+.env
+.git
+npm-debug.log
+
+
+*.md
+
