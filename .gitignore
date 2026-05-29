@@ -3,6 +3,20 @@ node_modules
 .env
 
 /generated/prisma
+
+# Local agent / notebook runtime files
+.codex
+.ipynb_checkpoints/
+.jupyter-config/
+.jupyter-data/
+.jupyter-runner/
+.jupyter-runtime/
+__pycache__/
+
+# Generated notebook data and trained model outputs
+/data_clean_dirty/
+/models/clean_dirty_efficientnet_b0.pt
+
 # OS / Editor lock/temp files
 *~
 .~lock.*
