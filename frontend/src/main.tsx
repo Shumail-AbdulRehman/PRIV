@@ -16,6 +16,7 @@ import StaffPage from './pages/Staff/StaffPage.tsx';
 import StaffDetailPage from './pages/Staff/StaffDetailPage.tsx';
 import AttendancePage from './pages/Attendance/AttendancePage.tsx';
 import TodayStatusPage from './pages/Manager/TodayStatusPage.tsx';
+import LandingPage from './pages/Landing/LandingPage.tsx';
 
 const queryClient = new QueryClient({
   defaultOptions: {
@@ -34,6 +35,7 @@ const router = createBrowserRouter([
     path: '/',
     element: <App />,
     children: [
+      { index: true, element: <LandingPage /> },
       {
         path: 'signup',
         element: (
@@ -57,7 +59,7 @@ const router = createBrowserRouter([
           </ProtectedRoute>
         ),
         children: [
-          { index: true, element: <DashboardPage /> },
+          { path: 'dashboard', element: <DashboardPage /> },
           { path: 'today-status', element: <TodayStatusPage /> },
           { path: 'locations', element: <LocationsPage /> },
           { path: 'locations/:id', element: <LocationDetailPage /> },
