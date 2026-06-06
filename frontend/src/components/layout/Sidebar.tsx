@@ -15,7 +15,7 @@ import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
 
 const NAV_ITEMS = [
-  { to: "/", icon: LayoutDashboard, label: "Dashboard" },
+  { to: "/dashboard", icon: LayoutDashboard, label: "Dashboard" },
   { to: "/today-status", icon: ClipboardCheck, label: "Today Status" },
   { to: "/locations", icon: MapPin, label: "Locations" },
   { to: "/staff", icon: Users, label: "Staff" },
