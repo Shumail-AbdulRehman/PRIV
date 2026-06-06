@@ -14,7 +14,8 @@ import {
   Users,
 } from "lucide-react";
 
-import cleaningOperations from "@/assets/cleaning-operations.jpg";
+import cleaningOperationsWebp800 from "@/assets/cleaning-operations-800.webp";
+import cleaningOperationsWebp1200 from "@/assets/cleaning-operations-1200.webp";
 import type { RootState } from "@/store/store";
 import { Button } from "@/components/ui/button";
 
@@ -143,11 +144,22 @@ export default function LandingPage() {
             <div className="relative">
               <div className="absolute -left-5 top-10 hidden h-24 w-24 rounded-full bg-[oklch(0.83_0.09_235)]/45 lg:block" />
               <figure className="relative overflow-hidden rounded-[2rem] bg-[oklch(0.93_0.016_235)] p-2 shadow-[0_28px_90px_-58px_oklch(0.32_0.08_245)]">
-                <img
-                  src={cleaningOperations}
-                  alt="Cleaning staff using floor equipment at a managed location"
-                  className="aspect-[16/11] max-h-[calc(100dvh-145px)] w-full rounded-[1.5rem] object-cover object-center"
-                />
+                <picture>
+                  <source
+                    type="image/webp"
+                    srcSet={`${cleaningOperationsWebp800} 800w, ${cleaningOperationsWebp1200} 1200w`}
+                    sizes="(min-width: 1024px) 52vw, 100vw"
+                  />
+                  <img
+                    src={cleaningOperationsWebp1200}
+                    alt="Cleaning staff using floor equipment at a managed location"
+                    width="1200"
+                    height="825"
+                    decoding="async"
+                    fetchPriority="high"
+                    className="aspect-[16/11] max-h-[calc(100dvh-145px)] w-full rounded-[1.5rem] object-cover object-center"
+                  />
+                </picture>
               </figure>
             </div>
           </div>
