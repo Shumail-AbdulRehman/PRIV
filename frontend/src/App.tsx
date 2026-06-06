@@ -25,7 +25,7 @@ export const ProtectedRoute = ({ children }: { children: React.ReactNode }) => {
 export const GuestRoute = ({ children }: { children: React.ReactNode }) => {
 
   const { isAuthenticated } = useAuth();
-  if (isAuthenticated) return <Navigate to="/" replace />;
+  if (isAuthenticated) return <Navigate to="/dashboard" replace />;
 
 
   return <>{children}</>;
