@@ -11,8 +11,9 @@ node_modules
 .jupyter-data/
 .jupyter-runner/
 .jupyter-runtime/
+.notebook-runner/
 __pycache__/
-
+.ipynb
 # Generated notebook data and trained model outputs
 /data_clean_dirty/
 /models/clean_dirty_efficientnet_b0.pt
