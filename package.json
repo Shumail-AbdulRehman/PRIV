@@ -6,7 +6,7 @@
     "node": "20.x"
   },
   "scripts": {
-    "heroku-prebuild": "npm install --prefix backend",
+    "heroku-prebuild": "npm ci --include=dev --prefix backend",
     "heroku-postbuild": "npm run build --prefix backend",
     "start": "npm start --prefix backend"
   }
