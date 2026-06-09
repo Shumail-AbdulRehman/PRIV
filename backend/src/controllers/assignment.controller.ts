@@ -3,6 +3,34 @@ import { prisma } from "../prisma/prisma.js";
 import { ApiResponse } from "../utils/ApiResponse.js";
 import { ApiError } from "../utils/ApiError.js";
 
+const getUtcMinutes = (date: Date) => date.getUTCHours() * 60 + date.getUTCMinutes();
+
+const toTimeRanges = (start: Date, end: Date) => {
+  const startMin = getUtcMinutes(start);
+  const endMin = getUtcMinutes(end);
+
+  if (endMin > startMin) {
+    return [{ start: startMin, end: endMin }];
+  }
+
+  return [
+    { start: startMin, end: 24 * 60 },
+    { start: 0, end: endMin },
+  ];
+};
+
+const timeRangesOverlap = (firstStart: Date, firstEnd: Date, secondStart: Date, secondEnd: Date) => {
+  const firstRanges = toTimeRanges(firstStart, firstEnd);
+  const secondRanges = toTimeRanges(secondStart, secondEnd);
+
+  return firstRanges.some((first) =>
+    secondRanges.some((second) => first.start < second.end && second.start < first.end)
+  );
+};
+
+const formatUtcTime = (date: Date) =>
+  `${String(date.getUTCHours()).padStart(2, "0")}:${String(date.getUTCMinutes()).padStart(2, "0")}`;
+
 export const assignStaffToLocation = async (req: Request, res: Response) => {
   const staffId = Number(req.params.staffId);
   const locationId = Number(req.params.locationId);
@@ -112,6 +140,35 @@ export const assignStaffToTaskTemplate = async (req: Request, res: Response) => 
     }
   }
 
+  const assignedTemplates = await prisma.taskTemplate.findMany({
+    where: {
+      id: { not: templateId },
+      staffId,
+      isActive: true,
+    },
+    select: {
+      title: true,
+      shiftStart: true,
+      shiftEnd: true,
+    },
+  });
+
+  const overlappingTemplate = assignedTemplates.find((assignedTemplate) =>
+    timeRangesOverlap(
+      template.shiftStart,
+      template.shiftEnd,
+      assignedTemplate.shiftStart,
+      assignedTemplate.shiftEnd
+    )
+  );
+
+  if (overlappingTemplate) {
+    throw new ApiError(
+      400,
+      `Staff is already assigned to "${overlappingTemplate.title}" during ${formatUtcTime(overlappingTemplate.shiftStart)} - ${formatUtcTime(overlappingTemplate.shiftEnd)}. Choose a different time or staff member.`
+    );
+  }
+
   const updated = await prisma.taskTemplate.update({
     where: { id: templateId },
     data: { staffId }
@@ -119,4 +176,3 @@ export const assignStaffToTaskTemplate = async (req: Request, res: Response) => 
 
   res.status(200).json(new ApiResponse(200, updated, "Staff assigned to task template successfully"));
 };
-
