@@ -28,6 +28,7 @@ interface StaffMember {
   id: number;
   name: string;
   email: string;
+  phone?: string | null;
   locationId: number | null;
   shiftStart: string | null;
   shiftEnd: string | null;
@@ -54,8 +55,11 @@ interface ApiError {
 interface CreateStaffForm {
   name: string;
   email: string;
+  phone: string;
   password: string;
   locationId?: string;
+  shiftStart: string;
+  shiftEnd: string;
 }
 
 const fmtTime = (d: string | null) => {
@@ -89,7 +93,7 @@ export default function StaffPage() {
   const [editingStaff, setEditingStaff] = useState<StaffMember | null>(null);
   const [editError, setEditError] = useState<string | null>(null);
   const [editForm, setEditForm] = useState({
-    name: "", email: "", shiftStart: "", shiftEnd: "", locationId: "" as string,
+    name: "", email: "", phone: "", shiftStart: "", shiftEnd: "", locationId: "" as string,
   });
 
   const { register, handleSubmit, reset, formState: { errors } } = useForm<CreateStaffForm>();
@@ -100,7 +104,10 @@ export default function StaffPage() {
   const locations = (locationsQuery.data?.data ?? []) as LocationOption[];
 
   const filtered = staff.filter((s) => {
-    const matchesSearch = s.name.toLowerCase().includes(search.toLowerCase()) || s.email.toLowerCase().includes(search.toLowerCase());
+    const matchesSearch =
+      s.name.toLowerCase().includes(search.toLowerCase()) ||
+      s.email.toLowerCase().includes(search.toLowerCase()) ||
+      (s.phone ?? "").toLowerCase().includes(search.toLowerCase());
     const matchesLocation = locationFilter === "all" ? true : locationFilter === "unassigned" ? s.locationId === null : s.locationId === Number(locationFilter);
     return matchesSearch && matchesLocation;
   });
@@ -121,7 +128,7 @@ export default function StaffPage() {
     setEditError(null);
     setEditingStaff(s);
     setEditForm({
-      name: s.name, email: s.email,
+      name: s.name, email: s.email, phone: s.phone ?? "",
       shiftStart: toTimeValue(s.shiftStart), shiftEnd: toTimeValue(s.shiftEnd),
       locationId: s.locationId ? String(s.locationId) : "",
     });
@@ -134,6 +141,7 @@ export default function StaffPage() {
       const payload: EditStaffInput = {};
       if (editForm.name !== editingStaff.name) payload.name = editForm.name;
       if (editForm.email !== editingStaff.email) payload.email = editForm.email;
+      if (editForm.phone !== (editingStaff.phone ?? "")) payload.phone = editForm.phone;
       if (editForm.shiftStart && editForm.shiftStart !== toTimeValue(editingStaff.shiftStart)) {
         const base = editingStaff.shiftStart ? new Date(editingStaff.shiftStart) : new Date();
         const [h, m] = editForm.shiftStart.split(":").map(Number);
@@ -172,6 +180,7 @@ export default function StaffPage() {
       ),
     },
     { key: "email", header: "Email", render: (s) => <span className="text-gray-500">{s.email}</span> },
+    { key: "phone", header: "Phone", render: (s) => <span className="text-gray-500">{s.phone || "—"}</span> },
     {
       key: "location", header: "Location",
       render: (s) => s.locationId
@@ -196,7 +205,15 @@ export default function StaffPage() {
 
   const onCreateSubmit = (formData: CreateStaffForm) => {
     createStaff.mutate(
-      { name: formData.name, email: formData.email, password: formData.password, locationId: formData.locationId ? Number(formData.locationId) : undefined },
+      {
+        name: formData.name,
+        email: formData.email,
+        phone: formData.phone,
+        password: formData.password,
+        locationId: formData.locationId ? Number(formData.locationId) : undefined,
+        shiftStart: formData.shiftStart ? new Date(`1970-01-01T${formData.shiftStart}:00`).toISOString() : undefined,
+        shiftEnd: formData.shiftEnd ? new Date(`1970-01-01T${formData.shiftEnd}:00`).toISOString() : undefined,
+      },
       { onSuccess: () => { reset(); setDialogOpen(false); } }
     );
   };
@@ -224,6 +241,15 @@ export default function StaffPage() {
                 {errors.email && <p className="mt-1 text-xs text-red-500">{errors.email.message}</p>}
               </div>
               <div>
+                <label className="mb-1.5 block text-sm font-medium text-foreground">Phone Number</label>
+                <Input type="tel" {...register("phone", {
+                  required: "Phone number is required",
+                  minLength: { value: 7, message: "Phone number must be at least 7 characters" },
+                  maxLength: { value: 20, message: "Phone number must be at most 20 characters" },
+                })} placeholder="+92 300 1234567" />
+                {errors.phone && <p className="mt-1 text-xs text-red-500">{errors.phone.message}</p>}
+              </div>
+              <div>
                 <label className="mb-1.5 block text-sm font-medium text-foreground">Password</label>
                 <Input type="password" {...register("password", { required: "Password is required" })} placeholder="••••••••" />
                 {errors.password && <p className="mt-1 text-xs text-red-500">{errors.password.message}</p>}
@@ -234,6 +260,18 @@ export default function StaffPage() {
                   <option value="">No location</option>
                   {locations.map((l) => <option key={l.id} value={l.id}>{l.name}</option>)}
                 </select>
+              </div>
+              <div className="grid grid-cols-2 gap-4">
+                <div>
+                  <label className="mb-1.5 block text-sm font-medium text-foreground">Shift Start</label>
+                  <Input type="time" {...register("shiftStart", { required: "Shift start is required" })} />
+                  {errors.shiftStart && <p className="mt-1 text-xs text-red-500">{errors.shiftStart.message}</p>}
+                </div>
+                <div>
+                  <label className="mb-1.5 block text-sm font-medium text-foreground">Shift End</label>
+                  <Input type="time" {...register("shiftEnd", { required: "Shift end is required" })} />
+                  {errors.shiftEnd && <p className="mt-1 text-xs text-red-500">{errors.shiftEnd.message}</p>}
+                </div>
               </div>
               <div className="flex gap-3 pt-2">
                 <Button type="button" variant="outline" className="flex-1 rounded-2xl" onClick={() => { reset(); setDialogOpen(false); }}>Cancel</Button>
@@ -253,7 +291,7 @@ export default function StaffPage() {
       <FilterBar>
         <div className="relative max-w-sm sm:max-w-none">
           <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-gray-400" />
-          <Input type="text" value={search} onChange={(e) => setSearch(e.target.value)} placeholder="Search staff by name or email..." className="pl-10" />
+          <Input type="text" value={search} onChange={(e) => setSearch(e.target.value)} placeholder="Search staff by name, email, or phone..." className="pl-10" />
         </div>
         <div className="relative">
           <MapPin className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-gray-400 pointer-events-none" />
@@ -284,6 +322,7 @@ export default function StaffPage() {
             <div className="space-y-4">
               <div><label className="mb-1.5 block text-sm font-medium text-foreground">Name</label><Input type="text" value={editForm.name} onChange={(e) => setEditForm({ ...editForm, name: e.target.value })} /></div>
               <div><label className="mb-1.5 block text-sm font-medium text-foreground">Email</label><Input type="email" value={editForm.email} onChange={(e) => setEditForm({ ...editForm, email: e.target.value })} /></div>
+              <div><label className="mb-1.5 block text-sm font-medium text-foreground">Phone Number</label><Input type="tel" value={editForm.phone} onChange={(e) => setEditForm({ ...editForm, phone: e.target.value })} /></div>
               <div><label className="mb-1.5 block text-sm font-medium text-foreground">Location</label>
                 <select value={editForm.locationId} onChange={(e) => setEditForm({ ...editForm, locationId: e.target.value })} className={inputCls}>
                   <option value="">Unassigned</option>
@@ -297,7 +336,7 @@ export default function StaffPage() {
               {editError && <div className="rounded-2xl border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-600">{editError}</div>}
               <div className="flex gap-3 pt-3">
                 <Button onClick={() => setEditingStaff(null)} variant="outline" className="flex-1 rounded-2xl">Cancel</Button>
-                <Button onClick={handleEditSave} disabled={editStaffMutation.isPending || assignLocation.isPending || !editForm.name.trim() || !editForm.email.trim()} className="flex-1 rounded-2xl">{editStaffMutation.isPending || assignLocation.isPending ? "Saving..." : "Save changes"}</Button>
+                <Button onClick={handleEditSave} disabled={editStaffMutation.isPending || assignLocation.isPending || !editForm.name.trim() || !editForm.email.trim() || !editForm.phone.trim()} className="flex-1 rounded-2xl">{editStaffMutation.isPending || assignLocation.isPending ? "Saving..." : "Save changes"}</Button>
               </div>
             </div>
           </div>

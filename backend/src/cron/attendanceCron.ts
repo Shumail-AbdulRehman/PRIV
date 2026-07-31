@@ -7,7 +7,7 @@ import {
 } from "../utils/karachiTime.js";
 import { syncTodaysOpenAttendanceWindow } from "../utils/syncAttendanceWindow.js";
 
-cron.schedule("*/5 * * * *", async () => {
+cron.schedule("2 */6 * * *", async () => {
     try {
         console.log("Creating daily attendance records...");
 

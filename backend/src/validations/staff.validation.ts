@@ -18,6 +18,10 @@ export const createStaffSchema = z.object({
     email: z
       .string({ message: "Email is required" })
       .email("Invalid email format"),
+    phone: z
+      .string({ message: "Phone number is required" })
+      .min(7, "Phone number must be at least 7 characters")
+      .max(20, "Phone number must be at most 20 characters"),
     password: z
       .string({ message: "Password is required" })
       .min(6, "Password must be at least 6 characters"),
@@ -65,6 +69,11 @@ export const editStaffSchema = z.object({
   email: z
     .string({ message: "Email is required" })
     .email("Invalid email format")
+    .optional(),
+  phone: z
+    .string({ message: "Phone number is required" })
+    .min(7, "Phone number must be at least 7 characters")
+    .max(20, "Phone number must be at most 20 characters")
     .optional(),
   shiftStart: z.coerce.date({ message: "Shift start must be a valid date" }).optional(),
   shiftEnd: z.coerce.date({ message: "Shift end must be a valid date" }).optional(),

@@ -121,6 +121,20 @@ interface TaskTemplate {
   qrToken?: string | null;
 }
 
+interface TaskAssignment {
+  id: number;
+  staffId: number;
+  status: string;
+  reason?: string | null;
+  isCurrent: boolean;
+  assignedAt: string;
+  staff?: {
+    id: number;
+    name: string;
+    email?: string;
+  } | null;
+}
+
 interface TaskInstance {
   id: number;
   title: string;
@@ -131,6 +145,7 @@ interface TaskInstance {
   isLate?: boolean;
   lateMinutes?: number | null;
   proofImageUrls?: string[];
+  assignments?: TaskAssignment[];
 }
 
 interface LocationInfo {
@@ -155,6 +170,12 @@ interface TemplateCreateForm {
   recurringType: "DAILY" | "ONCE";
   effectiveDate: string;
 }
+
+const getTaskAssignee = (taskInstance: TaskInstance) => {
+  const assignments = taskInstance.assignments ?? [];
+  const currentAssignment = assignments.find((assignment) => assignment.isCurrent);
+  return currentAssignment ?? assignments[assignments.length - 1] ?? null;
+};
 
 function TemplatesTab({
   templates,
@@ -251,11 +272,6 @@ function TemplatesTab({
       return;
     }
 
-    if (!createForm.staffId) {
-      setCreateError("Staff assignment is required for every task template.");
-      return;
-    }
-
     let createdId: number | null = null;
     try {
       const created = await createTemplate.mutateAsync({
@@ -274,10 +290,12 @@ function TemplatesTab({
         throw new Error("Task template was created but no template id was returned.");
       }
 
-      await assignStaff.mutateAsync({
-        templateId: createdId,
-        staffId: Number(createForm.staffId),
-      });
+      if (createForm.staffId) {
+        await assignStaff.mutateAsync({
+          templateId: createdId,
+          staffId: Number(createForm.staffId),
+        });
+      }
 
       await queryClient.invalidateQueries({ queryKey: ["location"] });
       resetCreateForm();
@@ -462,13 +480,13 @@ function TemplatesTab({
                 </div>
               </div>
               <div>
-                <label className={formLabelCls}>Assign staff</label>
+                <label className={formLabelCls}>Assign staff optional</label>
                 <select
                   value={createForm.staffId}
                   onChange={(e) => setCreateForm({ ...createForm, staffId: e.target.value })}
                   className={inputCls}
                 >
-                  <option value="">Select staff</option>
+                  <option value="">Auto assign later</option>
                   {staffList.map((s) => (
                     <option key={s.id} value={s.id}>
                       {s.name}
@@ -476,7 +494,7 @@ function TemplatesTab({
                   ))}
                 </select>
                 <p className="mt-1 text-xs text-muted-foreground">
-                  Backend rule: the selected staff member must already belong to this location and the task time must fit inside their shift.
+                  Leave blank to let the scheduler pick available staff. If selected, the staff member must belong to this location and the task time must fit inside their shift.
                 </p>
               </div>
               {createError ? (
@@ -909,6 +927,7 @@ const LocationDetailPage: React.FC = () => {
                 <th className="px-5 py-3 text-left text-xs font-semibold uppercase tracking-wide text-gray-500">Title</th>
                 <th className="px-5 py-3 text-left text-xs font-semibold uppercase tracking-wide text-gray-500">Date</th>
                 <th className="px-5 py-3 text-left text-xs font-semibold uppercase tracking-wide text-gray-500">Shift</th>
+                <th className="px-5 py-3 text-left text-xs font-semibold uppercase tracking-wide text-gray-500">Assigned To</th>
                 <th className="px-5 py-3 text-left text-xs font-semibold uppercase tracking-wide text-gray-500">Status</th>
                 <th className="px-5 py-3 text-left text-xs font-semibold uppercase tracking-wide text-gray-500">Late</th>
                 <th className="px-5 py-3 text-left text-xs font-semibold uppercase tracking-wide text-gray-500">Proof</th>
@@ -916,41 +935,66 @@ const LocationDetailPage: React.FC = () => {
             </thead>
             <tbody className="divide-y divide-gray-100">
               {locationInfo.taskInstances?.length > 0 ? (
-                locationInfo.taskInstances.map((ti) => (
-                  <tr key={ti.id} className="transition-colors hover:bg-gray-100/50">
-                    <td className="px-5 py-3.5 font-medium text-gray-900">{ti.title}</td>
-                    <td className="px-5 py-3.5 text-gray-600">
-                      {new Date(ti.date).toLocaleDateString("en-US", { day: "numeric", month: "short", year: "numeric" })}
-                    </td>
-                    <td className="px-5 py-3.5 text-gray-600">
-                      {fmtTime(ti.shiftStart)} – {fmtTime(ti.shiftEnd)}
-                    </td>
-                    <td className="px-5 py-3.5">
-                      <StatusBadge status={ti.status} />
-                    </td>
-                    <td className="px-5 py-3.5">
-                      {ti.isLate ? (
-                        <span className="font-semibold text-amber-400">+{ti.lateMinutes ?? "?"}m</span>
-                      ) : (
-                        <span className="text-emerald-400">On time</span>
-                      )}
-                    </td>
-                    <td className="px-5 py-3.5">
-                      {ti.proofImageUrls && ti.proofImageUrls.length > 0 ? (
-                        <div className="flex gap-1">
-                          {ti.proofImageUrls.map((url: string, i: number) => (
-                            <a key={i} href={url} target="_blank" rel="noopener noreferrer">
-                              <img src={url} alt={`Proof ${i + 1}`} className="h-9 w-9 rounded-md object-cover border border-gray-200 hover:ring-2 hover:ring-teal-400 transition-all cursor-pointer" />
-                            </a>
-                          ))}
-                        </div>
-                      ) : <span className="text-gray-400">—</span>}
-                    </td>
-                  </tr>
-                ))
+                locationInfo.taskInstances.map((ti) => {
+                  const assignee = getTaskAssignee(ti);
+                  const reassignmentCount = Math.max((ti.assignments?.length ?? 0) - 1, 0);
+
+                  return (
+                    <tr key={ti.id} className="transition-colors hover:bg-gray-100/50">
+                      <td className="px-5 py-3.5 font-medium text-gray-900">{ti.title}</td>
+                      <td className="px-5 py-3.5 text-gray-600">
+                        {new Date(ti.date).toLocaleDateString("en-US", { day: "numeric", month: "short", year: "numeric" })}
+                      </td>
+                      <td className="px-5 py-3.5 text-gray-600">
+                        {fmtTime(ti.shiftStart)} – {fmtTime(ti.shiftEnd)}
+                      </td>
+                      <td className="px-5 py-3.5">
+                        {assignee?.staff ? (
+                          <div className="min-w-40">
+                            <p className="font-medium text-gray-900">{assignee.staff.name}</p>
+                            {assignee.staff.email && <p className="text-xs text-gray-500">{assignee.staff.email}</p>}
+                            <div className="mt-1 flex flex-wrap items-center gap-1.5">
+                              <span className="rounded-full bg-teal-50 px-2 py-0.5 text-[11px] font-medium text-teal-700">
+                                {assignee.isCurrent ? "Current" : assignee.status}
+                              </span>
+                              {reassignmentCount > 0 && (
+                                <span className="rounded-full bg-amber-50 px-2 py-0.5 text-[11px] font-medium text-amber-700">
+                                  {reassignmentCount} reassigned
+                                </span>
+                              )}
+                            </div>
+                          </div>
+                        ) : (
+                          <span className="text-gray-400">Unassigned</span>
+                        )}
+                      </td>
+                      <td className="px-5 py-3.5">
+                        <StatusBadge status={ti.status} />
+                      </td>
+                      <td className="px-5 py-3.5">
+                        {ti.isLate ? (
+                          <span className="font-semibold text-amber-400">+{ti.lateMinutes ?? "?"}m</span>
+                        ) : (
+                          <span className="text-emerald-400">On time</span>
+                        )}
+                      </td>
+                      <td className="px-5 py-3.5">
+                        {ti.proofImageUrls && ti.proofImageUrls.length > 0 ? (
+                          <div className="flex gap-1">
+                            {ti.proofImageUrls.map((url: string, i: number) => (
+                              <a key={i} href={url} target="_blank" rel="noopener noreferrer">
+                                <img src={url} alt={`Proof ${i + 1}`} className="h-9 w-9 rounded-md object-cover border border-gray-200 hover:ring-2 hover:ring-teal-400 transition-all cursor-pointer" />
+                              </a>
+                            ))}
+                          </div>
+                        ) : <span className="text-gray-400">—</span>}
+                      </td>
+                    </tr>
+                  );
+                })
               ) : (
                 <tr>
-                  <td colSpan={6} className="px-5 py-8 text-center text-sm text-gray-400">
+                  <td colSpan={7} className="px-5 py-8 text-center text-sm text-gray-400">
                     No task instances for this period.
                   </td>
                 </tr>

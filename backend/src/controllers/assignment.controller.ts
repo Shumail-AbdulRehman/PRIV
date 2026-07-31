@@ -2,6 +2,7 @@ import { Request, Response } from "express";
 import { prisma } from "../prisma/prisma.js";
 import { ApiResponse } from "../utils/ApiResponse.js";
 import { ApiError } from "../utils/ApiError.js";
+import { markCurrentAssignmentsForTasks } from "../services/taskAssignment.service.js";
 
 const getUtcMinutes = (date: Date) => date.getUTCHours() * 60 + date.getUTCMinutes();
 
@@ -52,6 +53,15 @@ export const assignStaffToLocation = async (req: Request, res: Response) => {
   }
 
   if (staff.locationId && staff.locationId !== locationId) {
+    const affectedTasks = await prisma.taskInstance.findMany({
+      where: {
+        staffId,
+        locationId: staff.locationId,
+        status: { in: ["PENDING", "IN_PROGRESS"] },
+      },
+      select: { id: true },
+    });
+
     await prisma.$transaction([
       prisma.taskTemplate.updateMany({
         where: { staffId, locationId: staff.locationId, isActive: true },
@@ -66,6 +76,12 @@ export const assignStaffToLocation = async (req: Request, res: Response) => {
         data: { staffId: null },
       }),
     ]);
+
+    await markCurrentAssignmentsForTasks(
+      affectedTasks.map((task) => task.id),
+      "CANCELLED",
+      "STAFF_LOCATION_CHANGED"
+    );
   }
 
   const updated = await prisma.staff.update({

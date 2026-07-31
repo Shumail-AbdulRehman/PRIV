@@ -4,6 +4,7 @@ import { prisma } from "../prisma/prisma.js";
 import { ApiResponse } from "../utils/ApiResponse.js";
 import { ApiError } from "../utils/ApiError.js";
 import { addUtcDays, getKarachiDayRange, getKarachiDayRangeFromDateInput } from "../utils/karachiTime.js";
+import { markCurrentAssignmentsForTasks } from "../services/taskAssignment.service.js";
 
 export const createLocation = async (req: Request, res: Response) => {
   const payload = req.body?.data ?? req.body;
@@ -104,6 +105,14 @@ export const softDeleteLocation = async (req: Request, res: Response) => {
     throw new ApiError(400, "Location is already deactivated");
   }
 
+  const affectedTasks = await prisma.taskInstance.findMany({
+    where: {
+      locationId,
+      status: { in: ["PENDING", "IN_PROGRESS", "NOT_COMPLETED_INTIME"] },
+    },
+    select: { id: true },
+  });
+
   await prisma.$transaction([
     prisma.location.update({
       where: { id: locationId },
@@ -125,6 +134,12 @@ export const softDeleteLocation = async (req: Request, res: Response) => {
       data: { locationId: null }
     })
   ]);
+
+  await markCurrentAssignmentsForTasks(
+    affectedTasks.map((task) => task.id),
+    "CANCELLED",
+    "LOCATION_DEACTIVATED"
+  );
 
   res.status(200).json(new ApiResponse(200, {}, "Location deactivated successfully"));
 };
@@ -226,6 +241,20 @@ export const getLocationStatsById = async (req: Request, res: Response) => {
         where: {
           isActive: true,
           ...dateFilter,
+        },
+        include: {
+          assignments: {
+            orderBy: { assignedAt: "asc" },
+            include: {
+              staff: {
+                select: {
+                  id: true,
+                  name: true,
+                  email: true,
+                },
+              },
+            },
+          },
         },
       },
       staff: {

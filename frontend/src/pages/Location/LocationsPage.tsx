@@ -6,7 +6,7 @@ import type { LocationWithCounts, LocationFormValues } from "./types";
 import LoadingSpinner from "@/components/common/LoadingSpinner";
 import PageHeader from "@/components/common/PageHeader";
 import EmptyState from "@/components/common/EmptyState";
-import { MapPin, Plus } from "lucide-react";
+import { LocateFixed, MapPin, Plus } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import StatCard from "@/components/common/StatCard";
@@ -23,18 +23,48 @@ export default function LocationsPage() {
   const createLocation = useCreateLocation();
   const getLocations = useGetLocations();
   const [dialogOpen, setDialogOpen] = useState(false);
+  const [locationError, setLocationError] = useState<string | null>(null);
+  const [isLocating, setIsLocating] = useState(false);
 
   const {
     register,
     handleSubmit,
     reset,
+    setValue,
     formState: { errors },
   } = useForm<LocationFormValues>();
+
+  const fillCurrentLocation = () => {
+    setLocationError(null);
+
+    if (!navigator.geolocation) {
+      setLocationError("Location access is not supported by this browser.");
+      return;
+    }
+
+    setIsLocating(true);
+    navigator.geolocation.getCurrentPosition(
+      (position) => {
+        setValue("latitude", position.coords.latitude.toFixed(6), { shouldDirty: true, shouldValidate: true });
+        setValue("longitude", position.coords.longitude.toFixed(6), { shouldDirty: true, shouldValidate: true });
+        setIsLocating(false);
+      },
+      (error) => {
+        setLocationError(
+          error.code === error.PERMISSION_DENIED
+            ? "Location permission was denied. You can still enter coordinates manually."
+            : "Could not get your location. Enter coordinates manually or try again."
+        );
+        setIsLocating(false);
+      },
+      { enableHighAccuracy: true, timeout: 10000, maximumAge: 60000 }
+    );
+  };
 
   const onSubmit: SubmitHandler<LocationFormValues> = async (data) => {
     await createLocation.mutateAsync(
       { name: data.name, address: data.address, latitude: data.latitude, longitude: data.longitude },
-      { onSuccess: () => { reset(); setDialogOpen(false); } }
+      { onSuccess: () => { reset(); setLocationError(null); setDialogOpen(false); } }
     );
   };
 
@@ -71,17 +101,38 @@ export default function LocationsPage() {
               <div className="grid grid-cols-2 gap-4">
                 <div>
                   <label className="mb-1.5 block text-sm font-medium text-foreground">Latitude</label>
-                  <Input type="number" step="any" {...register("latitude", { required: "Latitude is required" })} placeholder="33.6844" />
+                <Input type="number" step="any" {...register("latitude", {
+                  required: "Latitude is required",
+                  min: { value: -90, message: "Latitude must be between -90 and 90" },
+                  max: { value: 90, message: "Latitude must be between -90 and 90" },
+                })} placeholder="33.6844" />
                   {errors.latitude && <p className="mt-1 text-xs text-red-500">{errors.latitude.message}</p>}
                 </div>
                 <div>
                   <label className="mb-1.5 block text-sm font-medium text-foreground">Longitude</label>
-                  <Input type="number" step="any" {...register("longitude", { required: "Longitude is required" })} placeholder="73.0479" />
+                  <Input type="number" step="any" {...register("longitude", {
+                    required: "Longitude is required",
+                    min: { value: -180, message: "Longitude must be between -180 and 180" },
+                    max: { value: 180, message: "Longitude must be between -180 and 180" },
+                  })} placeholder="73.0479" />
                   {errors.longitude && <p className="mt-1 text-xs text-red-500">{errors.longitude.message}</p>}
                 </div>
               </div>
+              <div className="rounded-2xl border border-border/70 bg-muted/30 p-3">
+                <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+                  <div>
+                    <p className="text-sm font-medium text-foreground">Use current coordinates</p>
+                    <p className="text-xs text-muted-foreground">Auto-fill latitude and longitude from this device, then adjust manually if needed.</p>
+                  </div>
+                  <Button type="button" variant="outline" className="rounded-2xl" onClick={fillCurrentLocation} disabled={isLocating}>
+                    <LocateFixed className="h-4 w-4" />
+                    {isLocating ? "Locating..." : "Get my location"}
+                  </Button>
+                </div>
+                {locationError && <p className="mt-2 text-xs text-red-500">{locationError}</p>}
+              </div>
               <div className="flex gap-3 pt-2">
-                <Button type="button" variant="outline" className="flex-1 rounded-2xl" onClick={() => { reset(); setDialogOpen(false); }}>Cancel</Button>
+                <Button type="button" variant="outline" className="flex-1 rounded-2xl" onClick={() => { reset(); setLocationError(null); setDialogOpen(false); }}>Cancel</Button>
                 <Button type="submit" disabled={createLocation.isPending} className="flex-1 rounded-2xl">{createLocation.isPending ? "Creating..." : "Create location"}</Button>
               </div>
             </form>

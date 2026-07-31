@@ -2,6 +2,7 @@ import { prisma } from "../prisma/prisma.js";
 import { resolveTaskInstanceWindow } from "./taskInstanceWindow.js";
 import { getKarachiDayRange, resolveAttendanceWindow } from "../utils/karachiTime.js";
 import { syncTodaysOpenAttendanceWindow } from "../utils/syncAttendanceWindow.js";
+import { ensureAssignmentsForToday } from "../services/taskAssignment.service.js";
 
 
 export async function runStartupCron(): Promise<void> {
@@ -127,12 +128,14 @@ export async function runStartupCron(): Promise<void> {
             })
             : { count: 0 };
 
+        const assignmentsEnsured = await ensureAssignmentsForToday();
+
         if (attendanceCreated > 0 || tasksCreated > 0) {
             console.log(
-                `Startup cron: created ${attendanceCreated} attendance record(s) and ${tasksCreated} task instance(s) for today.`
+                `Startup cron: created ${attendanceCreated} attendance record(s), ${tasksCreated} task instance(s), ensured ${assignmentsEnsured} assignment(s) for today.`
             );
         } else {
-            console.log("Startup cron: all today's records already exist.");
+            console.log(`Startup cron: all today's records already exist; ensured ${assignmentsEnsured} assignment(s).`);
         }
     } catch (error) {
         console.error("Startup cron error:", error);

@@ -7,6 +7,7 @@ import { generateAccessToken, generateRefreshToken, isPasswordCorrect } from "..
 import { getKarachiDayRangeFromDateInput, getKarachiMonthRange } from "../utils/karachiTime.js";
 import { syncTodaysOpenAttendanceWindow } from "../utils/syncAttendanceWindow.js";
 import { getCookieOptions } from "../utils/cookies.js";
+import { markCurrentAssignmentsForTasks } from "../services/taskAssignment.service.js";
 
 
 export const loginStaff = async (req: Request, res: Response) => {
@@ -76,7 +77,7 @@ export const createStaff = async (req: Request, res: Response) => {
     throw new ApiError(400, "Validation failed", errors);
   }
 
-  const { name, email, password, locationId, shiftStart, shiftEnd } = result.data;
+  const { name, email, phone, password, locationId, shiftStart, shiftEnd } = result.data;
 
   const existingStaff = await prisma.staff.findUnique({ where: { email } });
   if (existingStaff) throw new ApiError(409, "Staff with this email already exists");
@@ -94,6 +95,7 @@ export const createStaff = async (req: Request, res: Response) => {
     data: {
       name,
       email,
+      phone,
       password,
       companyId: req.user!.companyId,
       locationId: locationId || null,
@@ -116,6 +118,7 @@ export const getStaff = async (req: Request, res: Response) => {
       id: true,
       name: true,
       email: true,
+      phone: true,
       role: true,
       isActive: true,
       companyId: true,
@@ -144,6 +147,14 @@ export const softDeleteStaff = async (req: Request, res: Response) => {
     throw new ApiError(400, "Staff is already deactivated");
   }
 
+  const affectedTasks = await prisma.taskInstance.findMany({
+    where: {
+      staffId,
+      status: { in: ["PENDING", "IN_PROGRESS"] },
+    },
+    select: { id: true },
+  });
+
   await prisma.$transaction([
     prisma.staff.update({
       where: { id: staffId },
@@ -162,6 +173,12 @@ export const softDeleteStaff = async (req: Request, res: Response) => {
     }),
   ]);
 
+  await markCurrentAssignmentsForTasks(
+    affectedTasks.map((task) => task.id),
+    "CANCELLED",
+    "STAFF_DEACTIVATED"
+  );
+
   res.status(200).json(new ApiResponse(200, {}, "Staff deactivated successfully"));
 };
 
@@ -175,6 +192,7 @@ export const getStaffById = async (req: Request, res: Response) => {
       id: true,
       name: true,
       email: true,
+      phone: true,
       role: true,
       isActive: true,
       companyId: true,
@@ -209,6 +227,7 @@ export const getStaffByLocation = async (req: Request, res: Response) => {
       id: true,
       name: true,
       email: true,
+      phone: true,
       role: true,
       isActive: true,
       companyId: true,
@@ -230,6 +249,7 @@ export const getInactiveStaff = async (req: Request, res: Response) => {
       id: true,
       name: true,
       email: true,
+      phone: true,
       role: true,
       isActive: true,
       companyId: true,
@@ -251,6 +271,7 @@ export const getProfile = async (req: Request, res: Response) => {
       id: true,
       name: true,
       email: true,
+      phone: true,
       role: true,
       isActive: true,
       companyId: true,
@@ -347,7 +368,7 @@ export const editStaff = async (req: Request, res: Response) => {
     where: { id: staffId },
     data: result.data,
     select: {
-      id: true, name: true, email: true, role: true, isActive: true,
+      id: true, name: true, email: true, phone: true, role: true, isActive: true,
       companyId: true, locationId: true, shiftStart: true, shiftEnd: true,
       createdAt: true, updatedAt: true,
     }
@@ -426,6 +447,7 @@ export const getStaffDetails = async (req: Request, res: Response) => {
       id: true,
       name: true,
       email: true,
+      phone: true,
       role: true,
       isActive: true,
       companyId: true,

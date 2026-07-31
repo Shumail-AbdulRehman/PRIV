@@ -288,6 +288,27 @@ export const getTodayStatus = async (req: Request, res: Response) => {
                 isLate: true,
                 lateMinutes: true,
                 staffId: true,
+                assignments: {
+                    orderBy: { assignedAt: "asc" },
+                    select: {
+                        id: true,
+                        staffId: true,
+                        status: true,
+                        reason: true,
+                        isCurrent: true,
+                        assignedAt: true,
+                        startedAt: true,
+                        completedAt: true,
+                        failedAt: true,
+                        staff: {
+                            select: {
+                                id: true,
+                                name: true,
+                                email: true,
+                            },
+                        },
+                    },
+                },
             },
         }),
     ]);
@@ -315,6 +336,13 @@ export const getTodayStatus = async (req: Request, res: Response) => {
 
             return {
                 ...task,
+                assignmentSummary: {
+                    originalAssignee: task.assignments[0]?.staff ?? null,
+                    currentAssignee: task.assignments.find((assignment) => assignment.isCurrent)?.staff ?? null,
+                    reassignmentCount: Math.max(task.assignments.length - 1, 0),
+                    lastReassignmentReason:
+                        [...task.assignments].reverse().find((assignment) => assignment.reason)?.reason ?? null,
+                },
                 isCurrentlyLate: task.isLate || isPendingStartLate,
                 displayLateMinutes: task.lateMinutes ?? derivedLateMinutes,
             };

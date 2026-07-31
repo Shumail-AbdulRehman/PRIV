@@ -2,9 +2,10 @@ import cron from "node-cron";
 import { prisma } from "../prisma/prisma.js";
 import { resolveTaskInstanceWindow } from "./taskInstanceWindow.js";
 import { KARACHI_TIMEZONE, getKarachiDayRange } from "../utils/karachiTime.js";
+import { ensureAssignmentsForToday } from "../services/taskAssignment.service.js";
 
 
-cron.schedule("*/5 * * * *",async()=>
+cron.schedule("3-59/15 * * * *",async()=>
 {
     try {
 
@@ -61,6 +62,8 @@ cron.schedule("*/5 * * * *",async()=>
       : { count: 0 };
 
     console.log(`Once Task instances created: ${created}`);
+    const ensuredAssignments = await ensureAssignmentsForToday();
+    console.log(`Once task assignments ensured: ${ensuredAssignments}`);
         
     } catch (error) {
          console.error("Once Task scheduler cron error:", error);

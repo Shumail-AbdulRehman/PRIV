@@ -6,7 +6,6 @@ generator client {
 datasource db {
   provider = "postgresql"
 }
-
 model Company {
   id        Int        @id @default(autoincrement())
   name      String
@@ -36,6 +35,7 @@ model Staff {
   id            Int            @id @default(autoincrement())
   name          String
   email         String         @unique
+  phone         String?
   password      String
   role          Role           @default(STAFF)
   isActive      Boolean        @default(true)
@@ -48,6 +48,7 @@ model Staff {
   shiftEnd      DateTime?
   taskTemplates TaskTemplate[]
   taskInstances TaskInstance[]
+  taskAssignments TaskAssignment[]
   attendances   Attendance[]
   createdAt     DateTime       @default(now())
   updatedAt     DateTime       @updatedAt
@@ -120,6 +121,7 @@ model TaskInstance {
   staffId        Int?
   location       Location      @relation(fields: [locationId], references: [id])
   locationId     Int
+  assignments    TaskAssignment[]
   createdAt      DateTime      @default(now())
   updatedAt      DateTime      @updatedAt
   isActive       Boolean       @default(true)
@@ -129,6 +131,47 @@ model TaskInstance {
   @@index([locationId, status])
   @@index([staffId, isActive, date])
   @@index([staffId, status])
+}
+
+model TaskAssignment {
+  id             Int              @id @default(autoincrement())
+  taskInstance   TaskInstance     @relation(fields: [taskInstanceId], references: [id], onDelete: Cascade)
+  taskInstanceId Int
+  staff          Staff            @relation(fields: [staffId], references: [id])
+  staffId        Int
+  status         AssignmentStatus @default(ASSIGNED)
+  reason         String?
+  isCurrent      Boolean          @default(true)
+  assignedAt     DateTime         @default(now())
+  startedAt      DateTime?
+  completedAt    DateTime?
+  failedAt       DateTime?
+  createdAt      DateTime         @default(now())
+  updatedAt      DateTime         @updatedAt
+
+  @@index([taskInstanceId])
+  @@index([taskInstanceId, isCurrent])
+  @@index([staffId])
+  @@index([staffId, isCurrent])
+  @@index([status])
+}
+
+model AuditLog {
+  id          Int      @id @default(autoincrement())
+  companyId   Int?
+  actorType   String
+  actorId     Int?
+  entityType  String
+  entityId    Int
+  action      String
+  reason      String?
+  oldValue    Json?
+  newValue    Json?
+  createdAt   DateTime @default(now())
+
+  @@index([companyId])
+  @@index([entityType, entityId])
+  @@index([createdAt])
 }
 
 model Attendance {
@@ -162,6 +205,16 @@ enum AttendanceStatus {
   CHECKED_OUT
   LATE
   MISSED_CHECKOUT
+}
+
+enum AssignmentStatus {
+  ASSIGNED
+  STARTED
+  COMPLETED
+  MISSED
+  FAILED
+  REASSIGNED
+  CANCELLED
 }
 
 enum RecurringType {

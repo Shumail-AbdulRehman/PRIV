@@ -4,6 +4,10 @@ import { ApiResponse } from "../utils/ApiResponse.js";
 import { ApiError } from "../utils/ApiError.js";
 import { getKarachiDayRange } from "../utils/karachiTime.js";
 import { uploadMultipleImages } from "../utils/cloudinary.js";
+import {
+  markCurrentAssignmentCompleted,
+  markCurrentAssignmentStarted,
+} from "../services/taskAssignment.service.js";
 
 
 export const getTodaysTasksForStaff = async (req: Request, res: Response) => {
@@ -101,25 +105,37 @@ export const startTask = async (req: Request, res: Response) => {
   if (isLate) {
     const lateMinutes = Math.floor((now.getTime() - task.shiftStart.getTime()) / (1000 * 60));
 
-    const taskStartedLate = await prisma.taskInstance.update({
-      where: { id: taskId },
-      data: {
-        status: "IN_PROGRESS",
-        startedAt: now,
-        isLate: true,
-        lateMinutes,
-      },
+    const taskStartedLate = await prisma.$transaction(async (tx) => {
+      const updatedTask = await tx.taskInstance.update({
+        where: { id: taskId },
+        data: {
+          status: "IN_PROGRESS",
+          startedAt: now,
+          isLate: true,
+          lateMinutes,
+        },
+      });
+
+      await markCurrentAssignmentStarted(taskId, req.user!.id, now, tx as typeof prisma);
+
+      return updatedTask;
     });
 
     return res.status(200).json(new ApiResponse(200, taskStartedLate, "Task started late"));
   }
 
-  const taskStarted = await prisma.taskInstance.update({
-    where: { id: taskId },
-    data: {
-      status: "IN_PROGRESS",
-      startedAt: now,
-    },
+  const taskStarted = await prisma.$transaction(async (tx) => {
+    const updatedTask = await tx.taskInstance.update({
+      where: { id: taskId },
+      data: {
+        status: "IN_PROGRESS",
+        startedAt: now,
+      },
+    });
+
+    await markCurrentAssignmentStarted(taskId, req.user!.id, now, tx as typeof prisma);
+
+    return updatedTask;
   });
 
   return res.status(200).json(new ApiResponse(200, taskStarted, "Task started successfully"));
@@ -164,13 +180,19 @@ export const completeTask = async (req: Request, res: Response) => {
 
     const proofImageUrls = uploadedImages.map((image) => image.secure_url);
     
-    const taskCompleted = await prisma.taskInstance.update({
-        where: { id: taskId },
-        data: {
-            status: "COMPLETED",
-            completedAt: now,
-            proofImageUrls,
-        }
+    const taskCompleted = await prisma.$transaction(async (tx) => {
+        const updatedTask = await tx.taskInstance.update({
+            where: { id: taskId },
+            data: {
+                status: "COMPLETED",
+                completedAt: now,
+                proofImageUrls,
+            }
+        });
+
+        await markCurrentAssignmentCompleted(taskId, req.user!.id, now, tx as typeof prisma);
+
+        return updatedTask;
     });
 
     res.status(200).json(new ApiResponse(200, taskCompleted, "Task completed successfully"));
@@ -187,6 +209,20 @@ export const getTaskInstanceById = async (req: Request, res: Response) => {
 
     const task= await prisma.taskInstance.findUnique({
         where: {id: taskId, isActive:true},
+        include: {
+            assignments: {
+                orderBy: { assignedAt: "asc" },
+                include: {
+                    staff: {
+                        select: {
+                            id: true,
+                            name: true,
+                            email: true,
+                        },
+                    },
+                },
+            },
+        },
     });
 
     if (!task || task.staffId !== req.user!.id) {
@@ -228,7 +264,19 @@ export const getTasknstancesOfLocation = async (req: Request, res: Response) => 
                     shiftStart: true,
                     shiftEnd: true   
                 }
-            }
+            },
+            assignments: {
+                orderBy: { assignedAt: "asc" },
+                include: {
+                    staff: {
+                        select: {
+                            id: true,
+                            name: true,
+                            email: true,
+                        },
+                    },
+                },
+            },
         }
     });
 

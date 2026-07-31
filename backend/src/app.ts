@@ -8,6 +8,7 @@ import { getCookieRuntimeConfig } from "./utils/cookies.js";
 import "./cron/dailyTaskScheduler.js";
 import "./cron/onceTaskScheduler.js";
 import "./cron/taskStatusCron.js";
+import "./cron/taskReassignmentCron.js";
 import "./cron/attendanceCron.js";
 import "./cron/attendanceStatusCron.js";
 import { runStartupCron } from "./cron/startupCron.js";

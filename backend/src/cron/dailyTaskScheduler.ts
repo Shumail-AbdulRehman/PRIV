@@ -1,9 +1,18 @@
-import cron from "node-cron";
 import { prisma } from "../prisma/prisma.js";
 import { resolveTaskInstanceWindow } from "./taskInstanceWindow.js";
-import { KARACHI_TIMEZONE, getKarachiDayRange } from "../utils/karachiTime.js";
+import { getKarachiDayRange } from "../utils/karachiTime.js";
+import { ensureAssignmentsForToday } from "../services/taskAssignment.service.js";
 
-cron.schedule("*/5 * * * *", async () => {
+let isDailyTaskSchedulerRunning = false;
+
+export const runDailyTaskScheduler = async () => {
+  if (isDailyTaskSchedulerRunning) {
+    console.log("Daily task scheduler skipped: previous run still in progress.");
+    return;
+  }
+
+  isDailyTaskSchedulerRunning = true;
+
   try {
     console.log("Generating daily task instances...");
 
@@ -59,7 +68,16 @@ cron.schedule("*/5 * * * *", async () => {
       : { count: 0 };
 
     console.log(`Task instances created: ${created}`);
+    const ensuredAssignments = await ensureAssignmentsForToday();
+    console.log(`Task assignments ensured: ${ensuredAssignments}`);
   } catch (error) {
     console.error("Task scheduler cron error:", error);
+  } finally {
+    isDailyTaskSchedulerRunning = false;
   }
-}, { timezone: KARACHI_TIMEZONE });
+};
+
+void runDailyTaskScheduler();
+setInterval(() => {
+  void runDailyTaskScheduler();
+}, 90 * 1000);

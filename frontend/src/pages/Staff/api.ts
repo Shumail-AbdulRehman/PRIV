@@ -3,6 +3,7 @@ import { client } from "@/api/client";
 export interface CreateStaffInput {
   name: string;
   email: string;
+  phone: string;
   password: string;
   locationId?: number;
   shiftStart?: string;
@@ -17,6 +18,7 @@ export interface AssignShiftInput {
 export interface EditStaffInput {
   name?: string;
   email?: string;
+  phone?: string;
   shiftStart?: string;
   shiftEnd?: string;
 }
