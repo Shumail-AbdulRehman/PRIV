@@ -3,7 +3,7 @@ import { createLocationSchema } from "../validations/location.validation.js";
 import { prisma } from "../prisma/prisma.js";
 import { ApiResponse } from "../utils/ApiResponse.js";
 import { ApiError } from "../utils/ApiError.js";
-import { addUtcDays, getKarachiDayRange, getKarachiDayRangeFromDateInput } from "../utils/karachiTime.js";
+import { addUtcDays, getUtcDayRange, getUtcDayRangeFromDateInput } from "../utils/dateTime.js";
 import { markCurrentAssignmentsForTasks } from "../services/taskAssignment.service.js";
 
 export const createLocation = async (req: Request, res: Response) => {
@@ -206,8 +206,8 @@ export const getLocationStatsById = async (req: Request, res: Response) => {
 
   
   if (dateFromParam && dateToParam) {
-    const startRange = getKarachiDayRangeFromDateInput(dateFromParam);
-    const endRange = getKarachiDayRangeFromDateInput(dateToParam);
+    const startRange = getUtcDayRangeFromDateInput(dateFromParam);
+    const endRange = getUtcDayRangeFromDateInput(dateToParam);
 
     if (!startRange || !endRange) {
       throw new ApiError(400, "Invalid dateFrom or dateTo format. Use YYYY-MM-DD");
@@ -226,7 +226,7 @@ export const getLocationStatsById = async (req: Request, res: Response) => {
       throw new ApiError(400, "days must be a positive number");
     }
 
-    const { start: todayStart, end: tomorrowStart } = getKarachiDayRange();
+    const { start: todayStart, end: tomorrowStart } = getUtcDayRange();
     const startDate = addUtcDays(todayStart, -(days - 1));
 
     dateFilter = { date: { gte: startDate, lt: tomorrowStart } };

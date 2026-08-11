@@ -1,13 +1,13 @@
 import { prisma } from "../prisma/prisma.js";
 import { resolveTaskInstanceWindow } from "./taskInstanceWindow.js";
-import { getKarachiDayRange, resolveAttendanceWindow } from "../utils/karachiTime.js";
+import { getUtcDayRange, resolveAttendanceWindow } from "../utils/dateTime.js";
 import { syncTodaysOpenAttendanceWindow } from "../utils/syncAttendanceWindow.js";
 import { ensureAssignmentsForToday } from "../services/taskAssignment.service.js";
 
 
 export async function runStartupCron(): Promise<void> {
     try {
-        const { start: today, end: tomorrow } = getKarachiDayRange();
+        const { start: today, end: tomorrow } = getUtcDayRange();
 
        
 

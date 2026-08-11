@@ -1,0 +1,204 @@
+================================================================================
+PROJECT CONTEXT TRANSFER DOCUMENT
+Generated: 2026-08-12
+Project: CleanOps (cleaning/facility-operations SaaS)
+Location: /home/shumail/bk-Priv/PRIV
+================================================================================
+
+1. WHAT THIS PROJECT DOES
+--------------------------------------------------------------------------------
+CleanOps is a cleaning / facility-operations management SaaS. Core workflows:
+
+- Managers use a React web dashboard to create companies, locations, staff
+  (cleaners), managers, and recurring/one-off task templates.
+- The backend automatically generates daily task instances from templates.
+- Staff use a React Native mobile app to log in, check in/out (with geofencing),
+  view today's tasks, scan a QR code to start a task, and upload proof images
+  to complete a task.
+- Cron jobs run on the backend to generate tasks, update attendance status,
+  mark missed tasks, and auto-reassign tasks that were not started within a
+  grace period.
+
+2. TECH STACK
+--------------------------------------------------------------------------------
+Backend:        Node.js 22, Express 5, TypeScript ESM, Prisma 7 + pg adapter,
+                PostgreSQL (Supabase), Cloudinary, JWT cookies/Bearer,
+                node-cron, Zod
+Web frontend:   React 19, Vite 8, Tailwind CSS 4, Redux Toolkit,
+                TanStack Query, React Router 7, shadcn/ui-style components,
+                Recharts
+Mobile app:     Expo 54, React Native 0.81, React Navigation,
+                TanStack Query, Axios
+ML (removed):   PyTorch EfficientNet-B0 notebook + weights (deleted)
+
+3. ARCHITECTURE
+--------------------------------------------------------------------------------
+- Monorepo with backend, frontend, and frontend-mobile apps.
+- Backend exposes /api/* on port 8080 by default.
+- Auth: JWT access token in cookie (accessToken) or Authorization: Bearer header;
+  refresh via POST /api/common/refresh-token.
+- Database: Prisma Client + pg adapter reads DATABASE_URL.
+- File storage: Proof images uploaded to Cloudinary.
+- Frontend dev uses Vite proxy to 127.0.0.1:8080.
+- Mobile app uses EXPO_PUBLIC_API_BASE_URL (default Android emulator 10.0.2.2:8080).
+- Cron jobs imported at startup in backend/src/app.ts.
+
+4. MAJOR CHANGES ALREADY MADE
+--------------------------------------------------------------------------------
+
+A. REMOVED ML ARTIFACTS
+   Deleted:
+   - models/ (clean_dirty_efficientnet_b0.pt)
+   - data_clean_dirty/ (room_dataset.npy)
+   - clean_dirty_efficientnet_pipeline.ipynb
+   - clean_dirty_efficientnet_pipeline.executed.ipynb
+   - .venv-clean-dirty/ (Python virtual environment)
+   - .jupyter-clean-dirty/ (Jupyter state)
+   - .ipython-clean-dirty/ (IPython profile)
+   - Related .ipynb_checkpoints files
+   Updated .gitignore to ignore /models/, .venv-clean-dirty/, .jupyter-clean-dirty/,
+   .ipython-clean-dirty/.
+   Note: ML model was never wired into the backend.
+
+B. REMOVED BILLING MODULE
+   Deleted:
+   - backend/src/modules/billing/ (entire backend billing module)
+   - frontend/src/pages/Billing/ (billing/pricing frontend pages)
+   - backend/prisma/migrations/20260801120000_add_subscription_billing/
+     (migration that created billing tables)
+   Added:
+   - backend/prisma/migrations/20260811192000_remove_billing_tables/migration.sql
+     (drops SubscriptionPlan, Feature, PlanFeature, Subscription, Invoice,
+      Payment, UsageRecord tables and related enums)
+   Status:
+   - Schema.prisma never had billing models, so no schema change was needed.
+   - Prisma client regenerated successfully.
+   - Backend tsc --noEmit passes.
+   - The migration could NOT be applied because the database is unreachable.
+
+C. REMOVED KARACHI TIME LOGIC AND SWITCHED TO UTC EVERYWHERE
+   Old approach:
+   - backend/src/utils/karachiTime.ts used a fixed +5h offset and computed
+     Karachi day boundaries, shift windows, and attendance windows.
+   New approach:
+   - backend/src/utils/dateTime.ts provides UTC-based helpers:
+     getStartOfUtcDay, getUtcDayRange, getUtcDayRangeFromDateInput,
+     getUtcMonthRange, getUtcClockMinutes, withUtcClockOnBaseDate,
+     resolveAttendanceWindow, resolveTaskInstanceWindow, addUtcDays,
+     getStartOfStoredUtcDateAsUtcDay.
+   - All backend controllers, cron jobs, and services updated to import from
+     dateTime.ts instead of karachiTime.ts.
+   - node-cron schedules no longer specify Asia/Karachi timezone (server time,
+     expected to be UTC in Docker).
+   - Web frontend updated so shift/time inputs and date filters use UTC:
+     - StaffPage.tsx, StaffDetailPage.tsx
+     - LocationDetailPage.tsx
+     - AttendancePage.tsx
+     - Manager/TodayStatusPage.tsx
+     - DashboardPage.tsx
+     - frontend/src/lib/attendance.ts
+   - Time/date formatters now read UTC components and display with
+     timeZone: "UTC".
+   Verification:
+   - npx tsc --noEmit passes in backend/ and frontend/.
+
+5. CURRENT KNOWN ISSUES / WARNINGS
+--------------------------------------------------------------------------------
+
+A. DATABASE UNREACHABLE
+   DATABASE_URL points to Supabase at
+   aws-1-ap-southeast-2.pooler.supabase.com:6543
+   Prisma cannot connect (P1001 / ETIMEDOUT).
+   Impact:
+   - Login fails with ETIMEDOUT on prisma.manager.findUnique().
+   - Billing-table removal migration cannot be applied.
+   Likely causes:
+   - Supabase project paused (free tier auto-pause).
+   - IP not allowlisted.
+   - Network/firewall blocking port 6543.
+   - Wrong connection string.
+   Recommended fix:
+   - Log into Supabase dashboard, verify project is active, allowlist current IP.
+   - Consider adding DIRECT_URL for migrations (Prisma migrate deploy does not
+     work through PgBouncer).
+
+B. EXISTING DATA MAY BE 5 HOURS OFF AFTER UTC SWITCH
+   Under the old Karachi logic, shift times were stored as UTC instants that
+   represented Karachi wall-clock time (e.g., 9 AM Karachi stored as 04:00:00Z).
+   With UTC everywhere, that same stored value is now interpreted as 4 AM UTC.
+   Existing staff shifts, task template shifts, effective dates, and attendance
+   windows need a data migration if the historical values should remain correct.
+   A SQL migration to shift old timestamps by +5 hours could be written once the
+   database is reachable.
+
+C. BILLING MIGRATION NOT APPLIED
+   backend/prisma/migrations/20260811192000_remove_billing_tables/migration.sql
+   is staged but not yet deployed. Run from a machine with DB access:
+   cd backend && npx prisma migrate deploy
+
+D. DAILY TASK SCHEDULER RUNS EVERY 90 SECONDS
+   backend/src/cron/dailyTaskScheduler.ts uses setInterval(90s). This is
+   wasteful; ideally it should run once per day at UTC midnight (0 0 * * *).
+
+E. NO TEST SUITE
+   No unit, integration, or E2E tests found.
+
+6. KEY FILE PATHS
+--------------------------------------------------------------------------------
+Backend entry:        backend/src/app.ts
+Routes:               backend/src/routes/
+Controllers:          backend/src/controllers/
+Cron jobs:            backend/src/cron/
+Task assignment:      backend/src/services/taskAssignment.service.ts
+UTC date helpers:     backend/src/utils/dateTime.ts
+Prisma schema:        backend/prisma/schema.prisma
+Prisma migrations:    backend/prisma/migrations/
+
+Web entry:            frontend/src/main.tsx
+Login page:           frontend/src/pages/Login/LoginPage.tsx
+API client:           frontend/src/api/client.ts
+
+7. PENDING RECOMMENDATIONS
+--------------------------------------------------------------------------------
+- Fix Supabase connectivity and apply pending migrations.
+- Decide whether to migrate existing timestamp data after the UTC switch.
+- Slow daily task scheduler from 90s interval to once per day.
+- Add timezone-aware or configurable timezone support if the business expands
+  beyond one implicit timezone.
+- Add tests.
+
+8. GIT STATUS SUMMARY (non-ML changes)
+--------------------------------------------------------------------------------
+Modified:
+  .gitignore
+  backend/src/controllers/attendance.controller.ts
+  backend/src/controllers/location.controller.ts
+  backend/src/controllers/manager.controller.ts
+  backend/src/controllers/staff.controller.ts
+  backend/src/controllers/taskInstance.controller.ts
+  backend/src/controllers/taskTemplate.controller.ts
+  backend/src/cron/attendanceCron.ts
+  backend/src/cron/dailyTaskScheduler.ts
+  backend/src/cron/onceTaskScheduler.ts
+  backend/src/cron/startupCron.ts
+  backend/src/cron/taskInstanceWindow.ts
+  backend/src/services/taskAssignment.service.ts
+  backend/src/utils/syncAttendanceWindow.ts
+  frontend/src/lib/attendance.ts
+  frontend/src/pages/Attendance/AttendancePage.tsx
+  frontend/src/pages/Dashboard/DashboardPage.tsx
+  frontend/src/pages/Location/LocationDetailPage.tsx
+  frontend/src/pages/Manager/TodayStatusPage.tsx
+  frontend/src/pages/Staff/StaffDetailPage.tsx
+  frontend/src/pages/Staff/StaffPage.tsx
+Added:
+  backend/prisma/migrations/20260811192000_remove_billing_tables/migration.sql
+  backend/src/utils/dateTime.ts
+Deleted:
+  backend/src/utils/karachiTime.ts
+  clean_dirty_efficientnet_pipeline.executed.ipynb
+  clean_dirty_efficientnet_pipeline.ipynb
+  (plus staged deletions of .venv-clean-dirty, .jupyter-clean-dirty,
+   .ipython-clean-dirty, and related checkpoint files)
+
+================================================================================

@@ -4,7 +4,7 @@ import { prisma } from "../prisma/prisma.js";
 import { ApiResponse } from "../utils/ApiResponse.js";
 import { ApiError } from "../utils/ApiError.js";
 import { generateAccessToken, generateRefreshToken, isPasswordCorrect } from "../utils/auth.js";
-import { getKarachiDayRangeFromDateInput, getKarachiMonthRange } from "../utils/karachiTime.js";
+import { getUtcDayRangeFromDateInput, getUtcMonthRange } from "../utils/dateTime.js";
 import { syncTodaysOpenAttendanceWindow } from "../utils/syncAttendanceWindow.js";
 import { getCookieOptions } from "../utils/cookies.js";
 import { markCurrentAssignmentsForTasks } from "../services/taskAssignment.service.js";
@@ -410,7 +410,7 @@ export const getStaffDetails = async (req: Request, res: Response) => {
       throw new ApiError(400, "Invalid month value");
     }
 
-    const monthRange = getKarachiMonthRange(year, monthIndex);
+    const monthRange = getUtcMonthRange(year, monthIndex);
     if (!monthRange) {
       throw new ApiError(400, "Invalid month value");
     }
@@ -426,8 +426,8 @@ export const getStaffDetails = async (req: Request, res: Response) => {
       throw new ApiError(400, "Both dateFrom and dateTo are required together");
     }
 
-    const startRange = getKarachiDayRangeFromDateInput(dateFromParam);
-    const endRange = getKarachiDayRangeFromDateInput(dateToParam);
+    const startRange = getUtcDayRangeFromDateInput(dateFromParam);
+    const endRange = getUtcDayRangeFromDateInput(dateToParam);
 
     if (!startRange || !endRange) {
       throw new ApiError(400, "Invalid dateFrom or dateTo format. Use YYYY-MM-DD");

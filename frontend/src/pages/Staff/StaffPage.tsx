@@ -64,13 +64,14 @@ interface CreateStaffForm {
 
 const fmtTime = (d: string | null) => {
   if (!d) return "—";
-  return new Date(d).toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" });
+  const date = new Date(d);
+  return `${String(date.getUTCHours()).padStart(2, "0")}:${String(date.getUTCMinutes()).padStart(2, "0")}`;
 };
 
 const toTimeValue = (iso: string | null) => {
   if (!iso) return "";
   const d = new Date(iso);
-  return `${String(d.getHours()).padStart(2, "0")}:${String(d.getMinutes()).padStart(2, "0")}`;
+  return `${String(d.getUTCHours()).padStart(2, "0")}:${String(d.getUTCMinutes()).padStart(2, "0")}`;
 };
 
 const inputCls =
@@ -145,12 +146,12 @@ export default function StaffPage() {
       if (editForm.shiftStart && editForm.shiftStart !== toTimeValue(editingStaff.shiftStart)) {
         const base = editingStaff.shiftStart ? new Date(editingStaff.shiftStart) : new Date();
         const [h, m] = editForm.shiftStart.split(":").map(Number);
-        base.setHours(h, m, 0, 0); payload.shiftStart = base.toISOString();
+        base.setUTCHours(h, m, 0, 0); payload.shiftStart = base.toISOString();
       }
       if (editForm.shiftEnd && editForm.shiftEnd !== toTimeValue(editingStaff.shiftEnd)) {
         const base = editingStaff.shiftEnd ? new Date(editingStaff.shiftEnd) : new Date();
         const [h, m] = editForm.shiftEnd.split(":").map(Number);
-        base.setHours(h, m, 0, 0); payload.shiftEnd = base.toISOString();
+        base.setUTCHours(h, m, 0, 0); payload.shiftEnd = base.toISOString();
       }
       if (Object.keys(payload).length > 0) {
         await new Promise<void>((resolve, reject) => {
@@ -211,8 +212,18 @@ export default function StaffPage() {
         phone: formData.phone,
         password: formData.password,
         locationId: formData.locationId ? Number(formData.locationId) : undefined,
-        shiftStart: formData.shiftStart ? new Date(`1970-01-01T${formData.shiftStart}:00`).toISOString() : undefined,
-        shiftEnd: formData.shiftEnd ? new Date(`1970-01-01T${formData.shiftEnd}:00`).toISOString() : undefined,
+        shiftStart: formData.shiftStart
+          ? (() => {
+              const [h, m] = formData.shiftStart.split(":").map(Number);
+              return new Date(Date.UTC(1970, 0, 1, h, m, 0)).toISOString();
+            })()
+          : undefined,
+        shiftEnd: formData.shiftEnd
+          ? (() => {
+              const [h, m] = formData.shiftEnd.split(":").map(Number);
+              return new Date(Date.UTC(1970, 0, 1, h, m, 0)).toISOString();
+            })()
+          : undefined,
       },
       { onSuccess: () => { reset(); setDialogOpen(false); } }
     );

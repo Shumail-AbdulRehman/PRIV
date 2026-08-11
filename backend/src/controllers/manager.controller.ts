@@ -7,7 +7,7 @@ import {
 import { prisma } from "../prisma/prisma.js";
 import { ApiResponse } from "../utils/ApiResponse.js";
 import { ApiError } from "../utils/ApiError.js";
-import { getKarachiDayRange } from "../utils/karachiTime.js";
+import { getUtcDayRange } from "../utils/dateTime.js";
 import { generateAccessToken, generateRefreshToken, isPasswordCorrect } from "../utils/auth.js";
 import { TokenPayload } from "../types/jwt.js";
 import { getCookieOptions } from "../utils/cookies.js";
@@ -178,7 +178,7 @@ export const getTodayStatus = async (req: Request, res: Response) => {
         throw new ApiError(400, "Invalid locationId");
     }
 
-    const { start: today, end: tomorrow } = getKarachiDayRange();
+    const { start: today, end: tomorrow } = getUtcDayRange();
 
     const locationWhere = {
         companyId,

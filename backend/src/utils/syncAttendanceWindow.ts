@@ -1,6 +1,6 @@
 import { AttendanceStatus } from "@prisma/client";
 import { prisma } from "../prisma/prisma.js";
-import { getKarachiDayRange, resolveAttendanceWindow } from "./karachiTime.js";
+import { getUtcDayRange, resolveAttendanceWindow } from "./dateTime.js";
 
 const OPEN_ATTENDANCE_STATUSES: AttendanceStatus[] = [
   AttendanceStatus.ABSENT,
@@ -19,13 +19,11 @@ export const syncTodaysOpenAttendanceWindow = async ({
   shiftStart: Date | null;
   shiftEnd: Date | null;
 }) => {
-
-
   if (!locationId || !shiftStart || !shiftEnd) {
     return;
   }
 
-  const { start: today, end: tomorrow } = getKarachiDayRange();
+  const { start: today, end: tomorrow } = getUtcDayRange();
   const { date, expectedStart, expectedEnd } = resolveAttendanceWindow({
     baseDate: today,
     shiftStart,

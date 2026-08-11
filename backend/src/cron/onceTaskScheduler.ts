@@ -1,7 +1,7 @@
 import cron from "node-cron";
 import { prisma } from "../prisma/prisma.js";
 import { resolveTaskInstanceWindow } from "./taskInstanceWindow.js";
-import { KARACHI_TIMEZONE, getKarachiDayRange } from "../utils/karachiTime.js";
+import { getUtcDayRange } from "../utils/dateTime.js";
 import { ensureAssignmentsForToday } from "../services/taskAssignment.service.js";
 
 
@@ -11,7 +11,7 @@ cron.schedule("3-59/15 * * * *",async()=>
 
     console.log("Generating Once task instances...");
 
-    const { start: today, end: tomorrow } = getKarachiDayRange();
+    const { start: today, end: tomorrow } = getUtcDayRange();
 
         const onceTemplates = await prisma.taskTemplate.findMany({
       where: {
@@ -68,4 +68,4 @@ cron.schedule("3-59/15 * * * *",async()=>
     } catch (error) {
          console.error("Once Task scheduler cron error:", error);
     }
-}, { timezone: KARACHI_TIMEZONE })
+})

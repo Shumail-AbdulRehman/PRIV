@@ -82,28 +82,34 @@ interface StaffTaskTemplateRow {
 
 const fmtTime = (d: string | null) => {
   if (!d) return "—";
-  return new Date(d).toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" });
+  const date = new Date(d);
+  return `${String(date.getUTCHours()).padStart(2, "0")}:${String(date.getUTCMinutes()).padStart(2, "0")}`;
 };
 const fmtDate = (d: string | null) => {
   if (!d) return "—";
-  return new Date(d).toLocaleDateString();
+  const date = new Date(d);
+  return date.toLocaleDateString("en-US", { timeZone: "UTC" });
 };
 const fmtDateTime = (d: string | null) => {
   if (!d) return "—";
-  return new Date(d).toLocaleString([], { month: "short", day: "numeric", hour: "2-digit", minute: "2-digit" });
+  const date = new Date(d);
+  return `${String(date.getUTCDate()).padStart(2, "0")} ${date.toLocaleDateString("en-US", {
+    month: "short",
+    timeZone: "UTC",
+  })} ${String(date.getUTCHours()).padStart(2, "0")}:${String(date.getUTCMinutes()).padStart(2, "0")}`;
 };
 
 const getCurrentMonthValue = () => {
   const now = new Date();
-  return `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, "0")}`;
+  return `${now.getUTCFullYear()}-${String(now.getUTCMonth() + 1).padStart(2, "0")}`;
 };
 
 const toDateInputValue = (date: Date) =>
-  `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, "0")}-${String(date.getDate()).padStart(2, "0")}`;
+  `${date.getUTCFullYear()}-${String(date.getUTCMonth() + 1).padStart(2, "0")}-${String(date.getUTCDate()).padStart(2, "0")}`;
 
 const getYesterdayValue = () => {
   const yesterday = new Date();
-  yesterday.setDate(yesterday.getDate() - 1);
+  yesterday.setUTCDate(yesterday.getUTCDate() - 1);
   return toDateInputValue(yesterday);
 };
 
@@ -112,10 +118,10 @@ const getMonthOptions = (count = 12) => {
   const cursor = new Date();
 
   for (let index = 0; index < count; index += 1) {
-    const value = `${cursor.getFullYear()}-${String(cursor.getMonth() + 1).padStart(2, "0")}`;
-    const label = cursor.toLocaleDateString("en-US", { month: "long", year: "numeric" });
+    const value = `${cursor.getUTCFullYear()}-${String(cursor.getUTCMonth() + 1).padStart(2, "0")}`;
+    const label = cursor.toLocaleDateString("en-US", { month: "long", year: "numeric", timeZone: "UTC" });
     options.push({ value, label });
-    cursor.setMonth(cursor.getMonth() - 1);
+    cursor.setUTCMonth(cursor.getUTCMonth() - 1);
   }
 
   return options;
@@ -297,7 +303,7 @@ const StaffDetailPage: React.FC = () => {
 
     if (type === "yesterday") {
       const yesterday = new Date();
-      yesterday.setDate(yesterday.getDate() - 1);
+      yesterday.setUTCDate(yesterday.getUTCDate() - 1);
       const value = toDateInputValue(yesterday);
       setDateFrom(value);
       setDateTo(value);

@@ -16,7 +16,12 @@ __pycache__/
 .ipynb
 # Generated notebook data and trained model outputs
 /data_clean_dirty/
-/models/clean_dirty_efficientnet_b0.pt
+/models/
+
+# ML / notebook virtual environments
+.venv-clean-dirty/
+.jupyter-clean-dirty/
+.ipython-clean-dirty/
 
 # OS / Editor lock/temp files
 *~

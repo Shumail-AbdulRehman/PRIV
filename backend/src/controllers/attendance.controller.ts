@@ -4,7 +4,7 @@ import { ApiResponse } from "../utils/ApiResponse.js";
 import { ApiError } from "../utils/ApiError.js";
 import { checkInSchema, checkOutSchema, assignShiftSchema } from "../validations/attendance.validation.js";
 import { isWithinRadius } from "../utils/geofencing.js";
-import { addUtcDays, getKarachiDayRange, getKarachiDayRangeFromDateInput } from "../utils/karachiTime.js";
+import { addUtcDays, getUtcDayRange, getUtcDayRangeFromDateInput } from "../utils/dateTime.js";
 import { uploadSingleImage } from "../utils/cloudinary.js";
 import { syncTodaysOpenAttendanceWindow } from "../utils/syncAttendanceWindow.js";
 
@@ -177,7 +177,7 @@ export const checkIn = async (req: Request, res: Response) => {
   throw new ApiError(400, `You are not within the allowed radius of your location (you are ${Math.round(actualDistance)}m away, allowed: ${location.radiusMeters}m)`);
 }
 
-    const { start: today, end: tomorrow } = getKarachiDayRange();
+    const { start: today, end: tomorrow } = getUtcDayRange();
 
     const now = new Date();
 
@@ -288,7 +288,7 @@ export const checkOut = async (req: Request, res: Response) => {
   throw new ApiError(400, "You are not within the allowed radius of your location");
 }
 
-    const { start: today, end: tomorrow } = getKarachiDayRange();
+    const { start: today, end: tomorrow } = getUtcDayRange();
 
     let attendance = await prisma.attendance.findFirst({
         where: {
@@ -371,10 +371,10 @@ export const getStaffAttendance = async (req: Request, res: Response) => {
     if (req.query.from || req.query.to) {
         filters.date = {};
         const fromRange = req.query.from
-            ? getKarachiDayRangeFromDateInput(req.query.from as string)
+            ? getUtcDayRangeFromDateInput(req.query.from as string)
             : null;
         const toRange = req.query.to
-            ? getKarachiDayRangeFromDateInput(req.query.to as string)
+            ? getUtcDayRangeFromDateInput(req.query.to as string)
             : null;
 
         if (req.query.from) {

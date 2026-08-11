@@ -54,7 +54,7 @@ export default function DashboardPage() {
     .sort((a, b) => (b._count?.staff ?? 0) - (a._count?.staff ?? 0))
     .slice(0, 3);
 
-  const hour = new Date().getHours();
+  const hour = new Date().getUTCHours();
   const greeting =
     hour < 12 ? "Good Morning" : hour < 17 ? "Good Afternoon" : "Good Evening";
 
@@ -130,6 +130,7 @@ export default function DashboardPage() {
                   weekday: "long",
                   month: "long",
                   day: "numeric",
+                  timeZone: "UTC",
                 })}
               </p>
             </div>

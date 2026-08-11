@@ -2,7 +2,7 @@ import { Request, Response } from "express";
 import { prisma } from "../prisma/prisma.js";
 import { ApiResponse } from "../utils/ApiResponse.js";
 import { ApiError } from "../utils/ApiError.js";
-import { getKarachiDayRange } from "../utils/karachiTime.js";
+import { getUtcDayRange } from "../utils/dateTime.js";
 import { uploadMultipleImages } from "../utils/cloudinary.js";
 import {
   markCurrentAssignmentCompleted,
@@ -23,7 +23,7 @@ export const getTodaysTasksForStaff = async (req: Request, res: Response) => {
     throw new ApiError(404, "Staff not found in your company");
   }
 
-const { start: today, end: tomorrow } = getKarachiDayRange();
+const { start: today, end: tomorrow } = getUtcDayRange();
 
 const tasks = await prisma.taskInstance.findMany({
   where: {

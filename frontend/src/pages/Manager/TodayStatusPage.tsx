@@ -70,11 +70,12 @@ interface StaffStatusEntry {
 
 const fmtTime = (value: string | null) => {
   if (!value) return "—";
-  return new Date(value).toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" });
+  const date = new Date(value);
+  return `${String(date.getUTCHours()).padStart(2, "0")}:${String(date.getUTCMinutes()).padStart(2, "0")}`;
 };
 
-const toLocalDateValue = (value: Date) =>
-  `${value.getFullYear()}-${String(value.getMonth() + 1).padStart(2, "0")}-${String(value.getDate()).padStart(2, "0")}`;
+const toUtcDateValue = (value: Date) =>
+  `${value.getUTCFullYear()}-${String(value.getUTCMonth() + 1).padStart(2, "0")}-${String(value.getUTCDate()).padStart(2, "0")}`;
 
 export default function TodayStatusPage() {
   const navigate = useNavigate();
@@ -98,7 +99,7 @@ export default function TodayStatusPage() {
   const summary = payload?.summary;
   const locations = payload?.locations ?? [];
   const staffStatus: StaffStatusEntry[] = payload?.staffStatus ?? [];
-  const todayDate = payload?.date ? toLocalDateValue(new Date(payload.date)) : toLocalDateValue(new Date());
+  const todayDate = payload?.date ? toUtcDateValue(new Date(payload.date)) : toUtcDateValue(new Date());
 
   const filteredStaff = staffStatus.filter((entry) => {
     const matchesSearch =

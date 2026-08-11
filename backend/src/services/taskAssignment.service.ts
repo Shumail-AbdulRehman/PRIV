@@ -1,5 +1,5 @@
 import { prisma } from "../prisma/prisma.js";
-import { addUtcDays } from "../utils/karachiTime.js";
+import { addUtcDays } from "../utils/dateTime.js";
 import { writeAuditLog } from "./auditLog.service.js";
 
 type DbClient = typeof prisma;

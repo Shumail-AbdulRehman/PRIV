@@ -40,17 +40,18 @@ import {
 } from "lucide-react";
 
 const toDateStr = (d: Date) =>
-  `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}-${String(d.getDate()).padStart(2, "0")}`;
+  `${d.getUTCFullYear()}-${String(d.getUTCMonth() + 1).padStart(2, "0")}-${String(d.getUTCDate()).padStart(2, "0")}`;
 const fmtCoord = (v: string) => parseFloat(v).toFixed(6);
 const fmtTime = (d: string | null) => {
   if (!d) return "—";
-  return new Date(d).toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" });
+  const date = new Date(d);
+  return `${String(date.getUTCHours()).padStart(2, "0")}:${String(date.getUTCMinutes()).padStart(2, "0")}`;
 };
 
 type FilterKey = "today" | "yesterday" | "7days" | "all";
 const FILTERS: { key: FilterKey; label: string; toFilter: () => LocationStatsFilter | undefined }[] = [
   { key: "today", label: "Today", toFilter: () => { const t = toDateStr(new Date()); return { type: "range", dateFrom: t, dateTo: t }; } },
-  { key: "yesterday", label: "Yesterday", toFilter: () => { const y = new Date(); y.setDate(y.getDate() - 1); const s = toDateStr(y); return { type: "range", dateFrom: s, dateTo: s }; } },
+  { key: "yesterday", label: "Yesterday", toFilter: () => { const y = new Date(); y.setUTCDate(y.getUTCDate() - 1); const s = toDateStr(y); return { type: "range", dateFrom: s, dateTo: s }; } },
   { key: "7days", label: "Last 7 Days", toFilter: () => ({ type: "days", days: 7 }) },
   { key: "all", label: "All Time", toFilter: () => undefined },
 ];
@@ -219,12 +220,13 @@ function TemplatesTab({
   const toTimeValue = (iso?: string | null) => {
     if (!iso) return "";
     const d = new Date(iso);
-    return `${String(d.getHours()).padStart(2, "0")}:${String(d.getMinutes()).padStart(2, "0")}`;
+    return `${String(d.getUTCHours()).padStart(2, "0")}:${String(d.getUTCMinutes()).padStart(2, "0")}`;
   };
 
   const toDateValue = (iso?: string | null) => {
     if (!iso) return "";
-    return new Date(iso).toISOString().split("T")[0];
+    const d = new Date(iso);
+    return `${d.getUTCFullYear()}-${String(d.getUTCMonth() + 1).padStart(2, "0")}-${String(d.getUTCDate()).padStart(2, "0")}`;
   };
 
   const resetCreateForm = () => {
@@ -241,12 +243,14 @@ function TemplatesTab({
   };
 
   const buildDateTimeIso = (dateValue: string, timeValue: string) => {
-    const localDate = new Date(`${dateValue}T${timeValue}:00`);
-    return localDate.toISOString();
+    const [hours, minutes] = timeValue.split(":").map(Number);
+    const [year, month, day] = dateValue.split("-").map(Number);
+    return new Date(Date.UTC(year, month - 1, day, hours, minutes, 0)).toISOString();
   };
 
   const buildEffectiveDate = (dateValue: string) => {
-    return new Date(`${dateValue}T12:00:00`);
+    const [year, month, day] = dateValue.split("-").map(Number);
+    return new Date(Date.UTC(year, month - 1, day, 0, 0, 0));
   };
 
   const extractError = (err: unknown) => {
@@ -344,17 +348,18 @@ function TemplatesTab({
     if (editForm.shiftStart && editForm.shiftStart !== toTimeValue(editingTemplate.shiftStart)) {
       const base = new Date(editingTemplate.shiftStart ?? new Date());
       const [h, m] = editForm.shiftStart.split(":").map(Number);
-      base.setHours(h, m, 0, 0);
+      base.setUTCHours(h, m, 0, 0);
       payload.shiftStart = base.toISOString();
     }
     if (editForm.shiftEnd && editForm.shiftEnd !== toTimeValue(editingTemplate.shiftEnd)) {
       const base = new Date(editingTemplate.shiftEnd ?? new Date());
       const [h, m] = editForm.shiftEnd.split(":").map(Number);
-      base.setHours(h, m, 0, 0);
+      base.setUTCHours(h, m, 0, 0);
       payload.shiftEnd = base.toISOString();
     }
     if (editForm.effectiveDate && editForm.effectiveDate !== toDateValue(editingTemplate.effectiveDate)) {
-      payload.effectiveDate = new Date(editForm.effectiveDate).toISOString();
+      const [year, month, day] = editForm.effectiveDate.split("-").map(Number);
+      payload.effectiveDate = new Date(Date.UTC(year, month - 1, day, 0, 0, 0)).toISOString();
     }
 
     const staffChanged = editForm.staffId !== String(editingTemplate.staffId ?? "");
@@ -599,7 +604,7 @@ function TemplatesTab({
               <div>
                 <p className="text-gray-400">Effective</p>
                 <p className="text-gray-600 font-medium">
-                  {t.effectiveDate ? new Date(t.effectiveDate).toLocaleDateString() : "—"}
+                  {t.effectiveDate ? new Date(t.effectiveDate).toLocaleDateString("en-US", { timeZone: "UTC" }) : "—"}
                 </p>
               </div>
             </div>
@@ -943,7 +948,7 @@ const LocationDetailPage: React.FC = () => {
                     <tr key={ti.id} className="transition-colors hover:bg-gray-100/50">
                       <td className="px-5 py-3.5 font-medium text-gray-900">{ti.title}</td>
                       <td className="px-5 py-3.5 text-gray-600">
-                        {new Date(ti.date).toLocaleDateString("en-US", { day: "numeric", month: "short", year: "numeric" })}
+                        {new Date(ti.date).toLocaleDateString("en-US", { day: "numeric", month: "short", year: "numeric", timeZone: "UTC" })}
                       </td>
                       <td className="px-5 py-3.5 text-gray-600">
                         {fmtTime(ti.shiftStart)} – {fmtTime(ti.shiftEnd)}

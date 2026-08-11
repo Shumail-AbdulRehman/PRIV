@@ -1,6 +1,6 @@
 import { prisma } from "../prisma/prisma.js";
 import { resolveTaskInstanceWindow } from "./taskInstanceWindow.js";
-import { getKarachiDayRange } from "../utils/karachiTime.js";
+import { getUtcDayRange } from "../utils/dateTime.js";
 import { ensureAssignmentsForToday } from "../services/taskAssignment.service.js";
 
 let isDailyTaskSchedulerRunning = false;
@@ -16,7 +16,7 @@ export const runDailyTaskScheduler = async () => {
   try {
     console.log("Generating daily task instances...");
 
-    const { start: today, end: tomorrow } = getKarachiDayRange();
+    const { start: today, end: tomorrow } = getUtcDayRange();
 
     const dailyTemplates = await prisma.taskTemplate.findMany({
       where: {

@@ -1,8 +1,8 @@
 import {
-  getStartOfKarachiDay,
+  getStartOfUtcDay,
   getUtcClockMinutes,
   withUtcClockOnBaseDate,
-} from "../utils/karachiTime.js";
+} from "../utils/dateTime.js";
 
 type ShiftWindowInput = {
   baseDate: Date;
@@ -43,7 +43,7 @@ export const resolveTaskInstanceWindow = ({
   }
 
   return {
-    date: getStartOfKarachiDay(resolvedShiftStart),
+    date: getStartOfUtcDay(resolvedShiftStart),
     shiftStart: resolvedShiftStart,
     shiftEnd: resolvedShiftEnd,
   };

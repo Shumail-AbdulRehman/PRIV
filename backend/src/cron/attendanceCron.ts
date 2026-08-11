@@ -1,17 +1,16 @@
 import cron from "node-cron";
 import { prisma } from "../prisma/prisma.js";
 import {
-    KARACHI_TIMEZONE,
-    getKarachiDayRange,
+    getUtcDayRange,
     resolveAttendanceWindow,
-} from "../utils/karachiTime.js";
+} from "../utils/dateTime.js";
 import { syncTodaysOpenAttendanceWindow } from "../utils/syncAttendanceWindow.js";
 
 cron.schedule("2 */6 * * *", async () => {
     try {
         console.log("Creating daily attendance records...");
 
-        const { start: today } = getKarachiDayRange();
+        const { start: today } = getUtcDayRange();
 
         const eligibleStaff = await prisma.staff.findMany({
             where: {
@@ -67,4 +66,4 @@ cron.schedule("2 */6 * * *", async () => {
     } catch (error) {
         console.error("Attendance cron error:", error);
     }
-}, { timezone: KARACHI_TIMEZONE });
+});

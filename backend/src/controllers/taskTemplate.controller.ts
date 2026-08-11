@@ -4,7 +4,7 @@ import { prisma } from "../prisma/prisma.js";
 import { ApiResponse } from "../utils/ApiResponse.js";
 import { ApiError } from "../utils/ApiError.js";
 import { markCurrentAssignmentsForTasks } from "../services/taskAssignment.service.js";
-import { getStartOfKarachiDay } from "../utils/karachiTime.js";
+import { getStartOfUtcDay } from "../utils/dateTime.js";
 
 const getMinutes = (date: Date) => date.getUTCHours() * 60 + date.getUTCMinutes();
 
@@ -80,14 +80,14 @@ const staffShiftCoversTask = (
   }
 };
 
-const getKarachiDayMs = (date: Date) => getStartOfKarachiDay(date).getTime();
+const getUtcDayMs = (date: Date) => getStartOfUtcDay(date).getTime();
 
 const recurrenceRange = (template: {
   recurringType?: string | null;
   effectiveDate: Date;
   recurringEndDate?: Date | null;
 }) => {
-  const start = getKarachiDayMs(template.effectiveDate);
+  const start = getUtcDayMs(template.effectiveDate);
 
   if (template.recurringType === "ONCE") {
     return { start, end: start };
@@ -96,7 +96,7 @@ const recurrenceRange = (template: {
   if (template.recurringType === "DAILY") {
     return {
       start,
-      end: template.recurringEndDate ? getKarachiDayMs(template.recurringEndDate) : null,
+      end: template.recurringEndDate ? getUtcDayMs(template.recurringEndDate) : null,
     };
   }
 

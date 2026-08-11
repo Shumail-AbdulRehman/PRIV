@@ -6,17 +6,15 @@ export interface AttendanceLike {
   checkOutTime?: string | Date | null;
 }
 
-const KARACHI_TIMEZONE = "Asia/Karachi";
-
-const karachiDayFormatter = new Intl.DateTimeFormat("en-CA", {
-  timeZone: KARACHI_TIMEZONE,
+const utcDayFormatter = new Intl.DateTimeFormat("en-CA", {
+  timeZone: "UTC",
   year: "numeric",
   month: "2-digit",
   day: "2-digit",
 });
 
-const getKarachiDayKey = (value: string | Date) =>
-  karachiDayFormatter.format(new Date(value));
+const getUtcDayKey = (value: string | Date) =>
+  utcDayFormatter.format(new Date(value));
 
 export const getAttendanceDisplayStatus = (
   attendance: AttendanceLike | null | undefined,
@@ -26,13 +24,13 @@ export const getAttendanceDisplayStatus = (
 
   const attendanceDate = attendance.date ?? attendance.expectedStart;
 
-  const isSameKarachiDay =
+  const isSameUtcDay =
     !!attendanceDate &&
-    getKarachiDayKey(attendanceDate) === getKarachiDayKey(referenceDate);
+    getUtcDayKey(attendanceDate) === getUtcDayKey(referenceDate);
 
   if (
     attendance.status === "ABSENT" &&
-    isSameKarachiDay &&
+    isSameUtcDay &&
     attendance.expectedStart &&
     !attendance.checkInTime &&
     !attendance.checkOutTime &&
