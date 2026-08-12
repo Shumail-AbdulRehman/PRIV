@@ -1,6 +1,6 @@
 import { createRoot } from 'react-dom/client';
 import './index.css';
-import App, { GuestRoute, ProtectedRoute } from './App.tsx';
+import App, { GuestRoute, ProtectedRoute, RequireRole } from './App.tsx';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { createBrowserRouter, RouterProvider } from 'react-router-dom';
 import { Provider } from 'react-redux';
@@ -16,6 +16,7 @@ import StaffPage from './pages/Staff/StaffPage.tsx';
 import StaffDetailPage from './pages/Staff/StaffDetailPage.tsx';
 import AttendancePage from './pages/Attendance/AttendancePage.tsx';
 import TodayStatusPage from './pages/Manager/TodayStatusPage.tsx';
+import ManagersPage from './pages/Managers/ManagersPage.tsx';
 import LandingPage from './pages/Landing/LandingPage.tsx';
 
 const queryClient = new QueryClient({
@@ -66,6 +67,14 @@ const router = createBrowserRouter([
           { path: 'staff', element: <StaffPage /> },
           { path: 'staff/:id', element: <StaffDetailPage /> },
           { path: 'attendance', element: <AttendancePage /> },
+          {
+            path: 'managers',
+            element: (
+              <RequireRole roles={['ADMIN']}>
+                <ManagersPage />
+              </RequireRole>
+            ),
+          },
         ],
       },
     ],

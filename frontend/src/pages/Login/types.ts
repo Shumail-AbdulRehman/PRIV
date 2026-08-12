@@ -6,7 +6,7 @@ export type LoginForm={
 }
 
 
-export type UserRole = 'MANAGER' | 'STAFF';
+export type UserRole = 'ADMIN' | 'MANAGER' | 'STAFF';
 
 
 export interface AuthUser {

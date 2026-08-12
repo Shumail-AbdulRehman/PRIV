@@ -3,6 +3,7 @@ import {
   LayoutDashboard,
   MapPin,
   Users,
+  UserCog,
   CalendarCheck,
   LogOut,
   X,
@@ -20,6 +21,7 @@ const NAV_ITEMS = [
   { to: "/locations", icon: MapPin, label: "Locations" },
   { to: "/staff", icon: Users, label: "Staff" },
   { to: "/attendance", icon: CalendarCheck, label: "Attendance" },
+  { to: "/managers", icon: UserCog, label: "Managers", adminOnly: true },
 ];
 
 interface SidebarProps {
@@ -71,14 +73,14 @@ export default function Sidebar({ open = false, onClose }: SidebarProps) {
 
         <div className="mt-5 rounded-3xl border border-border/70 bg-white/80 p-4">
           <p className="text-xs uppercase tracking-[0.24em] text-muted-foreground">Workspace</p>
-          <p className="mt-2 text-lg font-semibold text-foreground">{user?.role === "MANAGER" ? "Manager panel" : "Staff panel"}</p>
+          <p className="mt-2 text-lg font-semibold text-foreground">{user?.role === "ADMIN" ? "Admin panel" : user?.role === "MANAGER" ? "Manager panel" : "Staff panel"}</p>
           <p className="mt-1 text-sm text-muted-foreground">
             Track locations, staff assignments, attendance, and task completion.
           </p>
         </div>
 
         <nav className="mt-6 flex-1 space-y-1.5">
-          {NAV_ITEMS.map(({ to, icon: Icon, label }) => (
+          {NAV_ITEMS.filter((item) => !item.adminOnly || user?.role === "ADMIN").map(({ to, icon: Icon, label }) => (
             <NavLink
               key={to}
               to={to}

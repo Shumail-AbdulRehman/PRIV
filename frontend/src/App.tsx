@@ -31,6 +31,17 @@ export const GuestRoute = ({ children }: { children: React.ReactNode }) => {
   return <>{children}</>;
 };
 
+export const RequireRole = ({ roles, children }: { roles: Array<'ADMIN' | 'MANAGER' | 'STAFF'>; children: React.ReactNode }) => {
+
+  const { isAuthenticated } = useAuth();
+  const { user, isLoading } = useSelector((state: RootState) => state.auth);
+  if (isLoading) return <LoadingSpinner fullScreen />;
+  if (!isAuthenticated) return <Navigate to="/login" replace />;
+  if (!user || !roles.includes(user.role)) return <Navigate to="/dashboard" replace />;
+
+  return <>{children}</>;
+};
+
 function App() {
   const dispatch = useDispatch<AppDispatch>();
   const getCurrentUserQuery = useGetCurrentUser();
