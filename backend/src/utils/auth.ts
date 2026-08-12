@@ -6,7 +6,7 @@ export async function isPasswordCorrect(plainPassword: string, hashedPassword: s
     return bcrypt.compare(plainPassword, hashedPassword);
 }
 
-export function generateAccessToken(user: { id: number; email: string; name: string }, role: "MANAGER" | "STAFF") {
+export function generateAccessToken(user: { id: number; email: string; name: string }, role: "ADMIN" | "MANAGER" | "STAFF") {
     return jwt.sign(
         { id: user.id, email: user.email, name: user.name, role },
         process.env.ACCESS_TOKEN_SECRET as string,
@@ -14,7 +14,7 @@ export function generateAccessToken(user: { id: number; email: string; name: str
     );
 }
 
-export function generateRefreshToken(user: { id: number},role: "MANAGER" | "STAFF") {
+export function generateRefreshToken(user: { id: number},role: "ADMIN" | "MANAGER" | "STAFF") {
     return jwt.sign(
         { id: user.id , role},
         process.env.REFRESH_TOKEN_SECRET as string,

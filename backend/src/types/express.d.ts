@@ -6,8 +6,9 @@ declare global {
                 name: string;
                 email: string;
                 companyId: number;
-                role: "MANAGER" | "STAFF";
+                role: "ADMIN" | "MANAGER" | "STAFF";
                 locationId?: number;
+                locationIds?: number[];
             };
         }
     }

@@ -21,12 +21,25 @@ export const verifyJwt = async (req: Request, res: Response, next: NextFunction)
 
     const { id, role } = decoded;
     let user;
+    let locationIds: number[] | undefined;
 
-    if (role === "MANAGER") {
+    if (role === "MANAGER" || role === "ADMIN") {
         user = await prisma.manager.findUnique({
             where: { id },
-            select: { id: true, name: true, email: true, companyId: true },
+            select: { id: true, name: true, email: true, companyId: true, isActive: true },
         });
+
+        if (user && !user.isActive) {
+            throw new ApiError(401, "Account is deactivated");
+        }
+
+        if (user && role === "MANAGER") {
+            const assignments = await prisma.managerLocation.findMany({
+                where: { managerId: id },
+                select: { locationId: true },
+            });
+            locationIds = assignments.map((assignment) => assignment.locationId);
+        }
     } else if (role === "STAFF") {
         user = await prisma.staff.findUnique({
             where: { id },
@@ -38,6 +51,7 @@ export const verifyJwt = async (req: Request, res: Response, next: NextFunction)
         throw new ApiError(401, "Invalid access token");
     }
 
-   (req as any).user = { ...user, role };
+    const { isActive, ...safeUser } = user as typeof user & { isActive?: boolean };
+    (req as any).user = { ...safeUser, role, ...(locationIds ? { locationIds } : {}) };
     next();
 };
