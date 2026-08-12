@@ -1,6 +1,6 @@
 import { prisma } from "../prisma/prisma.js";
 import { resolveTaskInstanceWindow } from "./taskInstanceWindow.js";
-import { getUtcDayRange } from "../utils/dateTime.js";
+import { getZonedDayRange } from "../utils/dateTime.js";
 import { ensureAssignmentsForToday } from "../services/taskAssignment.service.js";
 
 let isDailyTaskSchedulerRunning = false;
@@ -16,17 +16,12 @@ export const runDailyTaskScheduler = async () => {
   try {
     console.log("Generating daily task instances...");
 
-    const { start: today, end: tomorrow } = getUtcDayRange();
+    const now = new Date();
 
     const dailyTemplates = await prisma.taskTemplate.findMany({
       where: {
         isActive: true,
         recurringType: "DAILY",
-        effectiveDate: { lte: tomorrow },
-        OR: [
-          { recurringEndDate: null },
-          { recurringEndDate: { gte: today } }
-        ]
       },
       include: {
         staff: {
@@ -35,18 +30,30 @@ export const runDailyTaskScheduler = async () => {
             shiftEnd: true,
           },
         },
+        location: {
+          select: {
+            timezone: true,
+          },
+        },
       },
     });
 
     const instancesToCreate = [];
 
     for (const template of dailyTemplates) {
+      const timeZone = template.location.timezone;
+      const { start: localToday, end: localTomorrow } = getZonedDayRange(now, timeZone);
+
+      if (template.effectiveDate > localTomorrow) continue;
+      if (template.recurringEndDate && template.recurringEndDate < localToday) continue;
+
       const { date, shiftStart, shiftEnd } = resolveTaskInstanceWindow({
-        baseDate: today,
+        baseDate: localToday,
         taskShiftStart: template.shiftStart,
         taskShiftEnd: template.shiftEnd,
         staffShiftStart: template.staff?.shiftStart,
         staffShiftEnd: template.staff?.shiftEnd,
+        timeZone,
       });
 
       instancesToCreate.push({

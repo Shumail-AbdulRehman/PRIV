@@ -19,8 +19,8 @@ export const assignShiftSchema = z.object({
         shiftEnd: z.coerce.date({ message: "Shift end time is required" }),
     })
     .superRefine((data, ctx) => {
-        const startHours = data.shiftStart.getHours() * 60 + data.shiftStart.getMinutes();
-        const endHours = data.shiftEnd.getHours() * 60 + data.shiftEnd.getMinutes();
+        const startHours = data.shiftStart.getUTCHours() * 60 + data.shiftStart.getUTCMinutes();
+        const endHours = data.shiftEnd.getUTCHours() * 60 + data.shiftEnd.getUTCMinutes();
 
         if (startHours === endHours) {
             ctx.addIssue({

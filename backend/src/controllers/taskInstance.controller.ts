@@ -2,12 +2,13 @@ import { Request, Response } from "express";
 import { prisma } from "../prisma/prisma.js";
 import { ApiResponse } from "../utils/ApiResponse.js";
 import { ApiError } from "../utils/ApiError.js";
-import { getUtcDayRange } from "../utils/dateTime.js";
+import { getUtcDayRange, getZonedDayRange } from "../utils/dateTime.js";
 import { uploadMultipleImages } from "../utils/cloudinary.js";
 import {
   markCurrentAssignmentCompleted,
   markCurrentAssignmentStarted,
 } from "../services/taskAssignment.service.js";
+import { assertLocationAccess } from "../utils/scope.js";
 
 
 export const getTodaysTasksForStaff = async (req: Request, res: Response) => {
@@ -17,13 +18,18 @@ export const getTodaysTasksForStaff = async (req: Request, res: Response) => {
     throw new ApiError(400, "Invalid staff id");
   }
 
-  const staff = await prisma.staff.findUnique({ where: { id: staffId, isActive:true } });
+  const staff = await prisma.staff.findUnique({
+    where: { id: staffId, isActive:true },
+    include: { location: { select: { timezone: true } } },
+  });
 
   if (!staff || staff.companyId !== req.user!.companyId) {
     throw new ApiError(404, "Staff not found in your company");
   }
 
-const { start: today, end: tomorrow } = getUtcDayRange();
+const { start: today, end: tomorrow } = staff.location?.timezone
+  ? getZonedDayRange(new Date(), staff.location.timezone)
+  : getUtcDayRange();
 
 const tasks = await prisma.taskInstance.findMany({
   where: {
@@ -225,7 +231,13 @@ export const getTaskInstanceById = async (req: Request, res: Response) => {
         },
     });
 
-    if (!task || task.staffId !== req.user!.id) {
+    if (!task) {
+        throw new ApiError(404, "Task not found for this staff");
+    }
+
+    if (req.user!.role === "MANAGER") {
+        assertLocationAccess(req.user!, task.locationId);
+    } else if (task.staffId !== req.user!.id) {
         throw new ApiError(404, "Task not found for this staff");
     }
 
@@ -240,6 +252,8 @@ export const getTasknstancesOfLocation = async (req: Request, res: Response) => 
     if (isNaN(locationId)) {
         throw new ApiError(400, "Invalid location id");
     }
+
+    assertLocationAccess(req.user!, locationId);
     
     const location = await prisma.location.findUnique({
         where: { id: locationId }

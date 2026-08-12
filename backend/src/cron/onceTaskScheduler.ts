@@ -1,7 +1,7 @@
 import cron from "node-cron";
 import { prisma } from "../prisma/prisma.js";
 import { resolveTaskInstanceWindow } from "./taskInstanceWindow.js";
-import { getUtcDayRange } from "../utils/dateTime.js";
+import { getZonedDayRange } from "../utils/dateTime.js";
 import { ensureAssignmentsForToday } from "../services/taskAssignment.service.js";
 
 
@@ -11,16 +11,12 @@ cron.schedule("3-59/15 * * * *",async()=>
 
     console.log("Generating Once task instances...");
 
-    const { start: today, end: tomorrow } = getUtcDayRange();
+    const now = new Date();
 
         const onceTemplates = await prisma.taskTemplate.findMany({
       where: {
         isActive: true,
         recurringType: "ONCE",
-        effectiveDate: {
-          gte: today,
-          lt: tomorrow
-        }
       },
       include: {
         staff: {
@@ -29,18 +25,29 @@ cron.schedule("3-59/15 * * * *",async()=>
             shiftEnd: true,
           },
         },
+        location: {
+          select: {
+            timezone: true,
+          },
+        },
       },
     });
 
     const instancesToCreate = [];
 
     for (const template of onceTemplates) {
+      const timeZone = template.location.timezone;
+      const { start: localToday, end: localTomorrow } = getZonedDayRange(now, timeZone);
+
+      if (template.effectiveDate < localToday || template.effectiveDate >= localTomorrow) continue;
+
       const { date, shiftStart, shiftEnd } = resolveTaskInstanceWindow({
-        baseDate: today,
+        baseDate: localToday,
         taskShiftStart: template.shiftStart,
         taskShiftEnd: template.shiftEnd,
         staffShiftStart: template.staff?.shiftStart,
         staffShiftEnd: template.staff?.shiftEnd,
+        timeZone,
       });
 
       instancesToCreate.push({

@@ -4,13 +4,14 @@ import { prisma } from "../prisma/prisma.js";
 import { ApiResponse } from "../utils/ApiResponse.js";
 import { ApiError } from "../utils/ApiError.js";
 import { markCurrentAssignmentsForTasks } from "../services/taskAssignment.service.js";
-import { getStartOfUtcDay } from "../utils/dateTime.js";
+import { DEFAULT_TIME_ZONE, getZonedClockMinutes, getZonedDayRange } from "../utils/dateTime.js";
+import { assertLocationAccess } from "../utils/scope.js";
 
-const getMinutes = (date: Date) => date.getUTCHours() * 60 + date.getUTCMinutes();
+const getMinutes = (date: Date, timeZone: string) => getZonedClockMinutes(date, timeZone);
 
-const toTimeRanges = (start: Date, end: Date) => {
-  const startMin = getMinutes(start);
-  const endMin = getMinutes(end);
+const toTimeRanges = (start: Date, end: Date, timeZone: string) => {
+  const startMin = getMinutes(start, timeZone);
+  const endMin = getMinutes(end, timeZone);
 
   if (endMin > startMin) {
     return [{ start: startMin, end: endMin }];
@@ -22,9 +23,9 @@ const toTimeRanges = (start: Date, end: Date) => {
   ];
 };
 
-const timeRangesOverlap = (firstStart: Date, firstEnd: Date, secondStart: Date, secondEnd: Date) => {
-  const firstRanges = toTimeRanges(firstStart, firstEnd);
-  const secondRanges = toTimeRanges(secondStart, secondEnd);
+const timeRangesOverlap = (firstStart: Date, firstEnd: Date, secondStart: Date, secondEnd: Date, timeZone: string) => {
+  const firstRanges = toTimeRanges(firstStart, firstEnd, timeZone);
+  const secondRanges = toTimeRanges(secondStart, secondEnd, timeZone);
 
   return firstRanges.some((first) =>
     secondRanges.some((second) => first.start < second.end && second.start < first.end)
@@ -34,14 +35,15 @@ const timeRangesOverlap = (firstStart: Date, firstEnd: Date, secondStart: Date, 
 const validateTaskAgainstStaffShift = (
   staff: { shiftStart: Date | null; shiftEnd: Date | null },
   taskShiftStart: Date,
-  taskShiftEnd: Date
+  taskShiftEnd: Date,
+  timeZone: string
 ) => {
   if (!staff.shiftStart || !staff.shiftEnd) return;
 
-  const staffStartMin = getMinutes(staff.shiftStart);
-  const staffEndMin = getMinutes(staff.shiftEnd);
-  const taskStartMin = getMinutes(taskShiftStart);
-  const taskEndMin = getMinutes(taskShiftEnd);
+  const staffStartMin = getMinutes(staff.shiftStart, timeZone);
+  const staffEndMin = getMinutes(staff.shiftEnd, timeZone);
+  const taskStartMin = getMinutes(taskShiftStart, timeZone);
+  const taskEndMin = getMinutes(taskShiftEnd, timeZone);
 
   const isOvernightShift = staffEndMin < staffStartMin;
   let taskFitsInShift: boolean;
@@ -68,26 +70,28 @@ const validateTaskAgainstStaffShift = (
 const staffShiftCoversTask = (
   staff: { shiftStart: Date | null; shiftEnd: Date | null },
   taskShiftStart: Date,
-  taskShiftEnd: Date
+  taskShiftEnd: Date,
+  timeZone: string
 ) => {
   if (!staff.shiftStart || !staff.shiftEnd) return false;
 
   try {
-    validateTaskAgainstStaffShift(staff, taskShiftStart, taskShiftEnd);
+    validateTaskAgainstStaffShift(staff, taskShiftStart, taskShiftEnd, timeZone);
     return true;
   } catch {
     return false;
   }
 };
 
-const getUtcDayMs = (date: Date) => getStartOfUtcDay(date).getTime();
+const getZonedDayMs = (date: Date, timeZone: string) =>
+  getZonedDayRange(date, timeZone).start.getTime();
 
 const recurrenceRange = (template: {
   recurringType?: string | null;
   effectiveDate: Date;
   recurringEndDate?: Date | null;
-}) => {
-  const start = getUtcDayMs(template.effectiveDate);
+}, timeZone: string) => {
+  const start = getZonedDayMs(template.effectiveDate, timeZone);
 
   if (template.recurringType === "ONCE") {
     return { start, end: start };
@@ -96,7 +100,7 @@ const recurrenceRange = (template: {
   if (template.recurringType === "DAILY") {
     return {
       start,
-      end: template.recurringEndDate ? getUtcDayMs(template.recurringEndDate) : null,
+      end: template.recurringEndDate ? getZonedDayMs(template.recurringEndDate, timeZone) : null,
     };
   }
 
@@ -113,10 +117,11 @@ const recurrenceRangesOverlap = (
     recurringType?: string | null;
     effectiveDate: Date;
     recurringEndDate?: Date | null;
-  }
+  },
+  timeZone: string
 ) => {
-  const firstRange = recurrenceRange(first);
-  const secondRange = recurrenceRange(second);
+  const firstRange = recurrenceRange(first, timeZone);
+  const secondRange = recurrenceRange(second, timeZone);
 
   if (!firstRange || !secondRange) return false;
 
@@ -143,7 +148,11 @@ const assertLocationHasCapacityForTaskTemplate = async ({
   recurringEndDate?: Date | null;
   excludeTemplateId?: number;
 }) => {
-  const [staffMembers, existingTemplates] = await Promise.all([
+  const [location, staffMembers, existingTemplates] = await Promise.all([
+    prisma.location.findUnique({
+      where: { id: locationId },
+      select: { timezone: true },
+    }),
     prisma.staff.findMany({
       where: {
         locationId,
@@ -175,16 +184,19 @@ const assertLocationHasCapacityForTaskTemplate = async ({
     }),
   ]);
 
+  const timeZone = location?.timezone ?? DEFAULT_TIME_ZONE;
+
   const availableStaffCount = staffMembers.filter((staff) =>
-    staffShiftCoversTask(staff, shiftStart, shiftEnd)
+    staffShiftCoversTask(staff, shiftStart, shiftEnd, timeZone)
   ).length;
 
   const overlappingTemplateCount = existingTemplates.filter((template) =>
     recurrenceRangesOverlap(
       { recurringType, effectiveDate, recurringEndDate },
-      template
+      template,
+      timeZone
     ) &&
-    timeRangesOverlap(shiftStart, shiftEnd, template.shiftStart, template.shiftEnd)
+    timeRangesOverlap(shiftStart, shiftEnd, template.shiftStart, template.shiftEnd, timeZone)
   ).length;
 
   const requiredStaffCount = overlappingTemplateCount + 1;
@@ -215,6 +227,8 @@ export const createTaskTemplate = async (req: Request, res: Response) => {
   if (!location || location.companyId !== req.user!.companyId || !location.isActive) {
     throw new ApiError(404, "Location not found in your company");
   }
+
+  assertLocationAccess(req.user!, locationId);
 
   await assertLocationHasCapacityForTaskTemplate(result.data);
 
@@ -247,9 +261,13 @@ export const editTaskTemplate = async (req: Request, res: Response) => {
     throw new ApiError(404, "Task template not found in your company");
   }
 
+  assertLocationAccess(req.user!, template.locationId);
+
   if (!template.isActive) {
     throw new ApiError(400, "Task template is inactive");
   }
+
+  let nextLocationTimeZone: string | null = null;
 
   if (result.data.locationId) {
     const location = await prisma.location.findUnique({
@@ -259,6 +277,8 @@ export const editTaskTemplate = async (req: Request, res: Response) => {
     if (!location || location.companyId !== req.user!.companyId || !location.isActive) {
       throw new ApiError(404, "New location not found in your company");
     }
+
+    nextLocationTimeZone = location.timezone;
   }
 
   const nextLocationId = result.data.locationId ?? template.locationId;
@@ -267,6 +287,7 @@ export const editTaskTemplate = async (req: Request, res: Response) => {
   const nextRecurringType = result.data.recurringType ?? template.recurringType;
   const nextEffectiveDate = result.data.effectiveDate ?? template.effectiveDate;
   const nextRecurringEndDate = result.data.recurringEndDate ?? template.recurringEndDate;
+  const nextTimeZone = nextLocationTimeZone ?? template.location.timezone;
   const assignedStaff = template.staff;
 
   if (assignedStaff) {
@@ -278,7 +299,7 @@ export const editTaskTemplate = async (req: Request, res: Response) => {
       throw new ApiError(400, "Assigned staff must belong to the same location");
     }
 
-    validateTaskAgainstStaffShift(assignedStaff, nextShiftStart, nextShiftEnd);
+    validateTaskAgainstStaffShift(assignedStaff, nextShiftStart, nextShiftEnd, nextTimeZone);
   }
 
   await assertLocationHasCapacityForTaskTemplate({
@@ -311,6 +332,8 @@ export const deleteTaskTemplate = async (req: Request, res: Response) => {
   if (!template || template.location.companyId !== req.user!.companyId) {
     throw new ApiError(404, "Task template not found in your company");
   }
+
+  assertLocationAccess(req.user!, template.locationId);
 
   const affectedTasks = await prisma.taskInstance.findMany({
     where: { templateId: taskTemplateId, status: { in: ["PENDING", "IN_PROGRESS"] } },
@@ -354,6 +377,8 @@ export const getTaskTemplate=async (req:Request, res: Response)=>
 
   if(taskTemplate.location.companyId !== req.user?.companyId) throw new ApiError(404,"task tenplate not found in your company");
 
+  assertLocationAccess(req.user!, taskTemplate.locationId);
+
   res.status(200).json(
     new ApiResponse(200,taskTemplate,"task template fetched successfully")
   );
@@ -365,6 +390,8 @@ export const getTaskTemplatesByLocation=async (req:Request, res: Response)=>
   const locationId=Number(req.params.locationId);
 
   if(isNaN(locationId)) throw new ApiError(400, "Invalid location id");
+
+  assertLocationAccess(req.user!, locationId);
 
   const location=await prisma.location.findUnique({
     where:{id:locationId}

@@ -47,8 +47,8 @@ export const createStaffSchema = z.object({
     }
 
     if (hasStart && hasEnd) {
-      const startMin = data.shiftStart!.getHours() * 60 + data.shiftStart!.getMinutes();
-      const endMin = data.shiftEnd!.getHours() * 60 + data.shiftEnd!.getMinutes();
+      const startMin = data.shiftStart!.getUTCHours() * 60 + data.shiftStart!.getUTCMinutes();
+      const endMin = data.shiftEnd!.getUTCHours() * 60 + data.shiftEnd!.getUTCMinutes();
       if (startMin === endMin) {
         ctx.addIssue({
           code: z.ZodIssueCode.custom,
@@ -79,8 +79,8 @@ export const editStaffSchema = z.object({
   shiftEnd: z.coerce.date({ message: "Shift end must be a valid date" }).optional(),
 }).superRefine((data, ctx) => {
   if (data.shiftStart !== undefined && data.shiftEnd !== undefined) {
-    const startMin = data.shiftStart.getHours() * 60 + data.shiftStart.getMinutes();
-    const endMin = data.shiftEnd.getHours() * 60 + data.shiftEnd.getMinutes();
+    const startMin = data.shiftStart.getUTCHours() * 60 + data.shiftStart.getUTCMinutes();
+    const endMin = data.shiftEnd.getUTCHours() * 60 + data.shiftEnd.getUTCMinutes();
     if (startMin === endMin) {
       ctx.addIssue({
         code: z.ZodIssueCode.custom,

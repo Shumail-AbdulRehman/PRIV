@@ -1,6 +1,6 @@
 import { AttendanceStatus } from "@prisma/client";
 import { prisma } from "../prisma/prisma.js";
-import { getUtcDayRange, resolveAttendanceWindow } from "./dateTime.js";
+import { getZonedDayRange, resolveZonedAttendanceWindow } from "./dateTime.js";
 
 const OPEN_ATTENDANCE_STATUSES: AttendanceStatus[] = [
   AttendanceStatus.ABSENT,
@@ -13,21 +13,25 @@ export const syncTodaysOpenAttendanceWindow = async ({
   locationId,
   shiftStart,
   shiftEnd,
+  timeZone,
 }: {
   staffId: number;
   locationId: number | null;
   shiftStart: Date | null;
   shiftEnd: Date | null;
+  timeZone?: string | null;
 }) => {
-  if (!locationId || !shiftStart || !shiftEnd) {
+  if (!locationId || !shiftStart || !shiftEnd || !timeZone) {
     return;
   }
 
-  const { start: today, end: tomorrow } = getUtcDayRange();
-  const { date, expectedStart, expectedEnd } = resolveAttendanceWindow({
-    baseDate: today,
+  const now = new Date();
+  const { start: today, end: tomorrow } = getZonedDayRange(now, timeZone);
+  const { date, expectedStart, expectedEnd } = resolveZonedAttendanceWindow({
+    baseDate: now,
     shiftStart,
     shiftEnd,
+    timeZone,
   });
 
   const openStatusFilter = {

@@ -3,6 +3,7 @@ import { prisma } from "../prisma/prisma.js";
 import { ApiResponse } from "../utils/ApiResponse.js";
 import { ApiError } from "../utils/ApiError.js";
 import { markCurrentAssignmentsForTasks } from "../services/taskAssignment.service.js";
+import { assertLocationAccess } from "../utils/scope.js";
 
 const getUtcMinutes = (date: Date) => date.getUTCHours() * 60 + date.getUTCMinutes();
 
@@ -46,11 +47,17 @@ export const assignStaffToLocation = async (req: Request, res: Response) => {
     throw new ApiError(404, "Staff not found in your company");
   }
 
+  if (staff.locationId) {
+    assertLocationAccess(req.user!, staff.locationId);
+  }
+
   const location = await prisma.location.findUnique({ where: { id: locationId } });
 
   if (!location || location.companyId !== req.user!.companyId || !location.isActive) {
     throw new ApiError(404, "Location not found in your company");
   }
+
+  assertLocationAccess(req.user!, locationId);
 
   if (staff.locationId && staff.locationId !== locationId) {
     const affectedTasks = await prisma.taskInstance.findMany({
@@ -109,6 +116,8 @@ export const assignStaffToTaskTemplate = async (req: Request, res: Response) => 
   if (!template || template.location.companyId !== req.user!.companyId) {
     throw new ApiError(404, "Task template not found in your company");
   }
+
+  assertLocationAccess(req.user!, template.locationId);
 
   if (!template.isActive) {
     throw new ApiError(400, "Task template is inactive");

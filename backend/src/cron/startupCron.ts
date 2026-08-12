@@ -1,13 +1,13 @@
 import { prisma } from "../prisma/prisma.js";
 import { resolveTaskInstanceWindow } from "./taskInstanceWindow.js";
-import { getUtcDayRange, resolveAttendanceWindow } from "../utils/dateTime.js";
+import { getZonedDayRange, resolveZonedAttendanceWindow } from "../utils/dateTime.js";
 import { syncTodaysOpenAttendanceWindow } from "../utils/syncAttendanceWindow.js";
 import { ensureAssignmentsForToday } from "../services/taskAssignment.service.js";
 
 
 export async function runStartupCron(): Promise<void> {
     try {
-        const { start: today, end: tomorrow } = getUtcDayRange();
+        const now = new Date();
 
        
 
@@ -23,16 +23,24 @@ export async function runStartupCron(): Promise<void> {
                 locationId: true,
                 shiftStart: true,
                 shiftEnd: true,
+                location: {
+                    select: {
+                        timezone: true,
+                    },
+                },
             },
         });
 
         const attendanceToCreate = [];
 
         for (const staff of eligibleStaff) {
-            const { date, expectedStart, expectedEnd } = resolveAttendanceWindow({
-                baseDate: today,
+            if (!staff.location) continue;
+
+            const { date, expectedStart, expectedEnd } = resolveZonedAttendanceWindow({
+                baseDate: now,
                 shiftStart: staff.shiftStart!,
                 shiftEnd: staff.shiftEnd!,
+                timeZone: staff.location.timezone,
             });
 
             attendanceToCreate.push({
@@ -58,6 +66,7 @@ export async function runStartupCron(): Promise<void> {
                 locationId: staff.locationId,
                 shiftStart: staff.shiftStart,
                 shiftEnd: staff.shiftEnd,
+                timeZone: staff.location?.timezone,
             });
         }
 
@@ -67,17 +76,17 @@ export async function runStartupCron(): Promise<void> {
             where: {
                 isActive: true,
                 recurringType: "DAILY",
-                effectiveDate: { lte: tomorrow },
-                OR: [
-                    { recurringEndDate: null },
-                    { recurringEndDate: { gte: today } },
-                ],
             },
             include: {
                 staff: {
                     select: {
                         shiftStart: true,
                         shiftEnd: true,
+                    },
+                },
+                location: {
+                    select: {
+                        timezone: true,
                     },
                 },
             },
@@ -87,7 +96,6 @@ export async function runStartupCron(): Promise<void> {
             where: {
                 isActive: true,
                 recurringType: "ONCE",
-                effectiveDate: { gte: today, lt: tomorrow },
             },
             include: {
                 staff: {
@@ -96,18 +104,56 @@ export async function runStartupCron(): Promise<void> {
                         shiftEnd: true,
                     },
                 },
+                location: {
+                    select: {
+                        timezone: true,
+                    },
+                },
             },
         });
 
         const instancesToCreate = [];
 
-        for (const template of [...dailyTemplates, ...onceTemplates]) {
+        for (const template of dailyTemplates) {
+            const timeZone = template.location.timezone;
+            const { start: localToday, end: localTomorrow } = getZonedDayRange(now, timeZone);
+
+            if (template.effectiveDate > localTomorrow) continue;
+            if (template.recurringEndDate && template.recurringEndDate < localToday) continue;
+
             const { date, shiftStart, shiftEnd } = resolveTaskInstanceWindow({
-                baseDate: today,
+                baseDate: localToday,
                 taskShiftStart: template.shiftStart,
                 taskShiftEnd: template.shiftEnd,
                 staffShiftStart: template.staff?.shiftStart,
                 staffShiftEnd: template.staff?.shiftEnd,
+                timeZone,
+            });
+
+            instancesToCreate.push({
+                    templateId: template.id,
+                    title: template.title,
+                    date,
+                    shiftStart,
+                    shiftEnd,
+                    staffId: template.staffId,
+                    locationId: template.locationId,
+            });
+        }
+
+        for (const template of onceTemplates) {
+            const timeZone = template.location.timezone;
+            const { start: localToday, end: localTomorrow } = getZonedDayRange(now, timeZone);
+
+            if (template.effectiveDate < localToday || template.effectiveDate >= localTomorrow) continue;
+
+            const { date, shiftStart, shiftEnd } = resolveTaskInstanceWindow({
+                baseDate: localToday,
+                taskShiftStart: template.shiftStart,
+                taskShiftEnd: template.shiftEnd,
+                staffShiftStart: template.staff?.shiftStart,
+                staffShiftEnd: template.staff?.shiftEnd,
+                timeZone,
             });
 
             instancesToCreate.push({

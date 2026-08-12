@@ -1,8 +1,7 @@
 import cron from "node-cron";
 import { prisma } from "../prisma/prisma.js";
 import {
-    getUtcDayRange,
-    resolveAttendanceWindow,
+    resolveZonedAttendanceWindow,
 } from "../utils/dateTime.js";
 import { syncTodaysOpenAttendanceWindow } from "../utils/syncAttendanceWindow.js";
 
@@ -10,7 +9,7 @@ cron.schedule("2 */6 * * *", async () => {
     try {
         console.log("Creating daily attendance records...");
 
-        const { start: today } = getUtcDayRange();
+        const now = new Date();
 
         const eligibleStaff = await prisma.staff.findMany({
             where: {
@@ -24,16 +23,24 @@ cron.schedule("2 */6 * * *", async () => {
                 locationId: true,
                 shiftStart: true,
                 shiftEnd: true,
+                location: {
+                    select: {
+                        timezone: true,
+                    },
+                },
             },
         });
 
         const attendanceToCreate = [];
 
         for (const staff of eligibleStaff) {
-            const { date, expectedStart, expectedEnd } = resolveAttendanceWindow({
-                baseDate: today,
+            if (!staff.location) continue;
+
+            const { date, expectedStart, expectedEnd } = resolveZonedAttendanceWindow({
+                baseDate: now,
                 shiftStart: staff.shiftStart!,
                 shiftEnd: staff.shiftEnd!,
+                timeZone: staff.location.timezone,
             });
 
             attendanceToCreate.push({
@@ -59,6 +66,7 @@ cron.schedule("2 */6 * * *", async () => {
                 locationId: staff.locationId,
                 shiftStart: staff.shiftStart,
                 shiftEnd: staff.shiftEnd,
+                timeZone: staff.location?.timezone,
             });
         }
 

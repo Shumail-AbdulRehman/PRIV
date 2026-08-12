@@ -1,5 +1,5 @@
 import { prisma } from "../prisma/prisma.js";
-import { addUtcDays } from "../utils/dateTime.js";
+import { getZonedClockMinutes } from "../utils/dateTime.js";
 import { writeAuditLog } from "./auditLog.service.js";
 
 type DbClient = typeof prisma;
@@ -18,10 +18,9 @@ type TaskForAssignment = {
   locationId: number;
   location: {
     companyId: number;
+    timezone: string;
   };
 };
-
-const getUtcMinutes = (date: Date) => date.getUTCHours() * 60 + date.getUTCMinutes();
 
 const normalizeEnd = (startMin: number, endMin: number) =>
   endMin <= startMin ? endMin + 24 * 60 : endMin;
@@ -30,15 +29,16 @@ const shiftCoversTask = (
   staffShiftStart: Date | null,
   staffShiftEnd: Date | null,
   taskStart: Date,
-  taskEnd: Date
+  taskEnd: Date,
+  timeZone: string
 ) => {
   if (!staffShiftStart || !staffShiftEnd) return false;
 
-  const staffStartMin = getUtcMinutes(staffShiftStart);
-  const staffEndMin = normalizeEnd(staffStartMin, getUtcMinutes(staffShiftEnd));
-  const taskStartMin = getUtcMinutes(taskStart);
+  const staffStartMin = getZonedClockMinutes(staffShiftStart, timeZone);
+  const staffEndMin = normalizeEnd(staffStartMin, getZonedClockMinutes(staffShiftEnd, timeZone));
+  const taskStartMin = getZonedClockMinutes(taskStart, timeZone);
   let normalizedTaskStartMin = taskStartMin;
-  let taskEndMin = normalizeEnd(taskStartMin, getUtcMinutes(taskEnd));
+  let taskEndMin = normalizeEnd(taskStartMin, getZonedClockMinutes(taskEnd, timeZone));
 
   if (normalizedTaskStartMin < staffStartMin && staffEndMin > 24 * 60) {
     normalizedTaskStartMin += 24 * 60;
@@ -62,6 +62,7 @@ const getTaskWithCompany = async (taskInstanceId: number, client: DbClient = pri
       location: {
         select: {
           companyId: true,
+          timezone: true,
         },
       },
     },
@@ -136,16 +137,13 @@ const getStaffWorkloadScore = async (
   task: TaskForAssignment,
   client: DbClient = prisma
 ) => {
-  const dayStart = task.date;
-  const dayEnd = addUtcDays(dayStart, 1);
-
   const currentAssignments = await client.taskAssignment.findMany({
     where: {
       staffId,
       isCurrent: true,
       status: { in: ["ASSIGNED", "STARTED"] },
       taskInstance: {
-        date: { gte: dayStart, lt: dayEnd },
+        date: task.date,
         isActive: true,
       },
     },
@@ -204,7 +202,7 @@ export const findBestStaffForTask = async (
   const candidates = [];
 
   for (const staff of staffMembers) {
-    if (!shiftCoversTask(staff.shiftStart, staff.shiftEnd, task.shiftStart, task.shiftEnd)) {
+    if (!shiftCoversTask(staff.shiftStart, staff.shiftEnd, task.shiftStart, task.shiftEnd, task.location.timezone)) {
       continue;
     }
 
@@ -428,7 +426,7 @@ export const reassignExpiredAssignments = async (graceMinutes: number) => {
       taskInstance: {
         include: {
           location: {
-            select: { companyId: true },
+            select: { companyId: true, timezone: true },
           },
         },
       },

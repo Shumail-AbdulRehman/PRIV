@@ -1,7 +1,7 @@
+import { formatInTimeZone, fromZonedTime } from "date-fns-tz";
 import {
-  getStartOfUtcDay,
-  getUtcClockMinutes,
-  withUtcClockOnBaseDate,
+  getZonedClockMinutes,
+  withZonedClockOnLocalDay,
 } from "../utils/dateTime.js";
 
 type ShiftWindowInput = {
@@ -10,6 +10,17 @@ type ShiftWindowInput = {
   taskShiftEnd: Date;
   staffShiftStart?: Date | null;
   staffShiftEnd?: Date | null;
+  timeZone: string;
+};
+
+/** UTC instant of the start of the local day after the one anchored by `localDayStart`. */
+const nextLocalDayStart = (localDayStart: Date, timeZone: string) => {
+  const [year, month, day] = formatInTimeZone(localDayStart, timeZone, "yyyy-MM-dd")
+    .split("-")
+    .map(Number);
+  const next = new Date(Date.UTC(year, month - 1, day + 1));
+  const nextDate = formatInTimeZone(next, "UTC", "yyyy-MM-dd");
+  return fromZonedTime(`${nextDate}T00:00:00`, timeZone);
 };
 
 export const resolveTaskInstanceWindow = ({
@@ -18,32 +29,37 @@ export const resolveTaskInstanceWindow = ({
   taskShiftEnd,
   staffShiftStart,
   staffShiftEnd,
+  timeZone,
 }: ShiftWindowInput) => {
-  const taskStartMin = getUtcClockMinutes(taskShiftStart);
-  const taskEndMin = getUtcClockMinutes(taskShiftEnd);
+  const taskStartMin = getZonedClockMinutes(taskShiftStart, timeZone);
+  const taskEndMin = getZonedClockMinutes(taskShiftEnd, timeZone);
 
-  const resolvedShiftStart = withUtcClockOnBaseDate(baseDate, taskShiftStart);
+  let startDay = baseDate;
 
   if (staffShiftStart && staffShiftEnd) {
-    const staffStartMin = getUtcClockMinutes(staffShiftStart);
-    const staffEndMin = getUtcClockMinutes(staffShiftEnd);
+    const staffStartMin = getZonedClockMinutes(staffShiftStart, timeZone);
+    const staffEndMin = getZonedClockMinutes(staffShiftEnd, timeZone);
     const isOvernightStaffShift = staffEndMin < staffStartMin;
 
     if (isOvernightStaffShift && taskStartMin < staffEndMin) {
-      resolvedShiftStart.setUTCDate(resolvedShiftStart.getUTCDate() + 1);
+      startDay = nextLocalDayStart(startDay, timeZone);
     }
   }
 
-  const resolvedShiftEnd = withUtcClockOnBaseDate(resolvedShiftStart, taskShiftEnd);
+  const resolvedShiftStart = withZonedClockOnLocalDay(startDay, taskShiftStart, timeZone);
 
-  if (taskEndMin <= taskStartMin) {
-    resolvedShiftEnd.setUTCDate(resolvedShiftEnd.getUTCDate() + 1);
-  } else if (resolvedShiftEnd < resolvedShiftStart) {
-    resolvedShiftEnd.setUTCDate(resolvedShiftEnd.getUTCDate() + 1);
+  let resolvedShiftEnd = withZonedClockOnLocalDay(startDay, taskShiftEnd, timeZone);
+
+  if (taskEndMin <= taskStartMin || resolvedShiftEnd < resolvedShiftStart) {
+    resolvedShiftEnd = withZonedClockOnLocalDay(
+      nextLocalDayStart(startDay, timeZone),
+      taskShiftEnd,
+      timeZone,
+    );
   }
 
   return {
-    date: getStartOfUtcDay(resolvedShiftStart),
+    date: startDay,
     shiftStart: resolvedShiftStart,
     shiftEnd: resolvedShiftEnd,
   };

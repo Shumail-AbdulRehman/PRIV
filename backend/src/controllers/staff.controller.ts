@@ -4,10 +4,11 @@ import { prisma } from "../prisma/prisma.js";
 import { ApiResponse } from "../utils/ApiResponse.js";
 import { ApiError } from "../utils/ApiError.js";
 import { generateAccessToken, generateRefreshToken, isPasswordCorrect } from "../utils/auth.js";
-import { getUtcDayRangeFromDateInput, getUtcMonthRange } from "../utils/dateTime.js";
+import { DEFAULT_TIME_ZONE, getZonedClockMinutes, getZonedDayRangeFromDateInput, getZonedMonthRange } from "../utils/dateTime.js";
 import { syncTodaysOpenAttendanceWindow } from "../utils/syncAttendanceWindow.js";
 import { getCookieOptions } from "../utils/cookies.js";
 import { markCurrentAssignmentsForTasks } from "../services/taskAssignment.service.js";
+import { getScopedLocationIds, assertLocationAccess } from "../utils/scope.js";
 
 
 export const loginStaff = async (req: Request, res: Response) => {
@@ -87,6 +88,7 @@ export const createStaff = async (req: Request, res: Response) => {
     if (!location || location.companyId !== req.user!.companyId || !location.isActive) {
       throw new ApiError(404, "Location not found in your company");
     }
+    assertLocationAccess(req.user!, locationId);
   }
 
 
@@ -112,8 +114,14 @@ export const createStaff = async (req: Request, res: Response) => {
 };
 
 export const getStaff = async (req: Request, res: Response) => {
+  const scopedLocationIds = getScopedLocationIds(req.user!);
+
   const staff = await prisma.staff.findMany({
-    where: { companyId: req.user!.companyId, isActive: true },
+    where: {
+      companyId: req.user!.companyId,
+      isActive: true,
+      ...(scopedLocationIds ? { locationId: { in: scopedLocationIds } } : {}),
+    },
     select: {
       id: true,
       name: true,
@@ -141,6 +149,13 @@ export const softDeleteStaff = async (req: Request, res: Response) => {
 
   if (!staff || staff.companyId !== req.user!.companyId) {
     throw new ApiError(404, "Staff not found in your company");
+  }
+
+  if (req.user!.role === "MANAGER") {
+    if (!staff.locationId) {
+      throw new ApiError(403, "You do not have access to this location");
+    }
+    assertLocationAccess(req.user!, staff.locationId);
   }
 
   if (!staff.isActive) {
@@ -208,12 +223,21 @@ export const getStaffById = async (req: Request, res: Response) => {
     throw new ApiError(404, "Staff not found in your company");
   }
 
+  if (req.user!.role === "MANAGER") {
+    if (!staff.locationId) {
+      throw new ApiError(403, "You do not have access to this location");
+    }
+    assertLocationAccess(req.user!, staff.locationId);
+  }
+
   res.status(200).json(new ApiResponse(200, staff, "Staff fetched successfully"));
 };
 
 export const getStaffByLocation = async (req: Request, res: Response) => {
   const locationId = Number(req.params.locationId);
   if (isNaN(locationId)) throw new ApiError(400, "Invalid location id");
+
+  assertLocationAccess(req.user!, locationId);
 
   const location = await prisma.location.findUnique({ where: { id: locationId } });
 
@@ -243,8 +267,14 @@ export const getStaffByLocation = async (req: Request, res: Response) => {
 };
 
 export const getInactiveStaff = async (req: Request, res: Response) => {
+  const scopedLocationIds = getScopedLocationIds(req.user!);
+
   const staff = await prisma.staff.findMany({
-    where: { companyId: req.user!.companyId, isActive: false },
+    where: {
+      companyId: req.user!.companyId,
+      isActive: false,
+      ...(scopedLocationIds ? { locationId: { in: scopedLocationIds } } : {}),
+    },
     select: {
       id: true,
       name: true,
@@ -304,7 +334,10 @@ export const editStaff = async (req: Request, res: Response) => {
     throw new ApiError(400, "Validation failed", errors);
   }
 
-  const staff = await prisma.staff.findUnique({ where: { id: staffId } });
+  const staff = await prisma.staff.findUnique({
+    where: { id: staffId },
+    include: { location: { select: { timezone: true } } },
+  });
 
   if (!staff || staff.companyId !== req.user!.companyId) {
     throw new ApiError(404, "Staff not found in your company");
@@ -312,6 +345,10 @@ export const editStaff = async (req: Request, res: Response) => {
 
   if (!staff.isActive) {
     throw new ApiError(400, "Cannot edit deactivated staff");
+  }
+
+  if (staff.locationId) {
+    assertLocationAccess(req.user!, staff.locationId);
   }
 
   if (result.data.email && result.data.email !== staff.email) {
@@ -337,15 +374,18 @@ export const editStaff = async (req: Request, res: Response) => {
         staffId,
         isActive: true,
       },
+      include: { location: { select: { timezone: true } } },
     });
 
-    const newStartMin = newStart.getUTCHours() * 60 + newStart.getUTCMinutes();
-    const newEndMin = newEnd.getUTCHours() * 60 + newEnd.getUTCMinutes();
+    const locationTimeZone = staff.location?.timezone ?? DEFAULT_TIME_ZONE;
+    const newStartMin = getZonedClockMinutes(newStart, locationTimeZone);
+    const newEndMin = getZonedClockMinutes(newEnd, locationTimeZone);
     const isOvernightShift = newEndMin < newStartMin;
 
     const conflicts = staffTemplates.filter((t) => {
-      const tStartMin = t.shiftStart.getUTCHours() * 60 + t.shiftStart.getUTCMinutes();
-      const tEndMin = t.shiftEnd.getUTCHours() * 60 + t.shiftEnd.getUTCMinutes();
+      const templateTimeZone = t.location.timezone;
+      const tStartMin = getZonedClockMinutes(t.shiftStart, templateTimeZone);
+      const tEndMin = getZonedClockMinutes(t.shiftEnd, templateTimeZone);
 
       if (isOvernightShift) {
         return !(tStartMin >= newStartMin || tEndMin <= newEndMin);
@@ -394,6 +434,38 @@ export const getStaffDetails = async (req: Request, res: Response) => {
   const dateFromParam = req.query.dateFrom as string | undefined;
   const dateToParam = req.query.dateTo as string | undefined;
 
+  const staff = await prisma.staff.findUnique({
+    where: { id: staffId },
+    select: {
+      id: true,
+      name: true,
+      email: true,
+      phone: true,
+      role: true,
+      isActive: true,
+      companyId: true,
+      locationId: true,
+      shiftStart: true,
+      shiftEnd: true,
+      createdAt: true,
+      updatedAt: true,
+      location: { select: { id: true, name: true, address: true, timezone: true } },
+    },
+  });
+
+  if (!staff || staff.companyId !== req.user!.companyId) {
+    throw new ApiError(404, "Staff not found in your company");
+  }
+
+  if (req.user!.role === "MANAGER") {
+    if (!staff.locationId) {
+      throw new ApiError(403, "You do not have access to this location");
+    }
+    assertLocationAccess(req.user!, staff.locationId);
+  }
+
+  const timeZone = staff.location?.timezone ?? DEFAULT_TIME_ZONE;
+
   let dateFilter: { gte?: Date; lt?: Date } | undefined;
   let periodLabel = "All time";
 
@@ -410,24 +482,24 @@ export const getStaffDetails = async (req: Request, res: Response) => {
       throw new ApiError(400, "Invalid month value");
     }
 
-    const monthRange = getUtcMonthRange(year, monthIndex);
+    const monthRange = getZonedMonthRange(year, monthIndex, timeZone);
     if (!monthRange) {
       throw new ApiError(400, "Invalid month value");
     }
 
     dateFilter = { gte: monthRange.start, lt: monthRange.end };
-    periodLabel = new Date(Date.UTC(year, monthIndex, 1)).toLocaleDateString("en-US", {
+    periodLabel = new Date(Date.UTC(year, monthIndex, 15)).toLocaleDateString("en-US", {
       month: "long",
       year: "numeric",
-      timeZone: "UTC",
+      timeZone,
     });
   } else if (dateFromParam || dateToParam) {
     if (!dateFromParam || !dateToParam) {
       throw new ApiError(400, "Both dateFrom and dateTo are required together");
     }
 
-    const startRange = getUtcDayRangeFromDateInput(dateFromParam);
-    const endRange = getUtcDayRangeFromDateInput(dateToParam);
+    const startRange = getZonedDayRangeFromDateInput(dateFromParam, timeZone);
+    const endRange = getZonedDayRangeFromDateInput(dateToParam, timeZone);
 
     if (!startRange || !endRange) {
       throw new ApiError(400, "Invalid dateFrom or dateTo format. Use YYYY-MM-DD");
@@ -439,29 +511,6 @@ export const getStaffDetails = async (req: Request, res: Response) => {
 
     dateFilter = { gte: startRange.start, lt: endRange.end };
     periodLabel = `${dateFromParam} to ${dateToParam}`;
-  }
-
-  const staff = await prisma.staff.findUnique({
-    where: { id: staffId },
-    select: {
-      id: true,
-      name: true,
-      email: true,
-      phone: true,
-      role: true,
-      isActive: true,
-      companyId: true,
-      locationId: true,
-      shiftStart: true,
-      shiftEnd: true,
-      createdAt: true,
-      updatedAt: true,
-      location: { select: { id: true, name: true, address: true } },
-    },
-  });
-
-  if (!staff || staff.companyId !== req.user!.companyId) {
-    throw new ApiError(404, "Staff not found in your company");
   }
 
   const taskInstanceWhere = {
@@ -499,7 +548,7 @@ export const getStaffDetails = async (req: Request, res: Response) => {
         shiftStart: true,
         shiftEnd: true,
         effectiveDate: true,
-        location: { select: { id: true, name: true } },
+        location: { select: { id: true, name: true, timezone: true } },
       },
     }),
     prisma.taskInstance.findMany({
@@ -517,7 +566,7 @@ export const getStaffDetails = async (req: Request, res: Response) => {
         startedAt: true,
         completedAt: true,
         proofImageUrls: true,
-        location: { select: { id: true, name: true } },
+        location: { select: { id: true, name: true, timezone: true } },
       },
     }),
     prisma.attendance.findMany({
@@ -536,7 +585,7 @@ export const getStaffDetails = async (req: Request, res: Response) => {
         lateMinutes: true,
         checkInImage: true,
         checkOutImage: true,
-        location: { select: { id: true, name: true } },
+        location: { select: { id: true, name: true, timezone: true } },
       },
     }),
     prisma.taskTemplate.count({

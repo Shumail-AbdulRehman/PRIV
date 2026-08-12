@@ -1,10 +1,20 @@
 import { Request, Response } from "express";
-import { createLocationSchema } from "../validations/location.validation.js";
+import tzLookup from "tz-lookup";
+import { createLocationSchema, editLocationSchema } from "../validations/location.validation.js";
 import { prisma } from "../prisma/prisma.js";
 import { ApiResponse } from "../utils/ApiResponse.js";
 import { ApiError } from "../utils/ApiError.js";
-import { addUtcDays, getUtcDayRange, getUtcDayRangeFromDateInput } from "../utils/dateTime.js";
+import { addUtcDays, getZonedDayRange, getZonedDayRangeFromDateInput } from "../utils/dateTime.js";
 import { markCurrentAssignmentsForTasks } from "../services/taskAssignment.service.js";
+import { getScopedLocationIds, assertLocationAccess } from "../utils/scope.js";
+
+const timezoneFromCoordinates = (latitude: string, longitude: string) => {
+  try {
+    return tzLookup(Number(latitude), Number(longitude));
+  } catch {
+    return "UTC";
+  }
+};
 
 export const createLocation = async (req: Request, res: Response) => {
   const payload = req.body?.data ?? req.body;
@@ -21,6 +31,7 @@ export const createLocation = async (req: Request, res: Response) => {
   const location = await prisma.location.create({
     data: {
       ...result.data,
+      timezone: result.data.timezone ?? timezoneFromCoordinates(result.data.latitude, result.data.longitude),
       companyId: req.user!.companyId
     }
   });
@@ -33,7 +44,7 @@ export const editLocation = async (req: Request, res: Response) => {
   if (isNaN(locationId)) throw new ApiError(400, "Invalid location id");
 
   const payload = req.body?.data ?? req.body;
-  const result = createLocationSchema.safeParse(payload);
+  const result = editLocationSchema.safeParse(payload);
 
   if (!result.success) {
     const errors = result.error.issues.map(e => ({
@@ -49,9 +60,19 @@ export const editLocation = async (req: Request, res: Response) => {
     throw new ApiError(404, "Location not found in your company");
   }
 
+  const coordinatesChanged =
+    result.data.latitude !== location.latitude || result.data.longitude !== location.longitude;
+
   const updatedLocation = await prisma.location.update({
     where: { id: locationId },
-    data: result.data
+    data: {
+      ...result.data,
+      ...(result.data.timezone
+        ? {}
+        : coordinatesChanged
+          ? { timezone: timezoneFromCoordinates(result.data.latitude, result.data.longitude) }
+          : {}),
+    }
   });
 
   res.status(200).json(new ApiResponse(200, updatedLocation, "Location updated successfully"));
@@ -59,9 +80,14 @@ export const editLocation = async (req: Request, res: Response) => {
 
 export const getLocations = async (req: Request, res: Response) => {
 
+  const scopedLocationIds = getScopedLocationIds(req.user!);
 
   const locations = await prisma.location.findMany({
-    where: { companyId: req.user!.companyId, isActive: true },
+    where: {
+      companyId: req.user!.companyId,
+      isActive: true,
+      ...(scopedLocationIds ? { id: { in: scopedLocationIds } } : {}),
+    },
     orderBy: { name: "asc" },
     select: {
       id: true,
@@ -71,6 +97,7 @@ export const getLocations = async (req: Request, res: Response) => {
       longitude: true,
       radiusMeters: true,
       isActive: true,
+      timezone: true,
       _count: {
         select: {
           staff: {
@@ -154,6 +181,7 @@ export const getLocationById = async (req: Request, res: Response) => {
   if (!location || location.companyId !== req.user!.companyId) {
     throw new ApiError(404, "Location not found in your company");
   }
+  assertLocationAccess(req.user!, location.id);
   res.status(200).json(new ApiResponse(200, location, "Location fetched successfully"));
 };
 
@@ -196,6 +224,8 @@ export const getLocationStatsById = async (req: Request, res: Response) => {
     throw new ApiError(404, "Location not found in your company");
   }
 
+  assertLocationAccess(req.user!, location.id);
+
   
   const days = req.query.days ? Number(req.query.days) : null;
   const dateFromParam = req.query.dateFrom as string;
@@ -206,8 +236,8 @@ export const getLocationStatsById = async (req: Request, res: Response) => {
 
   
   if (dateFromParam && dateToParam) {
-    const startRange = getUtcDayRangeFromDateInput(dateFromParam);
-    const endRange = getUtcDayRangeFromDateInput(dateToParam);
+    const startRange = getZonedDayRangeFromDateInput(dateFromParam, location.timezone);
+    const endRange = getZonedDayRangeFromDateInput(dateToParam, location.timezone);
 
     if (!startRange || !endRange) {
       throw new ApiError(400, "Invalid dateFrom or dateTo format. Use YYYY-MM-DD");
@@ -226,7 +256,7 @@ export const getLocationStatsById = async (req: Request, res: Response) => {
       throw new ApiError(400, "days must be a positive number");
     }
 
-    const { start: todayStart, end: tomorrowStart } = getUtcDayRange();
+    const { start: todayStart, end: tomorrowStart } = getZonedDayRange(new Date(), location.timezone);
     const startDate = addUtcDays(todayStart, -(days - 1));
 
     dateFilter = { date: { gte: startDate, lt: tomorrowStart } };

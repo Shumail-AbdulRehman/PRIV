@@ -4,9 +4,10 @@ import { ApiResponse } from "../utils/ApiResponse.js";
 import { ApiError } from "../utils/ApiError.js";
 import { checkInSchema, checkOutSchema, assignShiftSchema } from "../validations/attendance.validation.js";
 import { isWithinRadius } from "../utils/geofencing.js";
-import { addUtcDays, getUtcDayRange, getUtcDayRangeFromDateInput } from "../utils/dateTime.js";
+import { addUtcDays, DEFAULT_TIME_ZONE, getZonedDayRange, getZonedDayRangeFromDateInput } from "../utils/dateTime.js";
 import { uploadSingleImage } from "../utils/cloudinary.js";
 import { syncTodaysOpenAttendanceWindow } from "../utils/syncAttendanceWindow.js";
+import { getScopedLocationIds, assertLocationAccess } from "../utils/scope.js";
 
 const LATE_GRACE_MINUTES = 15;
 const EARLY_CHECKIN_MINUTES = 30;
@@ -30,6 +31,13 @@ export const assignShiftToStaff = async (req: Request, res: Response) => {
 
     if (!staff || staff.companyId !== req.user!.companyId) {
         throw new ApiError(404, "Staff not found in your company");
+    }
+
+    if (req.user!.role === "MANAGER") {
+        if (!staff.locationId) {
+            throw new ApiError(403, "You do not have access to this location");
+        }
+        assertLocationAccess(req.user!, staff.locationId);
     }
 
     if (!staff.isActive) {
@@ -177,9 +185,9 @@ export const checkIn = async (req: Request, res: Response) => {
   throw new ApiError(400, `You are not within the allowed radius of your location (you are ${Math.round(actualDistance)}m away, allowed: ${location.radiusMeters}m)`);
 }
 
-    const { start: today, end: tomorrow } = getUtcDayRange();
-
     const now = new Date();
+
+    const { start: today, end: tomorrow } = getZonedDayRange(now, location.timezone);
 
 const attendance = await prisma.attendance.findFirst({
   where: {
@@ -288,7 +296,7 @@ export const checkOut = async (req: Request, res: Response) => {
   throw new ApiError(400, "You are not within the allowed radius of your location");
 }
 
-    const { start: today, end: tomorrow } = getUtcDayRange();
+    const { start: today, end: tomorrow } = getZonedDayRange(new Date(), location.timezone);
 
     let attendance = await prisma.attendance.findFirst({
         where: {
@@ -362,6 +370,17 @@ export const getStaffAttendance = async (req: Request, res: Response) => {
 
     const filters: any = {};
 
+    const scopedLocationIds = getScopedLocationIds(req.user!);
+
+    if (req.query.locationId) {
+        const locationId = Number(req.query.locationId);
+        if (isNaN(locationId)) throw new ApiError(400, "Invalid locationId");
+        assertLocationAccess(req.user!, locationId);
+        filters.locationId = locationId;
+    } else if (scopedLocationIds) {
+        filters.locationId = { in: scopedLocationIds };
+    }
+
     if (req.query.staffId) {
         const staffId = Number(req.query.staffId);
         if (isNaN(staffId)) throw new ApiError(400, "Invalid staffId");
@@ -369,28 +388,56 @@ export const getStaffAttendance = async (req: Request, res: Response) => {
     }
 
     if (req.query.from || req.query.to) {
-        filters.date = {};
-        const fromRange = req.query.from
-            ? getUtcDayRangeFromDateInput(req.query.from as string)
-            : null;
-        const toRange = req.query.to
-            ? getUtcDayRangeFromDateInput(req.query.to as string)
-            : null;
+        const fromInput = req.query.from as string | undefined;
+        const toInput = req.query.to as string | undefined;
 
-        if (req.query.from) {
-            if (!fromRange) {
-                throw new ApiError(400, "Invalid from format. Use YYYY-MM-DD");
-            }
-            filters.date.gte = fromRange.start;
+        let timeZones: string[];
+
+        if (typeof filters.locationId === "number") {
+            const location = await prisma.location.findUnique({
+                where: { id: filters.locationId },
+                select: { timezone: true },
+            });
+            timeZones = [location?.timezone ?? DEFAULT_TIME_ZONE];
+        } else {
+            const scopedLocations = await prisma.location.findMany({
+                where: filters.locationId?.in
+                    ? { id: { in: filters.locationId.in } }
+                    : { companyId },
+                select: { timezone: true },
+                distinct: ["timezone"],
+            });
+            timeZones = scopedLocations.map((location) => location.timezone);
+            if (timeZones.length === 0) timeZones = [DEFAULT_TIME_ZONE];
         }
-        if (req.query.to) {
-            if (!toRange) {
-                throw new ApiError(400, "Invalid to format. Use YYYY-MM-DD");
-            }
-            filters.date.lt = toRange.end;
+
+        const ranges = timeZones.map((timeZone) => ({
+            from: fromInput ? getZonedDayRangeFromDateInput(fromInput, timeZone) : null,
+            to: toInput ? getZonedDayRangeFromDateInput(toInput, timeZone) : null,
+        }));
+
+        if (fromInput && ranges.some((range) => !range.from)) {
+            throw new ApiError(400, "Invalid from format. Use YYYY-MM-DD");
         }
-        if (fromRange && toRange && fromRange.start > toRange.start) {
+        if (toInput && ranges.some((range) => !range.to)) {
+            throw new ApiError(400, "Invalid to format. Use YYYY-MM-DD");
+        }
+        if (fromInput && toInput && ranges.some((range) => range.from!.start > range.to!.start)) {
             throw new ApiError(400, "from must be before or equal to to");
+        }
+
+        if (ranges.length === 1) {
+            filters.date = {
+                ...(fromInput ? { gte: ranges[0].from!.start } : {}),
+                ...(toInput ? { lt: ranges[0].to!.end } : {}),
+            };
+        } else {
+            filters.OR = ranges.map((range) => ({
+                date: {
+                    ...(fromInput ? { gte: range.from!.start } : {}),
+                    ...(toInput ? { lt: range.to!.end } : {}),
+                },
+            }));
         }
     }
 
