@@ -1,6 +1,7 @@
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { useForm } from "react-hook-form";
+import { formatInTimeZone, fromZonedTime } from "date-fns-tz";
 import { useGetStaff, useCreateStaff, useDeactivateStaff, useEditStaff, getStaffDetailsQueryOptions } from "./queries";
 import type { EditStaffInput } from "./api";
 import { useGetLocations } from "../Location/queries";
@@ -38,6 +39,7 @@ interface StaffMember {
 interface LocationOption {
   id: number;
   name: string;
+  timezone: string;
 }
 
 interface ApiErrorBody {
@@ -62,16 +64,19 @@ interface CreateStaffForm {
   shiftEnd: string;
 }
 
-const fmtTime = (d: string | null) => {
+const fmtTimeWithTz = (d: string | null, timeZone = "UTC") => {
   if (!d) return "—";
-  const date = new Date(d);
-  return `${String(date.getUTCHours()).padStart(2, "0")}:${String(date.getUTCMinutes()).padStart(2, "0")}`;
+  return formatInTimeZone(new Date(d), timeZone, "HH:mm (zzz)");
 };
 
-const toTimeValue = (iso: string | null) => {
+const toTimeValue = (iso: string | null, timeZone = "UTC") => {
   if (!iso) return "";
-  const d = new Date(iso);
-  return `${String(d.getUTCHours()).padStart(2, "0")}:${String(d.getUTCMinutes()).padStart(2, "0")}`;
+  return formatInTimeZone(new Date(iso), timeZone, "HH:mm");
+};
+
+const wallTimeToIso = (base: string | null, timeValue: string, timeZone: string) => {
+  const datePart = formatInTimeZone(base ? new Date(base) : new Date(), timeZone, "yyyy-MM-dd");
+  return fromZonedTime(`${datePart}T${timeValue}:00`, timeZone).toISOString();
 };
 
 const inputCls =
@@ -116,6 +121,9 @@ export default function StaffPage() {
   const activeStaffCount = staff.filter((s) => s.isActive).length;
 
   const locMap = new Map(locations.map((l) => [l.id, l.name]));
+  const tzMap = new Map(locations.map((l) => [l.id, l.timezone]));
+  const tzForLocation = (locationId: number | null) =>
+    (locationId != null ? tzMap.get(locationId) : undefined) ?? "UTC";
 
   const extractError = (err: unknown) => {
     const error = err as ApiError;
@@ -128,9 +136,10 @@ export default function StaffPage() {
   const handleEditOpen = (s: StaffMember) => {
     setEditError(null);
     setEditingStaff(s);
+    const tz = tzForLocation(s.locationId);
     setEditForm({
       name: s.name, email: s.email, phone: s.phone ?? "",
-      shiftStart: toTimeValue(s.shiftStart), shiftEnd: toTimeValue(s.shiftEnd),
+      shiftStart: toTimeValue(s.shiftStart, tz), shiftEnd: toTimeValue(s.shiftEnd, tz),
       locationId: s.locationId ? String(s.locationId) : "",
     });
   };
@@ -139,19 +148,16 @@ export default function StaffPage() {
     if (!editingStaff) return;
     setEditError(null);
     try {
+      const tz = tzForLocation(editForm.locationId ? Number(editForm.locationId) : null);
       const payload: EditStaffInput = {};
       if (editForm.name !== editingStaff.name) payload.name = editForm.name;
       if (editForm.email !== editingStaff.email) payload.email = editForm.email;
       if (editForm.phone !== (editingStaff.phone ?? "")) payload.phone = editForm.phone;
-      if (editForm.shiftStart && editForm.shiftStart !== toTimeValue(editingStaff.shiftStart)) {
-        const base = editingStaff.shiftStart ? new Date(editingStaff.shiftStart) : new Date();
-        const [h, m] = editForm.shiftStart.split(":").map(Number);
-        base.setUTCHours(h, m, 0, 0); payload.shiftStart = base.toISOString();
+      if (editForm.shiftStart && editForm.shiftStart !== toTimeValue(editingStaff.shiftStart, tz)) {
+        payload.shiftStart = wallTimeToIso(editingStaff.shiftStart, editForm.shiftStart, tz);
       }
-      if (editForm.shiftEnd && editForm.shiftEnd !== toTimeValue(editingStaff.shiftEnd)) {
-        const base = editingStaff.shiftEnd ? new Date(editingStaff.shiftEnd) : new Date();
-        const [h, m] = editForm.shiftEnd.split(":").map(Number);
-        base.setUTCHours(h, m, 0, 0); payload.shiftEnd = base.toISOString();
+      if (editForm.shiftEnd && editForm.shiftEnd !== toTimeValue(editingStaff.shiftEnd, tz)) {
+        payload.shiftEnd = wallTimeToIso(editingStaff.shiftEnd, editForm.shiftEnd, tz);
       }
       if (Object.keys(payload).length > 0) {
         await new Promise<void>((resolve, reject) => {
@@ -190,7 +196,7 @@ export default function StaffPage() {
     },
     {
       key: "shift", header: "Shift",
-      render: (s) => <span className="text-gray-600">{fmtTime(s.shiftStart)} – {fmtTime(s.shiftEnd)}</span>,
+      render: (s) => <span className="text-gray-600">{fmtTimeWithTz(s.shiftStart, tzForLocation(s.locationId))} – {fmtTimeWithTz(s.shiftEnd, tzForLocation(s.locationId))}</span>,
     },
     { key: "status", header: "Status", render: (s) => <StatusBadge status={s.isActive ? "ACTIVE" : "INACTIVE"} /> },
     {
@@ -205,6 +211,7 @@ export default function StaffPage() {
   ];
 
   const onCreateSubmit = (formData: CreateStaffForm) => {
+    const tz = tzForLocation(formData.locationId ? Number(formData.locationId) : null);
     createStaff.mutate(
       {
         name: formData.name,
@@ -213,16 +220,10 @@ export default function StaffPage() {
         password: formData.password,
         locationId: formData.locationId ? Number(formData.locationId) : undefined,
         shiftStart: formData.shiftStart
-          ? (() => {
-              const [h, m] = formData.shiftStart.split(":").map(Number);
-              return new Date(Date.UTC(1970, 0, 1, h, m, 0)).toISOString();
-            })()
+          ? fromZonedTime(`1970-01-01T${formData.shiftStart}:00`, tz).toISOString()
           : undefined,
         shiftEnd: formData.shiftEnd
-          ? (() => {
-              const [h, m] = formData.shiftEnd.split(":").map(Number);
-              return new Date(Date.UTC(1970, 0, 1, h, m, 0)).toISOString();
-            })()
+          ? fromZonedTime(`1970-01-01T${formData.shiftEnd}:00`, tz).toISOString()
           : undefined,
       },
       { onSuccess: () => { reset(); setDialogOpen(false); } }

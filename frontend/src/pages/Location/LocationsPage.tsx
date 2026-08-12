@@ -17,14 +17,21 @@ import {
   DialogTitle,
   DialogTrigger,
 } from "@/components/ui/dialog";
-import { useState } from "react";
+import { useMemo, useState } from "react";
+import { useSelector } from "react-redux";
+import type { RootState } from "@/store/store";
+
+const DEFAULT_TIME_ZONE = "Asia/Karachi";
 
 export default function LocationsPage() {
   const createLocation = useCreateLocation();
   const getLocations = useGetLocations();
+  const user = useSelector((s: RootState) => s.auth.user);
+  const isAdmin = user?.role === "ADMIN";
   const [dialogOpen, setDialogOpen] = useState(false);
   const [locationError, setLocationError] = useState<string | null>(null);
   const [isLocating, setIsLocating] = useState(false);
+  const timeZones = useMemo<string[]>(() => (Intl as any).supportedValuesOf("timeZone"), []);
 
   const {
     register,
@@ -32,7 +39,9 @@ export default function LocationsPage() {
     reset,
     setValue,
     formState: { errors },
-  } = useForm<LocationFormValues>();
+  } = useForm<LocationFormValues>({
+    defaultValues: { timezone: "" },
+  });
 
   const fillCurrentLocation = () => {
     setLocationError(null);
@@ -63,7 +72,7 @@ export default function LocationsPage() {
 
   const onSubmit: SubmitHandler<LocationFormValues> = async (data) => {
     await createLocation.mutateAsync(
-      { name: data.name, address: data.address, latitude: data.latitude, longitude: data.longitude },
+      { name: data.name, address: data.address, latitude: data.latitude, longitude: data.longitude, ...(data.timezone ? { timezone: data.timezone } : {}) },
       { onSuccess: () => { reset(); setLocationError(null); setDialogOpen(false); } }
     );
   };
@@ -77,6 +86,7 @@ export default function LocationsPage() {
   return (
     <div className="space-y-6">
       <PageHeader title="Locations" subtitle="Manage the operational sites that staff, attendance, and task schedules roll up into." action={
+        isAdmin ? (
         <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
           <DialogTrigger asChild>
             <Button className="rounded-2xl px-4">
@@ -118,6 +128,14 @@ export default function LocationsPage() {
                   {errors.longitude && <p className="mt-1 text-xs text-red-500">{errors.longitude.message}</p>}
                 </div>
               </div>
+              <div>
+                <label className="mb-1.5 block text-sm font-medium text-foreground">Timezone</label>
+                <select {...register("timezone")} className="flex h-11 w-full rounded-2xl border border-border/80 bg-background/90 px-4 py-2 text-sm shadow-xs outline-none focus:border-primary/60 focus:ring-4 focus:ring-primary/10">
+                  <option value="">Auto-detect from coordinates</option>
+                  {timeZones.map((tz) => <option key={tz} value={tz}>{tz}</option>)}
+                </select>
+                <p className="mt-1 text-xs text-muted-foreground">Detected automatically from the latitude/longitude. Only change it if the detected zone is wrong.</p>
+              </div>
               <div className="rounded-2xl border border-border/70 bg-muted/30 p-3">
                 <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
                   <div>
@@ -138,6 +156,7 @@ export default function LocationsPage() {
             </form>
           </DialogContent>
         </Dialog>
+        ) : undefined
       } />
 
       <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-3">
@@ -149,14 +168,14 @@ export default function LocationsPage() {
       {locations.length > 0 ? (
         <div className="grid grid-cols-1 gap-4 md:grid-cols-2 lg:grid-cols-3">
           {locations.map((loc: LocationWithCounts) => (
-            <LocationCard key={loc.id} name={loc.name} address={loc.address} staff={loc._count.staff} taskTemplate={loc._count.taskTemplates} lat={loc.latitude.toString()} lng={loc.longitude.toString()} id={loc.id} />
+            <LocationCard key={loc.id} name={loc.name} address={loc.address} staff={loc._count.staff} taskTemplate={loc._count.taskTemplates} lat={loc.latitude.toString()} lng={loc.longitude.toString()} timezone={loc.timezone} id={loc.id} />
           ))}
         </div>
       ) : (
         <EmptyState
           icon={<MapPin className="h-12 w-12" />}
-          message="No locations yet. Add your first location to get started."
-          action={<Button onClick={() => setDialogOpen(true)} className="rounded-2xl px-4">Add location</Button>}
+          message={isAdmin ? "No locations yet. Add your first location to get started." : "No locations assigned to you yet. Contact your admin."}
+          action={isAdmin ? <Button onClick={() => setDialogOpen(true)} className="rounded-2xl px-4">Add location</Button> : undefined}
         />
       )}
     </div>

@@ -16,9 +16,20 @@ const utcDayFormatter = new Intl.DateTimeFormat("en-CA", {
 const getUtcDayKey = (value: string | Date) =>
   utcDayFormatter.format(new Date(value));
 
+const getDayKey = (value: string | Date, timeZone: string) =>
+  timeZone === "UTC"
+    ? getUtcDayKey(value)
+    : new Intl.DateTimeFormat("en-CA", {
+        timeZone,
+        year: "numeric",
+        month: "2-digit",
+        day: "2-digit",
+      }).format(new Date(value));
+
 export const getAttendanceDisplayStatus = (
   attendance: AttendanceLike | null | undefined,
   referenceDate = new Date(),
+  timeZone = "UTC",
 ) => {
   if (!attendance) return "ABSENT";
 
@@ -26,7 +37,7 @@ export const getAttendanceDisplayStatus = (
 
   const isSameUtcDay =
     !!attendanceDate &&
-    getUtcDayKey(attendanceDate) === getUtcDayKey(referenceDate);
+    getDayKey(attendanceDate, timeZone) === getDayKey(referenceDate, timeZone);
 
   if (
     attendance.status === "ABSENT" &&

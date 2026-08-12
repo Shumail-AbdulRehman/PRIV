@@ -12,6 +12,7 @@ import LoadingSpinner from "@/components/common/LoadingSpinner";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { useGetTodayStatus } from "./queries";
+import { formatInTimeZone } from "date-fns-tz";
 
 type AttendanceFilter = "all" | "present" | "absent" | "late" | "shift-not-started";
 type TaskFilter = "all" | "pending" | "in-progress" | "completed" | "attention";
@@ -24,7 +25,7 @@ interface StaffStatusEntry {
     locationId: number | null;
     shiftStart: string | null;
     shiftEnd: string | null;
-    location: { id: number; name: string } | null;
+    location: { id: number; name: string; timezone: string } | null;
   };
   attendance: {
     status: string;
@@ -68,10 +69,9 @@ interface StaffStatusEntry {
   };
 }
 
-const fmtTime = (value: string | null) => {
+const fmtTime = (value: string | null, timeZone = "UTC") => {
   if (!value) return "—";
-  const date = new Date(value);
-  return `${String(date.getUTCHours()).padStart(2, "0")}:${String(date.getUTCMinutes()).padStart(2, "0")}`;
+  return formatInTimeZone(new Date(value), timeZone, "HH:mm");
 };
 
 const toUtcDateValue = (value: Date) =>
@@ -164,7 +164,7 @@ export default function TodayStatusPage() {
           </div>
           <p className="text-xs text-muted-foreground">
             {entry.attendance
-              ? `In ${fmtTime(entry.attendance.checkInTime ?? null)} / Out ${fmtTime(entry.attendance.checkOutTime ?? null)}`
+              ? `In ${fmtTime(entry.attendance.checkInTime ?? null, entry.staff.location?.timezone ?? "UTC")} / Out ${fmtTime(entry.attendance.checkOutTime ?? null, entry.staff.location?.timezone ?? "UTC")}`
               : "No attendance row for today"}
           </p>
         </div>

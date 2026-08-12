@@ -1,4 +1,4 @@
-import { ArrowRight, MapPin, Users, CheckSquare } from "lucide-react";
+import { ArrowRight, MapPin, Users, CheckSquare, Clock } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import type { LocationCardProps } from "../types";
 import StatusBadge from "@/components/common/StatusBadge";
@@ -12,6 +12,7 @@ export default function LocationCard({
   lat = "0.000",
   lng = "0.000",
   geofence = "100m",
+  timezone,
   status = "Active",
   id,
 }: LocationCardProps) {
@@ -50,6 +51,11 @@ export default function LocationCard({
       <div className="mt-4 flex flex-wrap gap-2">
         <span className="rounded-full bg-muted px-3 py-1 text-xs text-muted-foreground">{lat}, {lng}</span>
         <span className="rounded-full bg-muted px-3 py-1 text-xs text-muted-foreground">Geofence: {geofence}</span>
+        {timezone ? (
+          <span className="inline-flex items-center gap-1 rounded-full bg-muted px-3 py-1 text-xs text-muted-foreground">
+            <Clock className="h-3 w-3" /> {timezone}
+          </span>
+        ) : null}
       </div>
 
       <div className="mt-5 flex items-center gap-2 border-t border-border/60 pt-4">

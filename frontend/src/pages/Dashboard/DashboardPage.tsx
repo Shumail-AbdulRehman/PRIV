@@ -9,6 +9,7 @@ import type { RootState } from "@/store/store";
 import StatCard from "@/components/common/StatCard";
 import SurfaceCard from "@/components/common/SurfaceCard";
 import { Button } from "@/components/ui/button";
+import { formatInTimeZone } from "date-fns-tz";
 import {
   BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer,
   PieChart, Pie, Cell, Legend,
@@ -21,6 +22,7 @@ interface DashboardLocation {
   name: string;
   address: string;
   isActive: boolean;
+  timezone?: string;
   _count?: {
     staff?: number;
     taskTemplates?: number;
@@ -54,7 +56,8 @@ export default function DashboardPage() {
     .sort((a, b) => (b._count?.staff ?? 0) - (a._count?.staff ?? 0))
     .slice(0, 3);
 
-  const hour = new Date().getUTCHours();
+  const homeTz = locations.find((l) => l.timezone)?.timezone ?? "UTC";
+  const hour = Number(formatInTimeZone(new Date(), homeTz, "H"));
   const greeting =
     hour < 12 ? "Good Morning" : hour < 17 ? "Good Afternoon" : "Good Evening";
 
@@ -126,12 +129,7 @@ export default function DashboardPage() {
             <div className="rounded-3xl border border-white/15 bg-white/10 p-5">
               <p className="text-sm text-white/70">Today</p>
               <p className="mt-2 text-2xl font-semibold">
-                {new Date().toLocaleDateString("en-US", {
-                  weekday: "long",
-                  month: "long",
-                  day: "numeric",
-                  timeZone: "UTC",
-                })}
+                {formatInTimeZone(new Date(), homeTz, "EEEE, MMMM d")}
               </p>
             </div>
             <div className="rounded-3xl border border-white/15 bg-white/10 p-5">

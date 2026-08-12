@@ -12,6 +12,7 @@ import FilterBar from "@/components/common/FilterBar";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { getAttendanceDisplayStatus } from "@/lib/attendance";
+import { formatInTimeZone } from "date-fns-tz";
 
 interface AttendanceRecord {
   id: number;
@@ -28,7 +29,7 @@ interface AttendanceRecord {
   checkInImage: string | null;
   checkOutImage: string | null;
   staff: { id: number; name: string; email: string };
-  location: { id: number; name: string };
+  location: { id: number; name: string; timezone: string };
 }
 
 interface StaffOption {
@@ -45,10 +46,14 @@ const fmtDate = (d: string) => {
   })}`;
 };
 
-const fmtTime = (d: string | null) => {
+const fmtTime = (d: string | null, timeZone = "UTC") => {
   if (!d) return "—";
-  const date = new Date(d);
-  return `${String(date.getUTCHours()).padStart(2, "0")}:${String(date.getUTCMinutes()).padStart(2, "0")}`;
+  return formatInTimeZone(new Date(d), timeZone, "HH:mm");
+};
+
+const fmtTimeWithTz = (d: string | null, timeZone = "UTC") => {
+  if (!d) return "—";
+  return formatInTimeZone(new Date(d), timeZone, "HH:mm (zzz)");
 };
 
 const inputCls =
@@ -98,7 +103,7 @@ export default function AttendancePage() {
 
   const records: AttendanceRecord[] = data?.data ?? [];
   const allStaff = (staffQuery.data?.data ?? []) as StaffOption[];
-  const displayStatuses = records.map((record) => getAttendanceDisplayStatus(record));
+  const displayStatuses = records.map((record) => getAttendanceDisplayStatus(record, new Date(), record.location.timezone));
 
   const presentCount = displayStatuses.filter((status) => status === "CHECKED_IN" || status === "CHECKED_OUT").length;
   const absentCount = displayStatuses.filter((status) => status === "ABSENT").length;
@@ -196,18 +201,18 @@ export default function AttendancePage() {
     { key: "date", header: "Date", render: (r) => <span className="text-gray-600">{fmtDate(r.date)}</span> },
     {
       key: "shift", header: "Expected Shift",
-      render: (r) => <span className="text-gray-600">{fmtTime(r.expectedStart)} – {fmtTime(r.expectedEnd)}</span>,
+      render: (r) => <span className="text-gray-600">{fmtTimeWithTz(r.expectedStart, r.location.timezone)} – {fmtTimeWithTz(r.expectedEnd, r.location.timezone)}</span>,
     },
     {
       key: "checkIn", header: "Check In",
       render: (r) => (
         <span className={r.isLateCheckIn ? "font-medium text-amber-600" : "text-emerald-600"}>
-          {fmtTime(r.checkInTime)}
+          {fmtTime(r.checkInTime, r.location.timezone)}
         </span>
       ),
     },
-    { key: "checkOut", header: "Check Out", render: (r) => <span className="text-gray-600">{fmtTime(r.checkOutTime)}</span> },
-    { key: "status", header: "Status", render: (r) => <StatusBadge status={getAttendanceDisplayStatus(r)} /> },
+    { key: "checkOut", header: "Check Out", render: (r) => <span className="text-gray-600">{fmtTime(r.checkOutTime, r.location.timezone)}</span> },
+    { key: "status", header: "Status", render: (r) => <StatusBadge status={getAttendanceDisplayStatus(r, new Date(), r.location.timezone)} /> },
     {
       key: "lateMin", header: "Late",
       render: (r) =>

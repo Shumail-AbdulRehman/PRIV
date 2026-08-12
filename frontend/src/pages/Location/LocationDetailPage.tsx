@@ -2,6 +2,7 @@ import React, { useState } from "react";
 import { QRCodeSVG } from "qrcode.react";
 import { useParams, useNavigate, Link } from "react-router-dom";
 import { useQueryClient } from "@tanstack/react-query";
+import { formatInTimeZone, fromZonedTime } from "date-fns-tz";
 import { useGetLocationById } from "./queries";
 import type { LocationStatsFilter } from "./queries";
 import type { EditTaskTemplateInput } from "@/pages/Task/api";
@@ -42,10 +43,14 @@ import {
 const toDateStr = (d: Date) =>
   `${d.getUTCFullYear()}-${String(d.getUTCMonth() + 1).padStart(2, "0")}-${String(d.getUTCDate()).padStart(2, "0")}`;
 const fmtCoord = (v: string) => parseFloat(v).toFixed(6);
-const fmtTime = (d: string | null) => {
+const fmtTime = (d: string | null, timeZone = "UTC") => {
   if (!d) return "—";
-  const date = new Date(d);
-  return `${String(date.getUTCHours()).padStart(2, "0")}:${String(date.getUTCMinutes()).padStart(2, "0")}`;
+  return formatInTimeZone(new Date(d), timeZone, "HH:mm");
+};
+
+const fmtTimeWithTz = (d: string | null, timeZone = "UTC") => {
+  if (!d) return "—";
+  return formatInTimeZone(new Date(d), timeZone, "HH:mm (zzz)");
 };
 
 type FilterKey = "today" | "yesterday" | "7days" | "all";
@@ -155,6 +160,7 @@ interface LocationInfo {
   address: string;
   latitude: string;
   longitude: string;
+  timezone: string;
   radiusMeters: number;
   isActive: boolean;
   staff: LocationStaff[];
@@ -182,10 +188,12 @@ function TemplatesTab({
   templates,
   staffList,
   locationId,
+  timeZone,
 }: {
   templates: TaskTemplate[];
   staffList: LocationStaff[];
   locationId: number;
+  timeZone: string;
 }) {
   const queryClient = useQueryClient();
   const createTemplate = useCreateTaskTemplate(false);
@@ -219,8 +227,7 @@ function TemplatesTab({
 
   const toTimeValue = (iso?: string | null) => {
     if (!iso) return "";
-    const d = new Date(iso);
-    return `${String(d.getUTCHours()).padStart(2, "0")}:${String(d.getUTCMinutes()).padStart(2, "0")}`;
+    return formatInTimeZone(new Date(iso), timeZone, "HH:mm");
   };
 
   const toDateValue = (iso?: string | null) => {
@@ -242,10 +249,12 @@ function TemplatesTab({
     setCreateError(null);
   };
 
-  const buildDateTimeIso = (dateValue: string, timeValue: string) => {
-    const [hours, minutes] = timeValue.split(":").map(Number);
-    const [year, month, day] = dateValue.split("-").map(Number);
-    return new Date(Date.UTC(year, month - 1, day, hours, minutes, 0)).toISOString();
+  const buildDateTimeIso = (dateValue: string, timeValue: string) =>
+    fromZonedTime(`${dateValue}T${timeValue}:00`, timeZone).toISOString();
+
+  const wallTimeToIso = (base: string | null, timeValue: string) => {
+    const datePart = formatInTimeZone(base ? new Date(base) : new Date(), timeZone, "yyyy-MM-dd");
+    return buildDateTimeIso(datePart, timeValue);
   };
 
   const buildEffectiveDate = (dateValue: string) => {
@@ -346,16 +355,10 @@ function TemplatesTab({
       payload.recurringType = editForm.recurringType;
     }
     if (editForm.shiftStart && editForm.shiftStart !== toTimeValue(editingTemplate.shiftStart)) {
-      const base = new Date(editingTemplate.shiftStart ?? new Date());
-      const [h, m] = editForm.shiftStart.split(":").map(Number);
-      base.setUTCHours(h, m, 0, 0);
-      payload.shiftStart = base.toISOString();
+      payload.shiftStart = wallTimeToIso(editingTemplate.shiftStart, editForm.shiftStart);
     }
     if (editForm.shiftEnd && editForm.shiftEnd !== toTimeValue(editingTemplate.shiftEnd)) {
-      const base = new Date(editingTemplate.shiftEnd ?? new Date());
-      const [h, m] = editForm.shiftEnd.split(":").map(Number);
-      base.setUTCHours(h, m, 0, 0);
-      payload.shiftEnd = base.toISOString();
+      payload.shiftEnd = wallTimeToIso(editingTemplate.shiftEnd, editForm.shiftEnd);
     }
     if (editForm.effectiveDate && editForm.effectiveDate !== toDateValue(editingTemplate.effectiveDate)) {
       const [year, month, day] = editForm.effectiveDate.split("-").map(Number);
@@ -599,7 +602,7 @@ function TemplatesTab({
             <div className="mt-3 grid grid-cols-2 gap-2 text-xs">
               <div>
                 <p className="text-gray-400">Shift</p>
-                <p className="text-gray-600 font-medium">{fmtTime(t.shiftStart)} – {fmtTime(t.shiftEnd)}</p>
+                <p className="text-gray-600 font-medium">{fmtTimeWithTz(t.shiftStart, timeZone)} – {fmtTimeWithTz(t.shiftEnd, timeZone)}</p>
               </div>
               <div>
                 <p className="text-gray-400">Effective</p>
@@ -758,6 +761,7 @@ const LocationDetailPage: React.FC = () => {
   const templateCount = locationInfo?.taskTemplates?.length ?? 0;
   const instanceCount = locationInfo?.taskInstances?.length ?? 0;
   const completedCount = taskStats.find((t) => t.status === "COMPLETED")?._count?.status ?? 0;
+  const locationTz = locationInfo?.timezone ?? "UTC";
 
   if (isLoading) return <LoadingSpinner fullScreen />;
 
@@ -811,6 +815,9 @@ const LocationDetailPage: React.FC = () => {
           </span>
           <span className="inline-flex items-center gap-1.5 rounded-lg bg-gray-100 px-3 py-1.5 text-xs text-gray-500">
             <Radius className="h-3 w-3" /> Radius: {locationInfo.radiusMeters}m
+          </span>
+          <span className="inline-flex items-center gap-1.5 rounded-lg bg-gray-100 px-3 py-1.5 text-xs text-gray-500">
+            <Clock className="h-3 w-3" /> {locationInfo.timezone}
           </span>
         </div>
       </div>
@@ -897,7 +904,7 @@ const LocationDetailPage: React.FC = () => {
                     </td>
                     <td className="px-5 py-3.5 text-gray-500">{s.email}</td>
                     <td className="px-5 py-3.5 text-gray-600">
-                      {fmtTime(s.shiftStart)} – {fmtTime(s.shiftEnd)}
+                      {fmtTime(s.shiftStart, locationTz)} – {fmtTime(s.shiftEnd, locationTz)}
                     </td>
                     <td className="px-5 py-3.5">
                       <StatusBadge status={s.isActive ? "ACTIVE" : "INACTIVE"} />
@@ -921,6 +928,7 @@ const LocationDetailPage: React.FC = () => {
           templates={locationInfo.taskTemplates ?? []}
           staffList={locationInfo.staff ?? []}
           locationId={locationInfo.id}
+          timeZone={locationTz}
         />
       )}
 
@@ -951,7 +959,7 @@ const LocationDetailPage: React.FC = () => {
                         {new Date(ti.date).toLocaleDateString("en-US", { day: "numeric", month: "short", year: "numeric", timeZone: "UTC" })}
                       </td>
                       <td className="px-5 py-3.5 text-gray-600">
-                        {fmtTime(ti.shiftStart)} – {fmtTime(ti.shiftEnd)}
+                        {fmtTime(ti.shiftStart, locationTz)} – {fmtTime(ti.shiftEnd, locationTz)}
                       </td>
                       <td className="px-5 py-3.5">
                         {assignee?.staff ? (

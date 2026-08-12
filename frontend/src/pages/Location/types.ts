@@ -3,6 +3,7 @@ export type CreateLocationInput = {
   address: string;
   latitude: string;
   longitude: string;
+  timezone?: string;
 };
 
 
@@ -11,6 +12,7 @@ export type LocationFormValues = {
   address: string;
   latitude: string;
   longitude: string;
+  timezone: string;
 };
 
 export type AssignShiftInput = {
@@ -26,6 +28,7 @@ export type LocationWithCounts = {
   address: string;
   latitude: string;
   longitude: string;
+  timezone: string;
   radiusMeters: number;
   isActive: boolean;
   status: string; 
@@ -44,6 +47,7 @@ export interface LocationCardProps {
   lat?: string;
   lng?: string;
   geofence?: string;
+  timezone?: string;
   status?: string;
   id: number; 
 }

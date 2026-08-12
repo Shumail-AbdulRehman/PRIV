@@ -36,13 +36,14 @@ import DataTable, { type Column } from "@/components/common/DataTable";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { getAttendanceDisplayStatus } from "@/lib/attendance";
+import { formatInTimeZone } from "date-fns-tz";
 
 type Tab = "overview" | "templates" | "instances" | "attendance";
 
 interface StaffTaskInstanceRow {
   id: number;
   title: string;
-  location?: { name?: string | null } | null;
+  location?: { name?: string | null; timezone?: string | null } | null;
   date: string | null;
   shiftStart: string | null;
   shiftEnd: string | null;
@@ -56,7 +57,7 @@ interface StaffTaskInstanceRow {
 interface StaffAttendanceRow {
   id: number;
   date: string | null;
-  location?: { name?: string | null } | null;
+  location?: { name?: string | null; timezone?: string | null } | null;
   expectedStart: string | null;
   expectedEnd: string | null;
   checkInTime: string | null;
@@ -74,29 +75,28 @@ interface StaffTaskTemplateRow {
   description?: string | null;
   recurringType?: string | null;
   isActive: boolean;
-  location?: { name?: string | null } | null;
+  location?: { name?: string | null; timezone?: string | null } | null;
   shiftStart: string | null;
   shiftEnd: string | null;
   effectiveDate: string | null;
 }
 
-const fmtTime = (d: string | null) => {
+const fmtTime = (d: string | null, timeZone = "UTC") => {
   if (!d) return "—";
-  const date = new Date(d);
-  return `${String(date.getUTCHours()).padStart(2, "0")}:${String(date.getUTCMinutes()).padStart(2, "0")}`;
+  return formatInTimeZone(new Date(d), timeZone, "HH:mm");
+};
+const fmtTimeWithTz = (d: string | null, timeZone = "UTC") => {
+  if (!d) return "—";
+  return formatInTimeZone(new Date(d), timeZone, "HH:mm (zzz)");
 };
 const fmtDate = (d: string | null) => {
   if (!d) return "—";
   const date = new Date(d);
   return date.toLocaleDateString("en-US", { timeZone: "UTC" });
 };
-const fmtDateTime = (d: string | null) => {
+const fmtDateTime = (d: string | null, timeZone = "UTC") => {
   if (!d) return "—";
-  const date = new Date(d);
-  return `${String(date.getUTCDate()).padStart(2, "0")} ${date.toLocaleDateString("en-US", {
-    month: "short",
-    timeZone: "UTC",
-  })} ${String(date.getUTCHours()).padStart(2, "0")}:${String(date.getUTCMinutes()).padStart(2, "0")}`;
+  return formatInTimeZone(new Date(d), timeZone, "dd MMM HH:mm");
 };
 
 const getCurrentMonthValue = () => {
@@ -163,7 +163,7 @@ const StaffDetailPage: React.FC = () => {
       { key: "title", header: "Task", render: (instance) => <span className="font-medium text-foreground">{instance.title}</span> },
       { key: "location", header: "Location", render: (instance) => <span>{instance.location?.name ?? "—"}</span> },
       { key: "date", header: "Date", render: (instance) => <span>{fmtDate(instance.date)}</span> },
-      { key: "shift", header: "Shift", render: (instance) => <span>{fmtTime(instance.shiftStart)} – {fmtTime(instance.shiftEnd)}</span> },
+      { key: "shift", header: "Shift", render: (instance) => <span>{fmtTime(instance.shiftStart, instance.location?.timezone ?? "UTC")} – {fmtTime(instance.shiftEnd, instance.location?.timezone ?? "UTC")}</span> },
       {
         key: "status",
         header: "Status",
@@ -174,8 +174,8 @@ const StaffDetailPage: React.FC = () => {
           </div>
         ),
       },
-      { key: "startedAt", header: "Started", render: (instance) => <span>{fmtDateTime(instance.startedAt)}</span> },
-      { key: "completedAt", header: "Completed", render: (instance) => <span>{fmtDateTime(instance.completedAt)}</span> },
+      { key: "startedAt", header: "Started", render: (instance) => <span>{fmtDateTime(instance.startedAt, instance.location?.timezone ?? "UTC")}</span> },
+      { key: "completedAt", header: "Completed", render: (instance) => <span>{fmtDateTime(instance.completedAt, instance.location?.timezone ?? "UTC")}</span> },
       {
         key: "proof",
         header: "Proof",
@@ -198,15 +198,15 @@ const StaffDetailPage: React.FC = () => {
     () => [
       { key: "date", header: "Date", render: (attendance) => <span className="font-medium text-foreground">{fmtDate(attendance.date)}</span> },
       { key: "location", header: "Location", render: (attendance) => <span>{attendance.location?.name ?? "—"}</span> },
-      { key: "shift", header: "Expected Shift", render: (attendance) => <span>{fmtTime(attendance.expectedStart)} – {fmtTime(attendance.expectedEnd)}</span> },
-      { key: "checkIn", header: "Check In", render: (attendance) => <span>{fmtDateTime(attendance.checkInTime)}</span> },
-      { key: "checkOut", header: "Check Out", render: (attendance) => <span>{fmtDateTime(attendance.checkOutTime)}</span> },
-      { key: "status", header: "Status", render: (attendance) => <StatusBadge status={getAttendanceDisplayStatus(attendance)} /> },
+      { key: "shift", header: "Expected Shift", render: (attendance) => <span>{fmtTime(attendance.expectedStart, attendance.location?.timezone ?? "UTC")} – {fmtTime(attendance.expectedEnd, attendance.location?.timezone ?? "UTC")}</span> },
+      { key: "checkIn", header: "Check In", render: (attendance) => <span>{fmtDateTime(attendance.checkInTime, attendance.location?.timezone ?? "UTC")}</span> },
+      { key: "checkOut", header: "Check Out", render: (attendance) => <span>{fmtDateTime(attendance.checkOutTime, attendance.location?.timezone ?? "UTC")}</span> },
+      { key: "status", header: "Status", render: (attendance) => <StatusBadge status={getAttendanceDisplayStatus(attendance, new Date(), attendance.location?.timezone ?? "UTC")} /> },
       {
         key: "late",
         header: "Late",
         render: (attendance) => {
-          const displayStatus = getAttendanceDisplayStatus(attendance);
+          const displayStatus = getAttendanceDisplayStatus(attendance, new Date(), attendance.location?.timezone ?? "UTC");
 
           if (attendance.isLateCheckIn) {
             return <span className="text-xs font-medium text-amber-600">{attendance.lateMinutes ?? 0} min late</span>;
@@ -338,6 +338,7 @@ const StaffDetailPage: React.FC = () => {
   }
 
   const { taskStats, attendanceStats, periodLabel } = staff;
+  const staffTz: string = staff.location?.timezone ?? "UTC";
 
   const taskChartData = [
     { name: "Completed", value: taskStats.completed, fill: "#10b981" },
@@ -369,7 +370,7 @@ const StaffDetailPage: React.FC = () => {
               <div className="flex flex-wrap items-center gap-3 text-sm text-white/80">
                 <span className="flex items-center gap-1.5"><Mail className="h-3.5 w-3.5" /> {staff.email}</span>
                 <span className="flex items-center gap-1.5"><MapPin className="h-3.5 w-3.5" /> {staff.location?.name ?? "Unassigned"}</span>
-                <span className="flex items-center gap-1.5"><Clock className="h-3.5 w-3.5" /> {fmtTime(staff.shiftStart)} – {fmtTime(staff.shiftEnd)}</span>
+                <span className="flex items-center gap-1.5"><Clock className="h-3.5 w-3.5" /> {fmtTimeWithTz(staff.shiftStart, staffTz)} – {fmtTimeWithTz(staff.shiftEnd, staffTz)}</span>
               </div>
               <p className="max-w-xl text-sm leading-6 text-white/80">
                 This profile combines all assigned templates with filtered task instances and attendance records so managers can inspect a specific period instead of an all-time dump.
@@ -495,7 +496,7 @@ const StaffDetailPage: React.FC = () => {
                 ["Role", staff.role],
                 ["Location", staff.location?.name ?? "Unassigned"],
                 ["Address", staff.location?.address ?? "—"],
-                ["Shift", `${fmtTime(staff.shiftStart)} – ${fmtTime(staff.shiftEnd)}`],
+                ["Shift", `${fmtTimeWithTz(staff.shiftStart, staffTz)} – ${fmtTimeWithTz(staff.shiftEnd, staffTz)}`],
                 ["Joined", fmtDate(staff.createdAt)],
               ] as [string, string][]).map(([label, value]) => (
                 <div key={label} className="flex justify-between gap-6 border-b border-border/50 pb-3 last:border-b-0 last:pb-0">
@@ -570,7 +571,7 @@ const StaffDetailPage: React.FC = () => {
                     </div>
                     <div>
                       <p className="text-muted-foreground">Shift</p>
-                      <p className="font-medium text-foreground">{fmtTime(t.shiftStart)} – {fmtTime(t.shiftEnd)}</p>
+                      <p className="font-medium text-foreground">{fmtTime(t.shiftStart, t.location?.timezone ?? "UTC")} – {fmtTime(t.shiftEnd, t.location?.timezone ?? "UTC")}</p>
                     </div>
                     <div>
                       <p className="text-muted-foreground">Effective</p>
