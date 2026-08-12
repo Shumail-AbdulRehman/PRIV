@@ -10,7 +10,7 @@ router.get("/staff/:staffId/today", verifyJwt, getTodaysTasksForStaff);
 router.post("/:taskId/start", verifyJwt, startTask);
 router.post("/:taskId/complete", verifyJwt,upload.array("images", 5), completeTask);
 router.get("/:taskId", verifyJwt, getTaskInstanceById);
-router.get("/location/:locationId", verifyJwt, authorize, getTasknstancesOfLocation);
+router.get("/location/:locationId", verifyJwt, authorize("ADMIN", "MANAGER"), getTasknstancesOfLocation);
 
 
 export default router;

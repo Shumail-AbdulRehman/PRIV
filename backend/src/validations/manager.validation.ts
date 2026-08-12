@@ -34,3 +34,49 @@ export const managerLoginSchema = z.object({
 });
 
 export type ManagerLoginInput = z.infer<typeof managerLoginSchema>;
+
+export const createManagerSchema = z.object({
+  name: z
+    .string({ message: "Name is required" })
+    .min(2, "Name must be at least 2 characters"),
+
+  email: z
+    .string({ message: "Email is required" })
+    .email("Invalid email format"),
+
+  password: z
+    .string({ message: "Password is required" })
+    .min(6, "Password must be at least 6 characters"),
+
+  locationIds: z
+    .array(z.number().int().positive(), { message: "locationIds must be an array of location ids" })
+    .min(1, "Assign at least one location"),
+});
+
+export type CreateManagerInput = z.infer<typeof createManagerSchema>;
+
+export const updateManagerSchema = z.object({
+  name: z
+    .string()
+    .min(2, "Name must be at least 2 characters")
+    .optional(),
+
+  email: z
+    .string()
+    .email("Invalid email format")
+    .optional(),
+
+  password: z
+    .string()
+    .min(6, "Password must be at least 6 characters")
+    .optional(),
+
+  isActive: z.boolean().optional(),
+
+  locationIds: z
+    .array(z.number().int().positive())
+    .min(1, "Assign at least one location")
+    .optional(),
+});
+
+export type UpdateManagerInput = z.infer<typeof updateManagerSchema>;

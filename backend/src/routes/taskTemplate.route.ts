@@ -5,10 +5,10 @@ import authorize from "../middlewares/authorize.middleware.js";
 
 const router = Router();
 
-router.post("/", verifyJwt, authorize, createTaskTemplate);
-router.patch("/:id", verifyJwt, authorize, editTaskTemplate);
-router.delete("/:id", verifyJwt, authorize, deleteTaskTemplate);
-router.get("/location/:locationId", verifyJwt, authorize, getTaskTemplatesByLocation);
-router.get("/:id", verifyJwt, authorize, getTaskTemplate);
+router.post("/", verifyJwt, authorize("ADMIN", "MANAGER"), createTaskTemplate);
+router.patch("/:id", verifyJwt, authorize("ADMIN", "MANAGER"), editTaskTemplate);
+router.delete("/:id", verifyJwt, authorize("ADMIN", "MANAGER"), deleteTaskTemplate);
+router.get("/location/:locationId", verifyJwt, authorize("ADMIN", "MANAGER"), getTaskTemplatesByLocation);
+router.get("/:id", verifyJwt, authorize("ADMIN", "MANAGER"), getTaskTemplate);
 
 export default router;

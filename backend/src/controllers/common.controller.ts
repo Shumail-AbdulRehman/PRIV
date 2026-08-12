@@ -42,7 +42,7 @@ export const refreshToken = async (req: Request, res: Response) => {
 
   let user;
 
-  if (role === "MANAGER") {
+  if (role === "MANAGER" || role === "ADMIN") {
     user = await prisma.manager.findUnique({
       where: { id },
     });
@@ -187,7 +187,7 @@ export const logOut = async (req: Request, res: Response) => {
 
   const tokenPayload = decodedAccessToken ?? decodedRefreshToken;
 
-  if (tokenPayload?.role === "MANAGER") {
+  if (tokenPayload?.role === "MANAGER" || tokenPayload?.role === "ADMIN") {
     await prisma.manager
       .update({
         where: { id: tokenPayload.id },

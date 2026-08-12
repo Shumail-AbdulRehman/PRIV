@@ -27,6 +27,7 @@ model Manager {
   refreshToken String?
   company      Company  @relation(fields: [companyId], references: [id])
   companyId    Int
+  assignedLocations ManagerLocation[]
   createdAt    DateTime @default(now())
   updatedAt    DateTime @updatedAt
 }
@@ -69,11 +70,13 @@ model Location {
   taskTemplates TaskTemplate[]
   taskInstances TaskInstance[]
   attendances   Attendance[]
+  managerAssignments ManagerLocation[]
   createdAt     DateTime       @default(now())
   updatedAt     DateTime       @updatedAt
   latitude      String
   longitude     String
   radiusMeters  Int            @default(500)
+  timezone      String         @default("Asia/Karachi")
 
   @@index([companyId])
   @@index([isActive])
@@ -199,6 +202,17 @@ model Attendance {
   @@index([staffId, date, status])
 }
 
+model ManagerLocation {
+  manager    Manager  @relation(fields: [managerId], references: [id], onDelete: Cascade)
+  managerId  Int
+  location   Location @relation(fields: [locationId], references: [id], onDelete: Cascade)
+  locationId Int      @unique
+  createdAt  DateTime @default(now())
+
+  @@id([managerId, locationId])
+  @@index([locationId])
+}
+
 enum AttendanceStatus {
   ABSENT
   CHECKED_IN
@@ -223,6 +237,7 @@ enum RecurringType {
 }
 
 enum Role {
+  ADMIN
   MANAGER
   STAFF
 }

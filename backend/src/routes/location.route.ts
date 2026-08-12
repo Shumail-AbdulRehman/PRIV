@@ -5,14 +5,14 @@ import authorize from "../middlewares/authorize.middleware.js";
 
 const router = Router();
 
-router.post("/", verifyJwt, authorize, createLocation);
-router.get("/", verifyJwt, authorize, getLocations);
-router.patch("/:id", verifyJwt, authorize, editLocation);
-router.patch("/:id/deactivate", verifyJwt, authorize, softDeleteLocation);
-router.get("/inactive", verifyJwt, authorize, getInactiveLocations);
-router.get("/:id", verifyJwt, authorize, getLocationById);
-router.get("/:id/stats", verifyJwt, authorize, getLocationStatsById);
-router.patch("/:id/restore", verifyJwt, authorize, restoreLocation);
+router.post("/", verifyJwt, authorize("ADMIN"), createLocation);
+router.get("/", verifyJwt, authorize("ADMIN", "MANAGER"), getLocations);
+router.patch("/:id", verifyJwt, authorize("ADMIN"), editLocation);
+router.patch("/:id/deactivate", verifyJwt, authorize("ADMIN"), softDeleteLocation);
+router.get("/inactive", verifyJwt, authorize("ADMIN"), getInactiveLocations);
+router.get("/:id", verifyJwt, authorize("ADMIN", "MANAGER"), getLocationById);
+router.get("/:id/stats", verifyJwt, authorize("ADMIN", "MANAGER"), getLocationStatsById);
+router.patch("/:id/restore", verifyJwt, authorize("ADMIN"), restoreLocation);
 
     
 export default router;

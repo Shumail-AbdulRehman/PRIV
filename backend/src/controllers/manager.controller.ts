@@ -3,11 +3,14 @@ import jwt from "jsonwebtoken";
 import {
     managerSignupSchema,
     managerLoginSchema,
+    createManagerSchema,
+    updateManagerSchema,
 } from "../validations/manager.validation.js";
 import { prisma } from "../prisma/prisma.js";
 import { ApiResponse } from "../utils/ApiResponse.js";
 import { ApiError } from "../utils/ApiError.js";
-import { getUtcDayRange } from "../utils/dateTime.js";
+import { DEFAULT_TIME_ZONE, getZonedDayRange } from "../utils/dateTime.js";
+import { getScopedLocationIds, assertLocationAccess } from "../utils/scope.js";
 import { generateAccessToken, generateRefreshToken, isPasswordCorrect } from "../utils/auth.js";
 import { TokenPayload } from "../types/jwt.js";
 import { getCookieOptions } from "../utils/cookies.js";
@@ -50,6 +53,7 @@ export const signupManager = async (req: Request, res: Response) => {
             name,
             email,
             password,
+            role: "ADMIN",
             companyId: company.id
         }
     });
@@ -109,6 +113,10 @@ export const loginManager = async (req: Request, res: Response) => {
         throw new ApiError(401, "Invalid email or password");
     }
 
+    if (!manager.isActive) {
+        throw new ApiError(403, "Account is deactivated");
+    }
+
     const validPassword = await isPasswordCorrect(password, manager.password);
 
     if (!validPassword) {
@@ -146,7 +154,7 @@ export const loginManager = async (req: Request, res: Response) => {
 
 export const getManagerProfile = async (req: Request, res: Response) => {
 
-    if (req.user!.role !== "MANAGER") throw new ApiError(403, "Only managers can use this endpoint");
+    if (req.user!.role !== "MANAGER" && req.user!.role !== "ADMIN") throw new ApiError(403, "Only managers can use this endpoint");
 
     const manager = await prisma.manager.findUnique({
         where: { id: req.user!.id },
@@ -155,7 +163,14 @@ export const getManagerProfile = async (req: Request, res: Response) => {
             name: true,
             email: true,
             role: true,
-            companyId: true
+            companyId: true,
+            assignedLocations: {
+                select: {
+                    location: {
+                        select: { id: true, name: true },
+                    },
+                },
+            },
         }
     });
 
@@ -163,11 +178,16 @@ export const getManagerProfile = async (req: Request, res: Response) => {
         throw new ApiError(404, "Manager not found");
     }
 
-    res.status(200).json(new ApiResponse(200, manager, "Manager profile fetched successfully"));
+    const { assignedLocations, ...rest } = manager;
+
+    res.status(200).json(new ApiResponse(200, {
+        ...rest,
+        locations: assignedLocations.map((assignment) => assignment.location),
+    }, "Manager profile fetched successfully"));
 };
 
 export const getTodayStatus = async (req: Request, res: Response) => {
-    if (req.user!.role !== "MANAGER") {
+    if (req.user!.role !== "MANAGER" && req.user!.role !== "ADMIN") {
         throw new ApiError(403, "Only managers can use this endpoint");
     }
 
@@ -178,12 +198,20 @@ export const getTodayStatus = async (req: Request, res: Response) => {
         throw new ApiError(400, "Invalid locationId");
     }
 
-    const { start: today, end: tomorrow } = getUtcDayRange();
+    if (locationId) {
+        assertLocationAccess(req.user!, locationId);
+    }
+
+    const scopedLocationIds = getScopedLocationIds(req.user!);
 
     const locationWhere = {
         companyId,
         isActive: true,
-        ...(locationId ? { id: locationId } : {}),
+        ...(locationId
+            ? { id: locationId }
+            : scopedLocationIds
+              ? { id: { in: scopedLocationIds } }
+              : {}),
     };
 
     const locations = await prisma.location.findMany({
@@ -192,6 +220,7 @@ export const getTodayStatus = async (req: Request, res: Response) => {
             id: true,
             name: true,
             address: true,
+            timezone: true,
         },
         orderBy: { name: "asc" },
     });
@@ -200,13 +229,30 @@ export const getTodayStatus = async (req: Request, res: Response) => {
         throw new ApiError(404, "Location not found in your company");
     }
 
+    const now = new Date();
+
+    const dayAnchors = [
+        ...new Map(
+            locations.map((location) => {
+                const anchor = getZonedDayRange(now, location.timezone).start;
+                return [anchor.getTime(), anchor];
+            })
+        ).values(),
+    ];
+
+    const today = dayAnchors[0] ?? getZonedDayRange(now, DEFAULT_TIME_ZONE).start;
+
     const allowedLocationIds = locations.map((location) => location.id);
 
     const staff = await prisma.staff.findMany({
         where: {
             companyId,
             isActive: true,
-            ...(locationId ? { locationId } : {}),
+            ...(locationId
+                ? { locationId }
+                : scopedLocationIds
+                  ? { locationId: { in: scopedLocationIds } }
+                  : {}),
         },
         select: {
             id: true,
@@ -257,7 +303,7 @@ export const getTodayStatus = async (req: Request, res: Response) => {
         prisma.attendance.findMany({
             where: {
                 staffId: { in: staffIds },
-                date: { gte: today, lt: tomorrow },
+                date: { in: dayAnchors },
                 ...(locationId ? { locationId } : {}),
             },
             select: {
@@ -273,7 +319,7 @@ export const getTodayStatus = async (req: Request, res: Response) => {
         }),
         prisma.taskInstance.findMany({
             where: {
-                date: { gte: today, lt: tomorrow },
+                date: { in: dayAnchors },
                 isActive: true,
                 staffId: { in: staffIds },
                 ...(allowedLocationIds.length > 0 ? { locationId: { in: allowedLocationIds } } : { locationId: -1 }),
@@ -313,7 +359,6 @@ export const getTodayStatus = async (req: Request, res: Response) => {
         }),
     ]);
 
-    const now = new Date();
     const attendanceByStaff = new Map(attendanceRecords.map((record) => [record.staffId, record]));
     const tasksByStaff = new Map<number, typeof taskInstances>();
 
@@ -423,6 +468,228 @@ export const getTodayStatus = async (req: Request, res: Response) => {
                 staffStatus,
             },
             "Today's status fetched successfully"
+        )
+    );
+};
+
+
+export const createManager = async (req: Request, res: Response) => {
+
+    const result = createManagerSchema.safeParse(req.body);
+
+    if (!result.success) {
+        const errors = result.error.issues.map(e => ({
+            field: e.path.join("."),
+            message: e.message
+        }));
+        throw new ApiError(400, "Validation failed", errors);
+    }
+
+    const { name, email, password, locationIds } = result.data;
+    const companyId = req.user!.companyId;
+
+    const existingManager = await prisma.manager.findUnique({
+        where: { email }
+    });
+
+    if (existingManager) {
+        throw new ApiError(409, "Manager with this email already exists");
+    }
+
+    const uniqueLocationIds = [...new Set(locationIds)];
+
+    const locations = await prisma.location.findMany({
+        where: { id: { in: uniqueLocationIds }, companyId },
+        select: { id: true },
+    });
+
+    if (locations.length !== uniqueLocationIds.length) {
+        throw new ApiError(400, "One or more locations do not belong to your company");
+    }
+
+    const takenAssignments = await prisma.managerLocation.findMany({
+        where: { locationId: { in: uniqueLocationIds } },
+        select: {
+            location: { select: { name: true } },
+            manager: { select: { name: true } },
+        },
+    });
+
+    if (takenAssignments.length > 0) {
+        const conflicts = takenAssignments.map((taken) => `${taken.location.name} (assigned to ${taken.manager.name})`);
+        throw new ApiError(409, `These locations are already assigned to another manager: ${conflicts.join(", ")}`);
+    }
+
+    const manager = await prisma.$transaction(async (tx) => {
+        const created = await tx.manager.create({
+            data: {
+                name,
+                email,
+                password,
+                role: "MANAGER",
+                companyId,
+            },
+        });
+
+        await tx.managerLocation.createMany({
+            data: uniqueLocationIds.map((locationId) => ({
+                managerId: created.id,
+                locationId,
+            })),
+        });
+
+        return created;
+    });
+
+    res.status(201).json(
+        new ApiResponse(
+            201,
+            {
+                id: manager.id,
+                name: manager.name,
+                email: manager.email,
+                role: manager.role,
+                companyId: manager.companyId,
+                locationIds: uniqueLocationIds,
+            },
+            "Manager created successfully"
+        )
+    );
+};
+
+export const getManagers = async (req: Request, res: Response) => {
+
+    const companyId = req.user!.companyId;
+
+    const managers = await prisma.manager.findMany({
+        where: { companyId, role: "MANAGER" },
+        select: {
+            id: true,
+            name: true,
+            email: true,
+            isActive: true,
+            createdAt: true,
+            assignedLocations: {
+                select: {
+                    location: {
+                        select: { id: true, name: true, isActive: true },
+                    },
+                },
+            },
+        },
+        orderBy: { name: "asc" },
+    });
+
+    const data = managers.map((manager) => ({
+        id: manager.id,
+        name: manager.name,
+        email: manager.email,
+        isActive: manager.isActive,
+        createdAt: manager.createdAt,
+        locations: manager.assignedLocations.map((assignment) => assignment.location),
+    }));
+
+    res.status(200).json(new ApiResponse(200, data, "Managers fetched successfully"));
+};
+
+export const updateManager = async (req: Request, res: Response) => {
+
+    const managerId = Number(req.params.id);
+
+    if (Number.isNaN(managerId)) {
+        throw new ApiError(400, "Invalid manager id");
+    }
+
+    const result = updateManagerSchema.safeParse(req.body);
+
+    if (!result.success) {
+        const errors = result.error.issues.map(e => ({
+            field: e.path.join("."),
+            message: e.message
+        }));
+        throw new ApiError(400, "Validation failed", errors);
+    }
+
+    const { name, email, password, isActive, locationIds } = result.data;
+    const companyId = req.user!.companyId;
+
+    const target = await prisma.manager.findFirst({
+        where: { id: managerId, companyId, role: "MANAGER" },
+    });
+
+    if (!target) {
+        throw new ApiError(404, "Manager not found in your company");
+    }
+
+    if (email && email !== target.email) {
+        const existingManager = await prisma.manager.findUnique({
+            where: { email }
+        });
+
+        if (existingManager) {
+            throw new ApiError(409, "Manager with this email already exists");
+        }
+    }
+
+    const uniqueLocationIds = locationIds ? [...new Set(locationIds)] : undefined;
+
+    if (uniqueLocationIds) {
+        const locations = await prisma.location.findMany({
+            where: { id: { in: uniqueLocationIds }, companyId },
+            select: { id: true },
+        });
+
+        if (locations.length !== uniqueLocationIds.length) {
+            throw new ApiError(400, "One or more locations do not belong to your company");
+        }
+
+        const takenAssignments = await prisma.managerLocation.findMany({
+            where: { locationId: { in: uniqueLocationIds }, managerId: { not: managerId } },
+            select: {
+                location: { select: { name: true } },
+                manager: { select: { name: true } },
+            },
+        });
+
+        if (takenAssignments.length > 0) {
+            const conflicts = takenAssignments.map((taken) => `${taken.location.name} (assigned to ${taken.manager.name})`);
+            throw new ApiError(409, `These locations are already assigned to another manager: ${conflicts.join(", ")}`);
+        }
+    }
+
+    const updated = await prisma.$transaction(async (tx) => {
+        const manager = await tx.manager.update({
+            where: { id: managerId },
+            data: {
+                ...(name !== undefined ? { name } : {}),
+                ...(email !== undefined ? { email } : {}),
+                ...(password !== undefined ? { password } : {}),
+                ...(isActive !== undefined ? { isActive } : {}),
+            },
+        });
+
+        if (uniqueLocationIds) {
+            await tx.managerLocation.deleteMany({ where: { managerId } });
+            await tx.managerLocation.createMany({
+                data: uniqueLocationIds.map((locationId) => ({ managerId, locationId })),
+            });
+        }
+
+        return manager;
+    });
+
+    res.status(200).json(
+        new ApiResponse(
+            200,
+            {
+                id: updated.id,
+                name: updated.name,
+                email: updated.email,
+                role: updated.role,
+                isActive: updated.isActive,
+                companyId: updated.companyId,
+            },
+            "Manager updated successfully"
         )
     );
 };
