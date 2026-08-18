@@ -1,11 +1,12 @@
 import { Request, Response } from "express";
-import { createTaskSchema,editTaskSchema } from "../validations/taskTemplate.validation.js";
+import { createTaskSchema, createTaskMultipartSchema, editTaskSchema } from "../validations/taskTemplate.validation.js";
 import { prisma } from "../prisma/prisma.js";
 import { ApiResponse } from "../utils/ApiResponse.js";
 import { ApiError } from "../utils/ApiError.js";
 import { markCurrentAssignmentsForTasks } from "../services/taskAssignment.service.js";
 import { DEFAULT_TIME_ZONE, getZonedClockMinutes, getZonedDayRange } from "../utils/dateTime.js";
 import { assertLocationAccess } from "../utils/scope.js";
+import { uploadSingleImage } from "../utils/cloudinary.js";
 
 const getMinutes = (date: Date, timeZone: string) => getZonedClockMinutes(date, timeZone);
 
@@ -209,8 +210,26 @@ const assertLocationHasCapacityForTaskTemplate = async ({
   }
 };
 
+const MAX_REFERENCE_IMAGES = Number(process.env.MAX_REFERENCE_IMAGES ?? 10);
+
+const normalizeReferenceNames = (value: unknown): string[] => {
+  if (Array.isArray(value)) return value.map((v) => String(v ?? "").trim()).filter(Boolean);
+  if (typeof value === "string" && value.trim()) return [value.trim()];
+  return [];
+};
+
 export const createTaskTemplate = async (req: Request, res: Response) => {
-  const result = createTaskSchema.safeParse(req.body);
+  const files = Array.isArray(req.files) ? req.files : [];
+
+  if (!files.length) {
+    throw new ApiError(400, "At least one reference image is required");
+  }
+
+  if (files.length > MAX_REFERENCE_IMAGES) {
+    throw new ApiError(400, `You can upload up to ${MAX_REFERENCE_IMAGES} reference images`);
+  }
+
+  const result = createTaskMultipartSchema.safeParse(req.body);
 
   if (!result.success) {
     const errors = result.error.issues.map(e => ({
@@ -218,6 +237,28 @@ export const createTaskTemplate = async (req: Request, res: Response) => {
       message: e.message
     }));
     throw new ApiError(400, "Validation failed", errors);
+  }
+
+  const referenceNames = normalizeReferenceNames(req.body.referenceNames);
+
+  if (referenceNames.length !== files.length) {
+    throw new ApiError(
+      400,
+      "Each reference image must have a name",
+      [{ field: "referenceNames", message: `Expected ${files.length} names, got ${referenceNames.length}` }]
+    );
+  }
+
+  const duplicateNames = new Set(
+    referenceNames.filter((name, index) => referenceNames.indexOf(name) !== index)
+  );
+
+  if (duplicateNames.size > 0) {
+    throw new ApiError(
+      400,
+      "Reference area names must be unique",
+      [{ field: "referenceNames", message: `Duplicate names: ${Array.from(duplicateNames).join(", ")}` }]
+    );
   }
 
   const { locationId } = result.data;
@@ -230,10 +271,34 @@ export const createTaskTemplate = async (req: Request, res: Response) => {
 
   assertLocationAccess(req.user!, locationId);
 
-  await assertLocationHasCapacityForTaskTemplate(result.data);
+  const data = {
+    ...result.data,
+    referenceImageUrl: null as string | null,
+  };
 
-  const taskTemplate = await prisma.taskTemplate.create({
-    data: result.data
+  await assertLocationHasCapacityForTaskTemplate(data);
+
+  const uploadedReferences = await Promise.all(
+    files.map((file, index) =>
+      uploadSingleImage(file, `task-templates/${locationId}/reference-images`).then((upload) => ({
+        name: referenceNames[index],
+        imageUrl: upload.secure_url,
+        sortOrder: index,
+      }))
+    )
+  );
+
+  const taskTemplate = await prisma.$transaction(async (tx) => {
+    const template = await tx.taskTemplate.create({ data });
+
+    await tx.taskTemplateReferenceImage.createMany({
+      data: uploadedReferences.map((ref) => ({
+        ...ref,
+        templateId: template.id,
+      })),
+    });
+
+    return template;
   });
 
   res.status(201).json(new ApiResponse(201, taskTemplate, "Task template created successfully"));

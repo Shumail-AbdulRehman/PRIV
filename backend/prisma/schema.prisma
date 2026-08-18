@@ -51,6 +51,7 @@ model Staff {
   taskInstances TaskInstance[]
   taskAssignments TaskAssignment[]
   attendances   Attendance[]
+  completionAttempts TaskCompletionAttempt[]
   createdAt     DateTime       @default(now())
   updatedAt     DateTime       @updatedAt
 
@@ -95,6 +96,8 @@ model TaskTemplate {
   shiftEnd         DateTime
   recurringType    RecurringType?
   recurringEndDate DateTime?
+  referenceImageUrl String?
+  referenceImages  TaskTemplateReferenceImage[]
   instances        TaskInstance[]
   createdAt        DateTime       @default(now())
   updatedAt        DateTime       @updatedAt
@@ -120,11 +123,14 @@ model TaskInstance {
   startedAt      DateTime?
   completedAt    DateTime?
   proofImageUrls String[]      @default([])
+  referenceImageUrl String?
+  referenceImages TaskInstanceReferenceImage[]
   staff          Staff?        @relation(fields: [staffId], references: [id], onDelete: SetNull)
   staffId        Int?
   location       Location      @relation(fields: [locationId], references: [id])
   locationId     Int
   assignments    TaskAssignment[]
+  completionAttempts TaskCompletionAttempt[]
   createdAt      DateTime      @default(now())
   updatedAt      DateTime      @updatedAt
   isActive       Boolean       @default(true)
@@ -157,6 +163,50 @@ model TaskAssignment {
   @@index([staffId])
   @@index([staffId, isCurrent])
   @@index([status])
+}
+
+model TaskCompletionAttempt {
+  id                    Int                      @id @default(autoincrement())
+  taskInstance          TaskInstance             @relation(fields: [taskInstanceId], references: [id], onDelete: Cascade)
+  taskInstanceId        Int
+  staff                 Staff                    @relation(fields: [staffId], references: [id])
+  staffId               Int
+  imageUrl              String
+  locationMatchScore    Int?
+  cleanlinessMatchScore Int?
+  locationMatchReason   String?
+  cleanlinessReason     String?
+  rawResponse           Json?
+  areaName              String?
+  submissionId          String?
+  status                CompletionAttemptStatus
+  createdAt             DateTime                 @default(now())
+
+  @@index([taskInstanceId])
+  @@index([staffId])
+}
+
+model TaskTemplateReferenceImage {
+  id         Int          @id @default(autoincrement())
+  template   TaskTemplate @relation(fields: [templateId], references: [id], onDelete: Cascade)
+  templateId Int
+  name       String
+  imageUrl   String
+  sortOrder  Int          @default(0)
+  createdAt  DateTime     @default(now())
+
+  @@index([templateId])
+}
+
+model TaskInstanceReferenceImage {
+  id             Int          @id @default(autoincrement())
+  taskInstance   TaskInstance @relation(fields: [taskInstanceId], references: [id], onDelete: Cascade)
+  taskInstanceId Int
+  name           String
+  imageUrl       String
+  sortOrder      Int          @default(0)
+
+  @@index([taskInstanceId])
 }
 
 model AuditLog {
@@ -211,6 +261,13 @@ model ManagerLocation {
 
   @@id([managerId, locationId])
   @@index([locationId])
+}
+
+enum CompletionAttemptStatus {
+  APPROVED
+  REJECTED_LOCATION
+  REJECTED_CLEANLINESS
+  ERROR
 }
 
 enum AttendanceStatus {
