@@ -11,6 +11,13 @@ export const client = axios.create({
   withCredentials: true,
 });
 
+client.interceptors.request.use((config) => {
+  if (config.data instanceof FormData) {
+    delete config.headers['Content-Type'];
+  }
+  return config;
+});
+
 let isRefreshing = false;
 let refreshPromise: Promise<void> | null = null;
 

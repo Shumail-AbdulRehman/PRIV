@@ -113,6 +113,13 @@ interface LocationStaff {
   isActive: boolean;
 }
 
+interface ReferenceImage {
+  id: number;
+  name: string;
+  imageUrl: string;
+  sortOrder: number;
+}
+
 interface TaskTemplate {
   id: number;
   title: string;
@@ -125,6 +132,8 @@ interface TaskTemplate {
   effectiveDate?: string | null;
   isActive?: boolean;
   qrToken?: string | null;
+  referenceImageUrl?: string | null;
+  referenceImages?: ReferenceImage[];
 }
 
 interface TaskAssignment {
@@ -151,7 +160,22 @@ interface TaskInstance {
   isLate?: boolean;
   lateMinutes?: number | null;
   proofImageUrls?: string[];
+  referenceImages?: ReferenceImage[];
   assignments?: TaskAssignment[];
+  completionAttempts?: CompletionAttempt[];
+}
+
+interface CompletionAttempt {
+  id: number;
+  status: "APPROVED" | "REJECTED_LOCATION" | "REJECTED_CLEANLINESS" | "ERROR";
+  areaName: string | null;
+  submissionId: string | null;
+  locationMatchScore: number | null;
+  cleanlinessMatchScore: number | null;
+  locationMatchReason: string | null;
+  cleanlinessReason: string | null;
+  imageUrl: string;
+  createdAt: string;
 }
 
 interface LocationInfo {
@@ -168,6 +192,13 @@ interface LocationInfo {
   taskInstances: TaskInstance[];
 }
 
+interface ReferenceImageFormItem {
+  id: string;
+  name: string;
+  file: File | null;
+  previewUrl: string | null;
+}
+
 interface TemplateCreateForm {
   title: string;
   description: string;
@@ -176,12 +207,83 @@ interface TemplateCreateForm {
   shiftEnd: string;
   recurringType: "DAILY" | "ONCE";
   effectiveDate: string;
+  referenceImages: ReferenceImageFormItem[];
 }
 
 const getTaskAssignee = (taskInstance: TaskInstance) => {
   const assignments = taskInstance.assignments ?? [];
   const currentAssignment = assignments.find((assignment) => assignment.isCurrent);
   return currentAssignment ?? assignments[assignments.length - 1] ?? null;
+};
+
+const getLatestAttempts = (taskInstance: TaskInstance) => {
+  return taskInstance.completionAttempts ?? [];
+};
+
+const AreaAttemptRow = ({ attempt }: { attempt: CompletionAttempt }) => {
+  const scoreText =
+    attempt.locationMatchScore != null && attempt.cleanlinessMatchScore != null
+      ? `Loc ${attempt.locationMatchScore} · Clean ${attempt.cleanlinessMatchScore}`
+      : null;
+
+  const name = attempt.areaName ? `${attempt.areaName}: ` : "";
+
+  if (attempt.status === "APPROVED") {
+    return (
+      <div className="space-y-0.5">
+        <span className="inline-flex rounded-full bg-emerald-50 px-2 py-0.5 text-[11px] font-semibold text-emerald-700">{name}Approved</span>
+        {scoreText && <p className="text-[10px] text-gray-500">{scoreText}</p>}
+      </div>
+    );
+  }
+
+  if (attempt.status === "REJECTED_LOCATION") {
+    return (
+      <div className="max-w-xs space-y-0.5">
+        <span className="inline-flex rounded-full bg-red-50 px-2 py-0.5 text-[11px] font-semibold text-red-700">{name}Wrong area</span>
+        {scoreText && <p className="text-[10px] text-gray-500">{scoreText}</p>}
+        {attempt.locationMatchReason && <p className="text-[10px] text-gray-500 italic line-clamp-2" title={attempt.locationMatchReason}>{attempt.locationMatchReason}</p>}
+      </div>
+    );
+  }
+
+  if (attempt.status === "REJECTED_CLEANLINESS") {
+    return (
+      <div className="max-w-xs space-y-0.5">
+        <span className="inline-flex rounded-full bg-amber-50 px-2 py-0.5 text-[11px] font-semibold text-amber-700">{name}Not clean enough</span>
+        {scoreText && <p className="text-[10px] text-gray-500">{scoreText}</p>}
+        {attempt.cleanlinessReason && <p className="text-[10px] text-gray-500 italic line-clamp-2" title={attempt.cleanlinessReason}>{attempt.cleanlinessReason}</p>}
+      </div>
+    );
+  }
+
+  return (
+    <div className="space-y-0.5">
+      <span className="inline-flex rounded-full bg-gray-100 px-2 py-0.5 text-[11px] font-semibold text-gray-700">{name}Error</span>
+      <p className="text-[10px] text-gray-500">Verification failed</p>
+    </div>
+  );
+};
+
+const VerificationCell = ({ attempts }: { attempts: CompletionAttempt[] }) => {
+  if (!attempts.length) return <span className="text-gray-400">—</span>;
+
+  const grouped = attempts.reduce<Record<string, CompletionAttempt[]>>((acc, attempt) => {
+    const key = attempt.submissionId ?? `single-${attempt.id}`;
+    if (!acc[key]) acc[key] = [];
+    acc[key].push(attempt);
+    return acc;
+  }, {});
+
+  const latestGroup = Object.values(grouped)[0] ?? [];
+
+  return (
+    <div className="space-y-1">
+      {latestGroup.map((attempt) => (
+        <AreaAttemptRow key={attempt.id} attempt={attempt} />
+      ))}
+    </div>
+  );
 };
 
 function TemplatesTab({
@@ -213,6 +315,9 @@ function TemplatesTab({
     shiftEnd: "",
     recurringType: "DAILY",
     effectiveDate: toDateStr(new Date()),
+    referenceImages: [
+      { id: crypto.randomUUID(), name: "", file: null, previewUrl: null },
+    ],
   });
   const [editForm, setEditForm] = useState({
     title: "",
@@ -236,6 +341,13 @@ function TemplatesTab({
     return `${d.getUTCFullYear()}-${String(d.getUTCMonth() + 1).padStart(2, "0")}-${String(d.getUTCDate()).padStart(2, "0")}`;
   };
 
+  const createEmptyReferenceItem = (): ReferenceImageFormItem => ({
+    id: `${Date.now()}-${Math.random().toString(36).slice(2, 9)}`,
+    name: "",
+    file: null,
+    previewUrl: null,
+  });
+
   const resetCreateForm = () => {
     setCreateForm({
       title: "",
@@ -245,6 +357,7 @@ function TemplatesTab({
       shiftEnd: "",
       recurringType: "DAILY",
       effectiveDate: toDateStr(new Date()),
+      referenceImages: [createEmptyReferenceItem()],
     });
     setCreateError(null);
   };
@@ -285,6 +398,25 @@ function TemplatesTab({
       return;
     }
 
+    const validReferenceImages = createForm.referenceImages
+      .filter((ref): ref is ReferenceImageFormItem & { file: File } => Boolean(ref.name.trim() && ref.file));
+
+    if (!validReferenceImages.length) {
+      setCreateError("At least one named reference image is required so staff submissions can be verified.");
+      return;
+    }
+
+    const duplicateNames = new Set(
+      validReferenceImages
+        .map((ref) => ref.name.trim())
+        .filter((name, index, arr) => arr.indexOf(name) !== index)
+    );
+
+    if (duplicateNames.size > 0) {
+      setCreateError(`Reference area names must be unique: ${Array.from(duplicateNames).join(", ")}`);
+      return;
+    }
+
     let createdId: number | null = null;
     try {
       const created = await createTemplate.mutateAsync({
@@ -295,6 +427,7 @@ function TemplatesTab({
         shiftEnd: new Date(buildDateTimeIso(createForm.effectiveDate, createForm.shiftEnd)),
         recurringType: createForm.recurringType,
         effectiveDate: buildEffectiveDate(createForm.effectiveDate),
+        referenceImages: validReferenceImages.map((ref) => ({ file: ref.file, name: ref.name.trim() })),
       });
 
       createdId = created?.data?.id ?? null;
@@ -505,6 +638,92 @@ function TemplatesTab({
                   Leave blank to let the scheduler pick available staff. If selected, the staff member must belong to this location and the task time must fit inside their shift.
                 </p>
               </div>
+              <div>
+                <div className="flex items-center justify-between">
+                  <label className={formLabelCls}>
+                    Reference areas <span className="text-red-500">*</span>
+                  </label>
+                  <Button
+                    type="button"
+                    variant="ghost"
+                    size="sm"
+                    className="h-auto px-2 py-1 text-xs"
+                    onClick={() =>
+                      setCreateForm((prev) => ({
+                        ...prev,
+                        referenceImages: [...prev.referenceImages, createEmptyReferenceItem()],
+                      }))
+                    }
+                    disabled={createForm.referenceImages.length >= 10}
+                  >
+                    <Plus className="mr-1 h-3 w-3" />
+                    Add area
+                  </Button>
+                </div>
+                <p className="mb-2 text-xs text-muted-foreground">
+                  Add a clear photo and name for each area staff must clean and verify. Names must be unique.
+                </p>
+                <div className="space-y-3">
+                  {createForm.referenceImages.map((ref, index) => (
+                    <div key={ref.id} className="rounded-2xl border border-border/80 bg-background/90 p-3">
+                      <div className="flex items-center gap-2">
+                        <Input
+                          placeholder={`Area name (e.g. Sink ${index + 1})`}
+                          value={ref.name}
+                          onChange={(e) =>
+                            setCreateForm((prev) => {
+                              const next = [...prev.referenceImages];
+                              next[index] = { ...next[index], name: e.target.value };
+                              return { ...prev, referenceImages: next };
+                            })
+                          }
+                          className="flex-1"
+                        />
+                        {createForm.referenceImages.length > 1 && (
+                          <Button
+                            type="button"
+                            variant="ghost"
+                            size="sm"
+                            className="h-auto px-2 py-1 text-xs text-red-600 hover:text-red-700"
+                            onClick={() =>
+                              setCreateForm((prev) => {
+                                const next = prev.referenceImages.filter((_, i) => i !== index);
+                                return { ...prev, referenceImages: next };
+                              })
+                            }
+                          >
+                            Remove
+                          </Button>
+                        )}
+                      </div>
+                      <Input
+                        type="file"
+                        accept="image/*"
+                        className="mt-2"
+                        onChange={(e) => {
+                          const file = e.target.files?.[0] ?? null;
+                          setCreateForm((prev) => {
+                            const next = [...prev.referenceImages];
+                            next[index] = {
+                              ...next[index],
+                              file,
+                              previewUrl: file ? URL.createObjectURL(file) : null,
+                            };
+                            return { ...prev, referenceImages: next };
+                          });
+                        }}
+                      />
+                      {ref.previewUrl && (
+                        <img
+                          src={ref.previewUrl}
+                          alt={`Reference preview ${index + 1}`}
+                          className="mt-2 h-28 w-auto rounded-lg border border-border object-cover"
+                        />
+                      )}
+                    </div>
+                  ))}
+                </div>
+              </div>
               {createError ? (
                 <div className="rounded-2xl border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-600">
                   {createError}
@@ -547,6 +766,15 @@ function TemplatesTab({
                   <p className="mt-0.5 text-xs text-gray-400 line-clamp-2">{t.description}</p>
                 )}
               </div>
+              {t.referenceImages && t.referenceImages.length > 0 ? (
+                <span className="shrink-0 rounded-md bg-teal-50 px-2 py-0.5 text-[10px] font-semibold text-teal-700">
+                  {t.referenceImages.length} reference {t.referenceImages.length === 1 ? "area" : "areas"}
+                </span>
+              ) : t.referenceImageUrl ? (
+                <span className="shrink-0 rounded-md bg-teal-50 px-2 py-0.5 text-[10px] font-semibold text-teal-700">
+                  Reference set
+                </span>
+              ) : null}
 
               <div className="relative shrink-0">
                 <button
@@ -944,6 +1172,7 @@ const LocationDetailPage: React.FC = () => {
                 <th className="px-5 py-3 text-left text-xs font-semibold uppercase tracking-wide text-gray-500">Status</th>
                 <th className="px-5 py-3 text-left text-xs font-semibold uppercase tracking-wide text-gray-500">Late</th>
                 <th className="px-5 py-3 text-left text-xs font-semibold uppercase tracking-wide text-gray-500">Proof</th>
+                <th className="px-5 py-3 text-left text-xs font-semibold uppercase tracking-wide text-gray-500">Verification</th>
               </tr>
             </thead>
             <tbody className="divide-y divide-gray-100">
@@ -1002,12 +1231,15 @@ const LocationDetailPage: React.FC = () => {
                           </div>
                         ) : <span className="text-gray-400">—</span>}
                       </td>
+                      <td className="px-5 py-3.5">
+                        <VerificationCell attempts={getLatestAttempts(ti)} />
+                      </td>
                     </tr>
                   );
                 })
               ) : (
                 <tr>
-                  <td colSpan={7} className="px-5 py-8 text-center text-sm text-gray-400">
+                  <td colSpan={8} className="px-5 py-8 text-center text-sm text-gray-400">
                     No task instances for this period.
                   </td>
                 </tr>

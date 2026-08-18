@@ -21,8 +21,6 @@ import { useMemo, useState } from "react";
 import { useSelector } from "react-redux";
 import type { RootState } from "@/store/store";
 
-const DEFAULT_TIME_ZONE = "Asia/Karachi";
-
 export default function LocationsPage() {
   const createLocation = useCreateLocation();
   const getLocations = useGetLocations();

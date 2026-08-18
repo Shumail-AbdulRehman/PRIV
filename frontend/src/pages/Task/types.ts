@@ -9,6 +9,15 @@ export type CreateTaskInput = {
   recurringEndDate?: Date;
 };
 
+export type ReferenceImageInput = {
+  file: File;
+  name: string;
+};
+
+export type CreateTaskTemplateFormData = CreateTaskInput & {
+  referenceImages: ReferenceImageInput[];
+};
+
 
 export type EditTaskInput = {
   title?: string;

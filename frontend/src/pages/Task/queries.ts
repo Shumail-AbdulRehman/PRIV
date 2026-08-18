@@ -3,14 +3,14 @@ import {
   createTaskTemplate,
   editTaskTemplate,
   deleteTaskTemplate,
-  type CreateTaskInput,
+  type CreateTaskTemplateFormData,
   type EditTaskTemplateInput,
 } from "./api";
 
 export const useCreateTaskTemplate = (autoInvalidate = true) => {
   const qc = useQueryClient();
   return useMutation({
-    mutationFn: (data: CreateTaskInput) => createTaskTemplate(data),
+    mutationFn: (data: CreateTaskTemplateFormData) => createTaskTemplate(data),
     onSuccess: () => {
       if (autoInvalidate) {
         qc.invalidateQueries({ queryKey: ["location"] });
