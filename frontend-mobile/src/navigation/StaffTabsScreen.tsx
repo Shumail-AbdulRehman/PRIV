@@ -35,6 +35,13 @@ export function StaffTabsScreen({ navigation }: Props) {
     navigation.navigate("CompleteTask", {
       taskId: task.id,
       taskTitle: task.title,
+      referenceAreas: task.referenceImages?.length
+        ? task.referenceImages.map((ref) => ({
+            id: ref.id,
+            name: ref.name,
+            sortOrder: ref.sortOrder ?? 0,
+          }))
+        : undefined,
     });
   };
 

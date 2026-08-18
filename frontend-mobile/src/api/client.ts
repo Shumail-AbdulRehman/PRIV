@@ -136,7 +136,8 @@ client.interceptors.response.use(
  */
 export const uploadFormData = async <T = unknown>(
   path: string,
-  formData: FormData
+  formData: FormData,
+  timeoutMs = 20000
 ): Promise<T> => {
   const tokens = await authBridge?.getTokens();
   const headers: Record<string, string> = {};
@@ -145,20 +146,38 @@ export const uploadFormData = async <T = unknown>(
     headers["Authorization"] = `Bearer ${tokens.accessToken}`;
   }
 
-  const response = await fetch(`${API_BASE_URL}${path}`, {
-    method: "POST",
-    headers,
-    body: formData,
-  });
+  const controller = new AbortController();
+  const timeoutId = setTimeout(() => controller.abort(), timeoutMs);
 
-  const json = await response.json();
+  try {
+    const response = await fetch(`${API_BASE_URL}${path}`, {
+      method: "POST",
+      headers,
+      body: formData,
+      signal: controller.signal,
+    });
 
-  if (!response.ok) {
-    // Shape the error so callers can read `error.response.data.message`
-    const err: any = new Error(json?.message ?? "Request failed");
-    err.response = { status: response.status, data: json };
-    throw err;
+    clearTimeout(timeoutId);
+
+    const json = await response.json();
+
+    if (!response.ok) {
+      // Shape the error so callers can read `error.response.data.message`
+      const err: any = new Error(json?.message ?? "Request failed");
+      err.response = { status: response.status, data: json };
+      throw err;
+    }
+
+    return json as T;
+  } catch (error) {
+    clearTimeout(timeoutId);
+
+    if (error instanceof Error && error.name === "AbortError") {
+      const err: any = new Error("Request timed out. Please try again.");
+      err.response = { status: 408, data: { message: "Request timed out. Please try again." } };
+      throw err;
+    }
+
+    throw error;
   }
-
-  return json as T;
 };

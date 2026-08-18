@@ -1,3 +1,9 @@
+export type ReferenceArea = {
+  id: number;
+  name: string;
+  sortOrder: number;
+};
+
 export type RootStackParamList = {
   Login: undefined;
   StaffTabs: undefined;
@@ -8,6 +14,7 @@ export type RootStackParamList = {
   CompleteTask: {
     taskId: number;
     taskTitle: string;
+    referenceAreas?: ReferenceArea[];
   };
 };
 
@@ -78,6 +85,7 @@ export type TaskInstance = {
   startedAt: string | null;
   completedAt: string | null;
   proofImageUrls: string[];
+  referenceImages?: ReferenceArea[];
   template?: {
     id: number;
     qrToken: string;
