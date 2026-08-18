@@ -1,228 +1,395 @@
-================================================================================
-PROJECT CONTEXT TRANSFER DOCUMENT
-Updated: 2026-08-12 (supersedes the 2026-08-12 original)
-Project: CleanOps (cleaning/facility-operations SaaS)
-Location: /home/shumail/bk-Priv/PRIV
-================================================================================
+# CleanOps — Project Context & Handoff
 
-1. WHAT THIS PROJECT DOES
---------------------------------------------------------------------------------
-CleanOps is a cleaning / facility-operations management SaaS. Core workflows:
-
-- Each company has ONE admin (the signup-created account). The admin creates
-  locations and managers via the React web dashboard.
-- Each manager is assigned to at least one location and can manage several.
-  A location can belong to ONLY ONE manager (exclusive assignment).
-- Managers are strictly scoped: they only see/manage staff, task templates,
-  tasks, attendance, and dashboards for their assigned locations.
-- The backend automatically generates daily task instances from templates.
-- Staff use a React Native mobile app to log in, check in/out (with geofencing),
-  view today's tasks, scan a QR code to start a task, and upload proof images.
-- Cron jobs run on the backend to generate tasks, update attendance status,
-  mark missed tasks, and auto-reassign tasks not started within a grace period.
-- All scheduling is per-location timezone aware: every location has an IANA
-  timezone, auto-detected from its coordinates (overridable).
-
-2. TECH STACK
---------------------------------------------------------------------------------
-Backend:        Node.js 22, Express 5, TypeScript ESM, Prisma 7 + pg adapter,
-                PostgreSQL (Supabase), Cloudinary, JWT cookies/Bearer,
-                node-cron, Zod, date-fns + date-fns-tz, tz-lookup
-Web frontend:   React 19, Vite 8, Tailwind CSS 4, Redux Toolkit,
-                TanStack Query, React Router 7, shadcn/ui-style components,
-                Recharts, react-hook-form, date-fns + date-fns-tz
-Mobile app:     Expo 54, React Native 0.81, React Navigation,
-                TanStack Query, Axios
-ML (removed):   PyTorch EfficientNet-B0 notebook + weights (deleted)
-
-3. ARCHITECTURE
---------------------------------------------------------------------------------
-- Monorepo with backend, frontend, and frontend-mobile apps.
-- Backend exposes /api/* on port 8080 by default.
-- Auth: JWT access token in cookie (accessToken) or Authorization: Bearer header;
-  refresh via POST /api/common/refresh-token.
-- Roles: ADMIN (company owner, one per company, created at signup), MANAGER
-  (created by admin, location-scoped), STAFF (mobile app users).
-  - Role enum in Prisma: ADMIN | MANAGER | STAFF (all on the Manager/Staff tables).
-  - verifyJwt loads ADMIN/MANAGER from prisma.manager, attaches
-    req.user.locationIds for MANAGER (from ManagerLocation), rejects inactive
-    accounts.
-  - authorize(...roles) middleware factory guards routes.
-  - backend/src/utils/scope.ts: getScopedLocationIds (null = ADMIN unrestricted),
-    assertLocationAccess (403 for out-of-scope MANAGER).
-- Database: Prisma Client + pg adapter reads DATABASE_URL.
-  - Migrations MUST run through the session-mode pooler (port 5432), not the
-    transaction pooler (6543): override DATABASE_URL port before
-    `npx prisma migrate deploy`. The app runtime keeps using 6543.
-- TIMEZONE MODEL (important):
-  - Location.timezone = IANA name (e.g. "Asia/Karachi"). Default for existing
-    rows: "Asia/Karachi".
-  - Every DateTime in the DB is a real UTC instant. Wall-clock meaning comes
-    from the owning location's timezone (09:00 at a Karachi location = 04:00Z).
-  - Day anchors (TaskInstance.date, Attendance.date) = start of the location's
-    LOCAL day as a UTC instant (Karachi: 19:00Z previous UTC day).
-  - backend/src/utils/dateTime.ts holds both legacy UTC helpers and the zoned
-    helpers (getZonedDayRange, getZonedDayRangeFromDateInput, getZonedMonthRange,
-    getZonedClockMinutes, withZonedClockOnLocalDay, resolveZonedAttendanceWindow,
-    isValidTimeZone). Location-scoped logic must use the zoned helpers.
-  - Timezone auto-detection: createLocation/editLocation derive timezone from
-    latitude/longitude via tz-lookup when not explicitly provided (fallback
-    "UTC"). Frontend picker defaults to "Auto-detect from coordinates".
-  - Frontend formats times per-record location tz via formatInTimeZone; time
-    inputs convert via fromZonedTime. Calendar-date-only values stay UTC.
-  - Mobile app: no changes (staff are physically at their location; device-local
-    display is correct).
-- File storage: Proof images uploaded to Cloudinary.
-- Frontend dev uses Vite proxy to 127.0.0.1:8080.
-- Mobile app uses EXPO_PUBLIC_API_BASE_URL (default Android emulator 10.0.2.2:8080).
-- Cron jobs imported at startup in backend/src/app.ts.
-
-4. MAJOR CHANGES (cumulative, newest last)
---------------------------------------------------------------------------------
-
-A. REMOVED ML ARTIFACTS (original doc)
-   Deleted models/, data_clean_dirty/, notebooks, .venv-clean-dirty/,
-   .jupyter-clean-dirty/, .ipython-clean-dirty/. ML was never wired into the
-   backend. .gitignore updated accordingly.
-
-B. REMOVED BILLING MODULE (original doc)
-   Deleted backend/src/modules/billing/, frontend billing pages, and the
-   billing migration; added 20260811192000_remove_billing_tables/migration.sql.
-   APPLIED to production on 2026-08-12 (all 7 billing tables dropped).
-
-C. UTC SWITCH (original doc, now superseded by section E)
-   karachiTime.ts replaced by UTC helpers in dateTime.ts. This temporarily made
-   old Karachi-anchored data display 5h off; fully resolved by the timezone
-   feature in section E (old data is valid again under Asia/Karachi).
-
-D. COMMIT e4b62b7b (main, 2026-08-12, local only — not pushed)
-   "feat: remove ML/billing modules and switch to UTC" — 29,178 files changed
-   (includes deletion of tracked venv/jupyter dirs). All work after this commit
-   (sections E-H) is UNCOMMITTED in the working tree.
-
-E. ADMIN + MULTI-LOCATION MANAGERS (2026-08-12)
-   - Role enum: added ADMIN. signupManager now creates the company owner as
-     ADMIN. Existing 7 managers migrated to ADMIN via migration
-     20260812210000_add_admin_role_and_manager_locations (applied).
-   - New ManagerLocation join table (manager <-> location many-to-many,
-     cascade deletes).
-   - authorize middleware refactored to authorize(...roles); all 8 route files
-     updated. verifyJwt attaches locationIds for MANAGER, rejects inactive.
-   - New admin endpoints: POST/GET /api/manager/, PATCH /api/manager/:id
-     (create/list/update managers, >=1 location enforced, Zod validated,
-     transactional, bcrypt via Prisma extension).
-   - Strict location scoping in ALL controllers (location, staff, taskTemplate,
-     taskInstance, attendance, assignment): MANAGER filtered to assigned
-     locations; ADMIN company-wide; staff self-service endpoints untouched.
-   - common.controller refresh/logout handle ADMIN.
-   - Frontend: /managers route (RequireRole guard, ADMIN only), ManagersPage
-     (stat cards, manager cards with location chips, activate/deactivate),
-     ManagerFormDialog (location multi-select, min 1, inline errors),
-     Sidebar shows Managers nav for ADMIN only, LocationsPage hides
-     create/edit actions for MANAGER. Role unions updated in authSlice and
-     Login types.
-   - NOTE: GET /api/attendance?locationId= now actually filters by that param
-     (was previously ignored).
-
-F. EXCLUSIVE LOCATION ASSIGNMENT (2026-08-12)
-   - Rule: a location can be assigned to at most ONE manager.
-   - DB: unique constraint ManagerLocation.locationId (migration
-     20260812150000_enforce_unique_manager_location, applied).
-   - Backend: createManager/updateManager return 409 naming the conflicting
-     locations and their current manager.
-   - UI: taken locations are disabled in the manager form, labeled
-     "Assigned to {name}"; the editing manager's own locations stay selectable.
-   - Data cleanup performed: 6 demo locations were shared between managers
-     "Hamza" (id 8) and "tetsing" (id 9); earliest assignment (Hamza) kept.
-     "tetsing" (id 9) currently has ZERO locations — reassign or delete this
-     test account.
-
-G. PER-LOCATION TIMEZONE SUPPORT (2026-08-12)
-   - Location.timezone column (migration 20260812130000_add_location_timezone,
-     applied; existing rows = Asia/Karachi, which made all old Karachi-era
-     data valid again with NO timestamp rewriting).
-   - dateTime.ts: zoned helpers added (see section 3). All crons
-     (dailyTaskScheduler, onceTaskScheduler, startupCron, attendanceCron,
-     taskInstanceWindow), taskAssignment.service, syncAttendanceWindow, and all
-     controllers now compute day ranges/windows/clock-minutes per location tz.
-     DST-safe (no fixed offsets, no +24h day math across DST boundaries).
-   - Latent bugs fixed: server-local getHours() equality checks in
-     staff.validation.ts and attendance.validation.ts now use UTC components.
-   - Frontend: timezone select in location create dialog, tz chips on location
-     cards, all time displays in row location tz with (zzz) labels, shift/task
-     time inputs convert via fromZonedTime.
-   - Verified: npx tsc --noEmit passes in backend/ and frontend/.
-
-H. TIMEZONE AUTO-DETECTION FROM COORDINATES (2026-08-12)
-   - tz-lookup (+ @types/tz-lookup) added to backend.
-   - createLocation: timezone optional; derived from latitude/longitude when
-     absent. editLocation: re-derives when coordinates change and no explicit
-     timezone is sent; explicit choice never overwritten.
-   - Frontend picker defaults to "Auto-detect from coordinates".
-
-5. CURRENT KNOWN ISSUES / WARNINGS
---------------------------------------------------------------------------------
-
-A. MINOR, NON-URGENT (documented during tz work, not fixed):
-   - assignment.controller.ts compares shift wall clocks via UTC minutes —
-     fine when staff/template share a location; could switch to
-     getZonedClockMinutes for consistency.
-   - taskTemplate.validation.ts uses server-local setHours(0,0,0,0) for the
-     "effectiveDate cannot be in the past" check — needs location tz inside the
-     schema to fix properly.
-   - Staff created with "No location" by a MANAGER immediately disappears from
-     that manager's Staff tab (location-less staff are admin-visible only).
-     Suggested fix: require location in Add Staff form for managers.
-
-B. DAILY TASK SCHEDULER RUNS EVERY 90 SECONDS
-   backend/src/cron/dailyTaskScheduler.ts uses setInterval(90s). Wasteful;
-   should run once per day (per-location tz midnight makes a single global
-   cron time wrong — consider per-location scheduling or keep frequent polls).
-
-C. NO TEST SUITE
-   No unit, integration, or E2E tests. Verification so far = tsc + manual smoke.
-
-D. UNCOMMITTED WORK
-   Everything in sections E-H is uncommitted. Commit e4b62b7b (section D) is
-   local only, not pushed.
-
-E. SUPABASE FREE TIER AUTO-PAUSE
-   The project pauses after ~7 days idle (caused the earlier P1001/ETIMEDOUT).
-   Unpause from the Supabase dashboard when it happens.
-
-6. KEY FILE PATHS
---------------------------------------------------------------------------------
-Backend entry:        backend/src/app.ts
-Routes:               backend/src/routes/
-Controllers:          backend/src/controllers/
-Cron jobs:            backend/src/cron/
-Task assignment:      backend/src/services/taskAssignment.service.ts
-Date/tz helpers:      backend/src/utils/dateTime.ts
-Location scoping:     backend/src/utils/scope.ts
-Auth middleware:      backend/src/middlewares/auth.middleware.ts
-Role guard:           backend/src/middlewares/authorize.middleware.ts
-Prisma schema:        backend/prisma/schema.prisma
-Prisma migrations:    backend/prisma/migrations/
-
-Web entry:            frontend/src/main.tsx
-Login page:           frontend/src/pages/Login/LoginPage.tsx
-API client:           frontend/src/api/client.ts
-Managers pages:       frontend/src/pages/Managers/
-Role route guard:     RequireRole in frontend/src/App.tsx
-Sidebar (role-aware): frontend/src/components/layout/Sidebar.tsx
-
-7. PENDING RECOMMENDATIONS
---------------------------------------------------------------------------------
-- Commit (and push) the timezone + admin/manager work.
-- Manual smoke test: signup (admin) -> create location (auto tz) -> create
-  manager with locations -> login as manager -> verify scoping + correct local
-  times. Try assigning a taken location (should fail with 409/disabled).
-- Reassign or delete the location-less test manager "tetsing" (id 9).
-- Require location when a manager adds staff (section 5A).
-- Address 5A consistency items if multi-timezone companies become real.
-- Rework the 90s daily task scheduler (section 5B).
-- Add tests (section 5C).
-- Migration runbook: always override DATABASE_URL to port 5432 (session pooler)
-  before `npx prisma migrate deploy`.
+Consolidated project context. Updated: 2026-08-18 (supersedes and replaces
+`PROJECT_CONTEXT.txt` and `AGENT.md`, both deleted).
 
 ================================================================================
+
+## 1. WHAT THIS PROJECT IS
+
+CleanOps is a multi-tenant cleaning / facility-operations management SaaS
+(FYP). Business flow:
+
+- A company signs up -> gets ONE ADMIN account (the company owner, web
+  dashboard only).
+- Admin creates locations (lat/long, geofence radius, IANA timezone
+  auto-detected from coordinates) and managers. Each manager must be assigned
+  >= 1 location; a location can belong to ONLY ONE manager (exclusive
+  assignment, DB-enforced).
+- Admin/managers create staff (mobile users with shift windows) and task
+  templates (DAILY or ONCE recurrence, each with a unique QR token).
+- Backend crons generate daily task instances from templates, auto-assign
+  them to the best eligible staff, auto-reassign tasks not started within a
+  grace period, and mark missed work.
+- Staff use the Expo mobile app: login -> geofenced selfie check-in/out ->
+  view today's tasks -> scan the location QR to start a task -> upload proof
+  photos to complete it.
+- Attendance and task outcomes roll up into manager dashboards (Today Status,
+  location stats, staff detail).
+
+================================================================================
+
+## 2. REPO LAYOUT & STACK
+
+Monorepo at `/home/shumail/bk-Priv/PRIV`:
+
+- `backend/` — Node 22, Express 5, TypeScript ESM (NodeNext), Prisma 7 +
+  `@prisma/adapter-pg`, PostgreSQL (Supabase), Zod 4, node-cron, date-fns +
+  date-fns-tz, tz-lookup, Cloudinary, multer, bcrypt. API on port 8080.
+- `frontend/` — React 19, Vite 8 (React Compiler enabled), Tailwind CSS 4,
+  Redux Toolkit, TanStack Query, React Router 7, shadcn-style UI, Recharts,
+  react-hook-form. Dev on 127.0.0.1:5173 with Vite proxy `/api -> :8080`.
+- `frontend-mobile/` — Expo 54, RN 0.81, React Navigation (native-stack),
+  TanStack Query, axios, expo-camera / expo-location / expo-image-picker.
+  Staff-only app; also has a web export.
+
+================================================================================
+
+## 3. CORE ARCHITECTURE
+
+### Roles & tenancy
+
+- Prisma `Role` enum: ADMIN | MANAGER | STAFF.
+- ADMIN and MANAGER logins both live in the `Manager` table; staff login
+  lives in the `Staff` table. Company is the tenant root.
+- `verifyJwt` (backend/src/middlewares/auth.middleware.ts) accepts the
+  `accessToken` cookie or `Authorization: Bearer`; loads the user, rejects
+  inactive MANAGER/ADMIN accounts, and attaches `req.user.locationIds` for
+  MANAGER (from `ManagerLocation`).
+- `authorize(...roles)` middleware factory guards routes.
+- `backend/src/utils/scope.ts`: `getScopedLocationIds` (null = ADMIN
+  unrestricted) and `assertLocationAccess` (403 for out-of-scope MANAGER).
+  All location/staff/task/attendance controllers enforce this.
+
+### Auth tokens
+
+- JWT access (default 15m) + refresh (default 7d). Refresh flow
+  (`POST /api/common/refresh-token`) rotates both tokens, stores the refresh
+  token server-side, and has REUSE DETECTION (mismatched stored token ->
+  null it out + 403).
+- Cookies configurable via `COOKIE_SECURE` / `COOKIE_SAME_SITE`; path `/`.
+- Logout works without a valid access token (clears cookies best-effort).
+- Passwords hashed by a Prisma client extension (bcrypt, 10 rounds) in
+  `backend/src/prisma/prisma.ts` — invisible at call sites, keep in mind.
+
+### Timezone model (IMPORTANT)
+
+- `Location.timezone` = IANA name, default "Asia/Karachi" for existing rows.
+- Every DB DateTime is a true UTC instant; wall-clock meaning comes from the
+  owning location's timezone (09:00 at a Karachi location = 04:00Z).
+- Day anchors (`TaskInstance.date`, `Attendance.date`) = start of the
+  location's LOCAL day as a UTC instant (Karachi: 19:00Z previous UTC day).
+- `backend/src/utils/dateTime.ts` holds the zoned helpers
+  (`getZonedDayRange`, `getZonedDayRangeFromDateInput`, `getZonedMonthRange`,
+  `getZonedClockMinutes`, `withZonedClockOnLocalDay`,
+  `resolveZonedAttendanceWindow`, `isValidTimeZone`) plus legacy plain-UTC
+  helpers. Location-scoped logic MUST use the zoned helpers (DST-safe).
+- Timezone auto-detection: createLocation/editLocation derive tz from
+  lat/long via tz-lookup when not explicitly provided (fallback "UTC").
+- Web frontend formats per-record location tz via formatInTimeZone; time
+  inputs convert via fromZonedTime; calendar-date-only values stay UTC.
+- Mobile app: all date logic is still HARDCODED to Asia/Karachi
+  (utils/attendance.ts, utils/format.ts) — known gap.
+
+### Task lifecycle
+
+- `TaskTemplate` (recurringType DAILY|ONCE, effectiveDate,
+  recurringEndDate?, unique qrToken) ->
+  crons create `TaskInstance` rows (`@@unique([templateId,date])` makes
+  generation idempotent) ->
+  `services/taskAssignment.service.ts` assigns: prefers template-designated
+  staff, else `findBestStaffForTask` scores candidates by shift coverage
+  (overnight-normalized), attendance eligibility, and current workload;
+  race-safe transactions; everything written to `AuditLog`.
+- Staff starts a task via QR token (`POST /api/task-instance/:id/start?qrToken=`)
+  and completes with >= 1 proof image (max 5, Cloudinary).
+- Statuses: PENDING / IN_PROGRESS / COMPLETED / NOT_COMPLETED_INTIME /
+  MISSED / CANCELLED. Assignment statuses tracked separately in
+  `TaskAssignment` with `isCurrent` history.
+- Reassignment cron (every minute) reassigns ASSIGNED tasks past
+  `TASK_START_GRACE_MINUTES` (default 10), max `MAX_TASK_REASSIGNMENTS`
+  (default 3).
+
+### Attendance
+
+- Crons create daily ABSENT rows per staff (`@@unique([staffId,date])`).
+- Check-in: haversine geofence vs `location.radiusMeters` (server-side),
+  30-min early window, 15-min late grace, selfie to Cloudinary, atomic
+  `updateMany` guarded on status ABSENT.
+- Check-out: geofence, 30-min minimum shift duration, late checkout keeps
+  MISSED_CHECKOUT status. Statuses: ABSENT / CHECKED_IN / CHECKED_OUT /
+  LATE / MISSED_CHECKOUT.
+
+### Cron jobs (backend/src/cron/, imported for side effects in app.ts)
+
+- `dailyTaskScheduler` — runs at import AND every 90s via setInterval
+  (KNOWN ISSUE: wasteful; should be per-location-midnight scheduling).
+- `onceTaskScheduler` — node-cron `3-59/15 * * * *`.
+- `taskStatusCron` — `7-59/15 * * * *`; expired PENDING -> MISSED,
+  expired IN_PROGRESS -> NOT_COMPLETED_INTIME.
+- `taskReassignmentCron` — every minute.
+- `attendanceCron` — `2 */6 * * *` (every 6h); creates ABSENT rows +
+  syncs open attendance windows (sequential loop — Promise.all was removed
+  after Prisma pool P1017 connection deaths).
+- `attendanceStatusCron` — `5-59/10 * * * *`; past expectedEnd ->
+  MISSED_CHECKOUT.
+- `startupCron` — catch-up superset, awaited on boot.
+
+================================================================================
+
+## 4. DATA MODEL (Prisma, backend/prisma/schema.prisma, 22 migrations)
+
+- `Company` — tenant root.
+- `Manager` — unique email, role (ADMIN/MANAGER/STAFF), refreshToken,
+  company FK, assignedLocations via ManagerLocation.
+- `Staff` — unique email, phone?, shiftStart/shiftEnd (wall-clock only),
+  nullable locationId (SetNull), refreshToken; indexes on
+  companyId/locationId/isActive.
+- `Location` — latitude/longitude stored as STRING, radiusMeters (default
+  500), timezone (IANA).
+- `TaskTemplate` — title/desc, optional staffId, location FK, shift window,
+  recurrence, unique qrToken. Legacy `referenceImageUrl` kept for backwards
+  compatibility; new templates use `referenceImages TaskTemplateReferenceImage[]`.
+- `TaskInstance` — denormalized template copy, date = local-day anchor,
+  status, isLate/lateMinutes, startedAt/completedAt, proofImageUrls[];
+  `@@unique([templateId,date])` + composite indexes. Legacy `referenceImageUrl`
+  kept; new instances use `referenceImages TaskInstanceReferenceImage[]`.
+- `TaskTemplateReferenceImage` / `TaskInstanceReferenceImage` — name, imageUrl,
+  sortOrder, cascade delete with parent.
+- `TaskAssignment` — per-instance assignment history (status, reason,
+  isCurrent, lifecycle timestamps, Cascade delete).
+- `Attendance` — unique [staffId,date], expectedStart/End, check-in/out
+  times + selfie URLs, late fields.
+- `AuditLog` — companyId?, actorType/actorId, entityType/entityId, action,
+  reason, old/new Json.
+- `ManagerLocation` — composite PK [managerId,locationId],
+  `locationId @unique` (one manager per location).
+
+Migration history tells the evolution: init -> indexes -> missed checkout ->
+QR -> proof images -> radius -> query-optimization indexes -> assignments +
+audit logs -> staff phone -> billing tables REMOVED -> location timezone ->
+unique manager-location -> admin role + manager locations -> reference-image
+verification -> multi-area reference-image verification.
+
+================================================================================
+
+## 5. API SURFACE (all under /api)
+
+- `manager`: POST /manager-signup, POST /manager-login (public);
+  GET /profile/me; GET /today-status (ADMIN,MANAGER);
+  POST /, GET /, PATCH /:id (ADMIN only — create/list/update managers,
+  409 on location-assignment conflict).
+- `staff`: POST /staff-login (public); CRUD + /inactive + /details/:id +
+  /location/:locationId (ADMIN,MANAGER, scoped); GET /profile/me.
+- `location`: create/edit/deactivate/inactive/restore (ADMIN only);
+  GET /, GET /:id, GET /:id/stats (ADMIN,MANAGER).
+- `task-template`: CRUD + GET /location/:locationId (ADMIN,MANAGER).
+- `task-instance`: GET /staff/:staffId/today, POST /:taskId/start?qrToken=,
+  POST /:taskId/complete (multer, max 5 images), GET /:taskId,
+  GET /location/:locationId.
+- `assignment`: PATCH /staff/:staffId/location/:locationId,
+  PATCH /task-template/:templateId/staff/:staffId.
+- `attendance`: PATCH /staff/:id/shift, POST /check-in, POST /check-out
+  (multer selfie), GET /my, GET / (ADMIN,MANAGER).
+- `common`: POST /logout, POST /refresh-token (unauthenticated by design),
+  GET /get-current-user.
+
+Response envelope: ApiResponse `{statusCode,data,message,success}` /
+ApiError `{success:false,message,errors}`. Zod v4 schemas in
+backend/src/validations/.
+
+================================================================================
+
+## 6. FRONTEND (web) NOTES
+
+- Redux holds ONLY authSlice `{user,isAuthenticated,isLoading}`; all server
+  state in TanStack Query (global: staleTime 60s, gcTime 10min, no
+  refetchOnFocus/Reconnect, retry 1; per-query tuning on dashboard/
+  attendance/today-status/staff; hover-prefetch of staff details).
+- Routes: / (Landing, public), /signup, /login (GuestRoute), /dashboard,
+  /today-status, /locations, /locations/:id, /staff, /staff/:id,
+  /attendance (ProtectedRoute), /managers (RequireRole ADMIN).
+  NO 404 catch-all route.
+- axios client (src/api/client.ts): baseURL `VITE_API_BASE_URL` (default
+  `/api`), withCredentials, single-flight refresh on 401 with exact body
+  message "Access Token Expired".
+- Per-feature convention: `api.ts` + `queries.ts` + page + components.
+- UI: shadcn-style primitives, Tailwind 4 CSS-first theme, Geist font,
+  oklch teal/sky palette; dark variant defined but no toggle.
+
+## 7. MOBILE APP NOTES
+
+- Single native-stack; auth-gated: Login vs (StaffTabs + QrScanner +
+  CompleteTask). "Tabs" are a hand-rolled two-button bar (Shift / Tasks),
+  not bottom-tabs.
+- Session (user + both tokens) persisted as JSON in AsyncStorage key
+  `@cleanops-staff/auth` (NOT SecureStore — known security gap).
+- axios bridge pattern (`configureApiAuth`); refresh on 401 string match
+  "Access Token Expired"; multipart uploads use raw fetch (documented
+  axios-RN workaround).
+- Geofence enforced SERVER-side; app just sends lat/long from
+  expo-location (no client-side radius check). No push notifications.
+- API base: `EXPO_PUBLIC_API_BASE_URL` (default Android emulator
+  `http://10.0.2.2:8080/api`).
+- No EAS config (no eas.json); app.json allows cleartext HTTP on both
+  platforms.
+
+================================================================================
+
+## 8. DEPLOYMENT
+
+TWO parallel deploy paths coexist (unreconciled):
+
+1. Manual / Docker Hub: root `docker-compose.yml` pulls
+   `shumail47891/fyp:{backend,frontend}`, only backend+frontend services,
+   external DATABASE_URL, PUBLIC_HOST=161.118.180.138 (Oracle VM),
+   frontend on :5173, COOKIE_SECURE=false.
+2. CI/CD / GHCR: `.github/workflows/` — ci.yml (build/typecheck all apps +
+   image builds), publish-images.yml (push cleanops-* images to GHCR),
+   deploy-compose.yml (SCP `docker-compose.deploy.yml` + env to host,
+   `docker compose pull && up -d`). Deploy compose self-hosts Postgres 16,
+   binds backend to 127.0.0.1, defaults COOKIE_SECURE=true, frontend :80,
+   optional mobile-web service (:8081).
+
+- Backend Dockerfile: multi-stage node:22; CMD runs
+  `prisma migrate deploy && node dist/app.js`.
+- Frontend/mobile-web: nginx SPA + `location /api/ { proxy_pass
+  http://backend:8080/api/; }`.
+- MIGRATION RUNBOOK: run `npx prisma migrate deploy` with DATABASE_URL
+  overridden to the DIRECT connection URL (db.[project-ref].supabase.co:5432).
+  The transaction pooler (6543) hangs and the session pooler (5432) may also
+  fail. App runtime keeps using the transaction pooler.
+- Supabase free tier auto-pauses after ~7 days idle (past P1001/ETIMEDOUT
+  cause) — unpause from dashboard.
+- DuckDNS (cleanops.duckdns.org) is configured OUTSIDE the repo.
+- SSH to Oracle VM: `ssh -i /home/shumail/Downloads/ssh-key-2026-02-03.key
+  ubuntu@161.118.180.138` (alt user `opc`).
+
+### Inconsistencies to be aware of
+
+- `.env.example` DATABASE_URL points at db.prisma.io, but the runtime DB is
+  Supabase, and deploy compose self-hosts Postgres — three DB stories.
+- Image registries split: Docker Hub (root compose defaults) vs GHCR (CI).
+- Root package.json is a stale Heroku launcher (leftover).
+- docker-compose.deploy.yml requires MOBILE_WEB_IMAGE; .env.example never
+  defines it.
+
+================================================================================
+
+## 9. GIT STATE (as of 2026-08-17)
+
+- Single branch `main`, single remote.
+- Local `main` is 8 commits AHEAD of origin/main (unpushed: role plumbing,
+  company admin, per-location timezone, managers UI, timezone scheduling UI,
+  docs). Remote main has moved independently in the past — do NOT pull/merge
+  remote main unless explicitly asked.
+- Working tree clean except untracked `.agents/` and `skills-lock.json`.
+
+================================================================================
+
+## 10. KNOWN ISSUES / TECH DEBT (from deep analysis)
+
+Security:
+- No rate limiting anywhere (login endpoints brute-forceable).
+- verifyJwt checks isActive for managers but NOT staff — deactivated staff
+  access tokens stay valid until expiry.
+- Mobile tokens in AsyncStorage, not SecureStore; cleartext HTTP allowed.
+- Staff login returns tokens in the JSON body (XSS-exfiltratable on web).
+- Both clients match refresh on the literal string "Access Token Expired".
+- COOKIE_SECURE=false default in backend Dockerfile; login cookies omit
+  sameSite (refresh/logout include it).
+- Debug logging middleware left on POST /api/attendance/check-in; stray
+  console.logs of staff/attendance data.
+
+Correctness:
+- Time-basis split: assignment.controller, attendance.controller
+  (assignShiftToStaff), and Zod shift schemas use UTC clock minutes while
+  taskTemplate/staff-edit/assignment-service use location-tz minutes — same
+  validation can pass in one endpoint and fail in another.
+- Grace-period drift: 5 min hardcoded in startTask/getTodayStatus vs
+  env-configurable 10 min in the reassignment cron.
+- getTodaysTasksForStaff lacks manager location scoping (any manager can
+  read any same-company staff's tasks).
+- signupManager creates company + admin non-transactionally (orphan
+  company possible).
+- editLocationSchema doesn't actually make fields optional — PATCH needs a
+  full payload.
+- ensureAssignmentsForToday scans ALL open instances, not just today's.
+- Mobile date logic hardcoded to Asia/Karachi (contradicts per-location tz).
+- Frontend: no 404; createLocation posts a `{data}`-wrapped payload;
+  query-key fragmentation (["getLocations"] vs ["location"] vs
+  ["dashboard-locations"]) leaves some lists stale after mutations.
+- getMyAttendance checks role === "MANAGER" but not "ADMIN".
+
+Housekeeping:
+- Daily task scheduler polls every 90s (should be per-location scheduling).
+- No tests anywhere (verification = tsc + manual smoke).
+- Dead code: frontend common/ form components, several unused exports,
+  App.css; mobile canCheckInNow/formatShortDateTime; backend unused vars.
+- Data cleanup pending: test manager "tetsing" (id 9) has ZERO locations —
+  reassign or delete.
+- Manager-created staff with "No location" immediately disappear from that
+  manager's Staff tab (location-less staff are admin-visible only).
+- No EAS config; EXPO_NO_DEPENDENCY_VALIDATION=1 masks dep warnings.
+- No root README; mobile README has stale paths (/home/shumail/FYP/...).
+
+================================================================================
+
+## 11. SAFE COMMANDS
+
+Local backend:   `cd backend && npm run dev`
+Local frontend:  `cd frontend && npm run dev`   (open http://127.0.0.1:5173)
+Backend build:   `cd backend && npm run build`
+Frontend build:  `cd frontend && npm run build`
+Mobile:          `cd frontend-mobile && npm start` (LAN) / `start:local`
+Typecheck:       `npx tsc --noEmit` in backend/ and frontend/;
+                 `npm run typecheck` in frontend-mobile/
+Prisma migrate:  `cd backend && npx prisma migrate dev --name <name>`
+                 (ONLY if explicitly approved). For Supabase, the transaction
+                 pooler (port 6543) hangs and the session pooler (port 5432)
+                 may also fail; the working approach is to use the direct
+                 connection URL (db.[project-ref].supabase.co:5432) for
+                 `migrate deploy`. App runtime keeps using the transaction
+                 pooler.
+
+## 12. FEATURE (2026-08-18): AI Reference-Image Verification (single reference)
+
+- Legacy single-reference tasks use `TaskTemplate.referenceImageUrl` and
+  `TaskInstance.referenceImageUrl`.
+- On task completion, the first staff proof image is compared with the single
+  reference image. Both `location_match` and `cleanliness_match` must be >= the
+  env thresholds (default 70). Legacy tasks without a reference image skip
+  verification and complete as before (audit-logged).
+- Provider-abstracted in `backend/src/services/verification/` (OpenAI / Gemini).
+- Attempts stored in `TaskCompletionAttempt` with scores/reasoning/raw response.
+
+## 13. NEW FEATURE (2026-08-18): Multi-Area Reference-Image Verification
+
+- Task templates now support multiple named reference areas
+  (`TaskTemplateReferenceImage`), e.g. "Sink", "Toilet 1", "Mirror". Each
+  area has a name, image URL, and sort order.
+- Daily/once crons snapshot template reference images onto each generated
+  `TaskInstance` via `TaskInstanceReferenceImage` (idempotent, guarded against
+  re-runs).
+- Staff-facing endpoints expose only area names/sortOrder; managers see full
+  image URLs.
+- On completion, the staff must upload one photo per reference area, in the
+  same order as the areas. The backend verifies each area independently:
+  location match then cleanliness match, both against the env thresholds.
+  If any area fails, the entire submission is rejected and per-area attempt
+  rows are recorded under a shared `submissionId`.
+- Legacy single-reference tasks continue to use the old verification path.
+- Mobile CompleteTaskScreen uses camera-only capture (`launchCameraAsync`) for
+  multi-area tasks to prevent gallery cheating; legacy no-area tasks keep the
+  gallery picker.
+- New env var: `MAX_REFERENCE_IMAGES` (default 10).
+
+## 14. HANDOFF PRIORITY
+
+1. Read this file.
+2. `git status` / `git log --oneline -10` — check branch and unpushed work.
+3. Decide task type: local runtime / Oracle deploy / frontend UX / backend
+   performance / security hardening / AI verification / multi-area
+   reference-image verification.
+4. For DB work, check `backend/.env` and the migration runbook above.
+5. Do not pull remote main; do not run migrations without explicit approval.

@@ -33,3 +33,7 @@ __pycache__/
 *.odt
 *.pdf
 *.md
+
+# Personal context / discussion notes
+FYP_ML_DISCUSSION.md
+PROJECT_CONTEXT.txt
