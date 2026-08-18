@@ -31,11 +31,44 @@ export const uploadBufferToCloudinary = (
     stream.end(fileBuffer);
   });
 
+const isTransientUploadError = (error: unknown): boolean => {
+  const err = error as { http_code?: number; name?: string };
+  return (
+    err?.name === "TimeoutError" ||
+    err?.http_code === 499 ||
+    (typeof err?.http_code === "number" && err.http_code >= 500)
+  );
+};
+
+const uploadWithRetry = async (
+  fileBuffer: Buffer,
+  options: UploadApiOptions = {},
+  retries = 2
+): Promise<UploadApiResponse> => {
+  let lastError: unknown;
+
+  for (let attempt = 0; attempt <= retries; attempt++) {
+    try {
+      return await uploadBufferToCloudinary(fileBuffer, options);
+    } catch (error) {
+      lastError = error;
+
+      if (!isTransientUploadError(error) || attempt === retries) {
+        break;
+      }
+
+      await new Promise((resolve) => setTimeout(resolve, 1000 * (attempt + 1)));
+    }
+  }
+
+  throw lastError;
+};
+
 export const uploadSingleImage = (
   file: Express.Multer.File,
   folder: string
 ) =>
-  uploadBufferToCloudinary(file.buffer, {
+  uploadWithRetry(file.buffer, {
     folder,
     resource_type: "image",
   });
@@ -46,7 +79,7 @@ export const uploadMultipleImages = (
 ) =>
   Promise.all(
     files.map((file) =>
-      uploadBufferToCloudinary(file.buffer, {
+      uploadWithRetry(file.buffer, {
         folder,
         resource_type: "image",
       })
