@@ -74,7 +74,7 @@
     --ink: #14231F;
     --line: #C9CCC4;
     --primary: oklch(0.52 0.13 190);
-    --status-pending: #B08D2E;
+    --status-pending: #88681B; /* darkened from the spec's #B08D2E to meet WCAG AA (4.76:1) on --surface */
     --status-progress: #2E6BB0;
     --status-complete: #2E7D4F;
     --status-missed: #B0402E;

@@ -6,7 +6,7 @@ import type { RootState } from "@/store/store";
 import { Button } from "@/components/ui/button";
 
 const navLinks = [
-  { label: "Product", href: "/#product" },
+  { label: "Home", href: "/" },
   { label: "Features", href: "/features" },
 ];
 

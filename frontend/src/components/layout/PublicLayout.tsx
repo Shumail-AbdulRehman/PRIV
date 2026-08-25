@@ -24,9 +24,9 @@ export function PublicLayout() {
               </p>
             </div>
             <div>
-              <p className="font-mono text-[10px] font-medium uppercase tracking-widest text-ink">Product</p>
+              <p className="font-mono text-[10px] font-medium uppercase tracking-widest text-ink">Home</p>
               <ul className="mt-4 space-y-2.5">
-                <li><Link to="/" className="text-sm text-ink/70 hover:text-ink">Overview</Link></li>
+                <li><Link to="/" className="text-sm text-ink/70 hover:text-ink">Home</Link></li>
                 <li><Link to="/features" className="text-sm text-ink/70 hover:text-ink">Features</Link></li>
                 <li><Link to="/features#verification" className="text-sm text-ink/70 hover:text-ink">Verification</Link></li>
               </ul>
