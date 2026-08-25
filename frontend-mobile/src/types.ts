@@ -4,6 +4,11 @@ export type ReferenceArea = {
   sortOrder: number;
 };
 
+export type StaffTabsParamList = {
+  Shift: undefined;
+  Tasks: undefined;
+};
+
 export type RootStackParamList = {
   Login: undefined;
   StaffTabs: undefined;

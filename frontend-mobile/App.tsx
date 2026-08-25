@@ -1,3 +1,4 @@
+import "./global.css";
 import { StatusBar } from "expo-status-bar";
 import { NavigationContainer, DefaultTheme } from "@react-navigation/native";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
@@ -9,11 +10,11 @@ const navTheme = {
   ...DefaultTheme,
   colors: {
     ...DefaultTheme.colors,
-    background: "#f4f0e8",
-    card: "#f4f0e8",
-    text: "#17231f",
-    border: "#d8d1c2",
-    primary: "#146356",
+    background: "#FFFFFF",
+    card: "#FFFFFF",
+    text: "#18181B",
+    border: "#E4E4E7",
+    primary: "#0F766E",
   },
 };
 

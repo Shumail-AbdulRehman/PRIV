@@ -1,6 +1,10 @@
-import { StyleSheet, Text, View } from "react-native";
-import { Button } from "./Button";
-import { cardCore, cardShell, colors, radius, shadow, typography } from "../theme";
+import { View } from "react-native";
+import * as Haptics from "expo-haptics";
+import { Card, CardContent } from "./ui/card";
+import { Text } from "./ui/text";
+import { Button } from "./ui/button";
+import { Icon } from "./ui/icon";
+import { StatusBadge } from "./StatusBadge";
 import { formatTaskWindow } from "../utils/format";
 import type { TaskInstance } from "../types";
 
@@ -11,129 +15,57 @@ type TaskCardProps = {
 };
 
 export function TaskCard({ task, onStart, onComplete }: TaskCardProps) {
-  const statusTone = statusStyles[task.status] ?? statusStyles.PENDING;
+  const handlePress = (callback?: () => void) => {
+    return () => {
+      void Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
+      callback?.();
+    };
+  };
 
   return (
-    <View style={styles.cardShell}>
-      <View style={styles.card}>
-        <View style={styles.header}>
-          <View style={styles.titleBlock}>
-            <Text style={styles.title}>{task.title}</Text>
-            <Text style={styles.subtitle}>
-              {task.template?.location?.name ?? "Assigned location"}
+    <Card className="mb-3">
+      <CardContent className="p-4">
+        <View className="flex-row items-start justify-between gap-3">
+          <View className="flex-1">
+            <Text className="text-base font-bold text-card-foreground">
+              {task.title}
             </Text>
+            <View className="mt-1.5 flex-row items-center gap-1.5">
+              <Icon name="MapPin" size={14} className="text-muted-foreground" />
+              <Text className="text-sm text-muted-foreground">
+                {task.template?.location?.name ?? "Assigned location"}
+              </Text>
+            </View>
+            <View className="mt-1 flex-row items-center gap-1.5">
+              <Icon name="Clock" size={14} className="text-muted-foreground" />
+              <Text className="text-sm text-muted-foreground">
+                {formatTaskWindow(task.shiftStart, task.shiftEnd)}
+              </Text>
+            </View>
           </View>
-
-          <View style={[styles.badge, statusTone.badge]}>
-            <Text style={[styles.badgeText, statusTone.label]}>{task.status}</Text>
-          </View>
-        </View>
-
-        <View style={styles.windowPanel}>
-          <Text style={styles.windowLabel}>Window</Text>
-          <Text style={styles.window}>{formatTaskWindow(task.shiftStart, task.shiftEnd)}</Text>
+          <StatusBadge status={task.status} />
         </View>
 
         {task.status === "PENDING" && onStart ? (
-          <Button label="Scan QR To Start" onPress={onStart} style={styles.button} />
+          <Button
+            className="mt-4"
+            iconLeft="QrCode"
+            onPress={handlePress(onStart)}
+          >
+            Scan QR to Start
+          </Button>
         ) : null}
-
         {task.status === "IN_PROGRESS" && onComplete ? (
           <Button
-            label="Upload Proof And Complete"
-            onPress={onComplete}
-            variant="secondary"
-            style={styles.button}
-          />
+            className="mt-4"
+            variant="outline"
+            iconLeft="Camera"
+            onPress={handlePress(onComplete)}
+          >
+            Upload Proof & Complete
+          </Button>
         ) : null}
-      </View>
-    </View>
+      </CardContent>
+    </Card>
   );
 }
-
-const styles = StyleSheet.create({
-  cardShell: {
-    ...cardShell,
-    ...shadow.panel,
-  },
-  card: {
-    ...cardCore,
-    padding: 18,
-    gap: 14,
-  },
-  header: {
-    flexDirection: "row",
-    justifyContent: "space-between",
-    gap: 12,
-  },
-  titleBlock: {
-    flex: 1,
-    gap: 4,
-  },
-  title: {
-    ...typography.sectionTitle,
-    color: colors.ink,
-  },
-  subtitle: {
-    color: colors.inkMuted,
-    fontSize: 13,
-    fontWeight: "700",
-  },
-  windowPanel: {
-    borderRadius: radius.md,
-    backgroundColor: colors.surfaceSoft,
-    paddingHorizontal: 14,
-    paddingVertical: 12,
-    gap: 3,
-  },
-  windowLabel: {
-    ...typography.eyebrow,
-    color: colors.inkSoft,
-    fontSize: 10,
-  },
-  window: {
-    color: colors.ink,
-    fontSize: 14,
-    fontWeight: "900",
-  },
-  badge: {
-    borderRadius: radius.pill,
-    paddingHorizontal: 10,
-    paddingVertical: 6,
-    alignSelf: "flex-start",
-  },
-  badgeText: {
-    ...typography.eyebrow,
-    fontSize: 10,
-  },
-  button: {
-    marginTop: 2,
-  },
-});
-
-const statusStyles = {
-  PENDING: StyleSheet.create({
-    badge: { backgroundColor: colors.amber },
-    label: { color: colors.amberDeep },
-  }),
-  IN_PROGRESS: StyleSheet.create({
-    badge: { backgroundColor: colors.mint },
-    label: { color: colors.teal },
-  }),
-  COMPLETED: StyleSheet.create({
-    badge: { backgroundColor: colors.sage },
-    label: { color: "#355f1c" },
-  }),
-  MISSED: StyleSheet.create({
-    badge: { backgroundColor: colors.dangerSoft },
-    label: { color: colors.danger },
-  }),
-  CANCELLED: StyleSheet.create({
-    badge: { backgroundColor: colors.canvasDeep },
-    label: { color: colors.inkMuted },
-  }),
-  NOT_COMPLETED_INTIME: StyleSheet.create({
-    badge: { backgroundColor: "#f2ddcc" },
-    label: { color: colors.clay },
-  }),
-};

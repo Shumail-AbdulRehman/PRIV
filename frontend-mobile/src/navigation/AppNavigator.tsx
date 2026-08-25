@@ -1,11 +1,10 @@
 import { createNativeStackNavigator } from "@react-navigation/native-stack";
 import { useAuth } from "../auth/AuthContext";
 import { LoadingState } from "../components/LoadingState";
-import { StaffTabsScreen } from "./StaffTabsScreen";
+import { StaffTabs } from "./StaffTabs";
 import { CompleteTaskScreen } from "../screens/CompleteTaskScreen";
 import { LoginScreen } from "../screens/LoginScreen";
 import { QrScannerScreen } from "../screens/QrScannerScreen";
-import { colors } from "../theme";
 import type { RootStackParamList } from "../types";
 
 const Stack = createNativeStackNavigator<RootStackParamList>();
@@ -28,15 +27,15 @@ export function AppNavigator() {
       screenOptions={{
         headerShadowVisible: false,
         headerStyle: {
-          backgroundColor: colors.canvas,
+          backgroundColor: "#FFFFFF",
         },
         headerTitleStyle: {
-          color: colors.ink,
-          fontWeight: "900",
+          color: "#18181B",
+          fontWeight: "700",
         },
-        headerTintColor: colors.forest,
+        headerTintColor: "#0F766E",
         contentStyle: {
-          backgroundColor: colors.canvas,
+          backgroundColor: "#FFFFFF",
         },
       }}
     >
@@ -44,7 +43,7 @@ export function AppNavigator() {
         <>
           <Stack.Screen
             name="StaffTabs"
-            component={StaffTabsScreen}
+            component={StaffTabs}
             options={{ headerShown: false }}
           />
           <Stack.Screen name="QrScanner" component={QrScannerScreen} options={{ title: "Scan Task QR" }} />

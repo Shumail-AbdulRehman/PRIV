@@ -1,15 +1,25 @@
 import { useState } from "react";
-import { Alert, RefreshControl, ScrollView, StyleSheet, Text, View } from "react-native";
+import { Alert, RefreshControl, ScrollView, View } from "react-native";
 import * as ImagePicker from "expo-image-picker";
 import * as Location from "expo-location";
+import * as Haptics from "expo-haptics";
+import { useNavigation } from "@react-navigation/native";
+import type { BottomTabNavigationProp } from "@react-navigation/bottom-tabs";
+import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { useQueryClient } from "@tanstack/react-query";
 import { uploadFormData } from "../api/client";
 import { useAuth } from "../auth/AuthContext";
-import { Button } from "../components/Button";
+import { Button } from "../components/ui/button";
 import { LoadingState } from "../components/LoadingState";
+import { ScreenHeader } from "../components/ScreenHeader";
+import { StatusBadge } from "../components/StatusBadge";
+import { StatCard } from "../components/StatCard";
+import { FactRow } from "../components/FactRow";
+import { Card, CardContent } from "../components/ui/card";
+import { Text } from "../components/ui/text";
+import { Icon } from "../components/ui/icon";
 import { staffQueryKeys, useMyAttendanceQuery, useTodaysTasksQuery } from "../queries/staff";
-import { cardCore, cardShell, colors, radius, shadow, typography } from "../theme";
-import type { AttendanceRecord } from "../types";
+import type { AttendanceRecord, StaffTabsParamList } from "../types";
 import {
   getCheckInOpenAt,
   getLateDeadline,
@@ -45,11 +55,7 @@ type AttendanceViewModel = {
   };
 };
 
-type HomeScreenProps = {
-  topInset: number;
-  bottomInset: number;
-  onOpenTasksTab: () => void;
-};
+type NavigationProp = BottomTabNavigationProp<StaffTabsParamList, "Shift">;
 
 const buildAttendanceViewModel = ({
   record,
@@ -248,13 +254,37 @@ const buildAttendanceViewModel = ({
   };
 };
 
-export function HomeScreen({
-  topInset,
-  bottomInset,
-  onOpenTasksTab,
-}: HomeScreenProps) {
+const toneButtonVariantMap: Record<
+  AttendanceViewModel["tone"],
+  "default" | "outline" | "destructive" | "ghost"
+> = {
+  accent: "default",
+  success: "default",
+  warning: "outline",
+  danger: "destructive",
+  neutral: "ghost",
+};
+
+const greeting = () => {
+  const hour = new Date().getHours();
+  if (hour < 12) return "Good morning";
+  if (hour < 17) return "Good afternoon";
+  return "Good evening";
+};
+
+const todaySubtitle = () => {
+  return new Date().toLocaleDateString("en-US", {
+    weekday: "long",
+    month: "long",
+    day: "numeric",
+  });
+};
+
+export function HomeScreen() {
   const { user, logout } = useAuth();
+  const navigation = useNavigation<NavigationProp>();
   const queryClient = useQueryClient();
+  const insets = useSafeAreaInsets();
   const [submittingMode, setSubmittingMode] = useState<AttendanceActionMode | null>(null);
   const staffId = user?.id;
   const attendanceQuery = useMyAttendanceQuery(staffId);
@@ -339,6 +369,13 @@ export function HomeScreen({
     }
   };
 
+  const handleSignOut = () => {
+    Alert.alert("Sign out", "Are you sure you want to sign out?", [
+      { text: "Cancel", style: "cancel" },
+      { text: "Sign Out", style: "destructive", onPress: () => void logout() },
+    ]);
+  };
+
   const now = new Date();
   const activeAttendance = getRelevantAttendanceRecord(attendanceRecords, now);
   const attendanceView = buildAttendanceViewModel({
@@ -349,335 +386,142 @@ export function HomeScreen({
   const pendingCount = tasks.filter((task) => task.status === "PENDING").length;
   const inProgressCount = tasks.filter((task) => task.status === "IN_PROGRESS").length;
   const completedCount = tasks.filter((task) => task.status === "COMPLETED").length;
-  const toneStyles = toneStyleMap[attendanceView.tone];
   const attendanceAction = attendanceView.action;
+  const actionVariant = toneButtonVariantMap[attendanceView.tone];
+
+  const previewTasks = tasks.slice(0, 3);
+  const firstName = user?.name?.split(" ")[0] ?? user?.name ?? "Staff";
 
   if (isInitialLoading) {
     return (
       <View
-        style={[
-          styles.loadingWrap,
-          {
-            paddingTop: topInset + 20,
-            paddingBottom: bottomInset,
-          },
-        ]}
+        className="flex-1 justify-center px-5"
+        style={{ paddingTop: insets.top + 20, paddingBottom: insets.bottom + 20 }}
       >
-        <LoadingState
-          title="Loading shift"
-          message="Fetching today’s attendance record and task summary."
-        />
+        <LoadingState fullScreen />
       </View>
     );
   }
 
   return (
     <ScrollView
-      contentContainerStyle={[
-        styles.content,
-        {
-          paddingTop: topInset + 20,
-          paddingBottom: bottomInset,
-        },
-      ]}
+      className="flex-1 bg-background"
+      contentContainerClassName="gap-4 p-4"
+      contentContainerStyle={{
+        paddingTop: insets.top + 16,
+        paddingBottom: insets.bottom + 16,
+      }}
       refreshControl={<RefreshControl refreshing={refreshing} onRefresh={onRefresh} />}
     >
-      <View style={styles.heroShell}>
-        <View style={styles.hero}>
-          <View style={styles.heroCopy}>
-            <Text style={styles.eyebrow}>Shift control</Text>
-            <Text style={styles.title}>{user?.name ?? "Staff"}</Text>
-            <Text style={styles.subtitle}>{user?.email}</Text>
+      <ScreenHeader
+        title={`${greeting()}, ${firstName}`}
+        subtitle={todaySubtitle()}
+        right={
+          <Button
+            variant="ghost"
+            size="icon"
+            iconLeft="LogOut"
+            onPress={handleSignOut}
+            accessibilityLabel="Sign out"
+          />
+        }
+      />
+
+      <Card>
+        <CardContent className="gap-3 p-4">
+          <View className="flex-row items-center justify-between">
+            <Text className="text-base font-semibold text-card-foreground">Attendance</Text>
+            <StatusBadge status={attendanceView.statusLabel} />
           </View>
 
-          <Button label="Sign Out" onPress={logout} variant="ghost" />
-        </View>
-      </View>
-
-      <View style={styles.panelShell}>
-        <View style={styles.panel}>
-          <View style={styles.attendanceHeader}>
-            <Text style={styles.panelTitle}>Attendance</Text>
-            <View style={[styles.statusBadge, toneStyles.badge]}>
-              <Text style={[styles.statusBadgeText, toneStyles.badgeText]}>
-                {attendanceView.statusLabel}
-              </Text>
-            </View>
-          </View>
-
-          <Text style={styles.attendanceTitle}>{attendanceView.title}</Text>
-          <Text style={styles.panelText}>{attendanceView.message}</Text>
+          <Text className="text-xl font-bold text-card-foreground">
+            {attendanceView.title}
+          </Text>
+          <Text className="text-sm text-muted-foreground">
+            {attendanceView.message}
+          </Text>
 
           {attendanceView.facts.length ? (
-            <View style={styles.factGrid}>
-              {attendanceView.facts.map((fact) => (
-                <View key={fact.label} style={styles.factCard}>
-                  <Text style={styles.factLabel}>{fact.label}</Text>
-                  <Text style={styles.factValue}>{fact.value}</Text>
-                </View>
-              ))}
+            <View className="rounded-lg bg-secondary p-3">
+              <View className="flex-row flex-wrap gap-y-3 gap-x-4">
+                {attendanceView.facts.map((fact) => (
+                  <FactRow key={fact.label} label={fact.label} value={fact.value} />
+                ))}
+              </View>
             </View>
           ) : null}
 
           {attendanceAction ? (
-            <View style={[styles.actionBlock, toneStyles.actionBlock]}>
+            <View className="gap-2">
               <Button
-                disabled={attendanceAction.disabled}
-                label={attendanceAction.label}
+                variant={actionVariant}
                 loading={submittingMode === attendanceAction.mode}
+                disabled={attendanceAction.disabled}
                 onPress={() => {
+                  void Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
                   if (!attendanceAction.disabled) {
                     void handleAttendanceAction(attendanceAction.mode);
                   }
                 }}
-              />
+              >
+                {attendanceAction.label}
+              </Button>
               {attendanceAction.helper ? (
-                <Text style={styles.actionHelper}>{attendanceAction.helper}</Text>
+                <Text className="text-center text-xs text-muted-foreground">
+                  {attendanceAction.helper}
+                </Text>
               ) : null}
             </View>
           ) : null}
-        </View>
+        </CardContent>
+      </Card>
+
+      <View className="flex-row gap-3">
+        <StatCard label="Pending" value={pendingCount} icon="Clock" />
+        <StatCard label="In Progress" value={inProgressCount} icon="Loader" />
+        <StatCard label="Completed" value={completedCount} icon="CheckCircle2" />
       </View>
 
-      <View style={styles.statsRow}>
-        <View style={[styles.statCard, styles.statPending]}>
-          <Text style={styles.statNumber}>{pendingCount}</Text>
-          <Text style={styles.statLabel}>Pending</Text>
-        </View>
-        <View style={[styles.statCard, styles.statProgress]}>
-          <Text style={styles.statNumber}>{inProgressCount}</Text>
-          <Text style={styles.statLabel}>In Progress</Text>
-        </View>
-        <View style={[styles.statCard, styles.statCompleted]}>
-          <Text style={styles.statNumber}>{completedCount}</Text>
-          <Text style={styles.statLabel}>Completed</Text>
-        </View>
-      </View>
-
-      <View style={styles.panelShell}>
-        <View style={styles.panel}>
-          <Text style={styles.panelTitle}>Today's tasks</Text>
-          <Text style={styles.panelText}>
-            Start QR-based work and upload proof images for anything still in progress.
+      <Card>
+        <CardContent className="gap-3 p-4">
+          <Text className="text-base font-semibold text-card-foreground">
+            Today's tasks
           </Text>
-          <Button label="Open Tasks Tab" onPress={onOpenTasksTab} variant="secondary" />
-        </View>
-      </View>
+
+          {previewTasks.length ? (
+            <View className="gap-2">
+              {previewTasks.map((task) => (
+                <View
+                  key={task.id}
+                  className="flex-row items-center justify-between rounded-lg bg-secondary px-3 py-2"
+                >
+                  <Text
+                    className="flex-1 text-sm font-medium text-secondary-foreground"
+                    numberOfLines={1}
+                  >
+                    {task.title}
+                  </Text>
+                  <StatusBadge status={task.status} />
+                </View>
+              ))}
+            </View>
+          ) : (
+            <Text className="text-sm text-muted-foreground">
+              No tasks yet today.
+            </Text>
+          )}
+
+          <Button
+            variant="outline"
+            onPress={() => {
+              void Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
+              navigation.navigate("Tasks");
+            }}
+          >
+            View all tasks
+          </Button>
+        </CardContent>
+      </Card>
     </ScrollView>
   );
 }
-
-const styles = StyleSheet.create({
-  content: {
-    paddingHorizontal: 18,
-    gap: 18,
-  },
-  loadingWrap: {
-    flex: 1,
-    paddingHorizontal: 20,
-    justifyContent: "center",
-  },
-  heroShell: {
-    ...cardShell,
-    borderColor: "rgba(255,255,255,0.16)",
-    backgroundColor: "rgba(255,255,255,0.08)",
-    ...shadow.lifted,
-  },
-  hero: {
-    borderRadius: radius.lg,
-    padding: 22,
-    backgroundColor: colors.forestDeep,
-    justifyContent: "space-between",
-    gap: 18,
-  },
-  heroCopy: {
-    gap: 6,
-  },
-  eyebrow: {
-    alignSelf: "flex-start",
-    borderRadius: radius.pill,
-    paddingHorizontal: 12,
-    paddingVertical: 6,
-    backgroundColor: colors.mint,
-    color: colors.teal,
-    ...typography.eyebrow,
-  },
-  title: {
-    ...typography.title,
-    color: colors.white,
-  },
-  subtitle: {
-    color: "#cbe0d8",
-    fontSize: 14,
-    fontWeight: "700",
-  },
-  panelShell: {
-    ...cardShell,
-    ...shadow.panel,
-  },
-  panel: {
-    ...cardCore,
-    padding: 18,
-    gap: 14,
-  },
-  attendanceHeader: {
-    flexDirection: "row",
-    justifyContent: "space-between",
-    gap: 12,
-    alignItems: "center",
-  },
-  panelTitle: {
-    ...typography.sectionTitle,
-    color: colors.ink,
-  },
-  attendanceTitle: {
-    fontSize: 27,
-    lineHeight: 32,
-    fontWeight: "900",
-    letterSpacing: -0.4,
-    color: colors.ink,
-  },
-  panelText: {
-    ...typography.body,
-    color: colors.inkMuted,
-  },
-  statusBadge: {
-    borderRadius: radius.pill,
-    paddingHorizontal: 12,
-    paddingVertical: 7,
-  },
-  statusBadgeText: {
-    ...typography.eyebrow,
-    fontSize: 10,
-  },
-  factGrid: {
-    flexDirection: "row",
-    flexWrap: "wrap",
-    gap: 10,
-  },
-  factCard: {
-    minWidth: "47%",
-    flexGrow: 1,
-    borderRadius: radius.md,
-    backgroundColor: colors.surfaceSoft,
-    borderWidth: 1,
-    borderColor: colors.line,
-    paddingHorizontal: 14,
-    paddingVertical: 12,
-    gap: 4,
-  },
-  factLabel: {
-    ...typography.eyebrow,
-    color: colors.inkSoft,
-    fontSize: 10,
-  },
-  factValue: {
-    color: colors.ink,
-    fontSize: 14,
-    lineHeight: 20,
-    fontWeight: "900",
-  },
-  actionBlock: {
-    borderRadius: radius.lg,
-    padding: 14,
-    gap: 10,
-  },
-  actionHelper: {
-    color: colors.inkMuted,
-    fontSize: 12,
-    lineHeight: 18,
-    fontWeight: "700",
-  },
-  statsRow: {
-    flexDirection: "row",
-    gap: 10,
-  },
-  statCard: {
-    flex: 1,
-    borderRadius: radius.lg,
-    padding: 16,
-    minHeight: 104,
-    justifyContent: "space-between",
-    ...shadow.panel,
-  },
-  statPending: {
-    backgroundColor: colors.teal,
-  },
-  statProgress: {
-    backgroundColor: colors.clay,
-  },
-  statCompleted: {
-    backgroundColor: "#4f6c38",
-  },
-  statNumber: {
-    color: colors.white,
-    fontSize: 32,
-    fontWeight: "900",
-    letterSpacing: -0.8,
-  },
-  statLabel: {
-    color: "rgba(255,255,255,0.78)",
-    marginTop: 4,
-    fontWeight: "900",
-    fontSize: 12,
-    lineHeight: 16,
-  },
-});
-
-const toneStyleMap = {
-  accent: StyleSheet.create({
-    badge: {
-      backgroundColor: colors.mint,
-    },
-    badgeText: {
-      color: colors.teal,
-    },
-    actionBlock: {
-      backgroundColor: "#edf7f4",
-    },
-  }),
-  success: StyleSheet.create({
-    badge: {
-      backgroundColor: colors.sage,
-    },
-    badgeText: {
-      color: "#355f1c",
-    },
-    actionBlock: {
-      backgroundColor: "#eff5e8",
-    },
-  }),
-  warning: StyleSheet.create({
-    badge: {
-      backgroundColor: colors.amber,
-    },
-    badgeText: {
-      color: colors.amberDeep,
-    },
-    actionBlock: {
-      backgroundColor: "#fcf4df",
-    },
-  }),
-  danger: StyleSheet.create({
-    badge: {
-      backgroundColor: colors.dangerSoft,
-    },
-    badgeText: {
-      color: colors.danger,
-    },
-    actionBlock: {
-      backgroundColor: "#fbedeb",
-    },
-  }),
-  neutral: StyleSheet.create({
-    badge: {
-      backgroundColor: colors.canvasDeep,
-    },
-    badgeText: {
-      color: colors.inkMuted,
-    },
-    actionBlock: {
-      backgroundColor: "#f6efe4",
-    },
-  }),
-};

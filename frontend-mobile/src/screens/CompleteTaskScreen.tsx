@@ -1,12 +1,14 @@
 import { useState } from "react";
-import { Alert, Image, ScrollView, StyleSheet, Text, View } from "react-native";
+import { Alert, Image, ScrollView, View } from "react-native";
 import * as ImagePicker from "expo-image-picker";
 import { NativeStackScreenProps } from "@react-navigation/native-stack";
 import { useQueryClient } from "@tanstack/react-query";
 import { uploadFormData } from "../api/client";
-import { Button } from "../components/Button";
+import { Button } from "../components/ui/button";
 import { staffQueryKeys } from "../queries/staff";
-import { cardCore, cardShell, colors, radius, shadow, typography } from "../theme";
+import { Card, CardContent } from "../components/ui/card";
+import { Text } from "../components/ui/text";
+import { Icon } from "../components/ui/icon";
 import { createImagePart } from "../utils/upload";
 import type { RootStackParamList } from "../types";
 
@@ -29,6 +31,14 @@ export function CompleteTaskScreen({ navigation, route }: Props) {
   const [selectedImages, setSelectedImages] = useState<ImagePicker.ImagePickerAsset[]>([]);
   const [areaPhotos, setAreaPhotos] = useState<Record<number, CapturedImage>>({});
   const [submitting, setSubmitting] = useState(false);
+  const [areaErrors, setAreaErrors] = useState<Record<string, string>>({});
+
+  const sortedAreas = hasReferenceAreas
+    ? [...referenceAreas!].sort((a, b) => a.sortOrder - b.sortOrder)
+    : [];
+
+  const capturedAreaCount = sortedAreas.filter((area) => areaPhotos[area.id]).length;
+  const allAreasCaptured = capturedAreaCount === sortedAreas.length;
 
   const pickImages = async () => {
     const permission = await ImagePicker.requestMediaLibraryPermissionsAsync();
@@ -47,7 +57,12 @@ export function CompleteTaskScreen({ navigation, route }: Props) {
 
     if (!result.canceled) {
       setSelectedImages(result.assets.slice(0, 5));
+      setAreaErrors({});
     }
+  };
+
+  const removeImage = (index: number) => {
+    setSelectedImages((prev) => prev.filter((_, i) => i !== index));
   };
 
   const captureAreaPhoto = async (areaId: number) => {
@@ -74,17 +89,25 @@ export function CompleteTaskScreen({ navigation, route }: Props) {
           fileSize: asset.fileSize,
         },
       }));
+      setAreaErrors((prev) => {
+        const next = { ...prev };
+        const area = sortedAreas.find((a) => a.id === areaId);
+        if (area) {
+          delete next[area.name];
+        }
+        return next;
+      });
     }
   };
 
   const submitCompletion = async () => {
     try {
       setSubmitting(true);
+      setAreaErrors({});
 
       const formData = new FormData();
 
       if (hasReferenceAreas) {
-        const sortedAreas = [...referenceAreas!].sort((a, b) => a.sortOrder - b.sortOrder);
         const missingAreas = sortedAreas.filter((area) => !areaPhotos[area.id]);
 
         if (missingAreas.length > 0) {
@@ -155,6 +178,18 @@ export function CompleteTaskScreen({ navigation, route }: Props) {
 
       const fullMessage = scoreLines ? `${serverMessage}\n\n${scoreLines}` : serverMessage;
 
+      const nextAreaErrors: Record<string, string> = {};
+      errors.forEach(
+        (e: { field?: string; message?: string; score?: number; threshold?: number }) => {
+          if (e.field && e.message) {
+            nextAreaErrors[e.field] = e.score != null && e.threshold != null
+              ? `${e.message} (threshold: ${e.threshold})`
+              : e.message;
+          }
+        }
+      );
+      setAreaErrors(nextAreaErrors);
+
       Alert.alert("Completion failed", fullMessage);
     } finally {
       setSubmitting(false);
@@ -162,222 +197,145 @@ export function CompleteTaskScreen({ navigation, route }: Props) {
   };
 
   return (
-    <ScrollView contentContainerStyle={styles.content}>
-      <View style={styles.heroShell}>
-        <View style={styles.hero}>
-          <Text style={styles.eyebrow}>Completion proof</Text>
-          <Text style={styles.heading}>{taskTitle}</Text>
-          <Text style={styles.copy}>
+    <ScrollView
+      className="flex-1 bg-background"
+      contentContainerClassName="gap-4 p-4 pb-8"
+    >
+      <Card>
+        <CardContent className="gap-1 p-4">
+          <Text className="text-base font-semibold text-card-foreground">{taskTitle}</Text>
+          <Text className="text-sm text-muted-foreground">
             {hasReferenceAreas
               ? "Capture a photo for each reference area. Camera-only capture is required to prevent cheating."
               : "Attach up to 5 clear images before marking this task complete."}
           </Text>
-        </View>
-      </View>
+        </CardContent>
+      </Card>
 
       {hasReferenceAreas ? (
-        <View style={styles.panelShell}>
-          <View style={styles.panel}>
-            <Text style={styles.panelTitle}>Reference areas</Text>
-            {referenceAreas!
-              .sort((a, b) => a.sortOrder - b.sortOrder)
-              .map((area) => {
-                const photo = areaPhotos[area.id];
-                return (
-                  <View key={area.id} style={styles.areaRow}>
-                    <View style={styles.areaInfo}>
-                      <Text style={styles.areaName}>{area.name}</Text>
-                      {photo ? (
-                        <Text style={styles.areaMeta}>
-                          {photo.fileName ?? "Captured"} ·{" "}
-                          {Math.round((photo.fileSize ?? 0) / 1024)} KB
-                        </Text>
-                      ) : (
-                        <Text style={styles.areaPending}>Photo required</Text>
-                      )}
-                    </View>
+        <View className="gap-3">
+          <View className="gap-1">
+            <Text className="text-sm text-muted-foreground">
+              {capturedAreaCount} of {sortedAreas.length} areas captured
+            </Text>
+            <View className="h-1.5 w-full overflow-hidden rounded-full bg-secondary">
+              <View
+                className="h-full rounded-full bg-primary transition-all"
+                style={{
+                  width: `${sortedAreas.length ? (capturedAreaCount / sortedAreas.length) * 100 : 0}%`,
+                }}
+              />
+            </View>
+          </View>
+
+          {sortedAreas.map((area) => {
+            const photo = areaPhotos[area.id];
+            const error = areaErrors[area.name];
+
+            return (
+              <Card key={area.id}>
+                <CardContent className="p-4">
+                  <View className="flex-row items-center gap-3">
                     {photo ? (
-                      <Image source={{ uri: photo.uri }} style={styles.areaThumbnail} />
+                      <Icon name="CheckCircle2" size={20} className="text-primary" />
+                    ) : (
+                      <Icon name="Circle" size={20} className="text-muted-foreground" />
+                    )}
+                    <Text className="flex-1 font-semibold text-card-foreground">
+                      {area.name}
+                    </Text>
+                    {photo ? (
+                      <Image
+                        source={{ uri: photo.uri }}
+                        className="h-14 w-14 rounded-lg bg-secondary"
+                      />
                     ) : null}
                     <Button
-                      label={photo ? "Retake" : "Capture"}
+                      variant={photo ? "outline" : "default"}
+                      size="sm"
                       onPress={() => void captureAreaPhoto(area.id)}
-                      variant={photo ? "secondary" : "primary"}
-                      style={styles.areaButton}
-                    />
+                    >
+                      {photo ? "Retake" : "Capture"}
+                    </Button>
                   </View>
-                );
-              })}
-          </View>
+                  {error ? (
+                    <Text className="mt-2 text-sm text-destructive">{error}</Text>
+                  ) : null}
+                </CardContent>
+              </Card>
+            );
+          })}
         </View>
       ) : (
-        <View style={styles.panelShell}>
-          <View style={styles.panel}>
-            <View style={styles.panelHeader}>
-              <Text style={styles.panelTitle}>Selected images</Text>
-              <Text style={styles.countBadge}>{selectedImages.length}/5</Text>
+        <Card>
+          <CardContent className="gap-3 p-4">
+            <View className="flex-row items-center justify-between">
+              <Text className="text-base font-semibold text-card-foreground">
+                Selected images
+              </Text>
+              <View className="rounded-full bg-secondary px-2.5 py-1">
+                <Text className="text-xs font-semibold text-secondary-foreground">
+                  {selectedImages.length}/5
+                </Text>
+              </View>
             </View>
+
             {selectedImages.length ? (
-              selectedImages.map((image, index) => (
-                <View key={image.uri} style={styles.imageRow}>
-                  <View style={styles.imageIndex}>
-                    <Text style={styles.imageIndexText}>{index + 1}</Text>
+              <View className="gap-2">
+                {selectedImages.map((image, index) => (
+                  <View
+                    key={image.uri}
+                    className="flex-row items-center gap-3 rounded-lg bg-secondary p-2"
+                  >
+                    <Image
+                      source={{ uri: image.uri }}
+                      className="h-10 w-10 rounded-md bg-muted"
+                    />
+                    <Text
+                      className="flex-1 text-sm font-medium text-secondary-foreground"
+                      numberOfLines={1}
+                    >
+                      {image.fileName ?? image.uri.split("/").pop() ?? "Selected image"}
+                    </Text>
+                    <Text className="text-xs text-muted-foreground">
+                      {Math.round((image.fileSize ?? 0) / 1024)} KB
+                    </Text>
+                    <Button
+                      variant="ghost"
+                      size="icon"
+                      onPress={() => removeImage(index)}
+                      accessibilityLabel="Remove image"
+                    >
+                      <Icon name="X" size={16} className="text-destructive" />
+                    </Button>
                   </View>
-                  <Text numberOfLines={1} style={styles.imageName}>
-                    {image.fileName ?? image.uri.split("/").pop() ?? "Selected image"}
-                  </Text>
-                  <Text style={styles.imageMeta}>{Math.round((image.fileSize ?? 0) / 1024)} KB</Text>
-                </View>
-              ))
+                ))}
+              </View>
             ) : (
-              <Text style={styles.empty}>No proof images selected yet.</Text>
+              <Text className="text-sm text-muted-foreground">
+                No proof images selected yet.
+              </Text>
             )}
-          </View>
-        </View>
+
+            <Button
+              variant="outline"
+              className="border-dashed"
+              onPress={() => void pickImages()}
+              iconLeft="ImagePlus"
+            >
+              Choose Proof Images
+            </Button>
+          </CardContent>
+        </Card>
       )}
 
-      {!hasReferenceAreas && (
-        <Button label="Choose Proof Images" onPress={() => void pickImages()} variant="secondary" />
-      )}
-      <Button label="Complete Task" onPress={() => void submitCompletion()} loading={submitting} />
+      <Button
+        loading={submitting}
+        disabled={hasReferenceAreas ? !allAreasCaptured : selectedImages.length === 0}
+        onPress={() => void submitCompletion()}
+      >
+        Complete Task
+      </Button>
     </ScrollView>
   );
 }
-
-const styles = StyleSheet.create({
-  content: {
-    padding: 18,
-    gap: 16,
-  },
-  heroShell: {
-    ...cardShell,
-    borderColor: "rgba(255,255,255,0.16)",
-    backgroundColor: "rgba(255,255,255,0.08)",
-    ...shadow.lifted,
-  },
-  hero: {
-    borderRadius: radius.lg,
-    padding: 22,
-    backgroundColor: colors.forestDeep,
-    gap: 10,
-  },
-  eyebrow: {
-    alignSelf: "flex-start",
-    borderRadius: radius.pill,
-    paddingHorizontal: 12,
-    paddingVertical: 6,
-    backgroundColor: colors.mint,
-    color: colors.teal,
-    ...typography.eyebrow,
-  },
-  heading: {
-    ...typography.screenTitle,
-    color: colors.white,
-  },
-  copy: {
-    ...typography.body,
-    color: "#c7ddd7",
-  },
-  panelShell: {
-    ...cardShell,
-    ...shadow.panel,
-  },
-  panel: {
-    ...cardCore,
-    padding: 18,
-    gap: 12,
-  },
-  panelHeader: {
-    flexDirection: "row",
-    alignItems: "center",
-    justifyContent: "space-between",
-    gap: 12,
-  },
-  panelTitle: {
-    ...typography.sectionTitle,
-    color: colors.ink,
-  },
-  countBadge: {
-    borderRadius: radius.pill,
-    paddingHorizontal: 11,
-    paddingVertical: 7,
-    backgroundColor: colors.mint,
-    color: colors.teal,
-    fontSize: 12,
-    fontWeight: "900",
-  },
-  imageRow: {
-    flexDirection: "row",
-    alignItems: "center",
-    justifyContent: "space-between",
-    gap: 12,
-    borderRadius: radius.md,
-    backgroundColor: colors.surfaceSoft,
-    paddingHorizontal: 14,
-    paddingVertical: 12,
-  },
-  imageIndex: {
-    width: 28,
-    height: 28,
-    borderRadius: radius.pill,
-    alignItems: "center",
-    justifyContent: "center",
-    backgroundColor: colors.forest,
-  },
-  imageIndexText: {
-    color: colors.white,
-    fontSize: 12,
-    fontWeight: "900",
-  },
-  imageName: {
-    flex: 1,
-    color: colors.ink,
-    fontWeight: "800",
-  },
-  imageMeta: {
-    color: colors.inkMuted,
-    fontSize: 12,
-    fontWeight: "900",
-  },
-  empty: {
-    ...typography.body,
-    color: colors.inkMuted,
-  },
-  areaRow: {
-    flexDirection: "row",
-    alignItems: "center",
-    gap: 12,
-    borderRadius: radius.md,
-    backgroundColor: colors.surfaceSoft,
-    paddingHorizontal: 12,
-    paddingVertical: 10,
-  },
-  areaInfo: {
-    flex: 1,
-    gap: 2,
-  },
-  areaName: {
-    color: colors.ink,
-    fontWeight: "800",
-    fontSize: 14,
-  },
-  areaMeta: {
-    color: colors.inkMuted,
-    fontSize: 12,
-    fontWeight: "700",
-  },
-  areaPending: {
-    color: colors.teal,
-    fontSize: 12,
-    fontWeight: "800",
-  },
-  areaThumbnail: {
-    width: 44,
-    height: 44,
-    borderRadius: radius.md,
-    backgroundColor: colors.surface,
-  },
-  areaButton: {
-    minWidth: 88,
-  },
-});

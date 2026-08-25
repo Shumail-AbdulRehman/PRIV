@@ -1,29 +1,41 @@
-import { Alert, RefreshControl, ScrollView, StyleSheet, Text, View } from "react-native";
+import { useEffect } from "react";
+import { Alert, RefreshControl, ScrollView, View } from "react-native";
+import { useNavigation } from "@react-navigation/native";
+import type { CompositeNavigationProp } from "@react-navigation/native";
+import type { BottomTabNavigationProp } from "@react-navigation/bottom-tabs";
+import type { NativeStackNavigationProp } from "@react-navigation/native-stack";
+import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { useAuth } from "../auth/AuthContext";
 import { LoadingState } from "../components/LoadingState";
+import { ScreenHeader } from "../components/ScreenHeader";
+import { EmptyState } from "../components/EmptyState";
 import { TaskCard } from "../components/TaskCard";
 import { useTodaysTasksQuery } from "../queries/staff";
-import { cardCore, cardShell, colors, shadow, typography } from "../theme";
-import type { TaskInstance } from "../types";
+import type { RootStackParamList, StaffTabsParamList, TaskInstance } from "../types";
 
-type TasksScreenProps = {
-  topInset: number;
-  bottomInset: number;
-  onStartTask: (task: TaskInstance) => void;
-  onCompleteTask: (task: TaskInstance) => void;
-};
+type TasksScreenNavigationProp = CompositeNavigationProp<
+  BottomTabNavigationProp<StaffTabsParamList, "Tasks">,
+  NativeStackNavigationProp<RootStackParamList>
+>;
 
-export function TasksScreen({
-  topInset,
-  bottomInset,
-  onStartTask,
-  onCompleteTask,
-}: TasksScreenProps) {
+export function TasksScreen() {
   const { user } = useAuth();
+  const navigation = useNavigation<TasksScreenNavigationProp>();
+  const insets = useSafeAreaInsets();
   const tasksQuery = useTodaysTasksQuery(user?.id);
   const tasks = tasksQuery.data ?? [];
   const isInitialLoading = tasksQuery.isPending && !tasksQuery.data;
   const refreshing = tasksQuery.isRefetching;
+
+  const pendingCount = tasks.filter((task) => task.status === "PENDING").length;
+  const inProgressCount = tasks.filter((task) => task.status === "IN_PROGRESS").length;
+
+  useEffect(() => {
+    const badgeCount = pendingCount + inProgressCount;
+    navigation.setOptions({
+      tabBarBadge: badgeCount > 0 ? badgeCount : undefined,
+    });
+  }, [pendingCount, inProgressCount, navigation]);
 
   const onRefresh = async () => {
     const result = await tasksQuery.refetch();
@@ -37,123 +49,72 @@ export function TasksScreen({
     }
   };
 
+  const handleStartTask = (task: TaskInstance) => {
+    navigation.navigate("QrScanner", {
+      taskId: task.id,
+      taskTitle: task.title,
+    });
+  };
+
+  const handleCompleteTask = (task: TaskInstance) => {
+    navigation.navigate("CompleteTask", {
+      taskId: task.id,
+      taskTitle: task.title,
+      referenceAreas: task.referenceImages?.length
+        ? task.referenceImages.map((ref) => ({
+            id: ref.id,
+            name: ref.name,
+            sortOrder: ref.sortOrder ?? 0,
+          }))
+        : undefined,
+    });
+  };
+
+  const subtitle = `${pendingCount} pending · ${inProgressCount} in progress`;
+
   if (isInitialLoading) {
     return (
       <View
-        style={[
-          styles.loadingWrap,
-          {
-            paddingTop: topInset + 20,
-            paddingBottom: bottomInset,
-          },
-        ]}
+        className="flex-1 justify-center px-5"
+        style={{ paddingTop: insets.top + 20, paddingBottom: insets.bottom + 20 }}
       >
-        <LoadingState
-          title="Loading tasks"
-          message="Pulling today’s assigned work from the backend."
-        />
+        <LoadingState fullScreen />
       </View>
     );
   }
 
   return (
     <ScrollView
-      contentContainerStyle={[
-        styles.content,
-        {
-          paddingTop: topInset + 20,
-          paddingBottom: bottomInset,
-        },
-      ]}
+      className="flex-1 bg-background"
+      contentContainerClassName="gap-4 p-4"
+      contentContainerStyle={{
+        paddingTop: insets.top + 16,
+        paddingBottom: insets.bottom + 16,
+      }}
       refreshControl={<RefreshControl refreshing={refreshing} onRefresh={onRefresh} />}
     >
-      <View style={styles.heroShell}>
-        <View style={styles.hero}>
-          <Text style={styles.eyebrow}>Task queue</Text>
-          <Text style={styles.heading}>Today's assigned work</Text>
-          <Text style={styles.copy}>
-            Scan the matching QR code to start pending work, then attach proof images before closing it.
-          </Text>
-        </View>
-      </View>
+      <ScreenHeader title="Today's Tasks" subtitle={subtitle} />
 
       {tasks.length ? (
-        tasks.map((task) => (
-          <TaskCard
-            key={task.id}
-            task={task}
-            onStart={task.status === "PENDING" ? () => onStartTask(task) : undefined}
-            onComplete={task.status === "IN_PROGRESS" ? () => onCompleteTask(task) : undefined}
-          />
-        ))
-      ) : (
-        <View style={styles.emptyShell}>
-          <View style={styles.emptyState}>
-            <Text style={styles.emptyTitle}>No tasks for today</Text>
-            <Text style={styles.emptyCopy}>
-              Your manager has not assigned any active task instances for this shift.
-            </Text>
-          </View>
+        <View>
+          {tasks.map((task) => (
+            <TaskCard
+              key={task.id}
+              task={task}
+              onStart={task.status === "PENDING" ? () => handleStartTask(task) : undefined}
+              onComplete={
+                task.status === "IN_PROGRESS" ? () => handleCompleteTask(task) : undefined
+              }
+            />
+          ))}
         </View>
+      ) : (
+        <EmptyState
+          icon="ClipboardList"
+          title="No tasks for today"
+          message="Your manager has not assigned any active task instances for this shift."
+        />
       )}
     </ScrollView>
   );
 }
-
-const styles = StyleSheet.create({
-  content: {
-    paddingHorizontal: 18,
-    gap: 16,
-  },
-  loadingWrap: {
-    flex: 1,
-    paddingHorizontal: 20,
-    justifyContent: "center",
-  },
-  heroShell: {
-    ...cardShell,
-    borderColor: "rgba(255,255,255,0.16)",
-    backgroundColor: "rgba(255,255,255,0.08)",
-    ...shadow.lifted,
-  },
-  hero: {
-    borderRadius: 26,
-    padding: 22,
-    backgroundColor: colors.forestDeep,
-    gap: 10,
-  },
-  eyebrow: {
-    alignSelf: "flex-start",
-    borderRadius: 999,
-    paddingHorizontal: 12,
-    paddingVertical: 6,
-    backgroundColor: colors.mint,
-    color: colors.teal,
-    ...typography.eyebrow,
-  },
-  heading: {
-    ...typography.screenTitle,
-    color: colors.white,
-  },
-  copy: {
-    ...typography.body,
-    color: "#c7ddd7",
-  },
-  emptyShell: {
-    ...cardShell,
-    ...shadow.panel,
-  },
-  emptyState: {
-    ...cardCore,
-    padding: 22,
-    gap: 8,
-  },
-  emptyTitle: {
-    ...typography.sectionTitle,
-    color: colors.ink,
-  },
-  emptyCopy: {
-    ...typography.body,
-    color: colors.inkMuted,
-  },
-});
