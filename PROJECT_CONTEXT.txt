@@ -1,6 +1,6 @@
 # CleanOps — Project Context & Handoff
 
-Consolidated project context. Updated: 2026-08-18 (supersedes and replaces
+Consolidated project context. Updated: 2026-08-26 (supersedes and replaces
 `PROJECT_CONTEXT.txt` and `AGENT.md`, both deleted).
 
 ================================================================================
@@ -206,16 +206,20 @@ backend/src/validations/.
   state in TanStack Query (global: staleTime 60s, gcTime 10min, no
   refetchOnFocus/Reconnect, retry 1; per-query tuning on dashboard/
   attendance/today-status/staff; hover-prefetch of staff details).
-- Routes: / (Landing, public), /signup, /login (GuestRoute), /dashboard,
-  /today-status, /locations, /locations/:id, /staff, /staff/:id,
-  /attendance (ProtectedRoute), /managers (RequireRole ADMIN).
-  NO 404 catch-all route.
+- Routes: / (Landing, public), /features (public), /signup, /login
+  (GuestRoute + now share PublicNavbar), /dashboard, /today-status,
+  /locations, /locations/:id, /staff, /staff/:id, /attendance
+  (ProtectedRoute), /managers (RequireRole ADMIN). NO 404 catch-all route.
 - axios client (src/api/client.ts): baseURL `VITE_API_BASE_URL` (default
   `/api`), withCredentials, single-flight refresh on 401 with exact body
   message "Access Token Expired".
 - Per-feature convention: `api.ts` + `queries.ts` + page + components.
 - UI: shadcn-style primitives, Tailwind 4 CSS-first theme, Geist font,
-  oklch teal/sky palette; dark variant defined but no toggle.
+  oklch teal palette now aligned with the mobile app primary
+  (oklch(0.52 0.13 190)); dark variant defined but no toggle.
+- PublicLayout + PublicNavbar (`frontend/src/components/layout/`) wrap the
+  landing and features pages; AuthShell renders PublicNavbar so auth pages
+  can navigate back to public pages.
 
 ## 7. MOBILE APP NOTES
 
@@ -233,6 +237,17 @@ backend/src/validations/.
   `http://10.0.2.2:8080/api`).
 - No EAS config (no eas.json); app.json allows cleartext HTTP on both
   platforms.
+- NativeWind + Reanimated v4 setup: `nativewind` pinned to exact `4.1.23`,
+  `react-native-reanimated ~4.1.x`, `react-native-worklets ~0.5.x`.
+  `babel-preset-expo` and `react-refresh` are explicit dev dependencies
+  to fix Metro/Babel module-resolution quirks.
+- Tailwind animation classes (`animate-pulse`, `animate-spin`) are NOT used
+  directly on plain `View` components; the skeleton/spinner use React Native's
+  built-in `Animated` API to avoid Reanimated style-injection errors.
+- Expo Go reliability: Reanimated v4 / Worklets require the Expo Go binary's
+  native modules to match the JS package versions exactly. Version mismatches
+  cause `installTurboModule` / `makeMutable` crashes. Recommended fallback is
+  an Expo development build (`expo-dev-client`).
 
 ================================================================================
 
@@ -384,7 +399,31 @@ Prisma migrate:  `cd backend && npx prisma migrate dev --name <name>`
   gallery picker.
 - New env var: `MAX_REFERENCE_IMAGES` (default 10).
 
-## 14. HANDOFF PRIORITY
+## 14. RECENT UI/UX CHANGES (2026-08-26)
+
+### Location accuracy / geofence fix
+- Web location creation (`frontend/src/pages/Location/LocationsPage.tsx`)
+  now forces a fresh GPS reading (`maximumAge: 0`), displays captured
+  latitude/longitude/accuracy, and warns when accuracy is worse than 50m.
+- Backend validation (`backend/src/validations/location.validation.ts`)
+  now ensures latitude/longitude parse to valid numbers in range.
+- Mobile check-in (`frontend-mobile/src/screens/HomeScreen.tsx`) warns
+  staff when their GPS accuracy is worse than 50m and offers a retry.
+- This addresses false "you are X meters away" rejections caused by stale
+  or low-quality browser geolocation coordinates being stored as the
+  location pin.
+
+### Public website redesign
+- Landing page redesigned with cleaner hero, feature cards, manager-view
+  mockup, workflow timeline, and teal CTA section.
+- New `/features` page with detailed capability sections and included-items
+  summary.
+- Public navbar shared across landing, features, login, and signup pages.
+- Auth pages now expose the navbar so users can return to public pages.
+- Full record of mobile build/runtime fixes is in
+  `frontend-mobile-errors-and-fixes.md`.
+
+## 15. HANDOFF PRIORITY
 
 1. Read this file.
 2. `git status` / `git log --oneline -10` — check branch and unpushed work.

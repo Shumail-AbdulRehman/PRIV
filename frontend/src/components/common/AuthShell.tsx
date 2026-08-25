@@ -1,6 +1,7 @@
 import type { ReactNode } from "react";
 
 import { ShieldCheck, Sparkles } from "lucide-react";
+import { PublicNavbar } from "@/components/layout/PublicNavbar";
 
 interface AuthShellProps {
   title: string;
@@ -16,9 +17,10 @@ export default function AuthShell({
   footer,
 }: AuthShellProps) {
   return (
-    <div className="relative min-h-screen overflow-hidden bg-[radial-gradient(circle_at_top_left,_rgba(14,165,233,0.16),_transparent_34%),linear-gradient(180deg,#f8fafc_0%,#eef6f6_55%,#f9fbfb_100%)] px-4 py-8">
-      <div className="pointer-events-none absolute inset-x-0 top-0 h-72 bg-[radial-gradient(circle_at_20%_20%,rgba(15,118,110,0.14),transparent_35%),radial-gradient(circle_at_80%_0%,rgba(14,165,233,0.14),transparent_28%)]" />
-      <div className="relative mx-auto flex min-h-[calc(100vh-4rem)] max-w-6xl items-center justify-center">
+    <div className="relative flex min-h-screen flex-col overflow-hidden bg-[radial-gradient(circle_at_top_left,_rgba(14,165,233,0.16),_transparent_34%),linear-gradient(180deg,#f8fafc_0%,#eef6f6_55%,#f9fbfb_100%)]">
+      <PublicNavbar />
+      <div className="pointer-events-none absolute inset-x-0 top-16 h-72 bg-[radial-gradient(circle_at_20%_20%,rgba(15,118,110,0.14),transparent_35%),radial-gradient(circle_at_80%_0%,rgba(14,165,233,0.14),transparent_28%)]" />
+      <div className="relative mx-auto flex min-h-[calc(100vh-4rem)] w-full max-w-6xl items-center justify-center px-4 py-8">
         <div className="grid w-full max-w-5xl gap-8 lg:grid-cols-[1.1fr_0.9fr]">
           <section className="hidden rounded-[2rem] border border-white/70 bg-slate-950 px-8 py-10 text-slate-50 shadow-[0_35px_90px_-45px_rgba(15,23,42,0.55)] lg:flex lg:flex-col lg:justify-between">
             <div className="space-y-6">

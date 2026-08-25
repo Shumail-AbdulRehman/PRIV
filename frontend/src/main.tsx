@@ -7,6 +7,7 @@ import { Provider } from 'react-redux';
 import { store } from './store/store.ts';
 
 import DashboardLayout from './components/layout/DashboardLayout.tsx';
+import { PublicLayout } from './components/layout/PublicLayout.tsx';
 import SignUp from './pages/Signup/SignUpPage.tsx';
 import Login from './pages/Login/LoginPage.tsx';
 import LocationsPage from './pages/Location/LocationsPage.tsx';
@@ -18,6 +19,7 @@ import AttendancePage from './pages/Attendance/AttendancePage.tsx';
 import TodayStatusPage from './pages/Manager/TodayStatusPage.tsx';
 import ManagersPage from './pages/Managers/ManagersPage.tsx';
 import LandingPage from './pages/Landing/LandingPage.tsx';
+import FeaturesPage from './pages/Landing/FeaturesPage.tsx';
 
 const queryClient = new QueryClient({
   defaultOptions: {
@@ -36,7 +38,13 @@ const router = createBrowserRouter([
     path: '/',
     element: <App />,
     children: [
-      { index: true, element: <LandingPage /> },
+      {
+        element: <PublicLayout />,
+        children: [
+          { index: true, element: <LandingPage /> },
+          { path: 'features', element: <FeaturesPage /> },
+        ],
+      },
       {
         path: 'signup',
         element: (
