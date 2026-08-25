@@ -9,24 +9,38 @@ import { VerificationDiagram } from "@/components/landing/VerificationDiagram";
 const capabilities = [
   {
     index: "01",
+    label: "WORKSPACE & ROLES",
+    headline: "One workspace, scoped by role.",
+    body: "Admin owns the company tenant. Managers see only assigned locations. Staff see only their shifts and tasks.",
+    sample: "roles admin · manager · staff",
+  },
+  {
+    index: "02",
     label: "GEOFENCED ATTENDANCE",
     headline: "Staff check in where the work actually is.",
     body: "GPS capture and geofence radius validation mean you know attendance happened at the location, not five blocks away.",
     sample: "radius 150m · accuracy ±4m",
   },
   {
-    index: "02",
+    index: "03",
     label: "QR TASK STARTS",
     headline: "Tasks begin with a scanned token.",
     body: "Staff scan a QR code at the site to start a task. No manual logging, no disputed start times.",
     sample: "token tkn_8f2a1d3c · started 09:12",
   },
   {
-    index: "03",
+    index: "04",
     label: "PER-AREA VERIFICATION",
     headline: "Photos are scored against reference shots.",
     body: "Each area gets a location match and cleanliness score. If something doesn't match, the reason is shown in plain text.",
     sample: "LOC 94 · CLEAN 91",
+  },
+  {
+    index: "05",
+    label: "MOBILE STAFF APP",
+    headline: "A focused app for the people doing the work.",
+    body: "Staff check in, scan QR codes, capture proof, and see today's tasks from one mobile screen.",
+    sample: "platform ios · android",
   },
 ];
 
@@ -112,10 +126,10 @@ export default function FeaturesPage() {
               Features / Operational Capabilities
             </p>
             <h1 className="font-heading mt-5 text-[clamp(2.25rem,5vw,4rem)] font-bold leading-[1.02] tracking-tight text-ink">
-              GPS, QR tokens, and photo proof — built for cleaning operations.
+              GPS, QR tokens, and photo proof. Built for cleaning operations.
             </h1>
             <p className="mt-6 max-w-lg text-lg leading-8 text-ink/70">
-              Track where staff check in, what tasks they start, and whether every area was cleaned — with scores you can explain to a client.
+              Track where staff check in, what tasks they start, and whether every area was cleaned, with scores you can explain to a client.
             </p>
             <div className="mt-8 flex flex-col gap-3 sm:flex-row">
               <Button
@@ -132,7 +146,7 @@ export default function FeaturesPage() {
                 variant="outline"
                 className="h-12 rounded-[2px] border-ink bg-transparent px-6 font-mono text-xs uppercase tracking-wider text-ink hover:bg-ink/5"
               >
-                <Link to="#verification">View verification</Link>
+                <a href="#verification">View verification</a>
               </Button>
             </div>
           </div>

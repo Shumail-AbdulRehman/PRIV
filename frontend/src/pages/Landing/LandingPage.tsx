@@ -77,7 +77,7 @@ export default function LandingPage() {
               Run cleaning operations with proof, not promises.
             </h1>
             <p className="mt-6 max-w-lg text-lg leading-8 text-ink/70">
-              CleanOps gives cleaning companies one system for locations, staff shifts, geofenced attendance, recurring tasks, and photo verification — with scored, explainable results per area.
+              CleanOps gives cleaning companies one system for locations, staff shifts, geofenced attendance, recurring tasks, and photo verification with scored, explainable results per area.
             </p>
             <div className="mt-8 flex flex-col gap-3 sm:flex-row">
               <Button
@@ -162,7 +162,7 @@ export default function LandingPage() {
                 See exceptions while the day is still active.
               </h2>
               <p className="mt-4 text-lg leading-8 text-ink/70">
-                The Today Status view shows attendance counts, pending tasks, proof submissions, and late starts as they happen — not in tomorrow's spreadsheet.
+                The Today Status view shows attendance counts, pending tasks, proof submissions, and late starts as they happen, not in tomorrow's spreadsheet.
               </p>
               <div className="mt-6 grid gap-2 font-mono text-xs text-ink/70">
                 <p>mobile_check_in selfie + GPS</p>
