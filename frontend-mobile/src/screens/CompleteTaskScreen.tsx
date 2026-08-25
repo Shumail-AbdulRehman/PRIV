@@ -220,7 +220,7 @@ export function CompleteTaskScreen({ navigation, route }: Props) {
             </Text>
             <View className="h-1.5 w-full overflow-hidden rounded-full bg-secondary">
               <View
-                className="h-full rounded-full bg-primary transition-all"
+                className="h-full rounded-full bg-primary"
                 style={{
                   width: `${sortedAreas.length ? (capturedAreaCount / sortedAreas.length) * 100 : 0}%`,
                 }}

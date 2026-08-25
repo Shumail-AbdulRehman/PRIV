@@ -21,6 +21,14 @@ import { useMemo, useState } from "react";
 import { useSelector } from "react-redux";
 import type { RootState } from "@/store/store";
 
+type CapturedLocation = {
+  latitude: string;
+  longitude: string;
+  accuracy: number | null;
+};
+
+const POOR_ACCURACY_THRESHOLD_METERS = 50;
+
 export default function LocationsPage() {
   const createLocation = useCreateLocation();
   const getLocations = useGetLocations();
@@ -29,6 +37,7 @@ export default function LocationsPage() {
   const [dialogOpen, setDialogOpen] = useState(false);
   const [locationError, setLocationError] = useState<string | null>(null);
   const [isLocating, setIsLocating] = useState(false);
+  const [capturedLocation, setCapturedLocation] = useState<CapturedLocation | null>(null);
   const timeZones = useMemo<string[]>(() => (Intl as any).supportedValuesOf("timeZone"), []);
 
   const {
@@ -43,6 +52,7 @@ export default function LocationsPage() {
 
   const fillCurrentLocation = () => {
     setLocationError(null);
+    setCapturedLocation(null);
 
     if (!navigator.geolocation) {
       setLocationError("Location access is not supported by this browser.");
@@ -52,8 +62,13 @@ export default function LocationsPage() {
     setIsLocating(true);
     navigator.geolocation.getCurrentPosition(
       (position) => {
-        setValue("latitude", position.coords.latitude.toFixed(6), { shouldDirty: true, shouldValidate: true });
-        setValue("longitude", position.coords.longitude.toFixed(6), { shouldDirty: true, shouldValidate: true });
+        const latitude = position.coords.latitude.toFixed(6);
+        const longitude = position.coords.longitude.toFixed(6);
+        const accuracy = position.coords.accuracy ?? null;
+
+        setValue("latitude", latitude, { shouldDirty: true, shouldValidate: true });
+        setValue("longitude", longitude, { shouldDirty: true, shouldValidate: true });
+        setCapturedLocation({ latitude, longitude, accuracy });
         setIsLocating(false);
       },
       (error) => {
@@ -64,14 +79,17 @@ export default function LocationsPage() {
         );
         setIsLocating(false);
       },
-      { enableHighAccuracy: true, timeout: 10000, maximumAge: 60000 }
+      // maximumAge: 0 forces a fresh GPS fix instead of reusing a stale
+      // cached position. Stale coordinates are a common cause of stored
+      // locations being hundreds of meters away from the actual site.
+      { enableHighAccuracy: true, timeout: 15000, maximumAge: 0 }
     );
   };
 
   const onSubmit: SubmitHandler<LocationFormValues> = async (data) => {
     await createLocation.mutateAsync(
       { name: data.name, address: data.address, latitude: data.latitude, longitude: data.longitude, ...(data.timezone ? { timezone: data.timezone } : {}) },
-      { onSuccess: () => { reset(); setLocationError(null); setDialogOpen(false); } }
+      { onSuccess: () => { reset(); setLocationError(null); setCapturedLocation(null); setDialogOpen(false); } }
     );
   };
 
@@ -145,10 +163,40 @@ export default function LocationsPage() {
                     {isLocating ? "Locating..." : "Get my location"}
                   </Button>
                 </div>
+                {capturedLocation && (
+                  <div className="mt-3 rounded-xl border border-border/60 bg-background/80 p-3">
+                    <div className="grid grid-cols-2 gap-2 text-xs">
+                      <div>
+                        <span className="text-muted-foreground">Latitude:</span>{" "}
+                        <span className="font-medium text-foreground">{capturedLocation.latitude}</span>
+                      </div>
+                      <div>
+                        <span className="text-muted-foreground">Longitude:</span>{" "}
+                        <span className="font-medium text-foreground">{capturedLocation.longitude}</span>
+                      </div>
+                      <div className="col-span-2">
+                        <span className="text-muted-foreground">GPS accuracy:</span>{" "}
+                        <span className="font-medium text-foreground">
+                          {capturedLocation.accuracy !== null
+                            ? `±${Math.round(capturedLocation.accuracy)} m`
+                            : "Unknown"}
+                        </span>
+                      </div>
+                    </div>
+                    {capturedLocation.accuracy !== null &&
+                      capturedLocation.accuracy > POOR_ACCURACY_THRESHOLD_METERS && (
+                        <p className="mt-2 text-xs font-medium text-amber-600">
+                          Accuracy is low (±{Math.round(capturedLocation.accuracy)} m). For best results,
+                          use a phone/tablet with GPS outdoors, or verify the pin on a map before creating
+                          the location.
+                        </p>
+                      )}
+                  </div>
+                )}
                 {locationError && <p className="mt-2 text-xs text-red-500">{locationError}</p>}
               </div>
               <div className="flex gap-3 pt-2">
-                <Button type="button" variant="outline" className="flex-1 rounded-2xl" onClick={() => { reset(); setLocationError(null); setDialogOpen(false); }}>Cancel</Button>
+                <Button type="button" variant="outline" className="flex-1 rounded-2xl" onClick={() => { reset(); setLocationError(null); setCapturedLocation(null); setDialogOpen(false); }}>Cancel</Button>
                 <Button type="submit" disabled={createLocation.isPending} className="flex-1 rounded-2xl">{createLocation.isPending ? "Creating..." : "Create location"}</Button>
               </div>
             </form>

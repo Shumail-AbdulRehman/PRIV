@@ -1,11 +1,36 @@
 import * as React from "react";
-import { View, type ViewProps } from "react-native";
+import { useEffect, useRef } from "react";
+import { Animated, type ViewProps } from "react-native";
 import { cn } from "../../lib/utils";
 
 function Skeleton({ className, ...props }: ViewProps) {
+  const opacity = useRef(new Animated.Value(1)).current;
+
+  useEffect(() => {
+    const animation = Animated.loop(
+      Animated.sequence([
+        Animated.timing(opacity, {
+          toValue: 0.45,
+          duration: 900,
+          useNativeDriver: true,
+        }),
+        Animated.timing(opacity, {
+          toValue: 1,
+          duration: 900,
+          useNativeDriver: true,
+        }),
+      ])
+    );
+    animation.start();
+    return () => {
+      animation.stop();
+    };
+  }, [opacity]);
+
   return (
-    <View
-      className={cn("bg-muted animate-pulse rounded-md", className)}
+    <Animated.View
+      className={cn("bg-muted rounded-md", className)}
+      style={{ opacity }}
       {...props}
     />
   );

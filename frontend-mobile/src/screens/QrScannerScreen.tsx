@@ -1,5 +1,5 @@
-import { useState } from "react";
-import { Alert, View } from "react-native";
+import { useEffect, useRef, useState } from "react";
+import { Alert, Animated, View } from "react-native";
 import { NativeStackScreenProps } from "@react-navigation/native-stack";
 import { useQueryClient } from "@tanstack/react-query";
 import { CameraView, useCameraPermissions } from "expo-camera";
@@ -14,6 +14,34 @@ import { staffQueryKeys } from "../queries/staff";
 import type { RootStackParamList } from "../types";
 
 type Props = NativeStackScreenProps<RootStackParamList, "QrScanner">;
+
+function SpinningLoader() {
+  const spin = useRef(new Animated.Value(0)).current;
+
+  useEffect(() => {
+    const animation = Animated.loop(
+      Animated.timing(spin, {
+        toValue: 1,
+        duration: 1000,
+        useNativeDriver: true,
+      })
+    );
+    animation.start();
+    return () => animation.stop();
+  }, [spin]);
+
+  const rotate = spin.interpolate({
+    inputRange: [0, 1],
+    outputRange: ["0deg", "360deg"],
+  });
+
+  return (
+    <Animated.View
+      className="h-5 w-5 rounded-full border-2 border-primary border-t-transparent"
+      style={{ transform: [{ rotate }] }}
+    />
+  );
+}
 
 const extractQrToken = (raw: string) => {
   try {
@@ -107,9 +135,7 @@ export function QrScannerScreen({ navigation, route }: Props) {
       <View className="flex-1 items-center justify-center bg-black/45 p-6">
         <Card className="w-full max-w-sm border-0 bg-black/60">
           <CardContent className="flex-row items-center gap-3 p-4">
-            {isSubmitting ? (
-              <View className="h-5 w-5 animate-spin rounded-full border-2 border-primary border-t-transparent" />
-            ) : null}
+            {isSubmitting ? <SpinningLoader /> : null}
             <View className="flex-1">
               <Text className="text-sm font-semibold text-white">{route.params.taskTitle}</Text>
               <Text className="text-xs text-white/70">

@@ -327,6 +327,31 @@ export function HomeScreen() {
         return;
       }
 
+      // Get a fresh, high-accuracy location BEFORE opening the camera.
+      // Indoor GPS can be inaccurate; Highest accuracy reduces the chance
+      // that a staff member is rejected while standing at the correct location.
+      const coords = await Location.getCurrentPositionAsync({
+        accuracy: Location.Accuracy.Highest,
+      });
+
+      const accuracyMeters = coords.coords.accuracy ?? 0;
+      if (accuracyMeters > 50) {
+        const shouldRetry = await new Promise<boolean>((resolve) => {
+          Alert.alert(
+            "Low location accuracy",
+            `Your current GPS accuracy is ±${Math.round(accuracyMeters)} m. This can cause check-in to fail even if you are at the correct location. Try moving outdoors or closer to a window, then retry.`,
+            [
+              { text: "Continue anyway", onPress: () => resolve(false) },
+              { text: "Retry", onPress: () => resolve(true), style: "cancel" },
+            ]
+          );
+        });
+        if (shouldRetry) {
+          setSubmittingMode(null);
+          return;
+        }
+      }
+
       const imageResult = await ImagePicker.launchCameraAsync({
         mediaTypes: ["images"],
         quality: 0.7,
@@ -336,14 +361,11 @@ export function HomeScreen() {
         return;
       }
 
-      const coords = await Location.getCurrentPositionAsync({
-        accuracy: Location.Accuracy.Balanced,
-      });
-
       const image = imageResult.assets[0];
       const formData = new FormData();
       formData.append("latitude", String(coords.coords.latitude));
       formData.append("longitude", String(coords.coords.longitude));
+      formData.append("accuracy", String(coords.coords.accuracy ?? 0));
       formData.append(
         "image",
         createImagePart(image.uri, image.fileName ?? `${mode}.jpg`, image.mimeType)

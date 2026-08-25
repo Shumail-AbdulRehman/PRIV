@@ -163,15 +163,20 @@ export const checkIn = async (req: Request, res: Response) => {
         throw new ApiError(404, "Your assigned location is not active");
     }
 
-    const { latitude, longitude } = result.data;
+    const { latitude, longitude, accuracy } = result.data;
 
     const actualDistance = (await import("../utils/geofencing.js")).getDistanceMeters(
       Number(latitude), Number(longitude),
       Number(location.latitude), Number(location.longitude)
     );
+    // Trust the device's reported accuracy up to a 200m ceiling so a single
+    // bogus accuracy value cannot disable geofencing entirely.
+    const accuracyBuffer = Math.min(accuracy ?? 0, 200);
+    const effectiveRadius = location.radiusMeters + accuracyBuffer;
     console.log("[DEBUG check-in] worker:", latitude, longitude,
       "| location:", Number(location.latitude), Number(location.longitude),
-      "| distance:", Math.round(actualDistance), "m | radius:", location.radiusMeters, "m");
+      "| distance:", Math.round(actualDistance), "m | radius:", location.radiusMeters,
+      "m | accuracy:", accuracy ?? "N/A", "m | effective:", effectiveRadius, "m");
 
     if (
   !isWithinRadius(
@@ -179,10 +184,10 @@ export const checkIn = async (req: Request, res: Response) => {
     Number(longitude),
     Number(location.latitude),
     Number(location.longitude),
-    location.radiusMeters
+    effectiveRadius
   )
 ) {
-  throw new ApiError(400, `You are not within the allowed radius of your location (you are ${Math.round(actualDistance)}m away, allowed: ${location.radiusMeters}m)`);
+  throw new ApiError(400, `You are not within the allowed radius of your location (you are ${Math.round(actualDistance)}m away, allowed: ${effectiveRadius}m including GPS accuracy)`);
 }
 
     const now = new Date();
@@ -282,7 +287,18 @@ export const checkOut = async (req: Request, res: Response) => {
         throw new ApiError(404, "Your assigned location is not active");
     }
 
-    const { latitude, longitude } = result.data;
+    const { latitude, longitude, accuracy } = result.data;
+
+    const actualDistance = (await import("../utils/geofencing.js")).getDistanceMeters(
+      Number(latitude), Number(longitude),
+      Number(location.latitude), Number(location.longitude)
+    );
+    const accuracyBuffer = Math.min(accuracy ?? 0, 200);
+    const effectiveRadius = location.radiusMeters + accuracyBuffer;
+    console.log("[DEBUG check-out] worker:", latitude, longitude,
+      "| location:", Number(location.latitude), Number(location.longitude),
+      "| distance:", Math.round(actualDistance), "m | radius:", location.radiusMeters,
+      "m | accuracy:", accuracy ?? "N/A", "m | effective:", effectiveRadius, "m");
 
     if (
   !isWithinRadius(
@@ -290,10 +306,10 @@ export const checkOut = async (req: Request, res: Response) => {
     Number(longitude),
     Number(location.latitude),
     Number(location.longitude),
-    location.radiusMeters
+    effectiveRadius
   )
 ) {
-  throw new ApiError(400, "You are not within the allowed radius of your location");
+  throw new ApiError(400, `You are not within the allowed radius of your location (you are ${Math.round(actualDistance)}m away, allowed: ${effectiveRadius}m including GPS accuracy)`);
 }
 
     const { start: today, end: tomorrow } = getZonedDayRange(new Date(), location.timezone);
