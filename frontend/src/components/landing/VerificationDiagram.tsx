@@ -1,4 +1,7 @@
 import { useState } from "react";
+import areaSink from "@/assets/area-sink.jpg";
+import areaMirror from "@/assets/area-mirror.jpg";
+import areaFloor from "@/assets/area-floor.jpg";
 
 const singleArea = {
   area: "sink_area",
@@ -8,9 +11,9 @@ const singleArea = {
 };
 
 const multiAreas = [
-  { area: "SINK", loc: 94, clean: 91, reason: "counter geometry matches reference" },
-  { area: "MIRROR", loc: 88, clean: 87, reason: "reflection aligns; minor streaks noted" },
-  { area: "FLOOR", loc: 96, clean: 93, reason: "tile pattern and grout lines match" },
+  { area: "SINK", loc: 94, clean: 91, reason: "counter geometry matches reference", image: areaSink },
+  { area: "MIRROR", loc: 88, clean: 87, reason: "reflection aligns; minor streaks noted", image: areaMirror },
+  { area: "FLOOR", loc: 96, clean: 93, reason: "tile pattern and grout lines match", image: areaFloor },
 ];
 
 function RoomSketch() {
@@ -49,7 +52,7 @@ function RoomSketch() {
   );
 }
 
-function Frame({ label }: { label: string }) {
+function Frame({ label, imageSrc }: { label: string; imageSrc?: string }) {
   return (
     <div className="flex flex-col border border-ink rounded-[2px] bg-surface overflow-hidden">
       <div className="border-b border-line px-3 py-2">
@@ -58,7 +61,15 @@ function Frame({ label }: { label: string }) {
         </span>
       </div>
       <div className="aspect-[4/3] p-3">
-        <RoomSketch />
+        {imageSrc ? (
+          <img
+            src={imageSrc}
+            alt={label}
+            className="h-full w-full object-cover rounded-[2px]"
+          />
+        ) : (
+          <RoomSketch />
+        )}
       </div>
     </div>
   );
@@ -131,8 +142,8 @@ export function VerificationDiagram() {
                 </p>
               </div>
               <div className="grid gap-4 md:grid-cols-2">
-                <Frame label={`Reference · ${area.area}`} />
-                <Frame label={`Submitted · ${area.area}`} />
+                <Frame label={`Reference · ${area.area}`} imageSrc={area.image} />
+                <Frame label={`Submitted · ${area.area}`} imageSrc={area.image} />
               </div>
               <p className="font-mono text-xs text-ink/70">reason: {area.reason}</p>
             </div>

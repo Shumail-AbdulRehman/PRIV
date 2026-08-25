@@ -3,7 +3,7 @@ import { useSelector } from "react-redux";
 import { ArrowRight } from "lucide-react";
 import type { RootState } from "@/store/store";
 import { Button } from "@/components/ui/button";
-import { GeofenceDiagram } from "@/components/landing/GeofenceDiagram";
+import heroCleaning from "@/assets/hero-cleaning-v2.jpg";
 import { DashboardPanel } from "@/components/landing/DashboardPanel";
 import { LifecycleStrip } from "@/components/landing/LifecycleStrip";
 import { VerificationDiagram } from "@/components/landing/VerificationDiagram";
@@ -68,8 +68,8 @@ export default function LandingPage() {
           <rect width="100%" height="100%" fill="url(#blueprint-grid)" />
         </svg>
 
-        <div className="relative mx-auto grid max-w-7xl items-start gap-12 lg:grid-cols-[1.1fr_0.9fr] lg:gap-16">
-          <div className="max-w-xl pt-4">
+        <div className="relative mx-auto grid max-w-7xl items-center gap-12 lg:grid-cols-2 lg:gap-16">
+          <div className="max-w-xl">
             <p className="font-mono text-[10px] font-medium uppercase tracking-[0.2em] text-ink/70">
               CleanOps / Operations System
             </p>
@@ -108,9 +108,14 @@ export default function LandingPage() {
             </div>
           </div>
 
-          <div className="relative lg:pt-6">
-            <div className="border border-line rounded-[2px] bg-surface p-4">
-              <GeofenceDiagram />
+          <div className="relative">
+            <div className="overflow-hidden border border-line rounded-[2px] bg-surface">
+              <img
+                src={heroCleaning}
+                alt="Professional floor cleaning equipment on a polished office floor"
+                className="h-full w-full object-cover"
+                style={{ aspectRatio: "4/3" }}
+              />
             </div>
           </div>
         </div>
