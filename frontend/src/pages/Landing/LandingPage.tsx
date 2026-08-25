@@ -3,7 +3,7 @@ import { useSelector } from "react-redux";
 import { ArrowRight } from "lucide-react";
 import type { RootState } from "@/store/store";
 import { Button } from "@/components/ui/button";
-import heroCleaning from "@/assets/hero-cleaning-v2.jpg";
+import heroCleaning from "@/assets/hero-cleaning-v2.webp";
 import { DashboardPanel } from "@/components/landing/DashboardPanel";
 import { LifecycleStrip } from "@/components/landing/LifecycleStrip";
 import { VerificationDiagram } from "@/components/landing/VerificationDiagram";

@@ -1,7 +1,7 @@
 import { useState } from "react";
-import areaSink from "@/assets/area-sink.jpg";
-import areaMirror from "@/assets/area-mirror.jpg";
-import areaFloor from "@/assets/area-floor.jpg";
+import areaSink from "@/assets/area-sink.webp";
+import areaMirror from "@/assets/area-mirror.webp";
+import areaFloor from "@/assets/area-floor.webp";
 
 const singleArea = {
   area: "sink_area",
