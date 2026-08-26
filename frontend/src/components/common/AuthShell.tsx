@@ -45,10 +45,10 @@ export default function AuthShell({
               <div className="rounded-2xl border border-white/10 bg-white/5 p-4">
                 <div className="flex items-center gap-2 text-teal-300">
                   <Sparkles className="size-4" />
-                  <p className="text-sm font-medium">Manager workflow</p>
+                  <p className="text-sm font-medium">Daily triage</p>
                 </div>
                 <p className="mt-3 text-sm text-slate-300">
-                  Built around locations, staff assignment, and daily execution data.
+                  Surface absences, pending tasks, and missed checkouts before the day closes.
                 </p>
               </div>
             </div>

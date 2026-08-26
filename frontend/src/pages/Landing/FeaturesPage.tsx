@@ -3,6 +3,7 @@ import { useSelector } from "react-redux";
 import { ArrowRight } from "lucide-react";
 import type { RootState } from "@/store/store";
 import { Button } from "@/components/ui/button";
+import { ConsolePreview } from "@/components/landing/ConsolePreview";
 import { DashboardPanel } from "@/components/landing/DashboardPanel";
 import { VerificationDiagram } from "@/components/landing/VerificationDiagram";
 
@@ -141,13 +142,16 @@ export default function FeaturesPage() {
                   <ArrowRight className="ml-2 h-4 w-4" />
                 </Link>
               </Button>
-              <Button
-                asChild
-                variant="outline"
-                className="h-12 rounded-[2px] border-ink bg-transparent px-6 font-mono text-xs uppercase tracking-wider text-ink hover:bg-ink/5"
+              <a
+                href="#verification"
+                onClick={(e) => {
+                  e.preventDefault();
+                  document.getElementById("verification")?.scrollIntoView({ behavior: "smooth" });
+                }}
+                className="inline-flex h-12 items-center justify-center rounded-[2px] border border-ink bg-transparent px-6 font-mono text-xs uppercase tracking-wider text-ink transition-colors hover:bg-ink/5"
               >
-                <a href="#verification">View verification</a>
-              </Button>
+                View verification
+              </a>
             </div>
           </div>
 
@@ -184,6 +188,9 @@ export default function FeaturesPage() {
           </div>
         </div>
       </section>
+
+      {/* Console preview */}
+      <ConsolePreview />
 
       {/* Full verification section */}
       <section id="verification" className="border-b border-line px-4 py-16 sm:px-6 lg:px-8">

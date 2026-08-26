@@ -3,7 +3,7 @@ import { useSelector } from "react-redux";
 import { ArrowRight } from "lucide-react";
 import type { RootState } from "@/store/store";
 import { Button } from "@/components/ui/button";
-import heroCleaning from "@/assets/hero-cleaning-v2.webp";
+import heroCleaning from "@/assets/hero-cleaning-v3.webp";
 import { DashboardPanel } from "@/components/landing/DashboardPanel";
 import { LifecycleStrip } from "@/components/landing/LifecycleStrip";
 import { VerificationDiagram } from "@/components/landing/VerificationDiagram";
@@ -108,13 +108,13 @@ export default function LandingPage() {
             </div>
           </div>
 
-          <div className="relative">
-            <div className="overflow-hidden border border-line rounded-[2px] bg-surface">
+          <div className="relative flex items-center">
+            <div className="h-[340px] w-full overflow-hidden border border-line rounded-[2px] bg-surface sm:h-[400px] lg:h-full lg:min-h-[520px]">
               <img
                 src={heroCleaning}
-                alt="Professional floor cleaning equipment on a polished office floor"
-                className="h-full w-full object-cover"
-                style={{ aspectRatio: "4/3" }}
+                alt="Cleaning operator using a floor scrubber in a commercial corridor"
+                className="h-full w-full object-cover object-center"
+                loading="eager"
               />
             </div>
           </div>
