@@ -4,12 +4,18 @@ import { prisma } from "../prisma/prisma.js";
 import { ApiResponse } from "../utils/ApiResponse.js";
 import { ApiError } from "../utils/ApiError.js";
 import { getUtcDayRange, getZonedDayRange } from "../utils/dateTime.js";
-import { uploadMultipleImages } from "../utils/cloudinary.js";
+import { uploadMultipleImages, uploadSingleImage } from "../utils/cloudinary.js";
 import {
   markCurrentAssignmentCompleted,
   markCurrentAssignmentStarted,
 } from "../services/taskAssignment.service.js";
 import { assertLocationAccess } from "../utils/scope.js";
+import {
+  AREA_UPLOAD_WINDOW_SECONDS,
+  canAreaBeUploaded,
+  isUploadWithinWindow,
+  isTaskCompletionEligible,
+} from "../services/areaSubmission.service.js";
 import { getVerificationProvider } from "../services/verification/imageVerification.service.js";
 import { VerificationError } from "../services/verification/imageVerification.types.js";
 import { writeAuditLog } from "../services/auditLog.service.js";
@@ -63,6 +69,35 @@ const tasks = await prisma.taskInstance.findMany({
 
   res.status(200).json(new ApiResponse(200, tasks, "Today's tasks fetched successfully"));
 };
+
+async function getActiveTaskForStaff(
+  taskId: number,
+  staffId: number,
+  requiredStatus?: "PENDING" | "IN_PROGRESS" | "COMPLETED" | "NOT_COMPLETED_INTIME" | "MISSED" | "CANCELLED"
+) {
+  const task = await prisma.taskInstance.findUnique({
+    where: { id: taskId },
+    include: {
+      template: true,
+      referenceImages: { orderBy: { sortOrder: "asc" } },
+    },
+  });
+
+  if (!task || !task.isActive || task.staffId !== staffId) {
+    throw new ApiError(404, "Task not found for this staff");
+  }
+
+  if (requiredStatus && task.status !== requiredStatus) {
+    throw new ApiError(400, `Task must be ${requiredStatus.toLowerCase().replace(/_/g, " ")}`);
+  }
+
+  const now = new Date();
+  if (task.shiftEnd <= now) {
+    throw new ApiError(400, "Task time ended");
+  }
+
+  return task;
+}
 
 export const startTask = async (req: Request, res: Response) => {
   const taskId = Number(req.params.taskId);
@@ -159,6 +194,148 @@ export const startTask = async (req: Request, res: Response) => {
   return res.status(200).json(new ApiResponse(200, taskStarted, "Task started successfully"));
 };
 
+export const scanAreaQr = async (req: Request, res: Response) => {
+  const taskId = Number(req.params.taskId);
+  const referenceImageId = Number(req.params.referenceImageId);
+  const qrToken = req.query.qrToken;
+
+  if (isNaN(taskId) || isNaN(referenceImageId)) {
+    throw new ApiError(400, "Invalid task or area id");
+  }
+
+  if (typeof qrToken !== "string" || !qrToken.trim()) {
+    throw new ApiError(400, "Invalid qr token");
+  }
+
+  const task = await getActiveTaskForStaff(taskId, req.user!.id, "IN_PROGRESS");
+
+  if (!task.template) {
+    throw new ApiError(400, "Task is not linked to a template");
+  }
+
+  if (task.template.qrToken !== qrToken) {
+    throw new ApiError(400, "QR code does not belong to this task");
+  }
+
+  const referenceImage = task.referenceImages.find((img) => img.id === referenceImageId);
+  if (!referenceImage) {
+    throw new ApiError(404, "Area not found for this task");
+  }
+
+  const now = new Date();
+
+  const submission = await prisma.taskAreaSubmission.upsert({
+    where: {
+      taskInstanceId_referenceImageId: {
+        taskInstanceId: taskId,
+        referenceImageId,
+      },
+    },
+    update: {
+      scannedAt: now,
+      status: "PENDING",
+      uploadedAt: null,
+      photoUrl: "",
+    },
+    create: {
+      taskInstanceId: taskId,
+      referenceImageId,
+      staffId: req.user!.id,
+      photoUrl: "",
+      scannedAt: now,
+    },
+  });
+
+  res.status(200).json(
+    new ApiResponse(200, { scannedAt: submission.scannedAt }, "Area QR scanned successfully")
+  );
+};
+
+export const uploadAreaPhoto = async (req: Request, res: Response) => {
+  const taskId = Number(req.params.taskId);
+  const referenceImageId = Number(req.params.referenceImageId);
+  const file = req.file;
+
+  if (isNaN(taskId) || isNaN(referenceImageId)) {
+    throw new ApiError(400, "Invalid task or area id");
+  }
+
+  if (!file) {
+    throw new ApiError(400, "Area photo is required");
+  }
+
+  const task = await getActiveTaskForStaff(taskId, req.user!.id, "IN_PROGRESS");
+
+  const referenceImage = task.referenceImages.find((img) => img.id === referenceImageId);
+  if (!referenceImage) {
+    throw new ApiError(404, "Area not found for this task");
+  }
+
+  const submission = await prisma.taskAreaSubmission.findUnique({
+    where: {
+      taskInstanceId_referenceImageId: {
+        taskInstanceId: taskId,
+        referenceImageId,
+      },
+    },
+  });
+
+  const eligibility = canAreaBeUploaded(submission ?? undefined);
+  if (!eligibility.ok) {
+    throw new ApiError(400, eligibility.reason);
+  }
+
+  const now = new Date();
+
+  if (!isUploadWithinWindow(submission!.scannedAt, now, AREA_UPLOAD_WINDOW_SECONDS)) {
+    await prisma.taskAreaSubmission.update({
+      where: {
+        taskInstanceId_referenceImageId: {
+          taskInstanceId: taskId,
+          referenceImageId,
+        },
+      },
+      data: {
+        status: "REJECTED_TIMEOUT",
+        uploadedAt: now,
+      },
+    });
+
+    throw new ApiError(
+      422,
+      `Photo upload time exceeded. Please re-scan the QR code for "${referenceImage.name}" and try again.`,
+      [{ field: "timeout", message: `Limit: ${AREA_UPLOAD_WINDOW_SECONDS}s` }]
+    );
+  }
+
+  const uploadedImage = await uploadSingleImage(
+    file,
+    `task-instances/${taskId}/area-submissions/${referenceImageId}`
+  );
+
+  const updatedSubmission = await prisma.taskAreaSubmission.update({
+    where: {
+      taskInstanceId_referenceImageId: {
+        taskInstanceId: taskId,
+        referenceImageId,
+      },
+    },
+    data: {
+      photoUrl: uploadedImage.secure_url,
+      uploadedAt: now,
+      status: "APPROVED",
+    },
+  });
+
+  res.status(200).json(
+    new ApiResponse(
+      200,
+      { referenceImageId, photoUrl: updatedSubmission.photoUrl },
+      "Area photo uploaded successfully"
+    )
+  );
+};
+
 const LOCATION_MATCH_THRESHOLD = Number(process.env.LOCATION_MATCH_THRESHOLD ?? 70);
 const CLEANLINESS_THRESHOLD = Number(process.env.CLEANLINESS_THRESHOLD ?? 70);
 
@@ -243,157 +420,50 @@ export const completeTask = async (req: Request, res: Response) => {
     }
 
     if (hasMultiAreaReferences) {
-        const referenceImages = task.referenceImages;
-        const areaNames = normalizeAreaNames(req.body.areaNames);
+        const approvedSubmissions = await prisma.taskAreaSubmission.findMany({
+            where: {
+                taskInstanceId: taskId,
+                status: "APPROVED",
+            },
+            select: { referenceImageId: true, photoUrl: true },
+        });
 
-        if (files.length !== referenceImages.length) {
+        const approvedReferenceImageIds = approvedSubmissions.map((s) => s.referenceImageId);
+        const referenceImageIds = task.referenceImages.map((img) => img.id);
+
+        const completionCheck = isTaskCompletionEligible(
+            referenceImageIds,
+            approvedReferenceImageIds
+        );
+
+        if (!completionCheck.ok) {
+            const missingNames = task.referenceImages
+                .filter((img) => completionCheck.missingAreaIds.includes(img.id))
+                .map((img) => img.name)
+                .join(", ");
+
             throw new ApiError(
                 400,
-                `This task requires ${referenceImages.length} reference area photos, but ${files.length} were uploaded`,
-                [{ field: "images", message: `Expected ${referenceImages.length} images, got ${files.length}` }]
+                `Cannot complete task. Missing photos for: ${missingNames}`,
+                [{ field: "missingAreas", message: missingNames }]
             );
         }
 
-        if (areaNames.length !== referenceImages.length) {
-            throw new ApiError(
-                400,
-                "Area names must be provided for every reference image",
-                [{ field: "areaNames", message: `Expected ${referenceImages.length} names, got ${areaNames.length}` }]
-            );
-        }
-
-        const expectedNames = referenceImages.map((ref) => ref.name);
-        const mismatchedName = areaNames.find((name, index) => name !== expectedNames[index]);
-
-        if (mismatchedName) {
-            throw new ApiError(
-                400,
-                "Area names do not match the expected reference area names",
-                [{ field: "areaNames", message: `Expected order: ${expectedNames.join(", ")}` }]
-            );
-        }
-
-        const submissionId = crypto.randomUUID();
-        const provider = getVerificationProvider();
-
-        type AreaResult = {
-            areaName: string;
-            imageUrl: string;
-            referenceImageUrl: string;
-            result: Awaited<ReturnType<typeof provider.compare>>;
-        };
-
-        const areaResults: AreaResult[] = [];
-
-        for (let i = 0; i < referenceImages.length; i++) {
-            const referenceImage = referenceImages[i];
-            const staffImageUrl = proofImageUrls[i];
-
-            let verificationResult;
-            try {
-                verificationResult = await provider.compare(referenceImage.imageUrl, staffImageUrl);
-            } catch (error) {
-                await prisma.taskCompletionAttempt.create({
-                    data: {
-                        taskInstanceId: taskId,
-                        staffId: req.user!.id,
-                        imageUrl: staffImageUrl,
-                        areaName: referenceImage.name,
-                        submissionId,
-                        status: "ERROR",
-                        rawResponse: { error: error instanceof Error ? error.message : String(error) },
-                    }
-                });
-
-                throw new ApiError(503, "Verification service is temporarily unavailable. Please try again in a moment.");
-            }
-
-            areaResults.push({
-                areaName: referenceImage.name,
-                imageUrl: staffImageUrl,
-                referenceImageUrl: referenceImage.imageUrl,
-                result: verificationResult,
-            });
-
-            if (verificationResult.locationMatch.score < LOCATION_MATCH_THRESHOLD) {
-                await prisma.taskCompletionAttempt.create({
-                    data: {
-                        taskInstanceId: taskId,
-                        staffId: req.user!.id,
-                        imageUrl: staffImageUrl,
-                        areaName: referenceImage.name,
-                        submissionId,
-                        locationMatchScore: verificationResult.locationMatch.score,
-                        cleanlinessMatchScore: verificationResult.cleanlinessMatch.score,
-                        locationMatchReason: verificationResult.locationMatch.reasoning,
-                        cleanlinessReason: verificationResult.cleanlinessMatch.reasoning,
-                        status: "REJECTED_LOCATION",
-                        rawResponse: verificationResult as any,
-                    }
-                });
-
-                throw new ApiError(
-                    422,
-                    `Photo for "${referenceImage.name}" does not appear to match the reference area. Please retake the photo of the correct area.`,
-                    [
-                        { field: "locationMatch", message: `${referenceImage.name}: ${verificationResult.locationMatch.score}/100 (need ${LOCATION_MATCH_THRESHOLD})`, score: verificationResult.locationMatch.score, threshold: LOCATION_MATCH_THRESHOLD },
-                        { field: "cleanlinessMatch", message: verificationResult.cleanlinessMatch.reasoning, score: verificationResult.cleanlinessMatch.score },
-                    ]
-                );
-            }
-
-            if (verificationResult.cleanlinessMatch.score < CLEANLINESS_THRESHOLD) {
-                await prisma.taskCompletionAttempt.create({
-                    data: {
-                        taskInstanceId: taskId,
-                        staffId: req.user!.id,
-                        imageUrl: staffImageUrl,
-                        areaName: referenceImage.name,
-                        submissionId,
-                        locationMatchScore: verificationResult.locationMatch.score,
-                        cleanlinessMatchScore: verificationResult.cleanlinessMatch.score,
-                        locationMatchReason: verificationResult.locationMatch.reasoning,
-                        cleanlinessReason: verificationResult.cleanlinessMatch.reasoning,
-                        status: "REJECTED_CLEANLINESS",
-                        rawResponse: verificationResult as any,
-                    }
-                });
-
-                throw new ApiError(
-                    422,
-                    `Cleanliness for "${referenceImage.name}" does not meet the reference standard. Please clean the area again and resubmit.`,
-                    [
-                        { field: "locationMatch", message: verificationResult.locationMatch.reasoning, score: verificationResult.locationMatch.score },
-                        { field: "cleanlinessMatch", message: `${referenceImage.name}: ${verificationResult.cleanlinessMatch.score}/100 (need ${CLEANLINESS_THRESHOLD})`, score: verificationResult.cleanlinessMatch.score, threshold: CLEANLINESS_THRESHOLD },
-                    ]
-                );
-            }
-        }
+        const orderedPhotoUrls = task.referenceImages
+            .map((img) => {
+                const submission = approvedSubmissions.find((s) => s.referenceImageId === img.id);
+                return submission?.photoUrl;
+            })
+            .filter((url): url is string => Boolean(url));
 
         const taskCompleted = await prisma.$transaction(async (tx) => {
-            await tx.taskCompletionAttempt.createMany({
-                data: areaResults.map((area) => ({
-                    taskInstanceId: taskId,
-                    staffId: req.user!.id,
-                    imageUrl: area.imageUrl,
-                    areaName: area.areaName,
-                    submissionId,
-                    locationMatchScore: area.result.locationMatch.score,
-                    cleanlinessMatchScore: area.result.cleanlinessMatch.score,
-                    locationMatchReason: area.result.locationMatch.reasoning,
-                    cleanlinessReason: area.result.cleanlinessMatch.reasoning,
-                    status: "APPROVED" as const,
-                    rawResponse: area.result as any,
-                })),
-            });
-
             const updatedTask = await tx.taskInstance.update({
                 where: { id: taskId },
                 data: {
                     status: "COMPLETED",
                     completedAt: now,
-                    proofImageUrls,
-                }
+                    proofImageUrls: orderedPhotoUrls,
+                },
             });
 
             await markCurrentAssignmentCompleted(taskId, req.user!.id, now, tx as typeof prisma);
@@ -401,7 +471,9 @@ export const completeTask = async (req: Request, res: Response) => {
             return updatedTask;
         });
 
-        return res.status(200).json(new ApiResponse(200, taskCompleted, "Task completed successfully"));
+        return res.status(200).json(
+            new ApiResponse(200, taskCompleted, "Task completed successfully")
+        );
     }
 
     let verificationResult;
