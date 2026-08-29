@@ -354,10 +354,6 @@ export const completeTask = async (req: Request, res: Response) => {
         throw new ApiError(400, "Invalid task id");
     }
 
-    if (!files.length) {
-        throw new ApiError(400, "At least one completion image is required");
-    }
-
     const task = await prisma.taskInstance.findUnique({
         where: { id: taskId },
         include: {
@@ -381,14 +377,24 @@ export const completeTask = async (req: Request, res: Response) => {
         throw new ApiError(400, "Task time ended")
     }
 
-    const uploadedImages = await uploadMultipleImages(
-        files,
-        `task-instances/${taskId}/completion-proofs`
-    );
+    const hasMultiAreaReferences = task.referenceImages.length > 0;
+
+    if (hasMultiAreaReferences) {
+        if (files.length > 0) {
+            throw new ApiError(400, "Photos for area-based tasks are uploaded per area, not at completion");
+        }
+    } else if (!files.length) {
+        throw new ApiError(400, "At least one completion image is required");
+    }
+
+    const uploadedImages = !hasMultiAreaReferences && files.length
+        ? await uploadMultipleImages(
+            files,
+            `task-instances/${taskId}/completion-proofs`
+        )
+        : [];
 
     const proofImageUrls = uploadedImages.map((image) => image.secure_url);
-
-    const hasMultiAreaReferences = task.referenceImages.length > 0;
 
     if (!hasMultiAreaReferences && !task.referenceImageUrl) {
         await writeAuditLog({
