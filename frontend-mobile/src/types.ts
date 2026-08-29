@@ -15,6 +15,8 @@ export type RootStackParamList = {
   QrScanner: {
     taskId: number;
     taskTitle: string;
+    referenceImageId?: number;
+    onScanSuccess?: () => void;
   };
   CompleteTask: {
     taskId: number;
