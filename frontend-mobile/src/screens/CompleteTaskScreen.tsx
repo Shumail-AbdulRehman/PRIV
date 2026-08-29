@@ -4,6 +4,7 @@ import * as ImagePicker from "expo-image-picker";
 import { NativeStackScreenProps } from "@react-navigation/native-stack";
 import { useQueryClient } from "@tanstack/react-query";
 import { uploadFormData } from "../api/client";
+import { client } from "../api/client";
 import { Button } from "../components/ui/button";
 import { staffQueryKeys } from "../queries/staff";
 import { Card, CardContent } from "../components/ui/card";
@@ -14,31 +15,254 @@ import type { RootStackParamList } from "../types";
 
 type Props = NativeStackScreenProps<RootStackParamList, "CompleteTask">;
 
-type CapturedImage = {
-  uri: string;
-  fileName?: string | null;
-  mimeType?: string;
-  fileSize?: number | null;
+type AreaState = {
+  status: "pending" | "scanned" | "uploaded" | "timeout";
+  photoUrl?: string;
 };
 
-const COMPLETE_TASK_TIMEOUT_MS = 120000;
+const AREA_UPLOAD_TIMEOUT_MS = 120000;
 
 export function CompleteTaskScreen({ navigation, route }: Props) {
   const queryClient = useQueryClient();
   const { taskId, taskTitle, referenceAreas } = route.params;
   const hasReferenceAreas = referenceAreas && referenceAreas.length > 0;
 
-  const [selectedImages, setSelectedImages] = useState<ImagePicker.ImagePickerAsset[]>([]);
-  const [areaPhotos, setAreaPhotos] = useState<Record<number, CapturedImage>>({});
+  const [areaStates, setAreaStates] = useState<Record<number, AreaState>>({});
   const [submitting, setSubmitting] = useState(false);
-  const [areaErrors, setAreaErrors] = useState<Record<string, string>>({});
+  const [areaErrors, setAreaErrors] = useState<Record<number, string>>({});
 
   const sortedAreas = hasReferenceAreas
     ? [...referenceAreas!].sort((a, b) => a.sortOrder - b.sortOrder)
     : [];
 
-  const capturedAreaCount = sortedAreas.filter((area) => areaPhotos[area.id]).length;
-  const allAreasCaptured = capturedAreaCount === sortedAreas.length;
+  const completedAreaCount = sortedAreas.filter(
+    (area) => areaStates[area.id]?.status === "uploaded"
+  ).length;
+  const allAreasUploaded = completedAreaCount === sortedAreas.length;
+
+  const scanAreaQr = (areaId: number) => {
+    navigation.navigate("QrScanner", {
+      taskId,
+      taskTitle,
+      referenceImageId: areaId,
+      onScanSuccess: () => {
+        setAreaStates((prev) => ({
+          ...prev,
+          [areaId]: { status: "scanned" },
+        }));
+        setAreaErrors((prev) => {
+          const next = { ...prev };
+          delete next[areaId];
+          return next;
+        });
+        void captureAreaPhoto(areaId);
+      },
+    });
+  };
+
+  const captureAreaPhoto = async (areaId: number) => {
+    const permission = await ImagePicker.requestCameraPermissionsAsync();
+    if (!permission.granted) {
+      Alert.alert("Camera required", "Allow camera access to capture this area photo.");
+      return;
+    }
+
+    const result = await ImagePicker.launchCameraAsync({
+      mediaTypes: ["images"],
+      quality: 0.7,
+      allowsEditing: false,
+    });
+
+    if (result.canceled || !result.assets[0]) {
+      return;
+    }
+
+    await uploadAreaPhoto(areaId, result.assets[0]);
+  };
+
+  const uploadAreaPhoto = async (
+    areaId: number,
+    asset: ImagePicker.ImagePickerAsset
+  ) => {
+    try {
+      const formData = new FormData();
+      formData.append(
+        "photo",
+        createImagePart(
+          asset.uri,
+          asset.fileName ?? `area-${areaId}.jpg`,
+          asset.mimeType
+        )
+      );
+
+      const response = await uploadFormData<{
+        data: { referenceImageId: number; photoUrl: string };
+      }>(
+        `/task-instance/${taskId}/area/${areaId}/upload`,
+        formData,
+        AREA_UPLOAD_TIMEOUT_MS
+      );
+
+      setAreaStates((prev) => ({
+        ...prev,
+        [areaId]: {
+          status: "uploaded",
+          photoUrl: response.data.photoUrl,
+        },
+      }));
+      setAreaErrors((prev) => {
+        const next = { ...prev };
+        delete next[areaId];
+        return next;
+      });
+    } catch (error: any) {
+      const message = error?.response?.data?.message ?? "Upload failed";
+      const isTimeout = message.toLowerCase().includes("time exceeded");
+
+      if (isTimeout) {
+        setAreaStates((prev) => ({
+          ...prev,
+          [areaId]: { status: "timeout" },
+        }));
+      }
+
+      setAreaErrors((prev) => ({ ...prev, [areaId]: message }));
+    }
+  };
+
+  const submitCompletion = async () => {
+    try {
+      setSubmitting(true);
+      setAreaErrors({});
+
+      await client.post(`/task-instance/${taskId}/complete`);
+      await queryClient.invalidateQueries({ queryKey: staffQueryKeys.all });
+
+      Alert.alert("Task completed", `${taskTitle} was completed successfully.`, [
+        { text: "OK", onPress: () => navigation.goBack() },
+      ]);
+    } catch (error: any) {
+      const message = error?.response?.data?.message ?? "Unable to complete task.";
+      Alert.alert("Completion failed", message);
+    } finally {
+      setSubmitting(false);
+    }
+  };
+
+  return (
+    <ScrollView
+      className="flex-1 bg-background"
+      contentContainerClassName="gap-4 p-4 pb-8"
+    >
+      <Card>
+        <CardContent className="gap-1 p-4">
+          <Text className="text-base font-semibold text-card-foreground">{taskTitle}</Text>
+          <Text className="text-sm text-muted-foreground">
+            {hasReferenceAreas
+              ? "Scan the QR code for each area, then capture the photo within 90 seconds."
+              : "Attach up to 5 clear images before marking this task complete."}
+          </Text>
+        </CardContent>
+      </Card>
+
+      {hasReferenceAreas ? (
+        <View className="gap-3">
+          <View className="gap-1">
+            <Text className="text-sm text-muted-foreground">
+              {completedAreaCount} of {sortedAreas.length} areas uploaded
+            </Text>
+            <View className="h-1.5 w-full overflow-hidden rounded-full bg-secondary">
+              <View
+                className="h-full rounded-full bg-primary"
+                style={{
+                  width: `${sortedAreas.length ? (completedAreaCount / sortedAreas.length) * 100 : 0}%`,
+                }}
+              />
+            </View>
+          </View>
+
+          {sortedAreas.map((area) => {
+            const state = areaStates[area.id];
+            const error = areaErrors[area.id];
+
+            return (
+              <Card key={area.id}>
+                <CardContent className="p-4">
+                  <View className="flex-row items-center gap-3">
+                    {state?.status === "uploaded" ? (
+                      <Icon name="CheckCircle2" size={20} className="text-primary" />
+                    ) : state?.status === "timeout" ? (
+                      <Icon name="AlertCircle" size={20} className="text-destructive" />
+                    ) : (
+                      <Icon name="Circle" size={20} className="text-muted-foreground" />
+                    )}
+                    <Text className="flex-1 font-semibold text-card-foreground">
+                      {area.name}
+                    </Text>
+                    {state?.photoUrl ? (
+                      <Image
+                        source={{ uri: state.photoUrl }}
+                        className="h-14 w-14 rounded-lg bg-secondary"
+                      />
+                    ) : null}
+                  </View>
+
+                  {state?.status === "uploaded" ? (
+                    <Text className="mt-2 text-sm text-primary">Photo uploaded</Text>
+                  ) : (
+                    <Button
+                      variant={state?.status === "timeout" ? "destructive" : "default"}
+                      size="sm"
+                      className="mt-3"
+                      onPress={() => void scanAreaQr(area.id)}
+                    >
+                      {state?.status === "timeout"
+                        ? "Time expired — re-scan QR"
+                        : state?.status === "scanned"
+                        ? "Capture photo"
+                        : "Scan QR to capture"}
+                    </Button>
+                  )}
+
+                  {error ? (
+                    <Text className="mt-2 text-sm text-destructive">{error}</Text>
+                  ) : null}
+                </CardContent>
+              </Card>
+            );
+          })}
+
+          <Button
+            loading={submitting}
+            disabled={!allAreasUploaded}
+            onPress={() => void submitCompletion()}
+          >
+            Complete task
+          </Button>
+        </View>
+      ) : (
+        <LegacyGalleryCompletion
+          taskId={taskId}
+          taskTitle={taskTitle}
+          onCompleted={() => navigation.goBack()}
+        />
+      )}
+    </ScrollView>
+  );
+}
+
+function LegacyGalleryCompletion({
+  taskId,
+  taskTitle,
+  onCompleted,
+}: {
+  taskId: number;
+  taskTitle: string;
+  onCompleted: () => void;
+}) {
+  const queryClient = useQueryClient();
+  const [selectedImages, setSelectedImages] = useState<ImagePicker.ImagePickerAsset[]>([]);
+  const [submitting, setSubmitting] = useState(false);
 
   const pickImages = async () => {
     const permission = await ImagePicker.requestMediaLibraryPermissionsAsync();
@@ -57,7 +281,6 @@ export function CompleteTaskScreen({ navigation, route }: Props) {
 
     if (!result.canceled) {
       setSelectedImages(result.assets.slice(0, 5));
-      setAreaErrors({});
     }
   };
 
@@ -65,277 +288,111 @@ export function CompleteTaskScreen({ navigation, route }: Props) {
     setSelectedImages((prev) => prev.filter((_, i) => i !== index));
   };
 
-  const captureAreaPhoto = async (areaId: number) => {
-    const permission = await ImagePicker.requestCameraPermissionsAsync();
-
-    if (!permission.granted) {
-      Alert.alert("Camera required", "Allow camera access to capture this area photo.");
-      return;
-    }
-
-    const result = await ImagePicker.launchCameraAsync({
-      mediaTypes: ["images"],
-      quality: 0.7,
-    });
-
-    if (!result.canceled && result.assets[0]) {
-      const asset = result.assets[0];
-      setAreaPhotos((prev) => ({
-        ...prev,
-        [areaId]: {
-          uri: asset.uri,
-          fileName: asset.fileName,
-          mimeType: asset.mimeType,
-          fileSize: asset.fileSize,
-        },
-      }));
-      setAreaErrors((prev) => {
-        const next = { ...prev };
-        const area = sortedAreas.find((a) => a.id === areaId);
-        if (area) {
-          delete next[area.name];
-        }
-        return next;
-      });
-    }
-  };
-
   const submitCompletion = async () => {
     try {
       setSubmitting(true);
-      setAreaErrors({});
 
-      const formData = new FormData();
-
-      if (hasReferenceAreas) {
-        const missingAreas = sortedAreas.filter((area) => !areaPhotos[area.id]);
-
-        if (missingAreas.length > 0) {
-          Alert.alert(
-            "Photos required",
-            `Please capture a photo for: ${missingAreas.map((a) => a.name).join(", ")}`
-          );
-          return;
-        }
-
-        sortedAreas.forEach((area) => {
-          const photo = areaPhotos[area.id];
-          formData.append(
-            "images",
-            createImagePart(
-              photo.uri,
-              photo.fileName ?? `${area.name.replace(/\s+/g, "_")}.jpg`,
-              photo.mimeType
-            )
-          );
-          formData.append("areaNames", area.name);
-        });
-      } else {
-        if (!selectedImages.length) {
-          Alert.alert("Images required", "Select at least one proof image before completing the task.");
-          return;
-        }
-
-        selectedImages.forEach((image, index) => {
-          formData.append(
-            "images",
-            createImagePart(
-              image.uri,
-              image.fileName ?? `proof-${index + 1}.jpg`,
-              image.mimeType
-            )
-          );
-        });
+      if (!selectedImages.length) {
+        Alert.alert("Images required", "Select at least one proof image before completing the task.");
+        return;
       }
 
-      await uploadFormData(
-        `/task-instance/${taskId}/complete`,
-        formData,
-        COMPLETE_TASK_TIMEOUT_MS
-      );
+      const formData = new FormData();
+      selectedImages.forEach((image, index) => {
+        formData.append(
+          "images",
+          createImagePart(
+            image.uri,
+            image.fileName ?? `proof-${index + 1}.jpg`,
+            image.mimeType
+          )
+        );
+      });
+
+      await uploadFormData(`/task-instance/${taskId}/complete`, formData, 120000);
       await queryClient.invalidateQueries({ queryKey: staffQueryKeys.all });
 
       Alert.alert("Task completed", `${taskTitle} was completed successfully.`, [
-        {
-          text: "OK",
-          onPress: () => navigation.goBack(),
-        },
+        { text: "OK", onPress: onCompleted },
       ]);
     } catch (error: any) {
-      const responseData = error?.response?.data;
-      const serverMessage = responseData?.message ?? "Unable to complete task.";
-      const errors = responseData?.errors ?? [];
-
-      const scoreLines = errors
-        .map((e: { field?: string; message?: string; score?: number; threshold?: number }) => {
-          if (e.score != null && e.threshold != null) {
-            return `${e.message} (threshold: ${e.threshold})`;
-          }
-          return e.message;
-        })
-        .filter(Boolean)
-        .join("\n");
-
-      const fullMessage = scoreLines ? `${serverMessage}\n\n${scoreLines}` : serverMessage;
-
-      const nextAreaErrors: Record<string, string> = {};
-      errors.forEach(
-        (e: { field?: string; message?: string; score?: number; threshold?: number }) => {
-          if (e.field && e.message) {
-            nextAreaErrors[e.field] = e.score != null && e.threshold != null
-              ? `${e.message} (threshold: ${e.threshold})`
-              : e.message;
-          }
-        }
-      );
-      setAreaErrors(nextAreaErrors);
-
-      Alert.alert("Completion failed", fullMessage);
+      const message = error?.response?.data?.message ?? "Unable to complete task.";
+      Alert.alert("Completion failed", message);
     } finally {
       setSubmitting(false);
     }
   };
 
   return (
-    <ScrollView
-      className="flex-1 bg-background"
-      contentContainerClassName="gap-4 p-4 pb-8"
-    >
+    <View className="gap-3">
       <Card>
-        <CardContent className="gap-1 p-4">
-          <Text className="text-base font-semibold text-card-foreground">{taskTitle}</Text>
-          <Text className="text-sm text-muted-foreground">
-            {hasReferenceAreas
-              ? "Capture a photo for each reference area. Camera-only capture is required to prevent cheating."
-              : "Attach up to 5 clear images before marking this task complete."}
-          </Text>
-        </CardContent>
-      </Card>
-
-      {hasReferenceAreas ? (
-        <View className="gap-3">
-          <View className="gap-1">
-            <Text className="text-sm text-muted-foreground">
-              {capturedAreaCount} of {sortedAreas.length} areas captured
+        <CardContent className="gap-3 p-4">
+          <View className="flex-row items-center justify-between">
+            <Text className="text-base font-semibold text-card-foreground">
+              Selected images
             </Text>
-            <View className="h-1.5 w-full overflow-hidden rounded-full bg-secondary">
-              <View
-                className="h-full rounded-full bg-primary"
-                style={{
-                  width: `${sortedAreas.length ? (capturedAreaCount / sortedAreas.length) * 100 : 0}%`,
-                }}
-              />
+            <View className="rounded-full bg-secondary px-2.5 py-1">
+              <Text className="text-xs font-semibold text-secondary-foreground">
+                {selectedImages.length}/5
+              </Text>
             </View>
           </View>
 
-          {sortedAreas.map((area) => {
-            const photo = areaPhotos[area.id];
-            const error = areaErrors[area.name];
-
-            return (
-              <Card key={area.id}>
-                <CardContent className="p-4">
-                  <View className="flex-row items-center gap-3">
-                    {photo ? (
-                      <Icon name="CheckCircle2" size={20} className="text-primary" />
-                    ) : (
-                      <Icon name="Circle" size={20} className="text-muted-foreground" />
-                    )}
-                    <Text className="flex-1 font-semibold text-card-foreground">
-                      {area.name}
-                    </Text>
-                    {photo ? (
-                      <Image
-                        source={{ uri: photo.uri }}
-                        className="h-14 w-14 rounded-lg bg-secondary"
-                      />
-                    ) : null}
-                    <Button
-                      variant={photo ? "outline" : "default"}
-                      size="sm"
-                      onPress={() => void captureAreaPhoto(area.id)}
-                    >
-                      {photo ? "Retake" : "Capture"}
-                    </Button>
-                  </View>
-                  {error ? (
-                    <Text className="mt-2 text-sm text-destructive">{error}</Text>
-                  ) : null}
-                </CardContent>
-              </Card>
-            );
-          })}
-        </View>
-      ) : (
-        <Card>
-          <CardContent className="gap-3 p-4">
-            <View className="flex-row items-center justify-between">
-              <Text className="text-base font-semibold text-card-foreground">
-                Selected images
-              </Text>
-              <View className="rounded-full bg-secondary px-2.5 py-1">
-                <Text className="text-xs font-semibold text-secondary-foreground">
-                  {selectedImages.length}/5
-                </Text>
-              </View>
-            </View>
-
-            {selectedImages.length ? (
-              <View className="gap-2">
-                {selectedImages.map((image, index) => (
-                  <View
-                    key={image.uri}
-                    className="flex-row items-center gap-3 rounded-lg bg-secondary p-2"
+          {selectedImages.length ? (
+            <View className="gap-2">
+              {selectedImages.map((image, index) => (
+                <View
+                  key={image.uri}
+                  className="flex-row items-center gap-3 rounded-lg bg-secondary p-2"
+                >
+                  <Image
+                    source={{ uri: image.uri }}
+                    className="h-10 w-10 rounded-md bg-muted"
+                  />
+                  <Text
+                    className="flex-1 text-sm font-medium text-secondary-foreground"
+                    numberOfLines={1}
                   >
-                    <Image
-                      source={{ uri: image.uri }}
-                      className="h-10 w-10 rounded-md bg-muted"
-                    />
-                    <Text
-                      className="flex-1 text-sm font-medium text-secondary-foreground"
-                      numberOfLines={1}
-                    >
-                      {image.fileName ?? image.uri.split("/").pop() ?? "Selected image"}
-                    </Text>
-                    <Text className="text-xs text-muted-foreground">
-                      {Math.round((image.fileSize ?? 0) / 1024)} KB
-                    </Text>
-                    <Button
-                      variant="ghost"
-                      size="icon"
-                      onPress={() => removeImage(index)}
-                      accessibilityLabel="Remove image"
-                    >
-                      <Icon name="X" size={16} className="text-destructive" />
-                    </Button>
-                  </View>
-                ))}
-              </View>
-            ) : (
-              <Text className="text-sm text-muted-foreground">
-                No proof images selected yet.
-              </Text>
-            )}
+                    {image.fileName ?? image.uri.split("/").pop() ?? "Selected image"}
+                  </Text>
+                  <Text className="text-xs text-muted-foreground">
+                    {Math.round((image.fileSize ?? 0) / 1024)} KB
+                  </Text>
+                  <Button
+                    variant="ghost"
+                    size="icon"
+                    onPress={() => removeImage(index)}
+                    accessibilityLabel="Remove image"
+                  >
+                    <Icon name="X" size={16} className="text-destructive" />
+                  </Button>
+                </View>
+              ))}
+            </View>
+          ) : (
+            <Text className="text-sm text-muted-foreground">
+              No proof images selected yet.
+            </Text>
+          )}
 
-            <Button
-              variant="outline"
-              className="border-dashed"
-              onPress={() => void pickImages()}
-              iconLeft="ImagePlus"
-            >
-              Choose Proof Images
-            </Button>
-          </CardContent>
-        </Card>
-      )}
+          <Button
+            variant="outline"
+            className="border-dashed"
+            onPress={() => void pickImages()}
+            iconLeft="ImagePlus"
+          >
+            Choose Proof Images
+          </Button>
+        </CardContent>
+      </Card>
 
       <Button
         loading={submitting}
-        disabled={hasReferenceAreas ? !allAreasCaptured : selectedImages.length === 0}
+        disabled={selectedImages.length === 0}
         onPress={() => void submitCompletion()}
       >
         Complete Task
       </Button>
-    </ScrollView>
+    </View>
   );
 }
