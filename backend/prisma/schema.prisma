@@ -52,6 +52,7 @@ model Staff {
   taskAssignments TaskAssignment[]
   attendances   Attendance[]
   completionAttempts TaskCompletionAttempt[]
+  areaSubmissions TaskAreaSubmission[]
   createdAt     DateTime       @default(now())
   updatedAt     DateTime       @updatedAt
 
@@ -125,6 +126,7 @@ model TaskInstance {
   proofImageUrls String[]      @default([])
   referenceImageUrl String?
   referenceImages TaskInstanceReferenceImage[]
+  areaSubmissions TaskAreaSubmission[]
   staff          Staff?        @relation(fields: [staffId], references: [id], onDelete: SetNull)
   staffId        Int?
   location       Location      @relation(fields: [locationId], references: [id])
@@ -186,6 +188,26 @@ model TaskCompletionAttempt {
   @@index([staffId])
 }
 
+model TaskAreaSubmission {
+  id               Int                        @id @default(autoincrement())
+  taskInstanceId   Int
+  referenceImageId Int
+  staffId          Int
+  photoUrl         String
+  scannedAt        DateTime
+  uploadedAt       DateTime?
+  status           SubmissionStatus           @default(PENDING)
+  createdAt        DateTime                   @default(now())
+
+  taskInstance     TaskInstance               @relation(fields: [taskInstanceId], references: [id], onDelete: Cascade)
+  referenceImage   TaskInstanceReferenceImage @relation(fields: [referenceImageId], references: [id], onDelete: Cascade)
+  staff            Staff                      @relation(fields: [staffId], references: [id])
+
+  @@unique([taskInstanceId, referenceImageId])
+  @@index([taskInstanceId])
+  @@index([staffId])
+}
+
 model TaskTemplateReferenceImage {
   id         Int          @id @default(autoincrement())
   template   TaskTemplate @relation(fields: [templateId], references: [id], onDelete: Cascade)
@@ -205,6 +227,7 @@ model TaskInstanceReferenceImage {
   name           String
   imageUrl       String
   sortOrder      Int          @default(0)
+  submissions    TaskAreaSubmission[]
 
   @@index([taskInstanceId])
 }
@@ -306,4 +329,10 @@ enum TaskStatus {
   NOT_COMPLETED_INTIME
   MISSED
   CANCELLED
+}
+
+enum SubmissionStatus {
+  PENDING
+  APPROVED
+  REJECTED_TIMEOUT
 }
