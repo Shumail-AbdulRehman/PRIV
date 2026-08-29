@@ -67,21 +67,33 @@ export function QrScannerScreen({ navigation, route }: Props) {
       setIsScanEnabled(false);
       setIsSubmitting(true);
 
-      await client.post(
-        `/task-instance/${route.params.taskId}/start`,
-        undefined,
-        {
-          params: {
-            qrToken: extractQrToken(rawValue),
-          },
-        }
-      );
+      const endpoint = route.params.referenceImageId
+        ? `/task-instance/${route.params.taskId}/area/${route.params.referenceImageId}/scan`
+        : `/task-instance/${route.params.taskId}/start`;
+
+      await client.post(endpoint, undefined, {
+        params: {
+          qrToken: extractQrToken(rawValue),
+        },
+      });
       await queryClient.invalidateQueries({ queryKey: staffQueryKeys.all });
 
-      Alert.alert("Task started", `${route.params.taskTitle} is now in progress.`, [
+      const successTitle = route.params.referenceImageId
+        ? "Area QR scanned"
+        : "Task started";
+      const successMessage = route.params.referenceImageId
+        ? "You have 90 seconds to capture the photo for this area."
+        : `${route.params.taskTitle} is now in progress.`;
+
+      Alert.alert(successTitle, successMessage, [
         {
           text: "OK",
-          onPress: () => navigation.goBack(),
+          onPress: () => {
+            if (route.params.onScanSuccess) {
+              route.params.onScanSuccess();
+            }
+            navigation.goBack();
+          },
         },
       ]);
     } catch (error: any) {
