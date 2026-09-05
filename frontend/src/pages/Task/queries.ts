@@ -1,11 +1,20 @@
-import { useMutation, useQueryClient } from "@tanstack/react-query";
+import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import {
   createTaskTemplate,
   editTaskTemplate,
   deleteTaskTemplate,
+  getAreaSubmissions,
   type CreateTaskTemplateFormData,
   type EditTaskTemplateInput,
 } from "./api";
+
+export const useGetAreaSubmissions = (taskId: number, enabled = true) => {
+  return useQuery({
+    queryKey: ["area-submissions", taskId],
+    queryFn: () => getAreaSubmissions(taskId),
+    enabled: enabled && !!taskId,
+  });
+};
 
 export const useCreateTaskTemplate = (autoInvalidate = true) => {
   const qc = useQueryClient();

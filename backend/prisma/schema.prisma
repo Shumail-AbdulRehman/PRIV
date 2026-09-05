@@ -189,15 +189,28 @@ model TaskCompletionAttempt {
 }
 
 model TaskAreaSubmission {
-  id               Int                        @id @default(autoincrement())
-  taskInstanceId   Int
-  referenceImageId Int
-  staffId          Int
-  photoUrl         String
-  scannedAt        DateTime
-  uploadedAt       DateTime?
-  status           SubmissionStatus           @default(PENDING)
-  createdAt        DateTime                   @default(now())
+  id                  Int                        @id @default(autoincrement())
+  taskInstanceId      Int
+  referenceImageId    Int
+  staffId             Int
+  photoUrl            String
+  scannedAt           DateTime
+  uploadedAt          DateTime?
+  status              SubmissionStatus           @default(PENDING)
+  similarityScore     Float?
+  areaMatchStatus     String?
+  areaMatchFlag       Boolean                  @default(false)
+  bestReferenceImageId Int?
+  colorScore          Float?
+  ssimScore           Float?
+  featureScore        Float?
+  matchThresholdUsed  Float?
+  blockThresholdUsed  Float?
+  colorWeightUsed     Float?
+  ssimWeightUsed      Float?
+  featureWeightUsed   Float?
+  attempts            Json                     @default("[]")
+  createdAt           DateTime                 @default(now())
 
   taskInstance     TaskInstance               @relation(fields: [taskInstanceId], references: [id], onDelete: Cascade)
   referenceImage   TaskInstanceReferenceImage @relation(fields: [referenceImageId], references: [id], onDelete: Cascade)
@@ -335,4 +348,6 @@ enum SubmissionStatus {
   PENDING
   APPROVED
   REJECTED_TIMEOUT
+  BLOCKED
+  CV_ERROR
 }

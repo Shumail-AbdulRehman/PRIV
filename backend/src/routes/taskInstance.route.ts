@@ -6,6 +6,7 @@ import {
   scanAreaQr,
   startTask,
   uploadAreaPhoto,
+  getAreaSubmissions,
 } from "../controllers/taskInstance.controller.js";
 import { Router } from "express";
 import { verifyJwt } from "../middlewares/auth.middleware.js";
@@ -25,6 +26,7 @@ router.post(
 );
 router.post("/:taskId/complete", verifyJwt, upload.array("images", 5), completeTask);
 router.get("/:taskId", verifyJwt, getTaskInstanceById);
+router.get("/:taskId/area-submissions", verifyJwt, getAreaSubmissions);
 router.get("/location/:locationId", verifyJwt, authorize("ADMIN", "MANAGER"), getTasknstancesOfLocation);
 
 

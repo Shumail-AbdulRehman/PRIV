@@ -1,7 +1,8 @@
 # CleanOps — Project Context & Handoff
 
-Consolidated project context. Updated: 2026-08-26 (supersedes and replaces
-`PROJECT_CONTEXT.txt` and `AGENT.md`, both deleted).
+Consolidated project context. Updated: 2026-09-03.
+Covers: architecture, data model, API, deploy, the QR + area-match
+verification stack, migration runbook, known issues, safe commands.
 
 ================================================================================
 
@@ -22,10 +23,12 @@ CleanOps is a multi-tenant cleaning / facility-operations management SaaS
   them to the best eligible staff, auto-reassign tasks not started within a
   grace period, and mark missed work.
 - Staff use the Expo mobile app: login -> geofenced selfie check-in/out ->
-  view today's tasks -> scan the location QR to start a task -> upload proof
-  photos to complete it.
+  view today's tasks -> scan the location QR to start a task -> per-area QR
+  re-scan + camera-only photo within a 90s server-enforced window -> each
+  photo is area-match verified (Diff All API) before the area counts as done.
 - Attendance and task outcomes roll up into manager dashboards (Today Status,
-  location stats, staff detail).
+  location stats, staff detail), including area-match pass/flag/block results
+  with staff-vs-reference photo comparison.
 
 ================================================================================
 
@@ -33,15 +36,18 @@ CleanOps is a multi-tenant cleaning / facility-operations management SaaS
 
 Monorepo at `/home/shumail/bk-Priv/PRIV`:
 
-- `backend/` — Node 22, Express 5, TypeScript ESM (NodeNext), Prisma 7 +
-  `@prisma/adapter-pg`, PostgreSQL (Supabase), Zod 4, node-cron, date-fns +
-  date-fns-tz, tz-lookup, Cloudinary, multer, bcrypt. API on port 8080.
+- `backend/` — Node 22 (nvm v24.14 also used locally), Express 5,
+  TypeScript ESM (NodeNext), Prisma 7 + `@prisma/adapter-pg`, PostgreSQL
+  (Supabase), Zod 4, node-cron, date-fns + date-fns-tz, tz-lookup, Cloudinary,
+  multer (memoryStorage), bcrypt, Vitest (34 tests). API on port 8080.
+  `npm run dev` = `tsc -b --watch` + `nodemon dist/app.js` — it runs the
+  COMPILED dist; restart if dist seems stale.
 - `frontend/` — React 19, Vite 8 (React Compiler enabled), Tailwind CSS 4,
   Redux Toolkit, TanStack Query, React Router 7, shadcn-style UI, Recharts,
   react-hook-form. Dev on 127.0.0.1:5173 with Vite proxy `/api -> :8080`.
 - `frontend-mobile/` — Expo 54, RN 0.81, React Navigation (native-stack),
   TanStack Query, axios, expo-camera / expo-location / expo-image-picker.
-  Staff-only app; also has a web export.
+  Staff-only app; also has a web export (`npm run build:web`).
 
 ================================================================================
 
@@ -101,8 +107,9 @@ Monorepo at `/home/shumail/bk-Priv/PRIV`:
   staff, else `findBestStaffForTask` scores candidates by shift coverage
   (overnight-normalized), attendance eligibility, and current workload;
   race-safe transactions; everything written to `AuditLog`.
-- Staff starts a task via QR token (`POST /api/task-instance/:id/start?qrToken=`)
-  and completes with >= 1 proof image (max 5, Cloudinary).
+- Staff starts a task via QR scan (`POST /api/task-instance/:id/start?qrToken=`)
+  and completes with >= 1 proof image (max 5, Cloudinary) — see sections
+  12-13 for the QR + area verification flow that now governs multi-area tasks.
 - Statuses: PENDING / IN_PROGRESS / COMPLETED / NOT_COMPLETED_INTIME /
   MISSED / CANCELLED. Assignment statuses tracked separately in
   `TaskAssignment` with `isCurrent` history.
@@ -137,7 +144,7 @@ Monorepo at `/home/shumail/bk-Priv/PRIV`:
 
 ================================================================================
 
-## 4. DATA MODEL (Prisma, backend/prisma/schema.prisma, 22 migrations)
+## 4. DATA MODEL (Prisma, backend/prisma/schema.prisma)
 
 - `Company` — tenant root.
 - `Manager` — unique email, role (ADMIN/MANAGER/STAFF), refreshToken,
@@ -155,9 +162,26 @@ Monorepo at `/home/shumail/bk-Priv/PRIV`:
   `@@unique([templateId,date])` + composite indexes. Legacy `referenceImageUrl`
   kept; new instances use `referenceImages TaskInstanceReferenceImage[]`.
 - `TaskTemplateReferenceImage` / `TaskInstanceReferenceImage` — name, imageUrl,
-  sortOrder, cascade delete with parent.
+  sortOrder, cascade delete with parent. "Area" == one reference image row;
+  multiple rows with the SAME name are treated as camera angles of one area.
+- `TaskAreaSubmission` (2026-09) — one row per (taskInstanceId,
+  referenceImageId), `@@unique` enforced. Tracks the QR-scan/photo/verify
+  lifecycle per area:
+    scannedAt, uploadedAt, photoUrl,
+    status SubmissionStatus = PENDING | APPROVED | REJECTED_TIMEOUT |
+      BLOCKED | CV_ERROR,
+    similarityScore, areaMatchStatus ("passed"|"flagged"|"blocked"),
+    areaMatchFlag, bestReferenceImageId,
+    colorScore/ssimScore/featureScore (NULL under Diff All — single score),
+    matchThresholdUsed/blockThresholdUsed/colorWeightUsed/ssimWeightUsed/
+      featureWeightUsed (audit of the exact config at decision time),
+    attempts Json (append-only audit log of EVERY photo attempt, including
+      blocked retries and cv_error).
 - `TaskAssignment` — per-instance assignment history (status, reason,
   isCurrent, lifecycle timestamps, Cascade delete).
+- `TaskCompletionAttempt` — legacy Gemini-era verification attempts
+  (locationMatchScore/cleanlinessMatchScore/rawResponse); still written by
+  the legacy single-image completion path.
 - `Attendance` — unique [staffId,date], expectedStart/End, check-in/out
   times + selfie URLs, late fields.
 - `AuditLog` — companyId?, actorType/actorId, entityType/entityId, action,
@@ -165,11 +189,12 @@ Monorepo at `/home/shumail/bk-Priv/PRIV`:
 - `ManagerLocation` — composite PK [managerId,locationId],
   `locationId @unique` (one manager per location).
 
-Migration history tells the evolution: init -> indexes -> missed checkout ->
-QR -> proof images -> radius -> query-optimization indexes -> assignments +
-audit logs -> staff phone -> billing tables REMOVED -> location timezone ->
-unique manager-location -> admin role + manager locations -> reference-image
-verification -> multi-area reference-image verification.
+MIGRATION HISTORY (2026-09-02): squashed to a SINGLE baseline
+`20260902120000_baseline` (full current schema). The old 25-migration chain
+was unrecoverable (past `db push` edits never had migration files, so the
+chain could not replay even on a fresh DB — `20260812150000` referenced a
+table no earlier migration created). `_prisma_migrations` was cleaned and the
+baseline marked applied. See section 8 for the runbook.
 
 ================================================================================
 
@@ -184,9 +209,16 @@ verification -> multi-area reference-image verification.
 - `location`: create/edit/deactivate/inactive/restore (ADMIN only);
   GET /, GET /:id, GET /:id/stats (ADMIN,MANAGER).
 - `task-template`: CRUD + GET /location/:locationId (ADMIN,MANAGER).
-- `task-instance`: GET /staff/:staffId/today, POST /:taskId/start?qrToken=,
-  POST /:taskId/complete (multer, max 5 images), GET /:taskId,
-  GET /location/:locationId.
+- `task-instance`:
+  GET /staff/:staffId/today,
+  POST /:taskId/start?qrToken=,
+  POST /:taskId/area/:referenceImageId/scan (per-area QR re-scan),
+  POST /:taskId/area/:referenceImageId/upload (multer single "photo";
+  runs area-match verification, returns verdict),
+  GET /:taskId/area-submissions (manager/staff: full per-area photos,
+  scores, match status, attempt history),
+  POST /:taskId/complete (multer, max 5 images — legacy path),
+  GET /:taskId, GET /location/:locationId.
 - `assignment`: PATCH /staff/:staffId/location/:locationId,
   PATCH /task-template/:templateId/staff/:staffId.
 - `attendance`: PATCH /staff/:id/shift, POST /check-in, POST /check-out
@@ -207,7 +239,7 @@ backend/src/validations/.
   refetchOnFocus/Reconnect, retry 1; per-query tuning on dashboard/
   attendance/today-status/staff; hover-prefetch of staff details).
 - Routes: / (Landing, public), /features (public), /signup, /login
-  (GuestRoute + now share PublicNavbar), /dashboard, /today-status,
+  (GuestRoute + share PublicNavbar), /dashboard, /today-status,
   /locations, /locations/:id, /staff, /staff/:id, /attendance
   (ProtectedRoute), /managers (RequireRole ADMIN). NO 404 catch-all route.
 - axios client (src/api/client.ts): baseURL `VITE_API_BASE_URL` (default
@@ -215,11 +247,15 @@ backend/src/validations/.
   message "Access Token Expired".
 - Per-feature convention: `api.ts` + `queries.ts` + page + components.
 - UI: shadcn-style primitives, Tailwind 4 CSS-first theme, Geist font,
-  oklch teal palette now aligned with the mobile app primary
+  oklch teal palette aligned with the mobile app primary
   (oklch(0.52 0.13 190)); dark variant defined but no toggle.
-- PublicLayout + PublicNavbar (`frontend/src/components/layout/`) wrap the
-  landing and features pages; AuthShell renders PublicNavbar so auth pages
-  can navigate back to public pages.
+- AREA-MATCH PANEL (2026-09): LocationDetailPage -> "Task Instances" tab
+  has an "Areas" expandable column per instance rendering
+  `frontend/src/pages/Task/components/AreaSubmissionsPanel.tsx`
+  (staff-vs-reference thumbnails, "Area Match: Passed / Needs Review /
+  Failed" badge, similarity %, timestamp, per-attempt history). Data via
+  `getAreaSubmissions(taskId)` in frontend/src/pages/Task/api.ts +
+  `useGetAreaSubmissions` in queries.ts.
 
 ## 7. MOBILE APP NOTES
 
@@ -229,25 +265,35 @@ backend/src/validations/.
 - Session (user + both tokens) persisted as JSON in AsyncStorage key
   `@cleanops-staff/auth` (NOT SecureStore — known security gap).
 - axios bridge pattern (`configureApiAuth`); refresh on 401 string match
-  "Access Token Expired"; multipart uploads use raw fetch (documented
-  axios-RN workaround).
+  "Access Token Expired"; multipart uploads use raw fetch with a 20s
+  AbortController timeout (`uploadFormData` in src/api/client.ts).
 - Geofence enforced SERVER-side; app just sends lat/long from
-  expo-location (no client-side radius check). No push notifications.
-- API base: `EXPO_PUBLIC_API_BASE_URL` (default Android emulator
-  `http://10.0.2.2:8080/api`).
+  expo-location. No push notifications.
+- API base: `EXPO_PUBLIC_API_BASE_URL`. As of 2026-09-03 it points at the
+  LAN IP `http://192.168.100.37:8080/api` (in frontend-mobile/.env) — the
+  IP changes per network; update it when testing on a new Wi-Fi. Phone must
+  be on the same network; firewall may need port 8080 open.
 - No EAS config (no eas.json); app.json allows cleartext HTTP on both
   platforms.
 - NativeWind + Reanimated v4 setup: `nativewind` pinned to exact `4.1.23`,
   `react-native-reanimated ~4.1.x`, `react-native-worklets ~0.5.x`.
-  `babel-preset-expo` and `react-refresh` are explicit dev dependencies
-  to fix Metro/Babel module-resolution quirks.
-- Tailwind animation classes (`animate-pulse`, `animate-spin`) are NOT used
-  directly on plain `View` components; the skeleton/spinner use React Native's
-  built-in `Animated` API to avoid Reanimated style-injection errors.
-- Expo Go reliability: Reanimated v4 / Worklets require the Expo Go binary's
-  native modules to match the JS package versions exactly. Version mismatches
-  cause `installTurboModule` / `makeMutable` crashes. Recommended fallback is
-  an Expo development build (`expo-dev-client`).
+  `babel-preset-expo` and `react-refresh` are explicit dev dependencies.
+- Tailwind animation classes are NOT used on plain Views; skeleton/spinner
+  use React Native's built-in `Animated` API.
+- QR SCANNER (2026-09-03, frontend-mobile/src/screens/QrScannerScreen.tsx):
+  the scan-frame area is fully transparent and only the screen OUTSIDE the
+  frame is dimmed (a full-screen dim overlay previously made the camera
+  look dark); torch toggle button; barcodeScannerSettings is a module-level
+  constant and the scan handler is a stable useCallback with a ref guard
+  (prop changes caused dark-preview reconfigurations on Android); camera
+  mounts 350ms after focus (mid-animation mounts also caused dark previews)
+  and a 4s watchdog force-remounts the surface if onCameraReady never fires.
+- CompleteTaskScreen is a per-area stepper (scan QR -> camera-only capture
+  -> upload). On areaMatchStatus "blocked" it shows "Area doesn't match /
+  photograph the correct area and try again" and returns to the camera step
+  for the SAME area scan (unlimited retries while the 90s window is valid);
+  HTTP 503 shows "Verification unavailable"; "flagged" is invisible to
+  staff. Camera-only via ImagePicker.launchCameraAsync (no gallery).
 
 ================================================================================
 
@@ -256,9 +302,10 @@ backend/src/validations/.
 TWO parallel deploy paths coexist (unreconciled):
 
 1. Manual / Docker Hub: root `docker-compose.yml` pulls
-   `shumail47891/fyp:{backend,frontend}`, only backend+frontend services,
-   external DATABASE_URL, PUBLIC_HOST=161.118.180.138 (Oracle VM),
-   frontend on :5173, COOKIE_SECURE=false.
+   `shumail47891/fyp:{backend,frontend}`, backend+frontend services only
+   (the temporary `cv-service` was removed 2026-09-03), external
+   DATABASE_URL, PUBLIC_HOST=161.118.180.138 (Oracle VM), frontend on
+   :5173, COOKIE_SECURE=false.
 2. CI/CD / GHCR: `.github/workflows/` — ci.yml (build/typecheck all apps +
    image builds), publish-images.yml (push cleanops-* images to GHCR),
    deploy-compose.yml (SCP `docker-compose.deploy.yml` + env to host,
@@ -267,13 +314,27 @@ TWO parallel deploy paths coexist (unreconciled):
    optional mobile-web service (:8081).
 
 - Backend Dockerfile: multi-stage node:22; CMD runs
-  `prisma migrate deploy && node dist/app.js`.
+  `prisma migrate deploy && node dist/app.js` (the squashed baseline made
+  migrate deploy safe again: one migration, already marked applied).
 - Frontend/mobile-web: nginx SPA + `location /api/ { proxy_pass
   http://backend:8080/api/; }`.
-- MIGRATION RUNBOOK: run `npx prisma migrate deploy` with DATABASE_URL
-  overridden to the DIRECT connection URL (db.[project-ref].supabase.co:5432).
-  The transaction pooler (6543) hangs and the session pooler (5432) may also
-  fail. App runtime keeps using the transaction pooler.
+- MIGRATION RUNBOOK (updated 2026-09-02, TESTED):
+  - The direct host `db.<ref>.supabase.co:5432` is IPv6-ONLY and this
+    machine has no IPv6 route — DO NOT use it from here (P1001).
+  - The transaction pooler (6543, ?pgbouncer=true) is for APP RUNTIME only;
+    it rejects Prisma DDL ("prepared statement s1 already exists").
+  - For ALL Prisma CLI commands (migrate dev/deploy/resolve, db push) use
+    the SESSION-MODE pooler: same host
+    `aws-1-ap-southeast-2.pooler.supabase.com` port 5432, same user
+    `postgres.<ref>`, no pgbouncer param, `?sslmode=require`.
+  - `npx prisma migrate dev` now works (single baseline replays cleanly on
+    the shadow DB). `migrate status` reports "Database schema is up to
+    date!".
+  - Note recorded in backend/.env.example.
+- Area-match verification is a hosted API call (Diff All) — the backend
+  needs `DF_ALL` in its env (Heroku config var / compose env). If missing,
+  uploads return 503 "verification unavailable" (by design, never a false
+  block).
 - Supabase free tier auto-pauses after ~7 days idle (past P1001/ETIMEDOUT
   cause) — unpause from dashboard.
 - DuckDNS (cleanops.duckdns.org) is configured OUTSIDE the repo.
@@ -291,18 +352,22 @@ TWO parallel deploy paths coexist (unreconciled):
 
 ================================================================================
 
-## 9. GIT STATE (as of 2026-08-17)
+## 9. GIT STATE (as of 2026-09-03)
 
 - Single branch `main`, single remote.
-- Local `main` is 8 commits AHEAD of origin/main (unpushed: role plumbing,
-  company admin, per-location timezone, managers UI, timezone scheduling UI,
-  docs). Remote main has moved independently in the past — do NOT pull/merge
-  remote main unless explicitly asked.
-- Working tree clean except untracked `.agents/` and `skills-lock.json`.
+- All recent feature work (QR verification, area-match, Diff All swap,
+  migration squash, scanner fixes) is committed on local main; pushing has
+  historically been manual — CHECK `git status` / `git log origin/main..main`
+  before assuming remote matches.
+- The old 25 migration folders were deleted from the working tree as part
+  of the baseline squash — the deletion shows up in git and is intentional
+  (recoverable from git history if ever needed).
+- Do NOT pull/merge remote main unless explicitly asked (remote has moved
+  independently in the past).
 
 ================================================================================
 
-## 10. KNOWN ISSUES / TECH DEBT (from deep analysis)
+## 10. KNOWN ISSUES / TECH DEBT
 
 Security:
 - No rate limiting anywhere (login endpoints brute-forceable).
@@ -319,116 +384,138 @@ Security:
 Correctness:
 - Time-basis split: assignment.controller, attendance.controller
   (assignShiftToStaff), and Zod shift schemas use UTC clock minutes while
-  taskTemplate/staff-edit/assignment-service use location-tz minutes — same
-  validation can pass in one endpoint and fail in another.
+  taskTemplate/staff-edit/assignment-service use location-tz minutes.
 - Grace-period drift: 5 min hardcoded in startTask/getTodayStatus vs
   env-configurable 10 min in the reassignment cron.
-- getTodaysTasksForStaff lacks manager location scoping (any manager can
-  read any same-company staff's tasks).
-- signupManager creates company + admin non-transactionally (orphan
-  company possible).
-- editLocationSchema doesn't actually make fields optional — PATCH needs a
-  full payload.
+- getTodaysTasksForStaff lacks manager location scoping.
+- signupManager creates company + admin non-transactionally.
+- editLocationSchema doesn't actually make fields optional.
 - ensureAssignmentsForToday scans ALL open instances, not just today's.
 - Mobile date logic hardcoded to Asia/Karachi (contradicts per-location tz).
-- Frontend: no 404; createLocation posts a `{data}`-wrapped payload;
-  query-key fragmentation (["getLocations"] vs ["location"] vs
-  ["dashboard-locations"]) leaves some lists stale after mutations.
+- Frontend: no 404; query-key fragmentation leaves some lists stale.
 - getMyAttendance checks role === "MANAGER" but not "ADMIN".
 
 Housekeeping:
 - Daily task scheduler polls every 90s (should be per-location scheduling).
-- No tests anywhere (verification = tsc + manual smoke).
-- Dead code: frontend common/ form components, several unused exports,
-  App.css; mobile canCheckInNow/formatShortDateTime; backend unused vars.
-- Data cleanup pending: test manager "tetsing" (id 9) has ZERO locations —
-  reassign or delete.
+- Dist is not cleaned on build — stale files (e.g. old cvService.client.js)
+  accumulate in backend/dist; harmless but confusing. Delete dist/ before
+  builds when diagnosing weird behavior.
+- Dead code: frontend common/ form components; legacy Gemini verification
+  provider (imageVerification.service + gemini/openai providers) still used
+  ONLY by the legacy single-image completeTask path.
 - Manager-created staff with "No location" immediately disappear from that
   manager's Staff tab (location-less staff are admin-visible only).
 - No EAS config; EXPO_NO_DEPENDENCY_VALIDATION=1 masks dep warnings.
-- No root README; mobile README has stale paths (/home/shumail/FYP/...).
+- Root README missing; mobile README has stale paths (/home/shumail/FYP/...).
 
 ================================================================================
 
 ## 11. SAFE COMMANDS
 
-Local backend:   `cd backend && npm run dev`
+Local backend:   `cd backend && npm run dev`   (compiled dist; restart if stale)
 Local frontend:  `cd frontend && npm run dev`   (open http://127.0.0.1:5173)
+Backend tests:   `cd backend && npm run test`   (Vitest, 34 tests)
 Backend build:   `cd backend && npm run build`
 Frontend build:  `cd frontend && npm run build`
-Mobile:          `cd frontend-mobile && npm start` (LAN) / `start:local`
-Typecheck:       `npx tsc --noEmit` in backend/ and frontend/;
-                 `npm run typecheck` in frontend-mobile/
-Prisma migrate:  `cd backend && npx prisma migrate dev --name <name>`
-                 (ONLY if explicitly approved). For Supabase, the transaction
-                 pooler (port 6543) hangs and the session pooler (port 5432)
-                 may also fail; the working approach is to use the direct
-                 connection URL (db.[project-ref].supabase.co:5432) for
-                 `migrate deploy`. App runtime keeps using the transaction
-                 pooler.
+Mobile:          `cd frontend-mobile && npx expo start --clear` (LAN)
+Mobile checks:   `cd frontend-mobile && npm run typecheck && npm run build:web`
+Typecheck:       `npx tsc --noEmit` in backend/ and frontend/
+Prisma CLI:      session-mode pooler URL (port 5432, see section 8 runbook):
+                 `cd backend && DATABASE_URL="postgresql://postgres.<ref>:<pw>@aws-1-ap-southeast-2.pooler.supabase.com:5432/postgres?sslmode=require" npx prisma migrate dev --name <name>`
+                 (run ONLY when explicitly approved; migrate status /
+                 migrate resolve are read-only/bookkeeping and safe)
 
-## 12. FEATURE (2026-08-18): AI Reference-Image Verification (single reference)
+================================================================================
 
-- Legacy single-reference tasks use `TaskTemplate.referenceImageUrl` and
-  `TaskInstance.referenceImageUrl`.
-- On task completion, the first staff proof image is compared with the single
-  reference image. Both `location_match` and `cleanliness_match` must be >= the
-  env thresholds (default 70). Legacy tasks without a reference image skip
-  verification and complete as before (audit-logged).
-- Provider-abstracted in `backend/src/services/verification/` (OpenAI / Gemini).
-- Attempts stored in `TaskCompletionAttempt` with scores/reasoning/raw response.
+## 12. FEATURE (2026-08-29): QR + TIME-WINDOW AREA VERIFICATION (hard gates)
 
-## 13. NEW FEATURE (2026-08-18): Multi-Area Reference-Image Verification
+Implements the deterministic anti-fraud gates. Backend:
+- `POST /:taskId/start?qrToken=` — validates QR belongs to the task's
+  template, task assigned to this staff, not completed/expired; records
+  startedAt.
+- `POST /:taskId/area/:referenceImageId/scan` — validates same task/QR,
+  upserts the area's TaskAreaSubmission (scannedAt = server clock), starts
+  the per-area window.
+- `POST /:taskId/area/:referenceImageId/upload` — validates the window
+  (AREA_UPLOAD_WINDOW_SECONDS = 90, `areaSubmission.service.ts`), then
+  Cloudinary upload, then area-match verification (section 13), then
+  APPROVED/BLOCKED/CV_ERROR.
+- `completeTask` multi-area branch: task completes only when EVERY area has
+  an APPROVED submission; proofImageUrls assembled from approved area
+  photos. QR and time-window checks are server-side only (client timers are
+  advisory).
+- Retry semantics (`canAreaBeUploaded`): APPROVED -> locked; REJECTED_TIMEOUT
+  -> re-scan QR to retry; BLOCKED / CV_ERROR -> re-upload directly on the
+  same scan while the window is valid. Tests in
+  backend/src/services/areaSubmission.service.test.ts.
+- Mobile: per-area stepper in CompleteTaskScreen + QrScannerScreen
+  (referenceImageId param routes to the area-scan endpoint; onScanSuccess
+  callback advances the stepper without refetching).
 
-- Task templates now support multiple named reference areas
-  (`TaskTemplateReferenceImage`), e.g. "Sink", "Toilet 1", "Mirror". Each
-  area has a name, image URL, and sort order.
-- Daily/once crons snapshot template reference images onto each generated
-  `TaskInstance` via `TaskInstanceReferenceImage` (idempotent, guarded against
-  re-runs).
-- Staff-facing endpoints expose only area names/sortOrder; managers see full
-  image URLs.
-- On completion, the staff must upload one photo per reference area, in the
-  same order as the areas. The backend verifies each area independently:
-  location match then cleanliness match, both against the env thresholds.
-  If any area fails, the entire submission is rejected and per-area attempt
-  rows are recorded under a shared `submissionId`.
-- Legacy single-reference tasks continue to use the old verification path.
-- Mobile CompleteTaskScreen uses camera-only capture (`launchCameraAsync`) for
-  multi-area tasks to prevent gallery cheating; legacy no-area tasks keep the
-  gallery picker.
-- New env var: `MAX_REFERENCE_IMAGES` (default 10).
+## 13. FEATURE (2026-09-03): AREA-MATCH VERIFICATION (visual layer)
 
-## 14. RECENT UI/UX CHANGES (2026-08-26)
+Second layer, after QR + time-window pass. Answers ONLY "does the staff
+photo show the expected area?" — cleanliness is a separate, still-unbuilt
+pipeline. Provider history: classical-CV Python sidecar (built 09-02,
+ORB/SSIM/histogram) -> REPLACED 09-03 by the hosted Diff All API; the
+`cv-service/` directory was deleted.
 
-### Location accuracy / geofence fix
-- Web location creation (`frontend/src/pages/Location/LocationsPage.tsx`)
-  now forces a fresh GPS reading (`maximumAge: 0`), displays captured
-  latitude/longitude/accuracy, and warns when accuracy is worse than 50m.
-- Backend validation (`backend/src/validations/location.validation.ts`)
-  now ensures latitude/longitude parse to valid numbers in range.
-- Mobile check-in (`frontend-mobile/src/screens/HomeScreen.tsx`) warns
-  staff when their GPS accuracy is worse than 50m and offers a retry.
-- This addresses false "you are X meters away" rejections caused by stale
-  or low-quality browser geolocation coordinates being stored as the
-  location pin.
+CURRENT PROVIDER (backend/src/services/verification/diffAll.client.ts):
+- `POST https://diff-all.com/api/v1/compare`, header `X-API-Key: $DF_ALL`,
+  multipart `file1` (staff photo, straight from the multer memory buffer),
+  `file2` (reference image downloaded from Cloudinary), `mode=feature`
+  (rotation/lighting tolerant). One retry on network/5xx, 15s timeout.
+- Response `{status, similarity (0-100), type, verdict}` -> best score
+  across ALL references of the area (same-name reference images = angles);
+  `similarityScore = similarity/100`.
+- Classification (env-configurable, percent scale):
+  DIFFALL_MATCH_THRESHOLD (default 50), DIFFALL_BLOCK_THRESHOLD (default 28):
+  >= match -> passed (flag false); >= block -> flagged (manager review,
+  staff not informed); < block -> blocked (area NOT completed, staff sees
+  "Area doesn't match", unlimited retries on the same scan).
+  NOTE (2026-09-03 calibration): owner-set bars. mode=feature scores genuine
+  same-scene captures 22.4-54.4 and clearly-wrong areas 6.3-13.2; genuine
+  photos below 28 (hall 23.1, table 22.4) block, and the <28 zone cannot
+  separate genuine re-framed from wrong-but-similar (~22.5) photos. See the
+  regression test in diffAll.client.test.ts for measured data points.
+- CV outage / missing key / all references undownloadable -> 503 +
+  TaskAreaSubmission.status = CV_ERROR + attempt logged. A service failure
+  is NEVER converted into a blocked verdict.
+- Component score columns (color/ssim/feature) and weight columns stay in
+  the schema but are stored NULL (Diff All returns a single score);
+  similarityScore + thresholds used are always recorded; every attempt
+  appends to `attempts` (audit for future threshold calibration).
+- Pure classification logic extracted as `classifySimilarity` with vitest
+  coverage (diffAll.client.test.ts).
 
-### Public website redesign
-- Landing page redesigned with cleaner hero, feature cards, manager-view
-  mockup, workflow timeline, and teal CTA section.
-- New `/features` page with detailed capability sections and included-items
-  summary.
-- Public navbar shared across landing, features, login, and signup pages.
-- Auth pages now expose the navbar so users can return to public pages.
-- Full record of mobile build/runtime fixes is in
-  `frontend-mobile-errors-and-fixes.md`.
+MANAGER VISIBILITY: GET /:taskId/area-submissions + the "Areas" expandable
+panel in the web dashboard (see section 6).
+
+MOBILE UX: blocked -> exact spec message + back to camera step (same area,
+no re-scan); 503 -> "Verification unavailable"; flagged invisible.
+
+## 14. SUPERSEDED: earlier verification implementations (history only)
+
+- 2026-08-18 single-reference AI verification (Gemini/OpenAI provider,
+  location + cleanliness scores vs LOCATION_MATCH_THRESHOLD /
+  CLEANLINESS_THRESHOLD, TaskCompletionAttempt rows) — still active ONLY
+  for legacy single-image tasks (completeTask legacy branch). Multi-area
+  tasks no longer use it.
+- 2026-08-18 multi-area reference verification — superseded by section 12's
+  QR + time-window flow (the old "upload all area photos on /complete with
+  AI per-area check" flow was removed).
+- 2026-09-02 classical-CV sidecar (FastAPI + ORB/RANSAC/SSIM/histogram,
+  weights 15/25/60, thresholds 0.75/0.55) — replaced by Diff All 09-03.
+
+================================================================================
 
 ## 15. HANDOFF PRIORITY
 
 1. Read this file.
 2. `git status` / `git log --oneline -10` — check branch and unpushed work.
 3. Decide task type: local runtime / Oracle deploy / frontend UX / backend
-   performance / security hardening / AI verification / multi-area
-   reference-image verification.
-4. For DB work, check `backend/.env` and the migration runbook above.
+   performance / security hardening / QR verification / area-match
+   verification (Diff All) / cleanliness pipeline (NOT built yet).
+4. For DB work, read the migration runbook in section 8 FIRST (pooler
+   ports changed everything that was written before 2026-09-02).
 5. Do not pull remote main; do not run migrations without explicit approval.

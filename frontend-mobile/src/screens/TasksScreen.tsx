@@ -65,6 +65,7 @@ export function TasksScreen() {
             id: ref.id,
             name: ref.name,
             sortOrder: ref.sortOrder ?? 0,
+            imageUrl: ref.imageUrl,
           }))
         : undefined,
     });

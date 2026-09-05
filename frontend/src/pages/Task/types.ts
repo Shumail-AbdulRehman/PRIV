@@ -29,3 +29,33 @@ export type EditTaskInput = {
   effectiveDate?: Date;
   recurringEndDate?: Date;
 };
+
+export type AreaMatchStatus = "passed" | "flagged" | "blocked";
+
+export type AreaSubmissionAttempt = {
+  photoUrl: string;
+  areaMatchStatus: AreaMatchStatus | null;
+  similarityScore: number | null;
+  at: string;
+};
+
+export type AreaSubmission = {
+  id: number;
+  taskInstanceId: number;
+  referenceImageId: number;
+  staffId: number;
+  photoUrl: string | null;
+  scannedAt: string | null;
+  uploadedAt: string | null;
+  status: "APPROVED" | "BLOCKED" | "CV_ERROR" | "PENDING" | "REJECTED_TIMEOUT";
+  similarityScore: number | null;
+  areaMatchStatus: AreaMatchStatus | null;
+  areaMatchFlag: boolean;
+  bestReferenceImageId: number | null;
+  colorScore: number | null;
+  ssimScore: number | null;
+  featureScore: number | null;
+  attempts: AreaSubmissionAttempt[];
+  referenceImage: { id: number; name: string; imageUrl: string } | null;
+  staff: { id: number; name: string } | null;
+};

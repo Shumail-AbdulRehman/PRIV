@@ -10,6 +10,7 @@ import StatusBadge from "@/components/common/StatusBadge";
 import LoadingSpinner from "@/components/common/LoadingSpinner";
 import { useCreateTaskTemplate, useDeleteTaskTemplate, useEditTaskTemplate } from "@/pages/Task/queries";
 import { useAssignStaffToTemplate } from "@/pages/Assignment/queries";
+import AreaSubmissionsPanel from "@/pages/Task/components/AreaSubmissionsPanel";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
@@ -38,6 +39,8 @@ import {
   Pencil,
   MoreVertical,
   Plus,
+  ChevronDown,
+  ChevronUp,
 } from "lucide-react";
 
 const toDateStr = (d: Date) =>
@@ -977,6 +980,7 @@ const LocationDetailPage: React.FC = () => {
   const navigate = useNavigate();
   const [activeFilter, setActiveFilter] = useState<FilterKey>("all");
   const [activeTab, setActiveTab] = useState<Tab>("staff");
+  const [expandedInstanceId, setExpandedInstanceId] = useState<number | null>(null);
 
   const currentFilter = FILTERS.find((f) => f.key === activeFilter)!;
   const filter = currentFilter.toFilter();
@@ -1173,6 +1177,7 @@ const LocationDetailPage: React.FC = () => {
                 <th className="px-5 py-3 text-left text-xs font-semibold uppercase tracking-wide text-gray-500">Late</th>
                 <th className="px-5 py-3 text-left text-xs font-semibold uppercase tracking-wide text-gray-500">Proof</th>
                 <th className="px-5 py-3 text-left text-xs font-semibold uppercase tracking-wide text-gray-500">Verification</th>
+                <th className="px-5 py-3 text-left text-xs font-semibold uppercase tracking-wide text-gray-500">Areas</th>
               </tr>
             </thead>
             <tbody className="divide-y divide-gray-100">
@@ -1182,6 +1187,7 @@ const LocationDetailPage: React.FC = () => {
                   const reassignmentCount = Math.max((ti.assignments?.length ?? 0) - 1, 0);
 
                   return (
+                    <>
                     <tr key={ti.id} className="transition-colors hover:bg-gray-100/50">
                       <td className="px-5 py-3.5 font-medium text-gray-900">{ti.title}</td>
                       <td className="px-5 py-3.5 text-gray-600">
@@ -1234,12 +1240,35 @@ const LocationDetailPage: React.FC = () => {
                       <td className="px-5 py-3.5">
                         <VerificationCell attempts={getLatestAttempts(ti)} />
                       </td>
+                      <td className="px-5 py-3.5">
+                        <button
+                          onClick={() =>
+                            setExpandedInstanceId(expandedInstanceId === ti.id ? null : ti.id)
+                          }
+                          className="inline-flex items-center gap-1 rounded-md border border-gray-200 px-2 py-1 text-xs font-medium text-gray-600 transition-colors hover:bg-gray-100 hover:text-gray-900"
+                        >
+                          {expandedInstanceId === ti.id ? (
+                            <ChevronUp className="h-3.5 w-3.5" />
+                          ) : (
+                            <ChevronDown className="h-3.5 w-3.5" />
+                          )}
+                          Areas
+                        </button>
+                      </td>
                     </tr>
+                    {expandedInstanceId === ti.id && (
+                      <tr>
+                        <td colSpan={9} className="bg-gray-50/50 px-5 py-4">
+                          <AreaSubmissionsPanel taskInstanceId={ti.id} />
+                        </td>
+                      </tr>
+                    )}
+                    </>
                   );
                 })
               ) : (
                 <tr>
-                  <td colSpan={8} className="px-5 py-8 text-center text-sm text-gray-400">
+                  <td colSpan={9} className="px-5 py-8 text-center text-sm text-gray-400">
                     No task instances for this period.
                   </td>
                 </tr>

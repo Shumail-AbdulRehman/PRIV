@@ -57,6 +57,42 @@ describe("canAreaBeUploaded", () => {
     });
     expect(result.ok).toBe(true);
   });
+
+  it("allows retry when previous photo was blocked by area-match", () => {
+    const result = canAreaBeUploaded({
+      scannedAt: new Date(),
+      uploadedAt: new Date(),
+      status: "BLOCKED",
+    });
+    expect(result.ok).toBe(true);
+  });
+
+  it("allows retry when previous attempt failed with a CV service error", () => {
+    const result = canAreaBeUploaded({
+      scannedAt: new Date(),
+      uploadedAt: new Date(),
+      status: "CV_ERROR",
+    });
+    expect(result.ok).toBe(true);
+  });
+
+  it("rejects retry when previous photo was approved", () => {
+    const result = canAreaBeUploaded({
+      scannedAt: new Date(),
+      uploadedAt: new Date(),
+      status: "APPROVED",
+    });
+    expect(result.ok).toBe(false);
+  });
+
+  it("rejects upload for an unknown non-retryable status with a stored photo", () => {
+    const result = canAreaBeUploaded({
+      scannedAt: new Date(),
+      uploadedAt: new Date(),
+      status: "PENDING",
+    });
+    expect(result.ok).toBe(false);
+  });
 });
 
 describe("isTaskCompletionEligible", () => {

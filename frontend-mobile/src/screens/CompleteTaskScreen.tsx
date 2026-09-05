@@ -11,12 +11,12 @@ import { Card, CardContent } from "../components/ui/card";
 import { Text } from "../components/ui/text";
 import { Icon } from "../components/ui/icon";
 import { createImagePart } from "../utils/upload";
-import type { RootStackParamList } from "../types";
+import type { AreaUploadResult, RootStackParamList } from "../types";
 
 type Props = NativeStackScreenProps<RootStackParamList, "CompleteTask">;
 
 type AreaState = {
-  status: "pending" | "scanned" | "uploaded" | "timeout";
+  status: "pending" | "scanned" | "uploading" | "uploaded" | "timeout";
   photoUrl?: string;
 };
 
@@ -84,6 +84,11 @@ export function CompleteTaskScreen({ navigation, route }: Props) {
     areaId: number,
     asset: ImagePicker.ImagePickerAsset
   ) => {
+    setAreaStates((prev) => ({
+      ...prev,
+      [areaId]: { status: "uploading" },
+    }));
+
     try {
       const formData = new FormData();
       formData.append(
@@ -96,12 +101,24 @@ export function CompleteTaskScreen({ navigation, route }: Props) {
       );
 
       const response = await uploadFormData<{
-        data: { referenceImageId: number; photoUrl: string };
+        data: AreaUploadResult;
       }>(
         `/task-instance/${taskId}/area/${areaId}/upload`,
         formData,
         AREA_UPLOAD_TIMEOUT_MS
       );
+
+      if (response.data.areaMatchStatus === "blocked") {
+        setAreaStates((prev) => ({
+          ...prev,
+          [areaId]: { status: "scanned" },
+        }));
+        Alert.alert(
+          "Area doesn't match",
+          "This photo does not appear to match the expected area. Please make sure you are photographing the correct area and try again."
+        );
+        return;
+      }
 
       setAreaStates((prev) => ({
         ...prev,
@@ -116,6 +133,18 @@ export function CompleteTaskScreen({ navigation, route }: Props) {
         return next;
       });
     } catch (error: any) {
+      if (error?.response?.status === 503) {
+        setAreaStates((prev) => ({
+          ...prev,
+          [areaId]: { status: "scanned" },
+        }));
+        Alert.alert(
+          "Verification unavailable",
+          "Photo verification is temporarily unavailable. Please try again."
+        );
+        return;
+      }
+
       const message = error?.response?.data?.message ?? "Upload failed";
       const isTimeout = message.toLowerCase().includes("time exceeded");
 
@@ -123,6 +152,11 @@ export function CompleteTaskScreen({ navigation, route }: Props) {
         setAreaStates((prev) => ({
           ...prev,
           [areaId]: { status: "timeout" },
+        }));
+      } else {
+        setAreaStates((prev) => ({
+          ...prev,
+          [areaId]: { status: "scanned" },
         }));
       }
 
@@ -207,8 +241,30 @@ export function CompleteTaskScreen({ navigation, route }: Props) {
                     ) : null}
                   </View>
 
+                  {area.imageUrl ? (
+                    <View className="mt-3 flex-row items-center gap-3 rounded-lg bg-secondary p-2">
+                      <Image
+                        source={{ uri: area.imageUrl }}
+                        className="h-16 w-16 rounded-md bg-muted"
+                        resizeMode="cover"
+                      />
+                      <View className="flex-1">
+                        <Text className="text-xs font-semibold text-secondary-foreground">
+                          Reference photo
+                        </Text>
+                        <Text className="text-xs text-muted-foreground">
+                          Match this angle when photographing the area.
+                        </Text>
+                      </View>
+                    </View>
+                  ) : null}
+
                   {state?.status === "uploaded" ? (
                     <Text className="mt-2 text-sm text-primary">Photo uploaded</Text>
+                  ) : state?.status === "uploading" ? (
+                    <Button loading disabled size="sm" className="mt-3">
+                      Uploading photo…
+                    </Button>
                   ) : (
                     <Button
                       variant={state?.status === "timeout" ? "destructive" : "default"}

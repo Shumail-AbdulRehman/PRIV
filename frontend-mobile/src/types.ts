@@ -2,6 +2,7 @@ export type ReferenceArea = {
   id: number;
   name: string;
   sortOrder: number;
+  imageUrl?: string;
 };
 
 export type StaffTabsParamList = {
@@ -43,6 +44,16 @@ export type AuthTokens = {
 
 export type AuthSession = AuthTokens & {
   user: StaffUser | null;
+};
+
+export type AreaMatchStatus = "passed" | "flagged" | "blocked";
+
+export type AreaUploadResult = {
+  referenceImageId: number;
+  photoUrl: string;
+  areaMatchStatus: AreaMatchStatus;
+  similarityScore: number;
+  areaMatchFlag: boolean;
 };
 
 export type ApiEnvelope<T> = {

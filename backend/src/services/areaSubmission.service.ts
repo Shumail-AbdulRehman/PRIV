@@ -9,6 +9,8 @@ export function isUploadWithinWindow(
   return diffMs >= 0 && diffMs <= windowSeconds * 1000;
 }
 
+const RETRYABLE_STATUSES = new Set(["REJECTED_TIMEOUT", "BLOCKED", "CV_ERROR"]);
+
 export function canAreaBeUploaded(submission?: {
   scannedAt: Date | null;
   uploadedAt: Date | null;
@@ -17,7 +19,7 @@ export function canAreaBeUploaded(submission?: {
   if (!submission || !submission.scannedAt) {
     return { ok: false, reason: "Area QR has not been scanned" };
   }
-  if (submission.uploadedAt && submission.status !== "REJECTED_TIMEOUT") {
+  if (submission.uploadedAt && !RETRYABLE_STATUSES.has(submission.status ?? "")) {
     return { ok: false, reason: "Area photo already uploaded" };
   }
   return { ok: true };

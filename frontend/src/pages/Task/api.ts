@@ -1,6 +1,6 @@
 import { client } from "@/api/client";
 import type { CreateTaskTemplateFormData } from "./types";
-export type { CreateTaskTemplateFormData } from "./types";
+export type { CreateTaskTemplateFormData, AreaSubmission } from "./types";
 
 export const createTaskTemplate = async (data: CreateTaskTemplateFormData) => {
   const formData = new FormData();
@@ -43,5 +43,10 @@ export const editTaskTemplate = async (
 
 export const deleteTaskTemplate = async (id: number) => {
   const res = await client.delete(`/task-template/${id}`);
+  return res.data;
+};
+
+export const getAreaSubmissions = async (taskId: number) => {
+  const res = await client.get(`/task-instance/${taskId}/area-submissions`);
   return res.data;
 };

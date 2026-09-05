@@ -18,6 +18,11 @@ import {
 } from "../services/areaSubmission.service.js";
 import { getVerificationProvider } from "../services/verification/imageVerification.service.js";
 import { VerificationError } from "../services/verification/imageVerification.types.js";
+import {
+  compareImagesWithDiffAll,
+  CvServiceUnavailableError,
+  type AreaMatchResult,
+} from "../services/verification/diffAll.client.js";
 import { writeAuditLog } from "../services/auditLog.service.js";
 
 
@@ -56,6 +61,7 @@ const tasks = await prisma.taskInstance.findMany({
         id: true,
         name: true,
         sortOrder: true,
+        imageUrl: true,
       },
       orderBy: { sortOrder: "asc" },
     },
@@ -313,26 +319,148 @@ export const uploadAreaPhoto = async (req: Request, res: Response) => {
     `task-instances/${taskId}/area-submissions/${referenceImageId}`
   );
 
+  const staffPhotoUrl = uploadedImage.secure_url;
+  const submissionKey = {
+    taskInstanceId_referenceImageId: {
+      taskInstanceId: taskId,
+      referenceImageId,
+    },
+  };
+
+  const appendAttempt = async (attempt: Record<string, unknown>) => {
+    const existing = await prisma.taskAreaSubmission.findUnique({
+      where: submissionKey,
+      select: { attempts: true },
+    });
+    const priorAttempts = Array.isArray(existing?.attempts) ? (existing!.attempts as unknown[]) : [];
+    await prisma.taskAreaSubmission.update({
+      where: submissionKey,
+      data: { attempts: [...priorAttempts, attempt] as any },
+    });
+  };
+
+  // Compare against this reference image plus any sibling reference images
+  // sharing the same area name (multi-angle support without a schema change).
+  const areaReferences = task.referenceImages
+    .filter((img) => img.name === referenceImage.name)
+    .map((img) => ({ id: img.id, imageUrl: img.imageUrl }));
+  const references = areaReferences.some((r) => r.id === referenceImageId)
+    ? areaReferences
+    : [{ id: referenceImageId, imageUrl: referenceImage.imageUrl }];
+
+  let cvResult: AreaMatchResult;
+  try {
+    cvResult = await compareImagesWithDiffAll(
+      file.buffer,
+      file.mimetype,
+      references
+    );
+  } catch (error) {
+    if (error instanceof CvServiceUnavailableError) {
+      await appendAttempt({ photoUrl: staffPhotoUrl, areaMatchStatus: "cv_error", at: now.toISOString() });
+      await prisma.taskAreaSubmission.update({
+        where: submissionKey,
+        data: { photoUrl: staffPhotoUrl, uploadedAt: now, status: "CV_ERROR" },
+      });
+      throw new ApiError(
+        503,
+        "Photo verification is temporarily unavailable. Please try again."
+      );
+    }
+    throw error;
+  }
+
+  const isBlocked = cvResult.areaMatchStatus === "blocked";
+
   const updatedSubmission = await prisma.taskAreaSubmission.update({
-    where: {
-      taskInstanceId_referenceImageId: {
-        taskInstanceId: taskId,
-        referenceImageId,
-      },
-    },
+    where: submissionKey,
     data: {
-      photoUrl: uploadedImage.secure_url,
+      photoUrl: staffPhotoUrl,
       uploadedAt: now,
-      status: "APPROVED",
+      status: isBlocked ? "BLOCKED" : "APPROVED",
+      similarityScore: cvResult.similarityScore,
+      areaMatchStatus: cvResult.areaMatchStatus,
+      areaMatchFlag: cvResult.areaMatchFlag,
+      bestReferenceImageId: cvResult.bestReferencePhotoId,
+      colorScore: cvResult.colorScore ?? null,
+      ssimScore: cvResult.ssimScore ?? null,
+      featureScore: cvResult.featureScore ?? null,
+      matchThresholdUsed: cvResult.thresholds.match,
+      blockThresholdUsed: cvResult.thresholds.block,
+      colorWeightUsed: cvResult.weights?.color ?? null,
+      ssimWeightUsed: cvResult.weights?.ssim ?? null,
+      featureWeightUsed: cvResult.weights?.feature ?? null,
     },
+  });
+
+  await appendAttempt({
+    photoUrl: staffPhotoUrl,
+    areaMatchStatus: cvResult.areaMatchStatus,
+    similarityScore: cvResult.similarityScore,
+    colorScore: cvResult.colorScore ?? null,
+    ssimScore: cvResult.ssimScore ?? null,
+    featureScore: cvResult.featureScore ?? null,
+    bestReferenceImageId: cvResult.bestReferencePhotoId,
+    at: now.toISOString(),
   });
 
   res.status(200).json(
     new ApiResponse(
       200,
-      { referenceImageId, photoUrl: updatedSubmission.photoUrl },
-      "Area photo uploaded successfully"
+      {
+        referenceImageId,
+        photoUrl: updatedSubmission.photoUrl,
+        areaMatchStatus: cvResult.areaMatchStatus,
+        similarityScore: cvResult.similarityScore,
+        areaMatchFlag: cvResult.areaMatchFlag,
+      },
+      isBlocked
+        ? "Area doesn't match. Please photograph the correct area and try again."
+        : "Area photo uploaded successfully"
     )
+  );
+};
+
+export const getAreaSubmissions = async (req: Request, res: Response) => {
+  const taskId = Number(req.params.taskId);
+
+  if (isNaN(taskId)) {
+    throw new ApiError(400, "Invalid task id");
+  }
+
+  const task = await prisma.taskInstance.findUnique({
+    where: { id: taskId, isActive: true },
+    select: {
+      id: true,
+      staffId: true,
+      location: { select: { companyId: true } },
+    },
+  });
+
+  if (!task) {
+    throw new ApiError(404, "Task not found");
+  }
+
+  const user = req.user!;
+  const isStaff = user.role === "STAFF";
+  if (isStaff && task.staffId !== user.id) {
+    throw new ApiError(403, "This task is not assigned to you");
+  }
+  if (!isStaff && task.location.companyId !== user.companyId) {
+    throw new ApiError(403, "Task does not belong to your company");
+  }
+
+  const submissions = await prisma.taskAreaSubmission.findMany({
+    where: { taskInstanceId: taskId },
+    orderBy: { referenceImage: { sortOrder: "asc" } },
+    include: {
+      referenceImage: { select: { id: true, name: true, imageUrl: true } },
+      staff: { select: { id: true, name: true } },
+    },
+  });
+
+  res.status(200).json(
+    new ApiResponse(200, submissions, "Area submissions fetched successfully")
   );
 };
 
