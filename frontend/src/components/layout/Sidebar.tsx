@@ -8,6 +8,7 @@ import {
   LogOut,
   X,
   ClipboardCheck,
+  CreditCard,
 } from "lucide-react";
 import { useLogout } from "@/queries/auth";
 import { useSelector } from "react-redux";
@@ -22,6 +23,7 @@ const NAV_ITEMS = [
   { to: "/staff", icon: Users, label: "Staff" },
   { to: "/attendance", icon: CalendarCheck, label: "Attendance" },
   { to: "/managers", icon: UserCog, label: "Managers", adminOnly: true },
+  { to: "/subscription", icon: CreditCard, label: "Plan & Usage" },
 ];
 
 interface SidebarProps {

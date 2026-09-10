@@ -1,6 +1,7 @@
 import { prisma } from "../prisma/prisma.js";
 import { getZonedClockMinutes } from "../utils/dateTime.js";
 import { writeAuditLog } from "./auditLog.service.js";
+import { companyHasFeature } from "./subscription.service.js";
 
 type DbClient = typeof prisma;
 
@@ -241,6 +242,18 @@ export const ensureCurrentAssignmentForTask = async (
     return existing;
   }
 
+  return ensureAssignmentForTask(task, reason);
+};
+
+const ensureAssignmentForTask = async (task: TaskForAssignment, reason: string) => {
+  if (!task.staffId) {
+    const automaticAssignmentEnabled = await companyHasFeature(
+      task.location.companyId,
+      "automaticAssignment"
+    );
+    if (!automaticAssignmentEnabled) return null;
+  }
+
   const staffId = task.staffId ?? (await findBestStaffForTask(task))?.id ?? null;
 
   if (!staffId) {
@@ -258,7 +271,7 @@ export const ensureCurrentAssignmentForTask = async (
 
   try {
     return await prisma.$transaction(async (tx) => {
-      const current = await getCurrentAssignment(taskInstanceId, tx as DbClient);
+      const current = await getCurrentAssignment(task.id, tx as DbClient);
       if (current) {
         return current;
       }
@@ -283,7 +296,7 @@ export const ensureCurrentAssignmentForTask = async (
         skipDuplicates: true,
       });
 
-      const assignment = await getCurrentAssignment(taskInstanceId, tx as DbClient);
+      const assignment = await getCurrentAssignment(task.id, tx as DbClient);
       if (!assignment) {
         return null;
       }
@@ -310,7 +323,7 @@ export const ensureCurrentAssignmentForTask = async (
       return assignment;
     });
   } catch (error) {
-    const current = await getCurrentAssignment(taskInstanceId);
+    const current = await getCurrentAssignment(task.id);
     if (current) {
       return current;
     }
@@ -326,13 +339,30 @@ export const ensureAssignmentsForToday = async () => {
       status: { in: ["PENDING", "IN_PROGRESS"] },
       shiftEnd: { gte: now },
     },
-    select: { id: true },
+    include: {
+      location: {
+        select: {
+          companyId: true,
+          timezone: true,
+        },
+      },
+      assignments: {
+        where: { isCurrent: true },
+        orderBy: { assignedAt: "desc" },
+      },
+    },
   });
 
   let ensured = 0;
 
   for (const task of tasks) {
-    const assignment = await ensureCurrentAssignmentForTask(task.id);
+    const existing = task.assignments[0] ?? null;
+    if (existing) {
+      ensured += 1;
+      continue;
+    }
+
+    const assignment = await ensureAssignmentForTask(task, "SCHEDULER_SYNC");
     if (assignment) ensured += 1;
   }
 
@@ -439,6 +469,12 @@ export const reassignExpiredAssignments = async (graceMinutes: number) => {
 
   for (const assignment of expiredAssignments) {
     const task = assignment.taskInstance;
+    const automaticReassignmentEnabled = await companyHasFeature(
+      task.location.companyId,
+      "automaticReassignment"
+    );
+    if (!automaticReassignmentEnabled) continue;
+
     const previousAssignmentCount = await prisma.taskAssignment.count({
       where: { taskInstanceId: task.id },
     });

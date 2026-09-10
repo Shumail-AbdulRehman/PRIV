@@ -7,14 +7,100 @@ datasource db {
   provider = "postgresql"
 }
 model Company {
-  id        Int        @id @default(autoincrement())
-  name      String
-  isActive  Boolean    @default(true)
-  managers  Manager[]
-  staff     Staff[]
-  locations Location[]
-  createdAt DateTime   @default(now())
-  updatedAt DateTime   @updatedAt
+  id                     Int                @id @default(autoincrement())
+  name                   String
+  isActive               Boolean            @default(true)
+  plan                   SubscriptionPlan   @default(STARTER)
+  subscriptionStatus     SubscriptionStatus @default(CANCELLED)
+  planUpdatedAt          DateTime            @default(now())
+  billingCustomerId      String?             @unique
+  billingSubscriptionId  String?             @unique
+  paddleCustomer         PaddleCustomer?
+  paddleSubscriptions    PaddleSubscription[]
+  paddleTransactions     PaddleTransaction[]
+  managers               Manager[]
+  staff                  Staff[]
+  locations              Location[]
+  createdAt              DateTime            @default(now())
+  updatedAt              DateTime            @updatedAt
+}
+
+model PaddleCustomer {
+  id              String               @id
+  email           String?
+  name            String?
+  locale          String?
+  status          String
+  company         Company?             @relation(fields: [companyId], references: [id], onDelete: SetNull)
+  companyId       Int?                 @unique
+  subscriptions   PaddleSubscription[]
+  transactions    PaddleTransaction[]
+  paddleCreatedAt DateTime?
+  paddleUpdatedAt DateTime
+  lastEventAt     DateTime
+  createdAt       DateTime             @default(now())
+  updatedAt       DateTime             @updatedAt
+
+  @@index([email])
+}
+
+model PaddleSubscription {
+  id                        String              @id
+  customer                  PaddleCustomer      @relation(fields: [customerId], references: [id])
+  customerId                String
+  company                   Company?            @relation(fields: [companyId], references: [id], onDelete: SetNull)
+  companyId                 Int?
+  status                    String
+  priceId                   String
+  productId                 String
+  scheduledChangeAction     String?
+  scheduledChangeAt         DateTime?
+  currentBillingPeriodStart DateTime?
+  currentBillingPeriodEnd   DateTime?
+  canceledAt                DateTime?
+  pausedAt                  DateTime?
+  paddleCreatedAt           DateTime?
+  paddleUpdatedAt           DateTime
+  lastEventAt               DateTime
+  createdAt                 DateTime            @default(now())
+  updatedAt                 DateTime            @updatedAt
+  transactions              PaddleTransaction[]
+
+  @@index([customerId])
+  @@index([companyId, status])
+}
+
+model PaddleTransaction {
+  id              String              @id
+  customer        PaddleCustomer?     @relation(fields: [customerId], references: [id])
+  customerId      String?
+  subscription    PaddleSubscription? @relation(fields: [subscriptionId], references: [id])
+  subscriptionId  String?
+  company         Company?            @relation(fields: [companyId], references: [id], onDelete: SetNull)
+  companyId       Int?
+  status          String
+  currencyCode    String
+  total           String?
+  invoiceNumber   String?
+  paddleCreatedAt DateTime?
+  paddleUpdatedAt DateTime
+  lastEventAt     DateTime
+  createdAt       DateTime            @default(now())
+  updatedAt       DateTime            @updatedAt
+
+  @@index([customerId])
+  @@index([subscriptionId])
+  @@index([companyId])
+}
+
+model PaddleWebhookEvent {
+  id           String   @id
+  eventType    String
+  occurredAt   DateTime
+  processedAt  DateTime @default(now())
+
+  @@index([eventType])
+  @@index([occurredAt])
 }
 
 model Manager {
@@ -350,4 +436,16 @@ enum SubmissionStatus {
   REJECTED_TIMEOUT
   BLOCKED
   CV_ERROR
+}
+
+enum SubscriptionPlan {
+  STARTER
+  PRO
+  ADVANCED
+}
+
+enum SubscriptionStatus {
+  ACTIVE
+  PAST_DUE
+  CANCELLED
 }

@@ -9,6 +9,7 @@ import { syncTodaysOpenAttendanceWindow } from "../utils/syncAttendanceWindow.js
 import { getCookieOptions } from "../utils/cookies.js";
 import { markCurrentAssignmentsForTasks } from "../services/taskAssignment.service.js";
 import { getScopedLocationIds, assertLocationAccess } from "../utils/scope.js";
+import { assertCompanyCanAdd } from "../services/subscription.service.js";
 
 
 export const loginStaff = async (req: Request, res: Response) => {
@@ -82,6 +83,8 @@ export const createStaff = async (req: Request, res: Response) => {
 
   const existingStaff = await prisma.staff.findUnique({ where: { email } });
   if (existingStaff) throw new ApiError(409, "Staff with this email already exists");
+
+  await assertCompanyCanAdd(req.user!.companyId, "staff");
 
   if (locationId) {
     const location = await prisma.location.findUnique({ where: { id: locationId } });
@@ -529,10 +532,8 @@ export const getStaffDetails = async (req: Request, res: Response) => {
     taskInstances,
     attendances,
     totalTaskTemplates,
-    totalTaskInstances,
     taskStatusGroups,
     lateTaskCount,
-    totalAttendanceRecords,
     attendanceStatusGroups,
     lateAttendanceCount,
   ] = await Promise.all([
@@ -591,9 +592,6 @@ export const getStaffDetails = async (req: Request, res: Response) => {
     prisma.taskTemplate.count({
       where: { staffId, isActive: true },
     }),
-    prisma.taskInstance.count({
-      where: taskInstanceWhere,
-    }),
     prisma.taskInstance.groupBy({
       by: ["status"],
       where: taskInstanceWhere,
@@ -604,9 +602,6 @@ export const getStaffDetails = async (req: Request, res: Response) => {
         ...taskInstanceWhere,
         isLate: true,
       },
-    }),
-    prisma.attendance.count({
-      where: attendanceWhere,
     }),
     prisma.attendance.groupBy({
       by: ["status"],
@@ -620,6 +615,9 @@ export const getStaffDetails = async (req: Request, res: Response) => {
       },
     }),
   ]);
+
+  const totalTaskInstances = taskStatusGroups.reduce((sum, group) => sum + group._count.status, 0);
+  const totalAttendanceRecords = attendanceStatusGroups.reduce((sum, group) => sum + group._count.status, 0);
 
   const taskStatusMap = new Map(taskStatusGroups.map((group) => [group.status, group._count.status]));
   const attendanceStatusMap = new Map(

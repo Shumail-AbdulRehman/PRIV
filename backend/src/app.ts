@@ -12,6 +12,7 @@ import "./cron/taskReassignmentCron.js";
 import "./cron/attendanceCron.js";
 import "./cron/attendanceStatusCron.js";
 import { runStartupCron } from "./cron/startupCron.js";
+import { handlePaddleWebhook } from "./controllers/paddleWebhook.controller.js";
 
 
 
@@ -70,6 +71,14 @@ app.use(cors({
     },
     credentials: true,
 }));
+// This route must be mounted before express.json(). Paddle verifies the exact
+// bytes it delivered, so parsing and re-serializing the body would invalidate
+// the signature.
+app.post(
+    "/api/webhooks/paddle",
+    express.raw({ type: "application/json", limit: "1mb" }),
+    handlePaddleWebhook,
+);
 app.use(express.json({ limit: "16kb" }));
 app.use(express.urlencoded({ extended: true }));
 app.use(express.static("public"));
@@ -83,6 +92,7 @@ import assignmentRouter from "./routes/assignment.route.js";
 import attendanceRouter from "./routes/attendance.route.js";
 import taskInstanceRouter from "./routes/taskInstance.route.js"
 import commonRouter from "./routes/common.route.js"
+import subscriptionRouter from "./routes/subscription.route.js";
 
 
 
@@ -96,6 +106,7 @@ app.use("/api/assignment", assignmentRouter);
 app.use("/api/attendance", attendanceRouter);
 app.use("/api/task-instance",taskInstanceRouter)
 app.use("/api/common",commonRouter)
+app.use("/api/subscription", subscriptionRouter);
 
 app.use((err: Error, req: Request, res: Response, next: NextFunction) => {
     if (err instanceof ApiError) {

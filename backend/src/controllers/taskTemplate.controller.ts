@@ -7,6 +7,7 @@ import { markCurrentAssignmentsForTasks } from "../services/taskAssignment.servi
 import { DEFAULT_TIME_ZONE, getZonedClockMinutes, getZonedDayRange } from "../utils/dateTime.js";
 import { assertLocationAccess } from "../utils/scope.js";
 import { uploadSingleImage } from "../utils/cloudinary.js";
+import { assertReferenceImageAllowance } from "../services/subscription.service.js";
 
 const getMinutes = (date: Date, timeZone: string) => getZonedClockMinutes(date, timeZone);
 
@@ -228,6 +229,8 @@ export const createTaskTemplate = async (req: Request, res: Response) => {
   if (files.length > MAX_REFERENCE_IMAGES) {
     throw new ApiError(400, `You can upload up to ${MAX_REFERENCE_IMAGES} reference images`);
   }
+
+  await assertReferenceImageAllowance(req.user!.companyId, files.length);
 
   const result = createTaskMultipartSchema.safeParse(req.body);
 

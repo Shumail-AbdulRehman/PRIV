@@ -14,6 +14,7 @@ import { getScopedLocationIds, assertLocationAccess } from "../utils/scope.js";
 import { generateAccessToken, generateRefreshToken, isPasswordCorrect } from "../utils/auth.js";
 import { TokenPayload } from "../types/jwt.js";
 import { getCookieOptions } from "../utils/cookies.js";
+import { assertCompanyCanAdd } from "../services/subscription.service.js";
 
 const TASK_START_GRACE_MINUTES = 5;
 
@@ -488,6 +489,8 @@ export const createManager = async (req: Request, res: Response) => {
     const { name, email, password, locationIds } = result.data;
     const companyId = req.user!.companyId;
 
+    await assertCompanyCanAdd(companyId, "managers");
+
     const existingManager = await prisma.manager.findUnique({
         where: { email }
     });
@@ -619,6 +622,10 @@ export const updateManager = async (req: Request, res: Response) => {
 
     if (!target) {
         throw new ApiError(404, "Manager not found in your company");
+    }
+
+    if (isActive === true && !target.isActive) {
+        await assertCompanyCanAdd(companyId, "managers");
     }
 
     if (email && email !== target.email) {

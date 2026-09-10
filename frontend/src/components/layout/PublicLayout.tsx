@@ -28,6 +28,7 @@ export function PublicLayout() {
               <ul className="mt-4 space-y-2.5">
                 <li><Link to="/" className="text-sm text-ink/70 hover:text-ink">Home</Link></li>
                 <li><Link to="/features" className="text-sm text-ink/70 hover:text-ink">Features</Link></li>
+                <li><Link to="/pricing" className="text-sm text-ink/70 hover:text-ink">Pricing</Link></li>
                 <li><Link to="/features#verification" className="text-sm text-ink/70 hover:text-ink">Verification</Link></li>
               </ul>
             </div>

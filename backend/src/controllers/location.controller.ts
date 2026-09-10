@@ -7,6 +7,7 @@ import { ApiError } from "../utils/ApiError.js";
 import { addUtcDays, getZonedDayRange, getZonedDayRangeFromDateInput } from "../utils/dateTime.js";
 import { markCurrentAssignmentsForTasks } from "../services/taskAssignment.service.js";
 import { getScopedLocationIds, assertLocationAccess } from "../utils/scope.js";
+import { assertCompanyCanAdd } from "../services/subscription.service.js";
 
 const timezoneFromCoordinates = (latitude: string, longitude: string) => {
   try {
@@ -27,6 +28,8 @@ export const createLocation = async (req: Request, res: Response) => {
     }));
     throw new ApiError(400, "Validation failed", errors);
   }
+
+  await assertCompanyCanAdd(req.user!.companyId, "locations");
 
   const location = await prisma.location.create({
     data: {
@@ -206,6 +209,8 @@ export const restoreLocation = async (req: Request, res: Response) => {
   if (location.isActive) {
     throw new ApiError(400, "Location is already active");
   }
+
+  await assertCompanyCanAdd(req.user!.companyId, "locations");
 
   await prisma.location.update({
     where: { id: locationId },

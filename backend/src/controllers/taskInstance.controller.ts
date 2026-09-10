@@ -66,9 +66,15 @@ const tasks = await prisma.taskInstance.findMany({
       orderBy: { sortOrder: "asc" },
     },
     template: {
-      include: {
-        location: true
-      }
+      select: {
+        id: true,
+        title: true,
+        shiftStart: true,
+        shiftEnd: true,
+        location: {
+          select: { id: true, name: true },
+        },
+      },
     }
   }
 });

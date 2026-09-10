@@ -371,6 +371,7 @@ export const getMyAttendance = async (req: Request, res: Response) => {
     const attendance = await prisma.attendance.findMany({
         where: { staffId },
         orderBy: { date: "desc" },
+        take: 30, // bound the payload — the staff app only needs recent records at login
         include: {
             location: {
                 select: { id: true, name: true },

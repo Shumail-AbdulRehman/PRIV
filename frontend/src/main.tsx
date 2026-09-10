@@ -20,6 +20,9 @@ import TodayStatusPage from './pages/Manager/TodayStatusPage.tsx';
 import ManagersPage from './pages/Managers/ManagersPage.tsx';
 import LandingPage from './pages/Landing/LandingPage.tsx';
 import FeaturesPage from './pages/Landing/FeaturesPage.tsx';
+import SubscriptionPage from './pages/Subscription/SubscriptionPage.tsx';
+import PricingPage from './pages/Pricing/PricingPage.tsx';
+import WelcomePage from './pages/Pricing/WelcomePage.tsx';
 
 const queryClient = new QueryClient({
   defaultOptions: {
@@ -43,6 +46,8 @@ const router = createBrowserRouter([
         children: [
           { index: true, element: <LandingPage /> },
           { path: 'features', element: <FeaturesPage /> },
+          { path: 'pricing', element: <PricingPage /> },
+          { path: 'welcome', element: <WelcomePage /> },
         ],
       },
       {
@@ -75,6 +80,14 @@ const router = createBrowserRouter([
           { path: 'staff', element: <StaffPage /> },
           { path: 'staff/:id', element: <StaffDetailPage /> },
           { path: 'attendance', element: <AttendancePage /> },
+          {
+            path: 'subscription',
+            element: (
+              <RequireRole roles={['ADMIN', 'MANAGER']}>
+                <SubscriptionPage />
+              </RequireRole>
+            ),
+          },
           {
             path: 'managers',
             element: (
