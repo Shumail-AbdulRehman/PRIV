@@ -1,4 +1,5 @@
 import { client } from './client';
+import type { AuthUser } from '@/store/slices/authSlice';
 
 
 export const refreshToken = async () => {
@@ -17,5 +18,5 @@ export const logoutApi = async () => {
 export const getCurrentUser=async ()=>
 {
   const res=await client.get("/common/get-current-user");
-  return res;
+  return res.data.data as AuthUser;
 }

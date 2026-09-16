@@ -1,47 +1,156 @@
-import { useSelector } from "react-redux";
-import type { RootState } from "@/store/store";
+import { Check, Minus, Plus } from "lucide-react";
+import useAuth from "@/hooks/useAuth";
+import { MarketingCTA } from "@/components/marketing/MarketingCTA";
 import { PaddlePricing } from "./PaddlePricing";
 
-export default function PricingPage() {
-  const user = useSelector((state: RootState) => state.auth.user);
-  const managerCannotSubscribe = user?.role === "MANAGER" || user?.role === "STAFF";
+const comparisons: { name: string; values: (string | boolean)[] }[] = [
+  { name: "Locations", values: ["1", "5", "20"] },
+  { name: "Staff members", values: ["3", "25", "200"] },
+  { name: "Manager seats, including your admin", values: ["1", "3", "20"] },
+  { name: "Reference areas per task", values: ["1", "5", "10"] },
+  { name: "GPS attendance & selfies", values: [true, true, true] },
+  { name: "Daily & one-time tasks", values: [true, true, true] },
+  { name: "QR-based task starting", values: [true, true, true] },
+  { name: "Photo verification", values: [true, true, true] },
+  { name: "Manager location access", values: [false, true, true] },
+  { name: "Automatic assignment & reassignment", values: [false, true, true] },
+  { name: "Multi-area tasks", values: [false, true, true] },
+  { name: "Detailed verification insights", values: [false, true, true] },
+];
+const faqs = [
+  [
+    "How do I get started?",
+    "Create your account first, then choose a plan for your workspace. After checkout confirms your subscription, you can add locations, create staff accounts, and set up your first tasks.",
+  ],
+  [
+    "What counts as a manager seat?",
+    "Your company administrator counts as one manager seat. Pro and Advanced include additional seats for managers, who can be assigned to specific locations. Staff accounts have their own separate allowance.",
+  ],
+  [
+    "Can my staff use CleanOps on their phones?",
+    "Yes. The staff app supports check-in, QR scanning, and task photo submissions. Your team can follow their assigned work from a mobile device.",
+  ],
+  [
+    "What happens if I reach a plan limit?",
+    "Your existing resources stay in place. To add more active locations, staff, managers, or reference areas than your plan allows, choose a plan with higher limits.",
+  ],
+  [
+    "How do I manage my subscription?",
+    "Your company administrator can open Plan & usage in the workspace and select Manage billing to access the Paddle customer portal.",
+  ],
+  [
+    "Why are prices shown in my local currency?",
+    "Paddle localizes prices for your region. Your final total and any applicable taxes are shown during checkout before you confirm.",
+  ],
+];
 
+export default function PricingPage() {
+  const { user } = useAuth();
+  const cannotSubscribe = user?.role === "MANAGER" || user?.role === "STAFF";
   return (
-    <div>
-      <section className="relative overflow-hidden border-b border-line px-4 py-14 sm:px-6 sm:py-18 lg:px-8">
-        <svg className="pointer-events-none absolute inset-0 h-full w-full opacity-[0.05]" aria-hidden="true">
-          <defs>
-            <pattern id="pricing-grid" width="48" height="48" patternUnits="userSpaceOnUse">
-              <path d="M 48 0 L 0 0 0 48" fill="none" stroke="var(--ink)" strokeWidth="1" />
-            </pattern>
-          </defs>
-          <rect width="100%" height="100%" fill="url(#pricing-grid)" />
-        </svg>
-        <div className="relative mx-auto max-w-7xl">
-          <p className="font-mono text-[10px] font-medium uppercase tracking-[0.2em] text-ink/65">
-            CleanOps / Plans
+    <>
+      <section className="pricing-hero marketing-container">
+        <div className="section-heading centered">
+          <span className="hero-eyebrow">
+            <span /> Simple plans. Room to grow.
+          </span>
+          <h1>
+            A little team.
+            <br />
+            Or your next big chapter.
+          </h1>
+          <p>
+            Choose the space your operation needs. Every plan brings your
+            people, places, and tasks together.
           </p>
-          <div className="mt-5 grid gap-7 lg:grid-cols-[1.3fr_0.7fr] lg:items-end">
-            <h1 className="max-w-4xl font-heading text-[clamp(2.5rem,6vw,5.25rem)] font-bold leading-[0.96] tracking-tight text-ink">
-              Match the system to your operation.
-            </h1>
-            <p className="max-w-md text-base leading-7 text-ink/65 lg:pb-1">
-              Start with the capacity you need today. Every plan includes the core attendance, task, and verification workflow, with a 7-day free trial.
+        </div>
+      </section>
+      <section className="marketing-container" aria-label="Subscription plans">
+        <PaddlePricing
+          appearance="marketing"
+          subscribeDisabled={cannotSubscribe}
+          disabledMessage="Only the company administrator can subscribe for this workspace."
+        />
+      </section>
+      <section className="marketing-container comparison-section">
+        <div className="comparison-heading">
+          <div>
+            <span className="section-kicker">Find your fit</span>
+            <h2>The details, side by side.</h2>
+            <p>
+              Start with what you need today. See exactly what each plan
+              includes.
             </p>
           </div>
         </div>
-      </section>
-
-      <section className="px-4 py-12 sm:px-6 sm:py-16 lg:px-8">
-        <div className="mx-auto max-w-7xl">
-          <PaddlePricing
-            email={user?.email}
-            companyId={user?.companyId}
-            subscribeDisabled={managerCannotSubscribe}
-            disabledMessage="Only the company administrator can subscribe for this workspace."
-          />
+        <div
+          className="comparison-scroll"
+          tabIndex={0}
+          role="region"
+          aria-label="Compare plans, scroll horizontally on small screens"
+        >
+          <table className="comparison-table">
+            <thead>
+              <tr>
+                <th scope="col">What’s included</th>
+                <th scope="col">Starter</th>
+                <th scope="col" className="pro-col">
+                  Pro
+                </th>
+                <th scope="col">Advanced</th>
+              </tr>
+            </thead>
+            <tbody>
+              {comparisons.map((row) => (
+                <tr key={row.name}>
+                  <th scope="row">{row.name}</th>
+                  {row.values.map((value, index) => (
+                    <td
+                      key={index}
+                      className={index === 1 ? "pro-col" : undefined}
+                    >
+                      {typeof value === "boolean" ? (
+                        value ? (
+                          <Check aria-label="Included" />
+                        ) : (
+                          <Minus aria-label="Not included" />
+                        )
+                      ) : (
+                        value
+                      )}
+                    </td>
+                  ))}
+                </tr>
+              ))}
+            </tbody>
+          </table>
         </div>
       </section>
-    </div>
+      <section className="marketing-container pricing-faq">
+        <div className="section-heading">
+          <span className="section-kicker">
+            A few things you might be wondering
+          </span>
+          <h2>
+            Good questions.
+            <br />
+            Clear answers.
+          </h2>
+          <p>A little more detail before you get started.</p>
+        </div>
+        <div className="faq-list">
+          {faqs.map(([question, answer]) => (
+            <details key={question}>
+              <summary>
+                {question}
+                <Plus aria-hidden="true" />
+              </summary>
+              <p>{answer}</p>
+            </details>
+          ))}
+        </div>
+      </section>
+      <MarketingCTA />
+    </>
   );
 }

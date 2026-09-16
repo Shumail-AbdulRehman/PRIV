@@ -27,6 +27,8 @@ export type SubscriptionSummary = {
     plan: PlanCode;
     subscriptionStatus: "ACTIVE" | "PAST_DUE" | "CANCELLED";
     planUpdatedAt: string;
+    billingCustomerId: string | null;
+    billingSubscriptionId: string | null;
   };
   plan: PlanDefinition;
   usage: {

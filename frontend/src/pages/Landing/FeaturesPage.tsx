@@ -1,266 +1,292 @@
+import {
+  ArrowRight,
+  Building2,
+  CalendarDays,
+  Check,
+  Clock3,
+  MapPin,
+  ShieldCheck,
+  Users,
+} from "lucide-react";
 import { Link } from "react-router-dom";
-import { useSelector } from "react-redux";
-import { ArrowRight } from "lucide-react";
-import type { RootState } from "@/store/store";
-import { Button } from "@/components/ui/button";
-import { ConsolePreview } from "@/components/landing/ConsolePreview";
-import { DashboardPanel } from "@/components/landing/DashboardPanel";
-import { VerificationDiagram } from "@/components/landing/VerificationDiagram";
-
-const capabilities = [
-  {
-    index: "01",
-    label: "WORKSPACE & ROLES",
-    headline: "One workspace, scoped by role.",
-    body: "Admin owns the company tenant. Managers see only assigned locations. Staff see only their shifts and tasks.",
-    sample: "roles admin · manager · staff",
-  },
-  {
-    index: "02",
-    label: "GEOFENCED ATTENDANCE",
-    headline: "Staff check in where the work actually is.",
-    body: "GPS capture and geofence radius validation mean you know attendance happened at the location, not five blocks away.",
-    sample: "radius 150m · accuracy ±4m",
-  },
-  {
-    index: "03",
-    label: "QR TASK STARTS",
-    headline: "Tasks begin with a scanned token.",
-    body: "Staff scan a QR code at the site to start a task. No manual logging, no disputed start times.",
-    sample: "token tkn_8f2a1d3c · started 09:12",
-  },
-  {
-    index: "04",
-    label: "PER-AREA VERIFICATION",
-    headline: "Photos are scored against reference shots.",
-    body: "Each area gets a location match and cleanliness score. If something doesn't match, the reason is shown in plain text.",
-    sample: "LOC 94 · CLEAN 91",
-  },
-  {
-    index: "05",
-    label: "MOBILE STAFF APP",
-    headline: "A focused app for the people doing the work.",
-    body: "Staff check in, scan QR codes, capture proof, and see today's tasks from one mobile screen.",
-    sample: "platform ios · android",
-  },
-];
-
-const dashboardRows = [
-  { location: "DOWNTOWN TOWER", status: "complete" as const, label: "ON TRACK", detail: "38/42 checked" },
-  { location: "METRO MALL", status: "progress" as const, label: "IN PROGRESS", detail: "22/39 done" },
-  { location: "RIVERSIDE CLINIC", status: "missed" as const, label: "LATE START", detail: "3 late" },
-  { location: "AIRPORT LOUNGE", status: "pending" as const, label: "PENDING", detail: "starts 14:00" },
-];
-
-function FeatureHeroDiagram() {
-  return (
-    <figure className="relative w-full" style={{ aspectRatio: "16/10" }} aria-label="Operational capability diagram">
-      <svg viewBox="0 0 320 200" className="h-full w-full" fill="none" xmlns="http://www.w3.org/2000/svg" role="img">
-        {/* Dashed geofence arc */}
-        <path
-          d="M 40 160 A 90 90 0 0 1 220 80"
-          stroke="var(--line)"
-          strokeWidth="1"
-          strokeDasharray="6 4"
-          fill="none"
-        />
-        {/* QR token box */}
-        <rect x="40" y="40" width="90" height="52" rx="2" stroke="var(--ink)" strokeWidth="1" fill="var(--surface)" />
-        <text x="50" y="60" fill="var(--ink)" fontFamily="var(--font-mono)" fontSize="9" letterSpacing="0.04em">
-          QR TOKEN
-        </text>
-        <rect x="50" y="68" width="50" height="6" rx="1" fill="var(--ink)" opacity="0.2" />
-        <rect x="50" y="77" width="70" height="6" rx="1" fill="var(--ink)" opacity="0.2" />
-
-        {/* Location pin */}
-        <circle cx="230" cy="110" r="20" stroke="var(--ink)" strokeWidth="1.5" />
-        <circle cx="230" cy="110" r="5" fill="var(--primary)" />
-        <line x1="230" y1="86" x2="230" y2="92" stroke="var(--ink)" strokeWidth="1" />
-        <line x1="230" y1="128" x2="230" y2="134" stroke="var(--ink)" strokeWidth="1" />
-        <line x1="206" y1="110" x2="212" y2="110" stroke="var(--ink)" strokeWidth="1" />
-        <line x1="248" y1="110" x2="254" y2="110" stroke="var(--ink)" strokeWidth="1" />
-
-        {/* Status tags */}
-        <rect x="50" y="130" width="62" height="18" rx="2" stroke="var(--status-pending)" strokeWidth="1" fill="var(--surface)" />
-        <text x="59" y="142" fill="var(--status-pending)" fontFamily="var(--font-mono)" fontSize="7" fontWeight="500" letterSpacing="0.04em">
-          PENDING
-        </text>
-
-        <rect x="125" y="130" width="72" height="18" rx="2" stroke="var(--status-progress)" strokeWidth="1" fill="var(--surface)" />
-        <text x="134" y="142" fill="var(--status-progress)" fontFamily="var(--font-mono)" fontSize="7" fontWeight="500" letterSpacing="0.04em">
-          IN PROGRESS
-        </text>
-
-        <rect x="210" y="150" width="62" height="18" rx="2" stroke="var(--status-complete)" strokeWidth="1" fill="var(--surface)" />
-        <text x="219" y="162" fill="var(--status-complete)" fontFamily="var(--font-mono)" fontSize="7" fontWeight="500" letterSpacing="0.04em">
-          VERIFIED
-        </text>
-      </svg>
-    </figure>
-  );
-}
+import {
+  AttendanceVisual,
+  OperationsPreview,
+  ProofVisual,
+  ScheduleVisual,
+  SetupSteps,
+} from "@/components/marketing/ProductVisuals";
+import {
+  MarketingCTA,
+  WorkspaceLink,
+} from "@/components/marketing/MarketingCTA";
 
 export default function FeaturesPage() {
-  const isAuthenticated = useSelector((state: RootState) => state.auth.isAuthenticated);
-  const workspaceTarget = isAuthenticated ? "/dashboard" : "/signup";
-
   return (
-    <div className="flex flex-col">
-      {/* Hero */}
-      <section className="relative overflow-hidden border-b border-line px-4 py-16 sm:px-6 sm:py-20 lg:px-8">
-        <svg
-          className="pointer-events-none absolute inset-0 h-full w-full opacity-[0.04]"
-          xmlns="http://www.w3.org/2000/svg"
-          aria-hidden="true"
-        >
-          <defs>
-            <pattern id="features-grid" width="48" height="48" patternUnits="userSpaceOnUse">
-              <path d="M 48 0 L 0 0 0 48" fill="none" stroke="var(--ink)" strokeWidth="1" />
-            </pattern>
-          </defs>
-          <rect width="100%" height="100%" fill="url(#features-grid)" />
-        </svg>
-
-        <div className="relative mx-auto grid max-w-7xl items-start gap-12 lg:grid-cols-[1.1fr_0.9fr] lg:gap-16">
-          <div className="max-w-xl pt-4">
-            <p className="font-mono text-[10px] font-medium uppercase tracking-[0.2em] text-ink/70">
-              Features / Operational Capabilities
-            </p>
-            <h1 className="font-heading mt-5 text-[clamp(2.25rem,5vw,4rem)] font-bold leading-[1.02] tracking-tight text-ink">
-              GPS, QR tokens, and photo proof. Built for cleaning operations.
-            </h1>
-            <p className="mt-6 max-w-lg text-lg leading-8 text-ink/70">
-              Track where staff check in, what tasks they start, and whether every area was cleaned, with scores you can explain to a client.
-            </p>
-            <div className="mt-8 flex flex-col gap-3 sm:flex-row">
-              <Button
-                asChild
-                className="h-12 rounded-[2px] border border-ink bg-primary px-6 font-mono text-xs uppercase tracking-wider text-surface hover:bg-primary/90"
-              >
-                <Link to={workspaceTarget}>
-                  Create workspace
-                  <ArrowRight className="ml-2 h-4 w-4" />
-                </Link>
-              </Button>
-              <a
-                href="#verification"
-                onClick={(e) => {
-                  e.preventDefault();
-                  document.getElementById("verification")?.scrollIntoView({ behavior: "smooth" });
-                }}
-                className="inline-flex h-12 items-center justify-center rounded-[2px] border border-ink bg-transparent px-6 font-mono text-xs uppercase tracking-wider text-ink transition-colors hover:bg-ink/5"
-              >
-                View verification
-              </a>
-            </div>
-          </div>
-
-          <div className="relative lg:pt-6">
-            <div className="border border-line rounded-[2px] bg-surface p-4">
-              <FeatureHeroDiagram />
-            </div>
+    <>
+      <section className="features-hero marketing-container">
+        <div className="section-heading centered">
+          <span className="hero-eyebrow">
+            <span /> Built around the way you work
+          </span>
+          <h1>
+            The details handled.
+            <br />
+            The bigger picture, clear.
+          </h1>
+          <p>
+            Everything your cleaning operation needs to stay connected, from the
+            office to the people on site.
+          </p>
+          <div className="hero-actions">
+            <WorkspaceLink />
+            <Link to="/pricing" className="marketing-button secondary-button">
+              Explore plans <ArrowRight size={16} />
+            </Link>
           </div>
         </div>
+        <div className="features-dashboard">
+          <OperationsPreview interactive />
+        </div>
+        <p className="preview-caption">
+          Explore the tabs above. Illustrative workspace with sample data.
+        </p>
       </section>
-
-      {/* Capability blocks */}
-      <section className="border-b border-line px-4 py-16 sm:px-6 lg:px-8">
-        <div className="mx-auto max-w-7xl">
-          <div className="divide-y divide-line border-t border-line">
-            {capabilities.map((cap) => (
-              <div key={cap.index} className="grid gap-4 py-8 sm:grid-cols-12 sm:gap-6">
-                <div className="sm:col-span-2">
-                  <p className="font-mono text-[10px] uppercase tracking-widest text-ink/50">
-                    Capability {cap.index}
-                  </p>
-                </div>
-                <div className="sm:col-span-6">
-                  <h2 className="font-heading text-2xl font-semibold tracking-tight text-ink">
-                    {cap.headline}
-                  </h2>
-                  <p className="mt-2 max-w-lg text-base leading-7 text-ink/70">{cap.body}</p>
-                </div>
-                <div className="sm:col-span-4 sm:text-right">
-                  <span className="font-mono text-xs text-primary">{cap.sample}</span>
+      <nav className="feature-jump-nav" aria-label="Explore features">
+        <div className="marketing-container">
+          <a href="#locations">
+            <Building2 size={17} /> Locations
+          </a>
+          <a href="#attendance">
+            <MapPin size={17} /> Attendance
+          </a>
+          <a href="#scheduling">
+            <CalendarDays size={17} /> Scheduling
+          </a>
+          <a href="#verification">
+            <ShieldCheck size={17} /> Verification
+          </a>
+        </div>
+      </nav>
+      <section
+        id="locations"
+        className="marketing-section marketing-container locations-section"
+      >
+        <div className="section-heading">
+          <span className="section-kicker">Your locations, connected</span>
+          <h2>
+            One site or several.
+            <br />
+            The same clear picture.
+          </h2>
+          <p>
+            Organize each location with its own staff, shifts, and tasks. Give
+            managers access to the sites they look after.
+          </p>
+        </div>
+        <div className="location-cards">
+          {[
+            [
+              "WO",
+              "Westfield Office",
+              "Commercial office",
+              "14 tasks",
+              "6 team members",
+            ],
+            [
+              "PH",
+              "The Park Hotel",
+              "Hospitality",
+              "8 tasks",
+              "8 team members",
+            ],
+            [
+              "OC",
+              "Oakwood Clinic",
+              "Healthcare",
+              "10 tasks",
+              "6 team members",
+            ],
+          ].map(([initials, name, type, tasks, staff]) => (
+            <div className="location-preview" key={name}>
+              <div className={`location-art location-${initials}`}>
+                <Building2 size={50} strokeWidth={1.2} />
+                <span className="mini-status green">Active location</span>
+              </div>
+              <div className="location-details">
+                <span>{type}</span>
+                <h3>{name}</h3>
+                <div>
+                  <span>
+                    <Check size={14} />
+                    {tasks}
+                  </span>
+                  <span>
+                    <Users size={14} />
+                    {staff}
+                  </span>
                 </div>
               </div>
-            ))}
-          </div>
-        </div>
-      </section>
-
-      {/* Console preview */}
-      <ConsolePreview />
-
-      {/* Full verification section */}
-      <section id="verification" className="border-b border-line px-4 py-16 sm:px-6 lg:px-8">
-        <div className="mx-auto max-w-5xl">
-          <p className="font-mono text-[10px] font-medium uppercase tracking-[0.2em] text-ink/70">
-            Photo Verification
-          </p>
-          <h2 className="font-heading mt-3 text-[clamp(2rem,4vw,3rem)] font-bold leading-[1.05] tracking-tight text-ink">
-            Two verification modes. Scored per area. Reasoning logged.
-          </h2>
-          <p className="mt-4 max-w-2xl text-lg leading-8 text-ink/70">
-            CleanOps doesn't just store photos. It compares staff proof against reference images and returns a location-match score, a cleanliness-match score, and a short reasoning line for each area.
-          </p>
-          <div className="mt-8">
-            <VerificationDiagram />
-          </div>
-        </div>
-      </section>
-
-      {/* Instrument panel preview */}
-      <section className="border-b border-line px-4 py-16 sm:px-6 lg:px-8">
-        <div className="mx-auto max-w-7xl">
-          <div className="grid gap-10 lg:grid-cols-2 lg:items-center">
-            <div>
-              <p className="font-mono text-[10px] font-medium uppercase tracking-[0.2em] text-ink/70">
-                Live Panel
-              </p>
-              <h2 className="font-heading mt-3 text-[clamp(2rem,4vw,3rem)] font-bold leading-[1.05] tracking-tight text-ink">
-                Updated as staff work.
-              </h2>
-              <p className="mt-4 text-lg leading-8 text-ink/70">
-                Every check-in, QR scan, and completed task feeds into the same dashboard. Managers see the current state without waiting for end-of-day reports.
-              </p>
-              <div className="mt-6 grid gap-2 font-mono text-xs text-ink/70">
-                <p>data_source mobile_app_events</p>
-                <p>refresh_interval real_time</p>
-                <p>exception_alert late_start missed_checkout</p>
-              </div>
             </div>
-            <DashboardPanel rows={dashboardRows} />
+          ))}
+        </div>
+        <p className="preview-caption">
+          Example locations, shown for illustration.
+        </p>
+      </section>
+      <section id="attendance" className="feature-tint-section">
+        <div className="marketing-container feature-split">
+          <div className="feature-art map-feature-art">
+            <AttendanceVisual />
+          </div>
+          <div className="feature-copy">
+            <span className="section-kicker">Attendance with context</span>
+            <h2>
+              Know who’s there.
+              <br />
+              Without the check-in calls.
+            </h2>
+            <p>
+              Staff check in with their location and a selfie. You get a record
+              of when they arrived, where they checked in, and whether they’re
+              on time.
+            </p>
+            <ul className="marketing-check-list">
+              <li>
+                <Check /> Set a check-in boundary for each site
+              </li>
+              <li>
+                <Check /> See late arrivals and missed checkouts
+              </li>
+              <li>
+                <Check /> Keep shift attendance in one place
+              </li>
+            </ul>
           </div>
         </div>
       </section>
-
-      {/* CTA */}
-      <section className="px-4 py-16 sm:px-6 lg:px-8">
-        <div className="mx-auto max-w-2xl text-center">
-          <h2 className="font-heading text-[clamp(1.75rem,3vw,2.5rem)] font-bold tracking-tight text-ink">
-            Start running verified operations.
+      <section
+        id="scheduling"
+        className="marketing-section marketing-container feature-split"
+      >
+        <div className="feature-copy">
+          <span className="section-kicker">A plan your team can follow</span>
+          <h2>
+            Repeat the work.
+            <br />
+            Not the admin.
           </h2>
-          <p className="mt-4 text-base leading-7 text-ink/70">
-            Create a workspace, add your first location, and invite your staff.
+          <p>
+            Set up daily routines and one-time jobs with clear time windows.
+            Assign staff, track task starts, and see what’s still outstanding.
           </p>
-          <div className="mt-8 flex flex-col justify-center gap-3 sm:flex-row">
-            <Button
-              asChild
-              className="h-12 rounded-[2px] border border-ink bg-primary px-6 font-mono text-xs uppercase tracking-wider text-surface hover:bg-primary/90"
-            >
-              <Link to={workspaceTarget}>Create workspace</Link>
-            </Button>
-            <Button
-              asChild
-              variant="outline"
-              className="h-12 rounded-[2px] border-ink bg-transparent px-6 font-mono text-xs uppercase tracking-wider text-ink hover:bg-ink/5"
-            >
-              <Link to="/login">Log in</Link>
-            </Button>
+          <ul className="marketing-check-list">
+            <li>
+              <Check /> Daily and one-time task schedules
+            </li>
+            <li>
+              <Check /> QR-based task starting
+            </li>
+            <li>
+              <Check /> Automatic assignment on Pro and Advanced
+            </li>
+          </ul>
+        </div>
+        <div className="feature-art schedule-art">
+          <ScheduleVisual />
+        </div>
+      </section>
+      <section
+        id="verification"
+        className="feature-tint-section lavender-section"
+      >
+        <div className="marketing-container feature-split">
+          <div className="feature-art">
+            <ProofVisual />
+          </div>
+          <div className="feature-copy">
+            <span className="section-kicker">
+              The proof stays with the task
+            </span>
+            <h2>
+              See the work.
+              <br />
+              Not just the status.
+            </h2>
+            <p>
+              Set reference photos for the areas that matter. Staff submit their
+              photos, and image comparison helps flag submissions that need
+              attention.
+            </p>
+            <ul className="marketing-check-list">
+              <li>
+                <Check /> Photo evidence for each reference area
+              </li>
+              <li>
+                <Check /> Area-match results and review flags
+              </li>
+              <li>
+                <Check /> Submission and attempt history
+              </li>
+            </ul>
+            <p className="feature-footnote">
+              Photo comparison supports your review. It doesn’t replace a
+              manager’s judgment.
+            </p>
           </div>
         </div>
       </section>
-    </div>
+      <section className="marketing-section marketing-container">
+        <div className="section-heading centered">
+          <span className="section-kicker">
+            The everyday essentials, included
+          </span>
+          <h2>Thought through for real working days.</h2>
+        </div>
+        <div className="essentials-grid">
+          {[
+            [
+              Clock3,
+              "Overnight shifts",
+              "Work doesn’t always finish at five. Schedule shifts that continue into the next day.",
+            ],
+            [
+              MapPin,
+              "Location timezones",
+              "Keep schedules grounded in the local time of each site.",
+            ],
+            [
+              ShieldCheck,
+              "Clear responsibilities",
+              "Separate administrator, manager, and staff roles keep everyone focused.",
+            ],
+            [
+              Users,
+              "Room to grow",
+              "Start with a small team and choose larger allowances as your business grows.",
+            ],
+          ].map(([Icon, title, text]) => {
+            const FeatureIcon = Icon as typeof Users;
+            return (
+              <article key={String(title)}>
+                <FeatureIcon size={24} />
+                <h3>{String(title)}</h3>
+                <p>{String(text)}</p>
+              </article>
+            );
+          })}
+        </div>
+      </section>
+      <section id="how-it-works" className="setup-section">
+        <div className="marketing-container">
+          <div className="section-heading centered">
+            <span className="section-kicker">From setup to the next shift</span>
+            <h2>Make CleanOps your own.</h2>
+          </div>
+          <SetupSteps />
+        </div>
+      </section>
+      <MarketingCTA />
+    </>
   );
 }

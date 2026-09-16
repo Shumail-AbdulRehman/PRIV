@@ -137,9 +137,7 @@ export default function SubscriptionPage() {
           <p className="mt-1 text-sm text-muted-foreground">Prices are localized by Paddle. Manager seats include the original company administrator.</p>
         </div>
         <PaddlePricing
-          email={user?.email}
-          companyId={user?.companyId}
-          currentPlan={summary.company.plan}
+          currentPlan={summary.company.subscriptionStatus === "ACTIVE" ? summary.company.plan : undefined}
           subscribeDisabled={!isAdmin}
           disabledMessage="Only the company administrator can subscribe for this workspace."
         />

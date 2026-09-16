@@ -58,6 +58,9 @@ jobs:
       - name: Install dependencies
         run: npm ci
 
+      - name: Test onboarding rules
+        run: npm test
+
       - name: Lint frontend
         run: npm run lint
 

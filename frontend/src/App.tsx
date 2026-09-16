@@ -1,5 +1,5 @@
 import './App.css';
-import { Outlet, Navigate } from 'react-router-dom';
+import { Outlet, Navigate, useLocation } from 'react-router-dom';
 import useAuth from '@/hooks/useAuth';
 import { useGetCurrentUser } from './queries/auth.js';
 import { useDispatch, useSelector } from 'react-redux';
@@ -15,8 +15,9 @@ export const ProtectedRoute = ({ children }: { children: React.ReactNode }) => {
 
   const { isAuthenticated } = useAuth();
   const {isLoading}= useSelector((state: RootState)=>  state.auth);
+  const location = useLocation();
   if(isLoading) return <LoadingSpinner fullScreen/>
-  if (!isAuthenticated) return <Navigate to="/login" replace />;
+  if (!isAuthenticated) return <Navigate to="/login" state={{ from: location.pathname }} replace />;
 
 
   return <>{children}</>;
@@ -25,7 +26,9 @@ export const ProtectedRoute = ({ children }: { children: React.ReactNode }) => {
 export const GuestRoute = ({ children }: { children: React.ReactNode }) => {
 
   const { isAuthenticated } = useAuth();
-  if (isAuthenticated) return <Navigate to="/dashboard" replace />;
+  const location = useLocation();
+  const destination = location.state?.from === "/welcome" ? "/welcome" : "/dashboard";
+  if (isAuthenticated) return <Navigate to={destination} replace />;
 
 
   return <>{children}</>;
@@ -35,8 +38,9 @@ export const RequireRole = ({ roles, children }: { roles: Array<'ADMIN' | 'MANAG
 
   const { isAuthenticated } = useAuth();
   const { user, isLoading } = useSelector((state: RootState) => state.auth);
+  const location = useLocation();
   if (isLoading) return <LoadingSpinner fullScreen />;
-  if (!isAuthenticated) return <Navigate to="/login" replace />;
+  if (!isAuthenticated) return <Navigate to="/login" state={{ from: location.pathname }} replace />;
   if (!user || !roles.includes(user.role)) return <Navigate to="/dashboard" replace />;
 
   return <>{children}</>;
@@ -45,13 +49,14 @@ export const RequireRole = ({ roles, children }: { roles: Array<'ADMIN' | 'MANAG
 function App() {
   const dispatch = useDispatch<AppDispatch>();
   const getCurrentUserQuery = useGetCurrentUser();
+  const { user } = useAuth();
 
   
   useEffect(() => {
     if (getCurrentUserQuery.isLoading) {
       dispatch(setLoading(true));
     } else if (getCurrentUserQuery.isSuccess && getCurrentUserQuery.data) {
-      dispatch(setUser(getCurrentUserQuery.data.data.data));
+      dispatch(setUser(getCurrentUserQuery.data));
     } else if (getCurrentUserQuery.isError) {
        dispatch(clearUser());
     }
@@ -64,7 +69,14 @@ function App() {
   ]);
 
   
- if (getCurrentUserQuery.isLoading && !getCurrentUserQuery.isError) {
+ // Wait for restored authentication to reach Redux before mounting routes.
+ // Otherwise a reload of /welcome or /choose-plan can briefly redirect to login.
+ const restoredUser = getCurrentUserQuery.data;
+ const restoringSession = getCurrentUserQuery.isSuccess && restoredUser && (
+   user?.id !== restoredUser.id || user?.role !== restoredUser.role ||
+   user?.companyId !== restoredUser.companyId
+ );
+ if (getCurrentUserQuery.isLoading || restoringSession) {
   return <LoadingSpinner fullScreen />;
 }
 

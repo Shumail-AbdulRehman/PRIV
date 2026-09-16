@@ -23,6 +23,8 @@ import FeaturesPage from './pages/Landing/FeaturesPage.tsx';
 import SubscriptionPage from './pages/Subscription/SubscriptionPage.tsx';
 import PricingPage from './pages/Pricing/PricingPage.tsx';
 import WelcomePage from './pages/Pricing/WelcomePage.tsx';
+import ChoosePlanPage from './pages/Pricing/ChoosePlanPage.tsx';
+import WorkspaceGate from './components/onboarding/WorkspaceGate.tsx';
 
 const queryClient = new QueryClient({
   defaultOptions: {
@@ -47,7 +49,8 @@ const router = createBrowserRouter([
           { index: true, element: <LandingPage /> },
           { path: 'features', element: <FeaturesPage /> },
           { path: 'pricing', element: <PricingPage /> },
-          { path: 'welcome', element: <WelcomePage /> },
+          { path: 'welcome', element: <RequireRole roles={['ADMIN']}><WelcomePage /></RequireRole> },
+          { path: 'choose-plan', element: <RequireRole roles={['ADMIN']}><ChoosePlanPage /></RequireRole> },
         ],
       },
       {
@@ -69,7 +72,7 @@ const router = createBrowserRouter([
       {
         element: (
           <ProtectedRoute>
-            <DashboardLayout />
+            <WorkspaceGate><DashboardLayout /></WorkspaceGate>
           </ProtectedRoute>
         ),
         children: [

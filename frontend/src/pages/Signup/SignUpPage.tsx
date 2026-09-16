@@ -38,7 +38,7 @@ const SignUp = () => {
   return (
     <AuthShell
       title="Create your workspace"
-      subtitle="Set up your manager account and start organizing teams, locations, and recurring operational tasks."
+      subtitle="Step 1 of 2: create your account. Next, choose a plan to activate your workspace."
       footer={
         <p>
           Already have an account?{" "}
@@ -126,7 +126,7 @@ const SignUp = () => {
             disabled={createManager.isPending}
             className="h-11 w-full rounded-2xl"
           >
-            {createManager.isPending ? "Creating..." : "Create account"}
+            {createManager.isPending ? "Creating..." : "Create account & choose plan"}
           </Button>
         </form>
     </AuthShell>
