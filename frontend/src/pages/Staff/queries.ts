@@ -1,9 +1,10 @@
+import { invalidateWorkspace } from "@/lib/invalidateWorkspace";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import {
   getStaff,
   getStaffDetails,
   createStaff,
-  deactivateStaff,
+  deleteStaff,
   assignShift,
   editStaff,
   type StaffDetailsFilters,
@@ -22,7 +23,7 @@ export const useGetStaff = () => {
 
 export const getStaffDetailsQueryOptions = (
   id: number,
-  filters?: StaffDetailsFilters
+  filters?: StaffDetailsFilters,
 ) => ({
   queryKey: ["staff", "details", id, filters ?? null] as const,
   queryFn: () => getStaffDetails(id, filters),
@@ -30,7 +31,10 @@ export const getStaffDetailsQueryOptions = (
   staleTime: 2 * 60 * 1000,
 });
 
-export const useGetStaffDetails = (id: number, filters?: StaffDetailsFilters) => {
+export const useGetStaffDetails = (
+  id: number,
+  filters?: StaffDetailsFilters,
+) => {
   return useQuery(getStaffDetailsQueryOptions(id, filters));
 };
 
@@ -42,11 +46,11 @@ export const useCreateStaff = () => {
   });
 };
 
-export const useDeactivateStaff = () => {
+export const useDeleteStaff = () => {
   const qc = useQueryClient();
   return useMutation({
-    mutationFn: (id: number) => deactivateStaff(id),
-    onSuccess: () => qc.invalidateQueries({ queryKey: ["staff"] }),
+    mutationFn: (id: number) => deleteStaff(id),
+    onSuccess: () => invalidateWorkspace(qc),
   });
 };
 

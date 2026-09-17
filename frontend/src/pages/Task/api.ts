@@ -11,7 +11,8 @@ export const createTaskTemplate = async (data: CreateTaskTemplateFormData) => {
   formData.append("shiftEnd", data.shiftEnd.toISOString());
   if (data.recurringType) formData.append("recurringType", data.recurringType);
   formData.append("effectiveDate", data.effectiveDate.toISOString());
-  if (data.recurringEndDate) formData.append("recurringEndDate", data.recurringEndDate.toISOString());
+  if (data.recurringEndDate)
+    formData.append("recurringEndDate", data.recurringEndDate.toISOString());
 
   data.referenceImages.forEach((ref) => {
     formData.append("referenceImages", ref.file);
@@ -35,7 +36,7 @@ export interface EditTaskTemplateInput {
 
 export const editTaskTemplate = async (
   id: number,
-  data: EditTaskTemplateInput
+  data: EditTaskTemplateInput,
 ) => {
   const res = await client.patch(`/task-template/${id}`, data);
   return res.data;

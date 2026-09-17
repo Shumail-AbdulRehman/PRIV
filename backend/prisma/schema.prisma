@@ -449,3 +449,14 @@ enum SubscriptionStatus {
   PAST_DUE
   CANCELLED
 }
+
+// Transactional outbox: permanent record deletion queues remote media cleanup.
+model DeletedMedia {
+  id        Int      @id @default(autoincrement())
+  url       String   @unique
+  createdAt DateTime @default(now())
+  attempts  Int      @default(0)
+  retryAt   DateTime @default(now())
+
+  @@index([retryAt])
+}

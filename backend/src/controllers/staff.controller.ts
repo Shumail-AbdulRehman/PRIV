@@ -7,7 +7,7 @@ import { generateAccessToken, generateRefreshToken, isPasswordCorrect } from "..
 import { DEFAULT_TIME_ZONE, getZonedClockMinutes, getZonedDayRangeFromDateInput, getZonedMonthRange } from "../utils/dateTime.js";
 import { syncTodaysOpenAttendanceWindow } from "../utils/syncAttendanceWindow.js";
 import { getCookieOptions } from "../utils/cookies.js";
-import { markCurrentAssignmentsForTasks } from "../services/taskAssignment.service.js";
+import { permanentlyDelete } from "../services/deletion.service.js";
 import { getScopedLocationIds, assertLocationAccess } from "../utils/scope.js";
 import { assertCompanyCanAdd } from "../services/subscription.service.js";
 
@@ -144,60 +144,9 @@ export const getStaff = async (req: Request, res: Response) => {
   res.status(200).json(new ApiResponse(200, staff, "Staff fetched successfully"));
 };
 
-export const softDeleteStaff = async (req: Request, res: Response) => {
-  const staffId = Number(req.params.id);
-  if (isNaN(staffId)) throw new ApiError(400, "Invalid staff id");
-
-  const staff = await prisma.staff.findUnique({ where: { id: staffId } });
-
-  if (!staff || staff.companyId !== req.user!.companyId) {
-    throw new ApiError(404, "Staff not found in your company");
-  }
-
-  if (req.user!.role === "MANAGER") {
-    if (!staff.locationId) {
-      throw new ApiError(403, "You do not have access to this location");
-    }
-    assertLocationAccess(req.user!, staff.locationId);
-  }
-
-  if (!staff.isActive) {
-    throw new ApiError(400, "Staff is already deactivated");
-  }
-
-  const affectedTasks = await prisma.taskInstance.findMany({
-    where: {
-      staffId,
-      status: { in: ["PENDING", "IN_PROGRESS"] },
-    },
-    select: { id: true },
-  });
-
-  await prisma.$transaction([
-    prisma.staff.update({
-      where: { id: staffId },
-      data: { isActive: false, refreshToken: null },
-    }),
-    prisma.taskTemplate.updateMany({
-      where: { staffId, isActive: true },
-      data: { staffId: null },
-    }),
-    prisma.taskInstance.updateMany({
-      where: {
-        staffId,
-        status: { in: ["PENDING", "IN_PROGRESS"] },
-      },
-      data: { status: "CANCELLED" },
-    }),
-  ]);
-
-  await markCurrentAssignmentsForTasks(
-    affectedTasks.map((task) => task.id),
-    "CANCELLED",
-    "STAFF_DEACTIVATED"
-  );
-
-  res.status(200).json(new ApiResponse(200, {}, "Staff deactivated successfully"));
+export const deleteStaff = async (req: Request, res: Response) => {
+  await permanentlyDelete("staff", Number(req.params.id), req.user!);
+  res.status(200).json(new ApiResponse(200, {}, "Deleted permanently"));
 };
 
 export const getStaffById = async (req: Request, res: Response) => {
@@ -267,34 +216,6 @@ export const getStaffByLocation = async (req: Request, res: Response) => {
   });
 
   res.status(200).json(new ApiResponse(200, staff, "Staff fetched successfully"));
-};
-
-export const getInactiveStaff = async (req: Request, res: Response) => {
-  const scopedLocationIds = getScopedLocationIds(req.user!);
-
-  const staff = await prisma.staff.findMany({
-    where: {
-      companyId: req.user!.companyId,
-      isActive: false,
-      ...(scopedLocationIds ? { locationId: { in: scopedLocationIds } } : {}),
-    },
-    select: {
-      id: true,
-      name: true,
-      email: true,
-      phone: true,
-      role: true,
-      isActive: true,
-      companyId: true,
-      locationId: true,
-      createdAt: true,
-      updatedAt: true,
-      shiftStart: true,
-      shiftEnd: true
-    }
-  });
-
-  res.status(200).json(new ApiResponse(200, staff, "Inactive staff fetched successfully"));
 };
 
 export const getProfile = async (req: Request, res: Response) => {

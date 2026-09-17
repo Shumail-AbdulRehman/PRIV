@@ -71,7 +71,8 @@ export const updateManagerSchema = z.object({
     .min(6, "Password must be at least 6 characters")
     .optional(),
 
-  isActive: z.boolean().optional(),
+  // Activation/deactivation is no longer supported.
+  isActive: z.never().optional(),
 
   locationIds: z
     .array(z.number().int().positive())

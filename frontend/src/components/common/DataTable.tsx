@@ -35,14 +35,20 @@ export default function DataTable<T>({
   }
 
   return (
-    <div className={cn("overflow-x-auto rounded-3xl border border-border/70 bg-card/95 shadow-[0_20px_60px_-36px_rgba(15,23,42,0.35)]", className)}>
+    <div
+      className={cn(
+        "overflow-x-auto rounded-xl border border-border bg-card",
+        className,
+      )}
+    >
       <table className="w-full text-sm">
         <thead>
           <tr className="border-b border-border/70 bg-muted/60">
             {columns.map((col) => (
               <th
                 key={col.key}
-                className={`px-5 py-3 text-left text-xs font-semibold uppercase tracking-[0.18em] text-muted-foreground ${col.className ?? ""}`}
+                scope="col"
+                className={`px-5 py-3 text-left text-xs font-medium text-muted-foreground ${col.className ?? ""}`}
               >
                 {col.header}
               </th>
@@ -53,6 +59,17 @@ export default function DataTable<T>({
           {data.map((row) => (
             <tr
               key={rowKey(row)}
+              tabIndex={onRowClick ? 0 : undefined}
+              onKeyDown={(event) => {
+                if (
+                  onRowClick &&
+                  event.target === event.currentTarget &&
+                  (event.key === "Enter" || event.key === " ")
+                ) {
+                  event.preventDefault();
+                  onRowClick(row);
+                }
+              }}
               onClick={() => onRowClick?.(row)}
               onMouseEnter={() => onRowHover?.(row)}
               className={`transition-colors hover:bg-muted/40 ${

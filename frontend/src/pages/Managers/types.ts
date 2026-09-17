@@ -24,7 +24,6 @@ export interface UpdateManagerInput {
   name?: string;
   email?: string;
   password?: string;
-  isActive?: boolean;
   locationIds?: number[];
 }
 

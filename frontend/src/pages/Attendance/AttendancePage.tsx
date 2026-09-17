@@ -39,11 +39,14 @@ interface StaffOption {
 
 const fmtDate = (d: string) => {
   const date = new Date(d);
-  return `${String(date.getUTCDate()).padStart(2, "0")} ${date.toLocaleDateString("en-US", {
-    month: "short",
-    year: "numeric",
-    timeZone: "UTC",
-  })}`;
+  return `${String(date.getUTCDate()).padStart(2, "0")} ${date.toLocaleDateString(
+    "en-US",
+    {
+      month: "short",
+      year: "numeric",
+      timeZone: "UTC",
+    },
+  )}`;
 };
 
 const fmtTime = (d: string | null, timeZone = "UTC") => {
@@ -57,7 +60,7 @@ const fmtTimeWithTz = (d: string | null, timeZone = "UTC") => {
 };
 
 const inputCls =
-  "h-11 rounded-2xl border border-border/80 bg-background/90 px-4 py-2 text-sm shadow-xs outline-none focus:border-primary/60 focus:ring-4 focus:ring-primary/10";
+  "h-11 rounded-lg border border-border/80 bg-background/90 px-4 py-2 text-sm shadow-xs outline-none focus:border-primary/60 focus:ring-4 focus:ring-primary/10";
 
 const toDateInputValue = (date: Date) =>
   `${date.getUTCFullYear()}-${String(date.getUTCMonth() + 1).padStart(2, "0")}-${String(date.getUTCDate()).padStart(2, "0")}`;
@@ -73,7 +76,11 @@ const getMonthOptions = (count = 12) => {
 
   for (let index = 0; index < count; index += 1) {
     const value = `${cursor.getUTCFullYear()}-${String(cursor.getUTCMonth() + 1).padStart(2, "0")}`;
-    const label = cursor.toLocaleDateString("en-US", { month: "long", year: "numeric", timeZone: "UTC" });
+    const label = cursor.toLocaleDateString("en-US", {
+      month: "long",
+      year: "numeric",
+      timeZone: "UTC",
+    });
     options.push({ value, label });
     cursor.setUTCMonth(cursor.getUTCMonth() - 1);
   }
@@ -83,13 +90,17 @@ const getMonthOptions = (count = 12) => {
 
 export default function AttendancePage() {
   const todayValue = toDateInputValue(new Date());
-  const [selectedQuickFilter, setSelectedQuickFilter] = useState<"today" | "yesterday" | "this-month" | null>("today");
+  const [selectedQuickFilter, setSelectedQuickFilter] = useState<
+    "today" | "yesterday" | "this-month" | null
+  >("today");
   const [staffFilter, setStaffFilter] = useState<string>("");
   const [month, setMonth] = useState(getCurrentMonthValue());
   const [dateFrom, setDateFrom] = useState(todayValue);
   const [dateTo, setDateTo] = useState(todayValue);
   const [appliedFilters, setAppliedFilters] = useState<{
-    staffId?: number; from?: string; to?: string;
+    staffId?: number;
+    from?: string;
+    to?: string;
   }>({
     from: todayValue,
     to: todayValue,
@@ -103,12 +114,22 @@ export default function AttendancePage() {
 
   const records: AttendanceRecord[] = data?.data ?? [];
   const allStaff = (staffQuery.data?.data ?? []) as StaffOption[];
-  const displayStatuses = records.map((record) => getAttendanceDisplayStatus(record, new Date(), record.location.timezone));
+  const displayStatuses = records.map((record) =>
+    getAttendanceDisplayStatus(record, new Date(), record.location.timezone),
+  );
 
-  const presentCount = displayStatuses.filter((status) => status === "CHECKED_IN" || status === "CHECKED_OUT").length;
-  const absentCount = displayStatuses.filter((status) => status === "ABSENT").length;
-  const lateCount = displayStatuses.filter((status) => status === "LATE").length;
-  const shiftNotStartedCount = displayStatuses.filter((status) => status === "SHIFT_NOT_STARTED").length;
+  const presentCount = displayStatuses.filter(
+    (status) => status === "CHECKED_IN" || status === "CHECKED_OUT",
+  ).length;
+  const absentCount = displayStatuses.filter(
+    (status) => status === "ABSENT",
+  ).length;
+  const lateCount = displayStatuses.filter(
+    (status) => status === "LATE",
+  ).length;
+  const shiftNotStartedCount = displayStatuses.filter(
+    (status) => status === "SHIFT_NOT_STARTED",
+  ).length;
 
   const applyFilters = () => {
     setAppliedFilters({
@@ -187,95 +208,208 @@ export default function AttendancePage() {
 
   const columns: Column<AttendanceRecord>[] = [
     {
-      key: "staff", header: "Staff",
+      key: "staff",
+      header: "Staff",
       render: (r) => (
         <div className="flex items-center gap-3">
-          <div className="flex h-8 w-8 items-center justify-center rounded-full bg-teal-50 text-xs font-bold text-teal-700">
-            {r.staff.name.split(" ").map((w) => w[0]).join("").slice(0, 2).toUpperCase()}
+          <div className="flex h-8 w-8 items-center justify-center rounded-full bg-blue-50 text-xs font-bold text-blue-700">
+            {r.staff.name
+              .split(" ")
+              .map((w) => w[0])
+              .join("")
+              .slice(0, 2)
+              .toUpperCase()}
           </div>
           <span className="font-medium text-gray-800">{r.staff.name}</span>
         </div>
       ),
     },
-    { key: "location", header: "Location", render: (r) => <span className="text-gray-500">{r.location.name}</span> },
-    { key: "date", header: "Date", render: (r) => <span className="text-gray-600">{fmtDate(r.date)}</span> },
     {
-      key: "shift", header: "Expected Shift",
-      render: (r) => <span className="text-gray-600">{fmtTimeWithTz(r.expectedStart, r.location.timezone)} – {fmtTimeWithTz(r.expectedEnd, r.location.timezone)}</span>,
+      key: "location",
+      header: "Location",
+      render: (r) => <span className="text-gray-500">{r.location.name}</span>,
     },
     {
-      key: "checkIn", header: "Check In",
+      key: "date",
+      header: "Date",
+      render: (r) => <span className="text-gray-600">{fmtDate(r.date)}</span>,
+    },
+    {
+      key: "shift",
+      header: "Expected Shift",
       render: (r) => (
-        <span className={r.isLateCheckIn ? "font-medium text-amber-600" : "text-emerald-600"}>
+        <span className="text-gray-600">
+          {fmtTimeWithTz(r.expectedStart, r.location.timezone)} –{" "}
+          {fmtTimeWithTz(r.expectedEnd, r.location.timezone)}
+        </span>
+      ),
+    },
+    {
+      key: "checkIn",
+      header: "Check In",
+      render: (r) => (
+        <span
+          className={
+            r.isLateCheckIn ? "font-medium text-amber-600" : "text-emerald-600"
+          }
+        >
           {fmtTime(r.checkInTime, r.location.timezone)}
         </span>
       ),
     },
-    { key: "checkOut", header: "Check Out", render: (r) => <span className="text-gray-600">{fmtTime(r.checkOutTime, r.location.timezone)}</span> },
-    { key: "status", header: "Status", render: (r) => <StatusBadge status={getAttendanceDisplayStatus(r, new Date(), r.location.timezone)} /> },
     {
-      key: "lateMin", header: "Late",
-      render: (r) =>
-        r.lateMinutes
-          ? <span className="font-medium text-amber-600">+{r.lateMinutes}m</span>
-          : <span className="text-gray-400">—</span>,
+      key: "checkOut",
+      header: "Check Out",
+      render: (r) => (
+        <span className="text-gray-600">
+          {fmtTime(r.checkOutTime, r.location.timezone)}
+        </span>
+      ),
     },
     {
-      key: "checkInImg", header: "Check-In Photo",
+      key: "status",
+      header: "Status",
+      render: (r) => (
+        <StatusBadge
+          status={getAttendanceDisplayStatus(
+            r,
+            new Date(),
+            r.location.timezone,
+          )}
+        />
+      ),
+    },
+    {
+      key: "lateMin",
+      header: "Late",
+      render: (r) =>
+        r.lateMinutes ? (
+          <span className="font-medium text-amber-600">+{r.lateMinutes}m</span>
+        ) : (
+          <span className="text-gray-400">—</span>
+        ),
+    },
+    {
+      key: "checkInImg",
+      header: "Check-In Photo",
       render: (r) =>
         r.checkInImage ? (
           <a href={r.checkInImage} target="_blank" rel="noopener noreferrer">
-            <img src={r.checkInImage} alt="Check-in" className="h-10 w-10 rounded-lg object-cover border border-gray-200 hover:ring-2 hover:ring-teal-400 transition-all cursor-pointer" />
+            <img
+              src={r.checkInImage}
+              alt="Check-in"
+              className="h-10 w-10 rounded-lg object-cover border border-gray-200 hover:ring-2 hover:ring-blue-400 transition-all cursor-pointer"
+            />
           </a>
-        ) : <span className="text-gray-400">—</span>,
+        ) : (
+          <span className="text-gray-400">—</span>
+        ),
     },
     {
-      key: "checkOutImg", header: "Check-Out Photo",
+      key: "checkOutImg",
+      header: "Check-Out Photo",
       render: (r) =>
         r.checkOutImage ? (
           <a href={r.checkOutImage} target="_blank" rel="noopener noreferrer">
-            <img src={r.checkOutImage} alt="Check-out" className="h-10 w-10 rounded-lg object-cover border border-gray-200 hover:ring-2 hover:ring-teal-400 transition-all cursor-pointer" />
+            <img
+              src={r.checkOutImage}
+              alt="Check-out"
+              className="h-10 w-10 rounded-lg object-cover border border-gray-200 hover:ring-2 hover:ring-blue-400 transition-all cursor-pointer"
+            />
           </a>
-        ) : <span className="text-gray-400">—</span>,
+        ) : (
+          <span className="text-gray-400">—</span>
+        ),
     },
   ];
 
   return (
     <div className="space-y-6">
-      <PageHeader title="Attendance" subtitle="Track check-ins, check-outs, late arrivals, and absences across the team." />
+      <PageHeader
+        title="Attendance"
+        subtitle="Track check-ins, check-outs, late arrivals, and absences across the team."
+      />
 
-      <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
-        <StatCard label="Present" value={presentCount} icon={CalendarCheck} tone="emerald" />
-        <StatCard label="Absent" value={absentCount} icon={CalendarCheck} tone="amber" />
+      <div className="grid grid-cols-2 gap-4 xl:grid-cols-4">
+        <StatCard
+          label="Present"
+          value={presentCount}
+          icon={CalendarCheck}
+          tone="emerald"
+        />
+        <StatCard
+          label="Absent"
+          value={absentCount}
+          icon={CalendarCheck}
+          tone="amber"
+        />
         <StatCard label="Late" value={lateCount} icon={Filter} />
-        <StatCard label="Shift Not Started" value={shiftNotStartedCount} icon={CalendarCheck} tone="slate" />
+        <StatCard
+          label="Shift Not Started"
+          value={shiftNotStartedCount}
+          icon={CalendarCheck}
+          tone="slate"
+        />
       </div>
 
       <FilterBar className="xl:grid-cols-[minmax(0,1fr)_auto_auto_auto]">
         <div className="xl:col-span-4">
-          <label className="mb-2 block text-xs font-medium uppercase tracking-[0.18em] text-muted-foreground">Quick filters</label>
+          <label className="mb-2 block text-xs font-medium text-muted-foreground">
+            Quick filters
+          </label>
           <div className="flex flex-wrap gap-2">
-            <Button variant="outline" className="rounded-2xl" aria-pressed={selectedQuickFilter === "today"} onClick={() => applyQuickRange("today")}>
+            <Button
+              variant="outline"
+              className="rounded-lg"
+              aria-pressed={selectedQuickFilter === "today"}
+              onClick={() => applyQuickRange("today")}
+            >
               Today
             </Button>
-            <Button variant="outline" className="rounded-2xl" aria-pressed={selectedQuickFilter === "yesterday"} onClick={() => applyQuickRange("yesterday")}>
+            <Button
+              variant="outline"
+              className="rounded-lg"
+              aria-pressed={selectedQuickFilter === "yesterday"}
+              onClick={() => applyQuickRange("yesterday")}
+            >
               Yesterday
             </Button>
-            <Button variant="outline" className="rounded-2xl" aria-pressed={selectedQuickFilter === "this-month"} onClick={() => applyQuickRange("this-month")}>
+            <Button
+              variant="outline"
+              className="rounded-lg"
+              aria-pressed={selectedQuickFilter === "this-month"}
+              onClick={() => applyQuickRange("this-month")}
+            >
               This Month
             </Button>
           </div>
         </div>
         <div>
-          <label className="mb-1.5 block text-xs font-medium uppercase tracking-[0.18em] text-muted-foreground">Staff</label>
-          <select value={staffFilter} onChange={(e) => setStaffFilter(e.target.value)} className={inputCls}>
+          <label className="mb-1.5 block text-xs font-medium text-muted-foreground">
+            Staff
+          </label>
+          <select
+            value={staffFilter}
+            onChange={(e) => setStaffFilter(e.target.value)}
+            className={inputCls}
+          >
             <option value="">All Staff</option>
-            {allStaff.map((s) => <option key={s.id} value={s.id}>{s.name}</option>)}
+            {allStaff.map((s) => (
+              <option key={s.id} value={s.id}>
+                {s.name}
+              </option>
+            ))}
           </select>
         </div>
         <div>
-          <label className="mb-1.5 block text-xs font-medium uppercase tracking-[0.18em] text-muted-foreground">Month</label>
-          <select value={month} onChange={(e) => setMonth(e.target.value)} className={inputCls}>
+          <label className="mb-1.5 block text-xs font-medium text-muted-foreground">
+            Month
+          </label>
+          <select
+            value={month}
+            onChange={(e) => setMonth(e.target.value)}
+            className={inputCls}
+          >
             {monthOptions.map((option) => (
               <option key={option.value} value={option.value}>
                 {option.label}
@@ -284,26 +418,49 @@ export default function AttendancePage() {
           </select>
         </div>
         <div className="flex items-end">
-          <Button onClick={applyMonthFilter} variant="outline" className="h-11 w-full rounded-2xl xl:w-auto">
+          <Button
+            onClick={applyMonthFilter}
+            variant="outline"
+            className="h-11 w-full rounded-lg xl:w-auto"
+          >
             Apply month
           </Button>
         </div>
         <div>
-          <label className="mb-1.5 block text-xs font-medium uppercase tracking-[0.18em] text-muted-foreground">From</label>
-          <Input type="date" value={dateFrom} onChange={(e) => setDateFrom(e.target.value)} />
+          <label className="mb-1.5 block text-xs font-medium text-muted-foreground">
+            From
+          </label>
+          <Input
+            type="date"
+            value={dateFrom}
+            onChange={(e) => setDateFrom(e.target.value)}
+          />
         </div>
         <div>
-          <label className="mb-1.5 block text-xs font-medium uppercase tracking-[0.18em] text-muted-foreground">To</label>
-          <Input type="date" value={dateTo} onChange={(e) => setDateTo(e.target.value)} />
+          <label className="mb-1.5 block text-xs font-medium text-muted-foreground">
+            To
+          </label>
+          <Input
+            type="date"
+            value={dateTo}
+            onChange={(e) => setDateTo(e.target.value)}
+          />
         </div>
         <div className="flex items-end">
           <div className="flex w-full gap-2 xl:w-auto">
-          <Button onClick={clearFilters} variant="outline" className="h-11 w-full rounded-2xl xl:w-auto">
-            Reset
-          </Button>
-          <Button onClick={applyFilters} className="h-11 w-full rounded-2xl xl:w-auto">
-            <Filter className="h-3.5 w-3.5" /> Apply filters
-          </Button>
+            <Button
+              onClick={clearFilters}
+              variant="outline"
+              className="h-11 flex-1 rounded-lg xl:w-auto"
+            >
+              Reset
+            </Button>
+            <Button
+              onClick={applyFilters}
+              className="h-11 flex-1 rounded-lg xl:w-auto"
+            >
+              <Filter className="h-3.5 w-3.5" /> Apply filters
+            </Button>
           </div>
         </div>
       </FilterBar>

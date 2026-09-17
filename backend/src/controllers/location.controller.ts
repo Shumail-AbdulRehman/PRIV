@@ -5,7 +5,7 @@ import { prisma } from "../prisma/prisma.js";
 import { ApiResponse } from "../utils/ApiResponse.js";
 import { ApiError } from "../utils/ApiError.js";
 import { addUtcDays, getZonedDayRange, getZonedDayRangeFromDateInput } from "../utils/dateTime.js";
-import { markCurrentAssignmentsForTasks } from "../services/taskAssignment.service.js";
+import { permanentlyDelete } from "../services/deletion.service.js";
 import { getScopedLocationIds, assertLocationAccess } from "../utils/scope.js";
 import { assertCompanyCanAdd } from "../services/subscription.service.js";
 
@@ -121,57 +121,9 @@ export const getLocations = async (req: Request, res: Response) => {
   res.status(200).json(new ApiResponse(200, locations, "Locations fetched successfully"));
 };
 
-export const softDeleteLocation = async (req: Request, res: Response) => {
-  const locationId = Number(req.params.id);
-  if (isNaN(locationId)) throw new ApiError(400, "Invalid location id");
-
-  const location = await prisma.location.findUnique({ where: { id: locationId } });
-
-  if (!location || location.companyId !== req.user!.companyId) {
-    throw new ApiError(404, "Location not found in your company");
-  }
-
-  if (!location.isActive) {
-    throw new ApiError(400, "Location is already deactivated");
-  }
-
-  const affectedTasks = await prisma.taskInstance.findMany({
-    where: {
-      locationId,
-      status: { in: ["PENDING", "IN_PROGRESS", "NOT_COMPLETED_INTIME"] },
-    },
-    select: { id: true },
-  });
-
-  await prisma.$transaction([
-    prisma.location.update({
-      where: { id: locationId },
-      data: { isActive: false }
-    }),
-    prisma.taskTemplate.updateMany({
-      where: { locationId, isActive: true },
-      data: { isActive: false }
-    }),
-    prisma.taskInstance.updateMany({
-      where: {
-        locationId,
-        status: { in: ["PENDING", "IN_PROGRESS", "NOT_COMPLETED_INTIME"] }
-      },
-      data: { status: "CANCELLED", isActive: false }
-    }),
-    prisma.staff.updateMany({
-      where: { locationId },
-      data: { locationId: null }
-    })
-  ]);
-
-  await markCurrentAssignmentsForTasks(
-    affectedTasks.map((task) => task.id),
-    "CANCELLED",
-    "LOCATION_DEACTIVATED"
-  );
-
-  res.status(200).json(new ApiResponse(200, {}, "Location deactivated successfully"));
+export const deleteLocation = async (req: Request, res: Response) => {
+  await permanentlyDelete("location", Number(req.params.id), req.user!);
+  res.status(200).json(new ApiResponse(200, {}, "Deleted permanently"));
 };
 
 export const getLocationById = async (req: Request, res: Response) => {
@@ -186,38 +138,6 @@ export const getLocationById = async (req: Request, res: Response) => {
   }
   assertLocationAccess(req.user!, location.id);
   res.status(200).json(new ApiResponse(200, location, "Location fetched successfully"));
-};
-
-export const getInactiveLocations = async (req: Request, res: Response) => {
-  const locations = await prisma.location.findMany({
-    where: { companyId: req.user!.companyId, isActive: false }
-  });
-
-  res.status(200).json(new ApiResponse(200, locations, "Inactive locations fetched successfully"));
-};
-
-export const restoreLocation = async (req: Request, res: Response) => {
-  const locationId = Number(req.params.id);
-  if (isNaN(locationId)) throw new ApiError(400, "Invalid location id");
-
-  const location = await prisma.location.findUnique({ where: { id: locationId } });
-
-  if (!location || location.companyId !== req.user!.companyId) {
-    throw new ApiError(404, "Location not found in your company");
-  }
-
-  if (location.isActive) {
-    throw new ApiError(400, "Location is already active");
-  }
-
-  await assertCompanyCanAdd(req.user!.companyId, "locations");
-
-  await prisma.location.update({
-    where: { id: locationId },
-    data: { isActive: true }
-   });
-
-  res.status(200).json(new ApiResponse(200, {}, "Location restored successfully"));
 };
 
 export const getLocationStatsById = async (req: Request, res: Response) => {

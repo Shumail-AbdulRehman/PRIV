@@ -37,3 +37,8 @@ __pycache__/
 # Personal context / discussion notes
 FYP_ML_DISCUSSION.md
 PROJECT_CONTEXT.txt
+
+# Shareable implementation handoff
+!docs/PRODUCT_IMPROVEMENT_HANDOFF.md
+!docs/IMPLEMENTATION_AGENT_START_HERE.md
+!docs/PRODUCT_IMPROVEMENT_PROGRESS.md

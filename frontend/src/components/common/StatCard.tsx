@@ -28,14 +28,23 @@ export default function StatCard({
 }: StatCardProps) {
   return (
     <Card className="border-border/70">
-      <CardContent className="flex items-start justify-between gap-4 pt-6">
+      <CardContent className="flex items-start justify-between gap-3 pt-5">
         <div className="space-y-1">
           <p className="text-sm text-muted-foreground">{label}</p>
-          <p className="text-3xl font-semibold tracking-tight text-foreground">{value}</p>
-          {hint ? <p className="text-xs text-muted-foreground">{hint}</p> : null}
+          <p className="text-3xl font-semibold tracking-tight text-foreground">
+            {value}
+          </p>
+          {hint ? (
+            <p className="text-xs text-muted-foreground">{hint}</p>
+          ) : null}
         </div>
-        <div className={cn("flex size-12 items-center justify-center rounded-2xl", TONES[tone])}>
-          <Icon className="size-5" />
+        <div
+          className={cn(
+            "hidden size-9 shrink-0 items-center justify-center rounded-lg sm:flex",
+            TONES[tone],
+          )}
+        >
+          <Icon className="size-4" />
         </div>
       </CardContent>
     </Card>

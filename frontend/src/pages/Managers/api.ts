@@ -15,3 +15,8 @@ export const updateManager = async (id: number, data: UpdateManagerInput) => {
   const res = await client.patch(`/manager/${id}`, data);
   return res.data;
 };
+
+export const deleteManager = async (id: number) => {
+  const res = await client.delete(`/manager/${id}`);
+  return res.data;
+};

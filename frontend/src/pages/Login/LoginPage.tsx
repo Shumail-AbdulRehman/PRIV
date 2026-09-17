@@ -30,7 +30,9 @@ const Login = () => {
     login.mutate(data, {
       onSuccess: () => reset(),
       onError: (error: unknown) => {
-        setErr((error as ApiError).response?.data?.message || "Something went wrong");
+        setErr(
+          (error as ApiError).response?.data?.message || "Something went wrong",
+        );
       },
     });
   };
@@ -38,82 +40,119 @@ const Login = () => {
   return (
     <AuthShell
       title="Welcome back"
-      subtitle="Sign in to monitor locations, review attendance, and keep work flowing without noise."
+      subtitle="Sign in to your CleanOps workspace."
       footer={
         <p>
           Don&apos;t have an account?{" "}
-          <Link to="/signup" className="font-medium text-primary hover:text-primary/80">
+          <Link
+            to="/signup"
+            className="font-medium text-primary hover:text-primary/80"
+          >
             Sign up
           </Link>
         </p>
       }
     >
-        <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
-          <div>
-            <label className="mb-1.5 block text-sm font-medium text-foreground">
-              Email
-            </label>
-            <Input
-              type="email"
-              {...register("email", { required: "Email is required" })}
-              placeholder="alice@sparkleclean.com"
-            />
-            {errors.email && (
-              <p className="mt-1 text-xs text-red-500">
-                {errors.email.message}
-              </p>
-            )}
-          </div>
-
-          <div>
-            <label className="mb-1.5 block text-sm font-medium text-foreground">
-              Password
-            </label>
-            <Input
-              type="password"
-              {...register("password", { required: "Password is required" })}
-              placeholder="••••••••"
-            />
-            {errors.password && (
-              <p className="mt-1 text-xs text-red-500">
-                {errors.password.message}
-              </p>
-            )}
-          </div>
-
-          <div>
-            <label className="mb-1.5 block text-sm font-medium text-foreground">
-              Role
-            </label>
-            <select
-              {...register("role", { required: "Please select a role" })}
-              className="flex h-11 w-full rounded-2xl border border-border/80 bg-background/90 px-4 py-2 text-sm shadow-xs outline-none focus:border-primary/60 focus:ring-4 focus:ring-primary/10"
-            >
-              <option value="">Select role</option>
-              <option value="Manager">Manager</option>
-              <option value="Staff">Staff</option>
-            </select>
-            {errors.role && (
-              <p className="mt-1 text-xs text-red-500">
-                {errors.role.message}
-              </p>
-            )}
-          </div>
-
-          {err && (
-            <div className="rounded-2xl border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-600">
-              {err}
-            </div>
-          )}
-
-          <Button
-            type="submit"
-            disabled={login.isPending}
-            className="h-11 w-full rounded-2xl"
+      <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
+        <div>
+          <label
+            htmlFor="email"
+            className="mb-1.5 block text-sm font-medium text-foreground"
           >
-            {login.isPending ? "Signing in..." : "Sign in"}
-          </Button>
-        </form>
+            Email
+          </label>
+          <Input
+            type="email"
+            id="email"
+            aria-invalid={!!errors.email}
+            aria-describedby={errors.email ? "email-error" : undefined}
+            autoComplete="email"
+            {...register("email", { required: "Email is required" })}
+            placeholder="alice@sparkleclean.com"
+          />
+          {errors.email && (
+            <p
+              id="email-error"
+              role="alert"
+              className="mt-1 text-xs text-red-500"
+            >
+              {errors.email.message}
+            </p>
+          )}
+        </div>
+
+        <div>
+          <label
+            htmlFor="password"
+            className="mb-1.5 block text-sm font-medium text-foreground"
+          >
+            Password
+          </label>
+          <Input
+            type="password"
+            id="password"
+            aria-invalid={!!errors.password}
+            aria-describedby={errors.password ? "password-error" : undefined}
+            autoComplete="current-password"
+            {...register("password", { required: "Password is required" })}
+            placeholder="••••••••"
+          />
+          {errors.password && (
+            <p
+              id="password-error"
+              role="alert"
+              className="mt-1 text-xs text-red-500"
+            >
+              {errors.password.message}
+            </p>
+          )}
+        </div>
+
+        <div>
+          <label
+            htmlFor="role"
+            className="mb-1.5 block text-sm font-medium text-foreground"
+          >
+            Account type
+          </label>
+          <select
+            id="role"
+            aria-invalid={!!errors.role}
+            aria-describedby={errors.role ? "role-error" : undefined}
+            {...register("role", { required: "Please select a role" })}
+            className="flex h-11 w-full rounded-lg border border-border/80 bg-background/90 px-4 py-2 text-sm shadow-xs outline-none focus:border-primary/60 focus:ring-4 focus:ring-primary/10"
+          >
+            <option value="Manager">Administrator or manager</option>
+            <option value="Staff">Staff</option>
+          </select>
+          {errors.role && (
+            <p
+              id="role-error"
+              role="alert"
+              className="mt-1 text-xs text-red-500"
+            >
+              {errors.role.message}
+            </p>
+          )}
+        </div>
+
+        {err && (
+          <div
+            role="alert"
+            className="rounded-lg border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-600"
+          >
+            {err}
+          </div>
+        )}
+
+        <Button
+          type="submit"
+          disabled={login.isPending}
+          className="h-11 w-full rounded-lg"
+        >
+          {login.isPending ? "Signing in..." : "Sign in"}
+        </Button>
+      </form>
     </AuthShell>
   );
 };

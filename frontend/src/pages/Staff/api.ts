@@ -39,7 +39,10 @@ export interface StaffDetailsFilters {
   dateTo?: string;
 }
 
-export const getStaffDetails = async (id: number, filters?: StaffDetailsFilters) => {
+export const getStaffDetails = async (
+  id: number,
+  filters?: StaffDetailsFilters,
+) => {
   const params: Record<string, string> = {};
 
   if (filters?.month) params.month = filters.month;
@@ -60,8 +63,8 @@ export const createStaff = async (data: CreateStaffInput) => {
   return res.data;
 };
 
-export const deactivateStaff = async (id: number) => {
-  const res = await client.patch(`/staff/${id}/deactivate`);
+export const deleteStaff = async (id: number) => {
+  const res = await client.delete(`/staff/${id}`);
   return res.data;
 };
 
@@ -72,10 +75,10 @@ export const assignShift = async (id: number, data: AssignShiftInput) => {
 
 export const assignStaffToLocation = async (
   staffId: number,
-  locationId: number
+  locationId: number,
 ) => {
   const res = await client.patch(
-    `/assignment/staff/${staffId}/location/${locationId}`
+    `/assignment/staff/${staffId}/location/${locationId}`,
   );
   return res.data;
 };

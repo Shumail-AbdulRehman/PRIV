@@ -3,7 +3,7 @@ import { createTaskSchema, createTaskMultipartSchema, editTaskSchema } from "../
 import { prisma } from "../prisma/prisma.js";
 import { ApiResponse } from "../utils/ApiResponse.js";
 import { ApiError } from "../utils/ApiError.js";
-import { markCurrentAssignmentsForTasks } from "../services/taskAssignment.service.js";
+import { permanentlyDelete } from "../services/deletion.service.js";
 import { DEFAULT_TIME_ZONE, getZonedClockMinutes, getZonedDayRange } from "../utils/dateTime.js";
 import { assertLocationAccess } from "../utils/scope.js";
 import { uploadSingleImage } from "../utils/cloudinary.js";
@@ -389,40 +389,8 @@ export const editTaskTemplate = async (req: Request, res: Response) => {
 };
 
 export const deleteTaskTemplate = async (req: Request, res: Response) => {
-  const taskTemplateId = Number(req.params.id);
-  if (isNaN(taskTemplateId)) throw new ApiError(400, "Invalid task template id");
-
-  const template = await prisma.taskTemplate.findUnique({
-    where: { id: taskTemplateId },
-    include: { location: true }
-  });
-
-  if (!template || template.location.companyId !== req.user!.companyId) {
-    throw new ApiError(404, "Task template not found in your company");
-  }
-
-  assertLocationAccess(req.user!, template.locationId);
-
-  const affectedTasks = await prisma.taskInstance.findMany({
-    where: { templateId: taskTemplateId, status: { in: ["PENDING", "IN_PROGRESS"] } },
-    select: { id: true },
-  });
-
-  await prisma.$transaction([
-    prisma.taskTemplate.update({ where: { id: taskTemplateId }, data: { isActive: false } }),
-    prisma.taskInstance.updateMany({
-        where: { templateId: taskTemplateId, status: { in: ["PENDING", "IN_PROGRESS"] } },
-        data: { status: "MISSED", isActive: false }
-    })
-]);
-
-  await markCurrentAssignmentsForTasks(
-    affectedTasks.map((task) => task.id),
-    "CANCELLED",
-    "TASK_TEMPLATE_DELETED"
-  );
-
-  res.status(200).json(new ApiResponse(200, {}, "Task template deleted successfully"));
+  await permanentlyDelete("taskTemplate", Number(req.params.id), req.user!);
+  res.status(200).json(new ApiResponse(200, {}, "Deleted permanently"));
 };
 
 export const getTaskTemplate=async (req:Request, res: Response)=>

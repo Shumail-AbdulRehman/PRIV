@@ -1,72 +1,47 @@
-import { ArrowRight, MapPin, Users, CheckSquare, Clock } from "lucide-react";
-import { useNavigate } from "react-router-dom";
+import { ArrowRight, MapPin, Users, CheckSquare } from "lucide-react";
+import { Link } from "react-router-dom";
 import type { LocationCardProps } from "../types";
 import StatusBadge from "@/components/common/StatusBadge";
-import { Button } from "@/components/ui/button";
 
 export default function LocationCard({
-  name = "default",
-  address = "default",
+  name,
+  address,
   staff = 0,
   taskTemplate = 0,
-  lat = "0.000",
-  lng = "0.000",
-  geofence = "100m",
-  timezone,
   status = "Active",
   id,
 }: LocationCardProps) {
-  const navigate = useNavigate();
-
   return (
-    <div className="rounded-[1.75rem] border border-border/70 bg-card/95 p-5 shadow-[0_20px_60px_-36px_rgba(15,23,42,0.35)] transition-all hover:-translate-y-0.5 hover:shadow-[0_24px_70px_-36px_rgba(15,23,42,0.4)]">
-      <div className="flex items-start justify-between">
-        <div className="flex items-center gap-3">
-          <div className="flex h-11 w-11 items-center justify-center rounded-2xl bg-primary/10">
-            <MapPin className="h-5 w-5 text-primary" />
-          </div>
-          <div>
-            <h2 className="text-base font-semibold text-foreground">{name}</h2>
-            <p className="text-sm text-muted-foreground">{address}</p>
-          </div>
-        </div>
+    <article className="rounded-xl border border-border bg-card p-5">
+      <div className="mb-5 flex items-center justify-between gap-3">
+        <span className="flex size-10 items-center justify-center rounded-lg bg-primary/10 text-primary">
+          <MapPin size={19} />
+        </span>
         <StatusBadge status={status === "Active" ? "ACTIVE" : "INACTIVE"} />
       </div>
-
-      <div className="mt-5 grid gap-3 text-sm sm:grid-cols-2">
-        <div className="rounded-2xl bg-muted/60 p-3">
-          <div className="flex items-center gap-2 text-muted-foreground">
-            <Users className="h-4 w-4" />
-            <span><span className="font-medium text-foreground">{staff}</span> Staff</span>
-          </div>
-        </div>
-        <div className="rounded-2xl bg-muted/60 p-3">
-          <div className="flex items-center gap-2 text-muted-foreground">
-            <CheckSquare className="h-4 w-4" />
-            <span><span className="font-medium text-foreground">{taskTemplate}</span> Task Templates</span>
-          </div>
-        </div>
+      <h2 className="text-base font-semibold">
+        <Link to={`/locations/${id}`} className="hover:text-primary">
+          {name}
+        </Link>
+      </h2>
+      <p className="mt-1 text-sm text-muted-foreground">{address}</p>
+      <div className="mt-5 flex flex-wrap gap-x-5 gap-y-2 text-xs text-muted-foreground">
+        <span className="flex items-center gap-2">
+          <Users size={15} />
+          {staff} staff
+        </span>
+        <span className="flex items-center gap-2">
+          <CheckSquare size={15} />
+          {taskTemplate} scheduled tasks
+        </span>
       </div>
-
-      <div className="mt-4 flex flex-wrap gap-2">
-        <span className="rounded-full bg-muted px-3 py-1 text-xs text-muted-foreground">{lat}, {lng}</span>
-        <span className="rounded-full bg-muted px-3 py-1 text-xs text-muted-foreground">Geofence: {geofence}</span>
-        {timezone ? (
-          <span className="inline-flex items-center gap-1 rounded-full bg-muted px-3 py-1 text-xs text-muted-foreground">
-            <Clock className="h-3 w-3" /> {timezone}
-          </span>
-        ) : null}
-      </div>
-
-      <div className="mt-5 flex items-center gap-2 border-t border-border/60 pt-4">
-        <Button
-          onClick={() => navigate(`/locations/${id}`)}
-          className="w-full rounded-2xl"
-        >
-          View details
-          <ArrowRight className="size-4" />
-        </Button>
-      </div>
-    </div>
+      <Link
+        to={`/locations/${id}`}
+        className="mt-5 flex items-center justify-between border-t border-border pt-4 text-sm font-medium text-primary"
+      >
+        Open location
+        <ArrowRight size={16} />
+      </Link>
+    </article>
   );
 }

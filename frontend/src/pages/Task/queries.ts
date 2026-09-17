@@ -1,3 +1,4 @@
+import { invalidateWorkspace } from "@/lib/invalidateWorkspace";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import {
   createTaskTemplate,
@@ -44,7 +45,7 @@ export const useDeleteTaskTemplate = () => {
   return useMutation({
     mutationFn: (id: number) => deleteTaskTemplate(id),
     onSuccess: () => {
-      qc.invalidateQueries({ queryKey: ["location"] });
+      return invalidateWorkspace(qc);
     },
   });
 };

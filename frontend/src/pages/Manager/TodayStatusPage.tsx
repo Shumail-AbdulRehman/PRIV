@@ -1,6 +1,14 @@
 import { useMemo, useState } from "react";
-import { useNavigate } from "react-router-dom";
-import { CalendarCheck, Clock3, Filter, MapPin, Search, Users, ArrowRight, Siren, CircleAlert, UserX } from "lucide-react";
+import { useNavigate, useSearchParams } from "react-router-dom";
+import {
+  CalendarCheck,
+  Clock3,
+  MapPin,
+  Search,
+  Users,
+  CircleAlert,
+  RefreshCw,
+} from "lucide-react";
 
 import PageHeader from "@/components/common/PageHeader";
 import StatCard from "@/components/common/StatCard";
@@ -14,74 +22,26 @@ import { Button } from "@/components/ui/button";
 import { useGetTodayStatus } from "./queries";
 import { formatInTimeZone } from "date-fns-tz";
 
-type AttendanceFilter = "all" | "present" | "absent" | "late" | "shift-not-started";
-type TaskFilter = "all" | "pending" | "in-progress" | "completed" | "attention";
+import type { StaffStatusEntry } from "./types";
+import { attentionReasons, needsAttention, sortedStaff, staffTodayLink } from "./todayPresentation";
 
-interface StaffStatusEntry {
-  staff: {
-    id: number;
-    name: string;
-    email: string;
-    locationId: number | null;
-    shiftStart: string | null;
-    shiftEnd: string | null;
-    location: { id: number; name: string; timezone: string } | null;
-  };
-  attendance: {
-    status: string;
-    expectedStart: string;
-    expectedEnd: string;
-    checkInTime: string | null;
-    checkOutTime: string | null;
-    lateMinutes: number | null;
-  } | null;
-  attendanceDisplayStatus: string;
-  attentionCount: number;
-  tasks: Array<{
-    id: number;
-    title: string;
-    status: string;
-    shiftStart: string;
-    shiftEnd: string;
-    isLate: boolean;
-    isCurrentlyLate?: boolean;
-    lateMinutes: number | null;
-    displayLateMinutes?: number | null;
-  }>;
-  taskCounts: {
-    pending: number;
-    inProgress: number;
-    completed: number;
-    missed: number;
-    notCompletedInTime: number;
-    cancelled: number;
-    late: number;
-    total: number;
-  };
-  flags: {
-    isAbsent: boolean;
-    isPresent: boolean;
-    isLateAttendance: boolean;
-    isShiftNotStarted: boolean;
-    hasPendingTasks: boolean;
-    hasInProgressTasks: boolean;
-    hasAttentionTasks: boolean;
-  };
-}
+type AttendanceFilter =
+  "all" | "present" | "absent" | "late" | "shift-not-started";
+type TaskFilter = "all" | "pending" | "in-progress" | "completed" | "attention";
 
 const fmtTime = (value: string | null, timeZone = "UTC") => {
   if (!value) return "—";
   return formatInTimeZone(new Date(value), timeZone, "HH:mm");
 };
 
-const toUtcDateValue = (value: Date) =>
-  `${value.getUTCFullYear()}-${String(value.getUTCMonth() + 1).padStart(2, "0")}-${String(value.getUTCDate()).padStart(2, "0")}`;
-
 export default function TodayStatusPage() {
   const navigate = useNavigate();
+  const [searchParams, setSearchParams] = useSearchParams();
+  const attentionOnly = searchParams.get("view") === "attention";
   const [locationId, setLocationId] = useState<string>("all");
   const [search, setSearch] = useState("");
-  const [attendanceFilter, setAttendanceFilter] = useState<AttendanceFilter>("all");
+  const [attendanceFilter, setAttendanceFilter] =
+    useState<AttendanceFilter>("all");
   const [taskFilter, setTaskFilter] = useState<TaskFilter>("all");
 
   const filters = useMemo(
@@ -91,27 +51,42 @@ export default function TodayStatusPage() {
     [locationId],
   );
 
-  const { data, isLoading, isFetching } = useGetTodayStatus(filters);
+  const { data, isLoading, isFetching, isError, refetch } =
+    useGetTodayStatus(filters);
 
   if (isLoading) return <LoadingSpinner fullScreen />;
+  if (isError)
+    return (
+      <div role="alert" className="space-y-4">
+        <PageHeader
+          title="Today"
+          subtitle="Today’s activity could not be loaded."
+        />
+        <Button onClick={() => refetch()}>Try again</Button>
+      </div>
+    );
 
   const payload = data?.data;
   const summary = payload?.summary;
   const locations = payload?.locations ?? [];
   const staffStatus: StaffStatusEntry[] = payload?.staffStatus ?? [];
-  const todayDate = payload?.date ? toUtcDateValue(new Date(payload.date)) : toUtcDateValue(new Date());
+  const asOf: string = payload?.asOf ?? payload?.date ?? "";
+  const attentionCount = staffStatus.filter(needsAttention).length;
+  const hasFilters = Boolean(search || locationId !== "all" || attendanceFilter !== "all" || taskFilter !== "all");
 
-  const filteredStaff = staffStatus.filter((entry) => {
+  const filteredStaff = sortedStaff(staffStatus, attentionOnly, asOf).filter((entry) => {
+    const query = search.trim().toLocaleLowerCase();
     const matchesSearch =
-      entry.staff.name.toLowerCase().includes(search.toLowerCase()) ||
-      entry.staff.email.toLowerCase().includes(search.toLowerCase());
+      entry.staff.name.toLocaleLowerCase().includes(query) ||
+      entry.staff.email.toLocaleLowerCase().includes(query);
 
     const matchesAttendance =
       attendanceFilter === "all" ||
       (attendanceFilter === "present" && entry.flags.isPresent) ||
       (attendanceFilter === "absent" && entry.flags.isAbsent) ||
       (attendanceFilter === "late" && entry.flags.isLateAttendance) ||
-      (attendanceFilter === "shift-not-started" && entry.flags.isShiftNotStarted);
+      (attendanceFilter === "shift-not-started" &&
+        entry.flags.isShiftNotStarted);
 
     const matchesTask =
       taskFilter === "all" ||
@@ -120,12 +95,12 @@ export default function TodayStatusPage() {
       (taskFilter === "completed" && entry.taskCounts.completed > 0) ||
       (taskFilter === "attention" && entry.flags.hasAttentionTasks);
 
-    return matchesSearch && matchesAttendance && matchesTask;
+    return (
+      matchesSearch &&
+      matchesAttendance &&
+      matchesTask
+    );
   });
-  const absentStaff = filteredStaff.filter((entry) => entry.flags.isAbsent).slice(0, 5);
-  const attentionStaff = filteredStaff.filter((entry) => entry.flags.hasAttentionTasks).slice(0, 5);
-  const pendingStaff = filteredStaff.filter((entry) => entry.taskCounts.pending > 0).slice(0, 5);
-
   const columns: Column<StaffStatusEntry>[] = [
     {
       key: "staff",
@@ -151,7 +126,9 @@ export default function TodayStatusPage() {
       key: "location",
       header: "Location",
       render: (entry) => (
-        <span className="text-foreground">{entry.staff.location?.name ?? "Unassigned"}</span>
+        <span className="text-foreground">
+          {entry.staff.location?.name ?? "Unassigned"}
+        </span>
       ),
     },
     {
@@ -160,12 +137,26 @@ export default function TodayStatusPage() {
       render: (entry) => (
         <div className="space-y-1">
           <div>
-            <StatusBadge status={entry.attendanceDisplayStatus ?? entry.attendance?.status ?? "NO_RECORD_TODAY"} />
+            <StatusBadge
+              status={
+                entry.attendanceDisplayStatus ??
+                entry.attendance?.status ??
+                "NO_RECORD_TODAY"
+              }
+            />
           </div>
           <p className="text-xs text-muted-foreground">
-            {entry.attendance
+            {entry.flags.isAbsent
+              ? "Missing check-in"
+              : entry.flags.isShiftNotStarted
+                ? "Scheduled shift has not started"
+                : entry.attendance?.status === "MISSED_CHECKOUT"
+                  ? "Missing check-out"
+                  : !entry.attendance
+                    ? "No check-in record"
+                    : entry.attendance
               ? `In ${fmtTime(entry.attendance.checkInTime ?? null, entry.staff.location?.timezone ?? "UTC")} / Out ${fmtTime(entry.attendance.checkOutTime ?? null, entry.staff.location?.timezone ?? "UTC")}`
-              : "No attendance row for today"}
+              : null}
           </p>
         </div>
       ),
@@ -176,26 +167,32 @@ export default function TodayStatusPage() {
       render: (entry) => (
         <div className="space-y-1 text-xs">
           <p className="text-foreground">
-            Pending {entry.taskCounts.pending} | In progress {entry.taskCounts.inProgress} | Completed {entry.taskCounts.completed}
+            {entry.taskCounts.completed} of {entry.taskCounts.total} completed
           </p>
           <p className="text-muted-foreground">
-            Attention {entry.attentionCount}
+            {entry.taskCounts.pending} pending · {entry.taskCounts.inProgress}{" "}
+            in progress
           </p>
         </div>
       ),
     },
     {
-      key: "flags",
-      header: "Flags",
-      render: (entry) => (
-        <div className="flex flex-wrap gap-2">
-          {entry.flags.isAbsent ? <StatusBadge status="ABSENT" /> : null}
-          {entry.flags.isLateAttendance ? <StatusBadge status="LATE" /> : null}
-          {entry.flags.isShiftNotStarted ? <StatusBadge status="SHIFT_NOT_STARTED" /> : null}
-          {entry.taskCounts.pending > 0 ? <span className="rounded-full bg-slate-100 px-2.5 py-1 text-xs font-medium text-slate-700">Pending Tasks</span> : null}
-          {entry.flags.hasAttentionTasks ? <span className="rounded-full bg-red-100 px-2.5 py-1 text-xs font-medium text-red-700">Needs Attention</span> : null}
-        </div>
-      ),
+      key: "attention",
+      header: "Attention",
+      render: (entry) => {
+        const reasons = attentionReasons(entry, asOf);
+        return reasons.length ? (
+          <div className="max-w-56 text-xs text-amber-800">
+            <p>{reasons.slice(0, 2).join(" · ")}</p>
+            {reasons.length > 2 && (
+              <details className="mt-1" onClick={(event) => event.stopPropagation()}>
+                <summary className="cursor-pointer font-medium">{reasons.length - 2} more reasons</summary>
+                <p className="mt-1">{reasons.slice(2).join(" · ")}</p>
+              </details>
+            )}
+          </div>
+        ) : <span className="text-xs text-muted-foreground">—</span>;
+      },
     },
     {
       key: "details",
@@ -207,9 +204,7 @@ export default function TodayStatusPage() {
           className="rounded-xl"
           onClick={(event) => {
             event.stopPropagation();
-            navigate(
-              `/staff/${entry.staff.id}?dateFrom=${todayDate}&dateTo=${todayDate}&tab=overview&focus=today`,
-            );
+            navigate(staffTodayLink(entry));
           }}
         >
           View Today
@@ -218,69 +213,71 @@ export default function TodayStatusPage() {
     },
   ];
 
-  const getPendingLateSummary = (entry: StaffStatusEntry) => {
-    const pendingLateTasks = entry.tasks.filter(
-      (task) => task.status === "PENDING" && (task.isCurrentlyLate || task.isLate),
-    );
-
-    if (pendingLateTasks.length === 0) {
-      return `${entry.taskCounts.pending} pending tasks`;
-    }
-
-    const maxLateMinutes = Math.max(
-      ...pendingLateTasks.map((task) => task.displayLateMinutes ?? task.lateMinutes ?? 0),
-    );
-
-    return `${entry.taskCounts.pending} pending tasks • ${pendingLateTasks.length} late • up to ${maxLateMinutes} min`;
-  };
-
   return (
     <div className="space-y-6">
       <PageHeader
-        title="Today Status"
-        subtitle="A live triage view for today’s attendance, task progress, absences, pending work, and exceptions across your active team."
+        title="Today"
+        subtitle="Check attendance, follow task progress, and resolve today’s exceptions."
+        action={
+          <Button
+            variant="outline"
+            onClick={() => refetch()}
+            disabled={isFetching}
+          >
+            <RefreshCw
+              className={isFetching ? "size-4 animate-spin" : "size-4"}
+            />
+            Refresh
+          </Button>
+        }
       />
 
-      <SurfaceCard className="border-none bg-[linear-gradient(135deg,rgba(15,23,42,0.98),rgba(15,118,110,0.92))] text-white shadow-[0_35px_90px_-45px_rgba(15,23,42,0.6)]">
-        <div className="grid gap-6 lg:grid-cols-[1.15fr_0.85fr]">
-          <div className="space-y-4">
-            <div className="inline-flex rounded-full border border-white/15 bg-white/10 px-3 py-1 text-xs uppercase tracking-[0.24em] text-white/75">
-              Daily triage
-            </div>
-            <div className="space-y-3">
-              <h2 className="max-w-xl text-3xl font-semibold tracking-tight">
-                Start here when you need to know who needs attention today.
-              </h2>
-              <p className="max-w-2xl text-sm leading-6 text-white/75">
-                This page is intentionally tuned for exceptions first: absences, pending task load, and staff that need manager review before the day closes.
-              </p>
-            </div>
-          </div>
-          <div className="grid gap-3 sm:grid-cols-2">
-            <div className="rounded-3xl border border-white/15 bg-white/10 p-5">
-              <p className="text-sm text-white/70">Active staff</p>
-              <p className="mt-2 text-3xl font-semibold">{summary?.totalStaff ?? 0}</p>
-            </div>
-            <div className="rounded-3xl border border-white/15 bg-white/10 p-5">
-              <p className="text-sm text-white/70">Needs review</p>
-              <p className="mt-2 text-3xl font-semibold">{summary?.staffNeedingReview ?? 0}</p>
-            </div>
-            <div className="rounded-3xl border border-white/15 bg-white/10 p-5">
-              <p className="text-sm text-white/70">Absent</p>
-              <p className="mt-2 text-3xl font-semibold">{summary?.absent ?? 0}</p>
-            </div>
-            <div className="rounded-3xl border border-white/15 bg-white/10 p-5">
-              <p className="text-sm text-white/70">Shift not started</p>
-              <p className="mt-2 text-3xl font-semibold">{summary?.shiftNotStarted ?? 0}</p>
-            </div>
-          </div>
-        </div>
-      </SurfaceCard>
-
+      <div className="grid grid-cols-2 gap-4 xl:grid-cols-4">
+        <StatCard
+          label="Present"
+          value={summary?.present ?? 0}
+          icon={CalendarCheck}
+          tone="emerald"
+        />
+        <StatCard
+          label="Absent"
+          value={summary?.absent ?? 0}
+          icon={Users}
+          tone="amber"
+        />
+        <StatCard
+          label="Pending tasks"
+          value={summary?.pendingTasks ?? 0}
+          icon={Clock3}
+        />
+        <StatCard
+          label="Review items"
+          value={summary?.attentionTasks ?? 0}
+          icon={CircleAlert}
+          tone="amber"
+        />
+      </div>
+      <div className="flex flex-wrap gap-2" aria-label="Staff view">
+        <Button
+          variant="outline"
+          aria-pressed={!attentionOnly}
+          onClick={() => setSearchParams({})}
+        >
+          All staff
+        </Button>
+        <Button
+          variant="outline"
+          aria-pressed={attentionOnly}
+          onClick={() => setSearchParams({ view: "attention" })}
+        >
+          Needs attention ({attentionCount})
+        </Button>
+      </div>
       <FilterBar className="xl:grid-cols-[minmax(0,1fr)_auto_auto_auto]">
         <div className="relative">
           <Search className="absolute left-3 top-1/2 size-4 -translate-y-1/2 text-muted-foreground" />
           <Input
+            aria-label="Search staff"
             value={search}
             onChange={(e) => setSearch(e.target.value)}
             placeholder="Search staff by name or email"
@@ -290,9 +287,10 @@ export default function TodayStatusPage() {
         <div className="relative">
           <MapPin className="absolute left-3 top-1/2 size-4 -translate-y-1/2 text-muted-foreground" />
           <select
+            aria-label="Filter by location"
             value={locationId}
             onChange={(e) => setLocationId(e.target.value)}
-            className="h-11 rounded-2xl border border-border/80 bg-background/90 px-10 py-2 text-sm shadow-xs outline-none focus:border-primary/60 focus:ring-4 focus:ring-primary/10"
+            className="h-11 w-full rounded-lg border border-border/80 bg-background/90 px-10 py-2 text-sm shadow-xs outline-none focus:border-primary/60 focus:ring-4 focus:ring-primary/10"
           >
             <option value="all">All locations</option>
             {locations.map((location: { id: number; name: string }) => (
@@ -304,9 +302,12 @@ export default function TodayStatusPage() {
         </div>
         <div>
           <select
+            aria-label="Filter by attendance"
             value={attendanceFilter}
-            onChange={(e) => setAttendanceFilter(e.target.value as AttendanceFilter)}
-            className="h-11 rounded-2xl border border-border/80 bg-background/90 px-4 py-2 text-sm shadow-xs outline-none focus:border-primary/60 focus:ring-4 focus:ring-primary/10"
+            onChange={(e) =>
+              setAttendanceFilter(e.target.value as AttendanceFilter)
+            }
+            className="h-11 w-full rounded-lg border border-border/80 bg-background/90 px-4 py-2 text-sm shadow-xs outline-none focus:border-primary/60 focus:ring-4 focus:ring-primary/10"
           >
             <option value="all">All attendance</option>
             <option value="present">Present</option>
@@ -317,9 +318,10 @@ export default function TodayStatusPage() {
         </div>
         <div>
           <select
+            aria-label="Filter by task status"
             value={taskFilter}
             onChange={(e) => setTaskFilter(e.target.value as TaskFilter)}
-            className="h-11 rounded-2xl border border-border/80 bg-background/90 px-4 py-2 text-sm shadow-xs outline-none focus:border-primary/60 focus:ring-4 focus:ring-primary/10"
+            className="h-11 w-full rounded-lg border border-border/80 bg-background/90 px-4 py-2 text-sm shadow-xs outline-none focus:border-primary/60 focus:ring-4 focus:ring-primary/10"
           >
             <option value="all">All task states</option>
             <option value="pending">Pending tasks</option>
@@ -329,110 +331,35 @@ export default function TodayStatusPage() {
           </select>
         </div>
       </FilterBar>
+      {hasFilters && (
+        <Button variant="ghost" size="sm" onClick={() => {
+          setSearch("");
+          setLocationId("all");
+          setAttendanceFilter("all");
+          setTaskFilter("all");
+        }}>Clear filters</Button>
+      )}
 
-      <div className="grid gap-6 xl:grid-cols-3">
-        <SurfaceCard title="Absences" description="Staff marked absent after their shift window should have started.">
-          {absentStaff.length > 0 ? (
-            <div className="space-y-3">
-              {absentStaff.map((entry) => (
-                <button
-                  key={entry.staff.id}
-                  onClick={() => navigate(`/staff/${entry.staff.id}?dateFrom=${todayDate}&dateTo=${todayDate}&tab=attendance&focus=today`)}
-                  className="flex w-full items-center justify-between rounded-2xl bg-red-50 px-4 py-3 text-left transition hover:bg-red-100"
-                >
-                  <div className="flex items-center gap-3">
-                    <div className="flex size-9 items-center justify-center rounded-2xl bg-red-100 text-red-700">
-                      <UserX className="size-4" />
-                    </div>
-                    <div>
-                      <p className="font-medium text-foreground">{entry.staff.name}</p>
-                      <p className="text-xs text-muted-foreground">{entry.staff.location?.name ?? "Unassigned"}</p>
-                    </div>
-                  </div>
-                  <ArrowRight className="size-4 text-muted-foreground" />
-                </button>
-              ))}
-            </div>
-          ) : (
-            <div className="text-sm text-muted-foreground">No active absences in the current filter.</div>
-          )}
-        </SurfaceCard>
-
-        <SurfaceCard title="Pending work" description="Staff with pending tasks still open today.">
-          {pendingStaff.length > 0 ? (
-            <div className="space-y-3">
-              {pendingStaff.map((entry) => (
-                <button
-                  key={entry.staff.id}
-                  onClick={() => navigate(`/staff/${entry.staff.id}?dateFrom=${todayDate}&dateTo=${todayDate}&tab=instances&focus=today`)}
-                  className="flex w-full items-center justify-between rounded-2xl bg-sky-50 px-4 py-3 text-left transition hover:bg-sky-100"
-                >
-                  <div className="flex items-center gap-3">
-                    <div className="flex size-9 items-center justify-center rounded-2xl bg-sky-100 text-sky-700">
-                      <Clock3 className="size-4" />
-                    </div>
-                    <div>
-                      <p className="font-medium text-foreground">{entry.staff.name}</p>
-                      <p className="text-xs text-muted-foreground">{getPendingLateSummary(entry)}</p>
-                    </div>
-                  </div>
-                  <ArrowRight className="size-4 text-muted-foreground" />
-                </button>
-              ))}
-            </div>
-          ) : (
-            <div className="text-sm text-muted-foreground">No pending-task backlog in the current filter.</div>
-          )}
-        </SurfaceCard>
-
-        <SurfaceCard title="Needs review" description="Late tasks, missed work, not-in-time completions, or missed checkout records.">
-          {attentionStaff.length > 0 ? (
-            <div className="space-y-3">
-              {attentionStaff.map((entry) => (
-                <button
-                  key={entry.staff.id}
-                  onClick={() => navigate(`/staff/${entry.staff.id}?dateFrom=${todayDate}&dateTo=${todayDate}&tab=instances&focus=today`)}
-                  className="flex w-full items-center justify-between rounded-2xl bg-amber-50 px-4 py-3 text-left transition hover:bg-amber-100"
-                >
-                  <div className="flex items-center gap-3">
-                    <div className="flex size-9 items-center justify-center rounded-2xl bg-amber-100 text-amber-700">
-                      <Siren className="size-4" />
-                    </div>
-                    <div>
-                      <p className="font-medium text-foreground">{entry.staff.name}</p>
-                      <p className="text-xs text-muted-foreground">
-                        {entry.attentionCount} review item{entry.attentionCount === 1 ? "" : "s"}
-                      </p>
-                    </div>
-                  </div>
-                  <ArrowRight className="size-4 text-muted-foreground" />
-                </button>
-              ))}
-            </div>
-          ) : (
-            <div className="text-sm text-muted-foreground">No high-attention task exceptions right now.</div>
-          )}
-        </SurfaceCard>
-      </div>
-
-      <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
-        <StatCard label="Present" value={summary?.present ?? 0} icon={CalendarCheck} tone="emerald" />
-        <StatCard label="Pending tasks" value={summary?.pendingTasks ?? 0} icon={Clock3} tone="sky" />
-        <StatCard label="In progress" value={summary?.inProgressTasks ?? 0} icon={Filter} tone="sky" />
-        <StatCard label="Late attendance" value={summary?.lateAttendance ?? 0} icon={CircleAlert} tone="amber" />
-      </div>
-
-      <SurfaceCard title="Today by staff" description={isFetching ? "Refreshing current status..." : `${filteredStaff.length} staff records shown`}>
+      <SurfaceCard
+        title="Today by staff"
+        description={
+          isFetching
+            ? "Refreshing current status..."
+            : `${filteredStaff.length} staff ${filteredStaff.length === 1 ? "member" : "members"} shown`
+        }
+      >
         <DataTable
           columns={columns}
           data={filteredStaff}
           rowKey={(entry) => entry.staff.id}
           emptyIcon={<Users className="h-12 w-12" />}
-          emptyMessage="No staff records match the current filters."
-          className="border-none shadow-none"
-          onRowClick={(entry) =>
-            navigate(`/staff/${entry.staff.id}?dateFrom=${todayDate}&dateTo=${todayDate}&tab=overview&focus=today`)
+          emptyMessage={
+            staffStatus.length
+              ? "No matches. Try another search or clear your filters."
+              : "No staff assigned yet. Add team members to a location to see their daily activity."
           }
+          className="border-none shadow-none"
+          onRowClick={(entry) => navigate(staffTodayLink(entry))}
         />
       </SurfaceCard>
     </div>

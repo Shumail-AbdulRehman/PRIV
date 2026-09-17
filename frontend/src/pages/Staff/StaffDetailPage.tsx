@@ -13,7 +13,6 @@ import {
   AlertTriangle,
   Activity,
   Filter,
-  ChevronRight,
 } from "lucide-react";
 import {
   BarChart,
@@ -119,7 +118,11 @@ const getMonthOptions = (count = 12) => {
 
   for (let index = 0; index < count; index += 1) {
     const value = `${cursor.getUTCFullYear()}-${String(cursor.getUTCMonth() + 1).padStart(2, "0")}`;
-    const label = cursor.toLocaleDateString("en-US", { month: "long", year: "numeric", timeZone: "UTC" });
+    const label = cursor.toLocaleDateString("en-US", {
+      month: "long",
+      year: "numeric",
+      timeZone: "UTC",
+    });
     options.push({ value, label });
     cursor.setUTCMonth(cursor.getUTCMonth() - 1);
   }
@@ -142,40 +145,105 @@ const StaffDetailPage: React.FC = () => {
   const [month, setMonth] = useState(initialMonth);
   const [dateFrom, setDateFrom] = useState(initialDateFrom);
   const [dateTo, setDateTo] = useState(initialDateTo);
-  const [selectedQuickFilter, setSelectedQuickFilter] = useState<"today" | "yesterday" | "this-month" | null>(() => {
+  const [selectedQuickFilter, setSelectedQuickFilter] = useState<
+    "today" | "yesterday" | "this-month" | null
+  >(() => {
     if (initialDateFrom && initialDateTo) {
-      if (initialDateFrom === todayValue && initialDateTo === todayValue) return "today";
-      if (initialDateFrom === yesterdayValue && initialDateTo === yesterdayValue) return "yesterday";
+      if (initialDateFrom === todayValue && initialDateTo === todayValue)
+        return "today";
+      if (
+        initialDateFrom === yesterdayValue &&
+        initialDateTo === yesterdayValue
+      )
+        return "yesterday";
       return null;
     }
 
     return initialMonth === getCurrentMonthValue() ? "this-month" : null;
   });
-  const [filters, setFilters] = useState<{ month?: string; dateFrom?: string; dateTo?: string }>({
-    ...(initialDateFrom && initialDateTo ? { dateFrom: initialDateFrom, dateTo: initialDateTo } : { month: initialMonth }),
+  const [filters, setFilters] = useState<{
+    month?: string;
+    dateFrom?: string;
+    dateTo?: string;
+  }>({
+    ...(initialDateFrom && initialDateTo
+      ? { dateFrom: initialDateFrom, dateTo: initialDateTo }
+      : { month: initialMonth }),
   });
   const monthOptions = useMemo(() => getMonthOptions(), []);
 
-  const { data, isLoading, isFetching } = useGetStaffDetails(Number(id), filters);
+  const { data, isLoading, isFetching } = useGetStaffDetails(
+    Number(id),
+    filters,
+  );
 
   const instanceColumns: Column<StaffTaskInstanceRow>[] = useMemo(
     () => [
-      { key: "title", header: "Task", render: (instance) => <span className="font-medium text-foreground">{instance.title}</span> },
-      { key: "location", header: "Location", render: (instance) => <span>{instance.location?.name ?? "—"}</span> },
-      { key: "date", header: "Date", render: (instance) => <span>{fmtDate(instance.date)}</span> },
-      { key: "shift", header: "Shift", render: (instance) => <span>{fmtTime(instance.shiftStart, instance.location?.timezone ?? "UTC")} – {fmtTime(instance.shiftEnd, instance.location?.timezone ?? "UTC")}</span> },
+      {
+        key: "title",
+        header: "Task",
+        render: (instance) => (
+          <span className="font-medium text-foreground">{instance.title}</span>
+        ),
+      },
+      {
+        key: "location",
+        header: "Location",
+        render: (instance) => <span>{instance.location?.name ?? "—"}</span>,
+      },
+      {
+        key: "date",
+        header: "Date",
+        render: (instance) => <span>{fmtDate(instance.date)}</span>,
+      },
+      {
+        key: "shift",
+        header: "Shift",
+        render: (instance) => (
+          <span>
+            {fmtTime(instance.shiftStart, instance.location?.timezone ?? "UTC")}{" "}
+            – {fmtTime(instance.shiftEnd, instance.location?.timezone ?? "UTC")}
+          </span>
+        ),
+      },
       {
         key: "status",
         header: "Status",
         render: (instance) => (
           <div className="flex flex-wrap items-center gap-2">
             <StatusBadge status={instance.status} />
-            {instance.isLate ? <span className="text-[10px] font-medium text-amber-600">Late start</span> : null}
+            {instance.isLate ? (
+              <span className="text-[10px] font-medium text-amber-600">
+                Late start
+              </span>
+            ) : null}
           </div>
         ),
       },
-      { key: "startedAt", header: "Started", render: (instance) => <span>{fmtDateTime(instance.startedAt, instance.location?.timezone ?? "UTC")}</span> },
-      { key: "completedAt", header: "Completed", render: (instance) => <span>{fmtDateTime(instance.completedAt, instance.location?.timezone ?? "UTC")}</span> },
+      {
+        key: "startedAt",
+        header: "Started",
+        render: (instance) => (
+          <span>
+            {fmtDateTime(
+              instance.startedAt,
+              instance.location?.timezone ?? "UTC",
+            )}
+          </span>
+        ),
+      },
+      {
+        key: "completedAt",
+        header: "Completed",
+        render: (instance) => (
+          <span>
+            {fmtDateTime(
+              instance.completedAt,
+              instance.location?.timezone ?? "UTC",
+            )}
+          </span>
+        ),
+      },
       {
         key: "proof",
         header: "Proof",
@@ -184,11 +252,17 @@ const StaffDetailPage: React.FC = () => {
             <div className="flex gap-1">
               {instance.proofImageUrls.map((url, i) => (
                 <a key={i} href={url} target="_blank" rel="noopener noreferrer">
-                  <img src={url} alt={`Proof ${i + 1}`} className="h-9 w-9 rounded-md object-cover border border-gray-200 hover:ring-2 hover:ring-teal-400 transition-all cursor-pointer" />
+                  <img
+                    src={url}
+                    alt={`Proof ${i + 1}`}
+                    className="h-9 w-9 rounded-md object-cover border border-gray-200 hover:ring-2 hover:ring-blue-400 transition-all cursor-pointer"
+                  />
                 </a>
               ))}
             </div>
-          ) : <span className="text-xs text-muted-foreground">—</span>,
+          ) : (
+            <span className="text-xs text-muted-foreground">—</span>
+          ),
       },
     ],
     [],
@@ -196,23 +270,96 @@ const StaffDetailPage: React.FC = () => {
 
   const attendanceColumns: Column<StaffAttendanceRow>[] = useMemo(
     () => [
-      { key: "date", header: "Date", render: (attendance) => <span className="font-medium text-foreground">{fmtDate(attendance.date)}</span> },
-      { key: "location", header: "Location", render: (attendance) => <span>{attendance.location?.name ?? "—"}</span> },
-      { key: "shift", header: "Expected Shift", render: (attendance) => <span>{fmtTime(attendance.expectedStart, attendance.location?.timezone ?? "UTC")} – {fmtTime(attendance.expectedEnd, attendance.location?.timezone ?? "UTC")}</span> },
-      { key: "checkIn", header: "Check In", render: (attendance) => <span>{fmtDateTime(attendance.checkInTime, attendance.location?.timezone ?? "UTC")}</span> },
-      { key: "checkOut", header: "Check Out", render: (attendance) => <span>{fmtDateTime(attendance.checkOutTime, attendance.location?.timezone ?? "UTC")}</span> },
-      { key: "status", header: "Status", render: (attendance) => <StatusBadge status={getAttendanceDisplayStatus(attendance, new Date(), attendance.location?.timezone ?? "UTC")} /> },
+      {
+        key: "date",
+        header: "Date",
+        render: (attendance) => (
+          <span className="font-medium text-foreground">
+            {fmtDate(attendance.date)}
+          </span>
+        ),
+      },
+      {
+        key: "location",
+        header: "Location",
+        render: (attendance) => <span>{attendance.location?.name ?? "—"}</span>,
+      },
+      {
+        key: "shift",
+        header: "Expected Shift",
+        render: (attendance) => (
+          <span>
+            {fmtTime(
+              attendance.expectedStart,
+              attendance.location?.timezone ?? "UTC",
+            )}{" "}
+            –{" "}
+            {fmtTime(
+              attendance.expectedEnd,
+              attendance.location?.timezone ?? "UTC",
+            )}
+          </span>
+        ),
+      },
+      {
+        key: "checkIn",
+        header: "Check In",
+        render: (attendance) => (
+          <span>
+            {fmtDateTime(
+              attendance.checkInTime,
+              attendance.location?.timezone ?? "UTC",
+            )}
+          </span>
+        ),
+      },
+      {
+        key: "checkOut",
+        header: "Check Out",
+        render: (attendance) => (
+          <span>
+            {fmtDateTime(
+              attendance.checkOutTime,
+              attendance.location?.timezone ?? "UTC",
+            )}
+          </span>
+        ),
+      },
+      {
+        key: "status",
+        header: "Status",
+        render: (attendance) => (
+          <StatusBadge
+            status={getAttendanceDisplayStatus(
+              attendance,
+              new Date(),
+              attendance.location?.timezone ?? "UTC",
+            )}
+          />
+        ),
+      },
       {
         key: "late",
         header: "Late",
         render: (attendance) => {
-          const displayStatus = getAttendanceDisplayStatus(attendance, new Date(), attendance.location?.timezone ?? "UTC");
+          const displayStatus = getAttendanceDisplayStatus(
+            attendance,
+            new Date(),
+            attendance.location?.timezone ?? "UTC",
+          );
 
           if (attendance.isLateCheckIn) {
-            return <span className="text-xs font-medium text-amber-600">{attendance.lateMinutes ?? 0} min late</span>;
+            return (
+              <span className="text-xs font-medium text-amber-600">
+                {attendance.lateMinutes ?? 0} min late
+              </span>
+            );
           }
 
-          if (displayStatus === "CHECKED_IN" || displayStatus === "CHECKED_OUT") {
+          if (
+            displayStatus === "CHECKED_IN" ||
+            displayStatus === "CHECKED_OUT"
+          ) {
             return <span className="text-xs text-emerald-700">On time</span>;
           }
 
@@ -224,26 +371,49 @@ const StaffDetailPage: React.FC = () => {
         header: "Check-In Photo",
         render: (attendance) =>
           attendance.checkInImage ? (
-            <a href={attendance.checkInImage} target="_blank" rel="noopener noreferrer">
-              <img src={attendance.checkInImage} alt="Check-in" className="h-9 w-9 rounded-md object-cover border border-gray-200 hover:ring-2 hover:ring-teal-400 transition-all cursor-pointer" />
+            <a
+              href={attendance.checkInImage}
+              target="_blank"
+              rel="noopener noreferrer"
+            >
+              <img
+                src={attendance.checkInImage}
+                alt="Check-in"
+                className="h-9 w-9 rounded-md object-cover border border-gray-200 hover:ring-2 hover:ring-blue-400 transition-all cursor-pointer"
+              />
             </a>
-          ) : <span className="text-xs text-muted-foreground">—</span>,
+          ) : (
+            <span className="text-xs text-muted-foreground">—</span>
+          ),
       },
       {
         key: "checkOutImg",
         header: "Check-Out Photo",
         render: (attendance) =>
           attendance.checkOutImage ? (
-            <a href={attendance.checkOutImage} target="_blank" rel="noopener noreferrer">
-              <img src={attendance.checkOutImage} alt="Check-out" className="h-9 w-9 rounded-md object-cover border border-gray-200 hover:ring-2 hover:ring-teal-400 transition-all cursor-pointer" />
+            <a
+              href={attendance.checkOutImage}
+              target="_blank"
+              rel="noopener noreferrer"
+            >
+              <img
+                src={attendance.checkOutImage}
+                alt="Check-out"
+                className="h-9 w-9 rounded-md object-cover border border-gray-200 hover:ring-2 hover:ring-blue-400 transition-all cursor-pointer"
+              />
             </a>
-          ) : <span className="text-xs text-muted-foreground">—</span>,
+          ) : (
+            <span className="text-xs text-muted-foreground">—</span>
+          ),
       },
     ],
     [],
   );
 
-  const syncSearchParams = (nextFilters: { month?: string; dateFrom?: string; dateTo?: string }, nextTab = activeTab) => {
+  const syncSearchParams = (
+    nextFilters: { month?: string; dateFrom?: string; dateTo?: string },
+    nextTab = activeTab,
+  ) => {
     setSearchParams((params) => {
       const next = new URLSearchParams(params);
       next.set("tab", nextTab);
@@ -269,7 +439,9 @@ const StaffDetailPage: React.FC = () => {
     setFilters(nextFilters);
     setDateFrom("");
     setDateTo("");
-    setSelectedQuickFilter(month === getCurrentMonthValue() ? "this-month" : null);
+    setSelectedQuickFilter(
+      month === getCurrentMonthValue() ? "this-month" : null,
+    );
     syncSearchParams(nextFilters);
   };
 
@@ -330,8 +502,11 @@ const StaffDetailPage: React.FC = () => {
       <div className="flex flex-col items-center justify-center py-20">
         <User className="mb-4 h-12 w-12 text-gray-400" />
         <p className="text-gray-500">Staff member not found.</p>
-        <button onClick={() => navigate("/staff")} className="mt-3 text-sm text-teal-600 hover:underline">
-          ← Back to Staff
+        <button
+          onClick={() => navigate("/staff")}
+          className="mt-3 text-sm text-blue-600 hover:underline"
+        >
+          ← Back to team
         </button>
       </div>
     );
@@ -350,74 +525,75 @@ const StaffDetailPage: React.FC = () => {
 
   return (
     <div className="space-y-6">
-      <button onClick={() => navigate("/staff")} className="inline-flex items-center gap-1.5 text-sm text-muted-foreground transition-colors hover:text-foreground">
-        <ArrowLeft className="h-4 w-4" /> Back to Staff
+      <button
+        onClick={() => navigate("/staff")}
+        className="inline-flex items-center gap-1.5 text-sm text-muted-foreground transition-colors hover:text-foreground"
+      >
+        <ArrowLeft className="h-4 w-4" /> Back to team
       </button>
 
       <PageHeader
         title={staff.name}
-        subtitle={`${periodLabel}. Review task execution, attendance reliability, and assigned templates for this staff member.${focusMode === "today" ? " This view is opened from Today Status and scoped to that day." : ""}`}
+        subtitle={`${periodLabel} · Attendance and task history${focusMode === "today" ? " for today" : ""}.`}
         action={<StatusBadge status={staff.isActive ? "ACTIVE" : "INACTIVE"} />}
       />
 
-      <SurfaceCard className="border-none bg-[linear-gradient(135deg,rgba(15,118,110,0.95),rgba(14,165,233,0.86))] text-white shadow-[0_35px_90px_-45px_rgba(13,148,136,0.75)]">
-        <div className="grid gap-6 lg:grid-cols-[1.15fr_0.85fr]">
-          <div className="flex items-start gap-4">
-            <div className="flex h-16 w-16 items-center justify-center rounded-[1.25rem] bg-white/15 text-xl font-bold text-white">
-              {staff.name.split(" ").map((w: string) => w[0]).join("").slice(0, 2).toUpperCase()}
-            </div>
-            <div className="space-y-3">
-              <div className="flex flex-wrap items-center gap-3 text-sm text-white/80">
-                <span className="flex items-center gap-1.5"><Mail className="h-3.5 w-3.5" /> {staff.email}</span>
-                <span className="flex items-center gap-1.5"><MapPin className="h-3.5 w-3.5" /> {staff.location?.name ?? "Unassigned"}</span>
-                <span className="flex items-center gap-1.5"><Clock className="h-3.5 w-3.5" /> {fmtTimeWithTz(staff.shiftStart, staffTz)} – {fmtTimeWithTz(staff.shiftEnd, staffTz)}</span>
-              </div>
-              <p className="max-w-xl text-sm leading-6 text-white/80">
-                This profile combines all assigned templates with filtered task instances and attendance records so managers can inspect a specific period instead of an all-time dump.
-              </p>
-              {focusMode === "today" ? (
-                <div className="inline-flex items-center gap-2 rounded-full border border-white/20 bg-white/10 px-3 py-1 text-xs font-medium text-white/85">
-                  Today drill-down
-                  <ChevronRight className="h-3.5 w-3.5" />
-                  Full daily attendance and task detail
-                </div>
-              ) : null}
-            </div>
-          </div>
-          <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-1">
-            <div className="rounded-3xl border border-white/15 bg-white/10 p-5">
-              <p className="text-sm text-white/70">Current period</p>
-              <p className="mt-2 text-2xl font-semibold">{periodLabel}</p>
-            </div>
-            <div className="rounded-3xl border border-white/15 bg-white/10 p-5">
-              <p className="text-sm text-white/70">{focusMode === "today" ? "Today's task instances" : "Templates assigned"}</p>
-              <p className="mt-2 text-2xl font-semibold">{focusMode === "today" ? taskStats.totalInstances : taskStats.totalTemplates}</p>
-            </div>
-          </div>
-        </div>
-      </SurfaceCard>
+      <div className="flex flex-wrap gap-x-6 gap-y-3 rounded-xl border border-border bg-card px-5 py-4 text-sm text-muted-foreground">
+        <span className="flex items-center gap-2">
+          <Mail size={16} />
+          {staff.email}
+        </span>
+        <span className="flex items-center gap-2">
+          <MapPin size={16} />
+          {staff.location?.name ?? "Unassigned"}
+        </span>
+        <span className="flex items-center gap-2">
+          <Clock size={16} />
+          {fmtTimeWithTz(staff.shiftStart, staffTz)} –{" "}
+          {fmtTimeWithTz(staff.shiftEnd, staffTz)}
+        </span>
+      </div>
 
       <FilterBar className="xl:grid-cols-[auto_auto_auto_auto_auto]">
         <div className="xl:col-span-5">
-          <label className="mb-2 block text-xs font-medium uppercase tracking-[0.18em] text-muted-foreground">Quick filters</label>
+          <label className="mb-2 block text-xs font-medium text-muted-foreground">
+            Quick filters
+          </label>
           <div className="flex flex-wrap gap-2">
-            <Button variant="outline" className="rounded-2xl" aria-pressed={selectedQuickFilter === "today"} onClick={() => applyQuickRange("today")}>
+            <Button
+              variant="outline"
+              className="rounded-lg"
+              aria-pressed={selectedQuickFilter === "today"}
+              onClick={() => applyQuickRange("today")}
+            >
               Today
             </Button>
-            <Button variant="outline" className="rounded-2xl" aria-pressed={selectedQuickFilter === "yesterday"} onClick={() => applyQuickRange("yesterday")}>
+            <Button
+              variant="outline"
+              className="rounded-lg"
+              aria-pressed={selectedQuickFilter === "yesterday"}
+              onClick={() => applyQuickRange("yesterday")}
+            >
               Yesterday
             </Button>
-            <Button variant="outline" className="rounded-2xl" aria-pressed={selectedQuickFilter === "this-month"} onClick={() => applyQuickRange("this-month")}>
+            <Button
+              variant="outline"
+              className="rounded-lg"
+              aria-pressed={selectedQuickFilter === "this-month"}
+              onClick={() => applyQuickRange("this-month")}
+            >
               This Month
             </Button>
           </div>
         </div>
         <div>
-          <label className="mb-1.5 block text-xs font-medium uppercase tracking-[0.18em] text-muted-foreground">Month</label>
+          <label className="mb-1.5 block text-xs font-medium text-muted-foreground">
+            Month
+          </label>
           <select
             value={month}
             onChange={(e) => setMonth(e.target.value)}
-            className="h-11 w-full rounded-2xl border border-border/80 bg-background/90 px-4 py-2 text-sm shadow-xs outline-none focus:border-primary/60 focus:ring-4 focus:ring-primary/10"
+            className="h-11 w-full rounded-lg border border-border/80 bg-background/90 px-4 py-2 text-sm shadow-xs outline-none focus:border-primary/60 focus:ring-4 focus:ring-primary/10"
           >
             {monthOptions.map((option) => (
               <option key={option.value} value={option.value}>
@@ -427,24 +603,40 @@ const StaffDetailPage: React.FC = () => {
           </select>
         </div>
         <div className="flex items-end">
-          <Button className="h-11 rounded-2xl" onClick={applyMonthFilter}>
+          <Button className="h-11 rounded-lg" onClick={applyMonthFilter}>
             <Calendar className="h-4 w-4" />
             Apply month
           </Button>
         </div>
         <div>
-          <label className="mb-1.5 block text-xs font-medium uppercase tracking-[0.18em] text-muted-foreground">From</label>
-          <Input type="date" value={dateFrom} onChange={(e) => setDateFrom(e.target.value)} />
+          <label className="mb-1.5 block text-xs font-medium text-muted-foreground">
+            From
+          </label>
+          <Input
+            type="date"
+            value={dateFrom}
+            onChange={(e) => setDateFrom(e.target.value)}
+          />
         </div>
         <div>
-          <label className="mb-1.5 block text-xs font-medium uppercase tracking-[0.18em] text-muted-foreground">To</label>
-          <Input type="date" value={dateTo} onChange={(e) => setDateTo(e.target.value)} />
+          <label className="mb-1.5 block text-xs font-medium text-muted-foreground">
+            To
+          </label>
+          <Input
+            type="date"
+            value={dateTo}
+            onChange={(e) => setDateTo(e.target.value)}
+          />
         </div>
         <div className="flex items-end gap-2">
-          <Button variant="outline" className="h-11 rounded-2xl" onClick={clearFilters}>
+          <Button
+            variant="outline"
+            className="h-11 rounded-lg"
+            onClick={clearFilters}
+          >
             Reset
           </Button>
-          <Button className="h-11 rounded-2xl" onClick={applyDateRangeFilter}>
+          <Button className="h-11 rounded-lg" onClick={applyDateRangeFilter}>
             <Filter className="h-4 w-4" />
             Apply range
           </Button>
@@ -452,22 +644,47 @@ const StaffDetailPage: React.FC = () => {
       </FilterBar>
 
       <div className="grid grid-cols-2 gap-4 xl:grid-cols-5">
-        <StatCard label="Templates" value={taskStats.totalTemplates} icon={ClipboardList} />
-        <StatCard label="Completed" value={taskStats.completed} icon={CheckCircle2} tone="emerald" />
-        <StatCard label="Pending" value={taskStats.pending} icon={Activity} tone="sky" />
-        <StatCard label="Missed" value={taskStats.missed} icon={XCircle} tone="amber" />
-        <StatCard label="Late Check-ins" value={attendanceStats.late} icon={AlertTriangle} tone="amber" />
+        <StatCard
+          label="Scheduled tasks"
+          value={taskStats.totalTemplates}
+          icon={ClipboardList}
+        />
+        <StatCard
+          label="Completed"
+          value={taskStats.completed}
+          icon={CheckCircle2}
+          tone="emerald"
+        />
+        <StatCard
+          label="Pending"
+          value={taskStats.pending}
+          icon={Activity}
+          tone="sky"
+        />
+        <StatCard
+          label="Missed"
+          value={taskStats.missed}
+          icon={XCircle}
+          tone="amber"
+        />
+        <StatCard
+          label="Late Check-ins"
+          value={attendanceStats.late}
+          icon={AlertTriangle}
+          tone="amber"
+        />
       </div>
 
-      <div className="flex gap-1 rounded-2xl border border-border/70 bg-muted/50 p-1">
+      <div className="flex flex-wrap gap-1 rounded-lg border border-border/70 bg-muted/50 p-1">
         {[
           { key: "overview", label: "Overview" },
-          { key: "templates", label: "Templates" },
-          { key: "instances", label: "Task Instances" },
+          { key: "templates", label: "Cleaning schedule" },
+          { key: "instances", label: "Task history" },
           { key: "attendance", label: "Attendance" },
         ].map((tab) => (
           <button
             key={tab.key}
+            aria-pressed={activeTab === tab.key}
             onClick={() => {
               const nextTab = tab.key as Tab;
               setActiveTab(nextTab);
@@ -478,7 +695,9 @@ const StaffDetailPage: React.FC = () => {
               });
             }}
             className={`flex-1 rounded-xl px-4 py-2.5 text-sm font-medium transition-colors ${
-              activeTab === tab.key ? "bg-background text-primary shadow-sm" : "text-muted-foreground hover:text-foreground"
+              activeTab === tab.key
+                ? "bg-background text-primary shadow-sm"
+                : "text-muted-foreground hover:text-foreground"
             }`}
           >
             {tab.label}
@@ -488,58 +707,116 @@ const StaffDetailPage: React.FC = () => {
 
       {activeTab === "overview" && (
         <div className="grid gap-6 lg:grid-cols-2">
-          <SurfaceCard title="Profile" description="Core staff identity and assignment details.">
+          <SurfaceCard
+            title="Profile"
+            description="Core staff identity and assignment details."
+          >
             <dl className="space-y-3 text-sm">
-              {([
-                ["Name", staff.name],
-                ["Email", staff.email],
-                ["Role", staff.role],
-                ["Location", staff.location?.name ?? "Unassigned"],
-                ["Address", staff.location?.address ?? "—"],
-                ["Shift", `${fmtTimeWithTz(staff.shiftStart, staffTz)} – ${fmtTimeWithTz(staff.shiftEnd, staffTz)}`],
-                ["Joined", fmtDate(staff.createdAt)],
-              ] as [string, string][]).map(([label, value]) => (
-                <div key={label} className="flex justify-between gap-6 border-b border-border/50 pb-3 last:border-b-0 last:pb-0">
+              {(
+                [
+                  ["Name", staff.name],
+                  ["Email", staff.email],
+                  ["Role", staff.role],
+                  ["Location", staff.location?.name ?? "Unassigned"],
+                  ["Address", staff.location?.address ?? "—"],
+                  [
+                    "Shift",
+                    `${fmtTimeWithTz(staff.shiftStart, staffTz)} – ${fmtTimeWithTz(staff.shiftEnd, staffTz)}`,
+                  ],
+                  ["Joined", fmtDate(staff.createdAt)],
+                ] as [string, string][]
+              ).map(([label, value]) => (
+                <div
+                  key={label}
+                  className="flex justify-between gap-6 border-b border-border/50 pb-3 last:border-b-0 last:pb-0"
+                >
                   <dt className="text-muted-foreground">{label}</dt>
-                  <dd className="text-right font-medium text-foreground">{value}</dd>
+                  <dd className="text-right font-medium text-foreground">
+                    {value}
+                  </dd>
                 </div>
               ))}
             </dl>
           </SurfaceCard>
 
-          <SurfaceCard title="Task performance" description={isFetching ? "Refreshing filtered period..." : `Task outcomes for ${periodLabel}.`}>
+          <SurfaceCard
+            title="Task performance"
+            description={
+              isFetching
+                ? "Refreshing filtered period..."
+                : `Task outcomes for ${periodLabel}.`
+            }
+          >
             {taskChartData.length > 0 ? (
               <ResponsiveContainer width="100%" height={240}>
                 <BarChart data={taskChartData} layout="vertical">
                   <CartesianGrid strokeDasharray="3 3" stroke="#dbe3ea" />
-                  <XAxis type="number" tick={{ fontSize: 12, fill: "#64748b" }} allowDecimals={false} />
-                  <YAxis type="category" dataKey="name" tick={{ fontSize: 12, fill: "#64748b" }} width={90} />
-                  <Tooltip contentStyle={{ backgroundColor: "#fff", border: "1px solid #e2e8f0", borderRadius: "16px", fontSize: 13 }} />
+                  <XAxis
+                    type="number"
+                    tick={{ fontSize: 12, fill: "#64748b" }}
+                    allowDecimals={false}
+                  />
+                  <YAxis
+                    type="category"
+                    dataKey="name"
+                    tick={{ fontSize: 12, fill: "#64748b" }}
+                    width={90}
+                  />
+                  <Tooltip
+                    contentStyle={{
+                      backgroundColor: "#fff",
+                      border: "1px solid #e2e8f0",
+                      borderRadius: "16px",
+                      fontSize: 13,
+                    }}
+                  />
                   <Bar dataKey="value" radius={[0, 8, 8, 0]} />
                 </BarChart>
               </ResponsiveContainer>
             ) : (
-              <div className="flex h-[240px] items-center justify-center text-sm text-muted-foreground">No task data in this period.</div>
+              <div className="flex h-[240px] items-center justify-center text-sm text-muted-foreground">
+                No task data in this period.
+              </div>
             )}
           </SurfaceCard>
 
-          <SurfaceCard title="Attendance summary" description={`Attendance reliability for ${periodLabel}.`} className="lg:col-span-2">
+          <SurfaceCard
+            title="Attendance summary"
+            description={`Attendance reliability for ${periodLabel}.`}
+            className="lg:col-span-2"
+          >
             <div className="grid grid-cols-2 gap-4 sm:grid-cols-4">
-              <div className="rounded-2xl bg-muted/60 p-4 text-center">
-                <p className="text-2xl font-semibold text-foreground">{attendanceStats.totalRecords}</p>
-                <p className="mt-1 text-xs uppercase tracking-[0.18em] text-muted-foreground">Records</p>
+              <div className="rounded-lg bg-muted/60 p-4 text-center">
+                <p className="text-2xl font-semibold text-foreground">
+                  {attendanceStats.totalRecords}
+                </p>
+                <p className="mt-1 text-xs uppercase tracking-[0.18em] text-muted-foreground">
+                  Records
+                </p>
               </div>
-              <div className="rounded-2xl bg-emerald-50 p-4 text-center">
-                <p className="text-2xl font-semibold text-emerald-700">{attendanceStats.present}</p>
-                <p className="mt-1 text-xs uppercase tracking-[0.18em] text-emerald-700/80">Present</p>
+              <div className="rounded-lg bg-emerald-50 p-4 text-center">
+                <p className="text-2xl font-semibold text-emerald-700">
+                  {attendanceStats.present}
+                </p>
+                <p className="mt-1 text-xs uppercase tracking-[0.18em] text-emerald-700/80">
+                  Present
+                </p>
               </div>
-              <div className="rounded-2xl bg-red-50 p-4 text-center">
-                <p className="text-2xl font-semibold text-red-700">{attendanceStats.absent}</p>
-                <p className="mt-1 text-xs uppercase tracking-[0.18em] text-red-700/80">Absent</p>
+              <div className="rounded-lg bg-red-50 p-4 text-center">
+                <p className="text-2xl font-semibold text-red-700">
+                  {attendanceStats.absent}
+                </p>
+                <p className="mt-1 text-xs uppercase tracking-[0.18em] text-red-700/80">
+                  Absent
+                </p>
               </div>
-              <div className="rounded-2xl bg-amber-50 p-4 text-center">
-                <p className="text-2xl font-semibold text-amber-700">{attendanceStats.late}</p>
-                <p className="mt-1 text-xs uppercase tracking-[0.18em] text-amber-700/80">Late</p>
+              <div className="rounded-lg bg-amber-50 p-4 text-center">
+                <p className="text-2xl font-semibold text-amber-700">
+                  {attendanceStats.late}
+                </p>
+                <p className="mt-1 text-xs uppercase tracking-[0.18em] text-amber-700/80">
+                  Late
+                </p>
               </div>
             </div>
           </SurfaceCard>
@@ -549,16 +826,27 @@ const StaffDetailPage: React.FC = () => {
       {activeTab === "templates" && (
         <div className="grid grid-cols-1 gap-4 md:grid-cols-2 xl:grid-cols-3">
           {staff.taskTemplates.length === 0 ? (
-            <SurfaceCard className="md:col-span-2 xl:col-span-3" contentClassName="py-16">
-              <div className="text-center text-sm text-muted-foreground">No active task templates assigned.</div>
+            <SurfaceCard
+              className="md:col-span-2 xl:col-span-3"
+              contentClassName="py-16"
+            >
+              <div className="text-center text-sm text-muted-foreground">
+                No active task templates assigned.
+              </div>
             </SurfaceCard>
           ) : (
             staff.taskTemplates.map((t: StaffTaskTemplateRow) => (
               <SurfaceCard key={t.id}>
                 <div className="space-y-4">
                   <div>
-                    <h3 className="text-base font-semibold text-foreground">{t.title}</h3>
-                    {t.description ? <p className="mt-1 text-sm text-muted-foreground">{t.description}</p> : null}
+                    <h3 className="text-base font-semibold text-foreground">
+                      {t.title}
+                    </h3>
+                    {t.description ? (
+                      <p className="mt-1 text-sm text-muted-foreground">
+                        {t.description}
+                      </p>
+                    ) : null}
                   </div>
                   <div className="flex flex-wrap gap-2">
                     <StatusBadge status={t.recurringType ?? "ONCE"} />
@@ -567,15 +855,22 @@ const StaffDetailPage: React.FC = () => {
                   <div className="grid grid-cols-2 gap-3 text-sm">
                     <div>
                       <p className="text-muted-foreground">Location</p>
-                      <p className="font-medium text-foreground">{t.location?.name ?? "—"}</p>
+                      <p className="font-medium text-foreground">
+                        {t.location?.name ?? "—"}
+                      </p>
                     </div>
                     <div>
                       <p className="text-muted-foreground">Shift</p>
-                      <p className="font-medium text-foreground">{fmtTime(t.shiftStart, t.location?.timezone ?? "UTC")} – {fmtTime(t.shiftEnd, t.location?.timezone ?? "UTC")}</p>
+                      <p className="font-medium text-foreground">
+                        {fmtTime(t.shiftStart, t.location?.timezone ?? "UTC")} –{" "}
+                        {fmtTime(t.shiftEnd, t.location?.timezone ?? "UTC")}
+                      </p>
                     </div>
                     <div>
                       <p className="text-muted-foreground">Effective</p>
-                      <p className="font-medium text-foreground">{fmtDate(t.effectiveDate)}</p>
+                      <p className="font-medium text-foreground">
+                        {fmtDate(t.effectiveDate)}
+                      </p>
                     </div>
                   </div>
                 </div>
@@ -586,7 +881,11 @@ const StaffDetailPage: React.FC = () => {
       )}
 
       {activeTab === "instances" && (
-        <SurfaceCard title="Task instances" description={`Recent filtered task execution for ${periodLabel}.`} contentClassName="p-0">
+        <SurfaceCard
+          title="Task instances"
+          description={`Recent filtered task execution for ${periodLabel}.`}
+          contentClassName="p-0"
+        >
           <DataTable
             columns={instanceColumns}
             data={staff.taskInstances}
@@ -599,7 +898,11 @@ const StaffDetailPage: React.FC = () => {
       )}
 
       {activeTab === "attendance" && (
-        <SurfaceCard title="Attendance records" description={`Attendance records for ${periodLabel}.`} contentClassName="p-0">
+        <SurfaceCard
+          title="Attendance records"
+          description={`Attendance records for ${periodLabel}.`}
+          contentClassName="p-0"
+        >
           <DataTable
             columns={attendanceColumns}
             data={staff.attendances}

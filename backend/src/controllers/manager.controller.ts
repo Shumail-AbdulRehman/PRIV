@@ -1,3 +1,4 @@
+import { permanentlyDelete } from "../services/deletion.service.js";
 import { Request, Response } from "express";
 import jwt from "jsonwebtoken";
 import {
@@ -10,6 +11,7 @@ import { prisma } from "../prisma/prisma.js";
 import { ApiResponse } from "../utils/ApiResponse.js";
 import { ApiError } from "../utils/ApiError.js";
 import { DEFAULT_TIME_ZONE, getZonedDayRange } from "../utils/dateTime.js";
+import { formatInTimeZone } from "date-fns-tz";
 import { getScopedLocationIds, assertLocationAccess } from "../utils/scope.js";
 import { generateAccessToken, generateRefreshToken, isPasswordCorrect } from "../utils/auth.js";
 import { TokenPayload } from "../types/jwt.js";
@@ -266,6 +268,7 @@ export const getTodayStatus = async (req: Request, res: Response) => {
                 select: {
                     id: true,
                     name: true,
+                    timezone: true,
                 },
             },
         },
@@ -280,6 +283,7 @@ export const getTodayStatus = async (req: Request, res: Response) => {
                 200,
                 {
                     date: today.toISOString(),
+                    asOf: now.toISOString(),
                     locations,
                     summary: {
                         totalStaff: 0,
@@ -425,6 +429,7 @@ export const getTodayStatus = async (req: Request, res: Response) => {
 
         return {
             staff: member,
+            localDate: formatInTimeZone(now, member.location?.timezone ?? DEFAULT_TIME_ZONE, "yyyy-MM-dd"),
             attendance,
             attendanceDisplayStatus: isShiftNotStarted ? "SHIFT_NOT_STARTED" : attendance?.status ?? "NO_RECORD_TODAY",
             tasks: normalizedTasks,
@@ -464,6 +469,7 @@ export const getTodayStatus = async (req: Request, res: Response) => {
             200,
             {
                 date: today.toISOString(),
+                asOf: now.toISOString(),
                 locations,
                 summary,
                 staffStatus,
@@ -613,7 +619,7 @@ export const updateManager = async (req: Request, res: Response) => {
         throw new ApiError(400, "Validation failed", errors);
     }
 
-    const { name, email, password, isActive, locationIds } = result.data;
+    const { name, email, password, locationIds } = result.data;
     const companyId = req.user!.companyId;
 
     const target = await prisma.manager.findFirst({
@@ -622,10 +628,6 @@ export const updateManager = async (req: Request, res: Response) => {
 
     if (!target) {
         throw new ApiError(404, "Manager not found in your company");
-    }
-
-    if (isActive === true && !target.isActive) {
-        await assertCompanyCanAdd(companyId, "managers");
     }
 
     if (email && email !== target.email) {
@@ -671,7 +673,6 @@ export const updateManager = async (req: Request, res: Response) => {
                 ...(name !== undefined ? { name } : {}),
                 ...(email !== undefined ? { email } : {}),
                 ...(password !== undefined ? { password } : {}),
-                ...(isActive !== undefined ? { isActive } : {}),
             },
         });
 
@@ -699,4 +700,9 @@ export const updateManager = async (req: Request, res: Response) => {
             "Manager updated successfully"
         )
     );
+};
+
+export const deleteManager = async (req: Request, res: Response) => {
+  await permanentlyDelete("manager", Number(req.params.id), req.user!);
+  res.status(200).json(new ApiResponse(200, {}, "Manager deleted permanently"));
 };

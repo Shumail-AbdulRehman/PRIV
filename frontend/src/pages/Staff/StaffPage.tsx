@@ -1,8 +1,15 @@
+import DeleteButton from "@/components/common/DeleteButton";
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { useForm } from "react-hook-form";
 import { formatInTimeZone, fromZonedTime } from "date-fns-tz";
-import { useGetStaff, useCreateStaff, useDeactivateStaff, useEditStaff, getStaffDetailsQueryOptions } from "./queries";
+import {
+  useGetStaff,
+  useCreateStaff,
+  useDeleteStaff,
+  useEditStaff,
+  getStaffDetailsQueryOptions,
+} from "./queries";
 import type { EditStaffInput } from "./api";
 import { useGetLocations } from "../Location/queries";
 import { useAssignStaffToLocation } from "../Assignment/queries";
@@ -74,19 +81,27 @@ const toTimeValue = (iso: string | null, timeZone = "UTC") => {
   return formatInTimeZone(new Date(iso), timeZone, "HH:mm");
 };
 
-const wallTimeToIso = (base: string | null, timeValue: string, timeZone: string) => {
-  const datePart = formatInTimeZone(base ? new Date(base) : new Date(), timeZone, "yyyy-MM-dd");
+const wallTimeToIso = (
+  base: string | null,
+  timeValue: string,
+  timeZone: string,
+) => {
+  const datePart = formatInTimeZone(
+    base ? new Date(base) : new Date(),
+    timeZone,
+    "yyyy-MM-dd",
+  );
   return fromZonedTime(`${datePart}T${timeValue}:00`, timeZone).toISOString();
 };
 
 const inputCls =
-  "flex h-11 w-full rounded-2xl border border-border/80 bg-background/90 px-4 py-2 text-sm shadow-xs outline-none focus:border-primary/60 focus:ring-4 focus:ring-primary/10";
+  "flex h-11 w-full rounded-lg border border-border/80 bg-background/90 px-4 py-2 text-sm shadow-xs outline-none focus:border-primary/60 focus:ring-4 focus:ring-primary/10";
 
 export default function StaffPage() {
   const { data, isLoading } = useGetStaff();
   const locationsQuery = useGetLocations();
   const createStaff = useCreateStaff();
-  const deactivateStaff = useDeactivateStaff();
+  const deleteStaff = useDeleteStaff();
   const editStaffMutation = useEditStaff();
   const assignLocation = useAssignStaffToLocation();
   const queryClient = useQueryClient();
@@ -99,10 +114,20 @@ export default function StaffPage() {
   const [editingStaff, setEditingStaff] = useState<StaffMember | null>(null);
   const [editError, setEditError] = useState<string | null>(null);
   const [editForm, setEditForm] = useState({
-    name: "", email: "", phone: "", shiftStart: "", shiftEnd: "", locationId: "" as string,
+    name: "",
+    email: "",
+    phone: "",
+    shiftStart: "",
+    shiftEnd: "",
+    locationId: "" as string,
   });
 
-  const { register, handleSubmit, reset, formState: { errors } } = useForm<CreateStaffForm>();
+  const {
+    register,
+    handleSubmit,
+    reset,
+    formState: { errors },
+  } = useForm<CreateStaffForm>();
 
   if (isLoading) return <LoadingSpinner fullScreen />;
 
@@ -114,7 +139,12 @@ export default function StaffPage() {
       s.name.toLowerCase().includes(search.toLowerCase()) ||
       s.email.toLowerCase().includes(search.toLowerCase()) ||
       (s.phone ?? "").toLowerCase().includes(search.toLowerCase());
-    const matchesLocation = locationFilter === "all" ? true : locationFilter === "unassigned" ? s.locationId === null : s.locationId === Number(locationFilter);
+    const matchesLocation =
+      locationFilter === "all"
+        ? true
+        : locationFilter === "unassigned"
+          ? s.locationId === null
+          : s.locationId === Number(locationFilter);
     return matchesSearch && matchesLocation;
   });
   const assignedStaffCount = staff.filter((s) => s.locationId !== null).length;
@@ -127,10 +157,12 @@ export default function StaffPage() {
 
   const extractError = (err: unknown) => {
     const error = err as ApiError;
-    return error.response?.data?.message ||
+    return (
+      error.response?.data?.message ||
       error.response?.data?.errors?.map((e) => e.message).join(", ") ||
       error.message ||
-      "An error occurred";
+      "An error occurred"
+    );
   };
 
   const handleEditOpen = (s: StaffMember) => {
@@ -138,8 +170,11 @@ export default function StaffPage() {
     setEditingStaff(s);
     const tz = tzForLocation(s.locationId);
     setEditForm({
-      name: s.name, email: s.email, phone: s.phone ?? "",
-      shiftStart: toTimeValue(s.shiftStart, tz), shiftEnd: toTimeValue(s.shiftEnd, tz),
+      name: s.name,
+      email: s.email,
+      phone: s.phone ?? "",
+      shiftStart: toTimeValue(s.shiftStart, tz),
+      shiftEnd: toTimeValue(s.shiftEnd, tz),
       locationId: s.locationId ? String(s.locationId) : "",
     });
   };
@@ -148,169 +183,381 @@ export default function StaffPage() {
     if (!editingStaff) return;
     setEditError(null);
     try {
-      const tz = tzForLocation(editForm.locationId ? Number(editForm.locationId) : null);
+      const tz = tzForLocation(
+        editForm.locationId ? Number(editForm.locationId) : null,
+      );
       const payload: EditStaffInput = {};
       if (editForm.name !== editingStaff.name) payload.name = editForm.name;
       if (editForm.email !== editingStaff.email) payload.email = editForm.email;
-      if (editForm.phone !== (editingStaff.phone ?? "")) payload.phone = editForm.phone;
-      if (editForm.shiftStart && editForm.shiftStart !== toTimeValue(editingStaff.shiftStart, tz)) {
-        payload.shiftStart = wallTimeToIso(editingStaff.shiftStart, editForm.shiftStart, tz);
+      if (editForm.phone !== (editingStaff.phone ?? ""))
+        payload.phone = editForm.phone;
+      if (
+        editForm.shiftStart &&
+        editForm.shiftStart !== toTimeValue(editingStaff.shiftStart, tz)
+      ) {
+        payload.shiftStart = wallTimeToIso(
+          editingStaff.shiftStart,
+          editForm.shiftStart,
+          tz,
+        );
       }
-      if (editForm.shiftEnd && editForm.shiftEnd !== toTimeValue(editingStaff.shiftEnd, tz)) {
-        payload.shiftEnd = wallTimeToIso(editingStaff.shiftEnd, editForm.shiftEnd, tz);
+      if (
+        editForm.shiftEnd &&
+        editForm.shiftEnd !== toTimeValue(editingStaff.shiftEnd, tz)
+      ) {
+        payload.shiftEnd = wallTimeToIso(
+          editingStaff.shiftEnd,
+          editForm.shiftEnd,
+          tz,
+        );
       }
       if (Object.keys(payload).length > 0) {
         await new Promise<void>((resolve, reject) => {
-          editStaffMutation.mutate({ id: editingStaff.id, data: payload }, { onSuccess: () => resolve(), onError: (err) => reject(err) });
+          editStaffMutation.mutate(
+            { id: editingStaff.id, data: payload },
+            { onSuccess: () => resolve(), onError: (err) => reject(err) },
+          );
         });
       }
       const newLoc = editForm.locationId ? Number(editForm.locationId) : null;
       if (newLoc && newLoc !== editingStaff.locationId) {
         await new Promise<void>((resolve, reject) => {
-          assignLocation.mutate({ staffId: editingStaff.id, locationId: newLoc }, { onSuccess: () => resolve(), onError: (err) => reject(err) });
+          assignLocation.mutate(
+            { staffId: editingStaff.id, locationId: newLoc },
+            { onSuccess: () => resolve(), onError: (err) => reject(err) },
+          );
         });
       }
       setEditingStaff(null);
-    } catch (err: unknown) { setEditError(extractError(err)); }
+    } catch (err: unknown) {
+      setEditError(extractError(err));
+    }
   };
 
   const columns: Column<StaffMember>[] = [
     {
-      key: "name", header: "Name",
+      key: "name",
+      header: "Name",
       render: (s) => (
         <div className="flex items-center gap-3">
-          <div className="flex h-8 w-8 items-center justify-center rounded-full bg-teal-50 text-xs font-bold text-teal-700">
-            {s.name.split(" ").map((w) => w[0]).join("").slice(0, 2).toUpperCase()}
+          <div className="flex h-8 w-8 items-center justify-center rounded-full bg-blue-50 text-xs font-bold text-blue-700">
+            {s.name
+              .split(" ")
+              .map((w) => w[0])
+              .join("")
+              .slice(0, 2)
+              .toUpperCase()}
           </div>
           <span className="font-medium text-gray-800">{s.name}</span>
         </div>
       ),
     },
-    { key: "email", header: "Email", render: (s) => <span className="text-gray-500">{s.email}</span> },
-    { key: "phone", header: "Phone", render: (s) => <span className="text-gray-500">{s.phone || "—"}</span> },
     {
-      key: "location", header: "Location",
-      render: (s) => s.locationId
-        ? <span className="rounded-full bg-teal-50 px-2.5 py-0.5 text-xs font-medium text-teal-700">{(locMap.get(s.locationId) as string) ?? `#${s.locationId}`}</span>
-        : <span className="text-gray-400">Unassigned</span>,
+      key: "email",
+      header: "Email",
+      render: (s) => <span className="text-gray-500">{s.email}</span>,
     },
     {
-      key: "shift", header: "Shift",
-      render: (s) => <span className="text-gray-600">{fmtTimeWithTz(s.shiftStart, tzForLocation(s.locationId))} – {fmtTimeWithTz(s.shiftEnd, tzForLocation(s.locationId))}</span>,
+      key: "phone",
+      header: "Phone",
+      render: (s) => <span className="text-gray-500">{s.phone || "—"}</span>,
     },
-    { key: "status", header: "Status", render: (s) => <StatusBadge status={s.isActive ? "ACTIVE" : "INACTIVE"} /> },
     {
-      key: "actions", header: "Actions",
+      key: "location",
+      header: "Location",
+      render: (s) =>
+        s.locationId ? (
+          <span className="rounded-full bg-blue-50 px-2.5 py-0.5 text-xs font-medium text-blue-700">
+            {(locMap.get(s.locationId) as string) ?? `#${s.locationId}`}
+          </span>
+        ) : (
+          <span className="text-gray-400">Unassigned</span>
+        ),
+    },
+    {
+      key: "shift",
+      header: "Shift",
+      render: (s) => (
+        <span className="text-gray-600">
+          {fmtTimeWithTz(s.shiftStart, tzForLocation(s.locationId))} –{" "}
+          {fmtTimeWithTz(s.shiftEnd, tzForLocation(s.locationId))}
+        </span>
+      ),
+    },
+    {
+      key: "status",
+      header: "Status",
+      render: (s) => (
+        <StatusBadge status={s.isActive ? "ACTIVE" : "INACTIVE"} />
+      ),
+    },
+    {
+      key: "actions",
+      header: "Actions",
       render: (s) => (
         <div className="flex items-center gap-2">
-          <button onClick={(e) => { e.stopPropagation(); handleEditOpen(s); }} className="rounded-lg px-3 py-1.5 text-xs font-medium text-teal-600 transition-colors hover:bg-teal-50"><Pencil className="h-3.5 w-3.5" /></button>
-          <button onClick={(e) => { e.stopPropagation(); if (confirm(`Deactivate ${s.name}?`)) deactivateStaff.mutate(s.id); }} className="rounded-lg px-3 py-1.5 text-xs font-medium text-red-500 transition-colors hover:bg-red-50">Deactivate</button>
+          <button
+            aria-label={`Edit ${s.name}`}
+            onClick={(e) => {
+              e.stopPropagation();
+              handleEditOpen(s);
+            }}
+            className="rounded-lg px-3 py-1.5 text-xs font-medium text-blue-600 transition-colors hover:bg-blue-50"
+          >
+            <Pencil className="h-3.5 w-3.5" />
+          </button>
+          <DeleteButton
+            name={s.name}
+            description="Their account, attendance, assignments, and submitted evidence will be removed. Site task schedules will become unassigned."
+            onDelete={() => deleteStaff.mutateAsync(s.id)}
+          />
         </div>
       ),
     },
   ];
 
   const onCreateSubmit = (formData: CreateStaffForm) => {
-    const tz = tzForLocation(formData.locationId ? Number(formData.locationId) : null);
+    const tz = tzForLocation(
+      formData.locationId ? Number(formData.locationId) : null,
+    );
     createStaff.mutate(
       {
         name: formData.name,
         email: formData.email,
         phone: formData.phone,
         password: formData.password,
-        locationId: formData.locationId ? Number(formData.locationId) : undefined,
+        locationId: formData.locationId
+          ? Number(formData.locationId)
+          : undefined,
         shiftStart: formData.shiftStart
-          ? fromZonedTime(`1970-01-01T${formData.shiftStart}:00`, tz).toISOString()
+          ? fromZonedTime(
+              `1970-01-01T${formData.shiftStart}:00`,
+              tz,
+            ).toISOString()
           : undefined,
         shiftEnd: formData.shiftEnd
-          ? fromZonedTime(`1970-01-01T${formData.shiftEnd}:00`, tz).toISOString()
+          ? fromZonedTime(
+              `1970-01-01T${formData.shiftEnd}:00`,
+              tz,
+            ).toISOString()
           : undefined,
       },
-      { onSuccess: () => { reset(); setDialogOpen(false); } }
+      {
+        onSuccess: () => {
+          reset();
+          setDialogOpen(false);
+        },
+      },
     );
   };
 
   return (
     <div className="space-y-6">
-      <PageHeader title="Staff" subtitle={`${staff.length} team members`} action={
-        <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
-          <DialogTrigger asChild>
-            <Button className="rounded-2xl px-4">
-              <Plus className="h-4 w-4" /> Add Staff
-            </Button>
-          </DialogTrigger>
-          <DialogContent className="border-border/70 bg-card text-card-foreground sm:max-w-xl">
-            <DialogHeader><DialogTitle>Add Staff Member</DialogTitle></DialogHeader>
-            <form onSubmit={handleSubmit(onCreateSubmit)} className="space-y-4 pt-2">
-              <div>
-                <label className="mb-1.5 block text-sm font-medium text-foreground">Full Name</label>
-                <Input {...register("name", { required: "Name is required" })} placeholder="John Smith" />
-                {errors.name && <p className="mt-1 text-xs text-red-500">{errors.name.message}</p>}
-              </div>
-              <div>
-                <label className="mb-1.5 block text-sm font-medium text-foreground">Email</label>
-                <Input type="email" {...register("email", { required: "Email is required" })} placeholder="john@company.com" />
-                {errors.email && <p className="mt-1 text-xs text-red-500">{errors.email.message}</p>}
-              </div>
-              <div>
-                <label className="mb-1.5 block text-sm font-medium text-foreground">Phone Number</label>
-                <Input type="tel" {...register("phone", {
-                  required: "Phone number is required",
-                  minLength: { value: 7, message: "Phone number must be at least 7 characters" },
-                  maxLength: { value: 20, message: "Phone number must be at most 20 characters" },
-                })} placeholder="+92 300 1234567" />
-                {errors.phone && <p className="mt-1 text-xs text-red-500">{errors.phone.message}</p>}
-              </div>
-              <div>
-                <label className="mb-1.5 block text-sm font-medium text-foreground">Password</label>
-                <Input type="password" {...register("password", { required: "Password is required" })} placeholder="••••••••" />
-                {errors.password && <p className="mt-1 text-xs text-red-500">{errors.password.message}</p>}
-              </div>
-              <div>
-                <label className="mb-1.5 block text-sm font-medium text-foreground">Location (optional)</label>
-                <select {...register("locationId")} className={inputCls}>
-                  <option value="">No location</option>
-                  {locations.map((l) => <option key={l.id} value={l.id}>{l.name}</option>)}
-                </select>
-              </div>
-              <div className="grid grid-cols-2 gap-4">
+      <PageHeader
+        title="Team"
+        subtitle={`${staff.length} team members`}
+        action={
+          <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
+            <DialogTrigger asChild>
+              <Button className="rounded-lg px-4">
+                <Plus className="h-4 w-4" /> Add Staff
+              </Button>
+            </DialogTrigger>
+            <DialogContent className="border-border/70 bg-card text-card-foreground sm:max-w-xl">
+              <DialogHeader>
+                <DialogTitle>Add Staff Member</DialogTitle>
+              </DialogHeader>
+              <form
+                onSubmit={handleSubmit(onCreateSubmit)}
+                className="space-y-4 pt-2"
+              >
                 <div>
-                  <label className="mb-1.5 block text-sm font-medium text-foreground">Shift Start</label>
-                  <Input type="time" {...register("shiftStart", { required: "Shift start is required" })} />
-                  {errors.shiftStart && <p className="mt-1 text-xs text-red-500">{errors.shiftStart.message}</p>}
+                  <label className="mb-1.5 block text-sm font-medium text-foreground">
+                    Full Name
+                  </label>
+                  <Input
+                    {...register("name", { required: "Name is required" })}
+                    placeholder="John Smith"
+                  />
+                  {errors.name && (
+                    <p className="mt-1 text-xs text-red-500">
+                      {errors.name.message}
+                    </p>
+                  )}
                 </div>
                 <div>
-                  <label className="mb-1.5 block text-sm font-medium text-foreground">Shift End</label>
-                  <Input type="time" {...register("shiftEnd", { required: "Shift end is required" })} />
-                  {errors.shiftEnd && <p className="mt-1 text-xs text-red-500">{errors.shiftEnd.message}</p>}
+                  <label className="mb-1.5 block text-sm font-medium text-foreground">
+                    Email
+                  </label>
+                  <Input
+                    type="email"
+                    {...register("email", { required: "Email is required" })}
+                    placeholder="john@company.com"
+                  />
+                  {errors.email && (
+                    <p className="mt-1 text-xs text-red-500">
+                      {errors.email.message}
+                    </p>
+                  )}
                 </div>
-              </div>
-              <div className="flex gap-3 pt-2">
-                <Button type="button" variant="outline" className="flex-1 rounded-2xl" onClick={() => { reset(); setDialogOpen(false); }}>Cancel</Button>
-                <Button type="submit" disabled={createStaff.isPending} className="flex-1 rounded-2xl">{createStaff.isPending ? "Creating..." : "Create staff"}</Button>
-              </div>
-            </form>
-          </DialogContent>
-        </Dialog>
-      } />
+                <div>
+                  <label className="mb-1.5 block text-sm font-medium text-foreground">
+                    Phone Number
+                  </label>
+                  <Input
+                    type="tel"
+                    {...register("phone", {
+                      required: "Phone number is required",
+                      minLength: {
+                        value: 7,
+                        message: "Phone number must be at least 7 characters",
+                      },
+                      maxLength: {
+                        value: 20,
+                        message: "Phone number must be at most 20 characters",
+                      },
+                    })}
+                    placeholder="+92 300 1234567"
+                  />
+                  {errors.phone && (
+                    <p className="mt-1 text-xs text-red-500">
+                      {errors.phone.message}
+                    </p>
+                  )}
+                </div>
+                <div>
+                  <label className="mb-1.5 block text-sm font-medium text-foreground">
+                    Password
+                  </label>
+                  <Input
+                    type="password"
+                    {...register("password", {
+                      required: "Password is required",
+                    })}
+                    placeholder="••••••••"
+                  />
+                  {errors.password && (
+                    <p className="mt-1 text-xs text-red-500">
+                      {errors.password.message}
+                    </p>
+                  )}
+                </div>
+                <div>
+                  <label className="mb-1.5 block text-sm font-medium text-foreground">
+                    Location (optional)
+                  </label>
+                  <select {...register("locationId")} className={inputCls}>
+                    <option value="">No location</option>
+                    {locations.map((l) => (
+                      <option key={l.id} value={l.id}>
+                        {l.name}
+                      </option>
+                    ))}
+                  </select>
+                </div>
+                <div className="grid grid-cols-2 gap-4">
+                  <div>
+                    <label className="mb-1.5 block text-sm font-medium text-foreground">
+                      Shift Start
+                    </label>
+                    <Input
+                      type="time"
+                      {...register("shiftStart", {
+                        required: "Shift start is required",
+                      })}
+                    />
+                    {errors.shiftStart && (
+                      <p className="mt-1 text-xs text-red-500">
+                        {errors.shiftStart.message}
+                      </p>
+                    )}
+                  </div>
+                  <div>
+                    <label className="mb-1.5 block text-sm font-medium text-foreground">
+                      Shift End
+                    </label>
+                    <Input
+                      type="time"
+                      {...register("shiftEnd", {
+                        required: "Shift end is required",
+                      })}
+                    />
+                    {errors.shiftEnd && (
+                      <p className="mt-1 text-xs text-red-500">
+                        {errors.shiftEnd.message}
+                      </p>
+                    )}
+                  </div>
+                </div>
+                <div className="flex gap-3 pt-2">
+                  <Button
+                    type="button"
+                    variant="outline"
+                    className="flex-1 rounded-lg"
+                    onClick={() => {
+                      reset();
+                      setDialogOpen(false);
+                    }}
+                  >
+                    Cancel
+                  </Button>
+                  <Button
+                    type="submit"
+                    disabled={createStaff.isPending}
+                    className="flex-1 rounded-lg"
+                  >
+                    {createStaff.isPending ? "Creating..." : "Create staff"}
+                  </Button>
+                </div>
+              </form>
+            </DialogContent>
+          </Dialog>
+        }
+      />
 
       <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-3">
         <StatCard label="Team members" value={staff.length} icon={Users} />
-        <StatCard label="Assigned to location" value={assignedStaffCount} icon={MapPin} tone="sky" />
-        <StatCard label="Active staff" value={activeStaffCount} icon={Plus} tone="emerald" />
+        <StatCard
+          label="Assigned to location"
+          value={assignedStaffCount}
+          icon={MapPin}
+          tone="sky"
+        />
+        <StatCard
+          label="Active staff"
+          value={activeStaffCount}
+          icon={Plus}
+          tone="emerald"
+        />
       </div>
 
       <FilterBar>
         <div className="relative max-w-sm sm:max-w-none">
           <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-gray-400" />
-          <Input type="text" value={search} onChange={(e) => setSearch(e.target.value)} placeholder="Search staff by name, email, or phone..." className="pl-10" />
+          <Input
+            aria-label="Search team"
+            type="text"
+            value={search}
+            onChange={(e) => setSearch(e.target.value)}
+            placeholder="Search staff by name, email, or phone..."
+            className="pl-10"
+          />
         </div>
         <div className="relative">
           <MapPin className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-gray-400 pointer-events-none" />
-          <select value={locationFilter} onChange={(e) => setLocationFilter(e.target.value)} className={`${inputCls} appearance-none pl-10 pr-8`}>
+          <select
+            aria-label="Filter by location"
+            value={locationFilter}
+            onChange={(e) => setLocationFilter(e.target.value)}
+            className={`${inputCls} appearance-none pl-10 pr-8`}
+          >
             <option value="all">All Locations</option>
             <option value="unassigned">Unassigned</option>
-            {locations.map((l) => <option key={l.id} value={l.id}>{l.name}</option>)}
+            {locations.map((l) => (
+              <option key={l.id} value={l.id}>
+                {l.name}
+              </option>
+            ))}
           </select>
         </div>
       </FilterBar>
@@ -328,31 +575,128 @@ export default function StaffPage() {
       />
 
       {editingStaff && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-950/35 px-4" onClick={() => setEditingStaff(null)}>
-          <div className="max-h-[90vh] w-full max-w-lg overflow-y-auto rounded-[1.75rem] border border-border/70 bg-card p-6 shadow-xl" onClick={(e) => e.stopPropagation()}>
-            <h2 className="mb-5 text-lg font-bold text-foreground">Edit Staff</h2>
+        <Dialog
+          open={!!editingStaff}
+          onOpenChange={(open) => {
+            if (!open) setEditingStaff(null);
+          }}
+        >
+          <DialogContent className="bg-card p-6 sm:max-w-lg">
+            <DialogTitle>Edit team member</DialogTitle>
             <div className="space-y-4">
-              <div><label className="mb-1.5 block text-sm font-medium text-foreground">Name</label><Input type="text" value={editForm.name} onChange={(e) => setEditForm({ ...editForm, name: e.target.value })} /></div>
-              <div><label className="mb-1.5 block text-sm font-medium text-foreground">Email</label><Input type="email" value={editForm.email} onChange={(e) => setEditForm({ ...editForm, email: e.target.value })} /></div>
-              <div><label className="mb-1.5 block text-sm font-medium text-foreground">Phone Number</label><Input type="tel" value={editForm.phone} onChange={(e) => setEditForm({ ...editForm, phone: e.target.value })} /></div>
-              <div><label className="mb-1.5 block text-sm font-medium text-foreground">Location</label>
-                <select value={editForm.locationId} onChange={(e) => setEditForm({ ...editForm, locationId: e.target.value })} className={inputCls}>
+              <div>
+                <label className="mb-1.5 block text-sm font-medium text-foreground">
+                  Name
+                </label>
+                <Input
+                  type="text"
+                  value={editForm.name}
+                  onChange={(e) =>
+                    setEditForm({ ...editForm, name: e.target.value })
+                  }
+                />
+              </div>
+              <div>
+                <label className="mb-1.5 block text-sm font-medium text-foreground">
+                  Email
+                </label>
+                <Input
+                  type="email"
+                  value={editForm.email}
+                  onChange={(e) =>
+                    setEditForm({ ...editForm, email: e.target.value })
+                  }
+                />
+              </div>
+              <div>
+                <label className="mb-1.5 block text-sm font-medium text-foreground">
+                  Phone Number
+                </label>
+                <Input
+                  type="tel"
+                  value={editForm.phone}
+                  onChange={(e) =>
+                    setEditForm({ ...editForm, phone: e.target.value })
+                  }
+                />
+              </div>
+              <div>
+                <label className="mb-1.5 block text-sm font-medium text-foreground">
+                  Location
+                </label>
+                <select
+                  value={editForm.locationId}
+                  onChange={(e) =>
+                    setEditForm({ ...editForm, locationId: e.target.value })
+                  }
+                  className={inputCls}
+                >
                   <option value="">Unassigned</option>
-                  {locations.map((l) => <option key={l.id} value={l.id}>{l.name}</option>)}
+                  {locations.map((l) => (
+                    <option key={l.id} value={l.id}>
+                      {l.name}
+                    </option>
+                  ))}
                 </select>
               </div>
               <div className="grid grid-cols-2 gap-4">
-                <div><label className="mb-1.5 block text-sm font-medium text-foreground">Shift Start</label><Input type="time" value={editForm.shiftStart} onChange={(e) => setEditForm({ ...editForm, shiftStart: e.target.value })} /></div>
-                <div><label className="mb-1.5 block text-sm font-medium text-foreground">Shift End</label><Input type="time" value={editForm.shiftEnd} onChange={(e) => setEditForm({ ...editForm, shiftEnd: e.target.value })} /></div>
+                <div>
+                  <label className="mb-1.5 block text-sm font-medium text-foreground">
+                    Shift Start
+                  </label>
+                  <Input
+                    type="time"
+                    value={editForm.shiftStart}
+                    onChange={(e) =>
+                      setEditForm({ ...editForm, shiftStart: e.target.value })
+                    }
+                  />
+                </div>
+                <div>
+                  <label className="mb-1.5 block text-sm font-medium text-foreground">
+                    Shift End
+                  </label>
+                  <Input
+                    type="time"
+                    value={editForm.shiftEnd}
+                    onChange={(e) =>
+                      setEditForm({ ...editForm, shiftEnd: e.target.value })
+                    }
+                  />
+                </div>
               </div>
-              {editError && <div className="rounded-2xl border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-600">{editError}</div>}
+              {editError && (
+                <div className="rounded-lg border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-600">
+                  {editError}
+                </div>
+              )}
               <div className="flex gap-3 pt-3">
-                <Button onClick={() => setEditingStaff(null)} variant="outline" className="flex-1 rounded-2xl">Cancel</Button>
-                <Button onClick={handleEditSave} disabled={editStaffMutation.isPending || assignLocation.isPending || !editForm.name.trim() || !editForm.email.trim() || !editForm.phone.trim()} className="flex-1 rounded-2xl">{editStaffMutation.isPending || assignLocation.isPending ? "Saving..." : "Save changes"}</Button>
+                <Button
+                  onClick={() => setEditingStaff(null)}
+                  variant="outline"
+                  className="flex-1 rounded-lg"
+                >
+                  Cancel
+                </Button>
+                <Button
+                  onClick={handleEditSave}
+                  disabled={
+                    editStaffMutation.isPending ||
+                    assignLocation.isPending ||
+                    !editForm.name.trim() ||
+                    !editForm.email.trim() ||
+                    !editForm.phone.trim()
+                  }
+                  className="flex-1 rounded-lg"
+                >
+                  {editStaffMutation.isPending || assignLocation.isPending
+                    ? "Saving..."
+                    : "Save changes"}
+                </Button>
               </div>
             </div>
-          </div>
-        </div>
+          </DialogContent>
+        </Dialog>
       )}
     </div>
   );
