@@ -460,3 +460,16 @@ model DeletedMedia {
 
   @@index([retryAt])
 }
+
+model EnterpriseInquiry {
+  id           String   @id @default(uuid())
+  name         String
+  email        String
+  company      String
+  locations    Int
+  staff        Int
+  requirements String
+  createdAt    DateTime @default(now())
+
+  @@index([createdAt])
+}

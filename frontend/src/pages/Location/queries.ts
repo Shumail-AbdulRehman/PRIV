@@ -1,7 +1,7 @@
 import { deleteLocation } from "./api";
 import { invalidateWorkspace } from "@/lib/invalidateWorkspace";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
-import { getLocations, createLocation, getLocationById } from "./api";
+import { getLocations, createLocation, getLocationById, getLocationSchedule } from "./api";
 import type { LocationStatsFilter } from "./api";
 
 export const useGetLocations = () => {
@@ -40,3 +40,10 @@ export const useDeleteLocation = () => {
     onSuccess: () => invalidateWorkspace(client),
   });
 };
+
+export const useLocationSchedule = (companyId: number | undefined, id: string, week?: string) =>
+  useQuery({
+    queryKey: ['location', 'schedule', companyId, id, week ?? 'current'],
+    queryFn: ({ signal }) => getLocationSchedule(id, week, signal),
+    enabled: !!companyId && !!id,
+  });

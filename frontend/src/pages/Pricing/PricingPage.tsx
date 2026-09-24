@@ -4,10 +4,10 @@ import { MarketingCTA } from "@/components/marketing/MarketingCTA";
 import { PaddlePricing } from "./PaddlePricing";
 
 const comparisons: { name: string; values: (string | boolean)[] }[] = [
-  { name: "Locations", values: ["1", "5", "20"] },
-  { name: "Staff members", values: ["3", "25", "200"] },
-  { name: "Manager seats, including your admin", values: ["1", "3", "20"] },
-  { name: "Reference areas per task", values: ["1", "5", "10"] },
+  { name: "Locations", values: ["1", "5", "Discuss your needs"] },
+  { name: "Staff members", values: ["3", "25", "Discuss your needs"] },
+  { name: "Manager seats, including your admin", values: ["1", "3", "Discuss your needs"] },
+  { name: "Reference areas per task", values: ["1", "5", "Discuss your needs"] },
   { name: "GPS attendance & selfies", values: [true, true, true] },
   { name: "Daily & one-time tasks", values: [true, true, true] },
   { name: "QR-based task starting", values: [true, true, true] },
@@ -20,14 +20,14 @@ const comparisons: { name: string; values: (string | boolean)[] }[] = [
 const faqs = [
   [
     "How do I get started?",
-    "Create your account first, then choose a plan for your workspace. After checkout confirms your subscription, you can add locations, create staff accounts, and set up your first tasks.",
+    "For Starter or Pro, create your account first, then choose a plan for your workspace. For Enterprise, contact us to discuss your requirements. After checkout confirms your subscription, you can add locations, create staff accounts, and set up your first tasks.",
   ],
   [
     "What counts as a manager seat?",
-    "Your company administrator counts as one manager seat. Pro and Advanced include additional seats for managers, who can be assigned to specific locations. Staff accounts have their own separate allowance.",
+    "Your company administrator counts as one manager seat. Pro includes additional manager seats. For Enterprise, we will discuss how many seats your operation needs. Managers can be assigned to specific locations. Staff accounts have their own separate allowance.",
   ],
   [
-    "Can my staff use CleanOps on their phones?",
+    "Can my staff use Hygene Ops on their phones?",
     "Yes. The staff app supports check-in, QR scanning, and task photo submissions. Your team can follow their assigned work from a mobile device.",
   ],
   [
@@ -97,7 +97,7 @@ export default function PricingPage() {
                 <th scope="col" className="pro-col">
                   Pro
                 </th>
-                <th scope="col">Advanced</th>
+                <th scope="col">Enterprise</th>
               </tr>
             </thead>
             <tbody>

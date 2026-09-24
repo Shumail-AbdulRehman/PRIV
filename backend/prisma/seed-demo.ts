@@ -173,7 +173,7 @@ async function main() {
   if (!manager) {
     const company = await prisma.company.create({
       data: {
-        name: "CleanOps Demo Company",
+        name: "Hygene Ops Demo Company",
       },
     });
 

@@ -1,7 +1,7 @@
 export type BillingPeriod = "month" | "year";
 
 export interface Tier {
-  name: "Starter" | "Pro" | "Advanced";
+  name: "Starter" | "Pro";
   description: string;
   features: string[];
   capacity: string[];
@@ -43,22 +43,5 @@ export const TIERS: Tier[] = [
       year: "pri_01m26dxvj8cmtdtr7a660mqa2h",
     },
     recommended: true,
-  },
-  {
-    name: "Advanced",
-    description: "For larger cleaning operations with more sites and staff.",
-    capacity: ["20 locations", "200 staff", "20 manager seats", "10 reference areas per task"],
-    features: [
-      "Everything in Pro",
-      "Detailed verification attempts and scores",
-      "Assignment and reassignment history",
-      "Multi-timezone operation",
-      "Overnight-shift support",
-      "Higher operational limits",
-    ],
-    priceId: {
-      month: "pri_01m26dxxw7h9ma5xxcmsc0axgp",
-      year: "pri_01m26dxyqpqr2cmr8cwez9am00",
-    },
   },
 ];

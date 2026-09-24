@@ -1,3 +1,4 @@
+import BrandLogo from "@/components/common/BrandLogo";
 import { useState } from "react";
 import {
   ArrowUpRight,
@@ -15,18 +16,9 @@ import {
   Plus,
   Search,
   Settings2,
-  ShieldCheck,
   Smartphone,
   Users,
 } from "lucide-react";
-
-export function BrandMark() {
-  return (
-    <span className="brand-mark" aria-hidden="true">
-      <CheckCheck size={22} strokeWidth={2.7} />
-    </span>
-  );
-}
 
 const sites = [
   {
@@ -64,11 +56,11 @@ export function OperationsPreview({
   return (
     <div
       className="operations-preview"
-      aria-label="CleanOps dashboard preview with illustrative data"
+      aria-label="Hygene Ops dashboard preview with illustrative data"
     >
       <aside className="preview-sidebar" aria-hidden="true">
         <div className="preview-brand">
-          <BrandMark /> <b>CleanOps</b>
+          <BrandLogo />
         </div>
         <div className="preview-workspace">
           <span>SC</span>
@@ -331,34 +323,16 @@ export function PhonePreview() {
 
 export function AttendanceVisual() {
   return (
-    <div className="attendance-visual">
-      <div className="map-art" aria-hidden="true">
-        <div className="map-park park-one" />
-        <div className="map-park park-two" />
-        <div className="map-road road-one" />
-        <div className="map-road road-two" />
-        <div className="map-road road-three" />
-        <div className="map-building building-one" />
-        <div className="map-building building-two" />
-        <div className="map-building building-three" />
-        <div className="map-radius">
-          <div className="map-pin">
-            <Building2 size={24} />
-          </div>
-        </div>
-        <span className="map-label">Westfield Office</span>
-      </div>
-      <div className="checkin-note">
-        <span className="note-icon">
-          <ShieldCheck size={22} />
-        </span>
-        <div>
-          <b>Right place. Ready to go.</b>
-          <p>Sarah checked in within the site boundary.</p>
-        </div>
-        <Check size={18} />
-      </div>
-    </div>
+    <figure className="feature-photograph">
+      <img
+        src="/photos/office-reception-1200.webp"
+        srcSet="/photos/office-reception-640.webp 640w, /photos/office-reception-1200.webp 1200w"
+        sizes="(max-width: 900px) 90vw, 540px"
+        width={1200} height={800} loading="lazy" decoding="async"
+        alt="A photographed office reception with a front desk, lounge seating, and glass partitions"
+      />
+      <figcaption><span><MapPin size={17} aria-hidden="true" /> On-site attendance, in context</span><a href="https://www.pexels.com/photo/reception-area-of-a-modern-business-office-5511103/" target="_blank" rel="noreferrer">Photo: Mike van Schoonderwalt</a></figcaption>
+    </figure>
   );
 }
 
@@ -408,45 +382,16 @@ export function ScheduleVisual() {
 
 export function ProofVisual() {
   return (
-    <div className="proof-visual">
-      <div className="proof-header">
-        <span className="icon-tile blue-tile">
-          <CheckCheck size={20} />
-        </span>
-        <div>
-          <h3>Reception & lobby</h3>
-          <p>Westfield Office · Today, 10:24 am</p>
-        </div>
-      </div>
-      <div className="proof-area">
-        <div className="room-illustration" aria-hidden="true">
-          <span className="room-window" />
-          <span className="room-plant" />
-          <span className="room-desk" />
-          <span className="room-chair" />
-        </div>
-        <span className="proof-tag">
-          <CircleCheck size={14} /> Photo submitted
-        </span>
-        <span className="illustration-caption">Illustrative preview</span>
-      </div>
-      <div className="proof-checks">
-        <span>
-          <Check size={15} /> Reference area matched
-        </span>
-        <span>
-          <Check size={15} /> Submission recorded
-        </span>
-      </div>
-      <div className="proof-bottom">
-        <span className="avatar">SM</span>
-        <span>
-          <b>Sarah Miller</b>
-          <small>Task completed</small>
-        </span>
-        <span className="mini-status green">Complete</span>
-      </div>
-    </div>
+    <figure className="feature-photograph">
+      <img
+        src="/photos/surface-cleaning-1200.webp"
+        srcSet="/photos/surface-cleaning-640.webp 640w, /photos/surface-cleaning-1200.webp 1200w"
+        sizes="(max-width: 900px) 90vw, 540px"
+        width={1200} height={801} loading="lazy" decoding="async"
+        alt="Close-up photograph of a cleaner wiping a surface with a blue cloth and protective gloves"
+      />
+      <figcaption><span><CheckCheck size={17} aria-hidden="true" /> Every detail matters</span><a href="https://www.pexels.com/photo/close-up-photo-of-person-cleaning-the-table-4099467/" target="_blank" rel="noreferrer">Photo: Matilda Wormwood</a></figcaption>
+    </figure>
   );
 }
 

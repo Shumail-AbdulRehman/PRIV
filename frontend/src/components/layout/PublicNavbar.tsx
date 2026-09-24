@@ -2,7 +2,7 @@ import { Link, useLocation } from "react-router-dom";
 import { Menu, X, ArrowUpRight } from "lucide-react";
 import { useState } from "react";
 import useAuth from "@/hooks/useAuth";
-import { BrandMark } from "@/components/marketing/ProductVisuals";
+import BrandLogo from "@/components/common/BrandLogo";
 import "@/marketing.css";
 
 const links = [
@@ -19,9 +19,8 @@ export function PublicNavbar() {
   return (
     <header className="marketing-nav">
       <div className="marketing-container nav-inner">
-        <Link to="/" className="marketing-brand" aria-label="CleanOps home">
-          <BrandMark />
-          CleanOps
+        <Link to="/" className="marketing-brand" aria-label="Hygene Ops home">
+          <BrandLogo />
         </Link>
         <nav className="desktop-nav" aria-label="Main navigation">
           {links.map((link) => (

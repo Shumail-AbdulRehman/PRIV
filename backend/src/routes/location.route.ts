@@ -9,11 +9,13 @@ import {
 } from "../controllers/location.controller.js";
 import { verifyJwt } from "../middlewares/auth.middleware.js";
 import authorize from "../middlewares/authorize.middleware.js";
+import { getLocationSchedule } from "../controllers/locationSchedule.controller.js";
 
 const router = Router();
 
 router.post("/", verifyJwt, authorize("ADMIN"), createLocation);
 router.get("/", verifyJwt, authorize("ADMIN", "MANAGER"), getLocations);
+router.get("/:id/schedule", verifyJwt, authorize("ADMIN", "MANAGER"), getLocationSchedule);
 router.patch("/:id", verifyJwt, authorize("ADMIN"), editLocation);
 router.delete("/:id", verifyJwt, authorize("ADMIN"), deleteLocation);
 router.get("/:id", verifyJwt, authorize("ADMIN", "MANAGER"), getLocationById);

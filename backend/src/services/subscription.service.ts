@@ -69,7 +69,7 @@ export const PLAN_DEFINITIONS: Record<PlanCode, PlanDefinition> = {
   },
   ADVANCED: {
     code: "ADVANCED",
-    name: "Advanced",
+    name: "Enterprise",
     description: "For larger cleaning operations with more locations and staff.",
     limits: { locations: 20, staff: 200, managers: 20, referenceImagesPerTask: 10 },
     features: {

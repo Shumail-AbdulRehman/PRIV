@@ -23,6 +23,11 @@ export const createTaskTemplate = async (data: CreateTaskTemplateFormData) => {
   return res.data;
 };
 
+export const getTaskTemplate = async (id: number) => {
+  const res = await client.get(`/task-template/${id}`);
+  return res.data;
+};
+
 export interface EditTaskTemplateInput {
   title?: string;
   description?: string;

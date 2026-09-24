@@ -1,3 +1,4 @@
+import EnterprisePlan from "./EnterprisePlan";
 import { useEffect, useMemo, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { isAxiosError } from "axios";
@@ -327,6 +328,7 @@ export function PaddlePricing({
               </article>
             );
           })}
+          <EnterprisePlan current={currentPlan === "ADVANCED"} />
         </div>
         <div className="pricing-security">
           <ShieldCheck size={15} />
@@ -543,6 +545,7 @@ export function PaddlePricing({
             </article>
           );
         })}
+        <EnterprisePlan current={currentPlan === "ADVANCED"} />
       </div>
 
       <div className="mt-5 flex flex-col justify-between gap-3 sm:flex-row sm:items-center">

@@ -70,7 +70,7 @@ export function ConsolePreview() {
             See the manager console in action.
           </h2>
           <p className="mt-4 text-lg leading-8 text-ink/70">
-            CleanOps gives managers one place to triage the day, inspect staff records, and review operational load across every location.
+            Hygene Ops gives managers one place to triage the day, inspect staff records, and review operational load across every location.
           </p>
         </div>
 

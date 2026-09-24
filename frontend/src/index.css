@@ -12,7 +12,7 @@
   --font-sans: "Inter Variable", sans-serif;
   --font-mono: "Geist Mono Variable", ui-monospace, monospace;
 
-  /* Shared CleanOps palette */
+  /* Shared Hygene Ops palette */
   --color-surface: var(--surface);
   --color-ink: var(--ink);
   --color-line: var(--line);
@@ -69,7 +69,7 @@
 }
 
 :root {
-  /* Shared CleanOps palette */
+  /* Shared Hygene Ops palette */
   --surface: #f6f8fc;
   --ink: #21334b;
   --line: #e6eaf0;

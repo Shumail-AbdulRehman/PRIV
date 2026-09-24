@@ -37,7 +37,7 @@ export default function ChoosePlanPage() {
           <p className="mt-3 max-w-2xl text-base text-muted-foreground">
             Your account is ready
             {subscription.data ? ` for ${subscription.data.company.name}` : ""}.{" "}
-            Choose a plan below to start managing your team. Your subscription
+            Choose Starter or Pro to activate your workspace, or contact sales about Enterprise. An Enterprise inquiry does not activate workspace access. Your subscription
             will be linked to this workspace.
           </p>
         </div>

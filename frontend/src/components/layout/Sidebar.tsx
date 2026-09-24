@@ -1,3 +1,4 @@
+import BrandLogo from "@/components/common/BrandLogo";
 import { NavLink, Link } from "react-router-dom";
 import {
   LayoutDashboard,
@@ -8,7 +9,6 @@ import {
   LogOut,
   ClipboardCheck,
   CreditCard,
-  CheckCheck,
 } from "lucide-react";
 import { useLogout } from "@/queries/auth";
 import { useSelector } from "react-redux";
@@ -73,10 +73,7 @@ export default function Sidebar({
   const content = (
     <>
       <Link to="/dashboard" onClick={onClose} className="workspace-brand">
-        <span>
-          <CheckCheck size={22} />
-        </span>
-        CleanOps<span className="sr-only"> overview</span>
+        <BrandLogo /><span className="sr-only"> overview</span>
       </Link>
       <nav aria-label="Workspace navigation" className="flex-1 space-y-7 py-8">
         {GROUPS.map((group) => (
@@ -150,7 +147,7 @@ export default function Sidebar({
         >
           <DialogTitle className="sr-only">Workspace menu</DialogTitle>
           <DialogDescription className="sr-only">
-            Navigate your CleanOps workspace.
+            Navigate your Hygene Ops workspace.
           </DialogDescription>
           {content}
         </DialogContent>

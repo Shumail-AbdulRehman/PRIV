@@ -188,7 +188,7 @@ export default function FeaturesPage() {
               <Check /> QR-based task starting
             </li>
             <li>
-              <Check /> Automatic assignment on Pro and Advanced
+              <Check /> Automatic assignment on Pro and Enterprise
             </li>
           </ul>
         </div>
@@ -281,7 +281,7 @@ export default function FeaturesPage() {
         <div className="marketing-container">
           <div className="section-heading centered">
             <span className="section-kicker">From setup to the next shift</span>
-            <h2>Make CleanOps your own.</h2>
+            <h2>Make Hygene Ops your own.</h2>
           </div>
           <SetupSteps />
         </div>

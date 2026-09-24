@@ -51,3 +51,35 @@ export interface LocationCardProps {
   status?: string;
   id: number; 
 }
+
+export interface LocationStaff {
+  id: number;
+  name: string;
+  email: string;
+  shiftStart: string | null;
+  shiftEnd: string | null;
+  isActive: boolean;
+}
+
+export interface ReferenceImage {
+  id: number;
+  name: string;
+  imageUrl: string;
+  sortOrder: number;
+}
+
+export interface TaskTemplate {
+  id: number;
+  title: string;
+  description?: string | null;
+  staffId?: number | null;
+  staff?: { name: string } | null;
+  shiftStart: string | null;
+  shiftEnd: string | null;
+  recurringType?: "DAILY" | "ONCE";
+  effectiveDate?: string | null;
+  isActive?: boolean;
+  qrToken?: string | null;
+  referenceImageUrl?: string | null;
+  referenceImages?: ReferenceImage[];
+}

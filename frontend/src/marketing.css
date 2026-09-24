@@ -90,20 +90,6 @@
   letter-spacing: -1px;
   color: #24354c;
 }
-.brand-mark {
-  display: inline-flex;
-  width: 35px;
-  height: 35px;
-  align-items: center;
-  justify-content: center;
-  background: #4264d9;
-  border-radius: 11px;
-  color: #fff;
-  transform: rotate(-6deg);
-}
-.brand-mark svg {
-  transform: rotate(6deg);
-}
 .desktop-nav {
   display: flex;
   align-items: center;
@@ -674,14 +660,6 @@
   gap: 7px;
   font-size: 16px;
   letter-spacing: -0.6px;
-}
-.preview-brand .brand-mark {
-  width: 25px;
-  height: 25px;
-  border-radius: 7px;
-}
-.preview-brand .brand-mark svg {
-  width: 17px;
 }
 .preview-workspace {
   display: flex;
@@ -2237,11 +2215,6 @@
   .marketing-brand {
     font-size: 22px;
   }
-  .brand-mark {
-    height: 31px;
-    width: 31px;
-    border-radius: 9px;
-  }
   .home-hero {
     padding-top: 40px;
   }
@@ -2832,3 +2805,51 @@
     transform: none;
   }
 }
+
+.enterprise-plan { background: #f6f8fc; }
+.enterprise-plan .plan-price strong { font-size: 36px; letter-spacing: -1.4px; }
+.enterprise-note { display: flex; gap: 12px; align-items: flex-start; padding: 23px 0; color: #657286; }
+.enterprise-note > svg { flex-shrink: 0; color: #4264d9; margin-top: 2px; }
+.enterprise-note p { margin: 0; font-size: 13px; line-height: 1.7; }
+.enterprise-form { display: grid; gap: 18px; padding-top: 8px; }
+.enterprise-form label { display: grid; gap: 7px; font-size: 13px; font-weight: 600; color: #21334b; }
+.enterprise-form input, .enterprise-form textarea { width: 100%; min-width: 0; border: 1px solid #dce3ee; border-radius: 8px; padding: 10px 12px; background: white; font: inherit; font-weight: 400; }
+.enterprise-form input:focus-visible, .enterprise-form textarea:focus-visible { outline: 2px solid #4264d9; outline-offset: 2px; }
+
+/* Real editorial photography shared by Home and Features. */
+.feature-photograph {
+  width: 100%;
+  max-width: 540px;
+  min-width: 0;
+  margin: 0;
+  overflow: hidden;
+  border-radius: 12px;
+  background: #fff;
+  border: 1px solid #e3e8f0;
+}
+.feature-photograph > img {
+  display: block;
+  width: 100%;
+  height: auto;
+  aspect-ratio: 4 / 3;
+  object-fit: cover;
+}
+.feature-photograph figcaption {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px 16px;
+  padding: 17px 20px;
+}
+.feature-photograph figcaption > span {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 12px;
+  font-weight: 500;
+  color: #21334b;
+}
+.feature-photograph figcaption svg { color: #4264d9; flex-shrink: 0; }
+.feature-photograph figcaption a { font-size: 9px; color: #657286; text-underline-offset: 3px; }
+.feature-photograph figcaption a:hover { text-decoration: underline; }

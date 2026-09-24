@@ -2,7 +2,7 @@ import { Link, Outlet, useLocation } from "react-router-dom";
 import { useEffect } from "react";
 import { ArrowUpRight } from "lucide-react";
 import { PublicNavbar } from "./PublicNavbar";
-import { BrandMark } from "@/components/marketing/ProductVisuals";
+import BrandLogo from "@/components/common/BrandLogo";
 
 export function PublicLayout() {
   const { pathname, hash } = useLocation();
@@ -13,11 +13,11 @@ export function PublicLayout() {
       );
     } else window.scrollTo({ top: 0, behavior: "instant" });
     const titles: Record<string, string> = {
-      "/": "CleanOps | A clearer day for your cleaning business",
-      "/features": "Features | CleanOps",
-      "/pricing": "Simple plans for cleaning teams | CleanOps",
+      "/": "Hygene Ops | A clearer day for your cleaning business",
+      "/features": "Features | Hygene Ops",
+      "/pricing": "Simple plans for cleaning teams | Hygene Ops",
     };
-    document.title = titles[pathname] ?? "CleanOps";
+    document.title = titles[pathname] ?? "Hygene Ops";
   }, [pathname, hash]);
   return (
     <div className="marketing-site">
@@ -33,8 +33,7 @@ export function PublicLayout() {
           <div className="footer-main">
             <div className="footer-intro">
               <Link to="/" className="marketing-brand">
-                <BrandMark />
-                CleanOps
+                <BrandLogo />
               </Link>
               <p>
                 Great work starts with a clear plan.
@@ -63,7 +62,7 @@ export function PublicLayout() {
           </div>
           <div className="footer-bottom">
             <span>
-              © {new Date().getFullYear()} CleanOps. All rights reserved.
+              © {new Date().getFullYear()} Hygene Ops. All rights reserved.
             </span>
             <span>Less admin. More peace of mind.</span>
           </div>

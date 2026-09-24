@@ -39,3 +39,10 @@ export const deleteLocation = async (id: number) => {
   const res = await client.delete(`/location/${id}`);
   return res.data;
 };
+
+export const getLocationSchedule = async (id: string, week: string | undefined, signal?: AbortSignal) => {
+  const res = await client.get<{ data: import('./scheduleTypes').LocationSchedule }>(`/location/${id}/schedule`, {
+    params: week ? { week } : {}, signal,
+  });
+  return res.data.data;
+};

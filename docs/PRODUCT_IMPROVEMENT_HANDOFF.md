@@ -2,6 +2,8 @@
 
 Prepared 2026-09-17 against the current working tree. This is a handoff specification, not permission to redesign the product again or to implement unrelated ideas.
 
+P0/P1 are now recorded as complete in `PRODUCT_IMPROVEMENT_PROGRESS.md`. For remaining implementation, use `REMAINING_PHASES_START_HERE.md` and the expanded `REMAINING_PHASES_IMPLEMENTATION_PLAN.md`. The original P0/P1 launcher is retained for historical context.
+
 ## 1. Read this first: user-approved scope
 
 Implement ONLY these four workstreams, in the phased order below:
@@ -429,7 +431,7 @@ The current location-detail tab state is local. Add a controlled, validated quer
 
 - Location success in setup mode: refresh setup status and offer the next step using the returned location ID.
 - Staff success in setup mode: staff must actually be assigned to the chosen location and have a valid shift. Merely creating a name/email is insufficient for scheduler readiness.
-- The current Team create handler performs several operations. Preserve existing APIs, but retain a known created staff ID on partial assignment/shift failure. Retry only the failed operation, not account creation. Surface the saved account and recovery path.
+- Verified 2026-09-17: Team creation now sends one POST containing optional location and shift fields; the backend saves them in one `prisma.staff.create`. Preserve this single-request flow. Do not split it into separate create/assign/shift writes. If completing an existing account requires separate edits, retain its ID and retry only a failed edit, never account creation.
 - Allow completing a shift for an existing team member when that is the missing prerequisite; do not force duplicate account creation.
 - Task creation success: reuse P2's onCreated outcome and invalidate setup status. A failed optional manual assignment must be disclosed; do not falsely report that the selected staff was assigned.
 - Outside `setup=1`, preserve normal after-save behavior. Do not unexpectedly redirect regular users to a setup journey.

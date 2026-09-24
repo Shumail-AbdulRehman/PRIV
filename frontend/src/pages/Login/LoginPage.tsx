@@ -40,7 +40,7 @@ const Login = () => {
   return (
     <AuthShell
       title="Welcome back"
-      subtitle="Sign in to your CleanOps workspace."
+      subtitle="Sign in to your Hygene Ops workspace."
       footer={
         <p>
           Don&apos;t have an account?{" "}

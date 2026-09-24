@@ -19,7 +19,7 @@ export default function DashboardLayout() {
   const { pathname } = useLocation();
   const [section, detail] = pathname.split("/").filter(Boolean);
   useEffect(() => {
-    document.title = `${TITLES[section] || "Workspace"} · CleanOps`;
+    document.title = `${TITLES[section] || "Workspace"} · Hygene Ops`;
     window.scrollTo(0, 0);
   }, [pathname, section]);
   return (

@@ -1,23 +1,23 @@
 {
   "expo": {
-    "name": "CleanOps Staff",
+    "name": "Hygene Ops Staff",
     "slug": "cleanops-staff",
     "version": "1.0.0",
     "orientation": "portrait",
-    "icon": "./assets/icon.png",
+    "icon": "./assets/hygene-ops-icon.png",
     "userInterfaceStyle": "light",
     "newArchEnabled": true,
     "splash": {
-      "image": "./assets/splash-icon.png",
+      "image": "./assets/hygene-ops-adaptive.png",
       "resizeMode": "contain",
       "backgroundColor": "#ffffff"
     },
     "ios": {
       "supportsTablet": false,
       "infoPlist": {
-        "NSCameraUsageDescription": "CleanOps Staff uses the camera to scan task QR codes and capture attendance/task images.",
-        "NSLocationWhenInUseUsageDescription": "CleanOps Staff uses your location to verify check-in, check-out, and on-site task activity.",
-        "NSPhotoLibraryUsageDescription": "CleanOps Staff uses your photo library when you attach completion images.",
+        "NSCameraUsageDescription": "Hygene Ops Staff uses the camera to scan task QR codes and capture attendance/task images.",
+        "NSLocationWhenInUseUsageDescription": "Hygene Ops Staff uses your location to verify check-in, check-out, and on-site task activity.",
+        "NSPhotoLibraryUsageDescription": "Hygene Ops Staff uses your photo library when you attach completion images.",
         "NSAppTransportSecurity": {
           "NSAllowsArbitraryLoads": true
         }
@@ -25,7 +25,7 @@
     },
     "android": {
       "adaptiveIcon": {
-        "foregroundImage": "./assets/adaptive-icon.png",
+        "foregroundImage": "./assets/hygene-ops-adaptive.png",
         "backgroundColor": "#ffffff"
       },
       "usesCleartextTraffic": true,
@@ -38,7 +38,7 @@
       "predictiveBackGestureEnabled": false
     },
     "web": {
-      "favicon": "./assets/favicon.png"
+      "favicon": "./assets/hygene-ops-favicon.png"
     },
     "scheme": "cleanopsstaff"
   }

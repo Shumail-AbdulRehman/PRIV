@@ -22,15 +22,6 @@
   font-weight: 750;
   letter-spacing: -0.7px;
 }
-.workspace-brand > span:first-child {
-  display: grid;
-  place-items: center;
-  width: 33px;
-  height: 33px;
-  border-radius: 9px;
-  background: var(--primary);
-  color: white;
-}
 .workspace-nav-link {
   display: flex;
   align-items: center;

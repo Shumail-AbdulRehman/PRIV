@@ -1,6 +1,7 @@
 import { useState } from "react";
 import {
   Alert,
+  Image,
   KeyboardAvoidingView,
   Platform,
   ScrollView,
@@ -60,11 +61,9 @@ export function LoginScreen() {
         showsVerticalScrollIndicator={false}
       >
         <View className="flex-row items-center gap-3">
-          <View className="h-12 w-12 items-center justify-center rounded-xl bg-primary">
-            <Text className="text-lg font-bold text-primary-foreground">CO</Text>
-          </View>
+          <Image source={require("../../assets/hygene-ops-mark.png")} style={{ width: 48, height: 48 }} accessible={false} />
           <View>
-            <Text className="text-base font-bold text-foreground">CleanOps Staff</Text>
+            <Text className="text-base font-bold text-foreground">Hygene Ops Staff</Text>
             <Text className="text-sm text-muted-foreground">Field operations</Text>
           </View>
         </View>
@@ -88,7 +87,7 @@ export function LoginScreen() {
                 autoCorrect={false}
                 keyboardType="email-address"
                 onChangeText={setEmail}
-                placeholder="staff@cleanops.com"
+                placeholder="staff@example.com"
                 value={email}
               />
             </View>
