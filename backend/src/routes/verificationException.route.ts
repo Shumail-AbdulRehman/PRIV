@@ -1,3 +1,4 @@
+import { sha256 } from '../services/verification-v2/quality.service.js';
 import { Router } from "express";
 import { z } from "zod";
 import type { Prisma } from "@prisma/client";
@@ -34,6 +35,7 @@ const issueSchema = z
       "GPS_UNCERTAIN",
       "SERVICE_FAILURE",
     ]),
+    requestId:z.uuid().optional(),
     note: z.string().trim().max(1000).optional(),
     requestHelp: z.boolean().default(false),
     requirementId: z.uuid().optional(),
@@ -51,6 +53,9 @@ router.post("/task-instance/:taskId/verification-issues", async (req, res) => {
       { staffMutation: true },
       tx,
     );
+    const key=body.requestId?{companyId:req.user!.companyId,actorRole:req.user!.role,actorId:req.user!.id,operation:`report-issue:${taskId}`,requestId:body.requestId}:null;
+    const bodyHash=sha256(JSON.stringify(body));
+    if(key){const prior=await tx.verificationRequest.findUnique({where:{companyId_actorRole_actorId_operation_requestId:key}});if(prior){if(prior.bodyHash!==bodyHash)throw new ApiError(409,'Report ID was used for different data');return tx.verificationException.findUnique({where:{taskInstanceId:taskId}});}}
     if (
       task.verificationVersion !== 2 ||
       !["IN_PROGRESS", "NOT_COMPLETED_INTIME"].includes(task.status)
@@ -85,6 +90,7 @@ router.post("/task-instance/:taskId/verification-issues", async (req, res) => {
       },
       tx,
     );
+    if(key)await tx.verificationRequest.create({data:{...key,bodyHash,resultEntityId:String(taskId)}});
     if (
       body.reasonCode === "OCCUPIED" &&
       !body.requestHelp &&
@@ -294,10 +300,17 @@ router.get("/verification-exceptions/:id", async (req, res) => {
         select: { id: true, name: true, timezone: true },
       }),
     ]);
-  const page = attempts.slice(0, 50).map((a) => ({
+  const latestIds=issues.map(i=>i.latestAttemptId).filter((id):id is string=>!!id);
+  const latestAttempts=c.taskInstanceId?await prisma.verificationAttempt.findMany({where:{id:{in:latestIds},session:{taskInstanceId:c.taskInstanceId}},select:{id:true,requirementId:true,contextKey:true,staffId:true,state:true,createdAt:true,receivedAt:true,mediaAssetId:true,media:{select:{privacyState:true}},assignmentEpoch:true,timingEvidence:true}}):[];
+  const managers=await prisma.manager.findMany({where:{companyId:req.user!.companyId,id:{in:decisions.map(d=>d.actorManagerId)}},select:{id:true,name:true}});
+  const staff=await prisma.staff.findMany({where:{companyId:req.user!.companyId,id:{in:[...attempts,...latestAttempts].map(a=>a.staffId)}},select:{id:true,name:true}});
+  const safeAttempt=(a:(typeof latestAttempts)[number])=>({
     ...a,
-    mediaAssetId: a.media?.privacyState === "SAFE" ? a.mediaAssetId : null,
-  }));
+    staff:staff.find(s=>s.id===a.staffId)??null,
+    mediaAssetId: a.media?.privacyState === "SAFE" && a.state!=='PRIVACY_HOLD' ? a.mediaAssetId : null,
+  });
+  const page=attempts.slice(0,50).map(safeAttempt);
+  const latestPage=latestAttempts.map(safeAttempt);
   const policy = task ? resolvePolicy(task.policySnapshot) : null;
   const mutable =
     !!task &&
@@ -362,8 +375,8 @@ router.get("/verification-exceptions/:id", async (req, res) => {
       issues: issues.map((i) => ({
         ...i,
         recommendedAction:
-          reasonInstructions[i.reasonCode] ?? i.recommendedAction,
-        latestAttempt: page.find((a) => a.id === i.latestAttemptId) ?? null,
+          i.reasonCode==='CLEAN'?'Review this photo before accepting the evidence.':reasonInstructions[i.reasonCode] ?? i.recommendedAction,
+        latestAttempt: latestPage.find((a) => a.id === i.latestAttemptId) ?? null,
         requiresFollowUp,
         allowedActions: (i.state === "RESOLVED" ? [] : allowedActions).filter(
           (action) =>
@@ -374,7 +387,7 @@ router.get("/verification-exceptions/:id", async (req, res) => {
               : action === "ACCEPT_CONTEXT"),
         ),
       })),
-      decisions: decisions.slice(0, 50),
+      decisions: decisions.slice(0, 50).map(d=>({...d,actorManager:managers.find(m=>m.id===d.actorManagerId)??null})),
       events: events.slice(0, 50),
       attempts: page,
       nextCursor: events.length > 50 ? String(events[49]!.id) : null,

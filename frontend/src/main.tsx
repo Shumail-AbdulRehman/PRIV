@@ -1,3 +1,6 @@
+import ExceptionInboxPage from './pages/Exceptions/ExceptionInboxPage';
+import ExceptionDetailPage from './pages/Exceptions/ExceptionDetailPage';
+import VerificationHistoryPage from './pages/Verification/VerificationHistoryPage';
 import { createRoot } from 'react-dom/client';
 import './index.css';
 import App, { GuestRoute, ProtectedRoute, RequireRole } from './App.tsx';
@@ -78,6 +81,9 @@ const router = createBrowserRouter([
           </ProtectedRoute>
         ),
         children: [
+          {path:'exceptions',element:<RequireRole roles={['ADMIN','MANAGER']}><ExceptionInboxPage/></RequireRole>},
+          {path:'exceptions/:id',element:<RequireRole roles={['ADMIN','MANAGER']}><ExceptionDetailPage/></RequireRole>},
+          {path:'verification/:id',element:<RequireRole roles={['ADMIN','MANAGER']}><VerificationHistoryPage/></RequireRole>},
           { path: 'dashboard', element: <DashboardPage /> },
           { path: 'today-status', element: <TodayStatusPage /> },
           { path: 'locations', element: <LocationsPage /> },

@@ -13,12 +13,12 @@ export const TIERS: Tier[] = [
   {
     name: "Starter",
     description: "For individuals and very small cleaning teams.",
-    capacity: ["1 location", "3 staff", "1 manager seat", "1 reference area per task"],
+    capacity: ["1 location", "3 staff", "1 manager seat"],
     features: [
       "GPS attendance and selfies",
       "Daily and one-time tasks",
-      "QR-based task starting",
-      "Single-area reference verification",
+      "Area QR and guided native capture",
+      "Inventory verification and exception review",
       "Core operational dashboard",
     ],
     priceId: {
@@ -29,13 +29,13 @@ export const TIERS: Tier[] = [
   {
     name: "Pro",
     description: "For cleaning companies managing multiple teams.",
-    capacity: ["5 locations", "25 staff", "3 manager seats", "5 reference areas per task"],
+    capacity: ["5 locations", "25 staff", "3 manager seats"],
     features: [
       "Everything in Starter",
       "Manager location access",
       "Automatic assignment and reassignment",
-      "Multi-area task verification",
-      "AI and image verification insights",
+      "Inventory verification on every plan",
+      "Protected evidence and decision history",
       "Staff and location performance views",
     ],
     priceId: {

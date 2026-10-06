@@ -74,7 +74,7 @@ const tasks = await prisma.taskInstance.findMany({
         shiftStart: true,
         shiftEnd: true,
         location: {
-          select: { id: true, name: true },
+          select: { id: true, name: true, timezone:true },
         },
       },
     }

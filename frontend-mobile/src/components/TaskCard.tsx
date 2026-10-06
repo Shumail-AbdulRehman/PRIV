@@ -1,3 +1,4 @@
+import { verificationTaskLabel } from '../verification/taskPresentation';
 import { View } from "react-native";
 import * as Haptics from "expo-haptics";
 import { Card, CardContent } from "./ui/card";
@@ -33,17 +34,17 @@ export function TaskCard({ task, onStart, onComplete }: TaskCardProps) {
             <View className="mt-1.5 flex-row items-center gap-1.5">
               <Icon name="MapPin" size={14} className="text-muted-foreground" />
               <Text className="text-sm text-muted-foreground">
-                {task.template?.location?.name ?? "Assigned location"}
+                {task.areaNameSnapshot??task.template?.location?.name ?? "Assigned location"}
               </Text>
             </View>
             <View className="mt-1 flex-row items-center gap-1.5">
               <Icon name="Clock" size={14} className="text-muted-foreground" />
               <Text className="text-sm text-muted-foreground">
-                {formatTaskWindow(task.shiftStart, task.shiftEnd)}
+                {formatTaskWindow(task.shiftStart, task.shiftEnd,task.location?.timezone??task.template?.location?.timezone)}
               </Text>
             </View>
           </View>
-          <StatusBadge status={task.status} />
+          {task.verificationVersion===2?<Text className="text-sm font-semibold">{verificationTaskLabel(task)}</Text>:<StatusBadge status={task.status} />}
         </View>
 
         {task.status === "PENDING" && onStart ? (
@@ -52,17 +53,17 @@ export function TaskCard({ task, onStart, onComplete }: TaskCardProps) {
             iconLeft="QrCode"
             onPress={handlePress(onStart)}
           >
-            Scan QR to Start
+            {task.verificationVersion===2?"Start cleaning":"Scan QR to start"}
           </Button>
         ) : null}
-        {task.status === "IN_PROGRESS" && onComplete ? (
+        {(task.status === "IN_PROGRESS" || task.verificationVersion===2) && onComplete ? (
           <Button
             className="mt-4"
             variant="outline"
             iconLeft="Camera"
             onPress={handlePress(onComplete)}
           >
-            Upload Proof & Complete
+            {task.verificationVersion===2?verificationTaskLabel(task,true):"Upload proof and complete"}
           </Button>
         ) : null}
       </CardContent>

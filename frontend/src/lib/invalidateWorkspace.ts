@@ -2,6 +2,7 @@ import type { QueryClient } from "@tanstack/react-query";
 
 // Deletions affect lists, detail screens, assignment options, today's totals and billing usage.
 const workspaceKeys = new Set([
+  "exceptions", "exception", "exception-count", "verification-history", "verification-task", "today-status",
   "staff",
   "location",
   "getLocations",

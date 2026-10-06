@@ -1,5 +1,5 @@
 import type { VerificationSummary } from './presentation';
-export type EvidenceAttempt = { id: string; state: string; mediaAssetId: string | null; createdAt: string; receivedAt?: string | null; staff?: { id: number; name: string }; instructions?: string; reasonCodes?: string[]; privacyState?: string };
+export type EvidenceAttempt = { id: string; state: string; mediaAssetId: string | null; createdAt: string; receivedAt?: string | null; staff?: { id: number; name: string }; requirementId?:string|null; contextKey?:string|null; requirement?:{viewKey:string;item:{nameSnapshot:string}}; instructions?: string; reasonCodes?: string[]; privacyState?: string };
 export type EvidenceRequirement = { id: string; viewKey: string; instructionsSnapshot: string; mandatory: boolean; state: string; decisionVersion: number; currentAttemptId?: string | null; currentAttempt?: EvidenceAttempt | null; attempts?: EvidenceAttempt[] };
 export type VerificationItem = { id: number; nameSnapshot: string; itemCodeSnapshot: string; typeSnapshot: string; mandatory: boolean; state: string; requirements: EvidenceRequirement[] };
 export type VerificationManifest = {

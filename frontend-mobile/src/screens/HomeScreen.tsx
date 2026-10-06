@@ -1,3 +1,5 @@
+import { verificationTaskLabel } from '../verification/taskPresentation';
+import { pendingCount as pendingPhotoCount } from '../verification/queue';
 import { useState } from "react";
 import { Alert, RefreshControl, ScrollView, View } from "react-native";
 import * as ImagePicker from "expo-image-picker";
@@ -391,8 +393,9 @@ export function HomeScreen() {
     }
   };
 
-  const handleSignOut = () => {
-    Alert.alert("Sign out", "Are you sure you want to sign out?", [
+  const handleSignOut = async () => {
+    const count = await pendingPhotoCount().catch(() => 0);
+    Alert.alert("Sign out", count ? `${count} photos are waiting to upload. They stay locked on this phone. Sign in with this same account and reopen the app to upload them.` : "Sign out of this account?", [
       { text: "Cancel", style: "cancel" },
       { text: "Sign Out", style: "destructive", onPress: () => void logout() },
     ]);
@@ -521,9 +524,9 @@ export function HomeScreen() {
                     className="flex-1 text-sm font-medium text-secondary-foreground"
                     numberOfLines={1}
                   >
-                    {task.title}
+                    {task.areaNameSnapshot??task.title}
                   </Text>
-                  <StatusBadge status={task.status} />
+                  {task.verificationVersion===2?<Text className="text-sm">{verificationTaskLabel(task)}</Text>:<StatusBadge status={task.status} />}
                 </View>
               ))}
             </View>

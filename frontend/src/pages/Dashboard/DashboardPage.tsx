@@ -1,3 +1,4 @@
+import VerificationOverview from '@/pages/Verification/VerificationOverview';
 import {
   MapPin,
   Users,
@@ -50,6 +51,7 @@ export default function DashboardPage() {
           </Button>
         }
       />
+      <VerificationOverview entries={entries}/>
       {today.isError ? (
         <div
           role="alert"

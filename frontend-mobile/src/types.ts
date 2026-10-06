@@ -19,6 +19,7 @@ export type RootStackParamList = {
     referenceImageId?: number;
     onScanSuccess?: () => void;
   };
+  Verification: { taskId: number };
   CompleteTask: {
     taskId: number;
     taskTitle: string;
@@ -103,6 +104,11 @@ export type TaskInstance = {
   startedAt: string | null;
   completedAt: string | null;
   proofImageUrls: string[];
+  verificationVersion?: number;
+  verificationState?: string;
+  completionOutcome?: string | null;
+  areaNameSnapshot?: string;
+  location?: {id:number;name:string;timezone:string};
   referenceImages?: ReferenceArea[];
   template?: {
     id: number;
@@ -111,6 +117,7 @@ export type TaskInstance = {
       id: number;
       name: string;
       address?: string;
+      timezone?: string;
     };
   };
 };

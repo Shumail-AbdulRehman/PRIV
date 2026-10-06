@@ -334,6 +334,7 @@ export const getTodayStatus = async (req: Request, res: Response) => {
                 id: true,
                 title: true,
                 status: true,
+                verificationVersion:true, verificationState:true, completionOutcome:true, completionTiming:true, areaNameSnapshot:true,
                 shiftStart: true,
                 shiftEnd: true,
                 isLate: true,
@@ -403,7 +404,7 @@ export const getTodayStatus = async (req: Request, res: Response) => {
             inProgress: normalizedTasks.filter((task) => task.status === "IN_PROGRESS").length,
             completed: normalizedTasks.filter((task) => task.status === "COMPLETED").length,
             missed: normalizedTasks.filter((task) => task.status === "MISSED").length,
-            notCompletedInTime: normalizedTasks.filter((task) => task.status === "NOT_COMPLETED_INTIME").length,
+            notCompletedInTime: normalizedTasks.filter((task) => task.status === "NOT_COMPLETED_INTIME" && task.verificationState!=="PROCESSING").length,
             cancelled: normalizedTasks.filter((task) => task.status === "CANCELLED").length,
             late: normalizedTasks.filter((task) => task.isCurrentlyLate).length,
             total: normalizedTasks.length,
@@ -425,6 +426,7 @@ export const getTodayStatus = async (req: Request, res: Response) => {
             taskCounts.missed +
             taskCounts.notCompletedInTime +
             taskCounts.late +
+            normalizedTasks.filter(task=>task.verificationVersion===2&&["NEEDS_REVIEW","REWORK_REQUIRED"].includes(task.verificationState)).length +
             (attendance?.status === "MISSED_CHECKOUT" ? 1 : 0);
 
         return {

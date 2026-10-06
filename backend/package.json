@@ -16,7 +16,9 @@
     "test:verification:integration": "tsx tests/verification.integration.ts",
     "test:verification:lifecycle": "tsx tests/verification.lifecycle.integration.ts",
     "verification:benchmark": "tsx scripts/verificationEvaluatorBenchmark.ts",
-    "verification:backfill": "tsx scripts/verificationBackfill.ts"
+    "verification:backfill": "tsx scripts/verificationBackfill.ts",
+    "worker:verification:check": "node --check dist/workers/verificationWorker.js && node --check dist/workers/verificationWorkerHealth.js",
+    "test:verification:worker": "tsx tests/verification.worker.integration.ts"
   },
   "keywords": [],
   "author": "",

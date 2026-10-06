@@ -16,6 +16,7 @@ export type PlanDefinition = {
     automaticReassignment: boolean;
     multiAreaTasks: boolean;
     verificationInsights: boolean;
+    inventoryVerification:boolean;
   };
   featureLabels: string[];
 };

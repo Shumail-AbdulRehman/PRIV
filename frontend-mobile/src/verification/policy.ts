@@ -16,7 +16,7 @@ export function nextSlot(local: LocalSession, queue: QueueRow[]): CaptureSlot | 
 export function retryOutcome(status: number | undefined, retry: number, now: number, retryAfterSeconds?: number): { state: QueueState; nextRetryAt: number } {
   if (status === 401 || status === 403) return { state: 'AUTH_REQUIRED', nextRetryAt: 0 };
   // Rejected authority remains durable; reconnect/manager help can reconcile it.
-  if (status === 409 || status === 410 || status === 422) return { state: 'RETRY_WAIT', nextRetryAt: now + 60_000 };
+  if (status === 409 || status === 410 || status === 422) return { state: 'BLOCKED', nextRetryAt: 0 };
   const delay = retryAfterSeconds ? retryAfterSeconds * 1000 : Math.min(120_000, 2000 * 2 ** Math.min(retry, 6));
   return { state: 'RETRY_WAIT', nextRetryAt: now + delay + Math.floor(Math.random()*1000) };
 }
@@ -26,5 +26,6 @@ export function reconciledState(local: QueueRow, accepted: { id: string; state: 
   return { state: ['PASSED','RECAPTURE_REQUIRED','CLEANING_REQUIRED','REVIEW_REQUIRED','PRIVACY_HOLD'].includes(accepted.state) ? 'FINAL' : 'PROCESSING', attemptId: accepted.id };
 }
 export function mergeManifest(local: LocalSession, manifest: Manifest): LocalSession {
-  return { ...local, manifest, session: manifest.session?.id === local.session.id ? { ...local.session, ...manifest.session } : local.session };
+  const serverSession=manifest.sessions?.find(s=>s.id===local.session.id);
+  return {...local,manifest,session:{...local.session,...(serverSession?{state:serverSession.state}:{}),...(manifest.task.status==='COMPLETED'?{state:'CLOSED'}:{})}};
 }

@@ -1,3 +1,6 @@
+import * as Application from 'expo-application';
+import { configureNativeAppVersion } from './src/api/client';
+configureNativeAppVersion(Application.nativeApplicationVersion);
 import "./global.css";
 import { StatusBar } from "expo-status-bar";
 import { NavigationContainer, DefaultTheme } from "@react-navigation/native";

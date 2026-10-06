@@ -1,0 +1,84 @@
+ M .env.deploy.example
+ M .github/workflows/ci.yml
+ M backend/.env.verification.example
+ M backend/package.json
+ M backend/src/controllers/locationSchedule.controller.ts
+ M backend/src/controllers/manager.controller.ts
+ M backend/src/controllers/staff.controller.ts
+ M backend/src/controllers/taskInstance.controller.ts
+ M backend/src/routes/verification.route.ts
+ M backend/src/routes/verificationException.route.ts
+ M backend/src/services/schedulePreview.service.ts
+ M backend/src/services/subscription.service.ts
+ M backend/src/services/verification-v2/captureSession.service.ts
+ M backend/src/workers/verificationWorker.ts
+ M backend/tests/verification.integration.ts
+ M docker-compose.deploy.yml
+ M docker-compose.yml
+ M frontend-mobile/App.tsx
+ M frontend-mobile/package-lock.json
+ M frontend-mobile/package.json
+ M frontend-mobile/src/api/client.ts
+ M frontend-mobile/src/auth/AuthContext.tsx
+ M frontend-mobile/src/components/TaskCard.tsx
+ M frontend-mobile/src/navigation/AppNavigator.tsx
+ M frontend-mobile/src/queries/staff.ts
+ M frontend-mobile/src/screens/CompleteTaskScreen.tsx
+ M frontend-mobile/src/screens/HomeScreen.tsx
+ M frontend-mobile/src/screens/TasksScreen.tsx
+ M frontend-mobile/src/types.ts
+ M frontend-mobile/src/utils/format.ts
+ M frontend-mobile/src/verification/api.ts
+ M frontend-mobile/src/verification/policy.ts
+ M frontend-mobile/src/verification/queue.ts
+ M frontend-mobile/src/verification/queue.web.ts
+ M frontend-mobile/src/verification/sync.ts
+ M frontend-mobile/src/verification/types.ts
+ M frontend-mobile/tsconfig.json
+ M frontend/src/components/layout/Sidebar.tsx
+ M frontend/src/lib/invalidateWorkspace.ts
+ M frontend/src/main.tsx
+ M frontend/src/pages/Dashboard/DashboardPage.tsx
+ M frontend/src/pages/Exceptions/api.ts
+ M frontend/src/pages/Exceptions/queries.ts
+ M frontend/src/pages/Exceptions/types.ts
+ M frontend/src/pages/Location/components/LocationScheduleTab.tsx
+ M frontend/src/pages/Location/scheduleTypes.ts
+ M frontend/src/pages/Manager/TodayStatusPage.tsx
+ M frontend/src/pages/Manager/todayPresentation.ts
+ M frontend/src/pages/Manager/types.ts
+ M frontend/src/pages/Pricing/EnterprisePlan.tsx
+ M frontend/src/pages/Pricing/PricingPage.tsx
+ M frontend/src/pages/Pricing/tiers.ts
+ M frontend/src/pages/Staff/StaffDetailPage.tsx
+ M frontend/src/pages/Subscription/SubscriptionPage.tsx
+ M frontend/src/pages/Subscription/types.ts
+ M frontend/src/pages/Verification/ProtectedEvidence.tsx
+ M frontend/src/pages/Verification/api.ts
+ M frontend/src/pages/Verification/presentation.ts
+ M frontend/src/pages/Verification/types.ts
+?? backend/src/services/verification-v2/compatibility.service.test.ts
+?? backend/src/services/verification-v2/compatibility.service.ts
+?? backend/src/services/verification-v2/workerHealthPolicy.test.ts
+?? backend/src/services/verification-v2/workerHealthPolicy.ts
+?? backend/src/workers/verificationWorkerHealth.ts
+?? backend/tests/verification.worker.integration.ts
+?? docs/verification/GIT_STATUS_15_18.txt
+?? docs/verification/evidence/exception-detail-1440.png
+?? docs/verification/evidence/exception-detail-390.png
+?? docs/verification/evidence/exception-inbox-1440.png
+?? docs/verification/evidence/exception-inbox-390.png
+?? frontend-mobile/src/screens/verification/VerificationScreen.tsx
+?? frontend-mobile/src/verification/auth.test.ts
+?? frontend-mobile/src/verification/capturePolicy.ts
+?? frontend-mobile/src/verification/policy.test.ts
+?? frontend-mobile/src/verification/queue.test.ts
+?? frontend-mobile/src/verification/taskPresentation.ts
+?? frontend-mobile/tests/nativeQueueHarness.mts
+?? frontend/src/pages/Exceptions/ExceptionDetailPage.tsx
+?? frontend/src/pages/Exceptions/ExceptionInboxPage.tsx
+?? frontend/src/pages/Exceptions/actionPresentation.ts
+?? frontend/src/pages/Verification/VerificationHistoryPage.tsx
+?? frontend/src/pages/Verification/VerificationOverview.tsx
+?? frontend/tests/exceptionActions.test.mjs
+?? frontend/tests/verificationBrowser.mjs

@@ -1,3 +1,4 @@
+import VerificationOverview from '@/pages/Verification/VerificationOverview';
 import { useMemo, useState } from "react";
 import { useNavigate, useSearchParams } from "react-router-dom";
 import {
@@ -232,6 +233,7 @@ export default function TodayStatusPage() {
         }
       />
 
+      <VerificationOverview entries={staffStatus}/>
       <div className="grid grid-cols-2 gap-4 xl:grid-cols-4">
         <StatCard
           label="Present"

@@ -1,3 +1,4 @@
+import { client } from '../api/client';
 import { useEffect } from "react";
 import { Alert, RefreshControl, ScrollView, View } from "react-native";
 import { useNavigation } from "@react-navigation/native";
@@ -49,7 +50,9 @@ export function TasksScreen() {
     }
   };
 
-  const handleStartTask = (task: TaskInstance) => {
+  const handleStartTask = async (task: TaskInstance) => {
+    if(task.verificationVersion===2){try{await client.post(`/task-instance/${task.id}/start`);await tasksQuery.refetch();}catch(error){Alert.alert('Cannot start cleaning',(error as {response?:{data?:{message?:string}}}).response?.data?.message??'Connect and try again.');}return;}
+
     navigation.navigate("QrScanner", {
       taskId: task.id,
       taskTitle: task.title,
@@ -57,6 +60,7 @@ export function TasksScreen() {
   };
 
   const handleCompleteTask = (task: TaskInstance) => {
+    if(task.verificationVersion===2){navigation.navigate("Verification",{taskId:task.id});return;}
     navigation.navigate("CompleteTask", {
       taskId: task.id,
       taskTitle: task.title,
@@ -104,7 +108,7 @@ export function TasksScreen() {
               task={task}
               onStart={task.status === "PENDING" ? () => handleStartTask(task) : undefined}
               onComplete={
-                task.status === "IN_PROGRESS" ? () => handleCompleteTask(task) : undefined
+                (task.status === "IN_PROGRESS" || (task.verificationVersion===2&&task.status!=="PENDING")) ? () => handleCompleteTask(task) : undefined
               }
             />
           ))}

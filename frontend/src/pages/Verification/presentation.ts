@@ -1,4 +1,4 @@
-export type VerificationSummary = { status?: string; verificationVersion?: number; verificationState?: string; completionOutcome?: string | null; completionTiming?: string | null };
+export type VerificationSummary = { status?: string | null; verificationVersion?: number; verificationState?: string; completionOutcome?: string | null; completionTiming?: string | null };
 export function verificationLabel(task: VerificationSummary): string {
   if (task.completionOutcome === 'VERIFIED_COMPLETE') return 'Verified complete';
   if (task.completionOutcome === 'COMPLETED_WITH_EXCEPTIONS') return 'Completed with exceptions';

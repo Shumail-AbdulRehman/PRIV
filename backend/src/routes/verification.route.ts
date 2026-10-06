@@ -1,3 +1,4 @@
+import { verificationCapabilities,requireNativeVerification } from '../services/verification-v2/compatibility.service.js';
 import {Router} from 'express';
 import multer from 'multer';
 import {z} from 'zod';
@@ -11,11 +12,13 @@ import {sha256} from '../services/verification-v2/quality.service.js';
 import {verificationManifestSchema} from '../services/verification-v2/contracts.js';
 import {resolvePolicy,taskDeadlines} from '../services/verification-v2/verificationPolicy.service.js';
 const router=Router();router.use(verifyJwt);
+router.get('/verification-capabilities',async(req,res)=>{await requireActiveActor(req.user!);res.json({success:true,data:verificationCapabilities()});});
+router.use((req,res,next)=>{if(req.method==='POST'&&(/^\/capture-session\//.test(req.path)||/\/capture-sessions$/.test(req.path)))return requireNativeVerification(req,res,next);next();});
 const send=(res:any,data:unknown,status=200)=>res.status(status).json({success:true,data:JSON.parse(JSON.stringify(data,(_k,v)=>typeof v==='bigint'?v.toString():v))});
 router.get('/task-instance/staff/me/verification-work',async(req,res)=>{
  const actor=req.user!;if(actor.role!=='STAFF')throw new ApiError(403,'Staff required');await requireActiveActor(actor);const staff=await prisma.staff.findFirstOrThrow({where:{id:actor.id,companyId:actor.companyId,isActive:true},select:{locationId:true}});
  const cursor=req.query.cursor?z.coerce.number().int().positive().parse(req.query.cursor):undefined;
- const tasks=await prisma.taskInstance.findMany({where:{staffId:actor.id,locationId:staff.locationId??-1,location:{companyId:actor.companyId,isActive:true},verificationVersion:2,isActive:true,status:{in:['IN_PROGRESS','NOT_COMPLETED_INTIME','PENDING']},assignments:{some:{staffId:actor.id,isCurrent:true,status:{in:['ASSIGNED','STARTED']}}},...(cursor?{id:{gt:cursor}}:{})},orderBy:{id:'asc'},take:51,select:{id:true,areaId:true,areaNameSnapshot:true,status:true,verificationState:true,completionOutcome:true,assignmentEpoch:true,shiftStart:true,shiftEnd:true,verificationDeadline:true,uploadDeadline:true,location:{select:{id:true,name:true,timezone:true}}}});
+ const tasks=await prisma.taskInstance.findMany({where:{staffId:actor.id,locationId:staff.locationId??-1,location:{companyId:actor.companyId,isActive:true},verificationVersion:2,isActive:true,status:{in:['IN_PROGRESS','NOT_COMPLETED_INTIME','PENDING']},assignments:{some:{staffId:actor.id,isCurrent:true,status:{in:['ASSIGNED','STARTED']}}},...(cursor?{id:{gt:cursor}}:{})},orderBy:{id:'asc'},take:51,select:{id:true,title:true,verificationVersion:true,areaId:true,areaNameSnapshot:true,status:true,verificationState:true,completionOutcome:true,assignmentEpoch:true,shiftStart:true,shiftEnd:true,verificationDeadline:true,uploadDeadline:true,location:{select:{id:true,name:true,timezone:true}}}});
  send(res,{workflowVersion:2,tasks:tasks.slice(0,50),nextCursor:tasks.length>50?tasks[49]!.id:null});
 });
 router.get('/task-instance/:taskId/verification',async(req,res)=>{
@@ -34,9 +37,20 @@ router.get('/task-instance/:taskId/verification',async(req,res)=>{
  const live=sessions.find(s=>s.assignmentEpoch===task.assignmentEpoch&&['ACTIVE','PAUSED'].includes(s.state));
  const captureDeadline=live&&live.captureExpiresAt<verificationDeadline?live.captureExpiresAt:verificationDeadline;
  const deadlineWarning=canCapture&&captureDeadline>now&&+captureDeadline-+now<=5*60000?{reasonCode:'CAPTURE_WINDOW_ENDING',deadline:captureDeadline,remainingSeconds:Math.ceil((+captureDeadline-+now)/1000)}:undefined;
- send(res,{...base,serverTime:now,deadlineWarning,verificationState:task.verificationState,outcome:task.completionOutcome,verificationDeadline,uploadDeadline,pendingJobs,caseSummary,
+ const attemptIds=items.flatMap(i=>i.requirements.map(r=>r.currentAttemptId)).filter((id):id is string=>!!id);
+ const attempts=await prisma.verificationAttempt.findMany({where:{id:{in:attemptIds}},include:{media:{select:{privacyState:true}}}});
+ send(res,{...base,task:{id:task.id,title:task.title,status:task.status,verificationVersion:2,verificationState:task.verificationState,completionOutcome:task.completionOutcome,completionTiming:task.completionTiming,areaNameSnapshot:task.areaNameSnapshot,shiftEnd:task.shiftEnd,verificationDeadline,uploadDeadline,location:{id:task.location.id,name:task.location.name,timezone:task.location.timezone}},
+ items:base.items.map(i=>({...i,...{itemCodeSnapshot:items.find(x=>x.id===i.id)!.itemCodeSnapshot,typeSnapshot:items.find(x=>x.id===i.id)!.typeSnapshot,orderSnapshot:items.find(x=>x.id===i.id)!.orderSnapshot,identificationSnapshot:items.find(x=>x.id===i.id)!.identificationSnapshot},requirements:i.requirements.map(r=>{const a=attempts.find(a=>a.id===items.flatMap(i=>i.requirements).find(x=>x.id===r.id)?.currentAttemptId);return {...r,currentAttempt:a?{id:a.id,state:a.state,...staffAttemptResult(a,a.media?.privacyState==='SAFE')}:null};})})),serverTime:now,deadlineWarning,verificationState:task.verificationState,outcome:task.completionOutcome,verificationDeadline,uploadDeadline,pendingJobs,caseSummary,
  allowedActions:{createSession:canCapture&&!live,resumeSession:current&&!!live,renewSession:canCapture&&!!live,retakeSlots:canCapture&&live?.state==='ACTIVE'&&live.captureExpiresAt>now,upload:current&&task.status!=='COMPLETED',uploadReviewOnly:current&&now>=uploadDeadline,reportIssue:current&&task.status!=='COMPLETED'},
  sessions:sessions.map(s=>({...s,slots:s.slots.map(slot=>({...slot,state:s.attempts.find(a=>a.id===slot.attemptId)?.state??'AVAILABLE'})),attempts:undefined}))});
+});
+router.get('/task-instance/:taskId/verification/history',async(req,res)=>{
+ const task=await requireTaskAccess(req.user!,z.coerce.number().int().positive().parse(req.params.taskId));
+ const cursor=z.uuid().optional().parse(req.query.cursor);
+ if(cursor&&!await prisma.verificationAttempt.findFirst({where:{id:cursor,session:{taskInstanceId:task.id}}}))throw new ApiError(404,'History cursor not found');
+ const rows=await prisma.verificationAttempt.findMany({where:{session:{taskInstanceId:task.id}},orderBy:[{createdAt:'desc'},{id:'desc'}],take:51,...(cursor?{cursor:{id:cursor},skip:1}:{}),include:{media:{select:{privacyState:true}},requirement:{select:{viewKey:true,item:{select:{nameSnapshot:true}}}}}});
+ const staff=await prisma.staff.findMany({where:{companyId:req.user!.companyId,id:{in:rows.map(a=>a.staffId)}},select:{id:true,name:true}});
+ send(res,{attempts:rows.slice(0,50).map(a=>({id:a.id,requirementId:a.requirementId,contextKey:a.contextKey,state:a.state,createdAt:a.createdAt,receivedAt:a.receivedAt,staff:staff.find(s=>s.id===a.staffId)??null,requirement:a.requirement,privacyState:a.media?.privacyState,mediaAssetId:a.media?.privacyState==='SAFE'&&a.state!=='PRIVACY_HOLD'?a.mediaAssetId:null,...staffAttemptResult(a,a.media?.privacyState==='SAFE')})),nextCursor:rows.length>50?rows[49]!.id:null});
 });
 router.post('/task-instance/:taskId/capture-sessions',async(req,res)=>send(res,await createCaptureSession(req.user!,z.coerce.number().int().positive().parse(req.params.taskId),req.body),201));
 router.post('/capture-session/:id/resume',async(req,res)=>send(res,await resumeSession(req.user!,String(req.params.id),req.body)));

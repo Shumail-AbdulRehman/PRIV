@@ -8,7 +8,7 @@ import {
 } from "react";
 import { Platform } from "react-native";
 import * as SecureStore from "expo-secure-store";
-import { unlockQueue, lockQueue } from "../verification/queue";
+import { unlockQueue, lockQueue, cleanPreviousProcessCaptureCache } from "../verification/queue";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import { useQueryClient } from "@tanstack/react-query";
 import { client, configureApiAuth } from "../api/client";
@@ -82,6 +82,7 @@ export function AuthProvider({ children }: PropsWithChildren) {
 
   useEffect(() => {
     configureApiAuth({
+      getScope: () => sessionRef.current.user ? `${sessionRef.current.user.companyId}_${sessionRef.current.user.id}` : null,
       getTokens: async () => ({
         accessToken: sessionRef.current.accessToken,
         refreshToken: sessionRef.current.refreshToken,
@@ -92,6 +93,7 @@ export function AuthProvider({ children }: PropsWithChildren) {
 
     void (async () => {
       try {
+        if(Platform.OS !== "web") { try { cleanPreviousProcessCaptureCache(); } catch { /* Normal per-capture cleanup also runs. */ } }
         const legacy = await AsyncStorage.getItem(STORAGE_KEY);
         const storedSession = Platform.OS === "web" ? legacy : (await SecureStore.getItemAsync(STORAGE_KEY)) ?? legacy;
 
@@ -136,6 +138,8 @@ export function AuthProvider({ children }: PropsWithChildren) {
 
     const { accessToken, refreshToken, ...user } = response.data.data;
 
+    await lockQueue();
+    queryClient.clear();
     await applySession({
       user,
       accessToken,
@@ -149,6 +153,7 @@ export function AuthProvider({ children }: PropsWithChildren) {
   };
 
   const logout = async () => {
+    await lockQueue();
     try {
       if (sessionRef.current.accessToken) {
         await client.post("/common/logout");

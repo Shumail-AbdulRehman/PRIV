@@ -37,6 +37,7 @@ services:
       CLOUDINARY_API_SECRET: ${CLOUDINARY_API_SECRET}
       VERIFICATION_QR_SECRET: ${VERIFICATION_QR_SECRET:-}
       VERIFICATION_SLOT_SECRET: ${VERIFICATION_SLOT_SECRET:-}
+      VERIFICATION_MIN_NATIVE_VERSION: ${VERIFICATION_MIN_NATIVE_VERSION:-2.0.0}
       VERIFICATION_QR_KEY_ID: ${VERIFICATION_QR_KEY_ID:-v1}
       MAX_TASK_REASSIGNMENTS: ${MAX_TASK_REASSIGNMENTS:-3}
       MAX_REFERENCE_IMAGES: ${MAX_REFERENCE_IMAGES:-10}
@@ -73,6 +74,14 @@ services:
     image: ${BACKEND_IMAGE:-shumail47891/fyp:backend}
     restart: unless-stopped
     command: ["node", "dist/workers/verificationWorker.js"]
+    depends_on:
+      - backend
+    healthcheck:
+      test: ["CMD", "node", "dist/workers/verificationWorkerHealth.js"]
+      interval: 15s
+      timeout: 10s
+      start_period: 60s
+      retries: 3
     environment: *backend-environment
 
 volumes:

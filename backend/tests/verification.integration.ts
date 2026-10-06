@@ -273,7 +273,7 @@ const http=express();http.use(express.json());http.use('/api',verificationRouter
 http.use((error:any,_req:any,res:any,_next:any)=>res.status(error.statusCode??500).json({success:false,message:error.message,code:error.errors?.[0]?.code??'TEST_ERROR'}));
 const server=await new Promise<import('node:http').Server>(resolve=>{const s=http.listen(0,'127.0.0.1',()=>resolve(s));});const port=(server.address() as import('node:net').AddressInfo).port;
 const workerJwt=jwt.sign({id:captureStaff.id,role:'STAFF'},process.env.ACCESS_TOKEN_SECRET),adminJwt=jwt.sign({id:actor.id,role:'ADMIN'},process.env.ACCESS_TOKEN_SECRET);
-async function call(path:string,token:string,method='GET',body?:unknown){return fetch(`http://127.0.0.1:${port}/api${path}`,{method,headers:{Authorization:`Bearer ${token}`,...(body?{'Content-Type':'application/json'}:{})},...(body?{body:JSON.stringify(body)}:{})});}
+async function call(path:string,token:string,method='GET',body?:unknown){return fetch(`http://127.0.0.1:${port}/api${path}`,{method,headers:{Authorization:`Bearer ${token}`,"X-Hygene-Workflow":"2","X-Hygene-App-Version":"2.0.0",...(body?{'Content-Type':'application/json'}:{})},...(body?{body:JSON.stringify(body)}:{})});}
 try{
  const manifest=await call(`/task-instance/${finalRace.task.id}/verification`,workerJwt);assert.equal(manifest.status,200);const dto:any=await manifest.json();assert.equal(dto.data.outcome,'VERIFIED_COMPLETE');assert.equal(typeof dto.data.items[0].name,'string');assert.equal(typeof dto.data.items[0].requirements[0].instructions,'string');assert.equal(dto.data.allowedActions.createSession,false);
  const work=await call('/task-instance/staff/me/verification-work',workerJwt);assert.equal(work.status,200);assert.ok(Array.isArray((await work.json() as any).data.tasks));
@@ -281,6 +281,15 @@ try{
  const forbiddenInbox=await call('/verification-exceptions',workerJwt);assert.equal(forbiddenInbox.status,403);
  const detail=await call(`/verification-exceptions/${caseRow.id}`,adminJwt);assert.equal(detail.status,200);const detailDto:any=await detail.json();assert.ok(Array.isArray(detailDto.data.events));
  const read=await call(`/verification-exceptions/${caseRow.id}/read`,adminJwt,'POST',{});assert.equal(read.status,200);assert.equal((await read.json() as any).data.managerId,actor.id);
+ const obsolete=await fetch(`http://127.0.0.1:${port}/api/task-instance/${retakeRace.task.id}/capture-sessions`,{method:'POST',headers:{Authorization:`Bearer ${workerJwt}`,'Content-Type':'application/json'},body:JSON.stringify(sessionBody)});assert.equal(obsolete.status,426);assert.equal((await obsolete.json() as any).code,'NATIVE_APP_UPGRADE_REQUIRED');
+ const capabilities=await call('/verification-capabilities',workerJwt);assert.equal((await capabilities.json() as any).data.automaticCleanlinessPassing,false);
+ const history=await call(`/task-instance/${finalRace.task.id}/verification/history`,adminJwt);assert.equal(history.status,200);const historyDto:any=await history.json();assert.ok(historyDto.data.attempts.length);assert.equal(typeof historyDto.data.attempts[0].staff.name,'string');assert.equal(historyDto.data.attempts[0].cleanlinessResult,undefined);
+ const durableReportTask=failureRace;const report={requestId:randomUUID(),reasonCode:'DAMAGED',requestHelp:true,note:'Fixture is damaged'};
+ const auditBefore=await prisma.auditLog.count({where:{entityId:durableReportTask.task.id,action:'VERIFICATION_ISSUE_REPORTED'}});
+ assert.equal((await call(`/task-instance/${durableReportTask.task.id}/verification-issues`,workerJwt,'POST',report)).status,200);
+ assert.equal((await call(`/task-instance/${durableReportTask.task.id}/verification-issues`,workerJwt,'POST',report)).status,200);
+ assert.equal(await prisma.auditLog.count({where:{entityId:durableReportTask.task.id,action:'VERIFICATION_ISSUE_REPORTED'}}),auditBefore+1,'Response loss retries do not duplicate issue audit/events');
+ assert.equal((await call(`/task-instance/${durableReportTask.task.id}/verification-issues`,workerJwt,'POST',{...report,reasonCode:'INACCESSIBLE'})).status,409);
  const invalidCapture=await call('/task-instance/not-an-id/capture-sessions',workerJwt,'POST',sessionBody);assert.equal(invalidCapture.status,400);
  const managerCapture=await call(`/task-instance/${retakeRace.task.id}/capture-sessions`,adminJwt,'POST',sessionBody);assert.equal(managerCapture.status,403);
  console.log('PASS: real HTTP verification DTO, resumable work, scoped exception API, read receipts, invalid IDs and role boundaries');

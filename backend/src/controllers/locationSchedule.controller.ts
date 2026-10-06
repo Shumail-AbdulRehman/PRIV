@@ -35,7 +35,7 @@ export const getLocationSchedule = async (req: Request, res: Response) => {
         { shiftStart: { lt: end }, shiftEnd: { gt: start } },
         { date: { gte: earliestOccurrence, lt: end } },
       ] },
-      select: { id: true, templateId: true, title: true, date: true, shiftStart: true, shiftEnd: true, status: true,
+      select: { id: true, templateId: true, title: true, date: true, shiftStart: true, shiftEnd: true, status: true, verificationVersion:true,verificationState:true,completionOutcome:true,areaNameSnapshot:true,
         staff: { select: { id: true, name: true } },
         assignments: { where: { isCurrent: true }, take: 1, select: { staff: { select: { id: true, name: true } } } } },
     }),

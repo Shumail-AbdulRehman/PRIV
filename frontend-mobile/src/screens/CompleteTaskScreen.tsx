@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { Alert, Image, ScrollView, View } from "react-native";
 import * as ImagePicker from "expo-image-picker";
 import { NativeStackScreenProps } from "@react-navigation/native-stack";
@@ -22,7 +22,13 @@ type AreaState = {
 
 const AREA_UPLOAD_TIMEOUT_MS = 120000;
 
-export function CompleteTaskScreen({ navigation, route }: Props) {
+export function CompleteTaskScreen(props:Props) {
+  const [legacy,setLegacy]=useState(false);
+  const [error,setError]=useState('');
+  useEffect(()=>{let active=true;client.get<{data:{verificationVersion:number}}>(`/task-instance/${props.route.params.taskId}`).then(response=>{if(!active)return;if(response.data.data.verificationVersion===2)props.navigation.replace('Verification',{taskId:props.route.params.taskId});else setLegacy(true);}).catch(()=>{if(active)setError('Connect to load this task.');});return()=>{active=false;};},[props.route.params.taskId,props.navigation]);
+  return legacy?<LegacyCompleteTaskScreen {...props}/>:<View className="p-6"><Text>{error||'Loading task…'}</Text></View>;
+}
+function LegacyCompleteTaskScreen({ navigation, route }: Props) {
   const queryClient = useQueryClient();
   const { taskId, taskTitle, referenceAreas } = route.params;
   const hasReferenceAreas = referenceAreas && referenceAreas.length > 0;

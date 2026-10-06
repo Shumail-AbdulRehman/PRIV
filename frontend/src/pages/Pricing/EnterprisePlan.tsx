@@ -18,7 +18,7 @@ export default function EnterprisePlan({ current = false }: { current?: boolean 
       <button type="button" className="marketing-button secondary-button" onClick={() => setOpen(true)}>Contact sales <ArrowUpRight size={16} /></button>
       <div className="enterprise-note"><Building2 size={20} aria-hidden="true" /><p>Tell us about your locations, people, and day-to-day requirements.</p></div>
       <h3 className="plan-feature-heading">Build on Pro’s capabilities</h3>
-      <ul className="plan-features">{['Discuss location and team capacity', 'Multi-location, multi-timezone operations', 'Automatic task assignment', 'Multi-area photo verification', 'Review your rollout requirements'].map(feature => <li key={feature}><Check aria-hidden="true" />{feature}</li>)}</ul>
+      <ul className="plan-features">{['Discuss location and team capacity', 'Multi-location, multi-timezone operations', 'Automatic task assignment', 'Inventory verification and exception review', 'Review your rollout requirements'].map(feature => <li key={feature}><Check aria-hidden="true" />{feature}</li>)}</ul>
     </article>
     <Dialog open={open} onOpenChange={setOpen}>
       <DialogContent className="sm:max-w-xl">

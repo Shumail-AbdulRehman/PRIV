@@ -108,7 +108,7 @@ export default function SubscriptionPage() {
     <div className="space-y-8">
       <PageHeader
         title="Plan & usage"
-        subtitle="Review workspace allowances and choose the plan that matches your operation."
+        subtitle="Inventory verification and exception review are included on every plan. Plans differ in team and location capacity."
         action={
           <div className="flex flex-wrap items-center gap-3">
             <Badge variant="outline" className="px-3 py-1.5">

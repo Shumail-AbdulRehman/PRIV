@@ -1,3 +1,5 @@
+import { Link } from 'react-router-dom';
+import { verificationLabel } from '@/pages/Verification/presentation';
 import { useState } from 'react';
 import { useSearchParams } from 'react-router-dom';
 import { useSelector } from 'react-redux';
@@ -8,7 +10,7 @@ import { Dialog, DialogContent, DialogTitle, DialogDescription } from '@/compone
 import { useLocationSchedule } from '../queries';
 import { moveWeek, normalizeWeek, type ScheduleItem } from '../scheduleTypes';
 const dayLabel = (day: string, pattern: string) => formatInTimeZone(`${day}T12:00:00Z`, 'UTC', pattern);
-const statusLabel = (item: ScheduleItem) => item.kind === 'planned' ? 'Planned' : (item.status ?? 'Scheduled').replaceAll('_', ' ').toLowerCase();
+const statusLabel = (item: ScheduleItem) => item.kind === 'planned' ? 'Planned' : item.verificationVersion===2?verificationLabel(item):(item.status ?? 'Scheduled').replaceAll('_', ' ').toLowerCase();
 const staffLabel = (item: ScheduleItem) => item.staff ? `${item.staffMeaning === 'template-default' ? 'Default staff' : 'Assigned to'}: ${item.staff.name}` : 'Unassigned';
 export default function LocationScheduleTab({ locationId }: { locationId: string }) {
   const companyId = useSelector((state: RootState) => state.auth.user?.companyId);
@@ -48,7 +50,7 @@ export default function LocationScheduleTab({ locationId }: { locationId: string
             <div className="min-w-0 space-y-2">
               {day.items.length === 0 && <p className="py-1 text-sm text-slate-400">No tasks</p>}
               {day.items.map((item) => <button key={item.key} onClick={() => setSelected({ key: item.key, date: day.date })} className="w-full rounded-lg border border-slate-200 p-3 text-left transition hover:border-blue-300 hover:bg-blue-50/40 focus-visible:outline-2 focus-visible:outline-blue-600">
-                <div className="flex flex-wrap items-center justify-between gap-2"><span className="break-words font-medium text-slate-900">{item.title}</span><span className={`rounded-md px-2 py-1 text-xs capitalize ${item.kind === 'planned' ? 'bg-blue-50 text-blue-700' : 'bg-slate-100 text-slate-700'}`}>{statusLabel(item)}</span></div>
+                <div className="flex flex-wrap items-center justify-between gap-2"><span className="break-words font-medium text-slate-900">{item.title}{item.areaNameSnapshot?` · ${item.areaNameSnapshot}`:""}</span><span className={`rounded-md px-2 py-1 text-xs capitalize ${item.kind === 'planned' ? 'bg-blue-50 text-blue-700' : 'bg-slate-100 text-slate-700'}`}>{statusLabel(item)}</span></div>
                 <p className="mt-1 text-sm text-slate-600">{time(item.startsAt)} – {time(item.endsAt)} · {staffLabel(item)}</p>
                 {(item.continuesFromPreviousDay || item.continuesIntoNextDay) && <p className="mt-1 text-xs text-slate-500">{[item.continuesFromPreviousDay && 'Continues from previous day', item.continuesIntoNextDay && 'Continues into next day'].filter(Boolean).join(' · ')}</p>}
               </button>)}
@@ -59,7 +61,7 @@ export default function LocationScheduleTab({ locationId }: { locationId: string
     <Dialog open={!!selected} onOpenChange={(open) => { if (!open) setSelected(null); }}><DialogContent>
       <DialogTitle>{selectedItem?.title ?? 'Task no longer available'}</DialogTitle>
       <DialogDescription>{selectedItem?.kind === 'planned' ? 'Template preview. The scheduler creates the actual task when it is due.' : 'Read-only schedule details.'}</DialogDescription>
-      {selectedItem && data ? <div className="space-y-3 text-sm text-slate-700"><p className="capitalize">{statusLabel(selectedItem)}</p><p>{staffLabel(selectedItem)}</p><p>{formatInTimeZone(selectedItem.startsAt, data.location.timezone, 'EEE d MMM yyyy, HH:mm')} – {formatInTimeZone(selectedItem.endsAt, data.location.timezone, 'EEE d MMM yyyy, HH:mm')}</p><p className="text-slate-500">{data.location.name} · {data.location.timezone}</p></div> : <p className="text-sm text-slate-600">The schedule has changed. Close this panel and refresh the week.</p>}
+      {selectedItem && data ? <div className="space-y-3 text-sm text-slate-700"><p className="capitalize">{statusLabel(selectedItem)}</p><p>{staffLabel(selectedItem)}</p>{selectedItem.instanceId?<Link className="text-primary" to={`/verification/${selectedItem.instanceId}`}>Verification history</Link>:null}<p>{formatInTimeZone(selectedItem.startsAt, data.location.timezone, 'EEE d MMM yyyy, HH:mm')} – {formatInTimeZone(selectedItem.endsAt, data.location.timezone, 'EEE d MMM yyyy, HH:mm')}</p><p className="text-slate-500">{data.location.name} · {data.location.timezone}</p></div> : <p className="text-sm text-slate-600">The schedule has changed. Close this panel and refresh the week.</p>}
     </DialogContent></Dialog>
   </section>;
 }

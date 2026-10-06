@@ -2,6 +2,7 @@ export interface ScheduleItem {
   key: string; kind: 'actual' | 'planned'; instanceId: number | null; templateId: number | null;
   title: string; startsAt: string; endsAt: string; status: string | null;
   staff: { id: number; name: string } | null;
+  verificationVersion?:number;verificationState?:string;completionOutcome?:string|null;areaNameSnapshot?:string;
   staffMeaning: 'actual' | 'template-default' | 'unassigned';
   continuesFromPreviousDay: boolean; continuesIntoNextDay: boolean;
 }

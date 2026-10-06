@@ -488,6 +488,7 @@ export const getStaffDetails = async (req: Request, res: Response) => {
         startedAt: true,
         completedAt: true,
         proofImageUrls: true,
+        verificationVersion:true, verificationState:true, completionOutcome:true, completionTiming:true, areaNameSnapshot:true,
         location: { select: { id: true, name: true, timezone: true } },
       },
     }),

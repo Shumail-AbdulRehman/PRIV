@@ -8,7 +8,8 @@ export type PlanFeature =
   | "automaticAssignment"
   | "automaticReassignment"
   | "multiAreaTasks"
-  | "verificationInsights";
+  | "verificationInsights"
+  | "inventoryVerification";
 export type LimitedResource = "locations" | "staff" | "managers";
 
 type PlanDefinition = {
@@ -36,13 +37,14 @@ export const PLAN_DEFINITIONS: Record<PlanCode, PlanDefinition> = {
       automaticAssignment: false,
       automaticReassignment: false,
       multiAreaTasks: false,
-      verificationInsights: false,
+      verificationInsights: true,
+      inventoryVerification: true,
     },
     featureLabels: [
       "GPS attendance and selfies",
       "Daily and one-time tasks",
-      "QR-based task starting",
-      "Single-area reference verification",
+      "Area QR and guided native capture",
+      "Inventory verification and exception review",
       "Core operational dashboard",
     ],
   },
@@ -57,13 +59,14 @@ export const PLAN_DEFINITIONS: Record<PlanCode, PlanDefinition> = {
       automaticReassignment: true,
       multiAreaTasks: true,
       verificationInsights: true,
+      inventoryVerification: true,
     },
     featureLabels: [
       "Everything in Starter",
       "Manager location access",
       "Automatic assignment and reassignment",
-      "Up to 5 reference areas per task",
-      "AI and image verification insights",
+      "Inventory verification on every plan",
+      "Protected evidence and decision history",
       "Staff and location performance views",
     ],
   },
@@ -78,12 +81,13 @@ export const PLAN_DEFINITIONS: Record<PlanCode, PlanDefinition> = {
       automaticReassignment: true,
       multiAreaTasks: true,
       verificationInsights: true,
+      inventoryVerification: true,
     },
     featureLabels: [
       "Everything in Pro",
-      "Up to 10 reference areas per task",
+      "Inventory verification on every plan",
       "Higher location, staff, and manager limits",
-      "Detailed verification attempts and scores",
+      "Protected evidence and decision history",
       "Assignment and reassignment history",
       "Multi-timezone and overnight-shift support",
     ],

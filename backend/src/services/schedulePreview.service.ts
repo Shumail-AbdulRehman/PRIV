@@ -9,6 +9,7 @@ export type ScheduleTemplate = {
 };
 export type ScheduleInstance = {
   id: number; templateId: number | null; title: string; date: Date; shiftStart: Date; shiftEnd: Date;
+  verificationVersion?:number; verificationState?:string; completionOutcome?:string|null; areaNameSnapshot?:string|null;
   status: string; staff: { id: number; name: string } | null;
   assignments: Array<{ staff: { id: number; name: string } | null }>;
 };
@@ -16,6 +17,7 @@ export type ScheduleItem = {
   key: string; kind: "actual" | "planned"; instanceId: number | null; templateId: number | null;
   title: string; startsAt: string; endsAt: string; status: string | null;
   staff: { id: number; name: string } | null;
+  verificationVersion?:number; verificationState?:string; completionOutcome?:string|null; areaNameSnapshot?:string|null;
   staffMeaning: "actual" | "template-default" | "unassigned";
   continuesFromPreviousDay: boolean; continuesIntoNextDay: boolean;
 };
@@ -52,6 +54,7 @@ export function projectWeek({ weekStart, timezone, now, templates, instances }: 
       key: `actual:${instance.id}`, kind: "actual", instanceId: instance.id, templateId: instance.templateId,
       title: instance.title, startsAt: instance.shiftStart.toISOString(), endsAt: instance.shiftEnd.toISOString(),
       start: instance.shiftStart, end: instance.shiftEnd, status: instance.status, staff: current,
+      verificationVersion:instance.verificationVersion,verificationState:instance.verificationState,completionOutcome:instance.completionOutcome,areaNameSnapshot:instance.areaNameSnapshot,
       staffMeaning: current ? "actual" : "unassigned",
     });
   }

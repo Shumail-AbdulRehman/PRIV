@@ -1,3 +1,5 @@
+import { Link } from 'react-router-dom';
+import { verificationLabel,timingLabel } from '@/pages/Verification/presentation';
 import React, { useMemo, useState } from "react";
 import { useParams, useNavigate, useSearchParams } from "react-router-dom";
 import {
@@ -47,6 +49,7 @@ interface StaffTaskInstanceRow {
   shiftStart: string | null;
   shiftEnd: string | null;
   status: string;
+  verificationVersion?:number;verificationState?:string;completionOutcome?:string|null;completionTiming?:string|null;
   isLate: boolean;
   startedAt: string | null;
   completedAt: string | null;
@@ -211,7 +214,8 @@ const StaffDetailPage: React.FC = () => {
         header: "Status",
         render: (instance) => (
           <div className="flex flex-wrap items-center gap-2">
-            <StatusBadge status={instance.status} />
+            {instance.verificationVersion===2?<Link className="text-primary underline" to={`/verification/${instance.id}`}>{verificationLabel(instance)}</Link>:<StatusBadge status={instance.status} />}
+            {instance.completionTiming?<span className="text-xs text-muted-foreground">{timingLabel(instance.completionTiming)}</span>:null}
             {instance.isLate ? (
               <span className="text-[10px] font-medium text-amber-600">
                 Late start

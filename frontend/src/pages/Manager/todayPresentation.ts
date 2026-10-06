@@ -1,3 +1,4 @@
+import { verificationLabel } from '../Verification/presentation.ts';
 import type { StaffStatusEntry } from "./types";
 
 export function needsAttention(entry: StaffStatusEntry): boolean {
@@ -22,6 +23,10 @@ export function attentionReasons(entry: StaffStatusEntry, asOf: string): string[
   const requestTime = Date.parse(asOf);
   for (const task of entry.tasks) {
     let label: string | undefined;
+    if(task.verificationVersion===2&&['PROCESSING','NEEDS_REVIEW','REWORK_REQUIRED'].includes(task.verificationState??'')){
+      if(task.verificationState!=='PROCESSING') reasons.push(verificationLabel(task));
+      continue;
+    }
     if (task.status === "MISSED") label = "missed task";
     else if (task.status === "NOT_COMPLETED_INTIME") label = "task not completed on time";
     else if (task.status === "COMPLETED" && task.isLate) label = "task completed late";
@@ -41,7 +46,7 @@ function attentionRank(entry: StaffStatusEntry, asOf: string): number {
   if (entry.flags.isAbsent) return 0;
   const requestTime = Date.parse(asOf);
   if (Number.isFinite(requestTime) && entry.tasks.some((task) =>
-    (task.status === "PENDING" || task.status === "IN_PROGRESS") && Date.parse(task.shiftEnd) < requestTime,
+    (task.status === "PENDING" || task.status === "IN_PROGRESS") && task.verificationState!=="PROCESSING" && Date.parse(task.shiftEnd) < requestTime,
   )) return 1;
   return 2;
 }

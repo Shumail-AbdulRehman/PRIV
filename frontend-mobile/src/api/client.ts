@@ -3,12 +3,15 @@ import { API_BASE_URL } from "../config";
 import type { AuthTokens } from "../types";
 
 type ApiAuthBridge = {
+  getScope: () => string | null;
   getTokens: () => Promise<AuthTokens>;
   setTokens: (tokens: Required<AuthTokens>) => Promise<void>;
   clearSession: () => Promise<void>;
 };
 
 let authBridge: ApiAuthBridge | null = null;
+let nativeAppVersion='0.0.0';
+export function configureNativeAppVersion(version:string|null){nativeAppVersion=version??'0.0.0';client.defaults.headers.common['X-Hygene-App-Version']=nativeAppVersion;}
 
 export const configureApiAuth = (bridge: ApiAuthBridge) => {
   authBridge = bridge;
@@ -51,13 +54,21 @@ const removeHeader = (config: InternalAxiosRequestConfig, key: string) => {
   config.headers = headers;
 };
 
+export const accountRequest = (scope: string) => ({ _scope: scope } as import('axios').AxiosRequestConfig & { _scope: string });
+
 export const client = axios.create({
   baseURL: API_BASE_URL,
   timeout: 20000,
+  headers:{"X-Hygene-Workflow":"2","X-Hygene-App-Version":nativeAppVersion},
 });
 
 client.interceptors.request.use(async (config) => {
+  const request = config as InternalAxiosRequestConfig & { _scope?: string | null };
+  const scope = authBridge?.getScope() ?? null;
+  if (request._scope !== undefined && request._scope !== scope) throw new Error('Account changed. Request stopped.');
+  request._scope = scope;
   const tokens = await authBridge?.getTokens();
+  if (request._scope !== (authBridge?.getScope() ?? null)) throw new Error('Account changed. Request stopped.');
 
   if (tokens?.accessToken) {
     setHeader(config, "Authorization", `Bearer ${tokens.accessToken}`);
@@ -72,10 +83,11 @@ client.interceptors.request.use(async (config) => {
   return config;
 });
 
-let refreshInFlight: Promise<Required<AuthTokens>> | null = null;
+let refreshInFlight: { scope: string | null; promise: Promise<Required<AuthTokens>> } | null = null;
 export const refreshApiTokens = (): Promise<Required<AuthTokens>> => {
-  if (refreshInFlight) return refreshInFlight;
-  refreshInFlight = (async () => {
+  const scope = authBridge?.getScope() ?? null;
+  if (refreshInFlight?.scope === scope) return refreshInFlight.promise;
+  const promise = (async () => {
     if (!authBridge) throw new Error("Sign in again to upload saved photos.");
     const bridge = authBridge;
     const tokens = await bridge.getTokens();
@@ -83,7 +95,7 @@ export const refreshApiTokens = (): Promise<Required<AuthTokens>> => {
     try {
       const response = await axios.post(`${API_BASE_URL}/common/refresh-token`, { refreshToken: tokens.refreshToken }, { timeout: 20000 });
       const nextTokens = { accessToken: response.data.data.accessToken as string, refreshToken: response.data.data.refreshToken as string };
-      if ((await bridge.getTokens()).refreshToken !== tokens.refreshToken) throw new Error("Account changed during token refresh.");
+      if (bridge.getScope() !== scope || (await bridge.getTokens()).refreshToken !== tokens.refreshToken) throw new Error("Account changed during token refresh.");
       await bridge.setTokens(nextTokens);
       return nextTokens;
     } catch (error) {
@@ -91,30 +103,40 @@ export const refreshApiTokens = (): Promise<Required<AuthTokens>> => {
         && (await bridge.getTokens()).refreshToken === tokens.refreshToken) await bridge.clearSession();
       throw error;
     }
-  })().finally(() => { refreshInFlight = null; });
-  return refreshInFlight;
+  })().finally(() => { if (refreshInFlight?.promise === promise) refreshInFlight = null; });
+  refreshInFlight = { scope, promise };
+  return promise;
 };
 client.interceptors.response.use(response => response, async error => {
   const original = error.config as InternalAxiosRequestConfig & { _retry?: boolean };
   if (!original || error.response?.status !== 401 || original._retry || original.url?.includes("/common/refresh-token")) throw error;
   original._retry = true;
-  const tokens = await refreshApiTokens();
+  if ((original as typeof original & {_scope?:string|null})._scope !== (authBridge?.getScope()??null)) throw new Error('Account changed. Request stopped.');
+  const current=await authBridge?.getTokens();
+  const tokens=current?.accessToken && AxiosHeaders.from(original.headers).get('Authorization')!==`Bearer ${current.accessToken}` ? current : await refreshApiTokens();
   setHeader(original, "Authorization", `Bearer ${tokens.accessToken}`);
   return client(original);
 });
 
 /** Rebuild multipart after refresh; native fetch supports React Native file parts. */
-export const uploadFormData = async <T = unknown>(path: string, input: FormData | (() => FormData), timeoutMs = 20000): Promise<T> => {
+export const uploadFormData = async <T = unknown>(path: string, input: FormData | (() => FormData), timeoutMs = 20000, guard: () => boolean = () => true): Promise<T> => {
+  const scope = authBridge?.getScope() ?? null;
   for (let retry = 0; retry < 2; retry++) {
     const tokens = await authBridge?.getTokens();
+    if (!guard() || scope !== (authBridge?.getScope() ?? null)) throw new Error('Account changed. Saved photos are locked.');
     const controller = new AbortController();
     const timeout = setTimeout(() => controller.abort(), timeoutMs);
     try {
       const response = await fetch(`${API_BASE_URL}${path}`, {
-        method: "POST", headers: tokens?.accessToken ? { Authorization: `Bearer ${tokens.accessToken}` } : {},
+        method: "POST", headers: {"X-Hygene-Workflow":"2","X-Hygene-App-Version":nativeAppVersion,...(tokens?.accessToken?{Authorization:`Bearer ${tokens.accessToken}`}:{})},
         body: typeof input === "function" ? input() : input, signal: controller.signal,
       });
-      if (response.status === 401 && retry === 0) { await refreshApiTokens(); continue; }
+      if (response.status === 401 && retry === 0) {
+        if (!guard() || scope !== (authBridge?.getScope() ?? null)) throw new Error('Account changed. Saved photos are locked.');
+        const current=await authBridge?.getTokens();
+        if(current?.accessToken===tokens?.accessToken)await refreshApiTokens();
+        continue;
+      }
       const json = await response.json();
       if (!response.ok) {
         const error = new Error(json?.message ?? "Request failed") as Error & { response: unknown };

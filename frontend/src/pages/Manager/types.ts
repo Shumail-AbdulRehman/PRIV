@@ -23,6 +23,7 @@ export interface StaffStatusEntry {
     id: number;
     title: string;
     status: string;
+    verificationVersion?:number;verificationState?:string;completionOutcome?:string|null;areaNameSnapshot?:string;
     shiftStart: string;
     shiftEnd: string;
     isLate: boolean;

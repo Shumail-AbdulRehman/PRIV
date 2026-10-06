@@ -1,3 +1,4 @@
+import { useExceptionCount } from '@/pages/Exceptions/queries';
 import BrandLogo from "@/components/common/BrandLogo";
 import { NavLink, Link } from "react-router-dom";
 import {
@@ -37,6 +38,7 @@ const GROUPS = [
         label: "Today",
         adminOnly: false,
       },
+      { to: "/exceptions", icon: ClipboardCheck, label:"Exceptions",adminOnly:false },
       { to: "/locations", icon: MapPin, label: "Locations", adminOnly: false },
       { to: "/staff", icon: Users, label: "Team", adminOnly: false },
       {
@@ -70,6 +72,7 @@ export default function Sidebar({
 }) {
   const user = useSelector((s: RootState) => s.auth.user);
   const logout = useLogout();
+  const exceptions = useExceptionCount(user?.role==="ADMIN"||user?.role==="MANAGER");
   const content = (
     <>
       <Link to="/dashboard" onClick={onClose} className="workspace-brand">
@@ -95,6 +98,7 @@ export default function Sidebar({
                   >
                     <Icon size={18} />
                     {label}
+                    {to==="/exceptions"&&!!exceptions.data?.unreadCount?<span className="ml-auto rounded bg-primary/10 px-2 text-xs font-semibold text-primary" aria-label={`${exceptions.data.unreadCount} unread exceptions`}>{exceptions.data.unreadCount}</span>:null}
                   </NavLink>
                 ))}
             </div>

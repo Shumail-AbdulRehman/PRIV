@@ -21,6 +21,7 @@ export function syncEvidence():Promise<void> {
           const result=await uploadCapture(row,scope);
           if(queueAccount()!==scope)return;
           // Durable server record + protected Cloudinary acknowledgment permits local-byte cleanup.
+          if (!result.id) throw new Error('Upload acknowledgment incomplete. Saved photo will retry.');
           await updateQueue(row.id,'SERVER_ACCEPTED',{attemptId:result.id,releaseBytes:true});
         } catch(error) {
           if(queueAccount()!==scope)return;
@@ -32,11 +33,11 @@ export function syncEvidence():Promise<void> {
     }
     for(const row of rows.filter(r=>['SERVER_ACCEPTED','PROCESSING'].includes(r.state)&&r.attemptId)) {
       if(queueAccount()!==scope)return;
-      try {const next=reconciledState(row,await attemptStatus(row.attemptId!));await updateQueue(row.id,next.state,{attemptId:next.attemptId});}catch{/* Next foreground/poll resumes. */}
+      try {const next=reconciledState(row,await attemptStatus(row.attemptId!,scope));await updateQueue(row.id,next.state,{attemptId:next.attemptId});}catch{/* Next foreground/poll resumes. */}
     }
     for(const issue of await pendingIssues()) {
       if(queueAccount()!==scope)return;
-      try{await reportIssue(issue.task_id,JSON.parse(issue.payload));await removeIssue(issue.id);}catch{/* Durable report remains queued. */}
+      try{await reportIssue(issue.task_id,JSON.parse(issue.payload),scope);await removeIssue(issue.id);}catch{/* Durable report remains queued. */}
     }
   })().finally(()=>{inFlight=null;notify();});return inFlight;
 }
