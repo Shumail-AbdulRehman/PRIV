@@ -3,23 +3,7 @@ import type { CreateTaskTemplateFormData } from "./types";
 export type { CreateTaskTemplateFormData, AreaSubmission } from "./types";
 
 export const createTaskTemplate = async (data: CreateTaskTemplateFormData) => {
-  const formData = new FormData();
-  formData.append("title", data.title);
-  if (data.description) formData.append("description", data.description);
-  formData.append("locationId", String(data.locationId));
-  formData.append("shiftStart", data.shiftStart.toISOString());
-  formData.append("shiftEnd", data.shiftEnd.toISOString());
-  if (data.recurringType) formData.append("recurringType", data.recurringType);
-  formData.append("effectiveDate", data.effectiveDate.toISOString());
-  if (data.recurringEndDate)
-    formData.append("recurringEndDate", data.recurringEndDate.toISOString());
-
-  data.referenceImages.forEach((ref) => {
-    formData.append("referenceImages", ref.file);
-    formData.append("referenceNames", ref.name);
-  });
-
-  const res = await client.post("/task-template", formData);
+  const res = await client.post("/task-template", data);
   return res.data;
 };
 
@@ -29,6 +13,11 @@ export const getTaskTemplate = async (id: number) => {
 };
 
 export interface EditTaskTemplateInput {
+  areaId?: number;
+  inventorySelection?: "ALL" | "SUBSET";
+  selectedItems?: Array<{areaItemId:number; mandatory:boolean}>;
+  expectedInventoryVersion?: number;
+  isActive?: boolean;
   title?: string;
   description?: string;
   locationId?: number;

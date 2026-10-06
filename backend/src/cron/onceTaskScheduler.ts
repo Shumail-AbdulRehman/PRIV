@@ -1,3 +1,4 @@
+import { generateTaskInstances } from "../services/verification-v2/inventorySnapshot.service.js";
 import cron from "node-cron";
 import { prisma } from "../prisma/prisma.js";
 import { resolveTaskInstanceWindow } from "./taskInstanceWindow.js";
@@ -5,13 +6,13 @@ import { getZonedDayRange } from "../utils/dateTime.js";
 import { ensureAssignmentsForToday } from "../services/taskAssignment.service.js";
 
 
-cron.schedule("3-59/15 * * * *",async()=>
+export async function runOnceTaskScheduler(now = new Date())
 {
     try {
 
     console.log("Generating Once task instances...");
 
-    const now = new Date();
+
 
         const onceTemplates = await prisma.taskTemplate.findMany({
       where: {
@@ -37,7 +38,7 @@ cron.schedule("3-59/15 * * * *",async()=>
     });
 
     const instancesToCreate = [];
-    const instanceDateByTemplateId = new Map<number, Date>();
+
 
     for (const template of onceTemplates) {
       const timeZone = template.location.timezone;
@@ -56,6 +57,7 @@ cron.schedule("3-59/15 * * * *",async()=>
 
       instancesToCreate.push({
           templateId: template.id,
+          baseDate: localToday,
           title: template.title,
           date,
           shiftStart,
@@ -65,63 +67,21 @@ cron.schedule("3-59/15 * * * *",async()=>
           referenceImageUrl: template.referenceImageUrl
       });
 
-      instanceDateByTemplateId.set(template.id, date);
+
     }
 
     const { count: created } = instancesToCreate.length
-      ? await prisma.taskInstance.createMany({
-          data: instancesToCreate,
-          skipDuplicates: true,
-        })
+      ? await generateTaskInstances(instancesToCreate)
       : { count: 0 };
 
     console.log(`Once Task instances created: ${created}`);
 
-    if (created > 0) {
-      const instanceWhereConditions = Array.from(instanceDateByTemplateId.entries()).map(
-        ([templateId, date]) => ({ templateId, date })
-      );
-
-      const createdInstances = await prisma.taskInstance.findMany({
-        where: {
-          OR: instanceWhereConditions,
-        },
-        select: {
-          id: true,
-          templateId: true,
-          referenceImages: { select: { id: true } },
-        },
-      });
-
-      const templateReferenceMap = new Map(
-        onceTemplates.map((t) => [t.id, t.referenceImages ?? []])
-      );
-
-      const referenceImagesToCreate = createdInstances
-        .filter((instance) => instance.referenceImages.length === 0)
-        .flatMap((instance) => {
-          const refs = templateReferenceMap.get(instance.templateId ?? -1) ?? [];
-          return refs.map((ref, index) => ({
-            taskInstanceId: instance.id,
-            name: ref.name,
-            imageUrl: ref.imageUrl,
-            sortOrder: index,
-          }));
-        });
-
-      if (referenceImagesToCreate.length) {
-        await prisma.taskInstanceReferenceImage.createMany({
-          data: referenceImagesToCreate,
-          skipDuplicates: true,
-        });
-        console.log(`Once task instance reference images created: ${referenceImagesToCreate.length}`);
-      }
-    }
-
     const ensuredAssignments = await ensureAssignmentsForToday();
     console.log(`Once task assignments ensured: ${ensuredAssignments}`);
-        
+
     } catch (error) {
          console.error("Once Task scheduler cron error:", error);
     }
-})
+}
+
+if (process.env.NODE_ENV !== "test") cron.schedule("3-59/15 * * * *",()=>runOnceTaskScheduler());

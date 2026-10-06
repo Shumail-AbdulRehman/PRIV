@@ -1,0 +1,222 @@
+git status --short --untracked-files=all
+
+ M .env.deploy.example
+ M .env.example
+ M .gitignore
+ M backend/.gitignore
+ M backend/package-lock.json
+ M backend/package.json
+ M backend/prisma/schema.prisma
+ M backend/src/app.ts
+ M backend/src/controllers/assignment.controller.ts
+ M backend/src/controllers/taskInstance.controller.ts
+ M backend/src/controllers/taskTemplate.controller.ts
+ M backend/src/cron/dailyTaskScheduler.ts
+ M backend/src/cron/onceTaskScheduler.ts
+ M backend/src/cron/startupCron.ts
+ M backend/src/cron/taskStatusCron.ts
+ M backend/src/middlewares/auth.middleware.ts
+ M backend/src/routes/taskInstance.route.ts
+ M backend/src/routes/taskTemplate.route.ts
+ M backend/src/services/auditLog.service.ts
+ M backend/src/services/deletedMedia.service.test.ts
+ M backend/src/services/deletedMedia.service.ts
+ M backend/src/services/deletion.service.ts
+ M backend/src/services/taskAssignment.service.ts
+ M docker-compose.deploy.yml
+ M docker-compose.yml
+ M frontend-mobile/App.tsx
+ M frontend-mobile/app.json
+ M frontend-mobile/package-lock.json
+ M frontend-mobile/package.json
+ M frontend-mobile/src/api/client.ts
+ M frontend-mobile/src/auth/AuthContext.tsx
+ M frontend/src/components/common/DeleteButton.tsx
+ M frontend/src/lib/invalidateWorkspace.ts
+ M frontend/src/main.tsx
+ M frontend/src/pages/Location/LocationDetailPage.tsx
+ M frontend/src/pages/Location/components/LocationTemplatesTab.tsx
+ M frontend/src/pages/Location/types.ts
+ M frontend/src/pages/Task/api.ts
+ M frontend/src/pages/Task/components/TaskScheduleWizard.tsx
+ M frontend/src/pages/Task/taskScheduleForm.ts
+ M frontend/src/pages/Task/types.ts
+?? backend/.env.verification.example
+?? backend/prisma/migrations/202610040001_inventory_verification/migration.sql
+?? backend/prisma/migrations/202610040002_verification_foundation_constraints/migration.sql
+?? backend/prisma/migrations/202610040003_verification_history_bindings/migration.sql
+?? backend/prisma/migrations/202610060001_verification_lifecycle/migration.sql
+?? backend/prisma/migrations/202610060002_verification_followup/migration.sql
+?? backend/scripts/verificationBackfill.ts
+?? backend/scripts/verificationEvaluatorBenchmark.ts
+?? backend/scripts/verificationMigrationReport.ts
+?? backend/src/controllers/area.controller.ts
+?? backend/src/controllers/legacyVerification.characterization.test.ts
+?? backend/src/cron/taskInstanceWindow.test.ts
+?? backend/src/middlewares/auth.middleware.test.ts
+?? backend/src/routes/area.route.ts
+?? backend/src/routes/evidence.route.ts
+?? backend/src/routes/verification.route.ts
+?? backend/src/routes/verificationException.route.ts
+?? backend/src/services/area.service.ts
+?? backend/src/services/verification-v2/authorization.service.test.ts
+?? backend/src/services/verification-v2/authorization.service.ts
+?? backend/src/services/verification-v2/captureSession.presence.test.ts
+?? backend/src/services/verification-v2/captureSession.security.test.ts
+?? backend/src/services/verification-v2/captureSession.service.ts
+?? backend/src/services/verification-v2/cleanliness.service.ts
+?? backend/src/services/verification-v2/completion.lifecycle.test.ts
+?? backend/src/services/verification-v2/completion.service.ts
+?? backend/src/services/verification-v2/contracts.test.ts
+?? backend/src/services/verification-v2/contracts.ts
+?? backend/src/services/verification-v2/coverage.service.ts
+?? backend/src/services/verification-v2/deadline.service.ts
+?? backend/src/services/verification-v2/duplicate.service.ts
+?? backend/src/services/verification-v2/evaluatorBenchmark.test.ts
+?? backend/src/services/verification-v2/evaluatorBenchmark.ts
+?? backend/src/services/verification-v2/evaluators.test.ts
+?? backend/src/services/verification-v2/evidence.service.ts
+?? backend/src/services/verification-v2/exception.service.ts
+?? backend/src/services/verification-v2/inventoryPresets.test.ts
+?? backend/src/services/verification-v2/inventoryPresets.ts
+?? backend/src/services/verification-v2/inventorySnapshot.service.ts
+?? backend/src/services/verification-v2/jobQueue.service.ts
+?? backend/src/services/verification-v2/media.service.test.ts
+?? backend/src/services/verification-v2/media.service.ts
+?? backend/src/services/verification-v2/pipeline.persistence.test.ts
+?? backend/src/services/verification-v2/pipeline.service.ts
+?? backend/src/services/verification-v2/presence.service.ts
+?? backend/src/services/verification-v2/provider.contract.test.ts
+?? backend/src/services/verification-v2/provider.service.ts
+?? backend/src/services/verification-v2/qr.service.test.ts
+?? backend/src/services/verification-v2/qr.service.ts
+?? backend/src/services/verification-v2/quality.service.test.ts
+?? backend/src/services/verification-v2/quality.service.ts
+?? backend/src/services/verification-v2/retention.service.test.ts
+?? backend/src/services/verification-v2/retention.service.ts
+?? backend/src/services/verification-v2/rubrics.ts
+?? backend/src/services/verification-v2/standardPrivacy.service.ts
+?? backend/src/services/verification-v2/verificationPolicy.service.test.ts
+?? backend/src/services/verification-v2/verificationPolicy.service.ts
+?? backend/src/validations/area.validation.ts
+?? backend/src/workers/verificationWorker.ts
+?? backend/tests/verification.integration.ts
+?? backend/tests/verification.lifecycle.integration.ts
+?? backend/tests/verification.lifecycle.report.txt
+?? backend/vitest.config.ts
+?? docs/verification/IMPLEMENTATION_1_8.md
+?? docs/verification/IMPLEMENTATION_9_14.md
+?? docs/verification/evaluator-benchmark-report.json
+?? docs/verification/evaluator-benchmark.md
+?? docs/verification/git-status-9-14.txt
+?? frontend-mobile/modules/capture-quality/android/build.gradle
+?? frontend-mobile/modules/capture-quality/android/src/main/java/expo/modules/capturequality/CaptureQualityModule.kt
+?? frontend-mobile/modules/capture-quality/expo-module.config.json
+?? frontend-mobile/modules/capture-quality/index.ts
+?? frontend-mobile/modules/capture-quality/ios/CaptureQuality.podspec
+?? frontend-mobile/modules/capture-quality/ios/CaptureQualityModule.swift
+?? frontend-mobile/modules/capture-quality/package.json
+?? frontend-mobile/src/verification/VerificationSync.tsx
+?? frontend-mobile/src/verification/api.ts
+?? frontend-mobile/src/verification/policy.ts
+?? frontend-mobile/src/verification/queue.ts
+?? frontend-mobile/src/verification/queue.web.ts
+?? frontend-mobile/src/verification/sync.ts
+?? frontend-mobile/src/verification/types.ts
+?? frontend/src/pages/Area/AreaDetailPage.tsx
+?? frontend/src/pages/Area/AreaSetupPage.tsx
+?? frontend/src/pages/Area/InventorySelector.tsx
+?? frontend/src/pages/Area/LocationAreasTab.tsx
+?? frontend/src/pages/Area/MigrationSetup.tsx
+?? frontend/src/pages/Area/StandardPhotoPreview.tsx
+?? frontend/src/pages/Area/TemplateInventoryEditor.tsx
+?? frontend/src/pages/Area/api.ts
+?? frontend/src/pages/Area/queries.ts
+?? frontend/src/pages/Area/standardPrivacy.ts
+?? frontend/src/pages/Area/types.ts
+?? frontend/src/pages/Exceptions/api.ts
+?? frontend/src/pages/Exceptions/queries.ts
+?? frontend/src/pages/Exceptions/types.ts
+?? frontend/src/pages/Verification/ProtectedEvidence.tsx
+?? frontend/src/pages/Verification/api.ts
+?? frontend/src/pages/Verification/presentation.ts
+?? frontend/src/pages/Verification/types.ts
+?? frontend/tests/areaSetup.test.mjs
+?? frontend/tests/inventoryVerification.test.mjs
+?? frontend/tests/standardPrivacy.test.mjs
+
+git status --short
+
+ M .env.deploy.example
+ M .env.example
+ M .gitignore
+ M backend/.gitignore
+ M backend/package-lock.json
+ M backend/package.json
+ M backend/prisma/schema.prisma
+ M backend/src/app.ts
+ M backend/src/controllers/assignment.controller.ts
+ M backend/src/controllers/taskInstance.controller.ts
+ M backend/src/controllers/taskTemplate.controller.ts
+ M backend/src/cron/dailyTaskScheduler.ts
+ M backend/src/cron/onceTaskScheduler.ts
+ M backend/src/cron/startupCron.ts
+ M backend/src/cron/taskStatusCron.ts
+ M backend/src/middlewares/auth.middleware.ts
+ M backend/src/routes/taskInstance.route.ts
+ M backend/src/routes/taskTemplate.route.ts
+ M backend/src/services/auditLog.service.ts
+ M backend/src/services/deletedMedia.service.test.ts
+ M backend/src/services/deletedMedia.service.ts
+ M backend/src/services/deletion.service.ts
+ M backend/src/services/taskAssignment.service.ts
+ M docker-compose.deploy.yml
+ M docker-compose.yml
+ M frontend-mobile/App.tsx
+ M frontend-mobile/app.json
+ M frontend-mobile/package-lock.json
+ M frontend-mobile/package.json
+ M frontend-mobile/src/api/client.ts
+ M frontend-mobile/src/auth/AuthContext.tsx
+ M frontend/src/components/common/DeleteButton.tsx
+ M frontend/src/lib/invalidateWorkspace.ts
+ M frontend/src/main.tsx
+ M frontend/src/pages/Location/LocationDetailPage.tsx
+ M frontend/src/pages/Location/components/LocationTemplatesTab.tsx
+ M frontend/src/pages/Location/types.ts
+ M frontend/src/pages/Task/api.ts
+ M frontend/src/pages/Task/components/TaskScheduleWizard.tsx
+ M frontend/src/pages/Task/taskScheduleForm.ts
+ M frontend/src/pages/Task/types.ts
+?? backend/.env.verification.example
+?? backend/prisma/migrations/202610040001_inventory_verification/
+?? backend/prisma/migrations/202610040002_verification_foundation_constraints/
+?? backend/prisma/migrations/202610040003_verification_history_bindings/
+?? backend/prisma/migrations/202610060001_verification_lifecycle/
+?? backend/prisma/migrations/202610060002_verification_followup/
+?? backend/scripts/
+?? backend/src/controllers/area.controller.ts
+?? backend/src/controllers/legacyVerification.characterization.test.ts
+?? backend/src/cron/taskInstanceWindow.test.ts
+?? backend/src/middlewares/auth.middleware.test.ts
+?? backend/src/routes/area.route.ts
+?? backend/src/routes/evidence.route.ts
+?? backend/src/routes/verification.route.ts
+?? backend/src/routes/verificationException.route.ts
+?? backend/src/services/area.service.ts
+?? backend/src/services/verification-v2/
+?? backend/src/validations/area.validation.ts
+?? backend/src/workers/
+?? backend/tests/verification.integration.ts
+?? backend/tests/verification.lifecycle.integration.ts
+?? backend/tests/verification.lifecycle.report.txt
+?? backend/vitest.config.ts
+?? docs/verification/
+?? frontend-mobile/modules/
+?? frontend-mobile/src/verification/
+?? frontend/src/pages/Area/
+?? frontend/src/pages/Exceptions/
+?? frontend/src/pages/Verification/
+?? frontend/tests/areaSetup.test.mjs
+?? frontend/tests/inventoryVerification.test.mjs
+?? frontend/tests/standardPrivacy.test.mjs

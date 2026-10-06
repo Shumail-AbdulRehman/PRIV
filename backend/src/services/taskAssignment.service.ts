@@ -271,6 +271,10 @@ const ensureAssignmentForTask = async (task: TaskForAssignment, reason: string) 
 
   try {
     return await prisma.$transaction(async (tx) => {
+      await tx.$queryRaw`SELECT id FROM "TaskInstance" WHERE id=${task.id} FOR UPDATE`;
+      const fresh=await getTaskWithCompany(task.id,tx as DbClient);
+      if(!fresh||!isTaskAssignable(fresh)||fresh.staffId!==task.staffId)return null;
+      if(!await tx.staff.findFirst({where:{id:staffId,isActive:true,locationId:fresh.locationId,companyId:fresh.location.companyId}}))return null;
       const current = await getCurrentAssignment(task.id, tx as DbClient);
       if (current) {
         return current;
@@ -398,6 +402,7 @@ export const markCurrentAssignmentCompleted = async (
   await client.taskAssignment.updateMany({
     where: {
       taskInstanceId,
+      taskInstance: { OR: [{verificationVersion:1},{verificationVersion:2,status:"COMPLETED"}] },
       staffId,
       isCurrent: true,
       status: { in: ["ASSIGNED", "STARTED"] },
@@ -482,7 +487,8 @@ export const reassignExpiredAssignments = async (graceMinutes: number) => {
 
     if (hasReachedLimit) {
       await prisma.$transaction(async (tx) => {
-        const stillCurrent = await tx.taskAssignment.findFirst({
+        await tx.$queryRaw`SELECT id FROM "TaskInstance" WHERE id=${task.id} FOR UPDATE`;
+      const stillCurrent = await tx.taskAssignment.findFirst({
           where: {
             id: assignment.id,
             isCurrent: true,
@@ -537,6 +543,7 @@ export const reassignExpiredAssignments = async (graceMinutes: number) => {
     });
 
     await prisma.$transaction(async (tx) => {
+      await tx.$queryRaw`SELECT id FROM "TaskInstance" WHERE id=${task.id} FOR UPDATE`;
       const stillCurrent = await tx.taskAssignment.findFirst({
         where: {
           id: assignment.id,

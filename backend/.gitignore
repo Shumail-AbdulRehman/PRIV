@@ -22,3 +22,6 @@ tsconfig.tsbuildinfo
 # OS files
 .DS_Store
 Thumbs.db
+
+# Nonsecret inventory verification environment template
+!.env.verification.example

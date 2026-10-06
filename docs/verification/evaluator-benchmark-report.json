@@ -1,0 +1,24 @@
+{
+  "status": "DATASET_UNAVAILABLE",
+  "autoPassEnabled": false,
+  "configuration": null,
+  "overall": {
+    "examples": 0,
+    "dirty": 0,
+    "wrongOrReplayed": 0,
+    "falseClean": 0,
+    "wrongAutoPasses": 0,
+    "falseClean95": null,
+    "wrongAutoPass95": null,
+    "serviceFailures": 0,
+    "targetMet": false
+  },
+  "perFixture": {},
+  "meanLatencyMs": null,
+  "measuredCostUsd": null,
+  "limitations": [
+    "Independent human labels and consent are required.",
+    "95% Wilson intervals express sampling uncertainty.",
+    "Meeting targets does not enable auto-pass; sparse types remain review-required."
+  ]
+}

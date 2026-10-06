@@ -1,3 +1,6 @@
+import TemplateInventoryEditor from "@/pages/Area/TemplateInventoryEditor";
+import { useAreas } from "@/pages/Area/queries";
+import { Link } from "react-router-dom";
 import { useState } from "react";
 import { QRCodeSVG } from "qrcode.react";
 import { formatInTimeZone } from "date-fns-tz";
@@ -43,6 +46,7 @@ export default function LocationTemplatesTab({
   timeZone: string;
   locationName: string;
 }) {
+  const areasQuery = useAreas(locationId);
   const deleteTemplate = useDeleteTaskTemplate();
   const editTemplate = useEditTaskTemplate();
   const assignStaff = useAssignStaffToTemplate();
@@ -231,6 +235,8 @@ export default function LocationTemplatesTab({
                 <h3 className="text-sm font-semibold text-gray-900 truncate">
                   {t.title}
                 </h3>
+                {t.areaId && <Link className="text-xs text-primary underline" to={`/areas/${t.areaId}`}>{t.area?.name ?? areasQuery.data?.find(area=>area.id===t.areaId)?.name ?? `Area ${t.areaId}`} · {t.inventorySelection === 'SUBSET' ? 'Selected fixtures' : 'All active fixtures'}</Link>}
+                {t.setupStatus === 'NEEDS_REVIEW' && <Link className="block text-xs text-amber-800 underline" to={`/locations/${locationId}?tab=areas`}>Inventory needs review</Link>}
                 {t.description && (
                   <p className="mt-0.5 text-xs text-gray-400 line-clamp-2">
                     {t.description}
@@ -328,7 +334,7 @@ export default function LocationTemplatesTab({
               </div>
             </div>
 
-            {t.qrToken && (
+            {t.verificationVersion !== 2 && t.qrToken && (
               <div className="mt-3 border-t border-gray-100 pt-3">
                 <p className="text-[10px] font-semibold uppercase tracking-wider text-gray-400 mb-2">
                   QR Code
@@ -459,6 +465,8 @@ export default function LocationTemplatesTab({
                   min={todayDate}
                 />
               </div>
+
+              {editingTemplate.areaId && <TemplateInventoryEditor key={editingTemplate.id} templateId={editingTemplate.id} areaId={editingTemplate.areaId}/>}
 
               {editError && (
                 <div className="rounded-lg border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-600">

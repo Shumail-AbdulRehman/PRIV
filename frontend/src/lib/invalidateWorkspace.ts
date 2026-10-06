@@ -11,6 +11,7 @@ const workspaceKeys = new Set([
   "attendance",
   "subscription",
   "area-submissions",
+  "area-migration", "areas", "area", "area-qr", "area-labels", "area-standards", "verification", "verification-exceptions",
 ]);
 export async function invalidateWorkspace(client: QueryClient) {
   await client.invalidateQueries({

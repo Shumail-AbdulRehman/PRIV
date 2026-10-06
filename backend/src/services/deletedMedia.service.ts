@@ -27,7 +27,10 @@ export function cloudinaryPublicId(
 
 // A template's photo may also be used by retained task snapshots.
 async function isReferenced(url: string) {
+  const publicId = cloudinaryPublicId(url);
+  if (publicId?.startsWith("verification/")) return true;
   const refs = await Promise.all([
+    ...(publicId ? [prisma.evidenceAsset.count({ where: { OR: [{ originalPublicId: publicId }, { sanitizedPublicId: publicId }] } })] : []),
     prisma.taskTemplate.count({ where: { referenceImageUrl: url } }),
     prisma.taskTemplateReferenceImage.count({ where: { imageUrl: url } }),
     prisma.taskInstance.count({

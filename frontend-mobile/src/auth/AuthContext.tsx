@@ -6,6 +6,9 @@ import {
   useRef,
   useState,
 } from "react";
+import { Platform } from "react-native";
+import * as SecureStore from "expo-secure-store";
+import { unlockQueue, lockQueue } from "../verification/queue";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import { useQueryClient } from "@tanstack/react-query";
 import { client, configureApiAuth } from "../api/client";
@@ -31,10 +34,15 @@ const AuthContext = createContext<AuthContextValue | null>(null);
 const persistSession = async (session: AuthSession) => {
   if (!session.user || !session.accessToken || !session.refreshToken) {
     await AsyncStorage.removeItem(STORAGE_KEY);
+    if (Platform.OS !== "web") await SecureStore.deleteItemAsync(STORAGE_KEY);
     return;
   }
 
-  await AsyncStorage.setItem(STORAGE_KEY, JSON.stringify(session));
+  if (Platform.OS === "web") await AsyncStorage.setItem(STORAGE_KEY, JSON.stringify(session));
+  else {
+    await SecureStore.setItemAsync(STORAGE_KEY, JSON.stringify(session), { keychainAccessible: SecureStore.WHEN_UNLOCKED_THIS_DEVICE_ONLY });
+    await AsyncStorage.removeItem(STORAGE_KEY);
+  }
 };
 
 export function AuthProvider({ children }: PropsWithChildren) {
@@ -50,6 +58,7 @@ export function AuthProvider({ children }: PropsWithChildren) {
   };
 
   const clearSession = async () => {
+    await lockQueue();
     await applySession(emptySession);
     queryClient.clear();
   };
@@ -83,7 +92,8 @@ export function AuthProvider({ children }: PropsWithChildren) {
 
     void (async () => {
       try {
-        const storedSession = await AsyncStorage.getItem(STORAGE_KEY);
+        const legacy = await AsyncStorage.getItem(STORAGE_KEY);
+        const storedSession = Platform.OS === "web" ? legacy : (await SecureStore.getItemAsync(STORAGE_KEY)) ?? legacy;
 
         if (!storedSession) {
           setIsBootstrapping(false);
@@ -93,12 +103,18 @@ export function AuthProvider({ children }: PropsWithChildren) {
         const parsed = JSON.parse(storedSession) as AuthSession;
         sessionRef.current = parsed;
         setSession(parsed);
+        await persistSession(parsed);
+        if (Platform.OS !== "web" && parsed.user) {
+          try { await unlockQueue(parsed.user); } catch { /* Camera flow explains unsupported native build. */ }
+        }
 
         if (parsed.accessToken) {
           await refreshCurrentUser();
         }
-      } catch {
-        await clearSession();
+      } catch (error) {
+        const status = (error as { response?: { status?: number } }).response?.status;
+        // A disconnected phone retains its account and already-issued capture sessions.
+        if (status === 401 || status === 403 || error instanceof SyntaxError) await clearSession();
       } finally {
         setIsBootstrapping(false);
       }
@@ -126,6 +142,9 @@ export function AuthProvider({ children }: PropsWithChildren) {
       refreshToken,
     });
 
+    if (Platform.OS !== "web") {
+      try { await unlockQueue(user); } catch { /* Native build required for encrypted evidence. */ }
+    }
     await queryClient.invalidateQueries({ queryKey: ["staff"] });
   };
 

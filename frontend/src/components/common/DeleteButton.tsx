@@ -1,3 +1,5 @@
+import { useQueryClient } from "@tanstack/react-query";
+import { client } from "@/api/client";
 import { useState } from "react";
 import { Trash2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
@@ -19,6 +21,8 @@ export default function DeleteButton({
   description: string;
   onDelete: () => Promise<unknown>;
 }) {
+  const queryClient = useQueryClient();
+  const [archivePath, setArchivePath] = useState("");
   const [open, setOpen] = useState(false);
   const [pending, setPending] = useState(false);
   const [error, setError] = useState("");
@@ -26,10 +30,19 @@ export default function DeleteButton({
     setPending(true);
     setError("");
     try {
-      await onDelete();
+      if (archivePath) {
+        await client.post(archivePath);
+        await queryClient.invalidateQueries();
+      } else {
+        await onDelete();
+      }
       setOpen(false);
     } catch (cause) {
-      const failure = cause as { response?: { data?: { message?: string } } };
+      const failure = cause as { response?: { data?: { message?: string; errors?: Array<{code?: string; archivePath?: string}> } } };
+      const retained = failure.response?.data?.errors?.find(item => item.code === "EVIDENCE_RETAINED");
+      if (retained?.archivePath && /^\/(location|staff|manager|task-template)\/[1-9]\d*\/archive$/.test(retained.archivePath)) {
+        setArchivePath(retained.archivePath);
+      }
       setError(
         failure.response?.data?.message ||
           "Could not delete this record. Please try again.",
@@ -49,6 +62,7 @@ export default function DeleteButton({
           if (!pending) {
             setOpen(value);
             setError("");
+            setArchivePath("");
           }
         }}
       >
@@ -68,10 +82,9 @@ export default function DeleteButton({
               ?.focus();
           }}
         >
-          <DialogTitle>Delete {name}?</DialogTitle>
+          <DialogTitle>{archivePath ? "Archive" : "Delete"} {name}?</DialogTitle>
           <DialogDescription>
-            {description} This permanently deletes the records and cannot be
-            undone.
+            {archivePath ? "Archiving keeps verification history and evidence. This record will become inactive." : `${description} This permanently deletes the records and cannot be undone.`}
           </DialogDescription>
           {error && (
             <p role="alert" className="text-sm text-destructive">
@@ -88,7 +101,7 @@ export default function DeleteButton({
               Cancel
             </Button>
             <Button variant="destructive" disabled={pending} onClick={remove}>
-              {pending ? "Deleting…" : "Delete permanently"}
+              {pending ? (archivePath ? "Archiving…" : "Deleting…") : (archivePath ? "Archive and preserve history" : "Delete permanently")}
             </Button>
           </DialogFooter>
         </DialogContent>

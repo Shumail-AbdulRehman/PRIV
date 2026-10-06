@@ -17,6 +17,9 @@ export interface TemplateCreateForm {
   effectiveDate: string;
   recurringEndDate: string;
   referenceImages: ReferenceImageFormItem[];
+  areaId: string;
+  inventorySelection: "ALL" | "SUBSET";
+  selectedItems: Array<{areaItemId:number; mandatory:boolean}>;
 }
 
 export const toDateStr = (d: Date) =>
@@ -30,6 +33,9 @@ export const createEmptyReferenceItem = (): ReferenceImageFormItem => ({
 });
 
 export const blankCreateForm = (initial = false): TemplateCreateForm => ({
+  areaId: "",
+  inventorySelection: "ALL",
+  selectedItems: [],
   title: "",
   description: "",
   staffId: "",
@@ -55,14 +61,19 @@ export const buildEffectiveDate = (dateValue: string) => {
 
 export type ScheduleStep = 0 | 1 | 2 | 3;
 
-export function validateScheduleStep(form: TemplateCreateForm, step: ScheduleStep, limit?: number): string | null {
+export function validateScheduleStep(form: TemplateCreateForm, step: ScheduleStep, legacyReferenceLimit?: number): string | null {
   if (step === 0) {
     if (!form.title.trim()) return "Add a task title.";
-    if (!form.referenceImages.length) return "Add at least one named reference photo.";
-    if (limit && form.referenceImages.length > limit) return `Your plan allows up to ${limit} reference photos per task.`;
-    if (form.referenceImages.some((ref) => !ref.name.trim() || !ref.file)) return "Give every reference area both a name and a photo.";
-    const names = form.referenceImages.map((ref) => ref.name.trim());
-    if (new Set(names).size !== names.length) return "Reference area names must be unique.";
+    if (legacyReferenceLimit !== undefined) {
+      if (!form.referenceImages.length) return "Add at least one named reference photo.";
+      if (form.referenceImages.length > legacyReferenceLimit) return `Your plan allows up to ${legacyReferenceLimit} reference photos per task.`;
+      if (form.referenceImages.some(ref => !ref.name.trim() || !ref.file)) return "Give every reference area both a name and a photo.";
+      const names = form.referenceImages.map(ref => ref.name.trim());
+      return new Set(names).size === names.length ? null : "Reference area names must be unique.";
+    }
+    if (!form.areaId || !Number.isSafeInteger(Number(form.areaId)) || Number(form.areaId) < 1) return "Choose one area.";
+    if (form.inventorySelection === "SUBSET" && !form.selectedItems.some(item => item.mandatory)) return "Choose at least one mandatory item.";
+    if (new Set(form.selectedItems.map(item => item.areaItemId)).size !== form.selectedItems.length) return "An inventory item can only be selected once.";
   }
   if (step === 2) {
     if (!/^\d{4}-\d{2}-\d{2}$/.test(form.effectiveDate) || !form.shiftStart || !form.shiftEnd) return "Choose a date, start time, and end time.";

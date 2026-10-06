@@ -1,16 +1,19 @@
-import { useEffect, useRef, useState } from "react";
+import { useRef, useState } from "react";
 import { formatInTimeZone } from "date-fns-tz";
 import { useQueryClient } from "@tanstack/react-query";
-import { Plus, ArrowLeft, ArrowRight } from "lucide-react";
+import { ArrowLeft, ArrowRight } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from "@/components/ui/dialog";
-import { useSubscription } from "@/pages/Subscription/queries";
+import { useAreas } from "@/pages/Area/queries";
+import InventorySelector from "@/pages/Area/InventorySelector";
+import { inventorySummary, validateInventorySelection } from "@/pages/Area/types";
+import { Link } from "react-router-dom";
 import { createTaskTemplate, getTaskTemplate } from "@/pages/Task/api";
 import { assignStaffToTaskTemplate } from "@/pages/Assignment/api";
 import { invalidateWorkspace } from "@/lib/invalidateWorkspace";
-import { blankCreateForm, buildDateTimeIso, buildEffectiveDate, createEmptyReferenceItem, validateScheduleStep, type ScheduleStep, type TemplateCreateForm } from "@/pages/Task/taskScheduleForm";
+import { blankCreateForm, buildDateTimeIso, buildEffectiveDate, validateScheduleStep, type ScheduleStep, type TemplateCreateForm } from "@/pages/Task/taskScheduleForm";
 import type { LocationStaff } from "@/pages/Location/types";
 
 export type CreatedSchedule = {
@@ -42,8 +45,8 @@ function errorDetails(error: unknown): { message: string; field?: string } {
 
 export default function TaskScheduleWizard({ locationId, locationName, timeZone, staffOptions, open, onOpenChange, onCreated }: Props) {
   const qc = useQueryClient();
-  const subscription = useSubscription();
-  const photoLimit = subscription.data?.plan.limits.referenceImagesPerTask;
+  const areasQuery = useAreas(locationId);
+  const areas = areasQuery.data?.filter(area => area.status === "ACTIVE") ?? [];
   const [form, setForm] = useState<TemplateCreateForm>(() => blankCreateForm(true));
   const [step, setStep] = useState<ScheduleStep>(0);
   const [phase, setPhase] = useState<Phase>("editing");
@@ -51,20 +54,14 @@ export default function TaskScheduleWizard({ locationId, locationName, timeZone,
   const savedId = useRef<number | null>(null);
   const inFlight = useRef(false);
   const assignmentInFlight = useRef(false);
-  const previewUrls = useRef(new Set<string>());
   const firstField = useRef<HTMLInputElement | null>(null);
   const siteToday = formatInTimeZone(new Date(), timeZone, "yyyy-MM-dd");
   const busy = phase === "creating" || phase === "assigning";
+  const chosenArea = areas.find(area => String(area.id) === form.areaId);
+  const summary = chosenArea && inventorySummary(chosenArea, form.inventorySelection, form.selectedItems);
   const chosenStaff = staffOptions.find((staff) => String(staff.id) === form.staffId);
 
-  useEffect(() => () => {
-    for (const url of previewUrls.current) URL.revokeObjectURL(url);
-    previewUrls.current.clear();
-  }, []);
-
   const reset = () => {
-    for (const url of previewUrls.current) URL.revokeObjectURL(url);
-    previewUrls.current.clear();
     setForm(blankCreateForm());
     setStep(0);
     setPhase("editing");
@@ -82,7 +79,7 @@ export default function TaskScheduleWizard({ locationId, locationName, timeZone,
 
   const focusFirst = () => requestAnimationFrame(() => firstField.current?.focus());
   const validate = (which: ScheduleStep) => {
-    const problem = validateScheduleStep(form, which, photoLimit);
+    const problem = validateScheduleStep(form, which) ?? (which === 0 ? chosenArea ? validateInventorySelection(chosenArea, form.inventorySelection, form.selectedItems) : "Choose an active area from the latest inventory." : null);
     if (problem) {
       setError(problem);
       setStep(which);
@@ -155,7 +152,10 @@ export default function TaskScheduleWizard({ locationId, locationName, timeZone,
         recurringType: form.recurringType,
         effectiveDate: buildEffectiveDate(form.effectiveDate),
         recurringEndDate: form.recurringType === "DAILY" && form.recurringEndDate ? buildEffectiveDate(form.recurringEndDate) : undefined,
-        referenceImages: form.referenceImages.map((ref) => ({ file: ref.file!, name: ref.name.trim() })),
+        areaId: Number(form.areaId),
+        inventorySelection: form.inventorySelection,
+        selectedItems: form.selectedItems,
+        expectedInventoryVersion: chosenArea!.inventoryVersion,
       });
       const id = Number(created?.data?.id);
       if (!Number.isSafeInteger(id) || id <= 0) throw new Error("The server did not return a schedule ID. Check the schedule list before trying again.");
@@ -170,8 +170,13 @@ export default function TaskScheduleWizard({ locationId, locationName, timeZone,
         if (definitive) {
           setPhase("editing");
           setError(detail.message);
+          if ((err as {response?: {status?: number}}).response?.status === 409) {
+            await areasQuery.refetch();
+            setStep(0);
+            setError(`${detail.message} Inventory refreshed. Review the selected fixtures before retrying. Your draft is preserved.`);
+          }
           const field = detail.field ?? "";
-          if (/reference|title|description/.test(field)) setStep(0);
+          if (/area|inventory|selected|title|description/.test(field)) setStep(0);
           else if (/staff/.test(field)) setStep(1);
           else if (/shift|date|recurr/.test(field)) setStep(2);
         } else {
@@ -182,22 +187,6 @@ export default function TaskScheduleWizard({ locationId, locationName, timeZone,
     } finally {
       inFlight.current = false;
     }
-  };
-
-  const updateRef = (id: string, patch: Partial<TemplateCreateForm["referenceImages"][number]>) => {
-    setForm((previous) => ({ ...previous, referenceImages: previous.referenceImages.map((ref) => ref.id === id ? { ...ref, ...patch } : ref) }));
-  };
-  const setFile = (id: string, file: File | null) => {
-    const old = form.referenceImages.find((ref) => ref.id === id)?.previewUrl;
-    if (old) { URL.revokeObjectURL(old); previewUrls.current.delete(old); }
-    const previewUrl = file ? URL.createObjectURL(file) : null;
-    if (previewUrl) previewUrls.current.add(previewUrl);
-    updateRef(id, { file, previewUrl });
-  };
-  const removeRef = (id: string) => {
-    const old = form.referenceImages.find((ref) => ref.id === id)?.previewUrl;
-    if (old) { URL.revokeObjectURL(old); previewUrls.current.delete(old); }
-    setForm((previous) => ({ ...previous, referenceImages: previous.referenceImages.filter((ref) => ref.id !== id) }));
   };
 
   return (
@@ -224,13 +213,12 @@ export default function TaskScheduleWizard({ locationId, locationName, timeZone,
             {step === 0 && <div className="space-y-4">
               <div><label htmlFor="schedule-title" className={labelClass}>Task title</label><Input id="schedule-title" ref={firstField} value={form.title} onChange={(e) => setForm({ ...form, title: e.target.value })} placeholder="Clean the lobby" /></div>
               <div><label htmlFor="schedule-description" className={labelClass}>Instructions (optional)</label><Textarea id="schedule-description" value={form.description} onChange={(e) => setForm({ ...form, description: e.target.value })} placeholder="What should the team do?" /></div>
-              <div className="flex items-center justify-between gap-3"><div><p className={labelClass}>Reference areas</p><p className="text-xs text-muted-foreground">Each area needs a name and a photo for automatic verification.</p></div><Button type="button" variant="outline" size="sm" disabled={Boolean(photoLimit && form.referenceImages.length >= photoLimit)} onClick={() => setForm((previous) => ({ ...previous, referenceImages: [...previous.referenceImages, createEmptyReferenceItem()] }))}><Plus size={15} /> Add area</Button></div>
-              {form.referenceImages.map((ref, index) => <div key={ref.id} className="rounded-lg border border-border p-3">
-                <div className="flex items-center justify-between"><p className="text-xs font-medium">Area {index + 1}</p><Button type="button" variant="ghost" size="sm" onClick={() => removeRef(ref.id)}>Remove</Button></div>
-                <label htmlFor={`area-name-${ref.id}`} className={labelClass}>Area name</label><Input id={`area-name-${ref.id}`} value={ref.name} onChange={(e) => updateRef(ref.id, { name: e.target.value })} placeholder="Lobby floor" />
-                <label htmlFor={`area-file-${ref.id}`} className={`${labelClass} mt-3`}>Reference photo</label><Input id={`area-file-${ref.id}`} type="file" accept="image/*" onChange={(e) => setFile(ref.id, e.target.files?.[0] ?? null)} />
-                {ref.previewUrl && <img src={ref.previewUrl} alt={`Preview of ${ref.name || `area ${index + 1}`}`} className="mt-3 h-24 w-auto rounded-md object-cover" />}
-              </div>)}
+              <label className={labelClass} htmlFor="schedule-area">Area</label><select id="schedule-area" className={fieldClass} value={form.areaId} onChange={event => setForm({...form, areaId:event.target.value, selectedItems:[]})}><option value="">Choose one area</option>{areas.map(area => <option key={area.id} value={area.id}>{area.name}</option>)}</select>
+              {areasQuery.isPending && <p role="status" className="text-sm">Loading inventory…</p>}
+              {areasQuery.isError && <Button variant="outline" onClick={()=>void areasQuery.refetch()}>Retry loading areas</Button>}
+              {!areasQuery.isPending && !areas.length && <p className="text-sm">Set up and activate an area first. <Link to={`/locations/${locationId}/areas/new`} className="text-primary underline">Add area</Link></p>}
+              {chosenArea && <InventorySelector area={chosenArea} mode={form.inventorySelection} selected={form.selectedItems} onChange={(inventorySelection,selectedItems)=>setForm({...form,inventorySelection,selectedItems})}/>}
+
             </div>}
             {step === 1 && <div className="space-y-4"><p className="text-sm text-muted-foreground">Automatic assignment remains available. You can choose a specific person who works at this location.</p><label htmlFor="schedule-staff" className={labelClass}>Assign staff</label><select id="schedule-staff" className={fieldClass} value={form.staffId} onChange={(e) => setForm({ ...form, staffId: e.target.value })}><option value="">Use automatic assignment</option>{staffOptions.filter((staff) => staff.isActive).map((staff) => <option key={staff.id} value={staff.id}>{staff.name}</option>)}</select></div>}
             {step === 2 && <div className="grid gap-4 sm:grid-cols-2">
@@ -240,7 +228,7 @@ export default function TaskScheduleWizard({ locationId, locationName, timeZone,
               <div><label htmlFor="schedule-end" className={labelClass}>End time ({timeZone})</label><Input id="schedule-end" type="time" value={form.shiftEnd} onChange={(e) => setForm({ ...form, shiftEnd: e.target.value })} /></div>
               {form.recurringType === "DAILY" && <div className="sm:col-span-2"><label htmlFor="schedule-repeat-end" className={labelClass}>Repeat until (optional)</label><Input id="schedule-repeat-end" type="date" min={form.effectiveDate} value={form.recurringEndDate} onChange={(e) => setForm({ ...form, recurringEndDate: e.target.value })} /></div>}
             </div>}
-            {step === 3 && <dl className="grid grid-cols-[auto_1fr] gap-x-6 gap-y-3 text-sm"><dt className="text-muted-foreground">Task</dt><dd>{form.title.trim()}</dd><dt className="text-muted-foreground">Location</dt><dd>{locationName}</dd><dt className="text-muted-foreground">Reference areas</dt><dd>{form.referenceImages.map((ref) => ref.name.trim()).join(", ")}</dd><dt className="text-muted-foreground">Team</dt><dd>{chosenStaff?.name ?? "Use automatic assignment"}</dd><dt className="text-muted-foreground">Schedule</dt><dd>{form.recurringType === "DAILY" ? "Daily" : "Once"} from {form.effectiveDate}{form.recurringEndDate ? ` until ${form.recurringEndDate}` : ""}, {form.shiftStart}–{form.shiftEnd} ({timeZone})</dd></dl>}
+            {step === 3 && <dl className="grid grid-cols-[auto_1fr] gap-x-6 gap-y-3 text-sm"><dt className="text-muted-foreground">Task</dt><dd>{form.title.trim()}</dd><dt className="text-muted-foreground">Location</dt><dd>{locationName}</dd><dt className="text-muted-foreground">Area</dt><dd>{chosenArea?.name}</dd><dt className="text-muted-foreground">Inventory</dt><dd>{form.inventorySelection === "ALL" ? "All active items" : `${form.selectedItems.length} selected items`}. {summary && `${summary.mandatory} mandatory fixtures, ${summary.optional} optional fixtures, ${summary.requiredViews} required photos.`} Mandatory items require every mandatory evidence view to pass.</dd><dt className="text-muted-foreground">Team</dt><dd>{chosenStaff?.name ?? "Use automatic assignment"}</dd><dt className="text-muted-foreground">Schedule</dt><dd>{form.recurringType === "DAILY" ? "Daily" : "Once"} from {form.effectiveDate}{form.recurringEndDate ? ` until ${form.recurringEndDate}` : ""}, {form.shiftStart}–{form.shiftEnd} ({timeZone})</dd></dl>}
             {error && <p role="alert" className="rounded-lg border border-rose-200 bg-rose-50 p-3 text-sm text-rose-800">{error}</p>}
             <div className="sticky bottom-0 flex flex-wrap justify-between gap-2 border-t border-border bg-card pt-4"><Button variant="outline" disabled={busy} onClick={() => step === 0 ? changeOpen(false) : setStep((step - 1) as ScheduleStep)}>{step === 0 ? "Cancel" : <><ArrowLeft size={15} /> Back</>}</Button>{step < 3 ? <Button onClick={goNext} disabled={busy}>Next <ArrowRight size={15} /></Button> : <Button onClick={() => void submit()} disabled={busy}>{busy ? (phase === "creating" ? "Creating…" : "Assigning…") : "Create schedule"}</Button>}</div>
           </>

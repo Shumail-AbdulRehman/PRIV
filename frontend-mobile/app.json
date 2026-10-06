@@ -2,7 +2,7 @@
   "expo": {
     "name": "Hygene Ops Staff",
     "slug": "cleanops-staff",
-    "version": "1.0.0",
+    "version": "2.0.0",
     "orientation": "portrait",
     "icon": "./assets/hygene-ops-icon.png",
     "userInterfaceStyle": "light",
@@ -21,7 +21,8 @@
         "NSAppTransportSecurity": {
           "NSAllowsArbitraryLoads": true
         }
-      }
+      },
+      "bundleIdentifier": "com.hygeneops.staff"
     },
     "android": {
       "adaptiveIcon": {
@@ -35,11 +36,28 @@
         "ACCESS_FINE_LOCATION"
       ],
       "edgeToEdgeEnabled": true,
-      "predictiveBackGestureEnabled": false
+      "predictiveBackGestureEnabled": false,
+      "package": "com.hygeneops.staff"
     },
     "web": {
       "favicon": "./assets/hygene-ops-favicon.png"
     },
-    "scheme": "cleanopsstaff"
+    "scheme": "cleanopsstaff",
+    "plugins": [
+      [
+        "expo-sqlite",
+        {
+          "useSQLCipher": true
+        }
+      ],
+      "expo-secure-store",
+      [
+        "expo-camera",
+        {
+          "cameraPermission": "Allow Hygene Ops to scan room codes and photograph empty cleaning fixtures.",
+          "recordAudioAndroid": false
+        }
+      ]
+    ]
   }
 }

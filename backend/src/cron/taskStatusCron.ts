@@ -1,3 +1,4 @@
+import {expireVerificationTasks} from '../services/verification-v2/deadline.service.js';
 import cron from "node-cron";
 import { prisma } from "../prisma/prisma.js";
 import { markCurrentAssignmentsForTasks } from "../services/taskAssignment.service.js";
@@ -5,11 +6,13 @@ import { markCurrentAssignmentsForTasks } from "../services/taskAssignment.servi
 cron.schedule("7-59/15 * * * *", async () => {
   try {
     const now = new Date();
+    await expireVerificationTasks(now);
 
     const missedTaskIds = await prisma.taskInstance.findMany({
       where: {
         shiftEnd: { lt: now },
         status: "PENDING",
+        verificationVersion: 1,
         isActive: true
       },
       select: { id: true },
@@ -36,6 +39,7 @@ cron.schedule("7-59/15 * * * *", async () => {
         shiftEnd: { lt: now },
         status: "IN_PROGRESS",
         completedAt: null,
+        verificationVersion: 1,
         isActive: true
       },
       select: { id: true },

@@ -1,9 +1,13 @@
+import { inventorySelectionSchema } from "../validations/area.validation.js";
+import { configureTemplateInventory, validateInventorySelection } from "../services/verification-v2/inventorySnapshot.service.js";
 import { Request, Response } from "express";
 import { createTaskSchema, createTaskMultipartSchema, editTaskSchema } from "../validations/taskTemplate.validation.js";
 import { prisma } from "../prisma/prisma.js";
 import { ApiResponse } from "../utils/ApiResponse.js";
 import { ApiError } from "../utils/ApiError.js";
 import { permanentlyDelete } from "../services/deletion.service.js";
+import {requireLocationAccess} from '../services/verification-v2/authorization.service.js';
+import {writeAuditLog} from '../services/auditLog.service.js';
 import { DEFAULT_TIME_ZONE, getZonedClockMinutes, getZonedDayRange } from "../utils/dateTime.js";
 import { assertLocationAccess } from "../utils/scope.js";
 import { uploadSingleImage } from "../utils/cloudinary.js";
@@ -219,7 +223,7 @@ const normalizeReferenceNames = (value: unknown): string[] => {
   return [];
 };
 
-export const createTaskTemplate = async (req: Request, res: Response) => {
+const createLegacyTaskTemplate = async (req: Request, res: Response) => {
   const files = Array.isArray(req.files) ? req.files : [];
 
   if (!files.length) {
@@ -307,6 +311,47 @@ export const createTaskTemplate = async (req: Request, res: Response) => {
   res.status(201).json(new ApiResponse(201, taskTemplate, "Task template created successfully"));
 };
 
+export const createTaskTemplate = async (req: Request, res: Response) => {
+  if (req.body.areaId === undefined) return createLegacyTaskTemplate(req,res);
+  const result=createTaskMultipartSchema.safeParse(req.body);
+  const selection=inventorySelectionSchema.safeParse(req.body);
+  if(!result.success||!selection.success)throw new ApiError(400,"A single area and valid inventory selection are required",[...(!result.success?result.error.issues:[]),...(!selection.success?selection.error.issues:[])]);
+  if(result.data.recurringEndDate&&result.data.recurringEndDate<result.data.effectiveDate)throw new ApiError(400,'Recurrence end must follow the effective date');
+  const location=await requireLocationAccess(req.user!,result.data.locationId);
+  if(!location.isActive)throw new ApiError(404,'Location is inactive');
+  if(result.data.staffId) {
+    const staff=await prisma.staff.findFirst({where:{id:result.data.staffId,companyId:req.user!.companyId,locationId:location.id,isActive:true}});
+    if(!staff)throw new ApiError(422,'Choose active staff at this location');
+    validateTaskAgainstStaffShift(staff,result.data.shiftStart,result.data.shiftEnd,location.timezone);
+  }
+  let sourceLegacyTemplateId:number|undefined;
+  if(req.body.sourceLegacyTemplateId!==undefined){sourceLegacyTemplateId=Number(req.body.sourceLegacyTemplateId);if(!Number.isSafeInteger(sourceLegacyTemplateId)||!await prisma.taskTemplate.findFirst({where:{id:sourceLegacyTemplateId,locationId:location.id,verificationVersion:1,location:{companyId:req.user!.companyId}}}))throw new ApiError(422,'Legacy source must belong to this location');}
+  const template=await prisma.$transaction(async tx=>{
+    await tx.$queryRaw`SELECT pg_advisory_xact_lock(872120, ${location.id})::text`;
+    await validateInventorySelection(tx,location.id,selection.data);
+    await assertLocationHasCapacityForTaskTemplate(result.data);
+    const created=await tx.taskTemplate.create({data:{...result.data,sourceLegacyTemplateId,areaId:selection.data.areaId,verificationVersion:2}});
+    await configureTemplateInventory(tx,created.id,location.id,selection.data);
+    await writeAuditLog({companyId:req.user!.companyId,actorType:req.user!.role,actorId:req.user!.id,entityType:'TASK_TEMPLATE',entityId:created.id,action:'CONFIGURE_INVENTORY',newValue:selection.data},tx);
+    return tx.taskTemplate.findUniqueOrThrow({where:{id:created.id},include:{inventoryItems:true,area:true}});
+  });
+  res.status(201).json(new ApiResponse(201,template,'Task template created'));
+};
+
+export const mapTemplateInventory = async (req: Request, res: Response) => {
+  const id=Number(req.params.id); const input=inventorySelectionSchema.safeParse(req.body);
+  if(!input.success)throw new ApiError(400,"Invalid inventory mapping",input.error.issues);
+  const template=await prisma.taskTemplate.findUnique({where:{id},include:{location:true}});
+  if(!template||template.location.companyId!==req.user!.companyId)throw new ApiError(404,"Template not found");
+  assertLocationAccess(req.user!,template.locationId);
+  const updated=await prisma.$transaction(async tx=>{
+    await configureTemplateInventory(tx,id,template.locationId,input.data);
+    await tx.verificationException.updateMany({where:{dedupeKey:`setup:template:${id}`},data:{state:'RESOLVED',resolvedAt:new Date()}});
+    return tx.taskTemplate.findUniqueOrThrow({where:{id}});
+  });
+  res.json(new ApiResponse(200,updated,"Future tasks use this area inventory. Existing tasks are unchanged."));
+};
+
 export const editTaskTemplate = async (req: Request, res: Response) => {
   const taskTemplateId = Number(req.params.id);
   if (isNaN(taskTemplateId)) throw new ApiError(400, "Invalid task template id");
@@ -380,9 +425,25 @@ export const editTaskTemplate = async (req: Request, res: Response) => {
     excludeTemplateId: taskTemplateId,
   });
 
-  const updated = await prisma.taskTemplate.update({
-    where: { id: taskTemplateId },
-    data: result.data
+  if (result.data.locationId) assertLocationAccess(req.user!, result.data.locationId);
+  const updated = await prisma.$transaction(async tx=>{
+    await tx.$queryRaw`SELECT pg_advisory_xact_lock(872120, ${nextLocationId})::text`;
+    await assertLocationHasCapacityForTaskTemplate({locationId:nextLocationId,shiftStart:nextShiftStart,shiftEnd:nextShiftEnd,recurringType:nextRecurringType,effectiveDate:nextEffectiveDate,recurringEndDate:nextRecurringEndDate,excludeTemplateId:taskTemplateId});
+    if(req.body.areaId!==undefined) {
+      const selection=inventorySelectionSchema.safeParse(req.body);
+      if(!selection.success)throw new ApiError(400,"Invalid inventory selection",selection.error.issues);
+      await validateInventorySelection(tx,nextLocationId,selection.data);
+      await tx.$queryRaw`SELECT id FROM "TaskTemplate" WHERE id=${taskTemplateId} FOR UPDATE`;
+      // Move the area and location together; old instances keep their immutable area.
+      await tx.taskTemplateItem.deleteMany({where:{templateId:taskTemplateId}});
+      await tx.taskTemplate.update({where:{id:taskTemplateId},data:{...result.data,areaId:selection.data.areaId}});
+      await configureTemplateInventory(tx,taskTemplateId,nextLocationId,selection.data);
+    } else {
+      if(['inventorySelection','selectedItems','expectedInventoryVersion'].some(key=>req.body[key]!==undefined))throw new ApiError(400,'Inventory edits require areaId and the full versioned selection');
+      if(template.verificationVersion===2 && nextLocationId!==template.locationId) throw new ApiError(422,"Choose an area at the new location");
+      await tx.taskTemplate.update({where:{id:taskTemplateId},data:result.data});
+    }
+    return tx.taskTemplate.findUniqueOrThrow({where:{id:taskTemplateId},include:{inventoryItems:true,area:true}});
   });
 
   res.status(200).json(new ApiResponse(200, updated, "Task template updated successfully"));
@@ -405,7 +466,9 @@ export const getTaskTemplate=async (req:Request, res: Response)=>
       isActive:true
     },
     include:{
-      location:true
+      location:true,
+      area:{include:{items:true}},
+      inventoryItems:true
     }
   });
 
@@ -441,7 +504,7 @@ export const getTaskTemplatesByLocation=async (req:Request, res: Response)=>
     where:{
       locationId,
       isActive:true
-    }
+    }, include:{area:true,inventoryItems:true}
   });
 
   res.status(200).json(

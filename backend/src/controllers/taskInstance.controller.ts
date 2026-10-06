@@ -1,3 +1,5 @@
+import {requireTaskAccess} from '../services/verification-v2/authorization.service.js';
+import {lockTask} from '../services/verification-v2/captureSession.service.js';
 import crypto from "node:crypto";
 import { Request, Response } from "express";
 import { prisma } from "../prisma/prisma.js";
@@ -114,6 +116,21 @@ async function getActiveTaskForStaff(
 export const startTask = async (req: Request, res: Response) => {
   const taskId = Number(req.params.taskId);
   const qrToken = req.query.qrToken;
+  if(!Number.isSafeInteger(taskId)||taskId<1)throw new ApiError(400,'Invalid task id');
+  const candidate = await prisma.taskInstance.findUnique({where:{id:taskId}});
+  if(candidate?.verificationVersion===2){
+    const started=await prisma.$transaction(async tx=>{
+      await lockTask(tx,taskId);
+      const task=await requireTaskAccess(req.user!,taskId,{staffMutation:true},tx);
+      const now=new Date();
+      if(task.status==='IN_PROGRESS')return task;
+      if(task.status!=='PENDING'||task.shiftEnd<=now||+task.shiftStart>+now+300000)throw new ApiError(409,'Task cannot start in this window');
+      const isLate=+now>+task.shiftStart+300000;
+      const updated=await tx.taskInstance.update({where:{id:taskId},data:{status:'IN_PROGRESS',startedAt:now,isLate,lateMinutes:isLate?Math.floor((+now-+task.shiftStart)/60000):0,rowVersion:{increment:1}}});
+      await markCurrentAssignmentStarted(taskId,req.user!.id,now,tx as typeof prisma);return updated;
+    });
+    return res.json(new ApiResponse(200,started,'Cleaning started'));
+  }
 
   if (isNaN(taskId)) {
     throw new ApiError(400, "Invalid task id");
@@ -501,6 +518,10 @@ export const completeTask = async (req: Request, res: Response) => {
         throw new ApiError(404, "Task not found for this staff");
     }
 
+    if (task.verificationVersion === 2) {
+        throw new ApiError(409, "Inventory verification is completed by the server", [{code:"INVENTORY_VERIFICATION_REQUIRED",verificationState:task.verificationState}]);
+    }
+
     if (task.status !== "IN_PROGRESS") {
         throw new ApiError(400, "Only in-progress tasks can be completed");
     }
@@ -546,6 +567,7 @@ export const completeTask = async (req: Request, res: Response) => {
                 where: { id: taskId },
                 data: {
                     status: "COMPLETED",
+                    completionOutcome: "LEGACY_RECORDED",
                     completedAt: now,
                     proofImageUrls,
                 }
@@ -601,6 +623,7 @@ export const completeTask = async (req: Request, res: Response) => {
                 where: { id: taskId },
                 data: {
                     status: "COMPLETED",
+                    completionOutcome: "LEGACY_RECORDED",
                     completedAt: now,
                     proofImageUrls: orderedPhotoUrls,
                 },
@@ -709,6 +732,7 @@ export const completeTask = async (req: Request, res: Response) => {
             where: { id: taskId },
             data: {
                 status: "COMPLETED",
+                    completionOutcome: "LEGACY_RECORDED",
                 completedAt: now,
                 proofImageUrls,
             }

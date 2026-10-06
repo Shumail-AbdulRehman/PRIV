@@ -69,6 +69,11 @@ export interface ReferenceImage {
 }
 
 export interface TaskTemplate {
+  verificationVersion?: number;
+  areaId?: number | null;
+  area?: {id:number; name:string} | null;
+  inventorySelection?: 'ALL' | 'SUBSET';
+  setupStatus?: string;
   id: number;
   title: string;
   description?: string | null;

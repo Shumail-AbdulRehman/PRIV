@@ -44,3 +44,8 @@ PROJECT_CONTEXT.txt
 !docs/PRODUCT_IMPROVEMENT_PROGRESS.md
 !docs/REMAINING_PHASES_IMPLEMENTATION_PLAN.md
 !docs/REMAINING_PHASES_START_HERE.md
+
+# Reviewable inventory verification implementation record
+!docs/verification/IMPLEMENTATION_1_8.md
+!docs/verification/IMPLEMENTATION_9_14.md
+!docs/verification/evaluator-benchmark.md

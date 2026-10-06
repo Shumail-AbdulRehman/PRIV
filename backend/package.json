@@ -10,7 +10,13 @@
     "dev": "concurrently \"tsc -b --watch\" \"nodemon dist/app.js\"",
     "start": "node dist/app.js",
     "seed:demo": "tsx prisma/seed-demo.ts",
-    "test:deletion": "tsx tests/deletion.integration.ts"
+    "test:deletion": "tsx tests/deletion.integration.ts",
+    "worker:verification": "node dist/workers/verificationWorker.js",
+    "verification:report": "tsx scripts/verificationMigrationReport.ts",
+    "test:verification:integration": "tsx tests/verification.integration.ts",
+    "test:verification:lifecycle": "tsx tests/verification.lifecycle.integration.ts",
+    "verification:benchmark": "tsx scripts/verificationEvaluatorBenchmark.ts",
+    "verification:backfill": "tsx scripts/verificationBackfill.ts"
   },
   "keywords": [],
   "author": "",
@@ -50,6 +56,7 @@
     "nodemon": "^3.1.14",
     "openai": "^7.5.0",
     "pg": "^8.20.0",
+    "sharp": "^0.35.5",
     "tz-lookup": "^6.1.25",
     "zod": "^4.3.6"
   }

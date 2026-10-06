@@ -26,12 +26,8 @@ export const verifyJwt = async (req: Request, res: Response, next: NextFunction)
     if (role === "MANAGER" || role === "ADMIN") {
         user = await prisma.manager.findUnique({
             where: { id },
-            select: { id: true, name: true, email: true, companyId: true, isActive: true },
+            select: { id: true, name: true, email: true, companyId: true, role: true, company: { select: { isActive: true } }, isActive: true },
         });
-
-        if (user && !user.isActive) {
-            throw new ApiError(401, "Account is deactivated");
-        }
 
         if (user && role === "MANAGER") {
             const assignments = await prisma.managerLocation.findMany({
@@ -43,15 +39,18 @@ export const verifyJwt = async (req: Request, res: Response, next: NextFunction)
     } else if (role === "STAFF") {
         user = await prisma.staff.findUnique({
             where: { id },
-            select: { id: true, name: true, email: true, companyId: true, locationId: true },
+            select: { id: true, name: true, email: true, companyId: true, locationId: true, role: true, company: { select: { isActive: true } }, isActive: true },
         });
     }
+
+    if (user && (!user.isActive || !user.company.isActive)) throw new ApiError(403, "Account is deactivated");
+    if (user && user.role !== role) throw new ApiError(401, "Account role changed; sign in again");
 
     if (!user) {
         throw new ApiError(401, "Invalid access token");
     }
 
-    const { isActive, ...safeUser } = user as typeof user & { isActive?: boolean };
+    const { isActive, company, ...safeUser } = user as typeof user & { isActive?: boolean };
     (req as any).user = { ...safeUser, role, ...(locationIds ? { locationIds } : {}) };
     next();
 };

@@ -1,3 +1,4 @@
+import {requireLocationAccess} from '../services/verification-v2/authorization.service.js';
 import { Request, Response } from "express";
 import { prisma } from "../prisma/prisma.js";
 import { ApiResponse } from "../utils/ApiResponse.js";
@@ -59,42 +60,19 @@ export const assignStaffToLocation = async (req: Request, res: Response) => {
 
   assertLocationAccess(req.user!, locationId);
 
-  if (staff.locationId && staff.locationId !== locationId) {
-    const affectedTasks = await prisma.taskInstance.findMany({
-      where: {
-        staffId,
-        locationId: staff.locationId,
-        status: { in: ["PENDING", "IN_PROGRESS"] },
-      },
-      select: { id: true },
-    });
-
-    await prisma.$transaction([
-      prisma.taskTemplate.updateMany({
-        where: { staffId, locationId: staff.locationId, isActive: true },
-        data: { staffId: null },
-      }),
-      prisma.taskInstance.updateMany({
-        where: {
-          staffId,
-          locationId: staff.locationId,
-          status: { in: ["PENDING", "IN_PROGRESS"] },
-        },
-        data: { staffId: null },
-      }),
-    ]);
-
-    await markCurrentAssignmentsForTasks(
-      affectedTasks.map((task) => task.id),
-      "CANCELLED",
-      "STAFF_LOCATION_CHANGED"
-    );
-  }
-
-  const updated = await prisma.staff.update({
-    where: { id: staffId },
-    data: { locationId },
-    select: { id: true, name: true, email: true, role: true, locationId: true, companyId: true }
+  const updated=await prisma.$transaction(async tx=>{
+    await tx.$queryRaw`SELECT id FROM "Staff" WHERE id=${staffId} FOR UPDATE`;
+    const current=await tx.staff.findUniqueOrThrow({where:{id:staffId}});
+    if(!current.isActive||current.companyId!==req.user!.companyId)throw new ApiError(403,'Staff account is inactive');
+    await requireLocationAccess(req.user!,locationId,tx);
+    if(current.locationId!==null)await requireLocationAccess(req.user!,current.locationId,tx);
+    if(current.locationId!==null&&current.locationId!==locationId){
+      const affected=await tx.$queryRaw<{id:number}[]>`SELECT id FROM "TaskInstance" WHERE "staffId"=${staffId} AND "locationId"=${current.locationId} AND status IN ('PENDING','IN_PROGRESS','NOT_COMPLETED_INTIME') ORDER BY id FOR UPDATE`;
+      await tx.taskTemplate.updateMany({where:{staffId,locationId:current.locationId,isActive:true},data:{staffId:null}});
+      await tx.taskInstance.updateMany({where:{id:{in:affected.map(t=>t.id)}},data:{staffId:null}});
+      await markCurrentAssignmentsForTasks(affected.map(t=>t.id),'CANCELLED','STAFF_LOCATION_CHANGED',tx as typeof prisma);
+    }
+    return tx.staff.update({where:{id:staffId},data:{locationId},select:{id:true,name:true,email:true,role:true,locationId:true,companyId:true}});
   });
 
   res.status(200).json(new ApiResponse(200, updated, "Staff assigned to location successfully"));

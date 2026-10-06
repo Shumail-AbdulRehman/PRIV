@@ -1,3 +1,4 @@
+import LocationAreasTab from '../Area/LocationAreasTab';
 import DeleteButton from "@/components/common/DeleteButton";
 import { useSelector } from "react-redux";
 import type { RootState } from "@/store/store";
@@ -103,8 +104,9 @@ function StatCard({
   );
 }
 
-type Tab = "staff" | "templates" | "instances" | "schedule";
+type Tab = "areas" | "staff" | "templates" | "instances" | "schedule";
 const TABS: { key: Tab; label: string; icon: React.ElementType }[] = [
+  { key: "areas", label: "Areas and inventory", icon: ClipboardList },
   { key: "staff", label: "Team", icon: Users },
   { key: "templates", label: "Cleaning schedule", icon: ClipboardList },
   { key: "schedule", label: "Schedule", icon: Calendar },
@@ -547,6 +549,8 @@ const LocationDetailPage: React.FC = () => {
           </table>
         </div>
       )}
+
+      {activeTab === "areas" && id && <LocationAreasTab locationId={Number(id)} />}
 
       {activeTab === "schedule" && id && <LocationScheduleTab locationId={id} />}
 

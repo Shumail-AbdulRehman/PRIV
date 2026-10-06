@@ -1,3 +1,4 @@
+import { generateTaskInstances } from "../services/verification-v2/inventorySnapshot.service.js";
 import { prisma } from "../prisma/prisma.js";
 import { resolveTaskInstanceWindow } from "./taskInstanceWindow.js";
 import { getZonedDayRange } from "../utils/dateTime.js";
@@ -5,7 +6,7 @@ import { ensureAssignmentsForToday } from "../services/taskAssignment.service.js
 
 let isDailyTaskSchedulerRunning = false;
 
-export const runDailyTaskScheduler = async () => {
+export const runDailyTaskScheduler = async (now = new Date()) => {
   if (isDailyTaskSchedulerRunning) {
     console.log("Daily task scheduler skipped: previous run still in progress.");
     return;
@@ -16,7 +17,7 @@ export const runDailyTaskScheduler = async () => {
   try {
     console.log("Generating daily task instances...");
 
-    const now = new Date();
+
 
     const dailyTemplates = await prisma.taskTemplate.findMany({
       where: {
@@ -42,7 +43,7 @@ export const runDailyTaskScheduler = async () => {
     });
 
     const instancesToCreate = [];
-    const instanceDateByTemplateId = new Map<number, Date>();
+
 
     for (const template of dailyTemplates) {
       const timeZone = template.location.timezone;
@@ -62,6 +63,7 @@ export const runDailyTaskScheduler = async () => {
 
       instancesToCreate.push({
           templateId: template.id,
+          baseDate: localToday,
           title: template.title,
           date,
           shiftStart,
@@ -71,58 +73,14 @@ export const runDailyTaskScheduler = async () => {
           referenceImageUrl: template.referenceImageUrl
       });
 
-      instanceDateByTemplateId.set(template.id, date);
+
     }
 
     const { count: created } = instancesToCreate.length
-      ? await prisma.taskInstance.createMany({
-          data: instancesToCreate,
-          skipDuplicates: true,
-        })
+      ? await generateTaskInstances(instancesToCreate)
       : { count: 0 };
 
     console.log(`Task instances created: ${created}`);
-
-    if (created > 0) {
-      const instanceWhereConditions = Array.from(instanceDateByTemplateId.entries()).map(
-        ([templateId, date]) => ({ templateId, date })
-      );
-
-      const createdInstances = await prisma.taskInstance.findMany({
-        where: {
-          OR: instanceWhereConditions,
-        },
-        select: {
-          id: true,
-          templateId: true,
-          referenceImages: { select: { id: true } },
-        },
-      });
-
-      const templateReferenceMap = new Map(
-        dailyTemplates.map((t) => [t.id, t.referenceImages ?? []])
-      );
-
-      const referenceImagesToCreate = createdInstances
-        .filter((instance) => instance.referenceImages.length === 0)
-        .flatMap((instance) => {
-          const refs = templateReferenceMap.get(instance.templateId ?? -1) ?? [];
-          return refs.map((ref, index) => ({
-            taskInstanceId: instance.id,
-            name: ref.name,
-            imageUrl: ref.imageUrl,
-            sortOrder: index,
-          }));
-        });
-
-      if (referenceImagesToCreate.length) {
-        await prisma.taskInstanceReferenceImage.createMany({
-          data: referenceImagesToCreate,
-          skipDuplicates: true,
-        });
-        console.log(`Task instance reference images created: ${referenceImagesToCreate.length}`);
-      }
-    }
 
     const ensuredAssignments = await ensureAssignmentsForToday();
     console.log(`Task assignments ensured: ${ensuredAssignments}`);
@@ -133,7 +91,7 @@ export const runDailyTaskScheduler = async () => {
   }
 };
 
-void runDailyTaskScheduler();
-setInterval(() => {
+if (process.env.NODE_ENV !== "test") {
   void runDailyTaskScheduler();
-}, 90 * 1000);
+  setInterval(() => { void runDailyTaskScheduler(); }, 90 * 1000);
+}

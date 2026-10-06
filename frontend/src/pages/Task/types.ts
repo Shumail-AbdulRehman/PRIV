@@ -15,7 +15,12 @@ export type ReferenceImageInput = {
 };
 
 export type CreateTaskTemplateFormData = CreateTaskInput & {
-  referenceImages: ReferenceImageInput[];
+  referenceImages?: ReferenceImageInput[];
+  areaId: number;
+  inventorySelection: "ALL" | "SUBSET";
+  selectedItems: Array<{areaItemId: number; mandatory: boolean}>;
+  expectedInventoryVersion: number;
+  sourceLegacyTemplateId?: number;
 };
 
 

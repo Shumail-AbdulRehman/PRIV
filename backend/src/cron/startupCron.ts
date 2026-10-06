@@ -1,3 +1,4 @@
+import { generateTaskInstances } from "../services/verification-v2/inventorySnapshot.service.js";
 import { prisma } from "../prisma/prisma.js";
 import { resolveTaskInstanceWindow } from "./taskInstanceWindow.js";
 import { getZonedDayRange, resolveZonedAttendanceWindow } from "../utils/dateTime.js";
@@ -5,9 +6,9 @@ import { syncTodaysOpenAttendanceWindow } from "../utils/syncAttendanceWindow.js
 import { ensureAssignmentsForToday } from "../services/taskAssignment.service.js";
 
 
-export async function runStartupCron(): Promise<void> {
+export async function runStartupCron(now = new Date()): Promise<void> {
     try {
-        const now = new Date();
+
 
        
 
@@ -132,6 +133,7 @@ export async function runStartupCron(): Promise<void> {
 
             instancesToCreate.push({
                     templateId: template.id,
+                    baseDate: localToday,
                     title: template.title,
                     date,
                     shiftStart,
@@ -158,6 +160,7 @@ export async function runStartupCron(): Promise<void> {
 
             instancesToCreate.push({
                     templateId: template.id,
+                    baseDate: localToday,
                     title: template.title,
                     date,
                     shiftStart,
@@ -168,10 +171,7 @@ export async function runStartupCron(): Promise<void> {
         }
 
         const { count: tasksCreated } = instancesToCreate.length
-            ? await prisma.taskInstance.createMany({
-                data: instancesToCreate,
-                skipDuplicates: true,
-            })
+            ? await generateTaskInstances(instancesToCreate)
             : { count: 0 };
 
         const assignmentsEnsured = await ensureAssignmentsForToday();

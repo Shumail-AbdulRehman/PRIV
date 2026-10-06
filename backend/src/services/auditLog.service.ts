@@ -1,10 +1,10 @@
 import { prisma } from "../prisma/prisma.js";
 
-type PrismaClientLike = typeof prisma;
+type PrismaClientLike = Pick<typeof prisma, "auditLog">;
 
 type AuditLogInput = {
   companyId?: number | null;
-  actorType: "SYSTEM" | "MANAGER" | "STAFF";
+  actorType: "SYSTEM" | "ADMIN" | "MANAGER" | "STAFF";
   actorId?: number | null;
   entityType: string;
   entityId: number;

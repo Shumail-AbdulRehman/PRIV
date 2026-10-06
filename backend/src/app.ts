@@ -93,21 +93,38 @@ import assignmentRouter from "./routes/assignment.route.js";
 import attendanceRouter from "./routes/attendance.route.js";
 import taskInstanceRouter from "./routes/taskInstance.route.js"
 import commonRouter from "./routes/common.route.js"
+import {archiveRetainedEntity} from './services/verification-v2/retention.service.js';
+import {verifyJwt} from './middlewares/auth.middleware.js';
+import areaRouter, {areaLocationRouter} from './routes/area.route.js';
+import verificationExceptionRouter from './routes/verificationException.route.js';
+import verificationRouter from './routes/verification.route.js';
+import evidenceRouter from './routes/evidence.route.js';
 import subscriptionRouter from "./routes/subscription.route.js";
 
 
 
 
 
+for (const [path, entity] of [['location','location'],['staff','staff'],['manager','manager'],['task-template','taskTemplate']] as const) {
+ app.post(`/api/${path}/:id/archive`,verifyJwt,async(req,res)=>{
+  const id=Number(req.params.id);if(!Number.isSafeInteger(id)||id<1)throw new ApiError(400,'Invalid identifier');
+  res.json({success:true,data:await archiveRetainedEntity(entity,id,req.user!)});
+ });
+}
 app.use("/api/manager", managerRouter);
 app.use("/api/staff", staffRouter);
+app.use("/api/location", areaLocationRouter);
+app.use("/api/area", areaRouter);
 app.use("/api/location", locationRouter);
 app.use("/api/task-template", taskTemplateRouter);
 app.use("/api/assignment", assignmentRouter);
 app.use("/api/attendance", attendanceRouter);
+app.use("/api", verificationRouter);
+app.use("/api", verificationExceptionRouter);
 app.use("/api/task-instance",taskInstanceRouter)
 app.use("/api/common",commonRouter)
 app.use("/api/subscription", subscriptionRouter);
+app.use("/api/evidence", evidenceRouter);
 
 app.use((err: Error, req: Request, res: Response, next: NextFunction) => {
     if (err instanceof ApiError) {
@@ -115,6 +132,8 @@ app.use((err: Error, req: Request, res: Response, next: NextFunction) => {
             success: false,
             message: err.message,
             errors: err.errors,
+            code: err.errors[0]?.code ?? ({400:"INVALID_REQUEST",401:"AUTH_REQUIRED",403:"FORBIDDEN",404:"NOT_FOUND",409:"CONFLICT",410:"AUTHORITY_EXPIRED",422:"INVALID_EVIDENCE",429:"CAPACITY_LIMIT",503:"SERVICE_UNAVAILABLE"} as Record<number,string>)[err.statusCode],
+            details: err.errors,
         });
     }
     console.error(err);

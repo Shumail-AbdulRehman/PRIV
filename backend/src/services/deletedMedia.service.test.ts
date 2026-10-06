@@ -22,6 +22,7 @@ vi.mock("../prisma/prisma.js", () => ({
     taskCompletionAttempt: { count: mocks.count },
     taskAreaSubmission: { count: mocks.count },
     attendance: { count: mocks.count },
+    evidenceAsset: { count: mocks.count },
   },
 }));
 import {
@@ -59,6 +60,11 @@ describe("permanently deleted media", () => {
     await cleanDeletedMedia();
     expect(mocks.destroy).not.toHaveBeenCalled();
     expect(mocks.remove).toHaveBeenCalled();
+  });
+  it("retains an original even when its reservation acknowledgement was lost", async () => {
+    mocks.jobs.mockResolvedValue([{id:2,url:"https://res.cloudinary.com/cleanops/image/upload/v123/verification/1/original.jpg",attempts:0}]);
+    await cleanDeletedMedia();
+    expect(mocks.destroy).not.toHaveBeenCalled();
   });
   it("retains failed cleanup for retry without restoring deleted records", async () => {
     mocks.destroy.mockRejectedValue(new Error("Cloudinary unavailable"));

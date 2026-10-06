@@ -10,6 +10,8 @@ import DashboardLayout from './components/layout/DashboardLayout.tsx';
 import { PublicLayout } from './components/layout/PublicLayout.tsx';
 import SignUp from './pages/Signup/SignUpPage.tsx';
 import Login from './pages/Login/LoginPage.tsx';
+import AreaSetupPage from './pages/Area/AreaSetupPage';
+import AreaDetailPage from './pages/Area/AreaDetailPage';
 import LocationsPage from './pages/Location/LocationsPage.tsx';
 import LocationDetailPage from './pages/Location/LocationDetailPage.tsx';
 import DashboardPage from './pages/Dashboard/DashboardPage.tsx';
@@ -79,6 +81,8 @@ const router = createBrowserRouter([
           { path: 'dashboard', element: <DashboardPage /> },
           { path: 'today-status', element: <TodayStatusPage /> },
           { path: 'locations', element: <LocationsPage /> },
+          { path: 'locations/:locationId/areas/new', element: <RequireRole roles={['ADMIN', 'MANAGER']}><AreaSetupPage /></RequireRole> },
+          { path: 'areas/:id', element: <RequireRole roles={['ADMIN', 'MANAGER']}><AreaDetailPage /></RequireRole> },
           { path: 'locations/:id', element: <LocationDetailPage /> },
           { path: 'staff', element: <StaffPage /> },
           { path: 'staff/:id', element: <StaffDetailPage /> },

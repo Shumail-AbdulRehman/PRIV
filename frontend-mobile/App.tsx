@@ -4,6 +4,7 @@ import { NavigationContainer, DefaultTheme } from "@react-navigation/native";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { SafeAreaProvider } from "react-native-safe-area-context";
 import { AuthProvider } from "./src/auth/AuthContext";
+import { VerificationSync } from "./src/verification/VerificationSync";
 import { AppNavigator } from "./src/navigation/AppNavigator";
 
 const navTheme = {
@@ -35,6 +36,7 @@ export default function App() {
     <SafeAreaProvider>
       <QueryClientProvider client={queryClient}>
         <AuthProvider>
+          <VerificationSync />
           <NavigationContainer theme={navTheme}>
             <StatusBar style="dark" />
             <AppNavigator />

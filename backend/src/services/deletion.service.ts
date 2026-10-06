@@ -1,3 +1,4 @@
+import { assertDeletionAllowed } from "./verification-v2/retention.service.js";
 import type { Prisma } from "@prisma/client";
 import { prisma } from "../prisma/prisma.js";
 import { ApiError } from "../utils/ApiError.js";
@@ -19,7 +20,10 @@ async function queueMedia(tx: Transaction, rows: unknown) {
   const urls = new Set<string>();
   const visit = (value: unknown) => {
     if (typeof value === "string" && /^https?:\/\//.test(value))
-      urls.add(value);
+      {
+      // Private retained assets never enter the destructive legacy outbox.
+      if (!value.includes("/verification/")) urls.add(value);
+    }
     else if (Array.isArray(value)) value.forEach(visit);
     else if (value && typeof value === "object")
       Object.values(value).forEach(visit);
@@ -113,6 +117,7 @@ export async function permanentlyDelete(
         });
         if (!location)
           throw new ApiError(404, "Location not found in your company");
+        await assertDeletionAllowed(tx, entity, id);
         await deleteTasks(tx, { locationId: id }, companyId);
         await queueTemplateMedia(tx, { locationId: id });
         await queueMedia(
@@ -137,6 +142,7 @@ export async function permanentlyDelete(
         if (!template)
           throw new ApiError(404, "Task schedule not found in your company");
         assertLocationAccess(actor, template.locationId);
+        await assertDeletionAllowed(tx, entity, id);
         await deleteTasks(tx, { templateId: id }, companyId);
         await queueTemplateMedia(tx, { id });
         await tx.taskTemplate.delete({ where: { id } });
@@ -151,6 +157,7 @@ export async function permanentlyDelete(
             );
           assertLocationAccess(actor, staff.locationId);
         }
+        await assertDeletionAllowed(tx, entity, id);
         const assignments = await tx.taskAssignment.findMany({
           where: { staffId: id },
           select: { id: true, taskInstanceId: true },
@@ -223,6 +230,7 @@ export async function permanentlyDelete(
           throw new ApiError(404, "Manager not found in your company");
         if (id === actor.id)
           throw new ApiError(400, "You cannot delete your own account");
+        await assertDeletionAllowed(tx, entity, id);
         await tx.auditLog.deleteMany({
           where: { companyId, actorType: "MANAGER", actorId: id },
         });

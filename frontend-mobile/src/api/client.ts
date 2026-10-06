@@ -72,112 +72,60 @@ client.interceptors.request.use(async (config) => {
   return config;
 });
 
-client.interceptors.response.use(
-  (response) => response,
-  async (error) => {
-    const originalRequest = error.config as InternalAxiosRequestConfig & {
-      _retry?: boolean;
-    };
-
-    if (!authBridge || !originalRequest) {
-      return Promise.reject(error);
-    }
-
-    if (originalRequest.url?.includes("/common/refresh-token")) {
-      await authBridge.clearSession();
-      return Promise.reject(error);
-    }
-
-    if (
-      error.response?.status !== 401 ||
-      error.response?.data?.message !== "Access Token Expired" ||
-      originalRequest._retry
-    ) {
-      return Promise.reject(error);
-    }
-
-    const tokens = await authBridge.getTokens();
-
-    if (!tokens.refreshToken) {
-      await authBridge.clearSession();
-      return Promise.reject(error);
-    }
-
-    originalRequest._retry = true;
-
+let refreshInFlight: Promise<Required<AuthTokens>> | null = null;
+export const refreshApiTokens = (): Promise<Required<AuthTokens>> => {
+  if (refreshInFlight) return refreshInFlight;
+  refreshInFlight = (async () => {
+    if (!authBridge) throw new Error("Sign in again to upload saved photos.");
+    const bridge = authBridge;
+    const tokens = await bridge.getTokens();
+    if (!tokens.refreshToken) throw new Error("Sign in again to upload saved photos.");
     try {
-      const refreshResponse = await axios.post(
-        `${API_BASE_URL}/common/refresh-token`,
-        {
-          refreshToken: tokens.refreshToken,
-        }
-      );
-
-      const nextTokens = {
-        accessToken: refreshResponse.data.data.accessToken as string,
-        refreshToken: refreshResponse.data.data.refreshToken as string,
-      };
-
-      await authBridge.setTokens(nextTokens);
-      setHeader(originalRequest, "Authorization", `Bearer ${nextTokens.accessToken}`);
-
-      return client(originalRequest);
-    } catch (refreshError) {
-      await authBridge.clearSession();
-      return Promise.reject(refreshError);
+      const response = await axios.post(`${API_BASE_URL}/common/refresh-token`, { refreshToken: tokens.refreshToken }, { timeout: 20000 });
+      const nextTokens = { accessToken: response.data.data.accessToken as string, refreshToken: response.data.data.refreshToken as string };
+      if ((await bridge.getTokens()).refreshToken !== tokens.refreshToken) throw new Error("Account changed during token refresh.");
+      await bridge.setTokens(nextTokens);
+      return nextTokens;
+    } catch (error) {
+      if (axios.isAxiosError(error) && [401,403].includes(error.response?.status ?? 0)
+        && (await bridge.getTokens()).refreshToken === tokens.refreshToken) await bridge.clearSession();
+      throw error;
     }
+  })().finally(() => { refreshInFlight = null; });
+  return refreshInFlight;
+};
+client.interceptors.response.use(response => response, async error => {
+  const original = error.config as InternalAxiosRequestConfig & { _retry?: boolean };
+  if (!original || error.response?.status !== 401 || original._retry || original.url?.includes("/common/refresh-token")) throw error;
+  original._retry = true;
+  const tokens = await refreshApiTokens();
+  setHeader(original, "Authorization", `Bearer ${tokens.accessToken}`);
+  return client(original);
+});
+
+/** Rebuild multipart after refresh; native fetch supports React Native file parts. */
+export const uploadFormData = async <T = unknown>(path: string, input: FormData | (() => FormData), timeoutMs = 20000): Promise<T> => {
+  for (let retry = 0; retry < 2; retry++) {
+    const tokens = await authBridge?.getTokens();
+    const controller = new AbortController();
+    const timeout = setTimeout(() => controller.abort(), timeoutMs);
+    try {
+      const response = await fetch(`${API_BASE_URL}${path}`, {
+        method: "POST", headers: tokens?.accessToken ? { Authorization: `Bearer ${tokens.accessToken}` } : {},
+        body: typeof input === "function" ? input() : input, signal: controller.signal,
+      });
+      if (response.status === 401 && retry === 0) { await refreshApiTokens(); continue; }
+      const json = await response.json();
+      if (!response.ok) {
+        const error = new Error(json?.message ?? "Request failed") as Error & { response: unknown };
+        error.response = { status: response.status, data: json, headers: { 'retry-after': response.headers.get('Retry-After') } };
+        throw error;
+      }
+      return json as T;
+    } catch (error) {
+      if (error instanceof Error && error.name === "AbortError") throw new Error("Upload timed out. Your saved photo will retry.");
+      throw error;
+    } finally { clearTimeout(timeout); }
   }
-);
-
-/**
- * Use native `fetch` for multipart FormData uploads.
- * Axios 1.x cannot reliably send React Native file parts ({uri,name,type}),
- * so we bypass it entirely for uploads.
- */
-export const uploadFormData = async <T = unknown>(
-  path: string,
-  formData: FormData,
-  timeoutMs = 20000
-): Promise<T> => {
-  const tokens = await authBridge?.getTokens();
-  const headers: Record<string, string> = {};
-
-  if (tokens?.accessToken) {
-    headers["Authorization"] = `Bearer ${tokens.accessToken}`;
-  }
-
-  const controller = new AbortController();
-  const timeoutId = setTimeout(() => controller.abort(), timeoutMs);
-
-  try {
-    const response = await fetch(`${API_BASE_URL}${path}`, {
-      method: "POST",
-      headers,
-      body: formData,
-      signal: controller.signal,
-    });
-
-    clearTimeout(timeoutId);
-
-    const json = await response.json();
-
-    if (!response.ok) {
-      // Shape the error so callers can read `error.response.data.message`
-      const err: any = new Error(json?.message ?? "Request failed");
-      err.response = { status: response.status, data: json };
-      throw err;
-    }
-
-    return json as T;
-  } catch (error) {
-    clearTimeout(timeoutId);
-
-    if (error instanceof Error && error.name === "AbortError") {
-      const err: any = new Error("Request timed out. Please try again.");
-      err.response = { status: 408, data: { message: "Request timed out. Please try again." } };
-      throw err;
-    }
-
-    throw error;
-  }
+  throw new Error("Sign in again to upload your saved photos.");
 };
