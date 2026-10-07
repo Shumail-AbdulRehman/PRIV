@@ -47,7 +47,7 @@ export default function TaskScheduleWizard({ locationId, locationName, timeZone,
   const qc = useQueryClient();
   const areasQuery = useAreas(locationId);
   const areas = areasQuery.data?.filter(area => area.status === "ACTIVE") ?? [];
-  const [form, setForm] = useState<TemplateCreateForm>(() => blankCreateForm(true));
+  const [form, setForm] = useState<TemplateCreateForm>(() => blankCreateForm());
   const [step, setStep] = useState<ScheduleStep>(0);
   const [phase, setPhase] = useState<Phase>("editing");
   const [error, setError] = useState<string | null>(null);

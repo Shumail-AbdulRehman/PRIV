@@ -55,3 +55,4 @@ PROJECT_CONTEXT.txt
 !docs/verification/CLEF_CLEANLINESS.md
 !docs/verification/SPATIAL_FIXTURE_VERIFICATION.md
 !docs/verification/ANDROID_PREBUILD_VALIDATION.md
+!docs/verification/DEVICE_START_STORAGE_FIXES.md

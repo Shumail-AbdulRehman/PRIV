@@ -44,7 +44,7 @@ export async function createTaskInstanceWithSnapshot(data:InstanceGenerationInpu
   const initial=await tx.taskTemplate.findUniqueOrThrow({where:{id:data.templateId!},select:{areaId:true}});
   if(initial.areaId)await tx.$queryRaw`SELECT id FROM "Area" WHERE id=${initial.areaId} FOR UPDATE`;
   await tx.$queryRaw`SELECT id FROM "TaskTemplate" WHERE id=${data.templateId} FOR UPDATE`;
-  const template=await tx.taskTemplate.findUniqueOrThrow({where:{id:data.templateId!},include:{referenceImages:{orderBy:{sortOrder:'asc'}},inventoryItems:true,location:{include:{company:true}}}});
+  const template=await tx.taskTemplate.findUniqueOrThrow({where:{id:data.templateId!},include:{inventoryItems:true,location:{include:{company:true}}}});
   if(initial.areaId!==template.areaId)throw new ApiError(409,'Template area changed during generation; retry');
   const staff=template.staffId?await tx.staff.findUnique({where:{id:template.staffId},select:{shiftStart:true,shiftEnd:true}}):null;
   const window=data.baseDate?resolveTaskInstanceWindow({baseDate:data.baseDate,taskShiftStart:template.shiftStart,taskShiftEnd:template.shiftEnd,staffShiftStart:staff?.shiftStart,staffShiftEnd:staff?.shiftEnd,timeZone:template.location.timezone}):{date:new Date(data.date),shiftStart:new Date(data.shiftStart),shiftEnd:new Date(data.shiftEnd)};
@@ -52,12 +52,6 @@ export async function createTaskInstanceWithSnapshot(data:InstanceGenerationInpu
   if(existing)return {...existing,created:false};
   if(!template.isActive||!template.location.isActive||!template.location.company.isActive)return null;
   const common={templateId:template.id,title:template.title,locationId:template.locationId,staffId:template.staffId,...window};
-  if(template.verificationVersion===1) {
-   // Foundation phase: preserve legacy generation until the later explicit cutover.
-   const instance=await tx.taskInstance.create({data:{...common,verificationVersion:1,referenceImageUrl:template.referenceImageUrl,referenceImages:{create:template.referenceImages.map(r=>({name:r.name,imageUrl:r.imageUrl,sortOrder:r.sortOrder}))}}});
-   if(instance.staffId)await tx.taskAssignment.create({data:{taskInstanceId:instance.id,staffId:instance.staffId}});
-   return {...instance,created:true};
-  }
   async function blockGeneration(reason:string) {
    await tx.taskTemplate.update({where:{id:template.id},data:{setupStatus:'NEEDS_REVIEW'}});
    const key=`setup:template:${template.id}`;
@@ -66,6 +60,9 @@ export async function createTaskInstanceWithSnapshot(data:InstanceGenerationInpu
    console.warn(JSON.stringify({code:'INVENTORY_GENERATION_BLOCKED',templateId:template.id,companyId:template.location.companyId,reason,date:window.date.toISOString()}));
    return null;
   }
+  // Existing historical instances remain readable; every newly generated task
+  // requires a configured inventory schedule and a complete v2 snapshot.
+  if(template.verificationVersion!==2)return blockGeneration('INVENTORY_MAPPING_REQUIRED');
   if(template.setupStatus!=='READY'||!template.areaId)return blockGeneration('SETUP_REQUIRED');
   let selection:Awaited<ReturnType<typeof validateInventorySelection>>;
   try {selection=await validateInventorySelection(tx,template.locationId,{areaId:template.areaId,inventorySelection:template.inventorySelection,expectedInventoryVersion:(await tx.area.findUniqueOrThrow({where:{id:template.areaId}})).inventoryVersion,selectedItems:template.inventoryItems.map(i=>({areaItemId:i.areaItemId,mandatory:i.mandatory}))});}
@@ -76,7 +73,7 @@ export async function createTaskInstanceWithSnapshot(data:InstanceGenerationInpu
   const instance=await tx.taskInstance.create({data:{...common,verificationVersion:2,areaId:area.id,areaNameSnapshot:area.name,inventoryVersion:area.inventoryVersion,policySnapshot:policy,...taskDeadlines(window.shiftEnd,policy),verificationItems:{create:snapshotItems(selection)}}});
   if(instance.staffId)await tx.taskAssignment.create({data:{taskInstanceId:instance.id,staffId:instance.staffId}});
   return {...instance,created:true};
- });
+ },{maxWait:10000,timeout:30000});
 }
 export async function generateTaskInstances(data:InstanceGenerationInput[]) {
  let count=0;for(const row of data){const instance=await createTaskInstanceWithSnapshot(row);if(instance?.created)count++;}return {count};

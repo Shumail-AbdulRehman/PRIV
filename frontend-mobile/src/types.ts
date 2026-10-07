@@ -1,10 +1,3 @@
-export type ReferenceArea = {
-  id: number;
-  name: string;
-  sortOrder: number;
-  imageUrl?: string;
-};
-
 export type StaffTabsParamList = {
   Shift: undefined;
   Tasks: undefined;
@@ -13,19 +6,9 @@ export type StaffTabsParamList = {
 export type RootStackParamList = {
   Login: undefined;
   StaffTabs: undefined;
-  QrScanner: {
-    taskId: number;
-    taskTitle: string;
-    referenceImageId?: number;
-    onScanSuccess?: () => void;
-  };
   Verification: { taskId: number };
   SpatialDiagnostic: undefined;
-  CompleteTask: {
-    taskId: number;
-    taskTitle: string;
-    referenceAreas?: ReferenceArea[];
-  };
+
 };
 
 export type StaffTabId = "Shift" | "Tasks";
@@ -46,16 +29,6 @@ export type AuthTokens = {
 
 export type AuthSession = AuthTokens & {
   user: StaffUser | null;
-};
-
-export type AreaMatchStatus = "passed" | "flagged" | "blocked";
-
-export type AreaUploadResult = {
-  referenceImageId: number;
-  photoUrl: string;
-  areaMatchStatus: AreaMatchStatus;
-  similarityScore: number;
-  areaMatchFlag: boolean;
 };
 
 export type ApiEnvelope<T> = {
@@ -110,10 +83,8 @@ export type TaskInstance = {
   completionOutcome?: string | null;
   areaNameSnapshot?: string;
   location?: {id:number;name:string;timezone:string};
-  referenceImages?: ReferenceArea[];
   template?: {
     id: number;
-    qrToken: string;
     location?: {
       id: number;
       name: string;

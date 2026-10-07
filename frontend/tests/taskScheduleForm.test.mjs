@@ -2,19 +2,15 @@ import { test } from 'node:test';
 import assert from 'node:assert/strict';
 import { blankCreateForm, buildDateTimeIso, buildEffectiveDate, validateScheduleStep } from '../src/pages/Task/taskScheduleForm.ts';
 
-const file = new File(['photo'], 'lobby.png', { type: 'image/png' });
-const valid = () => ({ ...blankCreateForm(), title: '  Lobby  ', effectiveDate: '2026-09-18', shiftStart: '09:00', shiftEnd: '10:00', referenceImages: [{ id: 'one', name: 'Lobby', file, previewUrl: null }] });
+const valid = () => ({ ...blankCreateForm(), title: '  Lobby  ', areaId:'1', effectiveDate: '2026-09-18', shiftStart: '09:00', shiftEnd: '10:00' });
 
-test('reference areas require aligned names and files without dropping partial rows', () => {
-  const form = valid();
-  assert.equal(validateScheduleStep(form, 0, 5), null);
-  form.referenceImages.push({ id: 'two', name: 'Sink', file: null, previewUrl: null });
-  assert.match(validateScheduleStep(form, 0, 5), /both a name and a photo/);
-  form.referenceImages[1].file = file;
-  form.referenceImages[1].name = 'Lobby';
-  assert.match(validateScheduleStep(form, 0, 5), /unique/);
-  form.referenceImages[1].name = 'Sink';
-  assert.match(validateScheduleStep(form, 0, 1), /up to 1/);
+test('guided schedules require one area and a nonempty mandatory subset without reference photos', () => {
+  const form=valid();
+  assert.equal(validateScheduleStep(form,0),null);
+  form.areaId='';assert.match(validateScheduleStep(form,0),/area/);
+  form.areaId='1';form.inventorySelection='SUBSET';assert.match(validateScheduleStep(form,0),/mandatory/);
+  form.selectedItems=[{areaItemId:1,mandatory:true}];assert.equal(validateScheduleStep(form,0),null);
+  form.selectedItems.push({areaItemId:1,mandatory:true});assert.match(validateScheduleStep(form,0),/only.*once/);
 });
 
 test('recurrence end and required times are validated before submission', () => {

@@ -4,9 +4,7 @@ import { createNativeStackNavigator } from "@react-navigation/native-stack";
 import { useAuth } from "../auth/AuthContext";
 import { LoadingState } from "../components/LoadingState";
 import { StaffTabs } from "./StaffTabs";
-import { CompleteTaskScreen } from "../screens/CompleteTaskScreen";
 import { LoginScreen } from "../screens/LoginScreen";
-import { QrScannerScreen } from "../screens/QrScannerScreen";
 import type { RootStackParamList } from "../types";
 
 const Stack = createNativeStackNavigator<RootStackParamList>();
@@ -50,12 +48,6 @@ export function AppNavigator() {
           />
           {__DEV__ ? <Stack.Screen name="SpatialDiagnostic" component={SpatialDiagnosticScreen} options={{title:"Spatial diagnostic"}} /> : null}
           <Stack.Screen name="Verification" component={VerificationScreen} options={{title:"Task photos"}} />
-          <Stack.Screen name="QrScanner" component={QrScannerScreen} options={{ title: "Scan Task QR" }} />
-          <Stack.Screen
-            name="CompleteTask"
-            component={CompleteTaskScreen}
-            options={{ title: "Complete Task" }}
-          />
         </>
       ) : (
         <Stack.Screen

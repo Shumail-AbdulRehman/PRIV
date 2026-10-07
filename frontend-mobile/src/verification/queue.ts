@@ -6,6 +6,7 @@ import { Directory, File, Paths } from 'expo-file-system';
 import type { Account, CaptureMetadata, LocalSession, QueueRow, QueueState } from './types';
 import { getFreeDiskStorageAsync } from 'expo-file-system/legacy';
 import { MAX_QUEUE_BYTES, MAX_QUEUE_PHOTOS } from './policy';
+import { databaseDirectoryUri } from './fileUri';
 let database: SQLite.SQLiteDatabase | null = null;
 let activeAccount: string | null = null;
 let opening: Promise<void> | null = null;
@@ -37,7 +38,7 @@ export async function unlockQueue(account: Account) {
     await closeQueue();
     const scope = namespace(account), keyName = `hygene_verification_key_${scope}`;
     let key = await SecureStore.getItemAsync(keyName);
-    if (!key && new File(SQLite.defaultDatabaseDirectory,`verification_${scope}.db`).exists) throw new Error('The encryption key for saved work is unavailable. Ask support before reinstalling or clearing data.');
+    if (!key && new File(databaseDirectoryUri(SQLite.defaultDatabaseDirectory),`verification_${scope}.db`).exists) throw new Error('The encryption key for saved work is unavailable. Ask support before reinstalling or clearing data.');
     if (!key) { key = Array.from(await Crypto.getRandomBytesAsync(32)).map(v => v.toString(16).padStart(2,'0')).join(''); await SecureStore.setItemAsync(keyName,key, { keychainAccessible: SecureStore.WHEN_UNLOCKED_THIS_DEVICE_ONLY }); }
     if (!/^[0-9a-f]{64}$/.test(key)) throw new Error('Secure photo storage is unavailable. Sign in again.');
     const db = await SQLite.openDatabaseAsync(`verification_${scope}.db`);

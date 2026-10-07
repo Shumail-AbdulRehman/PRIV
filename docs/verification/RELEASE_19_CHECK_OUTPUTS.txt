@@ -1,0 +1,488 @@
+
+=== backend-baseline ===
+
+> fyp@1.0.0 test
+> vitest run
+
+
+ RUN  v4.1.11 /home/shumail/bk-Priv/PRIV/backend
+
+
+ Test Files  28 passed (28)
+      Tests  193 passed (193)
+   Start at  23:45:38
+   Duration  5.38s (transform 2.32s, setup 0ms, import 18.22s, tests 1.01s, environment 7ms)
+
+
+=== frontend-baseline ===
+
+> frontend@0.0.0 test
+> node --experimental-strip-types --test tests/*.test.mjs
+
+✔ count preview matches stable numbered identities and does not reuse retired codes (4.528771ms)
+✔ ALL optional overrides include future fixtures; SUBSET preserves saved selection (1.057079ms)
+✔ fixture retirement payload excludes immutable and unsupported API fields (0.658054ms)
+✔ inventory review rejects foreign items even when their IDs appear in the list (0.3374ms)
+✔ required photo summary excludes optional views and optional fixtures (0.359589ms)
+✔ area list excludes retired fixtures even when total row count includes them (0.402237ms)
+✔ room presets provide categories and editable defaults without assuming fixture counts (0.48152ms)
+✔ standard photos render pending or restricted states until explicitly safe (0.368312ms)
+✔ mandatory fixtures with only optional views cannot activate a selection (2.15356ms)
+✔ waivers and acceptance show manual completion consequence; maintenance and resolution keep evidence required (1.934553ms)
+✔ unsafe or unavailable evidence cannot expose an accept action (1.796169ms)
+✔ completed case exposes only follow-up resolution allowed by server (0.316846ms)
+✔ service, review, rework, verified and manual outcomes stay distinct (2.734638ms)
+✔ task selections reject another area, retired items, duplicates and empty mandatory sets (2.23569ms)
+✔ manual and verified completion have distinct labels and processing has neutral timing (0.465487ms)
+✔ newly registered company must choose a plan (2.878409ms)
+✔ a returning unpaid signup resumes plan selection (0.366908ms)
+✔ active subscriptions and legacy active accounts can enter their workspace (0.267401ms)
+✔ existing cancelled or past-due subscriptions keep access to billing (0.258703ms)
+✔ week links reject malformed and impossible dates (2.266744ms)
+✔ week links normalize Sunday and cross year boundaries in calendar days (0.633996ms)
+✔ privacy retry is only offered for pending standards, never for held or safe photos (1.983556ms)
+✔ retry refreshes standard and area queries after successful assessment (4.501914ms)
+✔ service failure preserves pending presentation and still refreshes after uncertain response (0.603518ms)
+✔ a successful response that remains pending does not imply privacy clearance (3.534711ms)
+✔ reference areas require aligned names and files without dropping partial rows (2.264276ms)
+✔ recurrence end and required times are validated before submission (0.574909ms)
+✔ site wall times use the site time zone and date-only values keep existing UTC convention (4.701272ms)
+✔ future shift and missing attendance row remain neutral; absent record is attention (3.551568ms)
+✔ open overdue, late start, completed late, and cancelled use distinct wording (0.635992ms)
+✔ Today and Overview use the same attention membership and ordering (18.650483ms)
+✔ detail links use each staff member’s local day (0.838003ms)
+ℹ tests 32
+ℹ suites 0
+ℹ pass 32
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 3279.462405
+
+=== frontend-mobile-baseline ===
+
+> frontend-mobile@1.0.0 test
+> tsx --test src/verification/*.test.ts
+
+✔ concurrent refresh is serialized and multipart is rebuilt after expiry (27.062077ms)
+✔ network failure during refresh retains sign-in; explicit revocation clears it (3.72566ms)
+✔ account switch during refresh cannot save another worker tokens or retry multipart (6.902206ms)
+✔ Axios stops an old account request even when token retrieval overlaps switching accounts (8.374456ms)
+✔ process restart recovers upload identity without creating a new capture (1.836801ms)
+✔ offline sequence retains passed views and advances only with durable queue row (0.675779ms)
+✔ expiry, paused room, backwards monotonic time and reboot stop capture (0.471052ms)
+✔ network outages retry but revoked auth pauses; rejected authority needs reconciliation (0.619404ms)
+✔ quality guidance never reports a cleaning failure (0.616311ms)
+✔ targeted rework excludes passed, processing and manager-review requirements (1.896804ms)
+(node:49910) ExperimentalWarning: SQLite is an experimental feature and might change at any time
+(Use `node --trace-warnings ...` to show where the warning was created)
+✔ SIGKILL after durable save recovers bytes, slot identity and interrupted upload (309.280962ms)
+✔ logout retains pending bytes; different company/worker cannot read them; same worker resumes (43.666732ms)
+✔ low storage refuses new evidence without dropping pending work; slot uniqueness is atomic (3.965575ms)
+✔ offline and suspended sync retain bytes; reconnect uploads exact metadata and server acknowledgment (294.285675ms)
+✔ only durable server acknowledgment releases bytes; metadata remains resumable (3.04034ms)
+✔ startup removes previous-process plaintext capture/upload caches and preserves encrypted work (3.523207ms)
+✔ 50-photo ceiling retains existing evidence and acknowledged upload frees capacity (69.906708ms)
+✔ fresh sessions require network; lost session response replays durable identity; renewal uses existing session (16.590679ms)
+ℹ tests 18
+ℹ suites 0
+ℹ pass 18
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 1052.928461
+
+=== backend-final ===
+
+> fyp@1.0.0 test
+> vitest run
+
+
+ RUN  v4.1.11 /home/shumail/bk-Priv/PRIV/backend
+
+
+ Test Files  28 passed (28)
+      Tests  200 passed (200)
+   Start at  23:49:01
+   Duration  5.60s (transform 1.69s, setup 0ms, import 19.20s, tests 1.16s, environment 8ms)
+
+
+=== backend-final-build ===
+
+> fyp@1.0.0 build
+> prisma generate && tsc -p tsconfig.json
+
+Loaded Prisma config from prisma.config.ts.
+
+Prisma schema loaded from prisma/schema.prisma.
+
+✔ Generated Prisma Client (v7.5.0) to ./node_modules/@prisma/client in 957ms
+
+Start by importing your Prisma Client (See: https://pris.ly/d/importing-client)
+
+
+
+=== frontend-build ===
+
+> frontend@0.0.0 lint
+> eslint .
+
+
+> frontend@0.0.0 build
+> tsc -b && vite build
+
+vite v8.0.1 building client environment for production...
+[2K
+transforming...✓ 2929 modules transformed.
+rendering chunks...
+computing gzip size...
+dist/index.html                                                     0.72 kB │ gzip:   0.41 kB
+dist/assets/geist-mono-symbols2-wght-normal-CO5SzqOn.woff2          5.81 kB
+dist/assets/geist-mono-cyrillic-ext-wght-normal-X_5orZeX.woff2      6.17 kB
+dist/assets/geist-mono-vietnamese-wght-normal-DadHysG0.woff2        7.69 kB
+dist/assets/manrope-vietnamese-wght-normal-usUDDRr7.woff2           8.52 kB
+dist/assets/manrope-greek-wght-normal-DL7QRZyv.woff2                9.44 kB
+dist/assets/inter-vietnamese-wght-normal-CBcvBZtf.woff2            10.25 kB
+dist/assets/inter-greek-ext-wght-normal-DlzME5K_.woff2             11.23 kB
+dist/assets/geist-mono-cyrillic-wght-normal-DiZS0aHC.woff2         12.94 kB
+dist/assets/manrope-cyrillic-wght-normal-Dvxsihut.woff2            14.50 kB
+dist/assets/geist-mono-latin-ext-wght-normal-Bwz-egvJ.woff2        14.69 kB
+dist/assets/manrope-latin-ext-wght-normal-Ch3YOpNY.woff2           15.12 kB
+dist/assets/inter-cyrillic-wght-normal-DqGufNeO.woff2              18.74 kB
+dist/assets/inter-greek-wght-normal-CkhJZR-_.woff2                 18.99 kB
+dist/assets/geist-mono-latin-wght-normal-XN7g48iV.woff2            23.12 kB
+dist/assets/manrope-latin-wght-normal-DHIcAJRg.woff2               24.83 kB
+dist/assets/inter-cyrillic-ext-wght-normal-BOeWTOD4.woff2          25.96 kB
+dist/assets/inter-latin-wght-normal-Dx4kXJAl.woff2                 48.25 kB
+dist/assets/inter-latin-ext-wght-normal-DO1Apj_S.woff2             85.06 kB
+dist/assets/index-CMXRqcxj.css                                    129.08 kB │ gzip:  26.94 kB
+dist/assets/index-BmBAk21W.js                                   1,188.80 kB │ gzip: 362.47 kB
+
+[33m[PLUGIN_TIMINGS] Warning:[0m Your build spent significant time in plugins. Here is a breakdown:
+  - @rolldown/plugin-babel (93%)
+  - vite:css (7%)
+See https://rolldown.rs/options/checks#plugintimings for more details.
+
+[plugin builtin:vite-reporter] 
+(!) Some chunks are larger than 500 kB after minification. Consider:
+- Using dynamic import() to code-split the application
+- Use build.rolldownOptions.output.codeSplitting to improve chunking: https://rolldown.rs/reference/OutputOptions.codeSplitting
+- Adjust chunk size limit for this warning via build.chunkSizeWarningLimit.
+✓ built in 9.42s
+
+=== mobile-build ===
+
+> frontend-mobile@1.0.0 typecheck
+> tsc --noEmit
+
+
+> frontend-mobile@1.0.0 build:web
+> expo export --platform web
+
+env: load .env
+env: export EXPO_PUBLIC_API_BASE_URL
+Starting Metro Bundler
+Web ./index.ts ▓░░░░░░░░░░░░░░░  8.9% (26/87)
+Web Bundled 3272ms index.ts (3035 modules)
+
+› Assets (12):
+assets/hygene-ops-mark.fae48e7f205eedc2fd1d86cdb77d216b.png (3.01 kB)
+node_modules/@react-navigation/elements/lib/module/assets/back-icon-mask.0a328cd9c1afd0afe8e3b1ec5165b1b4.png (653 B)
+node_modules/@react-navigation/elements/lib/module/assets/back-icon.35ba0eaec5a4f5ed12ca16fabeae451d.png (207 B)
+node_modules/@react-navigation/elements/lib/module/assets/clear-icon.c94f6478e7ae0cdd9f15de1fcb9e5e55.png (4 variations | 425 B)
+node_modules/@react-navigation/elements/lib/module/assets/close-icon.808e1b1b9b53114ec2838071a7e6daa7.png (4 variations | 235 B)
+node_modules/@react-navigation/elements/lib/module/assets/search-icon.286d67d3f74808a60a78d3ebf1a5fb57.png (928 B)
+
+› web bundles (2):
+_expo/static/css/web-7048721bb9569cc44385d9f65ba9acc1.css (14.2 kB)
+_expo/static/js/web/index-0fd40bb7027d120289e7c60259b87000.js (4.15 MB)
+
+› Files (3):
+favicon.ico (14.5 kB)
+index.html (1.41 kB)
+metadata.json (49 B)
+
+Exported: dist
+
+=== integration ===
+
+> fyp@1.0.0 test:verification:integration
+> tsx tests/verification.integration.ts
+
+prisma:error Invalid job tenant
+prisma:error Invalid assignment binding
+PASS: restored legacy migration/backfill, tenant/session bindings, concurrent queue caps, lease expiry, stale workers, retries and exactly-once publication
+(node:50561) DeprecationWarning: Calling client.query() when the client is already executing a query is deprecated and will be removed in pg@9.0. Use async/await or an external async flow control mechanism instead.
+(Use `node --trace-deprecation ...` to show where the warning was created)
+prisma:error Verification history must be retained
+PASS: inventory version conflicts, stable replacement codes, cross-area edits, deletion outbox protection and archive preservation
+Generating daily task instances...
+Task instances created: 1
+Task assignments ensured: 0
+Generating Once task instances...
+Once Task instances created: 1
+Once task assignments ensured: 0
+Startup cron: created 1 attendance record(s), 2 task instance(s), ensured 0 assignment(s) for today.
+prisma:error Inventory snapshot is immutable
+prisma:error Task snapshot is immutable
+{"code":"INVENTORY_GENERATION_BLOCKED","templateId":1,"companyId":1,"reason":"SETUP_REQUIRED","date":"2026-10-07T19:00:00.000Z"}
+PASS: daily/once/startup snapshots, legacy reference drain, atomic concurrent generation and assignments, subsets, immutable history, future ALL expansion and retirement review
+PASS: concurrent sessions/manifests/uploads, replay and changed bytes, separate provider stages, no first-failure spam, targeted retake, handover revocation, preserved evidence, waiver outcome and exactly-once completion
+PASS: two final-result race, verified versus waived completion, QR rotation during AI, old-QR rejection, passed evidence preservation and inactive-staff revocation
+PASS: stale result after retake, upload/storage racing reassignment with retained bytes, bounded provider retries and no fabricated dirt
+PASS: real HTTP verification DTO, resumable work, scoped exception API, read receipts, invalid IDs and role boundaries
+PASS: third-failure escalation, CANNOT_ASSESS targeted recapture and maintenance never satisfying mandatory evidence
+PASS: optional standards screened before delivery, concurrent/bounded privacy retries, safe-result reuse, outage restriction and immutable holds
+Isolated database retained for inspection: priv_verification_test_1791312383252_8659
+
+=== lifecycle ===
+
+> fyp@1.0.0 test:verification:lifecycle
+> tsx tests/verification.lifecycle.integration.ts
+
+(node:50604) DeprecationWarning: Calling client.query() when the client is already executing a query is deprecated and will be removed in pg@9.0. Use async/await or an external async flow control mechanism instead.
+(Use `node --trace-deprecation ...` to show where the warning was created)
+prisma:error Follow-up task scope, completion or start time is invalid
+prisma:error Follow-up task scope, completion or start time is invalid
+prisma:error Follow-up fixture/view must have accepted replacement evidence
+prisma:error Follow-up task scope, completion or start time is invalid
+prisma:error Held source bytes cannot be follow-up evidence
+prisma:error Decision evidence belongs to another task
+PASS lifecycle: completion race, item aggregation, epochs, privacy/presence, maintenance, waiver, extension, deadline/pending jobs, no spam, company revocation
+Retained isolated database: priv_verification_test_lifecycle_1791312384581
+
+=== worker ===
+
+> fyp@1.0.0 test:verification:worker
+> tsx tests/verification.worker.integration.ts
+
+PASS: worker startup, own-instance health, graceful shutdown and stale health; isolated database priv_verification_test_worker_1791312438722
+
+=== migration ===
+Loaded Prisma config from backend/prisma.config.ts.
+
+Prisma schema loaded from backend/prisma/schema.prisma.
+Datasource "db": PostgreSQL database "priv_verification_test_migration19_1791312480537", schema "public" at "127.0.0.1:55439"
+
+12 migrations found in prisma/migrations
+
+Applying migration `20260902120000_baseline`
+Applying migration `20260911000100_subscription_plans`
+Applying migration `20260911000200_rename_subscription_plans`
+Applying migration `20260911000300_paddle_fulfillment`
+Applying migration `20260911000400_billing_status_default`
+Applying migration `20260917000000_permanent_deletion_media`
+Applying migration `20260924000100_enterprise_inquiries`
+Applying migration `202610040001_inventory_verification`
+Applying migration `202610040002_verification_foundation_constraints`
+Applying migration `202610040003_verification_history_bindings`
+Applying migration `202610060001_verification_lifecycle`
+Applying migration `202610060002_verification_followup`
+
+The following migration(s) have been applied:
+
+migrations/
+  └─ 20260902120000_baseline/
+    └─ migration.sql
+  └─ 20260911000100_subscription_plans/
+    └─ migration.sql
+  └─ 20260911000200_rename_subscription_plans/
+    └─ migration.sql
+  └─ 20260911000300_paddle_fulfillment/
+    └─ migration.sql
+  └─ 20260911000400_billing_status_default/
+    └─ migration.sql
+  └─ 20260917000000_permanent_deletion_media/
+    └─ migration.sql
+  └─ 20260924000100_enterprise_inquiries/
+    └─ migration.sql
+  └─ 202610040001_inventory_verification/
+    └─ migration.sql
+  └─ 202610040002_verification_foundation_constraints/
+    └─ migration.sql
+  └─ 202610040003_verification_history_bindings/
+    └─ migration.sql
+  └─ 202610060001_verification_lifecycle/
+    └─ migration.sql
+  └─ 202610060002_verification_followup/
+    └─ migration.sql
+
+All migrations have been successfully applied.
+
+=== migration-status ===
+Loaded Prisma config from backend/prisma.config.ts.
+
+Prisma schema loaded from backend/prisma/schema.prisma.
+Datasource "db": PostgreSQL database "priv_verification_test_migration19_1791312480537", schema "public" at "127.0.0.1:55439"
+
+12 migrations found in prisma/migrations
+
+Database schema is up to date!
+
+=== migration-report ===
+
+> fyp@1.0.0 verification:report
+> tsx scripts/verificationMigrationReport.ts
+
+{
+  "mode": "read-only-dry-run",
+  "migrations": [
+    {
+      "migration_name": "20260902120000_baseline",
+      "finished_at": "2026-10-06T18:48:01.901Z",
+      "rolled_back_at": null
+    },
+    {
+      "migration_name": "20260911000100_subscription_plans",
+      "finished_at": "2026-10-06T18:48:01.913Z",
+      "rolled_back_at": null
+    },
+    {
+      "migration_name": "20260911000200_rename_subscription_plans",
+      "finished_at": "2026-10-06T18:48:01.920Z",
+      "rolled_back_at": null
+    },
+    {
+      "migration_name": "20260911000300_paddle_fulfillment",
+      "finished_at": "2026-10-06T18:48:01.967Z",
+      "rolled_back_at": null
+    },
+    {
+      "migration_name": "20260911000400_billing_status_default",
+      "finished_at": "2026-10-06T18:48:01.971Z",
+      "rolled_back_at": null
+    },
+    {
+      "migration_name": "20260917000000_permanent_deletion_media",
+      "finished_at": "2026-10-06T18:48:01.983Z",
+      "rolled_back_at": null
+    },
+    {
+      "migration_name": "20260924000100_enterprise_inquiries",
+      "finished_at": "2026-10-06T18:48:01.992Z",
+      "rolled_back_at": null
+    },
+    {
+      "migration_name": "202610040001_inventory_verification",
+      "finished_at": "2026-10-06T18:48:02.121Z",
+      "rolled_back_at": null
+    },
+    {
+      "migration_name": "202610040002_verification_foundation_constraints",
+      "finished_at": "2026-10-06T18:48:02.143Z",
+      "rolled_back_at": null
+    },
+    {
+      "migration_name": "202610040003_verification_history_bindings",
+      "finished_at": "2026-10-06T18:48:02.151Z",
+      "rolled_back_at": null
+    },
+    {
+      "migration_name": "202610060001_verification_lifecycle",
+      "finished_at": "2026-10-06T18:48:02.157Z",
+      "rolled_back_at": null
+    },
+    {
+      "migration_name": "202610060002_verification_followup",
+      "finished_at": "2026-10-06T18:48:02.166Z",
+      "rolled_back_at": null
+    }
+  ],
+  "companies": [],
+  "templates": [],
+  "activeInstances": [],
+  "clientCapabilities": "Native workflow 2/minimum 2.0.0 contract implemented; deployed client readiness requires separate release evidence",
+  "missingMappings": []
+}
+
+=== backfill ===
+
+> fyp@1.0.0 verification:backfill
+> tsx scripts/verificationBackfill.ts
+
+{"mode":"dry-run","candidates":0}
+
+=== backfill-populated ===
+
+> fyp@1.0.0 verification:backfill
+> tsx scripts/verificationBackfill.ts
+
+{"mode":"dry-run","candidates":0}
+
+=== unavailable-gate ===
+
+> fyp@1.0.0 verification:benchmark
+> tsx scripts/verificationEvaluatorBenchmark.ts --require-targets
+
+{
+  "status": "DATASET_UNAVAILABLE",
+  "autoPassEnabled": false,
+  "configuration": null,
+  "overall": {
+    "examples": 0,
+    "dirty": 0,
+    "wrongOrReplayed": 0,
+    "falseClean": 0,
+    "falseCleanRate": null,
+    "dirtyAutoPasses": 0,
+    "wrongAutoPasses": 0,
+    "wrongAutoPassRate": null,
+    "wrongItemAutoPasses": 0,
+    "replayedAutoPasses": 0,
+    "falseClean95": null,
+    "wrongAutoPass95": null,
+    "cannotAssess": 0,
+    "cannotAssessRate": null,
+    "humanCannotAssess": 0,
+    "unassessableAutoPasses": 0,
+    "coverageEvaluated": 0,
+    "coverageFailures": 0,
+    "coverageFailureRate": null,
+    "coverageVerdicts": {
+      "MATCH": 0,
+      "WRONG_ITEM": 0,
+      "MISSING_SURFACE": 0,
+      "UNCERTAIN": 0,
+      "SERVICE_FAILURE": 0
+    },
+    "wrongOrReplayedCoverageMatches": 0,
+    "serviceFailures": 0,
+    "meanLatencyMs": null,
+    "measuredCostUsd": null,
+    "missingStageEvidence": 0,
+    "inconsistentAutoPasses": 0,
+    "targetMet": false
+  },
+  "perFixture": {},
+  "meanLatencyMs": null,
+  "measuredCostUsd": null,
+  "limitations": [
+    "Independent human labels and consent are required; predictions are supplied, not generated by this reporter.",
+    "95% Wilson intervals express sampling uncertainty.",
+    "Missing stage evidence or inconsistent candidate passes block targets.",
+    "Meeting targets does not enable auto-pass; sparse types remain review-required."
+  ]
+}
+
+=== report-no-overwrite ===
+
+> fyp@1.0.0 verification:benchmark
+> tsx scripts/verificationEvaluatorBenchmark.ts /tmp/step19-empty-report-input.json /home/shumail/bk-Priv/PRIV/docs/verification/RELEASE_19_BENCHMARK_STATUS.json
+
+node:internal/fs/promises:640
+  return new FileHandle(await PromisePrototypeThen(
+                        ^
+
+Error: EEXIST: file already exists, open '/home/shumail/bk-Priv/PRIV/docs/verification/RELEASE_19_BENCHMARK_STATUS.json'
+    at async open (node:internal/fs/promises:640:25)
+    at async writeFile (node:internal/fs/promises:1253:14)
+    at async <anonymous> (/home/shumail/bk-Priv/PRIV/backend/scripts/verificationEvaluatorBenchmark.ts:9:11) {
+  errno: -17,
+  code: 'EEXIST',
+  syscall: 'open',
+  path: '/home/shumail/bk-Priv/PRIV/docs/verification/RELEASE_19_BENCHMARK_STATUS.json'
+}
+
+Node.js v24.14.1

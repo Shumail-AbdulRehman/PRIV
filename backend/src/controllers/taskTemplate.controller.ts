@@ -1,7 +1,7 @@
 import { inventorySelectionSchema } from "../validations/area.validation.js";
 import { configureTemplateInventory, validateInventorySelection } from "../services/verification-v2/inventorySnapshot.service.js";
 import { Request, Response } from "express";
-import { createTaskSchema, createTaskMultipartSchema, editTaskSchema } from "../validations/taskTemplate.validation.js";
+import { createTaskMultipartSchema, editTaskSchema } from "../validations/taskTemplate.validation.js";
 import { prisma } from "../prisma/prisma.js";
 import { ApiResponse } from "../utils/ApiResponse.js";
 import { ApiError } from "../utils/ApiError.js";
@@ -10,8 +10,25 @@ import {requireLocationAccess} from '../services/verification-v2/authorization.s
 import {writeAuditLog} from '../services/auditLog.service.js';
 import { DEFAULT_TIME_ZONE, getZonedClockMinutes, getZonedDayRange } from "../utils/dateTime.js";
 import { assertLocationAccess } from "../utils/scope.js";
-import { uploadSingleImage } from "../utils/cloudinary.js";
-import { assertReferenceImageAllowance } from "../services/subscription.service.js";
+import { Prisma } from "@prisma/client";
+import type { VerificationTransaction } from "../services/verification-v2/jobQueue.service.js";
+
+// Hosted database round trips and lock waits can exceed Prisma's 5s default.
+// Keep the longer budget local to inventory schedule saves.
+const INVENTORY_TRANSACTION_OPTIONS = { maxWait: 10_000, timeout: 30_000 };
+
+function scheduleSaveError(error: unknown): never {
+  // Only these transaction failures confirm that no save was committed.
+  // Connection/commit uncertainty must retain the existing unknown-save handling.
+  if (
+    error instanceof Prisma.PrismaClientKnownRequestError &&
+    error.code === "P2028" &&
+    /(?:query|commit) cannot be executed on an expired transaction|Unable to start a transaction in the given time/i.test(error.message)
+  ) {
+    throw new ApiError(408, "The schedule was not saved because the database timed out. Please retry; your draft is preserved.", [{ code: "SCHEDULE_SAVE_TIMEOUT" }]);
+  }
+  throw error;
+}
 
 const getMinutes = (date: Date, timeZone: string) => getZonedClockMinutes(date, timeZone);
 
@@ -153,13 +170,13 @@ const assertLocationHasCapacityForTaskTemplate = async ({
   effectiveDate: Date;
   recurringEndDate?: Date | null;
   excludeTemplateId?: number;
-}) => {
+}, db: Pick<VerificationTransaction, "location" | "staff" | "taskTemplate"> = prisma) => {
   const [location, staffMembers, existingTemplates] = await Promise.all([
-    prisma.location.findUnique({
+    db.location.findUnique({
       where: { id: locationId },
       select: { timezone: true },
     }),
-    prisma.staff.findMany({
+    db.staff.findMany({
       where: {
         locationId,
         isActive: true,
@@ -172,7 +189,7 @@ const assertLocationHasCapacityForTaskTemplate = async ({
         shiftEnd: true,
       },
     }),
-    prisma.taskTemplate.findMany({
+    db.taskTemplate.findMany({
       where: {
         locationId,
         isActive: true,
@@ -215,104 +232,8 @@ const assertLocationHasCapacityForTaskTemplate = async ({
   }
 };
 
-const MAX_REFERENCE_IMAGES = Number(process.env.MAX_REFERENCE_IMAGES ?? 10);
-
-const normalizeReferenceNames = (value: unknown): string[] => {
-  if (Array.isArray(value)) return value.map((v) => String(v ?? "").trim()).filter(Boolean);
-  if (typeof value === "string" && value.trim()) return [value.trim()];
-  return [];
-};
-
-const createLegacyTaskTemplate = async (req: Request, res: Response) => {
-  const files = Array.isArray(req.files) ? req.files : [];
-
-  if (!files.length) {
-    throw new ApiError(400, "At least one reference image is required");
-  }
-
-  if (files.length > MAX_REFERENCE_IMAGES) {
-    throw new ApiError(400, `You can upload up to ${MAX_REFERENCE_IMAGES} reference images`);
-  }
-
-  await assertReferenceImageAllowance(req.user!.companyId, files.length);
-
-  const result = createTaskMultipartSchema.safeParse(req.body);
-
-  if (!result.success) {
-    const errors = result.error.issues.map(e => ({
-      field: e.path.join("."),
-      message: e.message
-    }));
-    throw new ApiError(400, "Validation failed", errors);
-  }
-
-  const referenceNames = normalizeReferenceNames(req.body.referenceNames);
-
-  if (referenceNames.length !== files.length) {
-    throw new ApiError(
-      400,
-      "Each reference image must have a name",
-      [{ field: "referenceNames", message: `Expected ${files.length} names, got ${referenceNames.length}` }]
-    );
-  }
-
-  const duplicateNames = new Set(
-    referenceNames.filter((name, index) => referenceNames.indexOf(name) !== index)
-  );
-
-  if (duplicateNames.size > 0) {
-    throw new ApiError(
-      400,
-      "Reference area names must be unique",
-      [{ field: "referenceNames", message: `Duplicate names: ${Array.from(duplicateNames).join(", ")}` }]
-    );
-  }
-
-  const { locationId } = result.data;
-
-  const location = await prisma.location.findUnique({ where: { id: locationId } });
-
-  if (!location || location.companyId !== req.user!.companyId || !location.isActive) {
-    throw new ApiError(404, "Location not found in your company");
-  }
-
-  assertLocationAccess(req.user!, locationId);
-
-  const data = {
-    ...result.data,
-    referenceImageUrl: null as string | null,
-  };
-
-  await assertLocationHasCapacityForTaskTemplate(data);
-
-  const uploadedReferences = await Promise.all(
-    files.map((file, index) =>
-      uploadSingleImage(file, `task-templates/${locationId}/reference-images`).then((upload) => ({
-        name: referenceNames[index],
-        imageUrl: upload.secure_url,
-        sortOrder: index,
-      }))
-    )
-  );
-
-  const taskTemplate = await prisma.$transaction(async (tx) => {
-    const template = await tx.taskTemplate.create({ data });
-
-    await tx.taskTemplateReferenceImage.createMany({
-      data: uploadedReferences.map((ref) => ({
-        ...ref,
-        templateId: template.id,
-      })),
-    });
-
-    return template;
-  });
-
-  res.status(201).json(new ApiResponse(201, taskTemplate, "Task template created successfully"));
-};
-
 export const createTaskTemplate = async (req: Request, res: Response) => {
-  if (req.body.areaId === undefined) return createLegacyTaskTemplate(req,res);
+  if (req.body.areaId === undefined) throw new ApiError(422,"New schedules require an active room and its inventory. Select a room to use guided verification.",[{code:'INVENTORY_VERIFICATION_REQUIRED',field:'areaId'}]);
   const result=createTaskMultipartSchema.safeParse(req.body);
   const selection=inventorySelectionSchema.safeParse(req.body);
   if(!result.success||!selection.success)throw new ApiError(400,"A single area and valid inventory selection are required",[...(!result.success?result.error.issues:[]),...(!selection.success?selection.error.issues:[])]);
@@ -329,12 +250,12 @@ export const createTaskTemplate = async (req: Request, res: Response) => {
   const template=await prisma.$transaction(async tx=>{
     await tx.$queryRaw`SELECT pg_advisory_xact_lock(872120, ${location.id})::text`;
     await validateInventorySelection(tx,location.id,selection.data);
-    await assertLocationHasCapacityForTaskTemplate(result.data);
+    await assertLocationHasCapacityForTaskTemplate(result.data,tx);
     const created=await tx.taskTemplate.create({data:{...result.data,sourceLegacyTemplateId,areaId:selection.data.areaId,verificationVersion:2}});
     await configureTemplateInventory(tx,created.id,location.id,selection.data);
     await writeAuditLog({companyId:req.user!.companyId,actorType:req.user!.role,actorId:req.user!.id,entityType:'TASK_TEMPLATE',entityId:created.id,action:'CONFIGURE_INVENTORY',newValue:selection.data},tx);
     return tx.taskTemplate.findUniqueOrThrow({where:{id:created.id},include:{inventoryItems:true,area:true}});
-  });
+  },INVENTORY_TRANSACTION_OPTIONS).catch(scheduleSaveError);
   res.status(201).json(new ApiResponse(201,template,'Task template created'));
 };
 
@@ -348,7 +269,7 @@ export const mapTemplateInventory = async (req: Request, res: Response) => {
     await configureTemplateInventory(tx,id,template.locationId,input.data);
     await tx.verificationException.updateMany({where:{dedupeKey:`setup:template:${id}`},data:{state:'RESOLVED',resolvedAt:new Date()}});
     return tx.taskTemplate.findUniqueOrThrow({where:{id}});
-  });
+  },INVENTORY_TRANSACTION_OPTIONS).catch(scheduleSaveError);
   res.json(new ApiResponse(200,updated,"Future tasks use this area inventory. Existing tasks are unchanged."));
 };
 
@@ -428,7 +349,7 @@ export const editTaskTemplate = async (req: Request, res: Response) => {
   if (result.data.locationId) assertLocationAccess(req.user!, result.data.locationId);
   const updated = await prisma.$transaction(async tx=>{
     await tx.$queryRaw`SELECT pg_advisory_xact_lock(872120, ${nextLocationId})::text`;
-    await assertLocationHasCapacityForTaskTemplate({locationId:nextLocationId,shiftStart:nextShiftStart,shiftEnd:nextShiftEnd,recurringType:nextRecurringType,effectiveDate:nextEffectiveDate,recurringEndDate:nextRecurringEndDate,excludeTemplateId:taskTemplateId});
+    await assertLocationHasCapacityForTaskTemplate({locationId:nextLocationId,shiftStart:nextShiftStart,shiftEnd:nextShiftEnd,recurringType:nextRecurringType,effectiveDate:nextEffectiveDate,recurringEndDate:nextRecurringEndDate,excludeTemplateId:taskTemplateId},tx);
     if(req.body.areaId!==undefined) {
       const selection=inventorySelectionSchema.safeParse(req.body);
       if(!selection.success)throw new ApiError(400,"Invalid inventory selection",selection.error.issues);
@@ -444,7 +365,7 @@ export const editTaskTemplate = async (req: Request, res: Response) => {
       await tx.taskTemplate.update({where:{id:taskTemplateId},data:result.data});
     }
     return tx.taskTemplate.findUniqueOrThrow({where:{id:taskTemplateId},include:{inventoryItems:true,area:true}});
-  });
+  },INVENTORY_TRANSACTION_OPTIONS).catch(scheduleSaveError);
 
   res.status(200).json(new ApiResponse(200, updated, "Task template updated successfully"));
 };

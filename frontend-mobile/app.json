@@ -25,6 +25,7 @@
       "bundleIdentifier": "com.hygeneops.staff"
     },
     "android": {
+      "versionCode": 2,
       "adaptiveIcon": {
         "foregroundImage": "./assets/hygene-ops-adaptive.png",
         "backgroundColor": "#ffffff"

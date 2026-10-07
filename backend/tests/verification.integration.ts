@@ -98,6 +98,39 @@ const {configureTemplateInventory,validateInventorySelection,createTaskInstanceW
 const {getZonedDayRange}=await import('../src/utils/dateTime.js');
 const now=new Date();const base=getZonedDayRange(now,'Asia/Karachi').start;
 const worker=await prisma.staff.create({data:{name:'Assigned worker',email:`${randomUUID()}@test.invalid`,password:'test-only',companyId:company,locationId:location,shiftStart:new Date(+base+8*3600000),shiftEnd:new Date(+base+18*3600000)}});
+// Reproduce the hosted-database delay in this suite's fresh local database only.
+const {createTaskTemplate}=await import('../src/controllers/taskTemplate.controller.js');
+const scheduleRequest=(title:string)=>({user:actor,body:{title,locationId:location,areaId:inventory.id,inventorySelection:'ALL',selectedItems:[],expectedInventoryVersion:3,shiftStart:new Date(+base+16*3600000),shiftEnd:new Date(+base+17*3600000),effectiveDate:new Date(+base+7*86400000),recurringType:'ONCE'}});
+await client.query(`CREATE FUNCTION test_slow_schedule() RETURNS trigger LANGUAGE plpgsql AS $$
+ BEGIN IF NEW.title = 'Slow inventory schedule regression' THEN PERFORM pg_sleep(6); END IF; RETURN NEW; END $$;
+ CREATE TRIGGER test_slow_schedule BEFORE INSERT ON "TaskTemplate" FOR EACH ROW EXECUTE FUNCTION test_slow_schedule();`);
+let savedSchedule:{data:{id:number}}|undefined;
+const scheduleResponse={status(code:number){assert.equal(code,201);return this;},json(body:typeof savedSchedule){savedSchedule=body;return this;}};
+try {
+ const started=Date.now();
+ await createTaskTemplate(scheduleRequest('Slow inventory schedule regression') as any,scheduleResponse as any);
+ assert.ok(Date.now()-started>=6000,'save must survive a delay beyond Prisma\'s default timeout');
+ assert.ok(savedSchedule);
+ const saved=await prisma.taskTemplate.findUniqueOrThrow({where:{id:savedSchedule.data.id},include:{area:true}});
+ assert.equal(saved.verificationVersion,2);assert.equal(saved.setupStatus,'READY');assert.equal(saved.areaId,inventory.id);
+ assert.equal(await prisma.auditLog.count({where:{entityId:saved.id,entityType:'TASK_TEMPLATE',action:'CONFIGURE_INVENTORY'}}),1);
+ await prisma.taskTemplate.update({where:{id:saved.id},data:{isActive:false}});
+} finally {
+ await client.query('DROP TRIGGER test_slow_schedule ON "TaskTemplate"; DROP FUNCTION test_slow_schedule();');
+}
+await client.query(`CREATE FUNCTION test_reject_schedule_audit() RETURNS trigger LANGUAGE plpgsql AS $$
+ BEGIN IF NEW.action = 'CONFIGURE_INVENTORY' AND EXISTS (SELECT 1 FROM "TaskTemplate" WHERE id = NEW."entityId" AND title = 'Rollback inventory schedule regression')
+ THEN RAISE EXCEPTION 'Simulated audit failure'; END IF; RETURN NEW; END $$;
+ CREATE TRIGGER test_reject_schedule_audit BEFORE INSERT ON "AuditLog" FOR EACH ROW EXECUTE FUNCTION test_reject_schedule_audit();`);
+try {
+ let responded=false;
+ await assert.rejects(()=>createTaskTemplate(scheduleRequest('Rollback inventory schedule regression') as any,{status(){responded=true;return this;},json(){responded=true;return this;}} as any));
+ assert.equal(responded,false,'failed transaction must not return success');
+ assert.equal(await prisma.taskTemplate.count({where:{title:'Rollback inventory schedule regression'}}),0,'inventory and template must roll back if the audit fails');
+} finally {
+ await client.query('DROP TRIGGER test_reject_schedule_audit ON "AuditLog"; DROP FUNCTION test_reject_schedule_audit();');
+}
+console.log('PASS: real inventory schedule creation survives a six-second database delay and atomically rolls back on audit failure');
 async function template(title:string,recurringType:'DAILY'|'ONCE'|null,mode:'ALL'|'SUBSET'='ALL'){
  const row=await prisma.taskTemplate.create({data:{title,locationId:location,staffId:worker.id,shiftStart:new Date(+base+9*3600000),shiftEnd:new Date(+base+10*3600000),effectiveDate:base,recurringType}});
  await prisma.$transaction(tx=>configureTemplateInventory(tx,row.id,location,{areaId:inventory.id,inventorySelection:mode,expectedInventoryVersion:3,selectedItems:mode==='SUBSET'?[{areaItemId:after.items[1]!.id,mandatory:true}]:[]}));
@@ -115,11 +148,23 @@ const onceInstance=await prisma.taskInstance.findFirstOrThrow({where:{templateId
 assert.equal(dailyInstance.verificationItems.length,2);assert.equal(dailyInstance.verificationItems.flatMap(i=>i.requirements).length,4);assert.equal(dailyInstance.assignments.length,1);
 assert.equal(onceInstance.verificationItems.length,1);assert.equal(onceInstance.verificationItems[0]!.sourceAreaItemId,after.items[1]!.id);
 const startup=await template('Startup snapshot','DAILY');
-const legacy=await prisma.taskTemplate.create({data:{title:'Legacy startup',locationId:location,staffId:worker.id,shiftStart:new Date(+base+11*3600000),shiftEnd:new Date(+base+12*3600000),effectiveDate:base,recurringType:'DAILY',referenceImageUrl:'https://legacy.test/reference.jpg',referenceImages:{create:[{name:'Legacy reference',imageUrl:'https://legacy.test/reference.jpg',sortOrder:0}]}}});
+const legacy=await prisma.taskTemplate.create({data:{title:'Unmapped historical schedule',locationId:location,staffId:worker.id,shiftStart:new Date(+base+11*3600000),shiftEnd:new Date(+base+12*3600000),effectiveDate:base,recurringType:'DAILY',referenceImageUrl:'https://legacy.test/reference.jpg',referenceImages:{create:[{name:'Legacy reference',imageUrl:'https://legacy.test/reference.jpg',sortOrder:0}]}}});
+const legacyOnce=await prisma.taskTemplate.create({data:{title:'Unmapped historical once schedule',locationId:location,staffId:worker.id,shiftStart:new Date(+base+11*3600000),shiftEnd:new Date(+base+12*3600000),effectiveDate:base,recurringType:'ONCE'}});
+await runDailyTaskScheduler(now);await runOnceTaskScheduler(now);
 await runStartupCron(now);
 assert.equal(await prisma.taskInstance.count({where:{templateId:all.id}}),1);assert.equal(await prisma.taskInstance.count({where:{templateId:subset.id}}),1);
 const startupInstance=await prisma.taskInstance.findFirstOrThrow({where:{templateId:startup.id},include:{verificationItems:true}});assert.equal(startupInstance.verificationItems.length,2);
-const legacyInstance=await prisma.taskInstance.findFirstOrThrow({where:{templateId:legacy.id},include:{referenceImages:true}});assert.equal(legacyInstance.verificationVersion,1);assert.equal(legacyInstance.referenceImages.length,1);
+for(const unmapped of [legacy,legacyOnce]) {
+ assert.equal(await prisma.taskInstance.count({where:{templateId:unmapped.id}}),0,'daily/once/startup must not create new legacy tasks');
+ assert.equal((await prisma.taskTemplate.findUniqueOrThrow({where:{id:unmapped.id}})).setupStatus,'NEEDS_REVIEW');
+ assert.equal(await prisma.verificationException.count({where:{dedupeKey:`setup:template:${unmapped.id}`}}),1,'unmapped schedules report one setup issue instead of silently using legacy');
+}
+assert.equal((await prisma.taskInstance.findUniqueOrThrow({where:{id:oldTask}})).completionOutcome,'LEGACY_RECORDED','historical completion remains unchanged');
+for(const id of [dailyInstance.id,onceInstance.id,startupInstance.id]) {
+ const newTask=await prisma.taskInstance.findUniqueOrThrow({where:{id},include:{verificationItems:{include:{requirements:true}}}});
+ assert.equal(newTask.verificationVersion,2);assert.equal(newTask.areaId,inventory.id);assert.ok(newTask.policySnapshot);assert.ok(newTask.verificationDeadline);assert.ok(newTask.uploadDeadline);
+ assert.ok(newTask.verificationItems.every(item=>item.requirements.length>0),'new tasks include guided evidence requirements');
+}
 const concurrent=await template('Concurrent generation',null);
 const input={templateId:concurrent.id,title:'Stale scheduler title',locationId:location,date:base,baseDate:base,shiftStart:all.shiftStart,shiftEnd:all.shiftEnd};
 const generated=await Promise.all(Array.from({length:5},()=>createTaskInstanceWithSnapshot(input)));
@@ -166,7 +211,7 @@ assert.equal((await prisma.taskTemplate.findUniqueOrThrow({where:{id:all.id}})).
 const blocked=await createTaskInstanceWithSnapshot({...input,templateId:all.id,date:new Date(+base+2*86400000),baseDate:new Date(+base+2*86400000)});assert.equal(blocked,null);
 assert.equal(await prisma.taskInstance.count({where:{templateId:all.id}}),2,'retirement never silently shrinks required inventory');
 assert.equal(await prisma.verificationException.count({where:{dedupeKey:`setup:template:${all.id}`}}),1);
-console.log('PASS: daily/once/startup snapshots, legacy reference drain, atomic concurrent generation and assignments, subsets, immutable history, future ALL expansion and retirement review');
+console.log('PASS: daily/once/startup create only guided tasks, unmapped schedules require setup, historical completion retained, atomic concurrent generation and assignments, subsets, immutable history, future ALL expansion and retirement review');
 const captureStaff=await prisma.staff.create({data:{name:'Capture worker',email:`${randomUUID()}@test.invalid`,password:'test-only',companyId:company,locationId:location}});
 const captureActor={id:captureStaff.id,companyId:company,role:'STAFF' as const};
 // Steps 9–14: real transaction tests, external storage/provider calls are injected.
@@ -318,11 +363,30 @@ process.env.ACCESS_TOKEN_SECRET='isolated-verification-test-secret';
 const express=(await import('express')).default,jwt=(await import('jsonwebtoken')).default;
 const verificationRouter=(await import('../src/routes/verification.route.js')).default,exceptionRouter=(await import('../src/routes/verificationException.route.js')).default;
 const http=express();http.use(express.json());http.use('/api',verificationRouter);http.use('/api',exceptionRouter);
+http.use('/api/task-instance',(await import('../src/routes/taskInstance.route.js')).default);
 http.use((error:any,_req:any,res:any,_next:any)=>res.status(error.statusCode??500).json({success:false,message:error.message,code:error.errors?.[0]?.code??'TEST_ERROR'}));
 const server=await new Promise<import('node:http').Server>(resolve=>{const s=http.listen(0,'127.0.0.1',()=>resolve(s));});const port=(server.address() as import('node:net').AddressInfo).port;
 const workerJwt=jwt.sign({id:captureStaff.id,role:'STAFF'},process.env.ACCESS_TOKEN_SECRET),adminJwt=jwt.sign({id:actor.id,role:'ADMIN'},process.env.ACCESS_TOKEN_SECRET);
 async function call(path:string,token:string,method='GET',body?:unknown){return fetch(`http://127.0.0.1:${port}/api${path}`,{method,headers:{Authorization:`Bearer ${token}`,"X-Hygene-Workflow":"2","X-Hygene-App-Version":"2.0.0",...(body?{'Content-Type':'application/json'}:{})},...(body?{body:JSON.stringify(body)}:{})});}
 try{
+ const pendingStart=await createTaskInstanceWithSnapshot({templateId:captureTemplate.id,title:'QR-free start',locationId:location,date:new Date(Date.now()+777777),shiftStart:start,shiftEnd:end});assert.ok(pendingStart);
+ const starts=await Promise.all([call(`/task-instance/${pendingStart.id}/start`,workerJwt,'POST'),call(`/task-instance/${pendingStart.id}/start?qrToken=obsolete-template-token`,workerJwt,'POST')]);
+ assert.ok(starts.every(r=>r.status===200),'guided task starts without QR and concurrent retries are idempotent');
+ const afterStart=await prisma.taskInstance.findUniqueOrThrow({where:{id:pendingStart.id},include:{assignments:true}});
+ assert.equal(afterStart.status,'IN_PROGRESS');assert.equal(afterStart.assignments[0]!.status,'STARTED');
+ const historicalPending=await prisma.taskInstance.create({data:{title:'Historical pending fixture',locationId:location,staffId:captureStaff.id,date:new Date(),shiftStart:start,shiftEnd:end,assignments:{create:{staffId:captureStaff.id}}}});
+ const historicalStart=await call(`/task-instance/${historicalPending.id}/start?qrToken=room-qr`,workerJwt,'POST');
+ assert.equal(historicalStart.status,409);assert.equal((await historicalStart.json() as any).code,'INVENTORY_SETUP_REQUIRED');
+ assert.equal((await prisma.taskInstance.findUniqueOrThrow({where:{id:historicalPending.id}})).status,'PENDING','retiring legacy start cannot convert or start historical work');
+ assert.equal((await call(`/task-instance/${pendingStart.id}/complete`,workerJwt,'POST')).status,409,'old endpoint cannot complete unresolved requirements');
+ assert.equal((await call(`/task-instance/${pendingStart.id}/area/1/scan`,workerJwt,'POST')).status,410);
+ const oldPhoto=new FormData();oldPhoto.append('photo',new Blob(['not an image']),'old.jpg');
+ const retiredUpload=await fetch(`http://127.0.0.1:${port}/api/task-instance/${pendingStart.id}/area/1/upload`,{method:'POST',headers:{Authorization:`Bearer ${workerJwt}`},body:oldPhoto});
+ assert.equal(retiredUpload.status,410,'retired photo endpoints reject before multipart decode/storage');
+ assert.equal((await call(`/task-instance/${pendingStart.id}`,adminJwt)).status,200,'admin can read scoped guided task detail');
+ assert.equal((await call(`/task-instance/staff/${staff.id}/today`,workerJwt)).status,403,'staff cannot load another worker feed');
+ assert.equal((await call(`/task-instance/${finalRace.task.id}/complete`,workerJwt,'POST')).status,200,'already-finalized completion is only read back');
+ console.log('PASS: QR-free concurrent start, legacy writer retirement, no completion bypass and scoped task reads');
  const manifest=await call(`/task-instance/${finalRace.task.id}/verification`,workerJwt);assert.equal(manifest.status,200);const dto:any=await manifest.json();assert.equal(dto.data.outcome,'VERIFIED_COMPLETE');assert.equal(typeof dto.data.items[0].name,'string');assert.equal(typeof dto.data.items[0].requirements[0].instructions,'string');assert.equal(dto.data.allowedActions.createSession,false);
  const work=await call('/task-instance/staff/me/verification-work',workerJwt);assert.equal(work.status,200);assert.ok(Array.isArray((await work.json() as any).data.tasks));
  const casesResponse=await call('/verification-exceptions?state=MANAGER_REVIEW',adminJwt);assert.equal(casesResponse.status,200);const casesDto:any=await casesResponse.json();assert.ok(Array.isArray(casesDto.data.cases));

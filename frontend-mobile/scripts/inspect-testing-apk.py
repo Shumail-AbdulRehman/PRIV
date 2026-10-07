@@ -77,6 +77,10 @@ def inspect(apk, api_url, commit):
         bundle = archive.read('assets/index.android.bundle')
         if normalized_url.encode() not in bundle:
             raise ValueError('Expected phone-accessible API URL missing from bundled JavaScript')
+        storage_fix_markers = [b'The saved-photo database directory is unavailable.',
+                               b'Secure photo storage could not open.']
+        if not all(marker in bundle for marker in storage_fix_markers):
+            raise ValueError('Device storage fixes missing from bundled JavaScript')
         abis = {name.split('/')[1] for name in names if name.startswith('lib/') and name.endswith('.so')}
         for abi in ('arm64-v8a', 'armeabi-v7a'):
             required_libraries = {f'lib/{abi}/libarcore_sdk_jni.so', f'lib/{abi}/libexpo-sqlite.so'}
@@ -88,6 +92,7 @@ def inspect(apk, api_url, commit):
     if not 10 * 1024 * 1024 < size < 500 * 1024 * 1024:
         raise ValueError(f'Unexpected APK size: {size} bytes')
     return {'applicationId': package, 'versionName': root.get(android + 'versionName'),
+            'versionCode': int(root.get(android + 'versionCode')), 'deviceStorageFixesBundled': True,
             'sizeBytes': size, 'sha256': hashlib.file_digest(apk.open('rb'), 'sha256').hexdigest(),
             'apiBaseUrl': normalized_url, 'commit': commit, 'abis': sorted(abis),
             'permissions': sorted(permissions), 'arCore': 'optional',

@@ -3,7 +3,7 @@ import { registerHooks } from 'node:module';
 import { DatabaseSync } from 'node:sqlite';
 import { mkdirSync,writeFileSync,readFileSync,unlinkSync,existsSync,readdirSync,rmSync } from 'node:fs';
 import { join } from 'node:path';
-import { pathToFileURL } from 'node:url';
+import { pathToFileURL, fileURLToPath } from 'node:url';
 import { randomBytes,randomUUID,createHash } from 'node:crypto';
 const directory=process.env.QUEUE_TEST_DIRECTORY!;
 mkdirSync(directory,{recursive:true});
@@ -12,7 +12,11 @@ let freeBytes=1000*1024*1024;
 let cipherAvailable=true;
 class TestFile {
  path:string;name:string;uri:string;
- constructor(parent:string|{path:string},name?:string){this.path=name?join(typeof parent==='string'?parent:parent.path,name):String(parent);this.name=this.path.split('/').at(-1)!;this.uri=this.path;}
+ constructor(parent:string|{path:string},name?:string){
+  // Android Expo FileSystem requires an absolute URI, unlike SQLite's raw path.
+  const base=typeof parent==='string'?fileURLToPath(parent):parent.path;
+  this.path=name?join(base,name):base;this.name=this.path.split('/').at(-1)!;this.uri=pathToFileURL(this.path).href;
+ }
  get exists(){return existsSync(this.path);}
  create(){writeFileSync(this.path,'');}
  write(data:Uint8Array){writeFileSync(this.path,data);}
@@ -33,7 +37,7 @@ function openDatabaseAsync(name:string){const sql=new DatabaseSync(join(director
  withExclusiveTransactionAsync:async(fn:(tx:unknown)=>Promise<void>)=>{sql.exec('BEGIN IMMEDIATE');try{await fn(db);sql.exec('COMMIT');}catch(error){sql.exec('ROLLBACK');throw error;}}
 };return Promise.resolve(db);}
 const secure={getItemAsync:async(key:string)=>existsSync(join(directory,key))?readFileSync(join(directory,key),'utf8'):null,setItemAsync:async(key:string,value:string)=>writeFileSync(join(directory,key),value),WHEN_UNLOCKED_THIS_DEVICE_ONLY:1};
-(globalThis as unknown as {queueHarness:unknown}).queueHarness={sqlite:{openDatabaseAsync,defaultDatabaseDirectory:directory},secure,crypto:{getRandomBytesAsync:async(n:number)=>randomBytes(n),randomUUID},fs:{File:TestFile,Directory:TestDirectory,Paths:{cache:{path:directory,list:()=>readdirSync(directory).map(n=>new TestFile(directory,n))}}},free:()=>freeBytes,
+(globalThis as unknown as {queueHarness:unknown}).queueHarness={sqlite:{openDatabaseAsync,defaultDatabaseDirectory:directory},secure,crypto:{getRandomBytesAsync:async(n:number)=>randomBytes(n),randomUUID},fs:{File:TestFile,Directory:TestDirectory,Paths:{cache:{path:directory,list:()=>readdirSync(directory).map(n=>new TestFile({path:directory},n))}}},free:()=>freeBytes,
  rn:{AppState:{get currentState(){return appState;},addEventListener:()=>({remove(){}})}},
  network:{fetch:async()=>({isConnected:connected,isInternetReachable:connected}),addEventListener:()=>()=>{}},
  location:{requestForegroundPermissionsAsync:async()=>({granted:true}),getCurrentPositionAsync:async()=>({coords:{latitude:0,longitude:0,accuracy:1},timestamp:Date.now()}),Accuracy:{Highest:1}},

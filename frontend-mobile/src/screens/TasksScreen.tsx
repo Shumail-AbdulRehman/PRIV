@@ -51,28 +51,16 @@ export function TasksScreen() {
   };
 
   const handleStartTask = async (task: TaskInstance) => {
-    if(task.verificationVersion===2){try{await client.post(`/task-instance/${task.id}/start`);await tasksQuery.refetch();}catch(error){Alert.alert('Cannot start cleaning',(error as {response?:{data?:{message?:string}}}).response?.data?.message??'Connect and try again.');}return;}
-
-    navigation.navigate("QrScanner", {
-      taskId: task.id,
-      taskTitle: task.title,
-    });
+    try {
+      await client.post(`/task-instance/${task.id}/start`);
+      await tasksQuery.refetch();
+    } catch (error) {
+      Alert.alert('Cannot start cleaning', (error as {response?:{data?:{message?:string}}}).response?.data?.message ?? 'Cannot reach the server. Check your connection and try again.');
+    }
   };
 
   const handleCompleteTask = (task: TaskInstance) => {
-    if(task.verificationVersion===2){navigation.navigate("Verification",{taskId:task.id});return;}
-    navigation.navigate("CompleteTask", {
-      taskId: task.id,
-      taskTitle: task.title,
-      referenceAreas: task.referenceImages?.length
-        ? task.referenceImages.map((ref) => ({
-            id: ref.id,
-            name: ref.name,
-            sortOrder: ref.sortOrder ?? 0,
-            imageUrl: ref.imageUrl,
-          }))
-        : undefined,
-    });
+    navigation.navigate('Verification', { taskId: task.id });
   };
 
   const subtitle = `${pendingCount} pending · ${inProgressCount} in progress`;

@@ -1,4 +1,5 @@
 import { verificationCapabilities,requireNativeVerification } from '../services/verification-v2/compatibility.service.js';
+import { requireVerificationSchema, verificationSchemaReadiness } from '../services/verification-v2/readiness.service.js';
 import {Router} from 'express';
 import multer from 'multer';
 import {z} from 'zod';
@@ -12,7 +13,12 @@ import {sha256} from '../services/verification-v2/quality.service.js';
 import {verificationManifestSchema} from '../services/verification-v2/contracts.js';
 import {resolvePolicy,taskDeadlines} from '../services/verification-v2/verificationPolicy.service.js';
 const router=Router();router.use(verifyJwt);
-router.get('/verification-capabilities',async(req,res)=>{await requireActiveActor(req.user!);res.json({success:true,data:verificationCapabilities()});});
+router.get('/verification-capabilities',async(req,res)=>{await requireActiveActor(req.user!);res.json({success:true,data:{...verificationCapabilities(),database:await verificationSchemaReadiness()}});});
+router.use([
+ /^\/capture-session\//,
+ /^\/verification-attempt\//,
+ /^\/task-instance\/(?:staff\/me\/verification-work|[^/]+\/(?:verification|capture-sessions))(?:\/|$)/,
+],async(_req,_res,next)=>{await requireVerificationSchema();next();});
 router.use((req,res,next)=>{if(req.method==='POST'&&(/^\/capture-session\//.test(req.path)||/\/capture-sessions$/.test(req.path)))return requireNativeVerification(req,res,next);next();});
 const send=(res:any,data:unknown,status=200)=>res.status(status).json({success:true,data:JSON.parse(JSON.stringify(data,(_k,v)=>typeof v==='bigint'?v.toString():v))});
 router.get('/task-instance/staff/me/verification-work',async(req,res)=>{

@@ -74,6 +74,15 @@ test('unavailable encryption preserves its real error and retry reopens existing
  }finally{setCipherAvailable(true);}
  await queue.unlockQueue({companyId:3,id:3});assert.equal(await queue.pendingCount(),count);
 });
+test('an existing Android database without its SecureStore key is never replaced',async()=>{
+ await queue.lockQueue();
+ const database=join(directory,'verification_9_9.db');
+ writeFileSync(database,'retained encrypted evidence');
+ await assert.rejects(queue.unlockQueue({companyId:9,id:9}),/encryption key.*unavailable/);
+ assert.equal(existsSync(join(directory,'hygene_verification_key_9_9')),false);
+ assert.equal(queue.queueAccount(),null);
+ await queue.unlockQueue({companyId:3,id:3});
+});
 test('spatial observation and checkpoint commit with bytes, survive logout, and retain interruption through manifest refresh',async()=>{
  await queue.unlockQueue({companyId:4,id:4});
  const local={session:{id:'spatial-session'},manifest:{task:{id:88,status:'IN_PROGRESS'}},anchorElapsedMs:0,anchorBootId:'boot',savedAt:0,paused:false} as any;

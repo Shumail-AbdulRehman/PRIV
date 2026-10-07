@@ -141,18 +141,29 @@ test('guided spatial continuity, native fallback, and QR callbacks survive lifec
     assert.equal(renderer.root.findAllByType('CameraView').length, 1, 'Native startup failure falls back to the ordinary camera');
     await flush(() => renderer.unmount());
     renderer = undefined;
-    const { QrScannerScreen } = await import('../src/screens/QrScannerScreen.tsx');
-    await flush(() => { renderer = create(React.createElement(QrScannerScreen, {
-      route: { params: { taskId: 7, taskTitle: 'Test' } }, navigation: { goBack() {} },
+    local = null;
+    globalThis.lifecycleMocks.queue.getSession=async()=>local;
+    globalThis.lifecycleMocks.api.openCaptureSession=async()=>{scans++;return {id:'qr-session',state:'ACTIVE',serverTime:new Date().toISOString(),presenceStatus:'ACCEPTABLE',slots:[]};};
+    await flush(() => { renderer = create(React.createElement(VerificationScreen, {
+      route: { params: { taskId: 7 } }, navigation: { goBack() {} },
     })); });
+    await click(renderer, 'Room is empty, continue');
     await flush(() => new Promise(resolve => setTimeout(resolve, 400)));
     const scanner = renderer.root.findByType('CameraView');
     await flush(() => {
       scanner.props.onCameraReady();
-      scanner.props.onBarcodeScanned({ data: 'test-qr' });
-      scanner.props.onBarcodeScanned({ data: 'test-qr' });
+      scanner.props.onBarcodeScanned({ data: 'room-qr' });
+      scanner.props.onBarcodeScanned({ data: 'room-qr' });
     });
-    assert.equal(scans, 1, 'Consecutive native QR callbacks must submit only one request');
+    assert.equal(scans, 1, 'Consecutive native QR callbacks must submit only one guided session request');
+    // Restart scanning to test the actual camera's background/foreground behavior.
+    await flush(()=>renderer.unmount());
+    local=null;
+    await flush(() => { renderer = create(React.createElement(VerificationScreen, {
+      route: { params: { taskId: 7 } }, navigation: { goBack() {} },
+    })); });
+    await click(renderer, 'Room is empty, continue');
+    await flush(() => new Promise(resolve => setTimeout(resolve, 400)));
     await flush(() => { globalThis.lifecycleMocks.rn.AppState.currentState = 'background'; for (const listener of listeners) listener('background'); });
     assert.equal(renderer.root.findAllByType('CameraView').length, 0, 'QR camera unmounts on background');
     await flush(() => { globalThis.lifecycleMocks.rn.AppState.currentState = 'active'; for (const listener of listeners) listener('active'); });

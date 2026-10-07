@@ -173,8 +173,9 @@ jobs:
           python3 scripts/inspect-testing-apk.py build-output/HygeneOps-testing.apk \
             --api-url "$EXPO_PUBLIC_API_BASE_URL" --commit "$GITHUB_SHA" \
             --output build-output/apk-inspection.json
-          "$ANDROID_HOME/build-tools/36.0.0/apksigner" verify --verbose \
+          "$ANDROID_HOME/build-tools/36.0.0/apksigner" verify --verbose --print-certs \
             build-output/HygeneOps-testing.apk | tee build-output/signature-verification.txt
+          "$ANDROID_HOME/build-tools/36.0.0/zipalign" -c -P 16 -v 4 build-output/HygeneOps-testing.apk > build-output/zipalign-verification.txt
           cd build-output
           sha256sum HygeneOps-testing.apk > HygeneOps-testing.apk.sha256
           cat apk-inspection.json >> "$GITHUB_STEP_SUMMARY"
@@ -187,6 +188,7 @@ jobs:
             frontend-mobile/build-output/HygeneOps-testing.apk.sha256
             frontend-mobile/build-output/apk-inspection.json
             frontend-mobile/build-output/signature-verification.txt
+            frontend-mobile/build-output/zipalign-verification.txt
           if-no-files-found: error
           retention-days: 7
       - name: Preserve native build diagnostics

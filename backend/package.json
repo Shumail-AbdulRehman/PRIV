@@ -12,6 +12,7 @@
     "seed:demo": "tsx prisma/seed-demo.ts",
     "test:deletion": "tsx tests/deletion.integration.ts",
     "worker:verification": "node dist/workers/verificationWorker.js",
+    "verification:doctor": "tsx scripts/verificationDoctor.ts",
     "verification:report": "tsx scripts/verificationMigrationReport.ts",
     "test:verification:integration": "tsx tests/verification.integration.ts",
     "test:verification:lifecycle": "tsx tests/verification.lifecycle.integration.ts",

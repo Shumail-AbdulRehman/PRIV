@@ -9,13 +9,7 @@ export type CreateTaskInput = {
   recurringEndDate?: Date;
 };
 
-export type ReferenceImageInput = {
-  file: File;
-  name: string;
-};
-
 export type CreateTaskTemplateFormData = CreateTaskInput & {
-  referenceImages?: ReferenceImageInput[];
   areaId: number;
   inventorySelection: "ALL" | "SUBSET";
   selectedItems: Array<{areaItemId: number; mandatory: boolean}>;

@@ -5,7 +5,6 @@ import { Card, CardContent } from "./ui/card";
 import { Text } from "./ui/text";
 import { Button } from "./ui/button";
 import { Icon } from "./ui/icon";
-import { StatusBadge } from "./StatusBadge";
 import { formatTaskWindow } from "../utils/format";
 import type { TaskInstance } from "../types";
 
@@ -44,16 +43,16 @@ export function TaskCard({ task, onStart, onComplete }: TaskCardProps) {
               </Text>
             </View>
           </View>
-          {task.verificationVersion===2?<Text className="text-sm font-semibold">{verificationTaskLabel(task)}</Text>:<StatusBadge status={task.status} />}
+          <Text className="text-sm font-semibold">{verificationTaskLabel(task)}</Text>
         </View>
 
         {task.status === "PENDING" && onStart ? (
           <Button
             className="mt-4"
-            iconLeft="QrCode"
+            iconLeft="Play"
             onPress={handlePress(onStart)}
           >
-            {task.verificationVersion===2?"Start cleaning":"Scan QR to start"}
+            Start cleaning
           </Button>
         ) : null}
         {(task.status === "IN_PROGRESS" || task.verificationVersion===2) && onComplete ? (
@@ -63,7 +62,7 @@ export function TaskCard({ task, onStart, onComplete }: TaskCardProps) {
             iconLeft="Camera"
             onPress={handlePress(onComplete)}
           >
-            {task.verificationVersion===2?verificationTaskLabel(task,true):"Upload proof and complete"}
+            {verificationTaskLabel(task,true)}
           </Button>
         ) : null}
       </CardContent>

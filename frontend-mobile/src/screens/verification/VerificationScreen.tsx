@@ -23,11 +23,12 @@ import { syncEvidence } from '../../verification/sync';
 import { formatClockTime } from '../../utils/format';
 import type { LocalSession, Manifest, QueueRow } from '../../verification/types';
 import type { RootStackParamList } from '../../types';
+import { verificationErrorMessage } from '../../verification/errors';
 
 type Props=NativeStackScreenProps<RootStackParamList,'Verification'>;
 type Mode='prepare'|'scan'|'capture'|'progress'|'problem';
 const scanSettings={barcodeTypes:['qr' as const]};
-const errorMessage=(error:unknown)=>{const e=error as {response?:{data?:{message?:string}};message?:string};return e.response?.data?.message??e.message??'Try again when connected.';};
+const errorMessage=verificationErrorMessage;
 export function VerificationScreen({route,navigation}:Props) {
   const {user}=useAuth();
   const taskId=route.params.taskId;
@@ -38,6 +39,7 @@ export function VerificationScreen({route,navigation}:Props) {
   const [rows,setRows]=useState<QueueRow[]>([]);
   const [mode,setMode]=useState<Mode>('prepare');
   const [message,setMessage]=useState('');
+  const [loadError,setLoadError]=useState('');
   const [storageError,setStorageError]=useState<string|null>(null);
   const [busy,setBusy]=useState(false);
   const [torch,setTorch]=useState(false);
@@ -74,12 +76,12 @@ export function VerificationScreen({route,navigation}:Props) {
       setStorageError(null);setRows(pending);setLocal(stored);if(stored)setManifest(stored.manifest);
     }catch(error){setStorageError(errorMessage(error));}
     try {
-      const current=await verificationManifest(taskId);setManifest(current);
+      const current=await verificationManifest(taskId);setManifest(current);setLoadError('');
       if(stored){const next=mergeManifest(stored,current);await saveSession(next);setLocal(next);}
     }catch(error){
       const status=(error as {response?:{status?:number}}).response?.status;
       if(stored&&[403,404,410].includes(status??0)){const revoked={...stored,paused:true,session:{...stored.session,state:'REVOKED'}};await saveSession(revoked);setLocal(revoked);setMessage('Your task access changed. Saved photos are kept. Ask your manager.');}
-      else if(!stored)setMessage(errorMessage(error));
+      else setLoadError(errorMessage(error));
     }
   },[taskId]);
   useEffect(()=>{let live=true;void load().then(()=>{if(live)setMode('prepare');}).catch(error=>setMessage(errorMessage(error)));const timer=setInterval(()=>{if(focused&&AppState.currentState==='active'&&!actionInFlight.current)void load().catch(()=>{});},2500);return()=>{live=false;clearInterval(timer);};},[load,focused]);
@@ -212,6 +214,7 @@ export function VerificationScreen({route,navigation}:Props) {
       {current?.deadlineWarning?<Text>Photo window ends in {Math.ceil(current.deadlineWarning.remainingSeconds/60)} minutes.</Text>:null}
       {spatialHint&&mode==='capture'?<Text accessibilityLiveRegion="polite">{spatialHint}</Text>:null}
       {message?<Text accessibilityLiveRegion="polite" className="text-base">{message}</Text>:null}
+      {loadError?<Text accessibilityLiveRegion="polite" className="text-base">{loadError}</Text>:null}
       {!finished&&storageError?<>
         <Text className="text-lg font-bold">Photo storage unavailable</Text>
         <Text accessibilityLiveRegion="polite">{storageError}</Text>
@@ -221,7 +224,8 @@ export function VerificationScreen({route,navigation}:Props) {
       {!finished&&!storageError&&mode==='prepare'?<>
         <Text className="text-lg">Make sure the room is empty and safe.</Text>
         <Text>{current?.items.length??0} items. We need camera and location access to check the room.</Text>
-        <Button size="lg" loading={busy} onPress={()=>void continuePhotos()}>{local?'Continue photos':'Room is empty, continue'}</Button>
+        <Button size="lg" loading={busy} disabled={!current&&!local} onPress={()=>void continuePhotos()}>{local?'Continue photos':'Room is empty, continue'}</Button>
+        {!current?<Button variant="outline" loading={busy} onPress={()=>void action(load)}>Retry loading task</Button>:null}
       </>:null}
       {!finished&&!storageError&&(mode==='scan'||mode==='problem')?<>
         <Text className="text-lg">Scan the code for {current?.task.areaNameSnapshot??'this room'}.</Text>
