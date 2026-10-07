@@ -1,10 +1,13 @@
+import {spatialIdentity,spatialIdentityAction,type SpatialDecision} from './spatialIdentity.service.js';
+import {spatialEvidenceSchema} from './spatial.contracts.js';
 import {Prisma,type VerificationJob} from '@prisma/client';
 import {prisma} from '../../prisma/prisma.js';
 import {privateImageBytes} from './media.service.js';
 import {inspectImage} from './quality.service.js';
 import {ConfiguredImageProvider,type ImageAssessmentProvider} from './provider.service.js';
 import {assessPrivacy,assessCoverage} from './coverage.service.js';
-import {assessCleanliness,autoPassAllowed} from './cleanliness.service.js';
+import {autoPassAllowed,type CleanlinessProvider} from './cleanliness.service.js';
+import {ClefCleanlinessProvider,clefEvaluatorVersion} from './clef.provider.js';
 import {duplicateCandidates} from './duplicate.service.js';
 import {publishJobResult,enqueueVerificationJob,type VerificationTransaction} from './jobQueue.service.js';
 import {lockTask} from './captureSession.service.js';
@@ -44,7 +47,7 @@ export async function applyDecision(tx:VerificationTransaction,id:string,state:'
  }
  await finalizeTask(tx,task.id);
 }
-export async function processVerificationJob(job:VerificationJob,provider:ImageAssessmentProvider=new ConfiguredImageProvider(),read:typeof privateImageBytes=privateImageBytes){
+export async function processVerificationJob(job:VerificationJob,provider:ImageAssessmentProvider=new ConfiguredImageProvider(),read:typeof privateImageBytes=privateImageBytes,cleanlinessProvider:CleanlinessProvider=new ClefCleanlinessProvider()){
  if(!await prisma.verificationJob.findFirst({where:{id:job.id,state:'RUNNING',leaseToken:job.leaseToken,leaseUntil:{gt:new Date()}},select:{id:true}}))return false;
  const successful=await prisma.verificationJob.findMany({where:{attemptId:job.attemptId,stage:job.stage,state:'SUCCEEDED'},select:{evaluatorVersion:true}});
  if(successful.some(j=>j.evaluatorVersion===job.evaluatorVersion))return false;
@@ -72,10 +75,12 @@ export async function processVerificationJob(job:VerificationJob,provider:ImageA
   }
  }else if(job.stage==='CLEANLINESS'){
   if(!a.requirement||a.media.privacyState!=='SAFE'||(a.qualityResult as {acceptable?:boolean}|null)?.acceptable!==true)throw new Error('INVALID_CONTROLLED_CAPTURE');const coverage=a.coverageResult as any;if(coverage?.result?.verdict!=='MATCH'||!coverage.result.identityConsistent||coverage.result.privacyFlag)throw new Error('INVALID_CONTROLLED_CAPTURE');
-  const assessment=await assessCleanliness(provider,image,a.requirement.item.rubricSnapshot,a.requirement.viewKey);result=assessment;const state=requirementDecision({qualityPass:true,coverage:'MATCH',cleanliness:assessment.result.verdict,surfaceVerdicts:assessment.result.surfaces.map(s=>s.verdict)});
+  if(cleanlinessProvider instanceof ClefCleanlinessProvider&&job.evaluatorVersion!==clefEvaluatorVersion())throw new Error('PROVIDER_CONFIGURATION_CHANGED');
+  if(!Array.isArray((a.duplicateResult as any)?.exact)||!Array.isArray(coverage.duplicate?.exact)||(a.duplicateResult as any).exact.length||coverage.duplicate.exact.length)throw new Error('INVALID_CONTROLLED_CAPTURE');
+  const assessment=await cleanlinessProvider.evaluate(image,a.requirement.item.rubricSnapshot,a.requirement.viewKey,a.requirement.item.typeSnapshot);result={...assessment,rubricVersion:(a.requirement.item.rubricSnapshot as {version:number}).version};const state=requirementDecision({qualityPass:true,coverage:'MATCH',cleanliness:assessment.result.verdict,surfaceVerdicts:assessment.result.surfaces.map(s=>s.verdict)});
   decision={state:state==='PASSED'&&!autoPassAllowed(a.requirement.item.typeSnapshot)?'REVIEW_REQUIRED':state as 'PASSED'|'RECAPTURE_REQUIRED'|'CLEANING_REQUIRED'|'REVIEW_REQUIRED',reason:assessment.result.verdict==='CANNOT_ASSESS'?'CANNOT_ASSESS':state==='PASSED'?'CLEAN':assessment.result.reasonCode};
  }else throw new Error('UNSUPPORTED_STAGE');
- result={...(result as object),evaluatorVersion:job.evaluatorVersion};
+ result={...(result as object),evaluatorVersion:job.evaluatorVersion,retryCount:Math.max(0,job.attempts-1),status:'SUCCEEDED'};
  return publishJobResult(job,JSON.parse(JSON.stringify(result)) as Prisma.InputJsonValue,async tx=>{
   await lockTask(tx,a.session.taskInstanceId);
   const privacyHold=job.stage==='PRIVACY'&&(result as any)?.result?.status!=='SAFE'||job.stage==='COVERAGE'&&(result as any)?.result?.privacyFlag===true;
@@ -83,12 +88,31 @@ export async function processVerificationJob(job:VerificationJob,provider:ImageA
   // Versioned rechecks retain job history without replacing canonical assessments or applying decisions.
   if(recheck||await tx.verificationJob.findFirst({where:{attemptId:a.id,stage:job.stage,state:'SUCCEEDED',id:{not:job.id}},select:{id:true}})){await finalizeTask(tx,a.session.taskInstanceId);return;}
   if(job.stage==='COVERAGE'&&(result as any)?.result?.privacyFlag)await tx.evidenceAsset.update({where:{id:a.media!.id},data:{privacyState:'HOLD'}});
-  const fields=job.stage==='QUALITY'?{qualityResult:result as Prisma.InputJsonValue}:job.stage==='COVERAGE'?{coverageResult:result as Prisma.InputJsonValue,duplicateResult:(result as any).duplicate}:job.stage==='CLEANLINESS'?{cleanlinessResult:result as Prisma.InputJsonValue}:{};
+  let spatial:SpatialDecision|undefined;
+  if(job.stage==='COVERAGE'&&a.requirement){
+    const task=await tx.taskInstance.findUniqueOrThrow({where:{id:a.session.taskInstanceId}});
+    const spatialPolicy=resolvePolicy(task.policySnapshot).spatial;
+    const prior=await tx.verificationAttempt.findMany({where:{sessionId:a.sessionId,id:{not:a.id},requirementId:{not:null},media:{privacyState:'SAFE'},spatialEvidence:{not:Prisma.DbNull}},include:{requirement:true}});
+    const observations=prior.flatMap(p=>{
+      const parsed=spatialEvidenceSchema.safeParse(p.spatialEvidence);
+      const coverage=p.coverageResult as {result?:{verdict?:string;identityConsistent?:boolean}}|null;
+      const credited=p.requirement?.currentAttemptId===p.id&&['PASSED','MANAGER_ACCEPTED'].includes(p.requirement.state);
+      const evaluationOnly=spatialPolicy.mode==='EVALUATE'&&coverage?.result?.verdict==='MATCH'&&coverage.result.identityConsistent===true;
+      return parsed.success&&p.requirement&&(credited||evaluationOnly)?[{attemptId:p.id,fixtureId:p.requirement.taskVerificationItemId,observation:parsed.data}]:[];
+    });
+    spatial=spatialIdentity(a.spatialEvidence,a.requirement.taskVerificationItemId,observations,spatialPolicy);
+    const duplicate=(result as any)?.duplicate;
+    const coverage=(result as any)?.result;
+    const nearMatchedPosition=spatial.comparisons.some(c=>c.reliable&&c.pointDistanceMeters!==null&&c.pointDistanceMeters<=spatialPolicy.samePositionMeters&&prior.some(p=>p.id===c.attemptId&&p.mediaAssetId&&duplicate?.near?.includes(p.mediaAssetId)));
+    const action=spatialIdentityAction({decision:spatial,exactDuplicate:!!duplicate?.exact?.length,nearMatchedPosition,coverageMatch:coverage?.verdict==='MATCH',identityConsistent:coverage?.identityConsistent===true,contextAcceptable:a.session.contextStatus==='ACCEPTABLE'},process.env.VERIFICATION_SPATIAL_RECAPTURE_ENABLED==='true');
+    if(action==='TARGETED_IDENTITY_RECAPTURE'&&decision?.state!=='PRIVACY_HOLD'){next=null;decision={state:'RECAPTURE_REQUIRED',reason:'FIXTURE_POSITION_TOO_CLOSE_TO_PREVIOUS'};}
+  }
+  const fields=job.stage==='QUALITY'?{qualityResult:result as Prisma.InputJsonValue}:job.stage==='COVERAGE'?{coverageResult:result as Prisma.InputJsonValue,duplicateResult:(result as any).duplicate,...(spatial?{spatialDecision:spatial as unknown as Prisma.InputJsonValue}:{})}:job.stage==='CLEANLINESS'?{cleanlinessResult:result as Prisma.InputJsonValue}:{};
   if(job.stage==='QUALITY')await tx.verificationAttempt.updateMany({where:{id:a.id,qualityResult:{equals:Prisma.DbNull}},data:fields});
   else if(job.stage==='COVERAGE')await tx.verificationAttempt.updateMany({where:{id:a.id,coverageResult:{equals:Prisma.DbNull}},data:fields});
   else if(job.stage==='CLEANLINESS')await tx.verificationAttempt.updateMany({where:{id:a.id,cleanlinessResult:{equals:Prisma.DbNull}},data:fields});
   if(job.stage==='PRIVACY')await tx.evidenceAsset.update({where:{id:a.media!.id},data:{privacyState:(result as any)?.result?.status==='SAFE'?'SAFE':'HOLD'}});
-  if(next)await enqueueVerificationJob(tx,{companyId:job.companyId,attemptId:a.id,stage:next,evaluatorVersion:`${next.toLowerCase()}-v1`});
+  if(next)await enqueueVerificationJob(tx,{companyId:job.companyId,attemptId:a.id,stage:next,evaluatorVersion:next==='CLEANLINESS'?clefEvaluatorVersion():`${next.toLowerCase()}-v1`});
   if(decision)await applyDecision(tx,a.id,decision.state,decision.reason);
   // Manager acceptance or a newer generation may make applyDecision a no-op.
   // Successful job publication must still clear the pending-job completion gate.

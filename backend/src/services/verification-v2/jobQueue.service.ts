@@ -46,11 +46,11 @@ export async function publishJobResult(job:VerificationJob,result:Prisma.InputJs
   return true;
  });
 }
-export async function failVerificationJob(job:VerificationJob,code='SERVICE_FAILURE',random=Math.random) {
+export async function failVerificationJob(job:VerificationJob,code='SERVICE_FAILURE',random=Math.random,metadata?:Record<string,unknown>) {
  const exhausted=job.attempts>RETRY_DELAYS_MS.length;
  const delay=RETRY_DELAYS_MS[Math.min(job.attempts-1,RETRY_DELAYS_MS.length-1)]!;
  return prisma.$transaction(async tx=>{
-  const changed=await tx.verificationJob.updateMany({where:{id:job.id,state:'RUNNING',leaseToken:job.leaseToken,leaseUntil:{gt:new Date()}},data:{state:exhausted?'FAILED':'RETRY_WAIT',lastErrorCode:code,availableAt:new Date(Date.now()+delay*(.9+.2*random())),finishedAt:exhausted?new Date():null,leaseUntil:null,leaseToken:null}});
+  const changed=await tx.verificationJob.updateMany({where:{id:job.id,state:'RUNNING',leaseToken:job.leaseToken,leaseUntil:{gt:new Date()}},data:{state:exhausted?'FAILED':'RETRY_WAIT',lastErrorCode:code,...(metadata?{result:JSON.parse(JSON.stringify({...metadata,retryCount:Math.max(0,job.attempts-1)})) as Prisma.InputJsonValue}:{}),availableAt:new Date(Date.now()+delay*(.9+.2*random())),finishedAt:exhausted?new Date():null,leaseUntil:null,leaseToken:null}});
   if(changed.count&&exhausted){
    const initial=await tx.verificationAttempt.findUniqueOrThrow({where:{id:job.attemptId},select:{session:{select:{taskInstanceId:true}}}});
    await tx.$queryRaw`SELECT id FROM "TaskInstance" WHERE id=${initial.session.taskInstanceId} FOR UPDATE`;

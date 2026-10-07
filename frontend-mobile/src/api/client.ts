@@ -20,6 +20,9 @@ export const configureApiAuth = (bridge: ApiAuthBridge) => {
 const isFormData = (value: unknown): value is FormData =>
   typeof FormData !== "undefined" && value instanceof FormData;
 
+const isLoginRequest = (url?: string) =>
+  url?.split("?")[0].replace(/\/+$/, "").endsWith("/staff/staff-login") === true;
+
 const setHeader = (
   config: InternalAxiosRequestConfig,
   key: string,
@@ -70,7 +73,9 @@ client.interceptors.request.use(async (config) => {
   const tokens = await authBridge?.getTokens();
   if (request._scope !== (authBridge?.getScope() ?? null)) throw new Error('Account changed. Request stopped.');
 
-  if (tokens?.accessToken) {
+  if (isLoginRequest(config.url)) {
+    removeHeader(config, "Authorization");
+  } else if (tokens?.accessToken) {
     setHeader(config, "Authorization", `Bearer ${tokens.accessToken}`);
   }
 
@@ -107,9 +112,17 @@ export const refreshApiTokens = (): Promise<Required<AuthTokens>> => {
   refreshInFlight = { scope, promise };
   return promise;
 };
-client.interceptors.response.use(response => response, async error => {
+client.interceptors.response.use(response => {
+  if ((response.config as InternalAxiosRequestConfig & {_scope?:string|null})._scope !== (authBridge?.getScope()??null)) {
+    throw new Error('Account changed. Response stopped.');
+  }
+  return response;
+}, async error => {
   const original = error.config as InternalAxiosRequestConfig & { _retry?: boolean };
-  if (!original || error.response?.status !== 401 || original._retry || original.url?.includes("/common/refresh-token")) throw error;
+  if (original && '_scope' in original && original._scope !== (authBridge?.getScope()??null)) {
+    throw new Error('Account changed. Response stopped.');
+  }
+  if (!original || error.response?.status !== 401 || original._retry || isLoginRequest(original.url) || original.url?.includes("/common/refresh-token")) throw error;
   original._retry = true;
   if ((original as typeof original & {_scope?:string|null})._scope !== (authBridge?.getScope()??null)) throw new Error('Account changed. Request stopped.');
   const current=await authBridge?.getTokens();
@@ -131,6 +144,7 @@ export const uploadFormData = async <T = unknown>(path: string, input: FormData 
         method: "POST", headers: {"X-Hygene-Workflow":"2","X-Hygene-App-Version":nativeAppVersion,...(tokens?.accessToken?{Authorization:`Bearer ${tokens.accessToken}`}:{})},
         body: typeof input === "function" ? input() : input, signal: controller.signal,
       });
+      if (!guard() || scope !== (authBridge?.getScope() ?? null)) throw new Error('Account changed. Response stopped.');
       if (response.status === 401 && retry === 0) {
         if (!guard() || scope !== (authBridge?.getScope() ?? null)) throw new Error('Account changed. Saved photos are locked.');
         const current=await authBridge?.getTokens();
@@ -138,6 +152,7 @@ export const uploadFormData = async <T = unknown>(path: string, input: FormData 
         continue;
       }
       const json = await response.json();
+      if (!guard() || scope !== (authBridge?.getScope() ?? null)) throw new Error('Account changed. Response stopped.');
       if (!response.ok) {
         const error = new Error(json?.message ?? "Request failed") as Error & { response: unknown };
         error.response = { status: response.status, data: json, headers: { 'retry-after': response.headers.get('Retry-After') } };

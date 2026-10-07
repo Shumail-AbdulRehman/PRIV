@@ -1,10 +1,10 @@
 import OpenAI from 'openai';
 import {z} from 'zod';
-export const providerMetadataSchema=z.object({provider:z.enum(['openai','gemini']),model:z.string().min(1).max(200),requestedModel:z.string().min(1).max(200),providerVersion:z.string().min(1),promptVersion:z.string().min(1),requestId:z.string().max(200).nullable(),latencyMs:z.number().nonnegative(),usage:z.object({inputTokens:z.number().int().nonnegative().nullable(),outputTokens:z.number().int().nonnegative().nullable(),totalTokens:z.number().int().nonnegative().nullable()}).strict(),costUsd:z.number().nonnegative().nullable()}).strict();
-export type ProviderMetadata={provider:string;model:string;requestedModel?:string;providerVersion:string;promptVersion:string;requestId:string|null;latencyMs:number;usage:unknown;costUsd:number|null};
+export const providerMetadataSchema=z.object({provider:z.enum(['openai','gemini','cloudflare']),model:z.string().min(1).max(200),requestedModel:z.string().min(1).max(200),providerVersion:z.string().min(1),promptVersion:z.string().min(1),requestId:z.string().max(200).nullable(),latencyMs:z.number().nonnegative(),usage:z.object({inputTokens:z.number().int().nonnegative().nullable(),outputTokens:z.number().int().nonnegative().nullable(),totalTokens:z.number().int().nonnegative().nullable()}).strict(),costUsd:z.number().nonnegative().nullable()}).strict();
+export type ProviderMetadata={provider:string;model:string;requestedModel?:string;providerVersion:string;promptVersion:string;requestId:string|null;latencyMs:number;usage:unknown;costUsd:number|null;status?:string;threshold?:number|null;thresholdVersion?:string;thresholdValidated?:boolean};
 export type Assessment<T>={result:T;metadata:ProviderMetadata};
 export interface ImageAssessmentProvider{assess<T>(stage:string,prompt:string,images:Buffer[],schema:z.ZodType<T>):Promise<Assessment<T>>;}
-export class ProviderServiceFailure extends Error {constructor(public code:string){super(code);}}
+export class ProviderServiceFailure extends Error {constructor(public code:string,public metadata?:Record<string,unknown>){super(code);}}
 /** One call per stage. Durable queue owns bounded retries; never silently changes vendor. */
 export class ConfiguredImageProvider implements ImageAssessmentProvider{
  async assess<T>(stage:string,prompt:string,images:Buffer[],schema:z.ZodType<T>):Promise<Assessment<T>>{

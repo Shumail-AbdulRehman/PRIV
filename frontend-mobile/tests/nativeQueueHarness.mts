@@ -9,6 +9,7 @@ const directory=process.env.QUEUE_TEST_DIRECTORY!;
 mkdirSync(directory,{recursive:true});
 let connected=true;let appState="active";
 let freeBytes=1000*1024*1024;
+let cipherAvailable=true;
 class TestFile {
  path:string;name:string;uri:string;
  constructor(parent:string|{path:string},name?:string){this.path=name?join(typeof parent==='string'?parent:parent.path,name):String(parent);this.name=this.path.split('/').at(-1)!;this.uri=this.path;}
@@ -25,7 +26,7 @@ class TestDirectory {
 }
 function openDatabaseAsync(name:string){const sql=new DatabaseSync(join(directory,name));const params=(input:unknown[])=>input.length===1&&Array.isArray(input[0])?input[0]:input;const db={
  execAsync:async(text:string)=>sql.exec(text.replace(/PRAGMA key[^;]*;/g,'')),
- getFirstAsync:async(text:string,...values:unknown[])=>text==='PRAGMA cipher_version;'?{cipher_version:'TEST_ADAPTER_NOT_ENCRYPTED'}:sql.prepare(text).get(...params(values) as never[]),
+ getFirstAsync:async(text:string,...values:unknown[])=>text==='PRAGMA cipher_version;'?(cipherAvailable?{cipher_version:'TEST_ADAPTER_NOT_ENCRYPTED'}:null):sql.prepare(text).get(...params(values) as never[]),
  getAllAsync:async(text:string,...values:unknown[])=>sql.prepare(text).all(...params(values) as never[]),
  runAsync:async(text:string,...values:unknown[])=>sql.prepare(text).run(...params(values) as never[]),
  closeAsync:async()=>sql.close(),
@@ -54,6 +55,7 @@ registerHooks({resolve(specifier,context,next){if(specifier in urls)return {url:
 export const setConnectivity=(value:boolean)=>{connected=value;};
 export const setAppState=(value:string)=>{appState=value;};
 export const setFreeBytes=(bytes:number)=>{freeBytes=bytes;};
+export const setCipherAvailable=(value:boolean)=>{cipherAvailable=value;};
 export const queue=await import('../src/verification/queue');
 if(process.argv.includes('--seed-and-wait')){
  await queue.unlockQueue({companyId:1,id:1});

@@ -62,4 +62,37 @@ test('fresh sessions require network; lost session response replays durable iden
    await queue.removeRequest('session:99');await openCaptureSession(99,'room-qr','expired-session');assert.equal(paths.at(-1),'/capture-session/expired-session/renew');assert.notEqual(bodies.at(-1)?.requestId,bodies[0].requestId);
  }finally{client.defaults.adapter=adapter;}
 });
+test('unavailable encryption preserves its real error and retry reopens existing saved work',async()=>{
+ const {setCipherAvailable}=await import('../../tests/nativeQueueHarness.mts');
+ await queue.unlockQueue({companyId:3,id:3});const count=await queue.pendingCount();
+ await queue.lockQueue();setCipherAvailable(false);
+ try {
+   await assert.rejects(queue.unlockQueue({companyId:3,id:3}),/Encrypted photo storage requires a native build/);
+   assert.equal(queue.queueAccount(),null);
+   await assert.rejects(queue.getSession(7),/Encrypted photo storage requires a native build/);
+   await assert.rejects(queue.queueRows(),/Encrypted photo storage requires a native build/);
+ }finally{setCipherAvailable(true);}
+ await queue.unlockQueue({companyId:3,id:3});assert.equal(await queue.pendingCount(),count);
+});
+test('spatial observation and checkpoint commit with bytes, survive logout, and retain interruption through manifest refresh',async()=>{
+ await queue.unlockQueue({companyId:4,id:4});
+ const local={session:{id:'spatial-session'},manifest:{task:{id:88,status:'IN_PROGRESS'}},anchorElapsedMs:0,anchorBootId:'boot',savedAt:0,paused:false} as any;
+ await queue.saveSession(local);
+ const spatialEvidence={version:1,sessionId:'spatial-session',worldId:'world',sequence:1,requirementId:'requirement',contextKey:null,capability:'NO_SPATIAL',tracking:'UNAVAILABLE',continuity:'CONTINUOUS',capturedElapsedMs:1,worldStartedElapsedMs:0,nativeTimestampMs:null,camera:null,worldPoint:null,movementMeters:null,interruptionReasons:[]} as const;
+ const checkpoint={worldId:'world',sequence:1,worldStartedElapsedMs:0,continuity:'CONTINUOUS' as const,interruptionReasons:[]};
+ await queue.saveCapture({taskId:88,sessionId:'spatial-session',clientCaptureId:'spatial',slotId:'spatial-slot',nonce:'n',sha256:'hash',claimedCapturedAt:'2026-10-07T00:00:00Z',elapsedMs:1,bootId:'boot',deviceId:'device',spatialEvidence:{...spatialEvidence,interruptionReasons:[]}},new Uint8Array([8]),checkpoint);
+ await queue.lockQueue();await queue.unlockQueue({companyId:4,id:4});
+ assert.deepEqual((await queue.queueRows(88))[0].metadata.spatialEvidence,spatialEvidence);assert.equal((await queue.getSession(88))?.spatialCheckpoint?.sequence,1);
+ await queue.persistSpatialCheckpoint(88,'spatial-session',{...checkpoint,continuity:'BROKEN',interruptionReasons:['BACKGROUND']});
+ await queue.saveSession(local);assert.equal((await queue.getSession(88))?.spatialCheckpoint?.continuity,'BROKEN');
+ assert.deepEqual(Array.from(await queue.queueBytes('spatial')),[8]);
+});
+test('spatial JSON accompanies both multipart retry and optional manifest without uploading frames',async()=>{
+ await queue.unlockQueue({companyId:4,id:4});const row=(await queue.queueRows(88))[0];
+ const {uploadCapture,commitManifest}=await import('./api');const {client}=await import('../api/client');
+ const originalFetch=globalThis.fetch,adapter=client.defaults.adapter;
+ globalThis.fetch=async(_url,input)=>{const form=input!.body as FormData;assert.deepEqual(JSON.parse(String(form.get('spatialEvidence'))),row.metadata.spatialEvidence);assert.equal(form.get('photo')!==null,true);assert.equal(form.get('video'),null);return new Response(JSON.stringify({data:{attemptId:'spatial-attempt',assetId:'asset',state:'RECEIVED'}}),{status:202});};
+ client.defaults.adapter=async config=>{assert.deepEqual(JSON.parse(config.data).spatialEvidence,row.metadata.spatialEvidence);return {data:{data:{}},status:201,statusText:'OK',headers:{},config};};
+ try{await uploadCapture(row,queue.queueAccount()!);await commitManifest(row);assert.deepEqual(Array.from(await queue.queueBytes('spatial')),[8]);}finally{globalThis.fetch=originalFetch;client.defaults.adapter=adapter;}
+});
 after(async()=>{await queue.lockQueue();rmSync(directory,{recursive:true,force:true});});

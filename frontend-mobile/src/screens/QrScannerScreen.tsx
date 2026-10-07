@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useRef, useState } from "react";
-import { Alert, Animated, StyleSheet, View } from "react-native";
+import { Alert, Animated, AppState, Linking, StyleSheet, View } from "react-native";
 import { useIsFocused } from "@react-navigation/native";
 import { NativeStackScreenProps } from "@react-navigation/native-stack";
 import { useQueryClient } from "@tanstack/react-query";
@@ -67,29 +67,38 @@ export function QrScannerScreen({ navigation, route }: Props) {
   const [isTorchOn, setIsTorchOn] = useState(false);
   const [cameraKey, setCameraKey] = useState(0);
   const isFocused = useIsFocused();
+  const [foreground, setForeground] = useState(AppState.currentState === "active");
 
   // Stable handler reference for CameraView; the actual guard lives in a ref
   // so the prop never flips between a function and undefined (which makes
   // expo-camera tear down and rebuild the analyzer on some Android devices).
   const scanAllowedRef = useRef(true);
-  scanAllowedRef.current = isScanEnabled && !isSubmitting;
+  scanAllowedRef.current = isScanEnabled && !isSubmitting && isFocused && foreground;
   const cameraReadyRef = useRef(false);
+  useEffect(() => {
+    const subscription = AppState.addEventListener("change", state => {
+      if (state !== "active") {
+        scanAllowedRef.current = false;
+        cameraReadyRef.current = false;
+      }
+      setForeground(state === "active");
+    });
+    return () => subscription.remove();
+  }, []);
 
   // Mount the camera only after the push transition has settled — mounting
   // the surface mid-animation is a common cause of a dark preview on Android.
   // On blur, unmount it so returning to this screen gets a fresh surface.
   useEffect(() => {
-    if (!isFocused) {
+    if (!isFocused || !foreground || !permission?.granted) {
       setIsCameraActive(false);
       cameraReadyRef.current = false;
       return;
     }
-    if (!permission?.granted) {
-      return;
-    }
+    cameraReadyRef.current = false;
     const timer = setTimeout(() => setIsCameraActive(true), 350);
     return () => clearTimeout(timer);
-  }, [isFocused, permission?.granted]);
+  }, [isFocused, foreground, permission?.granted]);
 
   // Watchdog: if the camera surface never reports ready, force a remount.
   useEffect(() => {
@@ -105,10 +114,12 @@ export function QrScannerScreen({ navigation, route }: Props) {
   }, [isCameraActive, cameraKey]);
 
   const handleScanned = async (rawValue: string) => {
-    if (!scanAllowedRef.current || isSubmitting) {
+    if (!scanAllowedRef.current || !cameraReadyRef.current) {
       return;
     }
 
+    // Lock synchronously before React renders, including consecutive native callbacks.
+    scanAllowedRef.current = false;
     try {
       setIsScanEnabled(false);
       setIsSubmitting(true);
@@ -150,14 +161,15 @@ export function QrScannerScreen({ navigation, route }: Props) {
     }
   };
 
+  const scanHandler = useRef(handleScanned);
+  scanHandler.current = handleScanned;
   const handleBarcodeScanned = useCallback(
     ({ data }: { data: string }) => {
       if (!scanAllowedRef.current) {
         return;
       }
-      void handleScanned(data);
+      void scanHandler.current(data);
     },
-    // eslint-disable-next-line react-hooks/exhaustive-deps
     []
   );
 
@@ -179,8 +191,8 @@ export function QrScannerScreen({ navigation, route }: Props) {
           title="Camera access required"
           message="The mobile app uses your camera to scan the QR code attached to the task location or template."
           action={{
-            label: "Allow Camera",
-            onPress: () => void requestPermission(),
+            label: permission.canAskAgain ? "Allow Camera" : "Open Settings",
+            onPress: () => void (permission.canAskAgain ? requestPermission() : Linking.openSettings()),
           }}
         />
       </View>
@@ -189,7 +201,7 @@ export function QrScannerScreen({ navigation, route }: Props) {
 
   return (
     <View className="flex-1 bg-black">
-      {isCameraActive ? (
+      {isCameraActive && isFocused && foreground ? (
         <CameraView
           key={cameraKey}
           // NativeWind's babel plugin only maps className for react-native

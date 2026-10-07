@@ -29,12 +29,13 @@
         "foregroundImage": "./assets/hygene-ops-adaptive.png",
         "backgroundColor": "#ffffff"
       },
-      "usesCleartextTraffic": true,
       "permissions": [
         "CAMERA",
         "ACCESS_COARSE_LOCATION",
-        "ACCESS_FINE_LOCATION"
+        "ACCESS_FINE_LOCATION",
+        "android.permission.CAMERA"
       ],
+      "blockedPermissions": ["android.permission.RECORD_AUDIO"],
       "edgeToEdgeEnabled": true,
       "predictiveBackGestureEnabled": false,
       "package": "com.hygeneops.staff"
@@ -57,7 +58,20 @@
           "cameraPermission": "Allow Hygene Ops to scan room codes and photograph empty cleaning fixtures.",
           "recordAudioAndroid": false
         }
+      ],
+      [
+        "expo-build-properties",
+        {
+          "android": {
+            "usesCleartextTraffic": true
+          }
+        }
       ]
-    ]
+    ],
+    "extra": {
+      "eas": {
+        "projectId": "68ea9f06-53f5-444f-8760-329fd733ae8e"
+      }
+    }
   }
 }

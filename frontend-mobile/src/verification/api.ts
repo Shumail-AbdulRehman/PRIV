@@ -41,12 +41,13 @@ export async function uploadCapture(row:QueueRow,scope:string) {
     const acknowledgment=(await uploadFormData<ApiEnvelope<{attemptId:string;assetId:string;state:string}>>(`/capture-session/${row.sessionId}/attempts`,()=>{
       const form=new FormData();form.append('photo',createImagePart(file.uri,`${row.id}.jpg`,'image/jpeg'));
       for(const key of ['clientCaptureId','slotId','nonce','sha256','claimedCapturedAt','elapsedMs','bootId','deviceId'] as const) form.append(key,String(row.metadata[key]));
+      if(row.metadata.spatialEvidence)form.append('spatialEvidence',JSON.stringify(row.metadata.spatialEvidence));
       return form;
     },90_000,()=>queueAccount()===scope)).data;
     if(!acknowledgment.attemptId||!acknowledgment.assetId)throw new Error('Upload acknowledgment incomplete. Your photo is still saved.');
     return {id:acknowledgment.attemptId,state:acknowledgment.state};
   } finally { if(file.exists)file.delete(); }
 }
-export async function commitManifest(row:QueueRow) { const {clientCaptureId,slotId,nonce,sha256,claimedCapturedAt,elapsedMs,bootId,deviceId}=row.metadata; return client.post(`/capture-session/${row.sessionId}/attempts/manifest`,{clientCaptureId,slotId,nonce,sha256,claimedCapturedAt,elapsedMs,bootId,deviceId}); }
+export async function commitManifest(row:QueueRow) { const {clientCaptureId,slotId,nonce,sha256,claimedCapturedAt,elapsedMs,bootId,deviceId,spatialEvidence}=row.metadata; return client.post(`/capture-session/${row.sessionId}/attempts/manifest`,{clientCaptureId,slotId,nonce,sha256,claimedCapturedAt,elapsedMs,bootId,deviceId,...(spatialEvidence?{spatialEvidence}:{})}); }
 export async function attemptStatus(id:string,scope?:string) { return (await client.get<ApiEnvelope<{id:string;state:string}>>(`/verification-attempt/${id}`,scope?accountRequest(scope):undefined)).data.data; }
 export async function reportIssue(taskId:number,payload:Record<string,unknown>,scope?:string) { return client.post(`/task-instance/${taskId}/verification-issues`,payload,scope?accountRequest(scope):undefined); }

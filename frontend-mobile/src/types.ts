@@ -20,6 +20,7 @@ export type RootStackParamList = {
     onScanSuccess?: () => void;
   };
   Verification: { taskId: number };
+  SpatialDiagnostic: undefined;
   CompleteTask: {
     taskId: number;
     taskTitle: string;

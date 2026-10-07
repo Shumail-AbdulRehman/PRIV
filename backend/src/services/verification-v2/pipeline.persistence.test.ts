@@ -1,5 +1,5 @@
 import {afterEach,it,expect,vi} from 'vitest';
-vi.mock('../../prisma/prisma.js',()=>({prisma:{verificationJob:{findFirst:vi.fn(),findMany:vi.fn()}}}));
+vi.mock('../../prisma/prisma.js',()=>({prisma:{verificationJob:{findFirst:vi.fn(),findMany:vi.fn()},verificationAttempt:{findUniqueOrThrow:vi.fn(),updateMany:vi.fn()}}}));
 vi.mock('./captureSession.service.js',()=>({lockTask:vi.fn()}));
 vi.mock('./exception.service.js',()=>({raiseIssue:vi.fn()}));
 vi.mock('./completion.service.js',()=>({finalizeTask:vi.fn()}));
@@ -47,4 +47,13 @@ it.each(['PRIVACY_HOLD','DUPLICATE_EVIDENCE'] as const)('links serious late %s w
  const tx=completedTransaction(),state=reason==='PRIVACY_HOLD'?'PRIVACY_HOLD':'REVIEW_REQUIRED';
  await applyDecision(tx as any,'attempt',state,reason);
  if(reason==='DUPLICATE_EVIDENCE')expect(raiseIssue).toHaveBeenCalledWith(tx,9,reason,null,'attempt');else expect(raiseIssue).not.toHaveBeenCalled();expect(tx.taskEvidenceRequirement.update).not.toHaveBeenCalled();expect(tx.taskInstance.update).not.toHaveBeenCalled();
+});
+
+it.each(['WRONG_ITEM','DUPLICATE','PRIVACY_HOLD','MISSING_DUPLICATE_CHECK'])('does not call Clef when controlled capture fails %s',async gate=>{
+ vi.mocked(prisma.verificationJob.findFirst).mockResolvedValue({id:'job'} as any);
+ vi.mocked(prisma.verificationJob.findMany).mockResolvedValue([]);
+ vi.mocked(prisma.verificationAttempt.findUniqueOrThrow).mockResolvedValue({id:'attempt',media:{companyId:1,deliveryType:'authenticated',sanitizedPublicId:'private',privacyState:gate==='PRIVACY_HOLD'?'HOLD':'SAFE'},qualityResult:{acceptable:true},coverageResult:{result:{verdict:gate==='WRONG_ITEM'?'WRONG_ITEM':'MATCH',identityConsistent:true,privacyFlag:false},duplicate:{exact:gate==='DUPLICATE'?['other']:[]}},duplicateResult:gate==='MISSING_DUPLICATE_CHECK'?null:{exact:gate==='DUPLICATE'?['other']:[]},session:{},requirement:{viewKey:'bowl_seat',item:{typeSnapshot:'TOILET',rubricSnapshot:{version:1}}}} as any);
+ const cleanliness={evaluate:vi.fn()},provider={assess:vi.fn()},read=vi.fn().mockResolvedValue(Buffer.from('image'));
+ await expect(processVerificationJob({id:'job',leaseToken:'lease',companyId:1,attemptId:'attempt',stage:'CLEANLINESS',evaluatorVersion:'test'} as any,provider as any,read,cleanliness)).rejects.toThrow('INVALID_CONTROLLED_CAPTURE');
+ expect(cleanliness.evaluate).not.toHaveBeenCalled();expect(provider.assess).not.toHaveBeenCalled();
 });

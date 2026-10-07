@@ -1,4 +1,5 @@
 import {describe,it,expect} from 'vitest';
+import {defaultVerificationPolicy} from './verificationPolicy.service.js';
 import {evaluatePresence} from './presence.service.js';
 const now=new Date('2026-10-06T10:00:00Z');
 const location={latitude:0,longitude:0,radiusMeters:100};
@@ -11,5 +12,5 @@ describe('session presence wrapper',()=>{
  it('keeps stale samples review-required',()=>{expect(evaluatePresence(location,{...sample,sampledAt:new Date(+now-60001).toISOString()},undefined,now).decision).toMatchObject({status:'UNCERTAIN',reasonCode:'GPS_STALE'});});
  it('keeps poor indoor accuracy uncertain',()=>{expect(evaluatePresence(location,{...sample,accuracy:51},undefined,now).decision).toMatchObject({status:'UNCERTAIN',reasonCode:'GPS_INACCURATE'});});
  it('keeps future or invalid sample clocks uncertain',()=>{for(const sampledAt of ['invalid',new Date(+now+1000).toISOString()])expect(evaluatePresence(location,{...sample,sampledAt},undefined,now).decision).toMatchObject({status:'UNCERTAIN',reasonCode:'GPS_UNCERTAIN'});});
- it('honors snapshotted GPS policy limits',()=>{const result=evaluatePresence(location,{...sample,accuracy:30},{version:1,captureMinutes:20,reworkMinutes:30,uploadMinutes:15,maxExtensionMinutes:120,cleaningFailuresBeforeEscalation:3,recaptureFailuresBeforeEscalation:3,maxGpsAgeSeconds:60,maxGpsAccuracyMeters:25,maxItems:200},now);expect(result.decision.reasonCode).toBe('GPS_INACCURATE');});
+ it('honors snapshotted GPS policy limits',()=>{const result=evaluatePresence(location,{...sample,accuracy:30},{...defaultVerificationPolicy,maxGpsAccuracyMeters:25},now);expect(result.decision.reasonCode).toBe('GPS_INACCURATE');});
 });

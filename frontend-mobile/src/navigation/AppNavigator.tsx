@@ -1,3 +1,4 @@
+import { SpatialDiagnosticScreen } from '../screens/verification/SpatialDiagnosticScreen';
 import { VerificationScreen } from '../screens/verification/VerificationScreen';
 import { createNativeStackNavigator } from "@react-navigation/native-stack";
 import { useAuth } from "../auth/AuthContext";
@@ -47,6 +48,7 @@ export function AppNavigator() {
             component={StaffTabs}
             options={{ headerShown: false }}
           />
+          {__DEV__ ? <Stack.Screen name="SpatialDiagnostic" component={SpatialDiagnosticScreen} options={{title:"Spatial diagnostic"}} /> : null}
           <Stack.Screen name="Verification" component={VerificationScreen} options={{title:"Task photos"}} />
           <Stack.Screen name="QrScanner" component={QrScannerScreen} options={{ title: "Scan Task QR" }} />
           <Stack.Screen

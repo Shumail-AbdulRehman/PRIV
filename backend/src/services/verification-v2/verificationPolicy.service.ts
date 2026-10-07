@@ -1,5 +1,7 @@
 import { z } from 'zod';
+import {spatialPolicySchema} from './spatial.contracts.js';
 export const verificationPolicySchema = z.object({
+ spatial:spatialPolicySchema.default(()=>spatialPolicySchema.parse({})),
  version: z.literal(1).default(1), captureMinutes: z.number().int().min(5).max(30).default(20),
  reworkMinutes: z.number().int().min(0).max(60).default(30), uploadMinutes: z.number().int().min(5).max(30).default(15),
  maxExtensionMinutes: z.number().int().min(0).max(120).default(120),
@@ -117,7 +119,10 @@ export function reduceIssue(state:string,event:'STAFF_ACTION'|'REVIEW'|'SATISFIE
 
 Object.assign(reasonInstructions, {
  PHOTO_TOO_DARK:'Turn on the light or torch.',PHOTO_BLURRY:'Hold still and retake.',PHOTO_TOO_SMALL:'Move closer and take a readable photo.',
- IDENTITY_UNCERTAIN:'Show the fixture and its label or nearby surroundings.',PRIVACY_HOLD:'Pause photography and request a safe recapture.',
+ FIXTURE_POSITION_TOO_CLOSE_TO_PREVIOUS:'This looks like an item you already photographed. Move to the next item and take another photo.',
+ TRACKING_LOST:'Move your phone slowly around the area so we can continue.',
+ SPATIAL_CONTINUITY_BROKEN:'We could not confirm that this is a different item. Take a wider photo showing its surroundings.',
+ IDENTITY_UNCERTAIN:'Show the fixture and its nearby surroundings.',PRIVACY_HOLD:'Pause photography and request a safe recapture.',
  INACCESSIBLE:'Ask your manager to review access to this fixture.',GPS_STALE:'Take a fresh location reading.',GPS_INACCURATE:'Retry location where the signal is clearer.',
  GPS_OUTSIDE:'Return to the task location before verification.',GPS_UNCERTAIN:'Retry location. A manager may need to review.',CONTEXT_UNCERTAIN:'Retake the requested empty-room context.',
  MISSING_EVIDENCE:'Photograph the remaining required views.',CLEANING_REQUIRED:'Clean the affected surface, then retake that view.',STALE_ASSIGNMENT:'Refresh your assigned task before continuing.',

@@ -1,5 +1,5 @@
 import assert from 'node:assert/strict';
-import {randomUUID} from 'node:crypto';
+import {randomUUID,randomBytes} from 'node:crypto';
 import {readFile,readdir} from 'node:fs/promises';
 import {fileURLToPath} from 'node:url';
 import pg from 'pg';
@@ -94,7 +94,7 @@ assert.equal((await prisma.captureSession.findUniqueOrThrow({where:{id:session.i
 assert.equal(await prisma.verificationAttempt.count({where:{sessionId:session.id}}),6,'archive preserves attempts');
 console.log('PASS: inventory version conflicts, stable replacement codes, cross-area edits, deletion outbox protection and archive preservation');
 
-const {configureTemplateInventory,validateInventorySelection,createTaskInstanceWithSnapshot}=await import('../src/services/verification-v2/inventorySnapshot.service.js');
+const {configureTemplateInventory,validateInventorySelection,createTaskInstanceWithSnapshot,repairUnstartedInventoryTask}=await import('../src/services/verification-v2/inventorySnapshot.service.js');
 const {getZonedDayRange}=await import('../src/utils/dateTime.js');
 const now=new Date();const base=getZonedDayRange(now,'Asia/Karachi').start;
 const worker=await prisma.staff.create({data:{name:'Assigned worker',email:`${randomUUID()}@test.invalid`,password:'test-only',companyId:company,locationId:location,shiftStart:new Date(+base+8*3600000),shiftEnd:new Date(+base+18*3600000)}});
@@ -126,6 +126,30 @@ const generated=await Promise.all(Array.from({length:5},()=>createTaskInstanceWi
 assert.equal(generated.filter(g=>g?.created).length,1);assert.equal(new Set(generated.map(g=>g?.id)).size,1);
 assert.equal(await prisma.taskAssignment.count({where:{taskInstanceId:generated[0]!.id}}),1);
 const originalName=dailyInstance.verificationItems[0]!.nameSnapshot;
+const repairTemplate=await template('Explicit unstarted repair',null);
+const pendingRepair=await prisma.taskInstance.create({data:{templateId:repairTemplate.id,title:'Pending old-contract task',locationId:location,staffId:worker.id,date:new Date(Date.now()+12345),shiftStart:new Date(),shiftEnd:new Date(Date.now()+3600000),referenceImageUrl:'https://legacy.test/keep.jpg',assignments:{create:{staffId:worker.id}}},include:{assignments:true}});
+const repairInput={taskId:pendingRepair.id,templateId:repairTemplate.id,locationId:location,expectedInventoryVersion:3};
+await assert.rejects(()=>repairUnstartedInventoryTask({...repairInput,locationId:location+99999}));
+await assert.rejects(()=>repairUnstartedInventoryTask({...repairInput,expectedInventoryVersion:999}));
+assert.equal((await prisma.taskInstance.findUniqueOrThrow({where:{id:pendingRepair.id}})).verificationVersion,1);
+await prisma.taskInstance.update({where:{id:pendingRepair.id},data:{proofImageUrls:['https://legacy.test/evidence.jpg']}});
+await assert.rejects(()=>repairUnstartedInventoryTask(repairInput));
+await prisma.taskInstance.update({where:{id:pendingRepair.id},data:{proofImageUrls:[],status:'IN_PROGRESS',startedAt:new Date()}});
+await assert.rejects(()=>repairUnstartedInventoryTask(repairInput));
+await prisma.taskInstance.update({where:{id:pendingRepair.id},data:{status:'PENDING',startedAt:null,shiftEnd:new Date(Date.now()-1000)}});
+await assert.rejects(()=>repairUnstartedInventoryTask(repairInput));
+await prisma.taskInstance.update({where:{id:pendingRepair.id},data:{shiftEnd:pendingRepair.shiftEnd}});
+const repairs=await Promise.allSettled([repairUnstartedInventoryTask(repairInput),repairUnstartedInventoryTask(repairInput)]);
+assert.equal(repairs.filter(r=>r.status==='fulfilled').length,1,'single-task repair is serialized and cannot duplicate snapshots');
+const repaired=await prisma.taskInstance.findUniqueOrThrow({where:{id:pendingRepair.id},include:{assignments:true,verificationItems:{include:{requirements:true}}}});
+assert.equal(repaired.verificationVersion,2);assert.equal(repaired.areaId,inventory.id);
+assert.equal(repaired.verificationItems.length,2);assert.equal(repaired.verificationItems.flatMap(i=>i.requirements).length,4);
+assert.equal(repaired.assignments[0]!.id,pendingRepair.assignments[0]!.id);assert.equal(+repaired.shiftEnd,+pendingRepair.shiftEnd);
+assert.equal(repaired.referenceImageUrl,pendingRepair.referenceImageUrl);assert.equal(repaired.status,'PENDING');assert.equal(repaired.completionOutcome,null);
+assert.ok(repaired.verificationDeadline);assert.ok(repaired.uploadDeadline);
+assert.equal(await prisma.auditLog.count({where:{entityId:repaired.id,action:'REPAIR_UNSTARTED_INVENTORY_TASK'}}),1);
+assert.equal(await prisma.verificationAttempt.count({where:{session:{taskInstanceId:repaired.id}}}),0);
+console.log('PASS: explicit pending-task repair preserves assignments/history, creates full inventory gates, rejects started/evidenced/expired/stale tasks and serializes concurrent repairs');
 await updateItem(actor,inventory.id,after.items[1]!.id,{expectedInventoryVersion:3,displayName:'Renamed fixture'});
 assert.equal((await prisma.taskVerificationItem.findUniqueOrThrow({where:{id:dailyInstance.verificationItems[0]!.id}})).nameSnapshot,originalName);
 await assert.rejects(()=>prisma.taskVerificationItem.update({where:{id:dailyInstance.verificationItems[0]!.id},data:{nameSnapshot:'Rewrite history'}}));
@@ -151,6 +175,7 @@ const {createCaptureSession,reserveAttempt,retakeSlots,resumeSession}=await impo
 const {signAreaQr}=await import('../src/services/verification-v2/qr.service.js');
 const {finalizeTask}=await import('../src/services/verification-v2/completion.service.js');
 const {managerDecision,raiseIssue}=await import('../src/services/verification-v2/exception.service.js');
+const {assessCleanliness}=await import('../src/services/verification-v2/cleanliness.service.js');
 const {processVerificationJob}=await import('../src/services/verification-v2/pipeline.service.js');
 const {defaultVerificationPolicy}=await import('../src/services/verification-v2/verificationPolicy.service.js');
 await prisma.location.update({where:{id:location},data:{isActive:true}});
@@ -184,7 +209,7 @@ const fakeProvider={assess:async(stage:string,prompt='')=>{
  const match=prompt.match(/Assess exactly these surfaces individually: (\[[^\]]*\])/);const surfaces=match?JSON.parse(match[1]!):['bowl','seat'];
  return {result:stage==='privacy'?{status:'SAFE',reasonCode:'CLEAN'}:stage==='coverage'?{verdict:'MATCH',observedFixture:'TOILET',observedView:'bowl_seat',observedLabel:null,identityConsistent:true,privacyFlag:false,reasonCode:'CLEAN'}:{verdict:'DIRTY',surfaces:surfaces.map((surface:string)=>({surface,verdict:'DIRTY'})),reasonCode:'CLEANING_REQUIRED'},metadata:{provider:'fake',model:'fixture',providerVersion:'1',promptVersion:stage+'-v1',latencyMs:1,usage:null,costUsd:0,requestId:'test'}};
 }};
-async function executeStage(attemptId:string,stage:string){const j=await prisma.verificationJob.findFirstOrThrow({where:{attemptId,stage,state:'PENDING'}});const running=await prisma.verificationJob.update({where:{id:j.id},data:{state:'RUNNING',attempts:1,leaseToken:randomUUID(),leaseUntil:new Date(Date.now()+90000)}});await processVerificationJob(running,fakeProvider as any,captureIo.read);}
+async function executeStage(attemptId:string,stage:string){const j=await prisma.verificationJob.findFirstOrThrow({where:{attemptId,stage,state:'PENDING'}});const running=await prisma.verificationJob.update({where:{id:j.id},data:{state:'RUNNING',attempts:1,leaseToken:randomUUID(),leaseUntil:new Date(Date.now()+90000)}});await processVerificationJob(running,fakeProvider as any,captureIo.read,{evaluate:(image,rubric,view)=>assessCleanliness(fakeProvider as any,image,rubric,view)});}
 for(const stage of ['QUALITY','PRIVACY','COVERAGE','CLEANLINESS'])await executeStage(reservations[0]!.id,stage);
 assert.equal((await prisma.taskEvidenceRequirement.findUniqueOrThrow({where:{id:slot.requirementId!}})).state,'CLEANING_REQUIRED');
 assert.equal(await prisma.verificationException.count({where:{taskInstanceId:capturedTask.id}}),0,'first dirty failure stays with staff');
@@ -215,18 +240,41 @@ console.log('PASS: concurrent sessions/manifests/uploads, replay and changed byt
 // Independent final results serialize on the task lock and produce one completion.
 async function freshCaptureTask(label:string){const t=await createTaskInstanceWithSnapshot({templateId:captureTemplate.id,title:label,locationId:location,date:new Date(Date.now()+Math.floor(Math.random()*1000000)),shiftStart:start,shiftEnd:end});assert.ok(t);await prisma.taskInstance.update({where:{id:t.id},data:{status:'IN_PROGRESS',startedAt:start}});await prisma.taskAssignment.updateMany({where:{taskInstanceId:t.id},data:{status:'STARTED',startedAt:start}});const ar=await prisma.area.findUniqueOrThrow({where:{id:captureArea.id}});const s=await createCaptureSession(captureActor,t.id,{...sessionBody,requestId:randomUUID(),areaQr:signAreaQr(ar),location:{...sessionBody.location,sampledAt:new Date().toISOString()}});return {task:t,session:s};}
 async function photoFor(seed:number){const pixels=Buffer.alloc(640*640*3);for(let i=0;i<pixels.length;i++)pixels[i]=(i*(seed*2+13)+(i>>7)*(seed+29))%256;return sharp(pixels,{raw:{width:640,height:640,channels:3}}).jpeg().toBuffer();}
-async function ingestFixture(s:typeof activeSession,slotId:string,seed:number){const sl=s.slots.find(x=>x.id===slotId)!;const bytes=await photoFor(seed);const m={...metadata,clientCaptureId:randomUUID(),slotId:sl.id,nonce:sl.nonce,sha256:sha256(bytes),claimedCapturedAt:s.issuedAt.toISOString(),elapsedMs:0};const a=await reserveAttempt(captureActor,s.id,m,true);await storeReservedEvidence(captureActor,a.id,bytes,captureIo);return a;}
+async function ingestFixture(s:typeof activeSession,slotId:string,seed:number,evidenceActor=captureActor,photo?:Buffer){const sl=s.slots.find(x=>x.id===slotId)!;const bytes=photo??await photoFor(seed);const m={...metadata,clientCaptureId:randomUUID(),slotId:sl.id,nonce:sl.nonce,sha256:sha256(bytes),claimedCapturedAt:s.issuedAt.toISOString(),elapsedMs:0};const a=await reserveAttempt(evidenceActor,s.id,m,true);await storeReservedEvidence(evidenceActor,a.id,bytes,captureIo);return a;}
 const finalRace=await freshCaptureTask('Final race');const finalSlots=finalRace.session.slots.filter(s=>s.requirementId);const finalAttempts=[];for(let i=0;i<finalSlots.length;i++)finalAttempts.push(await ingestFixture(finalRace.session,finalSlots[i]!.id,101+i));
 await prisma.captureSession.update({where:{id:finalRace.session.id},data:{contextStatus:'ACCEPTABLE'}});
 await prisma.evidenceAsset.updateMany({where:{taskInstanceId:finalRace.task.id},data:{privacyState:'SAFE'}});
 await prisma.verificationJob.updateMany({where:{attemptId:{in:finalAttempts.map(a=>a.id)}},data:{state:'SUCCEEDED',finishedAt:new Date()}});
 await Promise.all(finalAttempts.map(a=>prisma.$transaction(async tx=>{await tx.$queryRaw`SELECT id FROM "TaskInstance" WHERE id=${finalRace.task.id} FOR UPDATE`;await tx.verificationAttempt.update({where:{id:a.id},data:{state:'PASSED'}});await tx.taskEvidenceRequirement.update({where:{id:a.requirementId!},data:{state:'PASSED'}});return finalizeTask(tx,finalRace.task.id);})));assert.equal((await prisma.taskInstance.findUniqueOrThrow({where:{id:finalRace.task.id}})).completionOutcome,'VERIFIED_COMPLETE');assert.equal(await prisma.auditLog.count({where:{entityId:finalRace.task.id,action:'VERIFICATION_COMPLETED'}}),1);
+const spatialStaff=await prisma.staff.create({data:{name:'Spatial worker',email:`${randomUUID()}@test.invalid`,password:'test-only',companyId:company,locationId:location}});
+const spatialActor={...captureActor,id:spatialStaff.id};
+const spatialTemplate=await prisma.taskTemplate.create({data:{title:'Spatial binding validation',locationId:location,staffId:spatialStaff.id,shiftStart:start,shiftEnd:end,effectiveDate:new Date(),verificationVersion:2,areaId:captureArea.id,inventoryConfigVersion:1,inventorySelection:'ALL',setupStatus:'READY'}});
+const spatialTask=await createTaskInstanceWithSnapshot({templateId:spatialTemplate.id,title:'Spatial binding validation',locationId:location,date:new Date(),shiftStart:start,shiftEnd:end});assert.ok(spatialTask);
+await prisma.taskInstance.update({where:{id:spatialTask.id},data:{status:'IN_PROGRESS',startedAt:start}});await prisma.taskAssignment.updateMany({where:{taskInstanceId:spatialTask.id},data:{status:'STARTED',startedAt:start}});
+const spatialArea=await prisma.area.findUniqueOrThrow({where:{id:captureArea.id}});
+const spatialFixture={task:spatialTask,session:await createCaptureSession(spatialActor,spatialTask.id,{...sessionBody,requestId:randomUUID(),areaQr:signAreaQr(spatialArea),location:{...sessionBody.location,sampledAt:new Date().toISOString()}})};
+const spatialSlots=spatialFixture.session.slots.filter(s=>s.requirementId).slice(0,2);
+assert.equal(spatialSlots.length,2);
+const spatialWorld=randomUUID();
+function spatialMetadata(index:number,sequence:number){const sl=spatialSlots[index]!;return {...metadata,clientCaptureId:randomUUID(),slotId:sl.id,nonce:sl.nonce,claimedCapturedAt:new Date(+spatialFixture.session.issuedAt+sequence*10).toISOString(),elapsedMs:sequence*10,spatialEvidence:{version:1,sessionId:spatialFixture.session.id,worldId:spatialWorld,sequence,requirementId:sl.requirementId,contextKey:null,capability:'NO_SPATIAL',tracking:'UNAVAILABLE',continuity:'CONTINUOUS',capturedElapsedMs:sequence*10,worldStartedElapsedMs:0,nativeTimestampMs:null,camera:null,worldPoint:null,movementMeters:null,interruptionReasons:[]}};}
+const spatialLater=spatialMetadata(1,2),spatialEarlier=spatialMetadata(0,1);
+await assert.rejects(()=>reserveAttempt(spatialActor,spatialFixture.session.id,{...spatialLater,spatialEvidence:{...spatialLater.spatialEvidence,sessionId:randomUUID()}},true),'wrong spatial session');
+const spatialReserved=await reserveAttempt(spatialActor,spatialFixture.session.id,spatialLater,true);
+assert.equal(spatialReserved.spatialVersion,1);assert.deepEqual(spatialReserved.spatialEvidence,spatialLater.spatialEvidence);
+assert.equal((await reserveAttempt(spatialActor,spatialFixture.session.id,{...spatialLater,spatialEvidence:JSON.stringify(spatialLater.spatialEvidence)},false)).id,spatialReserved.id);
+await assert.rejects(()=>reserveAttempt(spatialActor,spatialFixture.session.id,{...spatialLater,spatialEvidence:{...spatialLater.spatialEvidence,worldId:randomUUID()}},false),'spatial idempotency binding');
+await assert.rejects(()=>reserveAttempt(spatialActor,spatialFixture.session.id,{...spatialEarlier,spatialEvidence:{...spatialEarlier.spatialEvidence,sequence:2}},true),'spatial sequence reused');
+const earlySpatial=await reserveAttempt(spatialActor,spatialFixture.session.id,spatialEarlier,true);
+assert.equal(earlySpatial.spatialVersion,1,'offline earlier capture can arrive after later capture');
+await assert.rejects(()=>prisma.verificationAttempt.update({where:{id:spatialReserved.id},data:{spatialEvidence:{...spatialLater.spatialEvidence,worldId:randomUUID()}}}),'immutable observation');
+console.log('PASS: spatial metadata binding, multipart parsing, idempotency, sequence/order and immutable persistence');
+
 const qrRace=await freshCaptureTask('QR race');const qrSlot=qrRace.session.slots.find(s=>s.requirementId)!;const qrAttempt=await ingestFixture(qrRace.session,qrSlot.id,231);
 for(const stage of ['QUALITY','PRIVACY','COVERAGE'])await executeStage(qrAttempt.id,stage);
 let releaseProvider!:()=>void;let enteredProvider!:()=>void;const entered=new Promise<void>(resolve=>enteredProvider=resolve),providerGate=new Promise<void>(resolve=>releaseProvider=resolve);
 const slowProvider={assess:async(stage:string,prompt:string)=>{enteredProvider();await providerGate;return fakeProvider.assess(stage,prompt);}};
 const qrJob=await prisma.verificationJob.findFirstOrThrow({where:{attemptId:qrAttempt.id,stage:'CLEANLINESS'}});const runningQr=await prisma.verificationJob.update({where:{id:qrJob.id},data:{state:'RUNNING',attempts:1,leaseToken:randomUUID(),leaseUntil:new Date(Date.now()+90000)}});
-const processing=processVerificationJob(runningQr,slowProvider as any,captureIo.read);await entered;
+const processing=processVerificationJob(runningQr,slowProvider as any,captureIo.read,{evaluate:(image,rubric,view)=>assessCleanliness(slowProvider as any,image,rubric,view)});await entered;
 const {rotateQr}=await import('../src/controllers/area.controller.js');const qrResponse:any={status(){return this;},json(){return this;}};
 await rotateQr({params:{areaId:String(captureArea.id)},body:{expectedInventoryVersion:1},user:actor} as any,qrResponse);releaseProvider();await processing;
 assert.equal((await prisma.verificationAttempt.findUniqueOrThrow({where:{id:qrAttempt.id}})).state,'REVIEW_REQUIRED','QR rotation blocks an in-flight cleanliness credit');assert.notEqual((await prisma.taskEvidenceRequirement.findUniqueOrThrow({where:{id:qrSlot.requirementId!}})).state,'PASSED');
@@ -246,7 +294,7 @@ for(const stage of ['QUALITY','PRIVACY','COVERAGE'])await executeStage(retakeAtt
 let enterRetake!:()=>void,releaseRetake!:()=>void;const retakeEntered=new Promise<void>(resolve=>enterRetake=resolve),retakeGate=new Promise<void>(resolve=>releaseRetake=resolve);
 const delayedRetakeProvider={assess:async(stage:string,prompt:string)=>{enterRetake();await retakeGate;return fakeProvider.assess(stage,prompt);}};
 const retakeJob=await prisma.verificationJob.findFirstOrThrow({where:{attemptId:retakeAttempt.id,stage:'CLEANLINESS'}});const runningRetake=await prisma.verificationJob.update({where:{id:retakeJob.id},data:{state:'RUNNING',attempts:1,leaseToken:randomUUID(),leaseUntil:new Date(Date.now()+90000)}});
-const pendingRetake=processVerificationJob(runningRetake,delayedRetakeProvider as any,captureIo.read);await retakeEntered;
+const pendingRetake=processVerificationJob(runningRetake,delayedRetakeProvider as any,captureIo.read,{evaluate:(image,rubric,view)=>assessCleanliness(delayedRetakeProvider as any,image,rubric,view)});await retakeEntered;
 const retakeCase=await prisma.$transaction(tx=>raiseIssue(tx,retakeRace.task.id,'DAMAGED',retakeSlot.requirementId));assert.ok(retakeCase);
 await managerDecision(actor,retakeCase.id,{requestId:randomUUID(),expectedVersion:retakeCase.rowVersion,requirementId:retakeSlot.requirementId,action:'REQUEST_RECAPTURE',reasonCode:'CANNOT_ASSESS',note:'Explicit recapture while old result is in flight'});
 const afterRequest=await prisma.taskEvidenceRequirement.findUniqueOrThrow({where:{id:retakeSlot.requirementId!}});const retakeAllocated=await retakeSlots(captureActor,retakeRace.session.id,{deviceId:'device-a',requirements:[{requirementId:afterRequest.id,expectedGeneration:afterRequest.decisionVersion}]});assert.equal(retakeAllocated.length,1);
@@ -284,6 +332,8 @@ try{
  const obsolete=await fetch(`http://127.0.0.1:${port}/api/task-instance/${retakeRace.task.id}/capture-sessions`,{method:'POST',headers:{Authorization:`Bearer ${workerJwt}`,'Content-Type':'application/json'},body:JSON.stringify(sessionBody)});assert.equal(obsolete.status,426);assert.equal((await obsolete.json() as any).code,'NATIVE_APP_UPGRADE_REQUIRED');
  const capabilities=await call('/verification-capabilities',workerJwt);assert.equal((await capabilities.json() as any).data.automaticCleanlinessPassing,false);
  const history=await call(`/task-instance/${finalRace.task.id}/verification/history`,adminJwt);assert.equal(history.status,200);const historyDto:any=await history.json();assert.ok(historyDto.data.attempts.length);assert.equal(typeof historyDto.data.attempts[0].staff.name,'string');assert.equal(historyDto.data.attempts[0].cleanlinessResult,undefined);
+ const spatialExport=await call(`/task-instance/${spatialFixture.task.id}/verification/spatial-evaluation`,adminJwt);assert.equal(spatialExport.status,200);const spatialExportDto:any=await spatialExport.json();assert.equal(spatialExportDto.data.attempts.length,2);assert.equal(spatialExportDto.data.autoIdentityAcceptance,false);assert.equal(spatialExportDto.data.attempts[0].humanGroundTruth,'UNKNOWN');assert.equal(spatialExportDto.data.attempts[0].committedHash,undefined);
+ assert.equal((await call(`/task-instance/${spatialFixture.task.id}/verification/spatial-evaluation`,workerJwt)).status,403,'spatial evaluation export is not staff navigation/API');
  const durableReportTask=failureRace;const report={requestId:randomUUID(),reasonCode:'DAMAGED',requestHelp:true,note:'Fixture is damaged'};
  const auditBefore=await prisma.auditLog.count({where:{entityId:durableReportTask.task.id,action:'VERIFICATION_ISSUE_REPORTED'}});
  assert.equal((await call(`/task-instance/${durableReportTask.task.id}/verification-issues`,workerJwt,'POST',report)).status,200);
@@ -307,7 +357,75 @@ assert.equal(await prisma.verificationIssue.count({where:{exception:{taskInstanc
 const cannotAssess=await freshCaptureTask('Cannot assess');const cannotSlot=cannotAssess.session.slots.find(s=>s.requirementId)!;const cannotAttempt=await ingestFixture(cannotAssess.session,cannotSlot.id,762);for(const stage of ['QUALITY','PRIVACY','COVERAGE'])await executeStage(cannotAttempt.id,stage);
 const cannotJob=await prisma.verificationJob.findFirstOrThrow({where:{attemptId:cannotAttempt.id,stage:'CLEANLINESS'}});const cannotRunning=await prisma.verificationJob.update({where:{id:cannotJob.id},data:{state:'RUNNING',attempts:1,leaseToken:randomUUID(),leaseUntil:new Date(Date.now()+90000)}});
 const cannotProvider={assess:async(stage:string,prompt:string)=>{const assessment=await fakeProvider.assess(stage,prompt);if(stage==='cleanliness'){assessment.result={verdict:'CANNOT_ASSESS',surfaces:(assessment.result as any).surfaces.map((s:any)=>({...s,verdict:'CANNOT_ASSESS'})),reasonCode:'CANNOT_ASSESS'} as any;}return assessment;}};
-await processVerificationJob(cannotRunning,cannotProvider as any,captureIo.read);assert.equal((await prisma.taskEvidenceRequirement.findUniqueOrThrow({where:{id:cannotSlot.requirementId!}})).state,'RECAPTURE_REQUIRED');assert.equal(await prisma.verificationException.count({where:{taskInstanceId:cannotAssess.task.id}}),0);
+await processVerificationJob(cannotRunning,cannotProvider as any,captureIo.read,{evaluate:(image,rubric,view)=>assessCleanliness(cannotProvider as any,image,rubric,view)});assert.equal((await prisma.taskEvidenceRequirement.findUniqueOrThrow({where:{id:cannotSlot.requirementId!}})).state,'RECAPTURE_REQUIRED');assert.equal(await prisma.verificationException.count({where:{taskInstanceId:cannotAssess.task.id}}),0);
+// Exercise the actual Clef adapter through durable stage publication; HTTP is mocked.
+process.env.CLOUDFLARE_ACCOUNT_ID='a'.repeat(32);process.env.CLOUDFLARE_API_TOKEN='test-only';
+process.env.CLEF_CONFIDENCE_THRESHOLD='0.9';process.env.CLEF_THRESHOLD_VERSION='synthetic-candidate-v1';
+const clefStaff=await prisma.staff.create({data:{name:'Clef test worker',email:`${randomUUID()}@test.invalid`,password:'test-only',companyId:company,locationId:location}});
+const clefActor={id:clefStaff.id,companyId:company,role:'STAFF' as const};
+const clefTemplate=await prisma.taskTemplate.create({data:{title:'Clef test',locationId:location,staffId:clefStaff.id,shiftStart:start,shiftEnd:end,effectiveDate:new Date(),verificationVersion:2,areaId:captureArea.id,inventoryConfigVersion:1,inventorySelection:'ALL',setupStatus:'READY'}});
+async function clefCaptureTask(label:string){
+ const t=await createTaskInstanceWithSnapshot({templateId:clefTemplate.id,title:label,locationId:location,date:new Date(Date.now()+Math.floor(Math.random()*1000000)),shiftStart:start,shiftEnd:end});assert.ok(t);
+ await prisma.taskInstance.update({where:{id:t.id},data:{status:'IN_PROGRESS',startedAt:start}});await prisma.taskAssignment.updateMany({where:{taskInstanceId:t.id},data:{status:'STARTED',startedAt:start}});
+ const ar=await prisma.area.findUniqueOrThrow({where:{id:captureArea.id}});return {task:t,session:await createCaptureSession(clefActor,t.id,{...sessionBody,requestId:randomUUID(),areaQr:signAreaQr(ar),location:{...sessionBody.location,sampledAt:new Date().toISOString()}})};
+}
+const originalFetch=globalThis.fetch;let clefCalls=0;
+let clefMode='CLEAN';
+globalThis.fetch=async (url,options)=>{
+ assert.ok(String(url).includes('/ai/run/@cf/cloudflare/clef'),'mock must not make vendor requests');clefCalls++;
+ if(clefMode==='TIMEOUT')throw new DOMException('synthetic timeout','TimeoutError');
+ if(clefMode==='RATE_LIMIT')return new Response('{}',{status:429});
+ const request=JSON.parse(String(options!.body));
+ const choice=clefMode==='LOW_CONFIDENCE'?'CLEAN':clefMode;
+ const answer={type:'choice',choice,confidence:clefMode==='LOW_CONFIDENCE'?.5:.98,probabilities:{CLEAN:choice==='CLEAN'?.98:.01,DIRTY:choice==='DIRTY'?.98:.01,CANNOT_ASSESS:choice==='CANNOT_ASSESS'?.98:.01}};
+ return new Response(JSON.stringify({success:true,result:{model:'clef',answers:Object.fromEntries(Object.keys(request.questions).map(key=>[key,answer])),usage:{input_tokens:22,output_tokens:0}}}));
+};
+try{
+ for(const mode of ['CLEAN','DIRTY','LOW_CONFIDENCE','TIMEOUT','RATE_LIMIT']){
+  clefMode=mode;const fixture=await clefCaptureTask('Clef '+mode),sl=fixture.session.slots.find(s=>s.requirementId)!;
+  const uniquePhoto=await sharp(randomBytes(640*640*3),{raw:{width:640,height:640,channels:3}}).jpeg().toBuffer();
+  const a=await ingestFixture(fixture.session,sl.id,1000+clefCalls,clefActor,uniquePhoto);
+  for(const stage of ['QUALITY','PRIVACY','COVERAGE'])await executeStage(a.id,stage);
+  let j=await prisma.verificationJob.findFirstOrThrow({where:{attemptId:a.id,stage:'CLEANLINESS'}});
+  const run=async()=>{j=await prisma.verificationJob.update({where:{id:j.id},data:{state:'RUNNING',attempts:{increment:1},leaseToken:randomUUID(),leaseUntil:new Date(Date.now()+90000)}});return processVerificationJob(j,fakeProvider as any,captureIo.read);};
+  if(mode==='TIMEOUT'){
+   await assert.rejects(run,/PROVIDER_TIMEOUT/);await failVerificationJob(j,'PROVIDER_TIMEOUT',()=>.5,{provider:'cloudflare',status:'SERVICE_FAILURE'});
+   assert.equal((await prisma.verificationJob.findUniqueOrThrow({where:{id:j.id}})).state,'RETRY_WAIT');
+   clefMode='CLEAN';await run();
+  }else if(mode==='RATE_LIMIT'){
+   for(let retry=0;retry<4;retry++){await assert.rejects(run,/PROVIDER_RATE_LIMIT/);await failVerificationJob(j,'PROVIDER_RATE_LIMIT');}
+   assert.equal((await prisma.verificationJob.findUniqueOrThrow({where:{id:j.id}})).state,'FAILED');
+   assert.equal((await prisma.verificationAttempt.findUniqueOrThrow({where:{id:a.id}})).state,'SERVICE_FAILURE');
+   assert.equal((await prisma.taskEvidenceRequirement.findUniqueOrThrow({where:{id:sl.requirementId!}})).state,'REVIEW_REQUIRED');
+   assert.equal(await prisma.verificationAttempt.count({where:{requirementId:sl.requirementId,state:'CLEANING_REQUIRED'}}),0);
+   continue;
+  }else await run();
+  const persisted=await prisma.verificationAttempt.findUniqueOrThrow({where:{id:a.id}});
+  const saved=persisted.cleanlinessResult as any;
+  assert.equal(saved.result.verdict,mode==='LOW_CONFIDENCE'?'CANNOT_ASSESS':mode==='DIRTY'?'DIRTY':'CLEAN');
+  assert.equal(saved.metadata.provider,'cloudflare');assert.equal(saved.result.confidence,mode==='LOW_CONFIDENCE'?.5:.98);
+  assert.equal(saved.retryCount,mode==='TIMEOUT'?1:0);
+  assert.equal(persisted.state,mode==='DIRTY'?'CLEANING_REQUIRED':mode==='LOW_CONFIDENCE'?'RECAPTURE_REQUIRED':'REVIEW_REQUIRED');
+  const before=clefCalls;assert.equal(await processVerificationJob(j,fakeProvider as any,captureIo.read),false);assert.equal(clefCalls,before,'successful stage cannot be re-inferred');
+  assert.notEqual((await prisma.taskInstance.findUniqueOrThrow({where:{id:fixture.task.id}})).completionOutcome,'VERIFIED_COMPLETE');
+  if(mode==='LOW_CONFIDENCE'){
+   for(let retry=2;retry<=3;retry++){
+    const r=await prisma.taskEvidenceRequirement.findUniqueOrThrow({where:{id:sl.requirementId!}});
+    const slots=await retakeSlots(clefActor,fixture.session.id,{deviceId:'device-a',requirements:[{requirementId:r.id,expectedGeneration:r.decisionVersion}]});
+    const fullSession={...fixture.session,slots};const bytes=await sharp(randomBytes(640*640*3),{raw:{width:640,height:640,channels:3}}).jpeg().toBuffer();
+    const retryAttempt=await ingestFixture(fullSession,slots[0]!.id,1100+retry,clefActor,bytes);
+    for(const stage of ['QUALITY','PRIVACY','COVERAGE'])await executeStage(retryAttempt.id,stage);
+    const queued=await prisma.verificationJob.findFirstOrThrow({where:{attemptId:retryAttempt.id,stage:'CLEANLINESS'}});
+    const running=await prisma.verificationJob.update({where:{id:queued.id},data:{state:'RUNNING',attempts:1,leaseToken:randomUUID(),leaseUntil:new Date(Date.now()+90000)}});
+    await processVerificationJob(running,fakeProvider as any,captureIo.read);
+    assert.equal(await prisma.verificationException.count({where:{taskInstanceId:fixture.task.id}}),retry===3?1:0,'Clef uncertainty escalates only at existing recapture limit');
+    assert.equal(await prisma.verificationAttempt.count({where:{requirementId:r.id,state:'CLEANING_REQUIRED'}}),0);
+   }
+  }
+ }
+}finally{globalThis.fetch=originalFetch;}
+console.log('PASS: actual Clef adapter contract, prediction persistence, CLEAN gate, DIRTY rework, uncertainty, timeout retry, rate-limit exhaustion and no rebilling');
+
 const maintenance=await freshCaptureTask('Maintenance is not completion');const maintenanceRequirement=await prisma.taskEvidenceRequirement.findFirstOrThrow({where:{item:{taskInstanceId:maintenance.task.id}}});const maintenanceCase=await prisma.$transaction(tx=>raiseIssue(tx,maintenance.task.id,'DAMAGED',maintenanceRequirement.id));assert.ok(maintenanceCase);
 await managerDecision(actor,maintenanceCase.id,{requestId:randomUUID(),expectedVersion:maintenanceCase.rowVersion,requirementId:maintenanceRequirement.id,action:'MARK_MAINTENANCE',reasonCode:'DAMAGED',note:'Fixture requires maintenance; this does not waive cleaning evidence'});
 assert.equal((await prisma.taskEvidenceRequirement.findUniqueOrThrow({where:{id:maintenanceRequirement.id}})).state,'MISSING');assert.notEqual((await prisma.taskInstance.findUniqueOrThrow({where:{id:maintenance.task.id}})).status,'COMPLETED');assert.equal((await prisma.taskTemplate.findUniqueOrThrow({where:{id:captureTemplate.id}})).setupStatus,'NEEDS_REVIEW');
@@ -319,9 +437,9 @@ const safeStandard=await standardFixture(901);let enterStandard!:()=>void,releas
 const standardEntered=new Promise<void>(resolve=>enterStandard=resolve),standardGate=new Promise<void>(resolve=>releaseStandard=resolve);
 const standardProvider={assess:async(stage:string,prompt:string)=>{enterStandard();await standardGate;return fakeProvider.assess(stage,prompt);}};
 const standardCheck=screenStandardPrivacy(actor,safeStandard.row.id,standardProvider as any,captureIo.read);await standardEntered;
-await assert.rejects(()=>screenStandardPrivacy(actor,safeStandard.row.id,fakeProvider as any,captureIo.read),'concurrent optional-standard calls share bounded authority');releaseStandard();
+await assert.rejects(()=>screenStandardPrivacy(actor,safeStandard.row.id,fakeProvider as any,captureIo.read,{evaluate:(image,rubric,view)=>assessCleanliness(fakeProvider as any,image,rubric,view)}),'concurrent optional-standard calls share bounded authority');releaseStandard();
 assert.equal((await standardCheck).privacyState,'SAFE');assert.ok((await evidenceContent(actor,safeStandard.asset.id,'review',captureIo)).bytes.length);
-await screenStandardPrivacy(actor,safeStandard.row.id,fakeProvider as any,captureIo.read);
+await screenStandardPrivacy(actor,safeStandard.row.id,fakeProvider as any,captureIo.read,{evaluate:(image,rubric,view)=>assessCleanliness(fakeProvider as any,image,rubric,view)});
 assert.equal(await prisma.auditLog.count({where:{entityType:'AREA_STANDARD_PHOTO',entityId:safeStandard.row.id,action:'STANDARD_PRIVACY_STARTED'}}),1,'successful standard screening is reused');
 const pendingStandard=await standardFixture(902);const outage={assess:async()=>{throw new Error('Provider unavailable');}};
 for(let retry=0;retry<4;retry++)assert.equal((await screenStandardPrivacy(actor,pendingStandard.row.id,outage as any,captureIo.read)).privacyState,'PENDING');

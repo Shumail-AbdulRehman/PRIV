@@ -1,6 +1,7 @@
 import { writeFile,rename,unlink } from 'node:fs/promises';
 import {processVerificationJob} from '../services/verification-v2/pipeline.service.js';
 import 'dotenv/config';
+import {ProviderServiceFailure} from '../services/verification-v2/provider.service.js';
 import {hostname} from 'node:os';
 import {randomUUID} from 'node:crypto';
 import {prisma} from '../prisma/prisma.js';
@@ -18,7 +19,7 @@ async function tick() {
  try {
   if(!leaseLost)await processVerificationJob(job);
  } catch(error) {
-  if(!leaseLost)await failVerificationJob(job,error instanceof Error&&/^PROVIDER_[A-Z_]+$/.test(error.message)?error.message:'SERVICE_FAILURE');
+  if(!leaseLost)await failVerificationJob(job,error instanceof Error&&/^PROVIDER_[A-Z_]+$/.test(error.message)?error.message:'SERVICE_FAILURE',Math.random,error instanceof ProviderServiceFailure?error.metadata:undefined);
  } finally {clearInterval(renewal);active--;}
 }
 async function heartbeatTick(){await workerHeartbeat(id,active);await writeFile(`${healthFile}.tmp`,JSON.stringify({id}));await rename(`${healthFile}.tmp`,healthFile);}

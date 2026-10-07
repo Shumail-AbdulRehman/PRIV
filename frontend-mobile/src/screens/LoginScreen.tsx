@@ -39,7 +39,7 @@ export function LoginScreen() {
         "Unable to sign in.";
 
       const detail =
-        !error?.response && API_BASE_URL.startsWith("http://")
+        ["ERR_NETWORK", "ECONNABORTED", "ETIMEDOUT"].includes(error?.code) && API_BASE_URL.startsWith("http://")
           ? `${message}\n\nCurrent API URL: ${API_BASE_URL}\nIf this is a physical device, make sure the backend is reachable on the same network.`
           : message;
 

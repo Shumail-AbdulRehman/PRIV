@@ -819,6 +819,9 @@ model VerificationAttempt {
   coverageResult      Json?
   cleanlinessResult   Json?
   duplicateResult     Json?
+  spatialEvidence     Json?
+  spatialDecision     Json?
+  spatialVersion      Int?
   state               AttemptState             @default(RESERVED)
   supersedesAttemptId String?
   createdAt           DateTime                 @default(now())

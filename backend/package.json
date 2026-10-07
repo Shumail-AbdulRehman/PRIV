@@ -18,7 +18,9 @@
     "verification:benchmark": "tsx scripts/verificationEvaluatorBenchmark.ts",
     "verification:backfill": "tsx scripts/verificationBackfill.ts",
     "worker:verification:check": "node --check dist/workers/verificationWorker.js && node --check dist/workers/verificationWorkerHealth.js",
-    "test:verification:worker": "tsx tests/verification.worker.integration.ts"
+    "test:verification:worker": "tsx tests/verification.worker.integration.ts",
+    "verification:spatial-evaluate": "tsx scripts/spatialEvaluation.ts",
+    "verification:clef-evaluate": "tsx scripts/clefHeldOutEvaluation.ts"
   },
   "keywords": [],
   "author": "",

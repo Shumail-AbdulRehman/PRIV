@@ -49,3 +49,9 @@ PROJECT_CONTEXT.txt
 !docs/verification/IMPLEMENTATION_1_8.md
 !docs/verification/IMPLEMENTATION_9_14.md
 !docs/verification/evaluator-benchmark.md
+!docs/verification/HELD_OUT_EVALUATION_19.md
+!docs/verification/RELEASE_VERIFICATION_19.md
+
+!docs/verification/CLEF_CLEANLINESS.md
+!docs/verification/SPATIAL_FIXTURE_VERIFICATION.md
+!docs/verification/ANDROID_PREBUILD_VALIDATION.md
