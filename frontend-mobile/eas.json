@@ -10,7 +10,7 @@
         "buildType": "apk"
       },
       "env": {
-        "EXPO_PUBLIC_API_BASE_URL": "http://10.54.199.4:8080/api"
+        "EXPO_PUBLIC_API_BASE_URL": "http://192.168.100.198:8080/api"
       }
     }
   }

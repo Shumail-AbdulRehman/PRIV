@@ -3,6 +3,7 @@ import vectors from '../../assets/models/clip-text-vectors.json';
 import { classifyCategoryScores, FIXTURE_CATEGORIES, scoreCategoryEmbedding, uncertainCategory } from './localCategoryPolicy';
 import type { FixtureCategory, LocalCategoryResult } from './localCategoryPolicy';
 import type { InferenceSession } from 'onnxruntime-react-native';
+import { NativeModules, Platform } from 'react-native';
 export type { LocalCategoryResult } from './localCategoryPolicy';
 const MAX_CHECK_MS = 25_000;
 let session: Promise<InferenceSession> | null = null;
@@ -11,6 +12,12 @@ let active: Promise<LocalCategoryResult> | null = null;
 async function infer(uri: string, expected: string, started: number): Promise<LocalCategoryResult> {
   try {
     // No network API, upload, asset download or remote AI is used here.
+    if (Platform.OS !== 'web' && typeof (globalThis as { OrtApi?: unknown }).OrtApi === 'undefined') {
+      const install = NativeModules.Onnxruntime?.install;
+      if (typeof install !== 'function' || install() !== true || typeof (globalThis as { OrtApi?: unknown }).OrtApi === 'undefined') {
+        return uncertainCategory(expected, 'LOCAL_CHECK_UNAVAILABLE', Date.now() - started);
+      }
+    }
     const ort = await import('onnxruntime-react-native');
     if (!session) {
       session = bundledCategoryModelPath().then(path => ort.InferenceSession.create(path, {

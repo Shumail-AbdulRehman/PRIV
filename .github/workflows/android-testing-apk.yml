@@ -8,7 +8,7 @@ on:
       api_base_url:
         description: Backend API URL reachable by the physical Android phone
         required: true
-        default: http://10.54.199.4:8080/api
+        default: http://192.168.100.198:8080/api
         type: string
 
 permissions:
@@ -19,7 +19,7 @@ concurrency:
   cancel-in-progress: false
 
 env:
-  EXPO_PUBLIC_API_BASE_URL: ${{ inputs.api_base_url || 'http://10.54.199.4:8080/api' }}
+  EXPO_PUBLIC_API_BASE_URL: ${{ inputs.api_base_url || 'http://192.168.100.198:8080/api' }}
 
 jobs:
   mobile-checks:
@@ -139,6 +139,7 @@ jobs:
           # Apply current native plugins even when a generated directory exists.
           npx expo prebuild --platform android --no-install
           npx expo-modules-autolinking resolve --platform android --json > build-output/autolinking.json
+          npx expo-modules-autolinking react-native-config --platform android --json > build-output/react-native-config.json
           python3 - <<'PY'
           import json, hashlib
           from pathlib import Path
@@ -147,6 +148,9 @@ jobs:
           required = {'capture-quality', 'spatial-tracking', 'expo-camera', 'expo-location',
                       'expo-sqlite', 'expo-secure-store', 'expo-file-system', 'expo-crypto'}
           assert required <= names, f'Missing native modules: {required - names}'
+          rn_modules = json.loads(Path('build-output/react-native-config.json').read_text())['dependencies']
+          onnx = rn_modules.get('onnxruntime-react-native', {}).get('platforms', {}).get('android', {})
+          assert onnx.get('packageInstance') == 'new OnnxruntimePackage()', 'ONNX Runtime ReactPackage is not registered'
           model = Path('android/app/src/main/assets/clip-vision-int8.onnx')
           assert hashlib.sha256(model.read_bytes()).hexdigest() == '583fd1110a514667812fee7d684952aaf82a99b959760c8d7dca7e0ab9839299'
           assert 'com.microsoft.onnxruntime:onnxruntime-android:1.24.3' in Path('android/build.gradle').read_text()
@@ -168,6 +172,7 @@ jobs:
             -PreactNativeArchitectures="$TEST_ANDROID_ABIS" \
             --no-daemon --max-workers=2 --console=plain \
             2>&1 | tee ../build-output/native-compilation.log
+          rg -q 'new OnnxruntimePackage\(' app/build/generated
           test ! -f app/build/outputs/apk/release/app-release.apk
       - name: Package standalone testing APK with the generated test signing key
         run: |
