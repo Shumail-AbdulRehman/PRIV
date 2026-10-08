@@ -172,7 +172,7 @@ jobs:
             -PreactNativeArchitectures="$TEST_ANDROID_ABIS" \
             --no-daemon --max-workers=2 --console=plain \
             2>&1 | tee ../build-output/native-compilation.log
-          rg -q 'new OnnxruntimePackage\(' app/build/generated
+          grep -R -q 'new OnnxruntimePackage(' app/build/generated
           test ! -f app/build/outputs/apk/release/app-release.apk
       - name: Package standalone testing APK with the generated test signing key
         run: |
