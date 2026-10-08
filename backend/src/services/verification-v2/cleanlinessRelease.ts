@@ -7,13 +7,18 @@ import {clefConfiguration,clefEvaluatorVersion} from './clefConfiguration.js';
 
 const sha=z.string().regex(/^[a-f0-9]{64}$/);
 const version=z.string().regex(/^[a-zA-Z0-9._-]{1,60}$/);
+export function verificationReleaseConfiguration(){
+ const provider=process.env.AI_PROVIDER?.toLowerCase()??'openai';
+ if(!['openai','gemini'].includes(provider))throw new Error('Unsupported integrity provider');
+ return {version:'verification-v2-clef-release-1',qualityVersion:'quality-v1',privacyVersion:'privacy-v1',coverageVersion:'coverage-v1',duplicateVersion:'duplicate-v1',privacyCoverageProvider:provider,privacyCoverageModel:provider==='gemini'?(process.env.GEMINI_VISION_MODEL??'gemini-3.6-flash'):(process.env.OPENAI_VISION_MODEL??'gpt-4o-mini'),spatialAutomaticAcceptance:false};
+}
 const configurationSchema=z.object({provider:z.literal('cloudflare'),model:z.enum(['clef','clef-flash']),promptVersion:z.literal('clef-surfaces-v1'),providerVersion:z.literal('cloudflare-system-one-v1')}).strict();
-export const calibrationSchema=z.object({schemaVersion:z.literal(1),createdAt:z.iso.datetime(),developmentSha256:sha,configuration:configurationSchema,threshold:z.number().finite().min(0).max(1),thresholdVersion:version,fixtureTypes:z.array(z.string().min(1)).min(1),developmentRooms:z.array(z.string()),developmentFixtures:z.array(z.string()),developmentImages:z.array(sha),metrics:z.record(z.string(),z.object({dirty:z.number().int(),clean:z.number().int(),uncertain:z.number().int(),falseClean:z.number().int(),correctClean:z.number().int()}).strict())}).strict();
+export const calibrationSchema=z.object({schemaVersion:z.literal(1),createdAt:z.iso.datetime(),developmentSha256:sha,pipelineConfigurationSha256:sha,configuration:configurationSchema,threshold:z.number().finite().min(0).max(1),thresholdVersion:version,fixtureTypes:z.array(z.string().min(1)).min(1),developmentRooms:z.array(z.string()),developmentFixtures:z.array(z.string()),developmentImages:z.array(sha),metrics:z.record(z.string(),z.object({dirty:z.number().int(),clean:z.number().int(),uncertain:z.number().int(),falseClean:z.number().int(),correctClean:z.number().int()}).strict())}).strict();
 export const reviewSchema=z.object({labelledBy:z.string().trim().min(1),evaluatedBy:z.string().trim().min(1),reviewedBy:z.string().trim().min(1),reviewedAt:z.iso.datetime(),expiresAt:z.iso.datetime(),labelsManifestSha256:sha,independentHumanLabels:z.literal(true),consentVerified:z.literal(true),representativeRoomsVerified:z.literal(true)}).strict();
 const releaseSchema=z.object({schemaVersion:z.literal(1),calibration:calibrationSchema,review:reviewSchema,heldoutSha256:sha,rows:benchmarkRowsSchema,eligibleFixtureTypes:z.array(z.string())}).strict();
 type Row=z.infer<typeof benchmarkRowsSchema>[number];
 export const digest=(value:Buffer|string)=>createHash('sha256').update(value).digest('hex');
-function configurationOf(r:Row){return {provider:r.provider,model:r.model,promptVersion:r.promptVersion,providerVersion:r.providerVersion};}
+function configurationOf(r:Row){return {provider:r.provider,model:r.model.replace(/^@cf\/cloudflare\//,''),promptVersion:r.promptVersion,providerVersion:r.providerVersion};}
 function same(a:unknown,b:unknown){return JSON.stringify(a)===JSON.stringify(b);}
 function predictionAt(r:Row,threshold:number){
  if(r.predictedCleanliness==='SERVICE_FAILURE')return 'SERVICE_FAILURE';
@@ -50,7 +55,7 @@ export function calibrateCleanliness(input:unknown,developmentSha256:string,thre
   if(valid&&(!best||correct>best.correct))best={threshold,metrics,correct};
  }
  if(!best)throw new Error('Development data cannot establish a safe useful threshold; collect labels or keep review-only');
- return calibrationSchema.parse({schemaVersion:1,createdAt:now.toISOString(),developmentSha256,configuration,threshold:best.threshold,thresholdVersion,fixtureTypes:types,developmentRooms:[...new Set(rows.filter(r=>r.split==='development').map(r=>r.roomId))],developmentFixtures:[...new Set(rows.filter(r=>r.split==='development').map(r=>r.fixtureId))],developmentImages:[...new Set(rows.filter(r=>r.split==='development').map(r=>r.imageSha256).filter(Boolean))],metrics:best.metrics});
+ return calibrationSchema.parse({schemaVersion:1,createdAt:now.toISOString(),developmentSha256,pipelineConfigurationSha256:digest(JSON.stringify(verificationReleaseConfiguration())),configuration,threshold:best.threshold,thresholdVersion,fixtureTypes:types,developmentRooms:[...new Set(rows.filter(r=>r.split==='development').map(r=>r.roomId))],developmentFixtures:[...new Set(rows.filter(r=>r.split==='development').map(r=>r.fixtureId))],developmentImages:[...new Set(rows.filter(r=>r.split==='development').map(r=>r.imageSha256).filter(Boolean))],metrics:best.metrics});
 }
 function validateRelease(raw:unknown,now:Date){
  const record=releaseSchema.parse(raw),{calibration:c,review,rows}=record;
@@ -88,15 +93,16 @@ export function cleanlinessReleaseStatus(fixtureType:string,rubricVersion=1,now=
  try{
   const path=process.env.CLEF_RELEASE_RECORD_PATH,pin=process.env.CLEF_RELEASE_RECORD_SHA256;
   if(!path||!pin)return {allowed:false,reason:'RELEASE_NOT_CONFIGURED'};
-  sha.parse(pin);const key=path+':'+pin;
+  sha.parse(pin);const file=statSync(path);
+  if(file.size>16*1024*1024)throw new Error('Release file too large');
+  const key=[path,pin,file.size,file.mtimeMs,file.ctimeMs].join(':');
   if(!cached||cached.key!==key||cached.until<=now.getTime()){
-   if(statSync(path).size>16*1024*1024)throw new Error('Release file too large');
    const bytes=readFileSync(path);if(digest(bytes)!==pin)throw new Error('Release checksum mismatch');
    cached={key,until:now.getTime()+5000,validated:validateRelease(JSON.parse(bytes.toString('utf8')),now)};
   }
   const {record,eligible}=cached.validated,c=clefConfiguration();
   if(Date.parse(record.review.expiresAt)<=now.getTime())return {allowed:false,reason:'RELEASE_EXPIRED'};
-  if(!same(record.calibration.configuration,{provider:'cloudflare',model:c.model,promptVersion:c.promptVersion,providerVersion:c.providerVersion})||record.calibration.threshold!==c.threshold||record.calibration.thresholdVersion!==c.thresholdVersion||record.rows.some(r=>r.evaluatorVersion!==clefEvaluatorVersion()||r.rubricVersion!==rubricVersion))return {allowed:false,reason:'CONFIGURATION_CHANGED'};
+  if(record.calibration.pipelineConfigurationSha256!==digest(JSON.stringify(verificationReleaseConfiguration()))||!same(record.calibration.configuration,{provider:'cloudflare',model:c.model,promptVersion:c.promptVersion,providerVersion:c.providerVersion})||record.calibration.threshold!==c.threshold||record.calibration.thresholdVersion!==c.thresholdVersion||record.rows.some(r=>r.evaluatorVersion!==clefEvaluatorVersion()||r.rubricVersion!==rubricVersion))return {allowed:false,reason:'CONFIGURATION_CHANGED'};
   return {allowed:eligible.includes(fixtureType),reason:eligible.includes(fixtureType)?'VALIDATED_RELEASE':'FIXTURE_NOT_VALIDATED'};
  }catch{return {allowed:false,reason:'RELEASE_INVALID'};}
 }

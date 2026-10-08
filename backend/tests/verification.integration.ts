@@ -438,6 +438,7 @@ const processing=processVerificationJob(runningQr,slowProvider as any,captureIo.
 const {rotateQr}=await import('../src/controllers/area.controller.js');const qrResponse:any={status(){return this;},json(){return this;}};
 await rotateQr({params:{areaId:String(captureArea.id)},body:{expectedInventoryVersion:1},user:actor} as any,qrResponse);releaseProvider();await processing;
 assert.equal((await prisma.verificationAttempt.findUniqueOrThrow({where:{id:qrAttempt.id}})).state,'REVIEW_REQUIRED','QR rotation blocks an in-flight cleanliness credit');assert.notEqual((await prisma.taskEvidenceRequirement.findUniqueOrThrow({where:{id:qrSlot.requirementId!}})).state,'PASSED');
+const staleQrDecision=await prisma.verificationAttempt.findUniqueOrThrow({where:{id:qrAttempt.id}});assert.equal((staleQrDecision.cleanlinessResult as any).policyDecisionReason,'STALE_ASSIGNMENT');assert.equal(staffAttemptResult(staleQrDecision,true).reviewReason,'STALE_ASSIGNMENT');
 await assert.rejects(()=>createCaptureSession(captureActor,qrRace.task.id,{...sessionBody,requestId:randomUUID()}),'old QR invalid after rotation');
 assert.equal((await prisma.taskEvidenceRequirement.findFirstOrThrow({where:{item:{taskInstanceId:finalRace.task.id}}})).state,'PASSED','QR rotation preserves already-passed evidence');
 const queuedQrSlot=qrRace.session.slots.find(s=>s.requirementId&&s.id!==qrSlot.id)!;
@@ -742,6 +743,11 @@ try{
   assert.equal(persisted.state,mode==='DIRTY'?'CLEANING_REQUIRED':mode==='LOW_CONFIDENCE'?'RECAPTURE_REQUIRED':mode==='VALIDATED_TEST_RELEASE'?'PASSED':'REVIEW_REQUIRED');
   const staffOutcome=staffAttemptResult(persisted,true);assert.equal(staffOutcome.cleanlinessOutcome,mode==='DIRTY'?'DIRTY':mode==='VALIDATED_TEST_RELEASE'?'CLEAN':'NEEDS_REVIEW');assert.equal(staffOutcome.reviewReason,['DIRTY','VALIDATED_TEST_RELEASE'].includes(mode)?null:mode==='LOW_CONFIDENCE'?'CANNOT_ASSESS':'AUTO_PASS_NOT_VALIDATED');
   if(mode==='LOW_CONFIDENCE')assert.equal(staffOutcome.retryAction,'REQUEST_RETAKE_SLOT');if(mode==='DIRTY')assert.equal(staffOutcome.retryAction,'SCAN_QR_FOR_REWORK');
+  assert.equal(saved.policyDecisionReason,mode==='DIRTY'?'CLEANING_REQUIRED':mode==='LOW_CONFIDENCE'?'CANNOT_ASSESS':mode==='VALIDATED_TEST_RELEASE'?'CLEAN':'AUTO_PASS_NOT_VALIDATED','assessment and policy reason publish atomically');
+  if(mode==='CLEAN'){
+   await assert.rejects(()=>prisma.verificationAttempt.update({where:{id:a.id},data:{cleanlinessResult:{...saved,policyDecisionReason:'CLEANING_REQUIRED'}}}),/Attempt assessments are immutable/,'decision reason cannot rewrite a published assessment');
+   assert.deepEqual((await prisma.verificationAttempt.findUniqueOrThrow({where:{id:a.id}})).cleanlinessResult,saved);
+  }
   const before=clefCalls;assert.equal(await processVerificationJob(j,fakeProvider as any,captureIo.read),false);assert.equal(clefCalls,before,'successful stage cannot be re-inferred');
   assert.notEqual((await prisma.taskInstance.findUniqueOrThrow({where:{id:fixture.task.id}})).completionOutcome,'VERIFIED_COMPLETE');
   if(mode==='LOW_CONFIDENCE'){

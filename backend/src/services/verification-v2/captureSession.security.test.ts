@@ -65,6 +65,10 @@ describe('capture authority',()=>{
   const dto=staffAttemptResult({state:'PASSED',contextKey:'ENTRANCE',qualityResult:{acceptable:true},coverageResult:{result:{verdict:'MATCH'}},cleanlinessResult:null},true);
   expect(dto.cleanlinessOutcome).toBeNull();
  });
+ it('retains the exact-duplicate review reason without turning it into dirt',()=>{
+  const dto=staffAttemptResult({state:'REVIEW_REQUIRED',qualityResult:{acceptable:true},coverageResult:{duplicate:{exact:['other-asset']}},duplicateResult:{exact:['other-asset']},cleanlinessResult:null},true);
+  expect(dto.cleanlinessOutcome).toBe('NEEDS_REVIEW');expect(dto.reviewReason).toBe('DUPLICATE_EVIDENCE');expect(dto.retryAction).toBeNull();
+ });
  it('protects privacy and keeps technical failure separate from a privacy verdict',()=>{
   expect(staffAttemptResult({state:'PRIVACY_HOLD',qualityResult:null,coverageResult:null,cleanlinessResult:{result:{verdict:'DIRTY',reasonCode:'CLEANING_REQUIRED'}}},false)).toMatchObject({cleanlinessOutcome:'NEEDS_REVIEW',reviewReason:'PRIVACY_HOLD'});
   expect(staffAttemptResult({state:'SERVICE_FAILURE',qualityResult:null,coverageResult:null,cleanlinessResult:null},false)).toMatchObject({cleanlinessOutcome:'NEEDS_REVIEW',reviewReason:'SERVICE_FAILURE'});
