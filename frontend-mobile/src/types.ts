@@ -7,6 +7,7 @@ export type RootStackParamList = {
   Login: undefined;
   StaffTabs: undefined;
   Verification: { taskId: number };
+  StartTask: { taskId: number };
   SpatialDiagnostic: undefined;
 
 };
@@ -85,6 +86,7 @@ export type TaskInstance = {
   location?: {id:number;name:string;timezone:string};
   template?: {
     id: number;
+    description?: string | null;
     location?: {
       id: number;
       name: string;

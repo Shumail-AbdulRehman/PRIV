@@ -5,16 +5,17 @@ import { Card, CardContent } from "./ui/card";
 import { Text } from "./ui/text";
 import { Button } from "./ui/button";
 import { Icon } from "./ui/icon";
-import { formatTaskWindow } from "../utils/format";
+import { formatTaskWindow, formatClockTime } from "../utils/format";
 import type { TaskInstance } from "../types";
 
 type TaskCardProps = {
   task: TaskInstance;
   onStart?: () => void;
   onComplete?: () => void;
+  starting?: boolean;
 };
 
-export function TaskCard({ task, onStart, onComplete }: TaskCardProps) {
+export function TaskCard({ task, onStart, onComplete, starting = false }: TaskCardProps) {
   const handlePress = (callback?: () => void) => {
     return () => {
       void Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
@@ -45,14 +46,17 @@ export function TaskCard({ task, onStart, onComplete }: TaskCardProps) {
           </View>
           <Text className="text-sm font-semibold">{verificationTaskLabel(task)}</Text>
         </View>
+        {task.template?.description ? <Text className="mt-3 text-sm">{task.template.description}</Text> : null}
+        {task.startedAt ? <Text className="mt-2 text-sm text-muted-foreground">Started {formatClockTime(task.startedAt, task.location?.timezone ?? task.template?.location?.timezone)}</Text> : null}
 
         {task.status === "PENDING" && onStart ? (
           <Button
             className="mt-4"
             iconLeft="Play"
             onPress={handlePress(onStart)}
+            loading={starting}
           >
-            Start cleaning
+            {starting ? 'Starting cleaning…' : 'Start cleaning'}
           </Button>
         ) : null}
         {(task.status === "IN_PROGRESS" || task.verificationVersion===2) && onComplete ? (

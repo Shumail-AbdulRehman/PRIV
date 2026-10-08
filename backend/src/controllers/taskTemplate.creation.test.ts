@@ -11,7 +11,7 @@ const db = vi.hoisted(() => ({
     taskTemplate: { findMany: vi.fn(), create: vi.fn(), findUniqueOrThrow: vi.fn() },
     verificationException: { updateMany: vi.fn() },
   },
-  validate: vi.fn(), configure: vi.fn(), access: vi.fn(), audit: vi.fn(),
+  validate: vi.fn(), configure: vi.fn(), today: vi.fn(), access: vi.fn(), audit: vi.fn(),
 }));
 
 vi.mock("../prisma/prisma.js", () => ({ prisma: {
@@ -21,7 +21,7 @@ vi.mock("../prisma/prisma.js", () => ({ prisma: {
   taskTemplate: { findMany: db.rootTemplates, findUnique: db.rootTemplate },
 } }));
 vi.mock("../services/verification-v2/inventorySnapshot.service.js", () => ({
-  validateInventorySelection: db.validate, configureTemplateInventory: db.configure,
+  validateInventorySelection: db.validate, configureTemplateInventory: db.configure, createTodaysTaskForNewTemplate: db.today,
 }));
 vi.mock("../services/verification-v2/authorization.service.js", () => ({ requireLocationAccess: db.access }));
 vi.mock("../services/auditLog.service.js", () => ({ writeAuditLog: db.audit }));
@@ -67,6 +67,7 @@ describe("inventory schedule save transactions", () => {
     expect(db.rootStaff).not.toHaveBeenCalled();
     expect(db.rootTemplates).not.toHaveBeenCalled();
     expect(db.configure).toHaveBeenCalledWith(db.tx, 42, 28, selection);
+    expect(db.today).toHaveBeenCalledWith(db.tx, expect.objectContaining({id:42,location:expect.objectContaining({id:28})}));
     expect(db.audit).toHaveBeenCalledWith(expect.objectContaining({ action: "CONFIGURE_INVENTORY", entityId: 42 }), db.tx);
     expect(res.status).toHaveBeenCalledWith(201);
     expect(res.json.mock.calls[0][0].data).toMatchObject({ id: 42, verificationVersion: 2 });

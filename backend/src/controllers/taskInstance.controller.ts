@@ -6,6 +6,8 @@ import { ApiResponse } from '../utils/ApiResponse.js';
 import { ApiError } from '../utils/ApiError.js';
 import { getUtcDayRange, getZonedDayRange } from '../utils/dateTime.js';
 import { markCurrentAssignmentStarted } from '../services/taskAssignment.service.js';
+import { verifyAreaQr } from '../services/verification-v2/qr.service.js';
+import { writeAuditLog } from '../services/auditLog.service.js';
 
 export const getTodaysTasksForStaff = async (req: Request, res: Response) => {
   const staffId = Number(req.params.staffId);
@@ -44,6 +46,7 @@ const tasks = await prisma.taskInstance.findMany({
       select: {
         id: true,
         title: true,
+        description: true,
         shiftStart: true,
         shiftEnd: true,
         location: {
@@ -61,9 +64,24 @@ export const startTask = async (req: Request, res: Response) => {
   const taskId = Number(req.params.taskId);
   if (!Number.isSafeInteger(taskId) || taskId < 1) throw new ApiError(400, 'Invalid task id');
   const started = await prisma.$transaction(async tx => {
+    // Use the same area -> task lock order as QR rotation and finish sessions.
+    const initial = await tx.taskInstance.findFirst({ where: { id: taskId, location: { companyId: req.user!.companyId } }, select: { areaId: true } });
+    if (initial?.areaId) await tx.$queryRaw`SELECT id FROM "Area" WHERE id=${initial.areaId} FOR UPDATE`;
     await lockTask(tx, taskId);
     const task = await requireTaskAccess(req.user!, taskId, { staffMutation: true }, tx);
-    if (task.verificationVersion !== 2) throw inventorySetupRequired();
+    if (task.verificationVersion !== 2 || !task.areaId) throw inventorySetupRequired();
+    if (task.areaId !== initial?.areaId) throw new ApiError(409, 'Task area changed. Refresh the task and scan again.');
+    const areaQr = req.body?.areaQr;
+    if (typeof areaQr !== 'string' || !areaQr.trim() || areaQr.length > 4096)
+      throw new ApiError(400, 'Scan the assigned area QR to start cleaning.', [{ code: 'AREA_QR_REQUIRED' }]);
+    const area = await tx.area.findUnique({ where: { id: task.areaId } });
+    if (!area || area.locationId !== task.locationId) throw inventorySetupRequired();
+    try { verifyAreaQr(areaQr, area); }
+    catch (error) {
+      if (error instanceof ApiError && error.statusCode === 422)
+        throw new ApiError(422, 'This QR is not the current code for your assigned area. Scan the area QR for this task.', [{ code: 'AREA_QR_MISMATCH' }]);
+      throw error;
+    }
     const now = new Date();
     if (task.status === 'IN_PROGRESS') return task;
     if (task.status !== 'PENDING' || task.shiftEnd <= now || +task.shiftStart > +now + 300000)
@@ -75,13 +93,18 @@ export const startTask = async (req: Request, res: Response) => {
       rowVersion: { increment: 1 },
     } });
     await markCurrentAssignmentStarted(taskId, req.user!.id, now, tx as typeof prisma);
+    await writeAuditLog({ companyId: req.user!.companyId, actorType: 'STAFF', actorId: req.user!.id,
+      entityType: 'TASK_INSTANCE', entityId: taskId, action: 'TASK_STARTED_AREA_QR',
+      newValue: { areaId: area.id, qrVersion: area.qrVersion, assignmentEpoch: task.assignmentEpoch,
+        assignmentId: task.assignments.find(a => a.isCurrent && a.staffId === req.user!.id)?.id,
+        startedAt: now.toISOString() } }, tx);
     return updated;
   });
   res.json(new ApiResponse(200, started, 'Cleaning started'));
 };
 
 function inventorySetupRequired() {
-  return new ApiError(409, 'This task was created before guided verification. Ask your manager to map its schedule to an area inventory and replace this task.', [{ code: 'INVENTORY_SETUP_REQUIRED' }]);
+  return new ApiError(409, 'This task is missing its guided inventory snapshot. Ask your manager to check its area setup and repair or replace the task.', [{ code: 'INVENTORY_SETUP_REQUIRED' }]);
 }
 
 /** Old clients get an actionable response before any file parsing or storage. */
@@ -133,6 +156,8 @@ export const getTaskInstanceById = async (req: Request, res: Response) => {
     const task= await prisma.taskInstance.findUnique({
         where: {id: taskId, isActive:true},
         include: {
+            location: { select: { id: true, name: true, timezone: true } },
+            template: { select: { id: true, description: true } },
             referenceImages: {
                 orderBy: { sortOrder: "asc" },
             },

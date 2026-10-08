@@ -1,6 +1,6 @@
 import assert from 'node:assert/strict';
 import {randomUUID,randomBytes} from 'node:crypto';
-import {readFile,readdir} from 'node:fs/promises';
+import {readFile,readdir,mkdtemp,writeFile} from 'node:fs/promises';
 import {fileURLToPath} from 'node:url';
 import pg from 'pg';
 // This suite creates a fresh database on an explicitly local PostgreSQL server.
@@ -131,6 +131,32 @@ try {
  await client.query('DROP TRIGGER test_reject_schedule_audit ON "AuditLog"; DROP FUNCTION test_reject_schedule_audit();');
 }
 console.log('PASS: real inventory schedule creation survives a six-second database delay and atomically rolls back on audit failure');
+// Current schedules publish their first complete snapshot in the same commit.
+for(const recurringType of ['ONCE','DAILY'] as const){
+ let body:any;
+ const request=scheduleRequest(`Atomic current ${recurringType}`);
+ request.body={...request.body,staffId:worker.id,effectiveDate:base,recurringType} as typeof request.body;
+ await createTaskTemplate(request as any,{status(code:number){assert.equal(code,201);return this;},json(value:any){body=value;return this;}} as any);
+ const first=await prisma.taskInstance.findFirstOrThrow({where:{templateId:body.data.id},include:{verificationItems:{include:{requirements:true}},assignments:true}});
+ assert.equal(first.verificationVersion,2);assert.equal(first.areaId,inventory.id);assert.equal(first.verificationItems.length,2);assert.equal(first.assignments.length,1);
+ assert.ok(first.verificationItems.flatMap(i=>i.requirements).every(r=>r.instructionsSnapshot));
+ // Simulate an old scheduler's insert after it sees the newly committed schedule.
+ const obsolete=await client.query(`INSERT INTO "TaskInstance" ("templateId",title,"locationId",date,"shiftStart","shiftEnd","updatedAt") VALUES ($1,'Old writer',$2,$3,$4,$5,NOW()) ON CONFLICT ("templateId",date) DO NOTHING RETURNING id`,[body.data.id,location,first.date.toISOString(),first.shiftStart.toISOString(),first.shiftEnd.toISOString()]);
+ assert.equal(obsolete.rowCount,0,'an old duplicate writer cannot insert the same current-day instance');
+ assert.equal(await prisma.taskInstance.count({where:{templateId:body.data.id}}),1);
+ await prisma.taskTemplate.update({where:{id:body.data.id},data:{isActive:false}});
+}
+await client.query(`CREATE FUNCTION reject_initial_snapshot_regression() RETURNS trigger LANGUAGE plpgsql AS $$
+ BEGIN IF EXISTS(SELECT 1 FROM "TaskInstance" t JOIN "TaskTemplate" s ON s.id=t."templateId" WHERE t.id=NEW."taskInstanceId" AND s.title='Initial snapshot rollback') THEN RAISE EXCEPTION 'Snapshot failed'; END IF; RETURN NEW; END $$;
+ CREATE TRIGGER reject_initial_snapshot_regression BEFORE INSERT ON "TaskVerificationItem" FOR EACH ROW EXECUTE FUNCTION reject_initial_snapshot_regression();`);
+try {
+ const req=scheduleRequest('Initial snapshot rollback');req.body={...req.body,effectiveDate:base};
+ await assert.rejects(()=>createTaskTemplate(req as any,{status(){throw new Error('Unexpected success');}} as any));
+ assert.equal(await prisma.taskTemplate.count({where:{title:'Initial snapshot rollback'}}),0);
+ assert.equal(await prisma.taskInstance.count({where:{title:'Initial snapshot rollback'}}),0);
+}finally{await client.query('DROP TRIGGER reject_initial_snapshot_regression ON "TaskVerificationItem"; DROP FUNCTION reject_initial_snapshot_regression();');}
+console.log('PASS: current ONCE/DAILY schedule and inventory snapshot commit atomically, old duplicate insert is blocked, snapshot failure rolls back schedule');
+
 async function template(title:string,recurringType:'DAILY'|'ONCE'|null,mode:'ALL'|'SUBSET'='ALL'){
  const row=await prisma.taskTemplate.create({data:{title,locationId:location,staffId:worker.id,shiftStart:new Date(+base+9*3600000),shiftEnd:new Date(+base+10*3600000),effectiveDate:base,recurringType}});
  await prisma.$transaction(tx=>configureTemplateInventory(tx,row.id,location,{areaId:inventory.id,inventorySelection:mode,expectedInventoryVersion:3,selectedItems:mode==='SUBSET'?[{areaItemId:after.items[1]!.id,mandatory:true}]:[]}));
@@ -216,7 +242,7 @@ const captureStaff=await prisma.staff.create({data:{name:'Capture worker',email:
 const captureActor={id:captureStaff.id,companyId:company,role:'STAFF' as const};
 // Steps 9–14: real transaction tests, external storage/provider calls are injected.
 process.env.VERIFICATION_QR_SECRET='q'.repeat(64);process.env.VERIFICATION_SLOT_SECRET='s'.repeat(64);
-const {createCaptureSession,reserveAttempt,retakeSlots,resumeSession}=await import('../src/services/verification-v2/captureSession.service.js');
+const {createCaptureSession,createReworkCaptureSession,reserveAttempt,retakeSlots,resumeSession,staffAttemptResult}=await import('../src/services/verification-v2/captureSession.service.js');
 const {signAreaQr}=await import('../src/services/verification-v2/qr.service.js');
 const {finalizeTask}=await import('../src/services/verification-v2/completion.service.js');
 const {managerDecision,raiseIssue}=await import('../src/services/verification-v2/exception.service.js');
@@ -232,9 +258,16 @@ const capturedTask=await createTaskInstanceWithSnapshot({templateId:captureTempl
 await prisma.taskInstance.update({where:{id:capturedTask.id},data:{status:'IN_PROGRESS',startedAt:start}});
 await prisma.taskAssignment.updateMany({where:{taskInstanceId:capturedTask.id},data:{status:'STARTED',startedAt:start}});
 const sessionBody={requestId:randomUUID(),areaQr:signAreaQr(captureArea),deviceId:'device-a',clientBootId:'boot-a',location:{latitude:0,longitude:0,accuracy:1,sampledAt:new Date().toISOString()},clientTime:new Date().toISOString()};
+await client.query(`CREATE FUNCTION slow_capture_session_regression() RETURNS trigger LANGUAGE plpgsql AS $$
+ BEGIN IF NEW."taskInstanceId" = ${capturedTask.id} THEN PERFORM pg_sleep(6); END IF; RETURN NEW; END $$;
+ CREATE TRIGGER slow_capture_session_regression BEFORE INSERT ON "CaptureSession" FOR EACH ROW EXECUTE FUNCTION slow_capture_session_regression();`);
+const sessionRequestAt=Date.now();
 const sessions=await Promise.all(Array.from({length:3},()=>createCaptureSession(captureActor,capturedTask.id,sessionBody)));
+assert.ok(Date.now()-sessionRequestAt>=6000,'capture session also survives remote database latency beyond five seconds');
+await client.query('DROP TRIGGER slow_capture_session_regression ON "CaptureSession"; DROP FUNCTION slow_capture_session_regression();');
 assert.equal(new Set(sessions.map(s=>s.id)).size,1,'concurrent identical session requests create one session');
-const activeSession=sessions[0]!;assert.equal(activeSession.slots.length,4);assert.equal(activeSession.presenceStatus,'ACCEPTABLE');
+console.log('PASS: slow-database capture-session creation remains atomic and idempotent beyond five seconds');
+const activeSession=sessions[0]!;assert.equal(activeSession.slots.length,3);assert.equal(activeSession.presenceStatus,'ACCEPTABLE');
 await assert.rejects(()=>createCaptureSession(captureActor,capturedTask.id,{...sessionBody,requestId:randomUUID()}));
 await assert.rejects(()=>createCaptureSession(captureActor,capturedTask.id,{...sessionBody,deviceId:'different'}),'same request cannot change device');
 await assert.rejects(()=>createCaptureSession({...captureActor,companyId:foreignCompany.id},capturedTask.id,sessionBody));
@@ -259,15 +292,23 @@ for(const stage of ['QUALITY','PRIVACY','COVERAGE','CLEANLINESS'])await executeS
 assert.equal((await prisma.taskEvidenceRequirement.findUniqueOrThrow({where:{id:slot.requirementId!}})).state,'CLEANING_REQUIRED');
 assert.equal(await prisma.verificationException.count({where:{taskInstanceId:capturedTask.id}}),0,'first dirty failure stays with staff');
 const failedRequirement=await prisma.taskEvidenceRequirement.findUniqueOrThrow({where:{id:slot.requirementId!}});
-const newSlots=await retakeSlots(captureActor,activeSession.id,{deviceId:'device-a',requirements:[{requirementId:failedRequirement.id,expectedGeneration:failedRequirement.decisionVersion}]});assert.equal(newSlots.length,1);
-assert.deepEqual((await retakeSlots(captureActor,activeSession.id,{deviceId:'device-a',requirements:[{requirementId:failedRequirement.id,expectedGeneration:failedRequirement.decisionVersion}]})).map(s=>s.id),newSlots.map(s=>s.id),'allocation retry reuses the same slots');
-await prisma.captureSession.update({where:{id:activeSession.id},data:{state:'PAUSED'}});
-assert.equal((await resumeSession(captureActor,activeSession.id,{deviceId:'device-a',clientBootId:'boot-a'})).state,'ACTIVE');
+await assert.rejects(()=>retakeSlots(captureActor,activeSession.id,{deviceId:'device-a',requirements:[{requirementId:failedRequirement.id,expectedGeneration:failedRequirement.decisionVersion}]}),/scan the area QR again/,'DIRTY retake cannot reuse original finish authority');
+const reworkBody={...sessionBody,requestId:randomUUID(),location:{...sessionBody.location,sampledAt:new Date().toISOString()},requirements:[{requirementId:failedRequirement.id,expectedGeneration:failedRequirement.decisionVersion}]};
+await assert.rejects(()=>createReworkCaptureSession(captureActor,capturedTask.id,{...reworkBody,areaQr:undefined}),'rework independently requires QR');
+await assert.rejects(()=>createReworkCaptureSession(captureActor,capturedTask.id,{...reworkBody,areaQr:signAreaQr(inventory)}),'wrong area QR rejected');
+await assert.rejects(()=>createReworkCaptureSession({...captureActor,companyId:foreignCompany.id},capturedTask.id,reworkBody),'cross-tenant rework rejected');
+const reworkSessions=await Promise.all(Array.from({length:3},()=>createReworkCaptureSession(captureActor,capturedTask.id,reworkBody)));
+const dirtyRework=reworkSessions[0]!;assert.equal(new Set(reworkSessions.map(s=>s.id)).size,1,'fresh rework QR request is atomic/idempotent');
+assert.notEqual(dirtyRework.id,activeSession.id);assert.deepEqual(dirtyRework.requiredContextKeys,['ENTRANCE']);
+assert.deepEqual(dirtyRework.slots.filter(s=>s.requirementId).map(s=>s.requirementId),[failedRequirement.id],'only requested DIRTY requirement is allocated');
+assert.equal((await prisma.captureSession.findUniqueOrThrow({where:{id:activeSession.id}})).state,'EXPIRED');
+await prisma.captureSession.update({where:{id:dirtyRework.id},data:{state:'PAUSED'}});
+assert.equal((await resumeSession(captureActor,dirtyRework.id,{deviceId:'device-a',clientBootId:'boot-a'})).state,'ACTIVE');
 const beforeEpoch=(await prisma.taskInstance.findUniqueOrThrow({where:{id:capturedTask.id}})).assignmentEpoch;
 const handoverWorker=await prisma.staff.create({data:{name:'Handover',email:`${randomUUID()}@test.invalid`,password:'test-only',companyId:company,locationId:location}});
 await prisma.taskInstance.update({where:{id:capturedTask.id},data:{staffId:handoverWorker.id}});
 assert.equal((await prisma.taskInstance.findUniqueOrThrow({where:{id:capturedTask.id}})).assignmentEpoch,beforeEpoch+1);
-assert.equal((await prisma.captureSession.findUniqueOrThrow({where:{id:activeSession.id}})).state,'REVOKED');
+assert.equal((await prisma.captureSession.findUniqueOrThrow({where:{id:dirtyRework.id}})).state,'REVOKED');
 await assert.rejects(()=>reserveAttempt(captureActor,activeSession.id,metadata,false),'old assignment cannot ingest');
 assert.equal((await prisma.evidenceAsset.findUniqueOrThrow({where:{id:receipts[0]!.assetId}})).sha256,sha256(noise),'evidence survives handover');
 // Restore a current assignment and prove waiver versus verified completion and exactly-once finalization.
@@ -283,9 +324,83 @@ assert.equal((await prisma.taskAssignment.findFirstOrThrow({where:{taskInstanceI
 console.log('PASS: concurrent sessions/manifests/uploads, replay and changed bytes, separate provider stages, no first-failure spam, targeted retake, handover revocation, preserved evidence, waiver outcome and exactly-once completion');
 
 // Independent final results serialize on the task lock and produce one completion.
-async function freshCaptureTask(label:string){const t=await createTaskInstanceWithSnapshot({templateId:captureTemplate.id,title:label,locationId:location,date:new Date(Date.now()+Math.floor(Math.random()*1000000)),shiftStart:start,shiftEnd:end});assert.ok(t);await prisma.taskInstance.update({where:{id:t.id},data:{status:'IN_PROGRESS',startedAt:start}});await prisma.taskAssignment.updateMany({where:{taskInstanceId:t.id},data:{status:'STARTED',startedAt:start}});const ar=await prisma.area.findUniqueOrThrow({where:{id:captureArea.id}});const s=await createCaptureSession(captureActor,t.id,{...sessionBody,requestId:randomUUID(),areaQr:signAreaQr(ar),location:{...sessionBody.location,sampledAt:new Date().toISOString()}});return {task:t,session:s};}
+async function freshCaptureTask(label:string,templateId=captureTemplate.id,evidenceActor=captureActor,areaId=captureArea.id){const t=await createTaskInstanceWithSnapshot({templateId,title:label,locationId:location,date:new Date(Date.now()+Math.floor(Math.random()*1000000)),shiftStart:start,shiftEnd:end});assert.ok(t);await prisma.taskInstance.update({where:{id:t.id},data:{status:'IN_PROGRESS',startedAt:start}});await prisma.taskAssignment.updateMany({where:{taskInstanceId:t.id},data:{status:'STARTED',startedAt:start}});const ar=await prisma.area.findUniqueOrThrow({where:{id:areaId}});const s=await createCaptureSession(evidenceActor,t.id,{...sessionBody,requestId:randomUUID(),areaQr:signAreaQr(ar),location:{...sessionBody.location,sampledAt:new Date().toISOString()}});return {task:t,session:s};}
 async function photoFor(seed:number){const pixels=Buffer.alloc(640*640*3);for(let i=0;i<pixels.length;i++)pixels[i]=(i*(seed*2+13)+(i>>7)*(seed+29))%256;return sharp(pixels,{raw:{width:640,height:640,channels:3}}).jpeg().toBuffer();}
 async function ingestFixture(s:typeof activeSession,slotId:string,seed:number,evidenceActor=captureActor,photo?:Buffer){const sl=s.slots.find(x=>x.id===slotId)!;const bytes=photo??await photoFor(seed);const m={...metadata,clientCaptureId:randomUUID(),slotId:sl.id,nonce:sl.nonce,sha256:sha256(bytes),claimedCapturedAt:s.issuedAt.toISOString(),elapsedMs:0};const a=await reserveAttempt(evidenceActor,s.id,m,true);await storeReservedEvidence(evidenceActor,a.id,bytes,captureIo);return a;}
+const contextReworkStaff=await prisma.staff.create({data:{name:'Context rework worker',email:`${randomUUID()}@test.invalid`,password:'test-only',companyId:company,locationId:location}});
+const contextReworkActor={id:contextReworkStaff.id,companyId:company,role:'STAFF' as const};
+const contextReworkTemplate=await prisma.taskTemplate.create({data:{title:'Context rework test',locationId:location,staffId:contextReworkStaff.id,shiftStart:start,shiftEnd:end,effectiveDate:new Date(),verificationVersion:2,areaId:captureArea.id,inventoryConfigVersion:1,inventorySelection:'ALL',setupStatus:'READY'}});
+const preserved=await freshCaptureTask('Passed evidence survives fresh rework',contextReworkTemplate.id,contextReworkActor);
+const preservedSlots=preserved.session.slots.filter(s=>s.requirementId);
+const passedAttempt=await ingestFixture(preserved.session,preservedSlots[0]!.id,901,contextReworkActor);
+await prisma.taskEvidenceRequirement.update({where:{id:preservedSlots[0]!.requirementId!},data:{state:'PASSED'}});
+await prisma.taskEvidenceRequirement.update({where:{id:preservedSlots[1]!.requirementId!},data:{state:'CLEANING_REQUIRED',decisionVersion:{increment:1}}});
+const dirty=await prisma.taskEvidenceRequirement.findUniqueOrThrow({where:{id:preservedSlots[1]!.requirementId!}});
+const beforePassed=await prisma.taskEvidenceRequirement.findUniqueOrThrow({where:{id:preservedSlots[0]!.requirementId!}});
+const preserveBody={...sessionBody,requestId:randomUUID(),location:{...sessionBody.location,sampledAt:new Date().toISOString()},requirements:[{requirementId:dirty.id,expectedGeneration:dirty.decisionVersion}]};
+const preservedRework=await createReworkCaptureSession(contextReworkActor,preserved.task.id,preserveBody);
+assert.deepEqual(await prisma.taskEvidenceRequirement.findUniqueOrThrow({where:{id:beforePassed.id}}),beforePassed,'passed requirement and accepted attempt pointer survive fresh rework');
+assert.equal(beforePassed.currentAttemptId,passedAttempt.id);
+assert.deepEqual(preservedRework.slots.filter(s=>s.requirementId).map(s=>s.requirementId),[dirty.id]);
+async function verifyEntranceOnly(s:typeof activeSession,evidenceActor:typeof captureActor,seed:number){
+ const entrance=s.slots.find(slot=>slot.contextKey==='ENTRANCE')!;
+ const a=await ingestFixture(s,entrance.id,seed,evidenceActor);
+ const contextProvider={assess:async(stage:string,prompt:string)=>{const result=await fakeProvider.assess(stage,prompt);return stage==='coverage'?{...result,result:{verdict:'MATCH',observedFixture:'ROOM_CONTEXT',observedView:'ENTRANCE',observedLabel:null,identityConsistent:true,privacyFlag:false,reasonCode:'CLEAN'}}:result;}};
+ for(const stage of ['QUALITY','PRIVACY','COVERAGE']){
+  const j=await prisma.verificationJob.findFirstOrThrow({where:{attemptId:a.id,stage,state:'PENDING'}});
+  const running=await prisma.verificationJob.update({where:{id:j.id},data:{state:'RUNNING',attempts:1,leaseToken:randomUUID(),leaseUntil:new Date(Date.now()+90000)}});
+  await processVerificationJob(running,contextProvider as any,captureIo.read);
+ }
+ return a;
+}
+const reworkEntrance=await verifyEntranceOnly(preservedRework,contextReworkActor,903);
+const acceptedContext=await prisma.captureSession.findUniqueOrThrow({where:{id:preservedRework.id}});
+assert.equal(acceptedContext.contextStatus,'ACCEPTABLE','one valid entrance satisfies NEW session context without a hidden layout gate');
+assert.deepEqual(acceptedContext.contextAttemptIds,[reworkEntrance.id]);
+
+await assert.rejects(()=>reserveAttempt(contextReworkActor,preserved.session.id,{...metadata,clientCaptureId:randomUUID(),slotId:preservedSlots[1]!.id,nonce:preservedSlots[1]!.nonce,claimedCapturedAt:preserved.session.issuedAt.toISOString(),elapsedMs:0},true),/Capture authority expired/);
+const legacyContextFixture=await freshCaptureTask('Legacy context renewal',contextReworkTemplate.id,contextReworkActor);
+await prisma.captureSession.update({where:{id:legacyContextFixture.session.id},data:{locationCheck:{},state:'EXPIRED'}});
+const legacyRenew=await createCaptureSession(contextReworkActor,legacyContextFixture.task.id,{...sessionBody,requestId:randomUUID(),location:{...sessionBody.location,sampledAt:new Date().toISOString()}},legacyContextFixture.session.id);
+assert.deepEqual(legacyRenew.requiredContextKeys,['ENTRANCE','LAYOUT']);
+assert.deepEqual(legacyRenew.slots.filter(s=>s.contextKey).map(s=>s.contextKey),['ENTRANCE','LAYOUT'],'old context obligations remain resumable');
+await verifyEntranceOnly(legacyRenew,contextReworkActor,905);assert.equal((await prisma.captureSession.findUniqueOrThrow({where:{id:legacyRenew.id}})).contextStatus,'PENDING','legacy session retains its unmet layout obligation');
+console.log('PASS: fresh targeted DIRTY rework QR, wrong area and tenant rejection, passed evidence survival, expired old authority and legacy context renewal');
+// Mixed failures span sessions: a new DIRTY QR grants fresh authority, and ordinary
+// non-cleaning recaptures can be allocated into that same currently authorized session.
+const mixedArea=await createArea(actor,location,{name:'Mixed rework room',roomType:'WASHROOM',counts:[{fixtureType:'TOILET',count:2}]});
+const mixedTemplate=await prisma.taskTemplate.create({data:{title:'Mixed rework test',locationId:location,staffId:contextReworkStaff.id,shiftStart:start,shiftEnd:end,effectiveDate:new Date(),verificationVersion:2,areaId:mixedArea.id,inventoryConfigVersion:1,inventorySelection:'ALL',setupStatus:'READY'}});
+const mixed=await freshCaptureTask('Mixed cleaning and photo rework',mixedTemplate.id,contextReworkActor,mixedArea.id);
+const mixedSlots=mixed.session.slots.filter(slot=>slot.requirementId);
+const mixedPhoto=()=>sharp(randomBytes(640*640*3),{raw:{width:640,height:640,channels:3}}).jpeg().toBuffer();
+const mixedPassed=await ingestFixture(mixed.session,mixedSlots[0]!.id,907,contextReworkActor,await mixedPhoto());
+await prisma.taskEvidenceRequirement.update({where:{id:mixedPassed.requirementId!},data:{state:'PASSED'}});
+const mixedPassedBefore=await prisma.taskEvidenceRequirement.findUniqueOrThrow({where:{id:mixedPassed.requirementId!}});
+const mixedDirtyAttempt=await ingestFixture(mixed.session,mixedSlots[2]!.id,908,contextReworkActor,await mixedPhoto());
+for(const stage of ['QUALITY','PRIVACY','COVERAGE','CLEANLINESS'])await executeStage(mixedDirtyAttempt.id,stage);
+const darkPhoto=await sharp({create:{width:640,height:640,channels:3,background:'#000000'}}).jpeg().toBuffer();
+const mixedRecaptureAttempt=await ingestFixture(mixed.session,mixedSlots[1]!.id,910,contextReworkActor,darkPhoto);
+for(const stage of ['QUALITY','PRIVACY'])await executeStage(mixedRecaptureAttempt.id,stage);
+const mixedDirty=await prisma.taskEvidenceRequirement.findUniqueOrThrow({where:{id:mixedDirtyAttempt.requirementId!}});
+const mixedRecapture=await prisma.taskEvidenceRequirement.findUniqueOrThrow({where:{id:mixedRecaptureAttempt.requirementId!}});
+assert.equal(mixedDirty.state,'CLEANING_REQUIRED');assert.equal(mixedRecapture.state,'RECAPTURE_REQUIRED');
+const mixedRework=await createReworkCaptureSession(contextReworkActor,mixed.task.id,{...sessionBody,requestId:randomUUID(),areaQr:signAreaQr(mixedArea),location:{...sessionBody.location,sampledAt:new Date().toISOString()},requirements:[{requirementId:mixedDirty.id,expectedGeneration:mixedDirty.decisionVersion}]});
+assert.deepEqual(mixedRework.slots.filter(slot=>slot.requirementId).map(slot=>slot.requirementId),[mixedDirty.id]);
+assert.deepEqual(mixedRework.slots.filter(slot=>slot.contextKey).map(slot=>slot.contextKey),['ENTRANCE']);
+const mixedRetakeBody={deviceId:'device-a',requirements:[{requirementId:mixedRecapture.id,expectedGeneration:mixedRecapture.decisionVersion}]};
+await assert.rejects(()=>retakeSlots(contextReworkActor,mixed.session.id,mixedRetakeBody),/Renew capture session/,'old session cannot allocate mixed-failure recapture');
+await assert.rejects(()=>retakeSlots(contextReworkActor,mixedRework.id,{...mixedRetakeBody,deviceId:'different-device'}),/another device/);
+await assert.rejects(()=>retakeSlots(contextReworkActor,mixedRework.id,{deviceId:'device-a',requirements:[{requirementId:mixedRecapture.id,expectedGeneration:mixedRecapture.decisionVersion+99}]}),/not available for retake/);
+const mixedRetakes=await retakeSlots(contextReworkActor,mixedRework.id,mixedRetakeBody);
+assert.equal(mixedRetakes.length,1);assert.equal(mixedRetakes[0]!.sessionId,mixedRework.id);
+assert.equal(mixedRetakes[0]!.requirementId,mixedRecapture.id);assert.equal(mixedRetakes[0]!.generation,mixedRecapture.decisionVersion+1);
+assert.deepEqual((await retakeSlots(contextReworkActor,mixedRework.id,mixedRetakeBody)).map(slot=>slot.id),mixedRetakes.map(slot=>slot.id),'mixed recapture allocation retry is idempotent');
+await assert.rejects(()=>reserveAttempt(contextReworkActor,mixedRework.id,{...metadata,clientCaptureId:randomUUID(),slotId:mixedSlots[1]!.id,nonce:mixedSlots[1]!.nonce,claimedCapturedAt:mixedRework.issuedAt.toISOString(),elapsedMs:0},true),/Capture slot not found/,'old slot/nonce cannot be transplanted to fresh rework session');
+const mixedRetakeCapture=await ingestFixture({...mixedRework,slots:mixedRetakes},mixedRetakes[0]!.id,911,contextReworkActor,await mixedPhoto());
+assert.equal(mixedRetakeCapture.sessionId,mixedRework.id);assert.equal(mixedRetakeCapture.supersedesAttemptId,null);
+assert.deepEqual(await prisma.taskEvidenceRequirement.findUniqueOrThrow({where:{id:mixedPassedBefore.id}}),mixedPassedBefore,'passed state and accepted evidence remain unchanged through both mixed rework operations');
+assert.equal(await prisma.auditLog.count({where:{entityId:mixed.task.id,action:'DIRTY_REWORK_QR_AUTHORIZED'}}),1,'non-cleaning recapture uses current fresh authority without another QR session');
+console.log('PASS: mixed PASSED/DIRTY/RECAPTURE failures, fresh targeted DIRTY QR plus same-session ordinary recapture, generation/nonce/device checks and retained passed evidence');
 const finalRace=await freshCaptureTask('Final race');const finalSlots=finalRace.session.slots.filter(s=>s.requirementId);const finalAttempts=[];for(let i=0;i<finalSlots.length;i++)finalAttempts.push(await ingestFixture(finalRace.session,finalSlots[i]!.id,101+i));
 await prisma.captureSession.update({where:{id:finalRace.session.id},data:{contextStatus:'ACCEPTABLE'}});
 await prisma.evidenceAsset.updateMany({where:{taskInstanceId:finalRace.task.id},data:{privacyState:'SAFE'}});
@@ -364,37 +479,136 @@ const express=(await import('express')).default,jwt=(await import('jsonwebtoken'
 const verificationRouter=(await import('../src/routes/verification.route.js')).default,exceptionRouter=(await import('../src/routes/verificationException.route.js')).default;
 const http=express();http.use(express.json());http.use('/api',verificationRouter);http.use('/api',exceptionRouter);
 http.use('/api/task-instance',(await import('../src/routes/taskInstance.route.js')).default);
+http.use('/api/assignment',(await import('../src/routes/assignment.route.js')).default);
 http.use((error:any,_req:any,res:any,_next:any)=>res.status(error.statusCode??500).json({success:false,message:error.message,code:error.errors?.[0]?.code??'TEST_ERROR'}));
 const server=await new Promise<import('node:http').Server>(resolve=>{const s=http.listen(0,'127.0.0.1',()=>resolve(s));});const port=(server.address() as import('node:net').AddressInfo).port;
 const workerJwt=jwt.sign({id:captureStaff.id,role:'STAFF'},process.env.ACCESS_TOKEN_SECRET),adminJwt=jwt.sign({id:actor.id,role:'ADMIN'},process.env.ACCESS_TOKEN_SECRET);
 async function call(path:string,token:string,method='GET',body?:unknown){return fetch(`http://127.0.0.1:${port}/api${path}`,{method,headers:{Authorization:`Bearer ${token}`,"X-Hygene-Workflow":"2","X-Hygene-App-Version":"2.0.0",...(body?{'Content-Type':'application/json'}:{})},...(body?{body:JSON.stringify(body)}:{})});}
 try{
- const pendingStart=await createTaskInstanceWithSnapshot({templateId:captureTemplate.id,title:'QR-free start',locationId:location,date:new Date(Date.now()+777777),shiftStart:start,shiftEnd:end});assert.ok(pendingStart);
- const starts=await Promise.all([call(`/task-instance/${pendingStart.id}/start`,workerJwt,'POST'),call(`/task-instance/${pendingStart.id}/start?qrToken=obsolete-template-token`,workerJwt,'POST')]);
- assert.ok(starts.every(r=>r.status===200),'guided task starts without QR and concurrent retries are idempotent');
+ for(const [path,method] of [
+  ['/verification-capabilities','GET'],
+  [`/capture-session/${randomUUID()}/resume`,'POST'],
+  [`/verification-attempt/${randomUUID()}`,'GET'],
+  [`/task-instance/${finalRace.task.id}/verification/history`,'GET'],
+  [`/verification-exceptions/${caseRow.id}/actions`,'POST'],
+  [`/task-instance/${finalRace.task.id}/verification-issues`,'POST'],
+ ]){
+  const unauthorized=await fetch(`http://127.0.0.1:${port}/api${path}`,{method,headers:{'X-Hygene-Workflow':'2','X-Hygene-App-Version':'2.0.0'}});
+  assert.equal(unauthorized.status,401,`scoped authentication must protect ${path}`);
+ }
+ // A dedicated worker keeps these start/finish cases independent of later session-rate tests.
+ const startWorker=await prisma.staff.create({data:{name:'Start QR worker',email:`${randomUUID()}@test.invalid`,password:'test-only',companyId:company,locationId:location}});
+ const startTemplate=await prisma.taskTemplate.create({data:{title:'Area QR start',locationId:location,staffId:startWorker.id,shiftStart:start,shiftEnd:end,effectiveDate:new Date(),verificationVersion:2,areaId:captureArea.id,inventoryConfigVersion:1,inventorySelection:'ALL',setupStatus:'READY'}});
+ const startJwt=jwt.sign({id:startWorker.id,role:'STAFF'},process.env.ACCESS_TOKEN_SECRET);
+ const pendingStart=await createTaskInstanceWithSnapshot({templateId:startTemplate.id,title:'Slow area QR start regression',locationId:location,date:new Date(Date.now()+777777),shiftStart:start,shiftEnd:end});assert.ok(pendingStart);
+ await client.query(`CREATE FUNCTION slow_task_start_regression() RETURNS trigger LANGUAGE plpgsql AS $$
+ BEGIN IF NEW.id = ${pendingStart.id} AND NEW.status = 'IN_PROGRESS' AND NEW."startedAt" IS DISTINCT FROM OLD."startedAt" THEN PERFORM pg_sleep(6); END IF; RETURN NEW; END $$;
+ CREATE TRIGGER slow_task_start_regression BEFORE UPDATE ON "TaskInstance" FOR EACH ROW EXECUTE FUNCTION slow_task_start_regression();`);
+ const startRequestAt=Date.now();
+ const startArea=await prisma.area.findUniqueOrThrow({where:{id:captureArea.id}});
+ const startBody={areaQr:signAreaQr(startArea)};
+ assert.equal((await call(`/task-instance/${pendingStart.id}/start`,startJwt,'POST')).status,400,'start requires a fresh submitted area QR');
+ for(const areaQr of [signAreaQr(inventory),signAreaQr({...startArea,qrVersion:startArea.qrVersion-1}),startBody.areaQr+'tamper']){
+  const rejected=await call(`/task-instance/${pendingStart.id}/start`,startJwt,'POST',{areaQr});
+  assert.equal(rejected.status,422);assert.equal((await rejected.json() as any).code,'AREA_QR_MISMATCH');
+ }
+ assert.equal((await prisma.taskInstance.findUniqueOrThrow({where:{id:pendingStart.id}})).status,'PENDING');
+ const starts=await Promise.all([call(`/task-instance/${pendingStart.id}/start`,startJwt,'POST',startBody),call(`/task-instance/${pendingStart.id}/start`,startJwt,'POST',startBody)]);
+ assert.ok(starts.every(r=>r.status===200),'valid area QR starts the task and concurrent retries are idempotent');
+ assert.ok(Date.now()-startRequestAt>=6000,'start survives a real database delay longer than the former five-second timeout');
  const afterStart=await prisma.taskInstance.findUniqueOrThrow({where:{id:pendingStart.id},include:{assignments:true}});
  assert.equal(afterStart.status,'IN_PROGRESS');assert.equal(afterStart.assignments[0]!.status,'STARTED');
+ assert.equal(afterStart.rowVersion,pendingStart.rowVersion+1,'concurrent retries record the start once');
+ assert.equal(await prisma.captureSession.count({where:{taskInstanceId:pendingStart.id}}),0,'start QR must not issue finish capture authority');
+ const startEvents=await prisma.auditLog.findMany({where:{entityId:pendingStart.id,action:'TASK_STARTED_AREA_QR'}});
+ assert.equal(startEvents.length,1,'concurrent start records one marker event');
+ assert.equal((startEvents[0]!.newValue as any).qrVersion,startArea.qrVersion);
+ assert.ok(!JSON.stringify(startEvents).includes(startBody.areaQr),'audit must not retain QR credentials');
+ const freshFinishBody={...sessionBody,requestId:randomUUID(),areaQr:startBody.areaQr,location:{...sessionBody.location,sampledAt:new Date().toISOString()}};
+ assert.equal((await call(`/task-instance/${pendingStart.id}/capture-sessions`,startJwt,'POST',{...freshFinishBody,areaQr:''})).status>=400,true,'start QR does not authorize finish without its own scan');
+ const finish=await call(`/task-instance/${pendingStart.id}/capture-sessions`,startJwt,'POST',freshFinishBody);
+ assert.equal(finish.status,201,'same persistent marker can be freshly scanned to issue a distinct finish session');
+ assert.equal(await prisma.captureSession.count({where:{taskInstanceId:pendingStart.id}}),1);
+
+ await client.query('DROP TRIGGER slow_task_start_regression ON "TaskInstance"; DROP FUNCTION slow_task_start_regression();');
+ const rollbackStart=await createTaskInstanceWithSnapshot({templateId:startTemplate.id,title:'Start assignment rollback regression',locationId:location,date:new Date(Date.now()+888888),shiftStart:start,shiftEnd:end});assert.ok(rollbackStart);
+ await client.query(`CREATE FUNCTION fail_assignment_start_regression() RETURNS trigger LANGUAGE plpgsql AS $$
+ BEGIN IF NEW.status = 'STARTED' AND NEW."taskInstanceId" = ${rollbackStart.id} THEN RAISE EXCEPTION 'Simulated assignment start failure'; END IF; RETURN NEW; END $$;
+ CREATE TRIGGER fail_assignment_start_regression BEFORE UPDATE ON "TaskAssignment" FOR EACH ROW EXECUTE FUNCTION fail_assignment_start_regression();`);
+ try{
+  assert.equal((await call(`/task-instance/${rollbackStart.id}/start`,startJwt,'POST',startBody)).status,500);
+  const rolledBack=await prisma.taskInstance.findUniqueOrThrow({where:{id:rollbackStart.id},include:{assignments:true}});
+  assert.equal(rolledBack.status,'PENDING');assert.equal(rolledBack.startedAt,null);assert.equal(rolledBack.rowVersion,rollbackStart.rowVersion);
+  assert.equal(rolledBack.assignments[0]!.status,'ASSIGNED');assert.equal(rolledBack.assignments[0]!.startedAt,null);
+  assert.equal(await prisma.auditLog.count({where:{entityId:rollbackStart.id,action:'TASK_STARTED_AREA_QR'}}),0);
+ }finally{await client.query('DROP TRIGGER fail_assignment_start_regression ON "TaskAssignment"; DROP FUNCTION fail_assignment_start_regression();');}
+ console.log('PASS: slow-database concurrent task start exceeds five seconds safely, retries record once, and assignment failure rolls back the entire start');
+ // Reproduce two-step creation: today's task was auto-assigned before the manager selected staff.
+ const selectedWorker=await prisma.staff.create({data:{name:'Selected worker',email:`${randomUUID()}@test.invalid`,password:'test-only',companyId:company,locationId:location}});
+ const assignmentTemplate=await prisma.taskTemplate.create({data:{title:'Assignment sync regression',locationId:location,shiftStart:start,shiftEnd:end,effectiveDate:new Date(),verificationVersion:2,areaId:captureArea.id,inventoryConfigVersion:1,inventorySelection:'ALL',setupStatus:'READY'}});
+ const existingTask=await createTaskInstanceWithSnapshot({templateId:assignmentTemplate.id,title:assignmentTemplate.title,locationId:location,date:new Date(),shiftStart:start,shiftEnd:end});assert.ok(existingTask);
+ await prisma.taskInstance.update({where:{id:existingTask.id},data:{staffId:captureStaff.id}});
+ await prisma.taskAssignment.create({data:{taskInstanceId:existingTask.id,staffId:captureStaff.id}});
+ const protectedTask=await createTaskInstanceWithSnapshot({templateId:assignmentTemplate.id,title:assignmentTemplate.title,locationId:location,date:new Date(Date.now()+86400000),shiftStart:new Date(+start+86400000),shiftEnd:new Date(+end+86400000)});assert.ok(protectedTask);
+ await prisma.taskInstance.update({where:{id:protectedTask.id},data:{staffId:captureStaff.id,status:'IN_PROGRESS',startedAt:new Date()}});
+ await prisma.taskAssignment.create({data:{taskInstanceId:protectedTask.id,staffId:captureStaff.id,status:'STARTED',startedAt:new Date()}});
+ const patchPath=`/assignment/task-template/${assignmentTemplate.id}/staff/${selectedWorker.id}`;
+ assert.equal((await call(patchPath,workerJwt,'PATCH')).status,403);
+ const syncResponses=await Promise.all([call(patchPath,adminJwt,'PATCH'),call(patchPath,adminJwt,'PATCH')]);
+ assert.ok(syncResponses.every(r=>r.status===200));
+ const synced=await prisma.taskInstance.findUniqueOrThrow({where:{id:existingTask.id},include:{assignments:true}});
+ assert.equal(synced.staffId,selectedWorker.id);assert.equal(synced.assignments.filter(a=>a.isCurrent).length,1);assert.equal(synced.assignments.find(a=>a.isCurrent)?.staffId,selectedWorker.id);
+ assert.equal(synced.assignments.find(a=>a.staffId===captureStaff.id)?.status,'REASSIGNED');
+ assert.equal(await prisma.auditLog.count({where:{entityId:existingTask.id,action:'TEMPLATE_STAFF_ASSIGNMENT_SYNC'}}),1);
+ assert.equal((await prisma.taskInstance.findUniqueOrThrow({where:{id:protectedTask.id}})).staffId,captureStaff.id,'Started work remains with its worker');
+ const selectedJwt=jwt.sign({id:selectedWorker.id,role:'STAFF'},process.env.ACCESS_TOKEN_SECRET);
+ const selectedFeed=await call(`/task-instance/staff/${selectedWorker.id}/today`,selectedJwt);
+ assert.equal(selectedFeed.status,200);assert.ok((await selectedFeed.json() as any).data.some((t:any)=>t.id===existingTask.id),'Selected staff sees the already-generated task immediately');
+ assert.equal((await call(`/task-instance/${existingTask.id}`,workerJwt)).status,403,'Previous worker loses task access');
+ const graceCutoff=new Date(Date.now()-10*60000);
+ assert.equal(await prisma.taskAssignment.count({where:{taskInstanceId:existingTask.id,isCurrent:true,status:'ASSIGNED',assignedAt:{lt:graceCutoff}}}),0,'New assignment receives a full start grace period');
+ console.log('PASS: existing-task assignment sync, concurrent idempotency, started-task preservation, selected-worker feed, previous-worker isolation and fresh start grace');
+ const assignmentRollbackWorker=await prisma.staff.create({data:{name:'Rollback worker',email:`${randomUUID()}@test.invalid`,password:'test-only',companyId:company,locationId:location}});
+ const assignmentRollbackTask=await createTaskInstanceWithSnapshot({templateId:assignmentTemplate.id,title:assignmentTemplate.title,locationId:location,date:new Date(Date.now()+2000),shiftStart:start,shiftEnd:end});assert.ok(assignmentRollbackTask);
+ await client.query(`CREATE FUNCTION fail_template_assignment_regression() RETURNS trigger LANGUAGE plpgsql AS $$ BEGIN IF NEW."taskInstanceId"=${assignmentRollbackTask.id} AND NEW."staffId"=${assignmentRollbackWorker.id} THEN RAISE EXCEPTION 'Simulated template assignment failure'; END IF; RETURN NEW; END $$; CREATE TRIGGER fail_template_assignment_regression BEFORE INSERT ON "TaskAssignment" FOR EACH ROW EXECUTE FUNCTION fail_template_assignment_regression();`);
+ try{
+  const rejectedAssignment=await call(`/assignment/task-template/${assignmentTemplate.id}/staff/${assignmentRollbackWorker.id}`,adminJwt,'PATCH');assert.equal(rejectedAssignment.status,500);
+  assert.equal((await prisma.taskTemplate.findUniqueOrThrow({where:{id:assignmentTemplate.id}})).staffId,selectedWorker.id);
+  for(const id of [existingTask.id,assignmentRollbackTask.id]){
+   const preserved=await prisma.taskInstance.findUniqueOrThrow({where:{id},include:{assignments:{where:{isCurrent:true}}}});
+   assert.equal(preserved.staffId,selectedWorker.id);assert.equal(preserved.assignments.length,1);assert.equal(preserved.assignments[0]!.staffId,selectedWorker.id);
+  }
+ }finally{await client.query('DROP TRIGGER fail_template_assignment_regression ON "TaskAssignment"; DROP FUNCTION fail_template_assignment_regression();');}
+ console.log('PASS: assignment failure rolls back template, all task owners and current assignments together');
+
  const historicalPending=await prisma.taskInstance.create({data:{title:'Historical pending fixture',locationId:location,staffId:captureStaff.id,date:new Date(),shiftStart:start,shiftEnd:end,assignments:{create:{staffId:captureStaff.id}}}});
  const historicalStart=await call(`/task-instance/${historicalPending.id}/start?qrToken=room-qr`,workerJwt,'POST');
  assert.equal(historicalStart.status,409);assert.equal((await historicalStart.json() as any).code,'INVENTORY_SETUP_REQUIRED');
  assert.equal((await prisma.taskInstance.findUniqueOrThrow({where:{id:historicalPending.id}})).status,'PENDING','retiring legacy start cannot convert or start historical work');
- assert.equal((await call(`/task-instance/${pendingStart.id}/complete`,workerJwt,'POST')).status,409,'old endpoint cannot complete unresolved requirements');
- assert.equal((await call(`/task-instance/${pendingStart.id}/area/1/scan`,workerJwt,'POST')).status,410);
+ assert.equal((await call(`/task-instance/${pendingStart.id}/complete`,startJwt,'POST')).status,409,'old endpoint cannot complete unresolved requirements');
+ assert.equal((await call(`/task-instance/${pendingStart.id}/area/1/scan`,startJwt,'POST')).status,410);
  const oldPhoto=new FormData();oldPhoto.append('photo',new Blob(['not an image']),'old.jpg');
- const retiredUpload=await fetch(`http://127.0.0.1:${port}/api/task-instance/${pendingStart.id}/area/1/upload`,{method:'POST',headers:{Authorization:`Bearer ${workerJwt}`},body:oldPhoto});
+ const retiredUpload=await fetch(`http://127.0.0.1:${port}/api/task-instance/${pendingStart.id}/area/1/upload`,{method:'POST',headers:{Authorization:`Bearer ${startJwt}`},body:oldPhoto});
  assert.equal(retiredUpload.status,410,'retired photo endpoints reject before multipart decode/storage');
  assert.equal((await call(`/task-instance/${pendingStart.id}`,adminJwt)).status,200,'admin can read scoped guided task detail');
  assert.equal((await call(`/task-instance/staff/${staff.id}/today`,workerJwt)).status,403,'staff cannot load another worker feed');
  assert.equal((await call(`/task-instance/${finalRace.task.id}/complete`,workerJwt,'POST')).status,200,'already-finalized completion is only read back');
- console.log('PASS: QR-free concurrent start, legacy writer retirement, no completion bypass and scoped task reads');
+ console.log('PASS: area QR required at start and finish, distinct finish sessions, legacy writer retirement, no completion bypass and scoped task reads');
  const manifest=await call(`/task-instance/${finalRace.task.id}/verification`,workerJwt);assert.equal(manifest.status,200);const dto:any=await manifest.json();assert.equal(dto.data.outcome,'VERIFIED_COMPLETE');assert.equal(typeof dto.data.items[0].name,'string');assert.equal(typeof dto.data.items[0].requirements[0].instructions,'string');assert.equal(dto.data.allowedActions.createSession,false);
+ for(const session of dto.data.sessions)for(const slot of session.slots)if(slot.attemptId){
+  assert.ok(Object.hasOwn(slot,'instructions'),'Context photo results include safe staff instructions');
+  assert.equal(slot.qualityResult,undefined);assert.equal(slot.coverageResult,undefined);assert.equal(slot.cleanlinessResult,undefined);
+ }
  const work=await call('/task-instance/staff/me/verification-work',workerJwt);assert.equal(work.status,200);assert.ok(Array.isArray((await work.json() as any).data.tasks));
  const casesResponse=await call('/verification-exceptions?state=MANAGER_REVIEW',adminJwt);assert.equal(casesResponse.status,200);const casesDto:any=await casesResponse.json();assert.ok(Array.isArray(casesDto.data.cases));
  const forbiddenInbox=await call('/verification-exceptions',workerJwt);assert.equal(forbiddenInbox.status,403);
- const detail=await call(`/verification-exceptions/${caseRow.id}`,adminJwt);assert.equal(detail.status,200);const detailDto:any=await detail.json();assert.ok(Array.isArray(detailDto.data.events));
+ const detail=await call(`/verification-exceptions/${caseRow.id}`,adminJwt);const detailDto:any=await detail.json();assert.equal(detail.status,200,JSON.stringify(detailDto));assert.ok(Array.isArray(detailDto.data.events));
  const read=await call(`/verification-exceptions/${caseRow.id}/read`,adminJwt,'POST',{});assert.equal(read.status,200);assert.equal((await read.json() as any).data.managerId,actor.id);
  const obsolete=await fetch(`http://127.0.0.1:${port}/api/task-instance/${retakeRace.task.id}/capture-sessions`,{method:'POST',headers:{Authorization:`Bearer ${workerJwt}`,'Content-Type':'application/json'},body:JSON.stringify(sessionBody)});assert.equal(obsolete.status,426);assert.equal((await obsolete.json() as any).code,'NATIVE_APP_UPGRADE_REQUIRED');
  const capabilities=await call('/verification-capabilities',workerJwt);assert.equal((await capabilities.json() as any).data.automaticCleanlinessPassing,false);
+ const waivedManifest=await call(`/task-instance/${capturedTask.id}/verification`,workerJwt);assert.equal(waivedManifest.status,200);const waivedDto:any=await waivedManifest.json();assert.ok(waivedDto.data.items.flatMap((item:any)=>item.requirements).every((requirement:any)=>requirement.manualOutcome==='WAIVED'));
+ for(const requirement of waivedDto.data.items.flatMap((item:any)=>item.requirements))if(requirement.currentAttempt){assert.equal(requirement.currentAttempt.manualOutcome,'WAIVED');assert.equal(requirement.currentAttempt.cleanlinessOutcome,null);assert.equal(requirement.currentAttempt.retryAction,null);}
+ const failedAttemptDto=await call(`/verification-attempt/${failureAttempt.id}`,workerJwt);assert.equal(failedAttemptDto.status,200);const failureDto:any=await failedAttemptDto.json();assert.equal(failureDto.data.cleanlinessOutcome,'NEEDS_REVIEW');assert.equal(failureDto.data.reviewReason,'SERVICE_FAILURE');
  const history=await call(`/task-instance/${finalRace.task.id}/verification/history`,adminJwt);assert.equal(history.status,200);const historyDto:any=await history.json();assert.ok(historyDto.data.attempts.length);assert.equal(typeof historyDto.data.attempts[0].staff.name,'string');assert.equal(historyDto.data.attempts[0].cleanlinessResult,undefined);
  const spatialExport=await call(`/task-instance/${spatialFixture.task.id}/verification/spatial-evaluation`,adminJwt);assert.equal(spatialExport.status,200);const spatialExportDto:any=await spatialExport.json();assert.equal(spatialExportDto.data.attempts.length,2);assert.equal(spatialExportDto.data.autoIdentityAcceptance,false);assert.equal(spatialExportDto.data.attempts[0].humanGroundTruth,'UNKNOWN');assert.equal(spatialExportDto.data.attempts[0].committedHash,undefined);
  assert.equal((await call(`/task-instance/${spatialFixture.task.id}/verification/spatial-evaluation`,workerJwt)).status,403,'spatial evaluation export is not staff navigation/API');
@@ -409,13 +623,13 @@ try{
  console.log('PASS: real HTTP verification DTO, resumable work, scoped exception API, read receipts, invalid IDs and role boundaries');
 }finally{await new Promise<void>((resolve,reject)=>server.close(error=>error?reject(error):resolve()));}
 
-const escalation=await freshCaptureTask('Three cleaning failures');let escalationSlot=escalation.session.slots.find(s=>s.requirementId)!;
+const escalation=await freshCaptureTask('Three cleaning failures',contextReworkTemplate.id,contextReworkActor);let escalationSlot=escalation.session.slots.find(s=>s.requirementId)!;
 for(let failure=1;failure<=3;failure++){
  const currentSession=await prisma.captureSession.findUniqueOrThrow({where:{id:escalation.session.id},include:{slots:true}});const sl=currentSession.slots.find(s=>s.id===escalationSlot.id)!;
  const fullSession={...escalation.session,slots:[{...sl,nonce:(await import('../src/services/verification-v2/qr.service.js')).slotNonce(currentSession.id,sl.id,sl.generation)}]};
- const a=await ingestFixture(fullSession,sl.id,650+failure);for(const stage of ['QUALITY','PRIVACY','COVERAGE','CLEANLINESS'])await executeStage(a.id,stage);
+ const a=await ingestFixture(fullSession,sl.id,650+failure,contextReworkActor);for(const stage of ['QUALITY','PRIVACY','COVERAGE','CLEANLINESS'])await executeStage(a.id,stage);
  assert.equal(await prisma.verificationException.count({where:{taskInstanceId:escalation.task.id}}),failure===3?1:0,'only third cleaning failure escalates');
- if(failure<3){const r=await prisma.taskEvidenceRequirement.findUniqueOrThrow({where:{id:sl.requirementId!}});const replacement=await retakeSlots(captureActor,currentSession.id,{deviceId:'device-a',requirements:[{requirementId:r.id,expectedGeneration:r.decisionVersion}]});escalationSlot={...replacement[0]!} as typeof escalationSlot;}
+ if(failure<3){const r=await prisma.taskEvidenceRequirement.findUniqueOrThrow({where:{id:sl.requirementId!}});const ar=await prisma.area.findUniqueOrThrow({where:{id:captureArea.id}});escalation.session=await createReworkCaptureSession(contextReworkActor,escalation.task.id,{...sessionBody,requestId:randomUUID(),areaQr:signAreaQr(ar),location:{...sessionBody.location,sampledAt:new Date().toISOString()},requirements:[{requirementId:r.id,expectedGeneration:r.decisionVersion}]});escalationSlot=escalation.session.slots.find(s=>s.requirementId===r.id)!;}
 }
 assert.equal(await prisma.verificationIssue.count({where:{exception:{taskInstanceId:escalation.task.id}}}),1);
 const cannotAssess=await freshCaptureTask('Cannot assess');const cannotSlot=cannotAssess.session.slots.find(s=>s.requirementId)!;const cannotAttempt=await ingestFixture(cannotAssess.session,cannotSlot.id,762);for(const stage of ['QUALITY','PRIVACY','COVERAGE'])await executeStage(cannotAttempt.id,stage);
@@ -424,7 +638,8 @@ const cannotProvider={assess:async(stage:string,prompt:string)=>{const assessmen
 await processVerificationJob(cannotRunning,cannotProvider as any,captureIo.read,{evaluate:(image,rubric,view)=>assessCleanliness(cannotProvider as any,image,rubric,view)});assert.equal((await prisma.taskEvidenceRequirement.findUniqueOrThrow({where:{id:cannotSlot.requirementId!}})).state,'RECAPTURE_REQUIRED');assert.equal(await prisma.verificationException.count({where:{taskInstanceId:cannotAssess.task.id}}),0);
 // Exercise the actual Clef adapter through durable stage publication; HTTP is mocked.
 process.env.CLOUDFLARE_ACCOUNT_ID='a'.repeat(32);process.env.CLOUDFLARE_API_TOKEN='test-only';
-process.env.CLEF_CONFIDENCE_THRESHOLD='0.9';process.env.CLEF_THRESHOLD_VERSION='synthetic-candidate-v1';
+process.env.CLEF_MODEL='clef';process.env.CLEF_CONFIDENCE_THRESHOLD='0.9';process.env.CLEF_THRESHOLD_VERSION='synthetic-candidate-v1';
+delete process.env.CLEF_RELEASE_RECORD_PATH;delete process.env.CLEF_RELEASE_RECORD_SHA256;
 const clefStaff=await prisma.staff.create({data:{name:'Clef test worker',email:`${randomUUID()}@test.invalid`,password:'test-only',companyId:company,locationId:location}});
 const clefActor={id:clefStaff.id,companyId:company,role:'STAFF' as const};
 const clefTemplate=await prisma.taskTemplate.create({data:{title:'Clef test',locationId:location,staffId:clefStaff.id,shiftStart:start,shiftEnd:end,effectiveDate:new Date(),verificationVersion:2,areaId:captureArea.id,inventoryConfigVersion:1,inventorySelection:'ALL',setupStatus:'READY'}});
@@ -433,26 +648,81 @@ async function clefCaptureTask(label:string){
  await prisma.taskInstance.update({where:{id:t.id},data:{status:'IN_PROGRESS',startedAt:start}});await prisma.taskAssignment.updateMany({where:{taskInstanceId:t.id},data:{status:'STARTED',startedAt:start}});
  const ar=await prisma.area.findUniqueOrThrow({where:{id:captureArea.id}});return {task:t,session:await createCaptureSession(clefActor,t.id,{...sessionBody,requestId:randomUUID(),areaQr:signAreaQr(ar),location:{...sessionBody.location,sampledAt:new Date().toISOString()}})};
 }
+// Synthetic records below exercise the release validator only. They are never
+// development evidence, reviewed washroom measurements, or deployment approvals.
+const {calibrateCleanliness,createCleanlinessRelease,cleanlinessReleaseStatus,digest}=await import('../src/services/verification-v2/cleanlinessRelease.js');
+const {clefEvaluatorVersion}=await import('../src/services/verification-v2/clefConfiguration.js');
+const releaseTestDirectory=await mkdtemp('/tmp/hygene-isolated-release-');
+function syntheticReleaseRow(i:number,split:'development'|'heldout',label:'CLEAN'|'DIRTY'|'CANNOT_ASSESS',identity:'CORRECT'|'WRONG'|'REPLAYED'='CORRECT'){
+ const confidence=label==='DIRTY'?.7:.98,predicted=label==='DIRTY'?'CANNOT_ASSESS':label,choice=label==='DIRTY'?'CLEAN':label;
+ return {id:`${split}-${i}`,roomId:`${split}-synthetic-room`,fixtureId:`${split}-${i}`,fixtureType:'TOILET',split,consented:true as const,visibility:label==='CANNOT_ASSESS'?'UNASSESSABLE' as const:'ASSESSABLE' as const,identity,cleanliness:label,confidence,threshold:.98,thresholdVersion:'integration-only-candidate',provider:'cloudflare',model:'clef',promptVersion:'clef-surfaces-v1',providerVersion:'cloudflare-system-one-v1',requestedModel:'@cf/cloudflare/clef',rubricVersion:1,latencyMs:10,costUsd:null,evaluatorVersion:clefEvaluatorVersion(),imageSha256:digest(`synthetic-only-image-${split}-${i}`),evaluationInputHash:digest(`synthetic-only-label-${split}-${i}`),predictedCleanliness:predicted,wouldAutoPass:predicted==='CLEAN'&&identity==='CORRECT',predictedCoverage:identity==='CORRECT'?'MATCH' as const:'WRONG_ITEM' as const,identityConsistent:identity==='CORRECT',qualityPassed:true,privacySafe:true,duplicateClear:true,assessment:{result:{verdict:predicted,confidence,reasonCode:predicted==='CLEAN'?'CLEAN':'CANNOT_ASSESS',surfaces:[{surface:'bowl',verdict:predicted}],details:{threshold:.98,thresholdVersion:'integration-only-candidate',assessmentStatus:'ASSESSED',predictions:[{surface:'bowl',type:'choice',choice,confidence,probabilities:{CLEAN:choice==='CLEAN'?.98:.01,DIRTY:.01,CANNOT_ASSESS:choice==='CANNOT_ASSESS'?.98:.01}}]}}}};
+}
+function syntheticReleaseRows(split:'development'|'heldout'){
+ return [...Array.from({length:100},(_,i)=>syntheticReleaseRow(i,split,'DIRTY')),...Array.from({length:20},(_,i)=>syntheticReleaseRow(i+100,split,'CLEAN')),...Array.from({length:20},(_,i)=>syntheticReleaseRow(i+120,split,'CANNOT_ASSESS')),...(split==='heldout'?Array.from({length:100},(_,i)=>syntheticReleaseRow(i+140,split,'CLEAN',i%2?'WRONG':'REPLAYED')):[])];
+}
+async function configureSyntheticRelease(mode:string){
+ process.env.CLEF_CONFIDENCE_THRESHOLD='.98';process.env.CLEF_THRESHOLD_VERSION='integration-only-candidate';
+ const now=new Date(),development=syntheticReleaseRows('development'),heldout=syntheticReleaseRows('heldout');
+ const calibration=calibrateCleanliness(development,digest(JSON.stringify(development)),'integration-only-candidate',new Date(+now-1000));
+ const review={labelledBy:'SYNTHETIC_TEST_ONLY',evaluatedBy:'SYNTHETIC_TEST_ONLY',reviewedBy:'SYNTHETIC_TEST_ONLY',reviewedAt:now.toISOString(),expiresAt:new Date(+now+86400000).toISOString(),labelsManifestSha256:digest('synthetic-test-only'),independentHumanLabels:true,consentVerified:true,representativeRoomsVerified:true};
+ const record=createCleanlinessRelease(heldout,calibration,review,digest(JSON.stringify(heldout)),now),bytes=JSON.stringify(record),path=`${releaseTestDirectory}/${mode}.json`;
+ await writeFile(path,mode==='TAMPERED_TEST_RELEASE'?'{}':bytes);process.env.CLEF_RELEASE_RECORD_PATH=path;process.env.CLEF_RELEASE_RECORD_SHA256=digest(bytes);
+ if(mode==='CONFIG_CHANGED_TEST_RELEASE')process.env.CLEF_THRESHOLD_VERSION='changed-integration-only-candidate';
+ assert.equal(cleanlinessReleaseStatus('TOILET',1).allowed,mode==='VALIDATED_TEST_RELEASE');
+ assert.equal(cleanlinessReleaseStatus('SINK',1).allowed,false);assert.equal(cleanlinessReleaseStatus('TOILET',2).allowed,false);
+}
 const originalFetch=globalThis.fetch;let clefCalls=0;
 let clefMode='CLEAN';
 globalThis.fetch=async (url,options)=>{
  assert.ok(String(url).includes('/ai/run/@cf/cloudflare/clef'),'mock must not make vendor requests');clefCalls++;
  if(clefMode==='TIMEOUT')throw new DOMException('synthetic timeout','TimeoutError');
  if(clefMode==='RATE_LIMIT')return new Response('{}',{status:429});
+ if(clefMode==='MALFORMED')return new Response(JSON.stringify({success:true,result:{model:'clef',answers:{}}}));
  const request=JSON.parse(String(options!.body));
- const choice=clefMode==='LOW_CONFIDENCE'?'CLEAN':clefMode;
+ const choice=['LOW_CONFIDENCE','THRESHOLD_MISSING','VALIDATED_TEST_RELEASE','TAMPERED_TEST_RELEASE','CONFIG_CHANGED_TEST_RELEASE'].includes(clefMode)?'CLEAN':clefMode;
  const answer={type:'choice',choice,confidence:clefMode==='LOW_CONFIDENCE'?.5:.98,probabilities:{CLEAN:choice==='CLEAN'?.98:.01,DIRTY:choice==='DIRTY'?.98:.01,CANNOT_ASSESS:choice==='CANNOT_ASSESS'?.98:.01}};
  return new Response(JSON.stringify({success:true,result:{model:'clef',answers:Object.fromEntries(Object.keys(request.questions).map(key=>[key,answer])),usage:{input_tokens:22,output_tokens:0}}}));
 };
 try{
- for(const mode of ['CLEAN','DIRTY','LOW_CONFIDENCE','TIMEOUT','RATE_LIMIT']){
+ for(const mode of ['CLEAN','DIRTY','LOW_CONFIDENCE','TIMEOUT','RATE_LIMIT','THRESHOLD_MISSING','MALFORMED','VALIDATED_TEST_RELEASE','TAMPERED_TEST_RELEASE','CONFIG_CHANGED_TEST_RELEASE']){
+  if(mode==='THRESHOLD_MISSING'){delete process.env.CLEF_CONFIDENCE_THRESHOLD;delete process.env.CLEF_THRESHOLD_VERSION;}
+  else {process.env.CLEF_CONFIDENCE_THRESHOLD='0.9';process.env.CLEF_THRESHOLD_VERSION='synthetic-candidate-v1';}
+  delete process.env.CLEF_RELEASE_RECORD_PATH;delete process.env.CLEF_RELEASE_RECORD_SHA256;
+  if(mode.endsWith('_TEST_RELEASE'))await configureSyntheticRelease(mode);
   clefMode=mode;const fixture=await clefCaptureTask('Clef '+mode),sl=fixture.session.slots.find(s=>s.requirementId)!;
   const uniquePhoto=await sharp(randomBytes(640*640*3),{raw:{width:640,height:640,channels:3}}).jpeg().toBuffer();
   const a=await ingestFixture(fixture.session,sl.id,1000+clefCalls,clefActor,uniquePhoto);
   for(const stage of ['QUALITY','PRIVACY','COVERAGE'])await executeStage(a.id,stage);
   let j=await prisma.verificationJob.findFirstOrThrow({where:{attemptId:a.id,stage:'CLEANLINESS'}});
   const run=async()=>{j=await prisma.verificationJob.update({where:{id:j.id},data:{state:'RUNNING',attempts:{increment:1},leaseToken:randomUUID(),leaseUntil:new Date(Date.now()+90000)}});return processVerificationJob(j,fakeProvider as any,captureIo.read);};
-  if(mode==='TIMEOUT'){
+  const beforeProviderAttempt=await prisma.verificationAttempt.findUniqueOrThrow({where:{id:a.id}});
+  if(mode==='THRESHOLD_MISSING'){
+   await assert.rejects(run,/PROVIDER_THRESHOLD_NOT_CONFIGURED/);
+   await failVerificationJob(j,'PROVIDER_THRESHOLD_NOT_CONFIGURED',()=>.5,{provider:'cloudflare',assessmentStatus:'THRESHOLD_UNCONFIGURED'});
+   const failed=await prisma.verificationJob.findUniqueOrThrow({where:{id:j.id}}),savedAttempt=await prisma.verificationAttempt.findUniqueOrThrow({where:{id:a.id}}),savedRequirement=await prisma.taskEvidenceRequirement.findUniqueOrThrow({where:{id:sl.requirementId!}});
+   assert.equal(failed.state,'FAILED');assert.equal(failed.attempts,1);assert.equal(failed.lastErrorCode,'PROVIDER_THRESHOLD_NOT_CONFIGURED');
+   assert.equal(savedAttempt.state,'SERVICE_FAILURE');assert.equal(savedAttempt.cleanlinessResult,null);
+   assert.equal(savedAttempt.mediaAssetId,beforeProviderAttempt.mediaAssetId);assert.equal(savedAttempt.committedHash,beforeProviderAttempt.committedHash);
+   assert.equal(savedRequirement.state,'REVIEW_REQUIRED');assert.equal(savedRequirement.currentAttemptId,a.id);
+   assert.deepEqual({outcome:staffAttemptResult(savedAttempt,true).cleanlinessOutcome,reason:staffAttemptResult(savedAttempt,true).reviewReason},{outcome:'NEEDS_REVIEW',reason:'SERVICE_FAILURE'});
+   assert.equal(await prisma.verificationAttempt.count({where:{requirementId:sl.requirementId}}),1,'missing threshold retains original photo without asking for another capture');
+   assert.equal(await prisma.verificationAttempt.count({where:{requirementId:sl.requirementId,state:{in:['CLEANING_REQUIRED','RECAPTURE_REQUIRED']}}}),0,'configuration uncertainty is never dirt or a photo fault');
+   assert.equal(await prisma.captureSlot.count({where:{sessionId:fixture.session.id}}),fixture.session.slots.length);
+   assert.equal((await prisma.verificationIssue.findFirstOrThrow({where:{exception:{taskInstanceId:fixture.task.id}}})).reasonCode,'SERVICE_FAILURE');
+   continue;
+  }
+  if(mode==='MALFORMED'){
+   await assert.rejects(run,/PROVIDER_MALFORMED/);const originalJobId=j.id;
+   await failVerificationJob(j,'PROVIDER_MALFORMED',()=>.5,{provider:'cloudflare',assessmentStatus:'INVALID_RESPONSE'});
+   const waiting=await prisma.verificationJob.findUniqueOrThrow({where:{id:j.id}}),retained=await prisma.verificationAttempt.findUniqueOrThrow({where:{id:a.id}});
+   assert.equal(waiting.state,'RETRY_WAIT');assert.equal(waiting.lastErrorCode,'PROVIDER_MALFORMED');
+   assert.equal(retained.state,'RETRY_WAIT');assert.equal(staffAttemptResult(retained,true).cleanlinessOutcome,null);assert.equal(staffAttemptResult(retained,true).reviewReason,null);assert.equal(retained.cleanlinessResult,null);assert.equal(retained.mediaAssetId,beforeProviderAttempt.mediaAssetId);
+   const processing=await prisma.taskEvidenceRequirement.findUniqueOrThrow({where:{id:sl.requirementId!}});assert.equal(processing.state,'PROCESSING');assert.equal(processing.currentAttemptId,a.id);
+   clefMode='CLEAN';await run();assert.equal(j.id,originalJobId,'malformed provider response retries the same durable job');
+   assert.equal(await prisma.verificationAttempt.count({where:{requirementId:sl.requirementId}}),1);assert.equal(await prisma.verificationJob.count({where:{attemptId:a.id,stage:'CLEANLINESS'}}),1);
+   assert.equal((await prisma.verificationAttempt.findUniqueOrThrow({where:{id:a.id}})).mediaAssetId,beforeProviderAttempt.mediaAssetId,'provider retry reuses original protected evidence');
+   assert.equal(await prisma.captureSlot.count({where:{sessionId:fixture.session.id}}),fixture.session.slots.length);
+  }else if(mode==='TIMEOUT'){
    await assert.rejects(run,/PROVIDER_TIMEOUT/);await failVerificationJob(j,'PROVIDER_TIMEOUT',()=>.5,{provider:'cloudflare',status:'SERVICE_FAILURE'});
    assert.equal((await prisma.verificationJob.findUniqueOrThrow({where:{id:j.id}})).state,'RETRY_WAIT');
    clefMode='CLEAN';await run();
@@ -468,8 +738,10 @@ try{
   const saved=persisted.cleanlinessResult as any;
   assert.equal(saved.result.verdict,mode==='LOW_CONFIDENCE'?'CANNOT_ASSESS':mode==='DIRTY'?'DIRTY':'CLEAN');
   assert.equal(saved.metadata.provider,'cloudflare');assert.equal(saved.result.confidence,mode==='LOW_CONFIDENCE'?.5:.98);
-  assert.equal(saved.retryCount,mode==='TIMEOUT'?1:0);
-  assert.equal(persisted.state,mode==='DIRTY'?'CLEANING_REQUIRED':mode==='LOW_CONFIDENCE'?'RECAPTURE_REQUIRED':'REVIEW_REQUIRED');
+  assert.equal(saved.retryCount,['TIMEOUT','MALFORMED'].includes(mode)?1:0);
+  assert.equal(persisted.state,mode==='DIRTY'?'CLEANING_REQUIRED':mode==='LOW_CONFIDENCE'?'RECAPTURE_REQUIRED':mode==='VALIDATED_TEST_RELEASE'?'PASSED':'REVIEW_REQUIRED');
+  const staffOutcome=staffAttemptResult(persisted,true);assert.equal(staffOutcome.cleanlinessOutcome,mode==='DIRTY'?'DIRTY':mode==='VALIDATED_TEST_RELEASE'?'CLEAN':'NEEDS_REVIEW');assert.equal(staffOutcome.reviewReason,['DIRTY','VALIDATED_TEST_RELEASE'].includes(mode)?null:mode==='LOW_CONFIDENCE'?'CANNOT_ASSESS':'AUTO_PASS_NOT_VALIDATED');
+  if(mode==='LOW_CONFIDENCE')assert.equal(staffOutcome.retryAction,'REQUEST_RETAKE_SLOT');if(mode==='DIRTY')assert.equal(staffOutcome.retryAction,'SCAN_QR_FOR_REWORK');
   const before=clefCalls;assert.equal(await processVerificationJob(j,fakeProvider as any,captureIo.read),false);assert.equal(clefCalls,before,'successful stage cannot be re-inferred');
   assert.notEqual((await prisma.taskInstance.findUniqueOrThrow({where:{id:fixture.task.id}})).completionOutcome,'VERIFIED_COMPLETE');
   if(mode==='LOW_CONFIDENCE'){
@@ -487,8 +759,8 @@ try{
    }
   }
  }
-}finally{globalThis.fetch=originalFetch;}
-console.log('PASS: actual Clef adapter contract, prediction persistence, CLEAN gate, DIRTY rework, uncertainty, timeout retry, rate-limit exhaustion and no rebilling');
+}finally{globalThis.fetch=originalFetch;delete process.env.CLEF_RELEASE_RECORD_PATH;delete process.env.CLEF_RELEASE_RECORD_SHA256;}
+console.log('PASS: actual Clef adapter contract, prediction persistence, CLEAN gate, DIRTY rework, uncertainty, timeout retry, rate-limit exhaustion, threshold configuration failure, malformed same-photo recovery, explicit CLEAN/DIRTY/NEEDS_REVIEW, pinned synthetic gate acceptance/tamper/config refusal and no rebilling');
 
 const maintenance=await freshCaptureTask('Maintenance is not completion');const maintenanceRequirement=await prisma.taskEvidenceRequirement.findFirstOrThrow({where:{item:{taskInstanceId:maintenance.task.id}}});const maintenanceCase=await prisma.$transaction(tx=>raiseIssue(tx,maintenance.task.id,'DAMAGED',maintenanceRequirement.id));assert.ok(maintenanceCase);
 await managerDecision(actor,maintenanceCase.id,{requestId:randomUUID(),expectedVersion:maintenanceCase.rowVersion,requirementId:maintenanceRequirement.id,action:'MARK_MAINTENANCE',reasonCode:'DAMAGED',note:'Fixture requires maintenance; this does not waive cleaning evidence'});

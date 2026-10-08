@@ -1,8 +1,40 @@
 import assert from "node:assert/strict";
 import test from "node:test";
 import axios, { AxiosError, AxiosHeaders } from "axios";
-import { client, configureApiAuth } from "./client";
+import { client, configureApiAuth, configureNativeAppVersion } from "./client";
 import { uploadFormData } from "./client";
+
+test('native version reaches session requests and uploads consistently, including stale request headers', async () => {
+  const savedAdapter = client.defaults.adapter;
+  const savedFetch = globalThis.fetch;
+  configureApiAuth({getScope:()=>null,getTokens:async()=>({accessToken:null,refreshToken:null}),setTokens:async()=>{},clearSession:async()=>{}});
+  const sent: string[] = [];
+  client.defaults.adapter = async config => {
+    assert.equal(AxiosHeaders.from(config.headers).get('X-Hygene-Workflow'), '2');
+    sent.push(String(AxiosHeaders.from(config.headers).get('X-Hygene-App-Version')));
+    return {data:{},status:200,statusText:'OK',headers:{},config};
+  };
+  globalThis.fetch = async (_url, options) => {
+    const headers = new Headers(options?.headers);
+    assert.equal(headers.get('X-Hygene-Workflow'), '2');
+    sent.push(String(headers.get('X-Hygene-App-Version')));
+    return new Response(JSON.stringify({data:{}}),{status:200});
+  };
+  try {
+    configureNativeAppVersion('2.0.0');
+    await client.post('/task-instance/1/capture-sessions');
+    await client.post('/capture-session/test/resume', {}, {headers:{'X-Hygene-App-Version':'0.0.0'}});
+    await uploadFormData('/capture-session/test/attempts',()=>new FormData());
+    assert.deepEqual(sent,['2.0.0','2.0.0','2.0.0']);
+    configureNativeAppVersion(null);
+    await client.post('/task-instance/1/capture-sessions');
+    assert.equal(sent.at(-1),'0.0.0','an unknown native version must still fail the server gate');
+  } finally {
+    configureNativeAppVersion(null);
+    client.defaults.adapter = savedAdapter;
+    globalThis.fetch = savedFetch;
+  }
+});
 
 test("login rejection preserves the server error without refreshing a session", async () => {
   const savedAdapter = client.defaults.adapter;

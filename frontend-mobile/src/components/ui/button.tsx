@@ -91,6 +91,8 @@ const Button = React.forwardRef<View, ButtonProps>(
     return (
       <Pressable
         ref={ref as any}
+        accessibilityRole="button"
+        accessibilityState={{ disabled: !!(disabled || loading), busy: !!loading }}
         disabled={disabled || loading}
         className={cn(
           buttonVariants({ variant, size }),
@@ -104,9 +106,10 @@ const Button = React.forwardRef<View, ButtonProps>(
             size="small"
             color={variant === "default" ? "#FFFFFF" : "#18181B"}
           />
-        ) : (
+        ) : null}
+        {(
           <>
-            {iconLeft ? (
+            {iconLeft && !loading ? (
               <Icon
                 name={iconLeft}
                 size={size === "icon" ? 18 : 16}
@@ -125,7 +128,7 @@ const Button = React.forwardRef<View, ButtonProps>(
             ) : (
               content
             )}
-            {iconRight ? (
+            {iconRight && !loading ? (
               <Icon
                 name={iconRight}
                 size={size === "icon" ? 18 : 16}

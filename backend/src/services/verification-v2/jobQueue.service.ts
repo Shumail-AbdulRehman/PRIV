@@ -1,3 +1,4 @@
+import {jobTiming,verificationEvent} from './latency.js';
 import {raiseIssue} from './exception.service.js';
 import {finalizeTask} from './completion.service.js';
 import {randomUUID} from 'node:crypto';
@@ -6,7 +7,7 @@ import {prisma} from '../../prisma/prisma.js';
 export type VerificationTransaction=Omit<typeof prisma,'$connect'|'$disconnect'|'$on'|'$transaction'|'$use'|'$extends'>;
 export const LEASE_MS=90_000;
 export const RETRY_DELAYS_MS=[5000,30000,120000] as const;
-export async function enqueueVerificationJob(tx:VerificationTransaction,input:{companyId:number;attemptId:string;stage:string;evaluatorVersion:string;priority?:number}) {
+export async function enqueueVerificationJob(tx:VerificationTransaction,input:{companyId:number;attemptId:string;stage:string;evaluatorVersion:string;priority?:number;result?:Prisma.InputJsonValue}) {
  if(!['QUALITY','PRIVACY','COVERAGE','DUPLICATE','CLEANLINESS'].includes(input.stage)||!/^[a-zA-Z0-9._-]{1,100}$/.test(input.evaluatorVersion))throw new Error('Unsupported verification stage/version');
  await tx.$queryRaw`SELECT id FROM "VerificationAttempt" WHERE id=${input.attemptId} FOR UPDATE`;
  const existing=await tx.verificationJob.findUnique({where:{attemptId_stage_evaluatorVersion:{attemptId:input.attemptId,stage:input.stage,evaluatorVersion:input.evaluatorVersion}}});
@@ -30,7 +31,8 @@ export async function claimVerificationJob():Promise<VerificationJob|null> {
       j.priority DESC,j."availableAt",j."createdAt",j.id
     FOR UPDATE OF j SKIP LOCKED LIMIT 1
    ) UPDATE "VerificationJob" j SET state='RUNNING',attempts=j.attempts+1,
-     "leaseToken"=${randomUUID()},"leaseUntil"=NOW()+INTERVAL '90 seconds'
+     "leaseToken"=${randomUUID()},"leaseUntil"=NOW()+INTERVAL '90 seconds',
+     result=COALESCE(j.result,'{}'::jsonb)||jsonb_build_object('timing',COALESCE(j.result->'timing','{}'::jsonb)||jsonb_build_object('claimedAt',NOW(),'queueWaitMs',EXTRACT(EPOCH FROM (NOW()-j."availableAt"))*1000))
     FROM candidate WHERE j.id=candidate.id RETURNING j.*`;
   return jobs[0]??null;
  });
@@ -39,18 +41,22 @@ export async function renewJobLease(id:string,token:string) {
  return (await prisma.verificationJob.updateMany({where:{id,state:'RUNNING',leaseToken:token,leaseUntil:{gt:new Date()}},data:{leaseUntil:new Date(Date.now()+LEASE_MS)}})).count===1;
 }
 export async function publishJobResult(job:VerificationJob,result:Prisma.InputJsonValue,apply?:(tx:VerificationTransaction)=>Promise<void>) {
+ const structured=result&&typeof result==='object'&&!Array.isArray(result)?result:{};
+ const finalResult={...structured,timing:{...jobTiming(job.result),...jobTiming(result),publishedAt:new Date().toISOString()}};
  return prisma.$transaction(async tx=>{
-  const updated=await tx.verificationJob.updateMany({where:{id:job.id,state:'RUNNING',leaseToken:job.leaseToken,leaseUntil:{gt:new Date()}},data:{state:'SUCCEEDED',result,finishedAt:new Date(),leaseUntil:null,leaseToken:null}});
+  const updated=await tx.verificationJob.updateMany({where:{id:job.id,state:'RUNNING',leaseToken:job.leaseToken,leaseUntil:{gt:new Date()}},data:{state:'SUCCEEDED',result:finalResult,finishedAt:new Date(),leaseUntil:null,leaseToken:null}});
   if(!updated.count)return false;
   if(apply)await apply(tx);
   return true;
  });
 }
 export async function failVerificationJob(job:VerificationJob,code='SERVICE_FAILURE',random=Math.random,metadata?:Record<string,unknown>) {
- const exhausted=job.attempts>RETRY_DELAYS_MS.length;
+ const permanent=['PROVIDER_NOT_CONFIGURED','PROVIDER_AUTH_FAILURE','PROVIDER_CONFIGURATION_INVALID','PROVIDER_CONFIGURATION_CHANGED','PROVIDER_UNSUPPORTED_IMAGE','PROVIDER_THRESHOLD_NOT_VERSIONED','PROVIDER_THRESHOLD_NOT_CONFIGURED','INVALID_MODEL'].includes(code);
+ const exhausted=permanent||job.attempts>RETRY_DELAYS_MS.length;
+ verificationEvent('JOB_FAILURE',{attemptId:job.attemptId,jobId:job.id,stage:job.stage},{code,claimCount:job.attempts,exhausted});
  const delay=RETRY_DELAYS_MS[Math.min(job.attempts-1,RETRY_DELAYS_MS.length-1)]!;
  return prisma.$transaction(async tx=>{
-  const changed=await tx.verificationJob.updateMany({where:{id:job.id,state:'RUNNING',leaseToken:job.leaseToken,leaseUntil:{gt:new Date()}},data:{state:exhausted?'FAILED':'RETRY_WAIT',lastErrorCode:code,...(metadata?{result:JSON.parse(JSON.stringify({...metadata,retryCount:Math.max(0,job.attempts-1)})) as Prisma.InputJsonValue}:{}),availableAt:new Date(Date.now()+delay*(.9+.2*random())),finishedAt:exhausted?new Date():null,leaseUntil:null,leaseToken:null}});
+  const changed=await tx.verificationJob.updateMany({where:{id:job.id,state:'RUNNING',leaseToken:job.leaseToken,leaseUntil:{gt:new Date()}},data:{state:exhausted?'FAILED':'RETRY_WAIT',lastErrorCode:code,result:JSON.parse(JSON.stringify({...metadata,timing:jobTiming(job.result),retryCount:Math.max(0,job.attempts-1),lastErrorCode:code})) as Prisma.InputJsonValue,availableAt:new Date(Date.now()+delay*(.9+.2*random())),finishedAt:exhausted?new Date():null,leaseUntil:null,leaseToken:null}});
   if(changed.count&&exhausted){
    const initial=await tx.verificationAttempt.findUniqueOrThrow({where:{id:job.attemptId},select:{session:{select:{taskInstanceId:true}}}});
    await tx.$queryRaw`SELECT id FROM "TaskInstance" WHERE id=${initial.session.taskInstanceId} FOR UPDATE`;

@@ -57,3 +57,10 @@ it.each(['WRONG_ITEM','DUPLICATE','PRIVACY_HOLD','MISSING_DUPLICATE_CHECK'])('do
  await expect(processVerificationJob({id:'job',leaseToken:'lease',companyId:1,attemptId:'attempt',stage:'CLEANLINESS',evaluatorVersion:'test'} as any,provider as any,read,cleanliness)).rejects.toThrow('INVALID_CONTROLLED_CAPTURE');
  expect(cleanliness.evaluate).not.toHaveBeenCalled();expect(provider.assess).not.toHaveBeenCalled();
 });
+
+it.each([['THRESHOLD_UNCONFIGURED','PROVIDER_THRESHOLD_NOT_CONFIGURED'],['INVALID_RESPONSE','PROVIDER_MALFORMED']])('keeps operational %s from causing a photographic retake',async(status,code)=>{
+ vi.mocked(prisma.verificationJob.findFirst).mockResolvedValue({id:'job'} as any);vi.mocked(prisma.verificationJob.findMany).mockResolvedValue([]);
+ vi.mocked(prisma.verificationAttempt.findUniqueOrThrow).mockResolvedValue({id:'attempt',media:{companyId:1,deliveryType:'authenticated',sanitizedPublicId:'private',privacyState:'SAFE'},qualityResult:{acceptable:true},coverageResult:{result:{verdict:'MATCH',identityConsistent:true,privacyFlag:false},duplicate:{exact:[]}},duplicateResult:{exact:[]},session:{},requirement:{viewKey:'bowl_seat',item:{typeSnapshot:'toilet',rubricSnapshot:{version:1}}}} as any);
+ const cleanliness={evaluate:vi.fn().mockResolvedValue({result:{verdict:'CANNOT_ASSESS',details:{assessmentStatus:status},surfaces:[]},metadata:{provider:'cloudflare',latencyMs:1}})};
+ await expect(processVerificationJob({id:'job',leaseToken:'lease',companyId:1,attemptId:'attempt',stage:'CLEANLINESS',evaluatorVersion:'test'} as any,{assess:vi.fn()} as any,vi.fn().mockResolvedValue(Buffer.from('image')),cleanliness)).rejects.toMatchObject({code});
+});

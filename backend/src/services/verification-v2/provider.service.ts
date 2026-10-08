@@ -18,12 +18,25 @@ export class ConfiguredImageProvider implements ImageAssessmentProvider{
    }else if(provider==='gemini'){
     if(!process.env.GEMINI_API_KEY)throw new ProviderServiceFailure('PROVIDER_NOT_CONFIGURED');model=process.env.GEMINI_VISION_MODEL??'gemini-3.6-flash';if(!/^[a-zA-Z0-9._-]+$/.test(model))throw new ProviderServiceFailure('INVALID_MODEL');
     const response=await fetch(`https://generativelanguage.googleapis.com/v1beta/models/${model}:generateContent`,{method:'POST',headers:{'content-type':'application/json','x-goog-api-key':process.env.GEMINI_API_KEY},signal:AbortSignal.timeout(30000),body:JSON.stringify({system_instruction:{parts:[{text:instruction}]},contents:[{role:'user',parts:images.map(bytes=>({inline_data:{mime_type:'image/jpeg',data:bytes.toString('base64')}}))}],generationConfig:{responseMimeType:'application/json',responseJsonSchema:z.toJSONSchema(schema),maxOutputTokens:1200}})});
-    if(!response.ok)throw new ProviderServiceFailure('PROVIDER_UNAVAILABLE');const data:any=await response.json();if(data.candidates?.[0]?.finishReason!=='STOP')throw new ProviderServiceFailure('PROVIDER_REFUSAL');raw=data.candidates[0].content?.parts?.map((p:any)=>p.text??'').join('');usage=data.usageMetadata;requestId=data.responseId??null;returnedModel=data.modelVersion;
+    if(!response.ok)throw new ProviderServiceFailure(providerHttpFailure(response.status),{provider,httpStatus:response.status,latencyMs:Date.now()-started,stage});const data:any=await response.json();if(data.candidates?.[0]?.finishReason!=='STOP')throw new ProviderServiceFailure('PROVIDER_REFUSAL');raw=data.candidates[0].content?.parts?.map((p:any)=>p.text??'').join('');usage=data.usageMetadata;requestId=data.responseId??null;returnedModel=data.modelVersion;
    }else throw new ProviderServiceFailure('PROVIDER_NOT_CONFIGURED');
    if(!raw)throw new ProviderServiceFailure('PROVIDER_EMPTY');const result=schema.safeParse(JSON.parse(raw));if(!result.success)throw new ProviderServiceFailure('PROVIDER_MALFORMED');
    return {result:result.data,metadata:providerMetadataSchema.parse({provider,model:typeof returnedModel==='string'&&returnedModel.trim()?returnedModel:model,requestedModel:model,providerVersion:'adapter-v1',promptVersion:`${stage}-v1`,requestId,latencyMs:Date.now()-started,usage:tokenUsage(usage),costUsd:null})};
-  }catch(e){if(e instanceof ProviderServiceFailure)throw e;throw new ProviderServiceFailure(e instanceof SyntaxError?'PROVIDER_MALFORMED':'PROVIDER_UNAVAILABLE');}
+  }catch(e){
+   const status=e&&typeof e==='object'&&'status' in e?Number(e.status):null;
+   const code=e instanceof ProviderServiceFailure?e.code:e instanceof SyntaxError?'PROVIDER_MALFORMED':status?providerHttpFailure(status):e instanceof Error&&['AbortError','TimeoutError','APIConnectionTimeoutError'].includes(e.name)?'PROVIDER_TIMEOUT':'PROVIDER_UNAVAILABLE';
+   throw new ProviderServiceFailure(code,{provider,stage,latencyMs:Date.now()-started,...(status?{httpStatus:status}:{}),...(e instanceof ProviderServiceFailure?e.metadata:{})});
+  }
  }
 }
 
 function tokenUsage(raw:unknown){const u=raw as Record<string,unknown>|null;const number=(v:unknown)=>typeof v==='number'&&Number.isSafeInteger(v)&&v>=0?v:null;return {inputTokens:number(u?.prompt_tokens??u?.promptTokenCount),outputTokens:number(u?.completion_tokens??u?.candidatesTokenCount),totalTokens:number(u?.total_tokens??u?.totalTokenCount)};}
+
+/** Permanent credentials/model failures must not consume the transient retry schedule. */
+export function providerHttpFailure(status:number){
+ if(status===401||status===403)return 'PROVIDER_AUTH_FAILURE';
+ if(status===400||status===404||status===422)return 'PROVIDER_CONFIGURATION_INVALID';
+ if(status===408||status===504)return 'PROVIDER_TIMEOUT';
+ if(status===429)return 'PROVIDER_RATE_LIMITED';
+ return 'PROVIDER_UNAVAILABLE';
+}

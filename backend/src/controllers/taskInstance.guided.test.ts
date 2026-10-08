@@ -1,25 +1,33 @@
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 import type { Request, Response } from 'express';
-const mocks=vi.hoisted(()=>({access:vi.fn(),lock:vi.fn(),update:vi.fn(),start:vi.fn()}));
-vi.mock('../prisma/prisma.js',()=>({prisma:{$transaction:async(fn:(tx:unknown)=>unknown)=>fn({taskInstance:{update:mocks.update}})}}));
+const mocks=vi.hoisted(()=>({access:vi.fn(),lock:vi.fn(),update:vi.fn(),start:vi.fn(),initial:vi.fn(),area:vi.fn(),areaLock:vi.fn(),audit:vi.fn()}));
+vi.mock('../prisma/prisma.js',()=>({prisma:{$transaction:async(fn:(tx:unknown)=>unknown)=>fn({taskInstance:{update:mocks.update,findFirst:mocks.initial},area:{findUnique:mocks.area},$queryRaw:mocks.areaLock})}}));
 vi.mock('../services/verification-v2/authorization.service.js',()=>({requireTaskAccess:mocks.access,requireLocationAccess:vi.fn()}));
 vi.mock('../services/verification-v2/captureSession.service.js',()=>({lockTask:mocks.lock}));
 vi.mock('../services/taskAssignment.service.js',()=>({markCurrentAssignmentStarted:mocks.start}));
+vi.mock('../services/auditLog.service.js',()=>({writeAuditLog:mocks.audit}));
+import {signAreaQr,signFixtureQr} from '../services/verification-v2/qr.service.js';
+process.env.VERIFICATION_QR_SECRET='test-start-qr-key-at-least-thirty-two-characters';
+const area={id:10,locationId:2,qrVersion:1,qrNonce:'start-room'};
 import {startTask,completeTask,retiredEvidenceEndpoint} from './taskInstance.controller.js';
-const request=()=>({params:{taskId:'1'},query:{},user:{id:7,companyId:1,role:'STAFF'}} as unknown as Request);
+const request=()=>({params:{taskId:'1'},query:{},body:{areaQr:signAreaQr(area)},user:{id:7,companyId:1,role:'STAFF'}} as unknown as Request);
 const response=()=>({json:vi.fn()} as unknown as Response);
 let task:Record<string,unknown>;
-beforeEach(()=>{vi.resetAllMocks();task={id:1,verificationVersion:2,status:'PENDING',shiftStart:new Date(Date.now()-60000),shiftEnd:new Date(Date.now()+3600000)};mocks.access.mockImplementation(async()=>task);mocks.update.mockImplementation(async({data})=>({...task,...data}));});
+beforeEach(()=>{vi.resetAllMocks();mocks.initial.mockResolvedValue({areaId:area.id});mocks.area.mockResolvedValue(area);task={id:1,areaId:area.id,locationId:2,assignmentEpoch:4,assignments:[{id:3,isCurrent:true,staffId:7}],verificationVersion:2,status:'PENDING',shiftStart:new Date(Date.now()-60000),shiftEnd:new Date(Date.now()+3600000)};mocks.access.mockImplementation(async()=>task);mocks.update.mockImplementation(async({data})=>({...task,...data}));});
 describe('guided-only task mutations',()=>{
- it('starts without any QR, while locking and recording the assignment once',async()=>{
+ it('starts with the signed assigned area QR and records a separate start event',async()=>{
   await startTask(request(),response());
   expect(mocks.lock).toHaveBeenCalledWith(expect.anything(),1);
   expect(mocks.access).toHaveBeenCalledWith(expect.objectContaining({id:7}),1,{staffMutation:true},expect.anything());
   expect(mocks.update).toHaveBeenCalledWith(expect.objectContaining({data:expect.objectContaining({status:'IN_PROGRESS'})}));
   expect(mocks.start).toHaveBeenCalledTimes(1);
+  expect(mocks.areaLock.mock.invocationCallOrder[0]).toBeLessThan(mocks.lock.mock.invocationCallOrder[0]!);
+  expect(mocks.audit).toHaveBeenCalledWith(expect.objectContaining({action:'TASK_STARTED_AREA_QR',newValue:expect.objectContaining({areaId:10,qrVersion:1,assignmentId:3,assignmentEpoch:4})}),expect.anything());
+  expect(JSON.stringify(mocks.audit.mock.calls)).not.toContain(signAreaQr(area));
  });
- it('ignores obsolete QR query data for a valid guided task',async()=>{const req=request();req.query.qrToken='old-template-qr';await startTask(req,response());expect(mocks.start).toHaveBeenCalledTimes(1);});
- it('does not restart an already started task',async()=>{task.status='IN_PROGRESS';await startTask(request(),response());expect(mocks.update).not.toHaveBeenCalled();expect(mocks.start).not.toHaveBeenCalled();});
+ it('rejects a missing area QR, including an obsolete template token',async()=>{const req=request();req.body={};req.query.qrToken='old-template-qr';await expect(startTask(req,response())).rejects.toMatchObject({statusCode:400,errors:[{code:'AREA_QR_REQUIRED'}]});expect(mocks.update).not.toHaveBeenCalled();});
+ it.each(['wrong-area','tampered','rotated','fixture'])('rejects %s QR without exposing another area or starting',async kind=>{const req=request();req.body.areaQr=kind==='wrong-area'?signAreaQr({...area,id:99}):kind==='rotated'?signAreaQr({...area,qrVersion:0}):kind==='fixture'?signFixtureQr(area,1):req.body.areaQr+'x';await expect(startTask(req,response())).rejects.toMatchObject({statusCode:422,errors:[{code:'AREA_QR_MISMATCH'}]});expect(mocks.update).not.toHaveBeenCalled();expect(mocks.start).not.toHaveBeenCalled();expect(mocks.audit).not.toHaveBeenCalled();});
+ it('does not restart an already started task',async()=>{task.status='IN_PROGRESS';await startTask(request(),response());expect(mocks.update).not.toHaveBeenCalled();expect(mocks.start).not.toHaveBeenCalled();expect(mocks.audit).not.toHaveBeenCalled();});
  it('requires inventory setup for historical tasks and never starts the old QR flow',async()=>{task.verificationVersion=1;await expect(startTask(request(),response())).rejects.toMatchObject({statusCode:409,errors:[{code:'INVENTORY_SETUP_REQUIRED'}]});expect(mocks.update).not.toHaveBeenCalled();});
  it.each(['ended','early','cancelled'])('preserves the %s task window/status gate',async kind=>{if(kind==='ended')task.shiftEnd=new Date(0);else if(kind==='early')task.shiftStart=new Date(Date.now()+600000);else task.status='CANCELLED';await expect(startTask(request(),response())).rejects.toMatchObject({statusCode:409});expect(mocks.update).not.toHaveBeenCalled();});
  it('authorization failure prevents every task mutation',async()=>{mocks.access.mockRejectedValue(new Error('Current active assignment required'));await expect(startTask(request(),response())).rejects.toThrow('assignment');expect(mocks.update).not.toHaveBeenCalled();});

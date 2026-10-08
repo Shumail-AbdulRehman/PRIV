@@ -11,7 +11,7 @@ type ApiAuthBridge = {
 
 let authBridge: ApiAuthBridge | null = null;
 let nativeAppVersion='0.0.0';
-export function configureNativeAppVersion(version:string|null){nativeAppVersion=version??'0.0.0';client.defaults.headers.common['X-Hygene-App-Version']=nativeAppVersion;}
+export function configureNativeAppVersion(version:string|null){nativeAppVersion=version??'0.0.0';client.defaults.headers.common['X-Hygene-App-Version']=nativeAppVersion;client.defaults.headers['X-Hygene-App-Version']=nativeAppVersion;}
 
 export const configureApiAuth = (bridge: ApiAuthBridge) => {
   authBridge = bridge;
@@ -72,6 +72,10 @@ client.interceptors.request.use(async (config) => {
   request._scope = scope;
   const tokens = await authBridge?.getTokens();
   if (request._scope !== (authBridge?.getScope() ?? null)) throw new Error('Account changed. Request stopped.');
+  // Use the actual native version even when a queued/retried request retains
+  // headers created before App initialized its version.
+  setHeader(config, 'X-Hygene-Workflow', '2');
+  setHeader(config, 'X-Hygene-App-Version', nativeAppVersion);
 
   if (isLoginRequest(config.url)) {
     removeHeader(config, "Authorization");

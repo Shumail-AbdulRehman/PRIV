@@ -3,7 +3,7 @@ const m=vi.hoisted(()=>({tx:{} as any,access:vi.fn(),nonce:vi.fn()}));
 vi.mock('../../prisma/prisma.js',()=>({prisma:{$transaction:(fn:any)=>fn(m.tx)}}));
 vi.mock('./authorization.service.js',()=>({requireTaskAccess:m.access}));
 vi.mock('./qr.service.js',()=>({verifyAreaQr:vi.fn(),slotNonce:()=> 'a'.repeat(40),hashNonce:m.nonce}));
-import {createCaptureSession,reserveAttempt,resumeSession,retakeSlots,sessionResponse,staffAttemptResult} from './captureSession.service.js';
+import {createCaptureSession,createReworkCaptureSession,reserveAttempt,resumeSession,retakeSlots,sessionResponse,staffAttemptResult} from './captureSession.service.js';
 const actor={role:'STAFF' as const,id:7,companyId:1};
 const sessionId='11111111-1111-4111-8111-111111111111',slotId='22222222-2222-4222-8222-222222222222';
 const input=()=>({deviceId:'phone',clientCaptureId:'33333333-3333-4333-8333-333333333333',slotId,nonce:'a'.repeat(40),sha256:'b'.repeat(64),claimedCapturedAt:new Date().toISOString(),elapsedMs:1000,bootId:'boot'});
@@ -31,15 +31,53 @@ describe('capture authority',()=>{
  it('withholds nonces after boot changes',async()=>{const session=await m.tx.captureSession.findUnique();m.tx.captureSession.findUniqueOrThrow.mockResolvedValue({...session,slots:[{id:slotId,generation:0}]});const response=await resumeSession(actor,sessionId,{deviceId:'phone',clientBootId:'reboot'});expect(response.requiresRenewal).toBe(true);expect(response.slots[0]?.nonce).toBeUndefined();});
  it('does not bypass tenant authorization for queued uploads',async()=>{m.access.mockRejectedValue(new Error('Task not found'));await expect(reserveAttempt({...actor,companyId:2},sessionId,input(),false)).rejects.toThrow('Task not found');expect(m.tx.verificationAttempt.create).not.toHaveBeenCalled();});
  it('returns only enumerated semantic results and catalog instructions',()=>{const result=staffAttemptResult({state:'RECAPTURE_REQUIRED',qualityResult:{acceptable:false,reasons:['BLURRY'],confidence:0.2},coverageResult:{result:{verdict:'WRONG_ITEM',reasonCode:'WRONG_ITEM',instructions:'malicious provider prose',confidence:0.9}},cleanlinessResult:{result:{verdict:'DIRTY',reasonCode:'CLEANING_REQUIRED',instructions:'raw prose'}}},true);expect(result.reasonCode).toBe('PHOTO_BLURRY');expect(result.instructions).toBe('Hold still and retake.');expect(JSON.stringify(result)).not.toMatch(/confidence|raw prose|malicious/);});
+ it.each([
+  ['PASSED','CLEAN','CLEAN',null,null],
+  ['CLEANING_REQUIRED','DIRTY','DIRTY',null,'SCAN_QR_FOR_REWORK'],
+  ['REVIEW_REQUIRED','CLEAN','NEEDS_REVIEW','AUTO_PASS_NOT_VALIDATED',null],
+  ['RECAPTURE_REQUIRED','CANNOT_ASSESS','NEEDS_REVIEW','CANNOT_ASSESS','REQUEST_RETAKE_SLOT'],
+  ['SERVICE_FAILURE',null,'NEEDS_REVIEW','SERVICE_FAILURE','WAIT_FOR_SERVICE'],
+ ] as const)('reports staff outcome for %s without changing its targeted action', (state,verdict,outcome,reviewReason,action)=>{
+  const dto=staffAttemptResult({state,qualityResult:{acceptable:true},coverageResult:{result:{verdict:'MATCH'}},cleanlinessResult:verdict?{result:{verdict,reasonCode:verdict==='DIRTY'?'CLEANING_REQUIRED':verdict}}:null},true);
+  expect(dto.cleanlinessOutcome).toBe(outcome);expect(dto.reviewReason).toBe(reviewReason);expect(dto.retryAction).toBe(action);expect(dto.manualOutcome).toBeNull();
+ });
+ it.each(['RESERVED','STORING','RECEIVED','QUALITY_CHECK','COVERAGE_CHECK','CLEANLINESS_CHECK','RETRY_WAIT'])('keeps %s pending without prematurely displaying a cleanliness outcome',state=>{
+  const dto=staffAttemptResult({state,qualityResult:null,coverageResult:null,cleanlinessResult:{result:{verdict:'CLEAN',reasonCode:'CLEAN'}}},true);
+  expect(dto.cleanlinessOutcome).toBeNull();expect(dto.reviewReason).toBeNull();
+ });
+ it('preserves photo and fixture failures as review outcomes with ordinary recapture',()=>{
+  for(const [qualityResult,coverageResult,reason] of [[{acceptable:false,reasons:['PHOTO_TOO_DARK']},null,'PHOTO_TOO_DARK'],[{acceptable:true},{result:{verdict:'WRONG_ITEM',reasonCode:'WRONG_ITEM'}},'WRONG_ITEM']] as const){
+   const dto=staffAttemptResult({state:'RECAPTURE_REQUIRED',qualityResult,coverageResult,cleanlinessResult:null},true);
+   expect(dto.cleanlinessOutcome).toBe('NEEDS_REVIEW');expect(dto.reviewReason).toBe(reason);expect(dto.retryAction).toBe('REQUEST_RETAKE_SLOT');
+  }
+ });
+ it.each(['MANAGER_ACCEPTED','WAIVED'])('keeps %s explicitly manual without an automatic CLEAN outcome',state=>{
+  const dto=staffAttemptResult({state:'PASSED',qualityResult:null,coverageResult:null,cleanlinessResult:{result:{verdict:'CLEAN',reasonCode:'CLEAN'}}},true,state);
+  expect(dto.manualOutcome).toBe(state);expect(dto.cleanlinessOutcome).toBeNull();expect(dto.reviewReason).toBeNull();expect(dto.retryAction).toBeNull();
+ });
+ it('uses the persisted policy reason to distinguish calibration hold from stale authority',()=>{
+  for(const policyDecisionReason of ['AUTO_PASS_NOT_VALIDATED','STALE_ASSIGNMENT','GPS_UNCERTAIN']){
+   const dto=staffAttemptResult({state:'REVIEW_REQUIRED',qualityResult:{acceptable:true},coverageResult:{result:{verdict:'MATCH'}},cleanlinessResult:{result:{verdict:'CLEAN',reasonCode:'CLEAN'},policyDecisionReason}},true);
+   expect(dto.cleanlinessOutcome).toBe('NEEDS_REVIEW');expect(dto.reviewReason).toBe(policyDecisionReason);
+  }
+ });
+ it('does not label an entrance coverage pass as a cleanliness pass',()=>{
+  const dto=staffAttemptResult({state:'PASSED',contextKey:'ENTRANCE',qualityResult:{acceptable:true},coverageResult:{result:{verdict:'MATCH'}},cleanlinessResult:null},true);
+  expect(dto.cleanlinessOutcome).toBeNull();
+ });
+ it('protects privacy and keeps technical failure separate from a privacy verdict',()=>{
+  expect(staffAttemptResult({state:'PRIVACY_HOLD',qualityResult:null,coverageResult:null,cleanlinessResult:{result:{verdict:'DIRTY',reasonCode:'CLEANING_REQUIRED'}}},false)).toMatchObject({cleanlinessOutcome:'NEEDS_REVIEW',reviewReason:'PRIVACY_HOLD'});
+  expect(staffAttemptResult({state:'SERVICE_FAILURE',qualityResult:null,coverageResult:null,cleanlinessResult:null},false)).toMatchObject({cleanlinessOutcome:'NEEDS_REVIEW',reviewReason:'SERVICE_FAILURE'});
+ });
  it('suppresses coverage and cleanliness while privacy is held',()=>{const result=staffAttemptResult({state:'PRIVACY_HOLD',qualityResult:null,coverageResult:{result:{verdict:'MATCH'}},cleanlinessResult:{result:{verdict:'CLEAN'}}},false);expect(result.results.coverage).toBeNull();expect(result.results.cleanliness).toBeNull();expect(result.retryAction).toBeNull();expect(result.reasonCode).toBe('PRIVACY_HOLD');});
- it('distinguishes retrying an upload from retaking a photo and service retries',()=>{for(const [state,action] of [['RESERVED','RETRY_UPLOAD'],['CLEANING_REQUIRED','REQUEST_RETAKE_SLOT'],['SERVICE_FAILURE','WAIT_FOR_SERVICE']])expect(staffAttemptResult({state:state!,qualityResult:null,coverageResult:null,cleanlinessResult:null},true).retryAction).toBe(action);});
+ it('distinguishes retrying an upload from retaking a photo and service retries',()=>{for(const [state,action] of [['RESERVED','RETRY_UPLOAD'],['CLEANING_REQUIRED','SCAN_QR_FOR_REWORK'],['SERVICE_FAILURE','WAIT_FOR_SERVICE']])expect(staffAttemptResult({state:state!,qualityResult:null,coverageResult:null,cleanlinessResult:null},true).retryAction).toBe(action);});
  it('renews unresolved generations while excluding passed and processing evidence',async()=>{
  const now=new Date(),old=await m.tx.captureSession.findUnique();old.state='EXPIRED';
  m.access.mockResolvedValue({id:9,verificationVersion:2,areaId:4,status:'IN_PROGRESS',assignmentEpoch:2,shiftEnd:new Date(+now+60000),startedAt:new Date(+now-10000),location:{latitude:0,longitude:0,radiusMeters:100},assignments:[{id:3,isCurrent:true,staffId:7,status:'STARTED'}]});
  m.tx.verificationRequest={findUnique:vi.fn().mockResolvedValue(null),create:vi.fn()};m.tx.captureSession.findFirst=vi.fn().mockResolvedValueOnce(null).mockResolvedValueOnce(old);m.tx.captureSession.count=vi.fn().mockResolvedValue(0);m.tx.captureSession.create=vi.fn().mockResolvedValue({id:sessionId,captureExpiresAt:new Date(+now+60000)});
  m.tx.taskEvidenceRequirement={findMany:vi.fn().mockResolvedValueOnce([]).mockResolvedValueOnce([{id:'missing',decisionVersion:0,state:'MISSING'}]),update:vi.fn()};m.tx.verificationAttempt.findMany=vi.fn().mockResolvedValue([]);m.tx.taskInstance={update:vi.fn()};
  await createCaptureSession(actor,9,{requestId:sessionId,areaQr:'qr',deviceId:'phone',clientBootId:'boot',location:{latitude:0,longitude:0,accuracy:5,sampledAt:now.toISOString()},clientTime:now.toISOString()});
- expect(m.tx.taskEvidenceRequirement.findMany.mock.calls[1][0].where.state.notIn).toEqual(['PASSED','MANAGER_ACCEPTED','WAIVED','PROCESSING']);
+ expect(m.tx.taskEvidenceRequirement.findMany.mock.calls[1][0].where.state.notIn).toEqual(['PASSED','MANAGER_ACCEPTED','WAIVED','PROCESSING','CLEANING_REQUIRED','REVIEW_REQUIRED']);
  expect(m.tx.taskEvidenceRequirement.update).toHaveBeenCalledExactlyOnceWith({where:{id:'missing'},data:{decisionVersion:1}});
  expect(m.tx.captureSlot.create.mock.calls[2][0].data).toMatchObject({requirementId:'missing',generation:1});
  m.tx.captureSession.findFirst.mockResolvedValueOnce(null).mockResolvedValueOnce({...old,deviceId:'other-phone'});
@@ -73,6 +111,25 @@ describe('capture authority',()=>{
  it('rejects changed commitment',async()=>{const raw=input();m.tx.verificationAttempt.findUnique.mockResolvedValue({slotId,committedHash:'c'.repeat(64),claimedCapturedAt:new Date(raw.claimedCapturedAt),anchoredElapsedMs:1000n});await expect(reserveAttempt(actor,sessionId,raw,false)).rejects.toThrow('different evidence');});
  it('bounds capture rate',async()=>{m.tx.verificationAttempt.count.mockResolvedValue(50);await expect(reserveAttempt(actor,sessionId,input(),false)).rejects.toThrow('Too many');expect(m.tx.captureSlot.update).not.toHaveBeenCalled();});
  it('locks resume and signals reboot renewal',async()=>{await expect(resumeSession(actor,sessionId,{deviceId:'phone',clientBootId:'reboot'})).resolves.toMatchObject({requiresRenewal:true});expect(m.tx.$queryRaw).toHaveBeenCalled();});
+ it('requires a fresh QR and explicit unique DIRTY targets for rework',async()=>{
+  const raw={requestId:sessionId,deviceId:'phone',clientBootId:'boot',location:{latitude:0,longitude:0,accuracy:5,sampledAt:new Date().toISOString()},clientTime:new Date().toISOString(),requirements:[{requirementId:slotId,expectedGeneration:1}]};
+  await expect(createReworkCaptureSession(actor,9,raw)).rejects.toThrow();
+  await expect(createReworkCaptureSession(actor,9,{...raw,areaQr:'qr',requirements:[]})).rejects.toThrow();
+  await expect(createReworkCaptureSession(actor,9,{...raw,areaQr:'qr',requirements:[...raw.requirements,...raw.requirements]})).rejects.toThrow();
+  expect(m.tx.captureSession.update).not.toHaveBeenCalled();
+ });
+ it('refuses DIRTY retakes under existing session authority',async()=>{
+  m.tx.taskEvidenceRequirement={findFirst:vi.fn().mockResolvedValue({id:slotId,state:'CLEANING_REQUIRED',decisionVersion:1}),update:vi.fn()};
+  await expect(retakeSlots(actor,sessionId,{deviceId:'phone',requirements:[{requirementId:slotId,expectedGeneration:1}]})).rejects.toThrow('scan the area QR again');
+  expect(m.tx.taskEvidenceRequirement.update).not.toHaveBeenCalled();expect(m.tx.captureSlot.create).not.toHaveBeenCalled();
+ });
+ it('refuses new captures against DIRTY views even through offline upload',async()=>{
+  m.tx.captureSlot.findFirst.mockResolvedValue({id:slotId,requirementId:'requirement',nonceHash:'hash',generation:0,expiresAt:new Date(Date.now()+60000)});
+  m.tx.taskEvidenceRequirement={findUniqueOrThrow:vi.fn().mockResolvedValue({id:'requirement',taskVerificationItemId:5,state:'CLEANING_REQUIRED',decisionVersion:1}),update:vi.fn()};
+  m.tx.taskVerificationItem={findFirst:vi.fn().mockResolvedValue({id:5})};
+  await expect(reserveAttempt(actor,sessionId,input(),false)).rejects.toThrow('scan the area QR again');
+  expect(m.tx.verificationAttempt.create).not.toHaveBeenCalled();expect(m.tx.taskEvidenceRequirement.update).not.toHaveBeenCalled();
+ });
  it('allocates failed context retakes',async()=>{m.tx.captureSlot.findFirst.mockResolvedValue({generation:0,attemptId:'old'});m.tx.verificationAttempt.findUnique.mockResolvedValue({state:'RECAPTURE_REQUIRED'});expect((await retakeSlots(actor,sessionId,{deviceId:'phone',contexts:[{contextKey:'ENTRANCE',expectedGeneration:0}]}))[0]).toMatchObject({contextKey:'ENTRANCE',generation:1});});
  it('preserves passed context',async()=>{m.tx.captureSlot.findFirst.mockResolvedValue({generation:0,attemptId:'old'});m.tx.verificationAttempt.findUnique.mockResolvedValue({state:'PASSED'});await expect(retakeSlots(actor,sessionId,{deviceId:'phone',contexts:[{contextKey:'ENTRANCE',expectedGeneration:0}]})).rejects.toThrow('not available');});
 });

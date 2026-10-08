@@ -1,4 +1,3 @@
-import { client } from '../api/client';
 import { useEffect } from "react";
 import { Alert, RefreshControl, ScrollView, View } from "react-native";
 import { useNavigation } from "@react-navigation/native";
@@ -50,14 +49,7 @@ export function TasksScreen() {
     }
   };
 
-  const handleStartTask = async (task: TaskInstance) => {
-    try {
-      await client.post(`/task-instance/${task.id}/start`);
-      await tasksQuery.refetch();
-    } catch (error) {
-      Alert.alert('Cannot start cleaning', (error as {response?:{data?:{message?:string}}}).response?.data?.message ?? 'Cannot reach the server. Check your connection and try again.');
-    }
-  };
+  const handleStartTask = (task: TaskInstance) => navigation.navigate('StartTask', { taskId: task.id });
 
   const handleCompleteTask = (task: TaskInstance) => {
     navigation.navigate('Verification', { taskId: task.id });

@@ -1,4 +1,5 @@
 import {z} from 'zod';
+import {cleanlinessReleaseStatus} from './cleanlinessRelease.js';
 import {requiredRubricSurfaces} from './rubrics.js';
 import type {ImageAssessmentProvider,Assessment} from './provider.service.js';
 // Historical NEEDS_ATTENTION means localized visible dirt; new results use DIRTY.
@@ -20,5 +21,5 @@ export async function assessCleanliness(provider:ImageAssessmentProvider,image:B
  const assessment=await provider.assess('cleanliness',`Assess visible cleanliness only after controlled capture, privacy and coverage passed. Never use a reference image or similarity score. Hidden/unreadable required surface must be CANNOT_ASSESS, not DIRTY. Snapshot rubric: ${JSON.stringify(rubric)}. Required view: ${view}. Assess exactly these surfaces individually: ${JSON.stringify(surfaces)}. JSON: verdict CLEAN/DIRTY/CANNOT_ASSESS, surfaces [{surface,verdict}], reasonCode CLEAN/CLEANING_REQUIRED/CANNOT_ASSESS. Aggregate prioritizes CANNOT_ASSESS, then DIRTY, then CLEAN.`,[image],cleanlinessResultSchema);
  return {...assessment,result:validateCleanlinessResult(assessment.result,surfaces),rubricVersion:(rubric as {version:number}).version};
 }
-/** No fixture is eligible until a measured held-out benchmark is recorded and reviewed. */
-export function autoPassAllowed(_fixtureType:string){return false;}
+/** Exact evaluated configuration and fixture/rubric qualification are required. */
+export function autoPassAllowed(fixtureType:string,rubricVersion=1){return cleanlinessReleaseStatus(fixtureType,rubricVersion).allowed;}

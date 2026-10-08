@@ -1,4 +1,3 @@
-import {createHash} from 'node:crypto';
 import sharp from 'sharp';
 import {z} from 'zod';
 import {ProviderServiceFailure,type Assessment} from './provider.service.js';
@@ -11,19 +10,9 @@ export const clefAnswerSchema=z.object({type:z.literal('choice'),choice,confiden
  const values=Object.values(a.probabilities);
  if(Math.abs(values.reduce((sum,p)=>sum+p,0)-1)>0.0001||a.probabilities[a.choice]!==Math.max(...values))ctx.addIssue({code:'custom',message:'Inconsistent probabilities'});
 });
-export function clefConfiguration(){
- const model=z.enum(['clef','clef-flash']).parse(process.env.CLEF_MODEL??'clef');
- const raw=process.env.CLEF_CONFIDENCE_THRESHOLD;
- const threshold=raw?.trim()?probability.parse(Number(raw)):null;
- const thresholdVersion=z.string().regex(/^[a-zA-Z0-9._-]{1,60}$/).parse(process.env.CLEF_THRESHOLD_VERSION??'unvalidated-no-threshold');
- if(threshold!==null&&!process.env.CLEF_THRESHOLD_VERSION)throw new ProviderServiceFailure('PROVIDER_THRESHOLD_NOT_VERSIONED');
- const timeoutMs=z.coerce.number().int().min(100).max(60000).parse(process.env.CLEF_TIMEOUT_MS??30000);
- return {model,threshold,thresholdVersion,timeoutMs,promptVersion:'clef-surfaces-v1',providerVersion:'cloudflare-system-one-v1'};
-}
-export function clefEvaluatorVersion(){
- const c=clefConfiguration();
- return 'clef-v1-'+createHash('sha256').update(JSON.stringify([c.model,c.threshold,c.thresholdVersion,c.promptVersion,c.providerVersion])).digest('hex').slice(0,24);
-}
+import {clefConfiguration} from './clefConfiguration.js';
+import {cleanlinessReleaseStatus} from './cleanlinessRelease.js';
+export {clefConfiguration,clefEvaluatorVersion} from './clefConfiguration.js';
 /** Cleanliness only; the durable queue owns retries. No reference/context/identity images. */
 export class ClefCleanlinessProvider implements CleanlinessProvider{
  async evaluate(image:Buffer,rubric:unknown,view:string,fixtureType='UNKNOWN'):Promise<Assessment<CleanlinessResult>>{
@@ -49,7 +38,7 @@ export class ClefCleanlinessProvider implements CleanlinessProvider{
   const envelope=await response.json().catch(()=>null) as any;
   if(envelope?.success===false)throw new ProviderServiceFailure('PROVIDER_UNAVAILABLE');
   const data=envelope?.result;
-  const metadata={provider:'cloudflare',model:typeof data?.model==='string'?data.model:config.model,requestedModel:`@cf/cloudflare/${config.model}`,providerVersion:config.providerVersion,promptVersion:config.promptVersion,requestId:response.headers.get('cf-ray'),latencyMs:Date.now()-started,usage:data?.usage??null,costUsd:null,threshold:config.threshold,thresholdVersion:config.thresholdVersion,thresholdValidated:false,status:'SUCCESS'};
+  const metadata={provider:'cloudflare',model:typeof data?.model==='string'?data.model:config.model,requestedModel:`@cf/cloudflare/${config.model}`,providerVersion:config.providerVersion,promptVersion:config.promptVersion,requestId:response.headers.get('cf-ray'),latencyMs:Date.now()-started,usage:data?.usage??null,costUsd:null,threshold:config.threshold,thresholdVersion:config.thresholdVersion,thresholdValidated:cleanlinessReleaseStatus(fixtureType,(rubric as {version:number}).version).allowed,status:'SUCCESS'};
   const predictions:NonNullable<CleanlinessResult['details']>['predictions']=[];
   let malformed=!data?.answers||Object.keys(data.answers).length!==surfaces.length||![config.model,`@cf/cloudflare/${config.model}`].includes(data?.model);
   const assessed=surfaces.map((surface,i)=>{

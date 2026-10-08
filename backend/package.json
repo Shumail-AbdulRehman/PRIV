@@ -21,7 +21,11 @@
     "worker:verification:check": "node --check dist/workers/verificationWorker.js && node --check dist/workers/verificationWorkerHealth.js",
     "test:verification:worker": "tsx tests/verification.worker.integration.ts",
     "verification:spatial-evaluate": "tsx scripts/spatialEvaluation.ts",
-    "verification:clef-evaluate": "tsx scripts/clefHeldOutEvaluation.ts"
+    "verification:clef-evaluate": "tsx scripts/clefHeldOutEvaluation.ts",
+    "verification:trace": "tsx scripts/verificationTrace.ts",
+    "verification:latency:controlled": "tsx scripts/verificationControlledLatency.ts",
+    "verification:clef-calibrate": "tsx scripts/clefCalibration.ts",
+    "verification:clef-release": "tsx scripts/clefRelease.ts"
   },
   "keywords": [],
   "author": "",

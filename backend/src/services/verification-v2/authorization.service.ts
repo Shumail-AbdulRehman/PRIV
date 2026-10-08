@@ -29,14 +29,16 @@ export async function requireAreaAccess(actor:VerificationActor,id:number,db:Db=
 }
 export async function requireTaskAccess(actor:VerificationActor,id:number,options:{staffMutation?:boolean}={},db:Db=defaultDb) {
  if(options.staffMutation&&actor.role!=='STAFF') throw new ApiError(403,'Staff account required');
- await requireActiveActor(actor,db);
+ const activeActor=await requireActiveActor(actor,db);
  const task=await db.taskInstance.findUnique({where:{id},include:{location:true,assignments:{where:{OR:[{isCurrent:true},...(actor.role==='STAFF'&&!options.staffMutation?[{staffId:actor.id,status:'COMPLETED' as const}]:[])]}}}});
  if(!task||task.location.companyId!==actor.companyId) throw new ApiError(404,'Task not found');
  if(actor.role==='STAFF') {
-  const location=await requireLocationAccess(actor,task.locationId,db);
-  if(options.staffMutation&&!location.isActive)throw new ApiError(403,'Location is inactive');
+  // Both records were read from this connection, including inside locked
+  // mutations. Reuse them instead of rereading the actor and location three times.
+  if(!('locationId' in activeActor)||activeActor.locationId!==task.locationId)throw new ApiError(403,'Location access denied');
+  if(options.staffMutation&&!task.location.isActive)throw new ApiError(403,'Location is inactive');
   if(!task.isActive||task.staffId!==actor.id||!task.assignments.some(a=>a.staffId===actor.id&&((a.isCurrent!==false&&!['CANCELLED','REASSIGNED'].includes(a.status))||(!options.staffMutation&&task.status==='COMPLETED'&&a.status==='COMPLETED')))) throw new ApiError(403,'Current active assignment required');
- } else await requireLocationAccess(actor,task.locationId,db);
+ } else if(actor.role==='MANAGER'&&!await db.managerLocation.findUnique({where:{managerId_locationId:{managerId:actor.id,locationId:task.locationId}}}))throw new ApiError(403,'Location access denied');
  return task;
 }
 export async function requireAssignmentAccess(actor:VerificationActor,taskId:number,assignmentId:number,epoch:number,db:Db=defaultDb) {

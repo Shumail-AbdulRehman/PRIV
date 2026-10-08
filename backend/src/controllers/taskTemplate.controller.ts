@@ -1,5 +1,5 @@
 import { inventorySelectionSchema } from "../validations/area.validation.js";
-import { configureTemplateInventory, validateInventorySelection } from "../services/verification-v2/inventorySnapshot.service.js";
+import { configureTemplateInventory, validateInventorySelection, createTodaysTaskForNewTemplate } from "../services/verification-v2/inventorySnapshot.service.js";
 import { Request, Response } from "express";
 import { createTaskMultipartSchema, editTaskSchema } from "../validations/taskTemplate.validation.js";
 import { prisma } from "../prisma/prisma.js";
@@ -254,6 +254,7 @@ export const createTaskTemplate = async (req: Request, res: Response) => {
     const created=await tx.taskTemplate.create({data:{...result.data,sourceLegacyTemplateId,areaId:selection.data.areaId,verificationVersion:2}});
     await configureTemplateInventory(tx,created.id,location.id,selection.data);
     await writeAuditLog({companyId:req.user!.companyId,actorType:req.user!.role,actorId:req.user!.id,entityType:'TASK_TEMPLATE',entityId:created.id,action:'CONFIGURE_INVENTORY',newValue:selection.data},tx);
+    await createTodaysTaskForNewTemplate(tx,{...created,location});
     return tx.taskTemplate.findUniqueOrThrow({where:{id:created.id},include:{inventoryItems:true,area:true}});
   },INVENTORY_TRANSACTION_OPTIONS).catch(scheduleSaveError);
   res.status(201).json(new ApiResponse(201,template,'Task template created'));

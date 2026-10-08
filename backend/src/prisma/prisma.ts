@@ -8,7 +8,14 @@ const adapter = new PrismaPg({
     connectionString: process.env.DATABASE_URL!,
 });
 
-const prisma = new PrismaClient({ adapter, log: [ 'info', 'warn', 'error'] }).$extends({
+const prisma = new PrismaClient({
+    adapter,
+    log: ['info', 'warn', 'error'],
+    // Remote development databases can exceed five seconds across the locked
+    // authorization/start/session queries. Keep operations atomic and bounded,
+    // using the same budget as inventory creation rather than the Prisma default.
+    transactionOptions: { maxWait: 10_000, timeout: 30_000 },
+}).$extends({
     query: {
         manager: {
             async create({ args, query }) {

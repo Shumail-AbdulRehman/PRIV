@@ -126,5 +126,5 @@ Object.assign(reasonInstructions, {
  INACCESSIBLE:'Ask your manager to review access to this fixture.',GPS_STALE:'Take a fresh location reading.',GPS_INACCURATE:'Retry location where the signal is clearer.',
  GPS_OUTSIDE:'Return to the task location before verification.',GPS_UNCERTAIN:'Retry location. A manager may need to review.',CONTEXT_UNCERTAIN:'Retake the requested empty-room context.',
  MISSING_EVIDENCE:'Photograph the remaining required views.',CLEANING_REQUIRED:'Clean the affected surface, then retake that view.',STALE_ASSIGNMENT:'Refresh your assigned task before continuing.',
- CLOCK_UNCERTAIN:'Reconnect to confirm capture timing.',SETUP_REQUIRED:'Ask your manager to review the room inventory.',CLEAN:'The required visible surfaces passed.',
+ CLOCK_UNCERTAIN:'Reconnect to confirm capture timing.',SETUP_REQUIRED:'Ask your manager to review the room inventory.',CLEAN:'The required visible surfaces passed.',AUTO_PASS_NOT_VALIDATED:'Your photo is saved and waiting for manager review.',
 });

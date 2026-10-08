@@ -3,7 +3,7 @@ import * as SQLite from 'expo-sqlite';
 import * as SecureStore from 'expo-secure-store';
 import * as Crypto from 'expo-crypto';
 import { Directory, File, Paths } from 'expo-file-system';
-import type { Account, CaptureMetadata, LocalSession, QueueRow, QueueState } from './types';
+import type { Account, CaptureMetadata, CaptureTimings, LocalSession, QueueRow, QueueState } from './types';
 import { getFreeDiskStorageAsync } from 'expo-file-system/legacy';
 import { MAX_QUEUE_BYTES, MAX_QUEUE_PHOTOS } from './policy';
 import { databaseDirectoryUri } from './fileUri';
@@ -90,15 +90,25 @@ export async function saveCapture(metadata:CaptureMetadata, bytes:Uint8Array, sp
   if((await db().getFirstAsync<{count:number}>('SELECT COUNT(*) AS count FROM queue'))!.count>=2000)throw new Error('Too much saved work. Reconnect and ask your manager to finish reviewing pending tasks.');
   if(bytes.byteLength>5*1024*1024) throw new Error('Photo is too large. Please retake it.');
   if (await getFreeDiskStorageAsync() < bytes.byteLength * 3 + 10 * 1024 * 1024) throw new Error('Phone storage is low. Free some space before taking more photos.');
-  await db().withExclusiveTransactionAsync(async(tx)=>{
+  // Expo's exclusive transaction opens a second connection without this
+  // connection's SQLCipher key. All queue operations already run through
+  // scoped()/serialized(), so transact on the existing keyed connection.
+  await db().withTransactionAsync(async()=>{
+    const tx=db();
     const total=await tx.getFirstAsync<{count:number;size:number}>('SELECT COUNT(*) AS count, COALESCE(SUM(bytes),0) AS size FROM queue WHERE photo IS NOT NULL');
     if((total?.count??0)>=MAX_QUEUE_PHOTOS || (total?.size??0)+bytes.byteLength>MAX_QUEUE_BYTES) throw new Error('Photo storage is full. Connect to upload your saved photos before taking more.');
     await tx.runAsync('INSERT INTO queue(id,task_id,session_id,slot_id,metadata,photo,bytes,state) VALUES(?,?,?,?,?,?,?,?)',metadata.clientCaptureId,metadata.taskId,metadata.sessionId,metadata.slotId,JSON.stringify(metadata),bytes,bytes.byteLength,'SAVED');
     if(spatialCheckpoint){const row=await tx.getFirstAsync<{payload:string}>('SELECT payload FROM sessions WHERE task_id=?',metadata.taskId);if(!row)throw new Error('Saved capture session unavailable.');const local=JSON.parse(row.payload) as LocalSession;if(local.session.id!==metadata.sessionId)throw new Error('Capture session changed.');await tx.runAsync('UPDATE sessions SET payload=? WHERE task_id=?',JSON.stringify({...local,spatialCheckpoint}),metadata.taskId);}
   });
+  // T1 is sampled after the full-synchronous photo/metadata transaction has committed.
+  await db().runAsync('UPDATE queue SET metadata=? WHERE id=?',JSON.stringify({...metadata,timings:{...metadata.timings,durableSavedAt:Date.now()}}),metadata.clientCaptureId);
 }); }
 export async function queueBytes(id:string) { return scoped(async () => { const row=await db().getFirstAsync<{photo:Uint8Array|null}>('SELECT photo FROM queue WHERE id=?',id);if(!row?.photo) throw new Error('Saved photo unavailable.');return row.photo; }); }
-export async function updateQueue(id:string,state:QueueState, options:{attemptId?:string;error?:string;nextRetryAt?:number;retry?:boolean;releaseBytes?:boolean}={}) { return scoped(async () => {
+export async function updateQueue(id:string,state:QueueState, options:{attemptId?:string;error?:string;nextRetryAt?:number;retry?:boolean;releaseBytes?:boolean;timings?:CaptureTimings}={}) { return scoped(async () => {
+  if(options.timings){
+    const row=await db().getFirstAsync<{metadata:string}>('SELECT metadata FROM queue WHERE id=?',id);
+    if(row){const metadata=JSON.parse(row.metadata) as CaptureMetadata;await db().runAsync('UPDATE queue SET metadata=? WHERE id=?',JSON.stringify({...metadata,timings:{...metadata.timings,...options.timings}}),id);}
+  }
   await db().runAsync('UPDATE queue SET state=?, attempt_id=COALESCE(?,attempt_id), last_error=?, next_retry_at=?, retries=retries+?, photo=CASE WHEN ? THEN NULL ELSE photo END WHERE id=?',state,options.attemptId??null,options.error??null,options.nextRetryAt??0,options.retry?1:0,options.releaseBytes?1:0,id);
 }); }
 export async function pendingCount() { return scoped(async () => { return (await db().getFirstAsync<{count:number}>('SELECT COUNT(*) AS count FROM queue WHERE photo IS NOT NULL'))?.count??0; }); }

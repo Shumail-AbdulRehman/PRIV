@@ -1,5 +1,6 @@
 import { SpatialDiagnosticScreen } from '../screens/verification/SpatialDiagnosticScreen';
 import { VerificationScreen } from '../screens/verification/VerificationScreen';
+import { StartTaskScreen } from '../screens/StartTaskScreen';
 import { createNativeStackNavigator } from "@react-navigation/native-stack";
 import { useAuth } from "../auth/AuthContext";
 import { LoadingState } from "../components/LoadingState";
@@ -48,6 +49,7 @@ export function AppNavigator() {
           />
           {__DEV__ ? <Stack.Screen name="SpatialDiagnostic" component={SpatialDiagnosticScreen} options={{title:"Spatial diagnostic"}} /> : null}
           <Stack.Screen name="Verification" component={VerificationScreen} options={{title:"Task photos"}} />
+          <Stack.Screen name="StartTask" component={StartTaskScreen} options={{title:"Start cleaning"}} />
         </>
       ) : (
         <Stack.Screen

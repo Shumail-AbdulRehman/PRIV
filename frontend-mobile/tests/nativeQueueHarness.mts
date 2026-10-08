@@ -28,19 +28,27 @@ class TestDirectory {
  get exists(){return existsSync(this.path);}
  delete(){rmSync(this.path,{recursive:true,force:true});}
 }
-function openDatabaseAsync(name:string){const sql=new DatabaseSync(join(directory,name));const params=(input:unknown[])=>input.length===1&&Array.isArray(input[0])?input[0]:input;const db={
- execAsync:async(text:string)=>sql.exec(text.replace(/PRAGMA key[^;]*;/g,'')),
- getFirstAsync:async(text:string,...values:unknown[])=>text==='PRAGMA cipher_version;'?(cipherAvailable?{cipher_version:'TEST_ADAPTER_NOT_ENCRYPTED'}:null):sql.prepare(text).get(...params(values) as never[]),
- getAllAsync:async(text:string,...values:unknown[])=>sql.prepare(text).all(...params(values) as never[]),
- runAsync:async(text:string,...values:unknown[])=>sql.prepare(text).run(...params(values) as never[]),
- closeAsync:async()=>sql.close(),
- withExclusiveTransactionAsync:async(fn:(tx:unknown)=>Promise<void>)=>{sql.exec('BEGIN IMMEDIATE');try{await fn(db);sql.exec('COMMIT');}catch(error){sql.exec('ROLLBACK');throw error;}}
-};return Promise.resolve(db);}
+function openDatabaseAsync(name:string){
+ const sql=new DatabaseSync(join(directory,name));let keyed=false;
+ const params=(input:unknown[])=>input.length===1&&Array.isArray(input[0])?input[0]:input;
+ // SQLCipher keys belong to connections, not files. Model Expo's separate
+ // exclusive connection so ordinary SQLite no longer hides an unkeyed capture.
+ const requireKey=()=>{if(!keyed)throw new Error('file is not a database');};
+ const db={
+  execAsync:async(text:string)=>{if(/PRAGMA key/.test(text))keyed=true;if(!/^(BEGIN|ROLLBACK|COMMIT)$/.test(text))requireKey();sql.exec(text.replace(/PRAGMA key[^;]*;/g,''));},
+  getFirstAsync:async(text:string,...values:unknown[])=>{requireKey();return text==='PRAGMA cipher_version;'?(cipherAvailable?{cipher_version:'TEST_ADAPTER_NOT_ENCRYPTED'}:null):sql.prepare(text).get(...params(values) as never[]);},
+  getAllAsync:async(text:string,...values:unknown[])=>{requireKey();return sql.prepare(text).all(...params(values) as never[]);},
+  runAsync:async(text:string,...values:unknown[])=>{requireKey();return sql.prepare(text).run(...params(values) as never[]);},
+  closeAsync:async()=>sql.close(),
+  withTransactionAsync:async(fn:()=>Promise<void>)=>{requireKey();sql.exec('BEGIN');try{await fn();sql.exec('COMMIT');}catch(error){sql.exec('ROLLBACK');throw error;}},
+  withExclusiveTransactionAsync:async(fn:(tx:unknown)=>Promise<void>)=>{const tx=await openDatabaseAsync(name);try{await tx.execAsync('BEGIN');await fn(tx);await tx.execAsync('COMMIT');}catch(error){await tx.execAsync('ROLLBACK');throw error;}finally{await tx.closeAsync();}}
+ };return Promise.resolve(db);
+}
 const secure={getItemAsync:async(key:string)=>existsSync(join(directory,key))?readFileSync(join(directory,key),'utf8'):null,setItemAsync:async(key:string,value:string)=>writeFileSync(join(directory,key),value),WHEN_UNLOCKED_THIS_DEVICE_ONLY:1};
 (globalThis as unknown as {queueHarness:unknown}).queueHarness={sqlite:{openDatabaseAsync,defaultDatabaseDirectory:directory},secure,crypto:{getRandomBytesAsync:async(n:number)=>randomBytes(n),randomUUID},fs:{File:TestFile,Directory:TestDirectory,Paths:{cache:{path:directory,list:()=>readdirSync(directory).map(n=>new TestFile({path:directory},n))}}},free:()=>freeBytes,
  rn:{AppState:{get currentState(){return appState;},addEventListener:()=>({remove(){}})}},
  network:{fetch:async()=>({isConnected:connected,isInternetReachable:connected}),addEventListener:()=>()=>{}},
- location:{requestForegroundPermissionsAsync:async()=>({granted:true}),getCurrentPositionAsync:async()=>({coords:{latitude:0,longitude:0,accuracy:1},timestamp:Date.now()}),Accuracy:{Highest:1}},
+ location:{requestForegroundPermissionsAsync:async()=>({granted:true}),hasServicesEnabledAsync:async()=>true,watchPositionAsync:async(_options:unknown,next:(value:unknown)=>void)=>{next({coords:{latitude:0,longitude:0,accuracy:1},timestamp:Date.now()});return {remove(){}};},Accuracy:{High:1}},
  native:{requireOptionalNativeModule:()=>({clock:()=>({bootId:'test-boot',elapsedMs:1000})})}
 };
 const mocks:Record<string,string>={

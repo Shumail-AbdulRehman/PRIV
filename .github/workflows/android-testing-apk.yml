@@ -136,18 +136,20 @@ jobs:
         run: |
           npm run validate:device-config
           mkdir -p build-output
-          if [[ ! -d android ]]; then
-            npx expo prebuild --platform android --no-install
-          fi
+          # Apply current native plugins even when a generated directory exists.
+          npx expo prebuild --platform android --no-install
           npx expo-modules-autolinking resolve --platform android --json > build-output/autolinking.json
           python3 - <<'PY'
-          import json
+          import json, hashlib
           from pathlib import Path
           modules = json.loads(Path('build-output/autolinking.json').read_text())['modules']
           names = {module['packageName'] for module in modules}
           required = {'capture-quality', 'spatial-tracking', 'expo-camera', 'expo-location',
                       'expo-sqlite', 'expo-secure-store', 'expo-file-system', 'expo-crypto'}
           assert required <= names, f'Missing native modules: {required - names}'
+          model = Path('android/app/src/main/assets/clip-vision-int8.onnx')
+          assert hashlib.sha256(model.read_bytes()).hexdigest() == '583fd1110a514667812fee7d684952aaf82a99b959760c8d7dca7e0ab9839299'
+          assert 'com.microsoft.onnxruntime:onnxruntime-android:1.24.3' in Path('android/build.gradle').read_text()
           assert 'expo.sqlite.useSQLCipher=true' in Path('android/gradle.properties').read_text()
           assert 'autoIdentityAcceptance:z.literal(false)' in Path('../backend/src/services/verification-v2/spatial.contracts.ts').read_text().replace(' ', '')
           assert 'returnfalse;' in Path('../backend/src/services/verification-v2/cleanliness.service.ts').read_text().replace(' ', '')

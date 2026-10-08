@@ -28,7 +28,7 @@ test('offline and suspended sync retain bytes; reconnect uploads exact metadata 
  configureApiAuth({getScope:()=>queue.queueAccount(),getTokens:async()=>({accessToken:'access',refreshToken:'refresh'}),setTokens:async()=>{},clearSession:async()=>{}});
  const fetch=globalThis.fetch;const adapter=client.defaults.adapter;let uploads=0;
  client.defaults.adapter=async(config)=>({data:{data:{id:'server-attempt',state:'REVIEW_REQUIRED'}},status:200,statusText:'OK',headers:{},config});
- globalThis.fetch=async(_url,input)=>{uploads++;const body=input!.body as FormData;assert.deepEqual([...(body as unknown as {keys():IterableIterator<string>}).keys()].sort(),['photo','clientCaptureId','slotId','nonce','sha256','claimedCapturedAt','elapsedMs','bootId','deviceId'].sort());assert.equal(body.get('clientCaptureId'),'capture-id');return new Response(JSON.stringify({data:{attemptId:'server-attempt',assetId:'stored-asset',state:'RECEIVED'}}),{status:202});};
+ globalThis.fetch=async(_url,input)=>{uploads++;const body=input!.body as FormData;assert.deepEqual([...(body as unknown as {keys():IterableIterator<string>}).keys()].sort(),['photo','clientCaptureId','slotId','nonce','sha256','claimedCapturedAt','elapsedMs','bootId','deviceId','clientDiagnostics'].sort());assert.equal(body.get('clientCaptureId'),'capture-id');const diagnostics=JSON.parse(String(body.get('clientDiagnostics')));assert.ok(diagnostics.durableSavedAt);assert.ok(diagnostics.uploadStartedAt);return new Response(JSON.stringify({data:{attemptId:'server-attempt',assetId:'stored-asset',state:'RECEIVED'}}),{status:202});};
  try{setConnectivity(false);await syncEvidence();assert.equal(await queue.pendingCount(),1);assert.equal(uploads,0);setConnectivity(true);setAppState('background');await syncEvidence();assert.equal(uploads,0);setAppState('active');await syncEvidence();assert.equal(uploads,1);assert.equal(await queue.pendingCount(),0);await syncEvidence();assert.equal((await queue.queueRows())[0].state,'FINAL');}finally{globalThis.fetch=fetch;client.defaults.adapter=adapter;}
 });
 test('only durable server acknowledgment releases bytes; metadata remains resumable',async()=>{
@@ -105,3 +105,42 @@ test('spatial JSON accompanies both multipart retry and optional manifest withou
  try{await uploadCapture(row,queue.queueAccount()!);await commitManifest(row);assert.deepEqual(Array.from(await queue.queueBytes('spatial')),[8]);}finally{globalThis.fetch=originalFetch;client.defaults.adapter=adapter;}
 });
 after(async()=>{await queue.lockQueue();rmSync(directory,{recursive:true,force:true});});
+
+test('capture rollback retains no partial photo when its spatial session update fails',async()=>{
+ await queue.unlockQueue({companyId:6,id:6});
+ const metadata={taskId:600,sessionId:'missing-session',slotId:'rollback-slot',clientCaptureId:'rollback-photo',nonce:'n',sha256:'h',claimedCapturedAt:'2026-10-07T00:00:00Z',elapsedMs:1,bootId:'boot',deviceId:'device'};
+ await assert.rejects(queue.saveCapture(metadata,new Uint8Array([6]),{worldId:'world',sequence:1,worldStartedElapsedMs:0,continuity:'CONTINUOUS',interruptionReasons:[]}),/Saved capture session unavailable/);
+ assert.equal(await queue.pendingCount(),0);assert.equal((await queue.queueRows()).length,0);
+ await queue.saveCapture(metadata,new Uint8Array([6]));assert.equal(await queue.pendingCount(),1);
+ await queue.lockQueue();await queue.unlockQueue({companyId:6,id:6});assert.deepEqual(Array.from(await queue.queueBytes('rollback-photo')),[6]);
+});
+
+test('concurrent capture saves serialize on the keyed connection and enforce the photo ceiling',async()=>{
+ await queue.unlockQueue({companyId:7,id:7});
+ const metadata={taskId:700,sessionId:'session',nonce:'n',sha256:'h',claimedCapturedAt:'2026-10-07T00:00:00Z',elapsedMs:1,bootId:'boot',deviceId:'device'};
+ for(let i=0;i<49;i++)await queue.saveCapture({...metadata,slotId:`seed-${i}`,clientCaptureId:`seed-${i}`},new Uint8Array([7]));
+ const outcomes=await Promise.allSettled([50,51].map(i=>queue.saveCapture({...metadata,slotId:`race-${i}`,clientCaptureId:`race-${i}`},new Uint8Array([7]))));
+ assert.equal(outcomes.filter(r=>r.status==='fulfilled').length,1);assert.equal(await queue.pendingCount(),50);
+});
+
+test('manual upload retry returns while a slow upload runs and exposes live queue changes',async()=>{
+ await queue.unlockQueue({companyId:88,id:88});
+ await queue.saveCapture({taskId:88,sessionId:'s',slotId:'slow',clientCaptureId:'slow',nonce:'n',sha256:'h',claimedCapturedAt:new Date().toISOString(),elapsedMs:1,bootId:'boot',deviceId:'device'},new Uint8Array([8]));
+ await queue.updateQueue('slow','RETRY_WAIT',{nextRetryAt:Date.now()+120000});
+ const {retrySavedUploads,syncEvidence,reconcileEvidence,subscribeEvidenceSync}=await import('./sync');
+ const {client}=await import('../api/client');const originalAdapter=client.defaults.adapter;
+ client.defaults.adapter=async config=>({data:{data:{id:'slow-ack',state:'RECEIVED'}},status:200,statusText:'OK',headers:{},config});
+ const original=globalThis.fetch;let release!:(value:Response)=>void,entered!:()=>void;
+ const started=new Promise<void>(resolve=>entered=resolve);let notifications=0;
+ const unsubscribe=subscribeEvidenceSync(()=>notifications++);
+ globalThis.fetch=async()=>{entered();return new Promise(resolve=>release=resolve);};
+ try{
+  await retrySavedUploads(88);await started;
+  assert.equal((await queue.queueRows(88))[0].state,'UPLOADING');
+  assert.ok(notifications>0,'Upload progress reaches the screen before the network responds');
+  await retrySavedUploads(88);
+  assert.equal((await queue.queueRows(88))[0].state,'UPLOADING');
+  release(new Response(JSON.stringify({data:{attemptId:'slow-ack',assetId:'asset',state:'RECEIVED'}}),{status:202}));
+  await syncEvidence();await reconcileEvidence();assert.equal((await queue.queueRows(88))[0].state,'PROCESSING');
+ }finally{await reconcileEvidence();unsubscribe();globalThis.fetch=original;client.defaults.adapter=originalAdapter;}
+});

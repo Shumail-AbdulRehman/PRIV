@@ -74,6 +74,10 @@ export async function finalizeTask(
   const required = task.verificationItems
     .filter((i) => i.mandatory)
     .flatMap((i) => i.requirements.filter((r) => r.mandatory));
+  // No authority can finalize unresolved mandatory views. Avoid expensive evidence
+  // and decision joins after every intermediate stage; successful completion still
+  // runs all presence, privacy, assignment and outstanding-job checks below.
+  if (required.some((r) => !["PASSED", "MANAGER_ACCEPTED", "WAIVED"].includes(r.state))) return null;
   const passed = required.filter(
     (r) => r.state === "PASSED" || r.state === "MANAGER_ACCEPTED",
   );
