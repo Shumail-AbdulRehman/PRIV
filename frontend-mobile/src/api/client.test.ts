@@ -1,8 +1,60 @@
 import assert from "node:assert/strict";
 import test from "node:test";
 import axios, { AxiosError, AxiosHeaders } from "axios";
+import AsyncStorage from '@react-native-async-storage/async-storage';
 import { client, configureApiAuth, configureNativeAppVersion } from "./client";
 import { uploadFormData } from "./client";
+import { changeApiServerAddress, refreshApiTokens } from './client';
+import { validateServerAddress } from './serverAddress';
+
+test('editable server address validates physical-device URLs', () => {
+  assert.equal(validateServerAddress(' http://10.54.199.4:8080/api/ '), 'http://10.54.199.4:8080/api');
+  assert.equal(validateServerAddress('https://example.com'), 'https://example.com/api');
+  for (const address of ['http://localhost:8080/api', 'http://10.0.2.2:8080/api',
+    'http://example.com/api', 'https://user:pass@example.com/api',
+    'http://10.54.199.4:8080/admin', 'http://10.54.199.4:8080/api?token=x']) {
+    assert.throws(() => validateServerAddress(address));
+  }
+});
+
+test('a saved server address drives login, ordinary requests, refresh and uploads', async (t) => {
+  t.mock.method(AsyncStorage, 'getItem', async () => null);
+  t.mock.method(AsyncStorage, 'setItem', async () => {});
+  const savedAdapter = client.defaults.adapter;
+  const savedFetch = globalThis.fetch;
+  const savedPost = axios.post;
+  let scope: string | null = null;
+  const addresses: string[] = [];
+  configureApiAuth({getScope:()=>scope,getTokens:async()=>({accessToken:null,refreshToken:'refresh'}),setTokens:async()=>{},clearSession:async()=>{}});
+  client.defaults.adapter = async config => {
+    addresses.push(String(config.baseURL));
+    return {data:{},status:200,statusText:'OK',headers:{},config};
+  };
+  axios.post = (async (url: string) => {
+    addresses.push(url);
+    return {data:{data:{accessToken:'new-token',refreshToken:'new-refresh'}}};
+  }) as typeof axios.post;
+  globalThis.fetch = async (url) => {
+    addresses.push(String(url));
+    return new Response(JSON.stringify({data:{}}),{status:200});
+  };
+  try {
+    const address = await changeApiServerAddress('http://10.54.199.4:8080/api');
+    assert.equal(address, 'http://10.54.199.4:8080/api');
+    await client.post('/staff/staff-login',{});
+    await client.get('/common/get-current-user');
+    await refreshApiTokens();
+    await uploadFormData('/capture-session/test/attempts',()=>new FormData());
+    scope = '1_1';
+    await assert.rejects(changeApiServerAddress('http://192.168.1.2:8080/api'), /Sign out/);
+    assert.deepEqual(addresses,[address,address,`${address}/common/refresh-token`,`${address}/capture-session/test/attempts`]);
+  } finally {
+    scope = null;
+    client.defaults.adapter = savedAdapter;
+    globalThis.fetch = savedFetch;
+    axios.post = savedPost;
+  }
+});
 
 test('native version reaches session requests and uploads consistently, including stale request headers', async () => {
   const savedAdapter = client.defaults.adapter;

@@ -13,6 +13,7 @@ import AsyncStorage from "@react-native-async-storage/async-storage";
 import { useQueryClient } from "@tanstack/react-query";
 import { client, configureApiAuth } from "../api/client";
 import { STORAGE_KEY } from "../config";
+import { loadServerAddress } from '../api/serverAddress';
 import type { ApiEnvelope, AuthSession, AuthTokens, StaffUser } from "../types";
 
 type AuthContextValue = {
@@ -93,6 +94,7 @@ export function AuthProvider({ children }: PropsWithChildren) {
 
     void (async () => {
       try {
+        await loadServerAddress();
         if(Platform.OS !== "web") { try { cleanPreviousProcessCaptureCache(); } catch { /* Normal per-capture cleanup also runs. */ } }
         const legacy = await AsyncStorage.getItem(STORAGE_KEY);
         const storedSession = Platform.OS === "web" ? legacy : (await SecureStore.getItemAsync(STORAGE_KEY)) ?? legacy;

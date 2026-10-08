@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import {
   Alert,
   Image,
@@ -9,6 +9,8 @@ import {
 } from "react-native";
 import { useAuth } from "../auth/AuthContext";
 import { API_BASE_URL } from "../config";
+import { changeApiServerAddress } from '../api/client';
+import { getServerAddress, loadServerAddress } from '../api/serverAddress';
 import { Button } from "../components/ui/button";
 import { Input } from "../components/ui/input";
 import { Text } from "../components/ui/text";
@@ -20,6 +22,29 @@ export function LoginScreen() {
   const [password, setPassword] = useState("");
   const [loading, setLoading] = useState(false);
   const [lastError, setLastError] = useState<string | null>(null);
+  const [serverAddress, setServerAddress] = useState(API_BASE_URL);
+  const [serverDraft, setServerDraft] = useState(API_BASE_URL);
+  const [editingServer, setEditingServer] = useState(false);
+  const [savingServer, setSavingServer] = useState(false);
+
+  useEffect(() => {
+    void loadServerAddress().then(address => { setServerAddress(address); setServerDraft(address); });
+  }, []);
+
+  const saveServer = async () => {
+    try {
+      setSavingServer(true);
+      const address = await changeApiServerAddress(serverDraft);
+      setServerAddress(address);
+      setServerDraft(address);
+      setLastError(null);
+      setEditingServer(false);
+    } catch (error) {
+      Alert.alert('Server address', error instanceof Error ? error.message : 'Could not save the server address.');
+    } finally {
+      setSavingServer(false);
+    }
+  };
 
   const handleLogin = async () => {
     if (!email.trim() || !password.trim()) {
@@ -39,8 +64,8 @@ export function LoginScreen() {
         "Unable to sign in.";
 
       const detail =
-        ["ERR_NETWORK", "ECONNABORTED", "ETIMEDOUT"].includes(error?.code) && API_BASE_URL.startsWith("http://")
-          ? `${message}\n\nCurrent API URL: ${API_BASE_URL}\nIf this is a physical device, make sure the backend is reachable on the same network.`
+        ["ERR_NETWORK", "ECONNABORTED", "ETIMEDOUT"].includes(error?.code) && getServerAddress().startsWith("http://")
+          ? `${message}\n\nServer: ${getServerAddress()}\nCheck that your phone and server are on the same network, or change the server address below.`
           : message;
 
       setLastError(detail);
@@ -107,6 +132,7 @@ export function LoginScreen() {
             <Button
               className="w-full"
               loading={loading}
+              disabled={editingServer || savingServer}
               onPress={() => void handleLogin()}
             >
               Sign In
@@ -118,9 +144,27 @@ export function LoginScreen() {
 
             <View className="rounded-lg bg-secondary p-3 gap-1">
               <Text className="text-xs font-medium text-muted-foreground">
-                Connected endpoint
+                Server address
               </Text>
-              <Text className="text-xs text-muted-foreground">{API_BASE_URL}</Text>
+              <Text className="text-sm text-foreground" selectable>{serverAddress}</Text>
+              {editingServer ? (
+                <View className="gap-2 pt-2">
+                  <Input
+                    accessibilityLabel="Server address"
+                    autoCapitalize="none"
+                    autoCorrect={false}
+                    keyboardType="url"
+                    value={serverDraft}
+                    onChangeText={setServerDraft}
+                    placeholder="http://192.168.1.10:8080/api"
+                  />
+                  <Text className="text-xs text-muted-foreground">Use the server computer’s Wi-Fi address. Include :8080/api.</Text>
+                  <Button onPress={() => void saveServer()} loading={savingServer} disabled={loading}>Save address</Button>
+                  <Button variant="outline" onPress={() => { setServerDraft(serverAddress); setEditingServer(false); }} disabled={savingServer}>Cancel</Button>
+                </View>
+              ) : (
+                <Button variant="outline" onPress={() => setEditingServer(true)} disabled={loading}>Change server address</Button>
+              )}
             </View>
           </CardContent>
         </Card>

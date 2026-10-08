@@ -1,5 +1,5 @@
 import axios, { AxiosHeaders, InternalAxiosRequestConfig } from "axios";
-import { API_BASE_URL } from "../config";
+import { getServerAddress, loadServerAddress, saveServerAddress } from './serverAddress';
 import type { AuthTokens } from "../types";
 
 type ApiAuthBridge = {
@@ -16,6 +16,11 @@ export function configureNativeAppVersion(version:string|null){nativeAppVersion=
 export const configureApiAuth = (bridge: ApiAuthBridge) => {
   authBridge = bridge;
 };
+
+export async function changeApiServerAddress(input: string): Promise<string> {
+  if (authBridge?.getScope()) throw new Error('Sign out before changing the server address.');
+  return saveServerAddress(input);
+}
 
 const isFormData = (value: unknown): value is FormData =>
   typeof FormData !== "undefined" && value instanceof FormData;
@@ -60,12 +65,14 @@ const removeHeader = (config: InternalAxiosRequestConfig, key: string) => {
 export const accountRequest = (scope: string) => ({ _scope: scope } as import('axios').AxiosRequestConfig & { _scope: string });
 
 export const client = axios.create({
-  baseURL: API_BASE_URL,
+  baseURL: getServerAddress(),
   timeout: 20000,
   headers:{"X-Hygene-Workflow":"2","X-Hygene-App-Version":nativeAppVersion},
 });
 
 client.interceptors.request.use(async (config) => {
+  await loadServerAddress();
+  config.baseURL = getServerAddress();
   const request = config as InternalAxiosRequestConfig & { _scope?: string | null };
   const scope = authBridge?.getScope() ?? null;
   if (request._scope !== undefined && request._scope !== scope) throw new Error('Account changed. Request stopped.');
@@ -102,7 +109,8 @@ export const refreshApiTokens = (): Promise<Required<AuthTokens>> => {
     const tokens = await bridge.getTokens();
     if (!tokens.refreshToken) throw new Error("Sign in again to upload saved photos.");
     try {
-      const response = await axios.post(`${API_BASE_URL}/common/refresh-token`, { refreshToken: tokens.refreshToken }, { timeout: 20000 });
+      await loadServerAddress();
+      const response = await axios.post(`${getServerAddress()}/common/refresh-token`, { refreshToken: tokens.refreshToken }, { timeout: 20000 });
       const nextTokens = { accessToken: response.data.data.accessToken as string, refreshToken: response.data.data.refreshToken as string };
       if (bridge.getScope() !== scope || (await bridge.getTokens()).refreshToken !== tokens.refreshToken) throw new Error("Account changed during token refresh.");
       await bridge.setTokens(nextTokens);
@@ -137,6 +145,7 @@ client.interceptors.response.use(response => {
 
 /** Rebuild multipart after refresh; native fetch supports React Native file parts. */
 export const uploadFormData = async <T = unknown>(path: string, input: FormData | (() => FormData), timeoutMs = 20000, guard: () => boolean = () => true): Promise<T> => {
+  await loadServerAddress();
   const scope = authBridge?.getScope() ?? null;
   for (let retry = 0; retry < 2; retry++) {
     const tokens = await authBridge?.getTokens();
@@ -144,7 +153,7 @@ export const uploadFormData = async <T = unknown>(path: string, input: FormData 
     const controller = new AbortController();
     const timeout = setTimeout(() => controller.abort(), timeoutMs);
     try {
-      const response = await fetch(`${API_BASE_URL}${path}`, {
+      const response = await fetch(`${getServerAddress()}${path}`, {
         method: "POST", headers: {"X-Hygene-Workflow":"2","X-Hygene-App-Version":nativeAppVersion,...(tokens?.accessToken?{Authorization:`Bearer ${tokens.accessToken}`}:{})},
         body: typeof input === "function" ? input() : input, signal: controller.signal,
       });
