@@ -26,7 +26,7 @@ export function VerificationProgress({ manifest, local, rows, online, lastUpdate
   const detail = finished ? (manifest.task.completionOutcome==='COMPLETED_WITH_EXCEPTIONS'?'Your manager resolved the exceptions. Accepted and waived views are shown separately from Clean.':'All required checks passed. Your task result has been recorded.') : dirtyCount ? 'Clean only the views marked Dirty, then scan the area QR again. Clean and accepted views are kept.' : retakes ? 'Only retake the views with a retake instruction. Clean and accepted views are kept.' :
     review||serviceFailure||reviewCount ? 'Your photos are kept. Follow the instructions below; unresolved checks may need your manager.' : !online ? 'Connect to the network to continue uploading.' :
     delayed ? 'This is taking longer than usual. You can continue with the next item or return to your tasks. Your saved photos are kept.' : waiting || uploading ? 'Keep the app open while photos upload. You can continue taking the remaining photos.' :
-    missing ? 'Continue the photo guide to capture the remaining views.' : delayed ? 'Your photos reached the server. Checks are still pending; you can return to your tasks and check again later.' :
+    missing ? 'Continue the photo guide to capture the remaining views.' :
     'Results refresh automatically. A saved or uploaded photo is still waiting for verification.';
   return <View style={styles.root}>
     <View style={[styles.summary, (retakes > 0||reviewCount>0) && styles.attention]}>
@@ -69,7 +69,7 @@ const styles=StyleSheet.create({
   root:{gap:16},summary:{backgroundColor:colors.mint,borderRadius:20,padding:20,gap:10},attention:{backgroundColor:colors.paleAmber},
   eyebrow:{fontSize:11,fontWeight:'700',letterSpacing:1.3,color:colors.muted},title:{fontSize:24,lineHeight:30,fontWeight:'700',color:colors.ink},
   body:{fontSize:14,lineHeight:21,color:colors.muted},track:{height:6,borderRadius:3,backgroundColor:'#D4E4DF',overflow:'hidden',marginTop:6},fill:{height:6,backgroundColor:colors.teal},
-  metrics:{flexDirection:'row',justifyContent:'space-between',gap:8,flexWrap:'wrap'},metric:{fontSize:12,fontWeight:'600',color:colors.ink},
+  metrics:{flexDirection:'row',justifyContent:'space-between',gap:8,flexWrap:'wrap'},metric:{fontSize:14,fontWeight:'600',color:colors.ink},
   list:{borderWidth:1,borderColor:colors.border,borderRadius:16,paddingHorizontal:16},row:{flexDirection:'row',gap:12,paddingVertical:16,alignItems:'flex-start'},separator:{borderTopWidth:1,borderTopColor:colors.border},
-  marker:{width:30,height:30,borderRadius:15,backgroundColor:'#F2F5F4',alignItems:'center',justifyContent:'center'},rowTitle:{fontSize:15,fontWeight:'600',color:colors.ink},label:{fontSize:12,fontWeight:'600'},updated:{fontSize:12,color:colors.muted,textAlign:'center'},
+  marker:{width:30,height:30,borderRadius:15,backgroundColor:'#F2F5F4',alignItems:'center',justifyContent:'center'},rowTitle:{fontSize:15,fontWeight:'600',color:colors.ink},label:{fontSize:14,fontWeight:'600'},updated:{fontSize:14,color:colors.muted,textAlign:'center'},
 });

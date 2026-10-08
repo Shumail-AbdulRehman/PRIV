@@ -152,8 +152,14 @@ jobs:
           assert 'com.microsoft.onnxruntime:onnxruntime-android:1.24.3' in Path('android/build.gradle').read_text()
           assert 'expo.sqlite.useSQLCipher=true' in Path('android/gradle.properties').read_text()
           assert 'autoIdentityAcceptance:z.literal(false)' in Path('../backend/src/services/verification-v2/spatial.contracts.ts').read_text().replace(' ', '')
-          assert 'returnfalse;' in Path('../backend/src/services/verification-v2/cleanliness.service.ts').read_text().replace(' ', '')
-          print('Required native modules resolved; SQLCipher and closed acceptance gates preserved.')
+          cleanliness = Path('../backend/src/services/verification-v2/cleanliness.service.ts').read_text().replace(' ', '')
+          assert 'returncleanlinessReleaseStatus(fixtureType,rubricVersion).allowed;' in cleanliness
+          release = Path('../backend/src/services/verification-v2/cleanlinessRelease.ts').read_text().replace(' ', '')
+          assert 'if(digest(bytes)!==pin)' in release
+          assert 'Date.parse(record.review.expiresAt)<=now.getTime()' in release
+          assert "reason:'CONFIGURATION_CHANGED'" in release
+          assert 'verificationReleaseConfiguration()' in release
+          print('Required native modules and SQLCipher resolved; spatial auto-acceptance is closed, and cleanliness remains behind its reviewed release gate.')
           PY
       - name: Compile native Android before APK packaging
         run: |
