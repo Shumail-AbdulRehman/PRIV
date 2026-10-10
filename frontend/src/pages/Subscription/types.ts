@@ -8,14 +8,11 @@ export type PlanDefinition = {
     locations: number;
     staff: number;
     managers: number;
-    referenceImagesPerTask: number;
   };
   features: {
     managerAccess: boolean;
     automaticAssignment: boolean;
     automaticReassignment: boolean;
-    multiAreaTasks: boolean;
-    verificationInsights: boolean;
     inventoryVerification:boolean;
   };
   featureLabels: string[];

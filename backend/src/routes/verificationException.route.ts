@@ -22,7 +22,10 @@ import { lockTask } from "../services/verification-v2/captureSession.service.js"
 import { writeAuditLog } from "../services/auditLog.service.js";
 import { ApiError } from "../utils/ApiError.js";
 const router = Router();
-router.use(verifyJwt);
+router.use([
+  /^\/verification-exceptions(?=\/|$)/,
+  /^\/task-instance\/[^/]+\/verification-issues(?=\/|$)/,
+], verifyJwt);
 const idSchema = z.coerce.number().int().positive();
 const cursorSchema = idSchema.optional();
 const issueSchema = z

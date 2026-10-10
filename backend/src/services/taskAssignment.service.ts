@@ -450,6 +450,8 @@ export const reassignExpiredAssignments = async (graceMinutes: number) => {
     where: {
       isCurrent: true,
       status: "ASSIGNED",
+      // A late manager assignment still gets the configured time to start.
+      assignedAt: { lt: graceCutoff },
       taskInstance: {
         isActive: true,
         status: "PENDING",

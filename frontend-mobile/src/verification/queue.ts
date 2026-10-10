@@ -1,15 +1,18 @@
+import type {SpatialCheckpoint} from './spatialTypes';
 import * as SQLite from 'expo-sqlite';
 import * as SecureStore from 'expo-secure-store';
 import * as Crypto from 'expo-crypto';
 import { Directory, File, Paths } from 'expo-file-system';
-import type { Account, CaptureMetadata, LocalSession, QueueRow, QueueState } from './types';
+import type { Account, CaptureMetadata, CaptureTimings, LocalSession, QueueRow, QueueState } from './types';
 import { getFreeDiskStorageAsync } from 'expo-file-system/legacy';
 import { MAX_QUEUE_BYTES, MAX_QUEUE_PHOTOS } from './policy';
+import { databaseDirectoryUri } from './fileUri';
 let database: SQLite.SQLiteDatabase | null = null;
 let activeAccount: string | null = null;
 let opening: Promise<void> | null = null;
 let lockEpoch = 0;
 let operations: Promise<unknown> = Promise.resolve();
+let storageError: string | null = null;
 function serialized<T>(operation: () => Promise<T>): Promise<T> {
   const result = operations.then(operation, operation);
   operations = result.catch(() => {});
@@ -18,7 +21,8 @@ function serialized<T>(operation: () => Promise<T>): Promise<T> {
 function scoped<T>(operation: () => Promise<T>): Promise<T> {
   const scope = activeAccount;
   return serialized(async () => {
-    if (!scope || scope !== activeAccount) throw new Error('Account changed. Saved photos are locked.');
+    if (!scope) throw new Error(storageError ?? 'Saved photos are locked. Sign in to open them.');
+    if (scope !== activeAccount) throw new Error('Account changed. Saved photos are locked.');
     return operation();
   });
 }
@@ -34,7 +38,7 @@ export async function unlockQueue(account: Account) {
     await closeQueue();
     const scope = namespace(account), keyName = `hygene_verification_key_${scope}`;
     let key = await SecureStore.getItemAsync(keyName);
-    if (!key && new File(SQLite.defaultDatabaseDirectory,`verification_${scope}.db`).exists) throw new Error('The encryption key for saved work is unavailable. Ask support before reinstalling or clearing data.');
+    if (!key && new File(databaseDirectoryUri(SQLite.defaultDatabaseDirectory),`verification_${scope}.db`).exists) throw new Error('The encryption key for saved work is unavailable. Ask support before reinstalling or clearing data.');
     if (!key) { key = Array.from(await Crypto.getRandomBytesAsync(32)).map(v => v.toString(16).padStart(2,'0')).join(''); await SecureStore.setItemAsync(keyName,key, { keychainAccessible: SecureStore.WHEN_UNLOCKED_THIS_DEVICE_ONLY }); }
     if (!/^[0-9a-f]{64}$/.test(key)) throw new Error('Secure photo storage is unavailable. Sign in again.');
     const db = await SQLite.openDatabaseAsync(`verification_${scope}.db`);
@@ -51,13 +55,16 @@ export async function unlockQueue(account: Account) {
         CREATE TABLE IF NOT EXISTS issues (id TEXT PRIMARY KEY, task_id INTEGER NOT NULL, payload TEXT NOT NULL);
         UPDATE queue SET state='SAVED' WHERE state='UPLOADING';`);
       if (epoch !== lockEpoch) { await db.closeAsync(); return; }
-      database = db; activeAccount = scope;
+      database = db; activeAccount = scope; storageError = null;
     } catch(error) { await db.closeAsync(); throw error; }
   });
-  try { await opening; } finally { opening = null; }
+  try { await opening; } catch(error) {
+    storageError = error instanceof Error ? error.message : 'Secure photo storage could not open.';
+    throw error;
+  } finally { opening = null; }
 }
 async function closeQueue() { const previous=database; database=null; activeAccount=null; if(previous) await previous.closeAsync(); }
-export async function lockQueue() { lockEpoch++; activeAccount=null; await serialized(closeQueue); }
+export async function lockQueue() { lockEpoch++; activeAccount=null; storageError=null; await serialized(closeQueue); }
 export function queueAccount() { return activeAccount; }
 function db() { if(!database || !activeAccount) throw new Error('Sign in to open your saved photos.'); return database; }
 async function pruneLocalHistory() {
@@ -70,25 +77,38 @@ async function pruneLocalHistory() {
 }
 export async function saveSession(local: LocalSession) { return scoped(async () => {
  await pruneLocalHistory();
- const exists=await db().getFirstAsync('SELECT task_id FROM sessions WHERE task_id=?',local.manifest.task.id);
+ const exists=await db().getFirstAsync<{payload:string}>('SELECT payload FROM sessions WHERE task_id=?',local.manifest.task.id);
+ const existing=exists?JSON.parse(exists.payload) as LocalSession:null;
+ if(existing?.session.id===local.session.id&&existing.spatialCheckpoint)local={...local,spatialCheckpoint:existing.spatialCheckpoint};
  if(!exists&&(await db().getFirstAsync<{count:number}>('SELECT COUNT(*) AS count FROM sessions'))!.count>=200)throw new Error('Too many saved tasks. Reconnect and ask your manager to resolve pending tasks.');
  await db().runAsync('INSERT INTO sessions(task_id,payload) VALUES(?,?) ON CONFLICT(task_id) DO UPDATE SET payload=excluded.payload', local.manifest.task.id,JSON.stringify(local)); }); }
 export async function getSession(taskId: number): Promise<LocalSession | null> { return scoped(async () => { const row=await db().getFirstAsync<{payload:string}>('SELECT payload FROM sessions WHERE task_id=?',taskId);return row?JSON.parse(row.payload):null; }); }
 export async function savedWork():Promise<LocalSession[]> { return scoped(async () => { return (await db().getAllAsync<{payload:string}>('SELECT payload FROM sessions')).map(r=>JSON.parse(r.payload)); }); }
 type RawRow = Omit<QueueRow,'metadata'|'taskId'|'sessionId'|'slotId'|'nextRetryAt'|'attemptId'|'lastError'> & { metadata:string;task_id:number;session_id:string;slot_id:string;next_retry_at:number;attempt_id:string|null;last_error:string|null };
 export async function queueRows(taskId?:number): Promise<QueueRow[]> { return scoped(async () => { const rows=await db().getAllAsync<RawRow>(taskId?'SELECT id,task_id,session_id,slot_id,metadata,bytes,state,retries,next_retry_at,attempt_id,last_error FROM queue WHERE task_id=? ORDER BY rowid':'SELECT id,task_id,session_id,slot_id,metadata,bytes,state,retries,next_retry_at,attempt_id,last_error FROM queue ORDER BY rowid',taskId?[taskId]:[]);return rows.map(r=>({ ...r,metadata:JSON.parse(r.metadata),taskId:r.task_id,sessionId:r.session_id,slotId:r.slot_id,nextRetryAt:r.next_retry_at,attemptId:r.attempt_id,lastError:r.last_error })); }); }
-export async function saveCapture(metadata:CaptureMetadata, bytes:Uint8Array) { return scoped(async () => {
+export async function saveCapture(metadata:CaptureMetadata, bytes:Uint8Array, spatialCheckpoint?:SpatialCheckpoint) { return scoped(async () => {
   if((await db().getFirstAsync<{count:number}>('SELECT COUNT(*) AS count FROM queue'))!.count>=2000)throw new Error('Too much saved work. Reconnect and ask your manager to finish reviewing pending tasks.');
   if(bytes.byteLength>5*1024*1024) throw new Error('Photo is too large. Please retake it.');
   if (await getFreeDiskStorageAsync() < bytes.byteLength * 3 + 10 * 1024 * 1024) throw new Error('Phone storage is low. Free some space before taking more photos.');
-  await db().withExclusiveTransactionAsync(async(tx)=>{
+  // Expo's exclusive transaction opens a second connection without this
+  // connection's SQLCipher key. All queue operations already run through
+  // scoped()/serialized(), so transact on the existing keyed connection.
+  await db().withTransactionAsync(async()=>{
+    const tx=db();
     const total=await tx.getFirstAsync<{count:number;size:number}>('SELECT COUNT(*) AS count, COALESCE(SUM(bytes),0) AS size FROM queue WHERE photo IS NOT NULL');
     if((total?.count??0)>=MAX_QUEUE_PHOTOS || (total?.size??0)+bytes.byteLength>MAX_QUEUE_BYTES) throw new Error('Photo storage is full. Connect to upload your saved photos before taking more.');
     await tx.runAsync('INSERT INTO queue(id,task_id,session_id,slot_id,metadata,photo,bytes,state) VALUES(?,?,?,?,?,?,?,?)',metadata.clientCaptureId,metadata.taskId,metadata.sessionId,metadata.slotId,JSON.stringify(metadata),bytes,bytes.byteLength,'SAVED');
+    if(spatialCheckpoint){const row=await tx.getFirstAsync<{payload:string}>('SELECT payload FROM sessions WHERE task_id=?',metadata.taskId);if(!row)throw new Error('Saved capture session unavailable.');const local=JSON.parse(row.payload) as LocalSession;if(local.session.id!==metadata.sessionId)throw new Error('Capture session changed.');await tx.runAsync('UPDATE sessions SET payload=? WHERE task_id=?',JSON.stringify({...local,spatialCheckpoint}),metadata.taskId);}
   });
+  // T1 is sampled after the full-synchronous photo/metadata transaction has committed.
+  await db().runAsync('UPDATE queue SET metadata=? WHERE id=?',JSON.stringify({...metadata,timings:{...metadata.timings,durableSavedAt:Date.now()}}),metadata.clientCaptureId);
 }); }
 export async function queueBytes(id:string) { return scoped(async () => { const row=await db().getFirstAsync<{photo:Uint8Array|null}>('SELECT photo FROM queue WHERE id=?',id);if(!row?.photo) throw new Error('Saved photo unavailable.');return row.photo; }); }
-export async function updateQueue(id:string,state:QueueState, options:{attemptId?:string;error?:string;nextRetryAt?:number;retry?:boolean;releaseBytes?:boolean}={}) { return scoped(async () => {
+export async function updateQueue(id:string,state:QueueState, options:{attemptId?:string;error?:string;nextRetryAt?:number;retry?:boolean;releaseBytes?:boolean;timings?:CaptureTimings}={}) { return scoped(async () => {
+  if(options.timings){
+    const row=await db().getFirstAsync<{metadata:string}>('SELECT metadata FROM queue WHERE id=?',id);
+    if(row){const metadata=JSON.parse(row.metadata) as CaptureMetadata;await db().runAsync('UPDATE queue SET metadata=? WHERE id=?',JSON.stringify({...metadata,timings:{...metadata.timings,...options.timings}}),id);}
+  }
   await db().runAsync('UPDATE queue SET state=?, attempt_id=COALESCE(?,attempt_id), last_error=?, next_retry_at=?, retries=retries+?, photo=CASE WHEN ? THEN NULL ELSE photo END WHERE id=?',state,options.attemptId??null,options.error??null,options.nextRetryAt??0,options.retry?1:0,options.releaseBytes?1:0,id);
 }); }
 export async function pendingCount() { return scoped(async () => { return (await db().getFirstAsync<{count:number}>('SELECT COUNT(*) AS count FROM queue WHERE photo IS NOT NULL'))?.count??0; }); }
@@ -112,3 +132,5 @@ export function cleanPreviousProcessCaptureCache() {
    if(directory.exists)directory.delete();
  }
 }
+
+export async function persistSpatialCheckpoint(taskId:number,sessionId:string,spatialCheckpoint:SpatialCheckpoint){return scoped(async()=>{const row=await db().getFirstAsync<{payload:string}>('SELECT payload FROM sessions WHERE task_id=?',taskId);if(!row)return;const local=JSON.parse(row.payload) as LocalSession;if(local.session.id!==sessionId)return;await db().runAsync('UPDATE sessions SET payload=? WHERE task_id=?',JSON.stringify({...local,spatialCheckpoint}),taskId);});}

@@ -8,6 +8,7 @@ export const useAssignStaffToLocation = () => {
       assignStaffToLocation(staffId, locationId),
     onSuccess: () => {
       qc.invalidateQueries({ queryKey: ["location"] });
+      qc.invalidateQueries({ queryKey: ["task"] });
       qc.invalidateQueries({ queryKey: ["staff"] });
     },
   });
@@ -20,6 +21,8 @@ export const useAssignStaffToTemplate = () => {
       assignStaffToTaskTemplate(templateId, staffId),
     onSuccess: () => {
       qc.invalidateQueries({ queryKey: ["location"] });
+      qc.invalidateQueries({ queryKey: ["task"] });
+      qc.invalidateQueries({ queryKey: ["staff"] });
     },
   });
 };

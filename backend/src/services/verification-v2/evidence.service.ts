@@ -1,3 +1,4 @@
+import {verificationEvent} from './latency.js';
 import {raiseIssue} from './exception.service.js';
 import type { EvidenceAsset, Prisma } from '@prisma/client';
 import { randomUUID } from 'node:crypto';
@@ -11,21 +12,25 @@ export type EvidenceStorage={store:typeof storePrivateImage;read:typeof privateI
 const storage:EvidenceStorage={store:storePrivateImage,read:privateImageBytes};
 export const originalPublicId=(companyId:number,attemptId:string)=>`verification/${companyId}/attempts/${attemptId}/original`;
 /** Called only after session ingestion has durably reserved an attempt (step 10). */
-export async function storeReservedEvidence(actor:VerificationActor,attemptId:string,bytes:Buffer,io=storage) {
+export async function storeReservedEvidence(actor:VerificationActor,attemptId:string,bytes:Buffer,io=storage,clientDiagnostics?:Record<string,unknown>) {
+ const began=Date.now();const timing:Record<string,unknown>={ingestionStartedAt:new Date().toISOString(),...(clientDiagnostics?{client:clientDiagnostics}:{})};
  if(actor.role!=='STAFF')throw new ApiError(403,'Staff account required');
  const attempt=await prisma.verificationAttempt.findUnique({where:{id:attemptId},include:{session:true,media:true}});
  if(!attempt)throw new ApiError(404,'Capture not found');
  await requireTaskAccess(actor,attempt.session.taskInstanceId,{staffMutation:true});
  if(attempt.staffId!==actor.id)throw new ApiError(403,'Capture belongs to another worker');
- const inspected=await inspectImage(bytes);
+ const qualityStarted=Date.now();timing.authorizationMs=qualityStarted-began;
+ const inspected=await inspectImage(bytes);timing.inspectMs=Date.now()-qualityStarted;
  if(attempt.committedHash!==inspected.sha256)throw new ApiError(409,'Different bytes require a new capture');
  if(attempt.media)return {attemptId,assetId:attempt.media.id,state:attempt.state};
  const publicId=originalPublicId(actor.companyId,attempt.id);
- const uploaded=await io.store(bytes,publicId,inspected.sha256);
+ const storageStarted=Date.now();
  const reviewPublicId=publicId.replace(/\/original$/,'/review');
- await io.store(inspected.sanitized,reviewPublicId,sha256(inspected.sanitized));
+ // Both authenticated objects are independent; acknowledgment still waits for both.
+ const [uploaded]=await Promise.all([io.store(bytes,publicId,inspected.sha256),io.store(inspected.sanitized,reviewPublicId,sha256(inspected.sanitized))]);
+ timing.storageMs=Date.now()-storageStarted;timing.storedAt=new Date().toISOString();
  // Storage happens outside the transaction; deterministic ID/hash permits lost-response recovery.
- return prisma.$transaction(async tx=>{
+ const accepted=await prisma.$transaction(async tx=>{
   await tx.$queryRaw`SELECT id FROM "TaskInstance" WHERE id=${attempt.session.taskInstanceId} FOR UPDATE`;
   // Authorization was checked before storage. If ownership changes during the upload,
   // retain the already-authorized bytes and register them as review-only evidence.
@@ -43,9 +48,11 @@ export async function storeReservedEvidence(actor:VerificationActor,attemptId:st
   const reviewOnly=fresh.state==='REVIEW_REQUIRED'||staleGeneration||!staffStillActive||!assignmentStillCurrent||!fresh.session.task.isActive||fresh.session.task.staffId!==actor.id||['CANCELLED','COMPLETED'].includes(fresh.session.task.status)||!!exactReuse||fresh.session.state==='REVOKED'||fresh.session.assignmentEpoch!==fresh.session.task.assignmentEpoch||new Date()>fresh.session.uploadExpiresAt;
   await tx.verificationAttempt.update({where:{id:attemptId},data:{mediaAssetId:asset.id,receivedAt:new Date(),state:reviewOnly?'REVIEW_REQUIRED':'RECEIVED'}});
   if(exactReuse)await raiseIssue(tx,fresh.session.taskInstanceId,'DUPLICATE_EVIDENCE',fresh.requirementId,fresh.id);
-  await enqueueVerificationJob(tx,{companyId:actor.companyId,attemptId,stage:'QUALITY',evaluatorVersion:'quality-v1'});
+  await enqueueVerificationJob(tx,{companyId:actor.companyId,attemptId,stage:'QUALITY',evaluatorVersion:'quality-v1',result:JSON.parse(JSON.stringify({timing,qualityAtIngestion:{...inspected.quality,hashVariants:inspected.hashVariants}}))});
   return {attemptId,assetId:asset.id,state:reviewOnly?'REVIEW_REQUIRED':'RECEIVED'};
  });
+ verificationEvent('UPLOAD_ACCEPTED',{taskId:attempt.session.taskInstanceId,sessionId:attempt.sessionId,attemptId:attempt.id},{...timing,ingestionTotalMs:Date.now()-began});
+ return accepted;
 }
 export async function storeStandardEvidence(actor:VerificationActor,locationId:number,bytes:Buffer,io=storage):Promise<EvidenceAsset> {
  requireOperationalRole(actor);await requireLocationAccess(actor,locationId);

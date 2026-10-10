@@ -5,17 +5,17 @@ import { Card, CardContent } from "./ui/card";
 import { Text } from "./ui/text";
 import { Button } from "./ui/button";
 import { Icon } from "./ui/icon";
-import { StatusBadge } from "./StatusBadge";
-import { formatTaskWindow } from "../utils/format";
+import { formatTaskWindow, formatClockTime } from "../utils/format";
 import type { TaskInstance } from "../types";
 
 type TaskCardProps = {
   task: TaskInstance;
   onStart?: () => void;
   onComplete?: () => void;
+  starting?: boolean;
 };
 
-export function TaskCard({ task, onStart, onComplete }: TaskCardProps) {
+export function TaskCard({ task, onStart, onComplete, starting = false }: TaskCardProps) {
   const handlePress = (callback?: () => void) => {
     return () => {
       void Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
@@ -44,26 +44,29 @@ export function TaskCard({ task, onStart, onComplete }: TaskCardProps) {
               </Text>
             </View>
           </View>
-          {task.verificationVersion===2?<Text className="text-sm font-semibold">{verificationTaskLabel(task)}</Text>:<StatusBadge status={task.status} />}
+          <Text className="text-sm font-semibold">{verificationTaskLabel(task)}</Text>
         </View>
+        {task.template?.description ? <Text className="mt-3 text-sm">{task.template.description}</Text> : null}
+        {task.startedAt ? <Text className="mt-2 text-sm text-muted-foreground">Started {formatClockTime(task.startedAt, task.location?.timezone ?? task.template?.location?.timezone)}</Text> : null}
 
         {task.status === "PENDING" && onStart ? (
           <Button
             className="mt-4"
-            iconLeft="QrCode"
+            iconLeft="Play"
             onPress={handlePress(onStart)}
+            loading={starting}
           >
-            {task.verificationVersion===2?"Start cleaning":"Scan QR to start"}
+            {starting ? 'Starting cleaning…' : 'Start cleaning'}
           </Button>
         ) : null}
-        {(task.status === "IN_PROGRESS" || task.verificationVersion===2) && onComplete ? (
+        {task.status!=="COMPLETED" && (task.status === "IN_PROGRESS" || task.verificationVersion===2) && onComplete ? (
           <Button
             className="mt-4"
             variant="outline"
             iconLeft="Camera"
             onPress={handlePress(onComplete)}
           >
-            {task.verificationVersion===2?verificationTaskLabel(task,true):"Upload proof and complete"}
+            {verificationTaskLabel(task,true)}
           </Button>
         ) : null}
       </CardContent>

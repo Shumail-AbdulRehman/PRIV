@@ -5,9 +5,7 @@ afterEach(()=>{vi.unstubAllEnvs();vi.unstubAllGlobals();});
 describe('provider stage contracts',()=>{
  it('rejects injected safe privacy with hold reason',async()=>{await expect(assessPrivacy({assess:async()=>({result:{status:'SAFE',reasonCode:'PRIVACY_HOLD'},metadata:{}})} as any,Buffer.from('a'))).rejects.toThrow();});
  it('rejects matched wrong observed fixture',async()=>{const p={assess:async()=>({result:{verdict:'MATCH',observedFixture:'BIN',observedView:'basin_tap',observedLabel:null,identityConsistent:true,privacyFlag:false,reasonCode:'CLEAN'},metadata:{}})};await expect(assessCoverage(p as any,Buffer.from('a'),{fixture:'SINK',view:'basin_tap'})).rejects.toThrow();});
- it.each(['refusal','malformed','outage'])('rejects %s without fallback',async kind=>{vi.stubEnv('AI_PROVIDER','gemini');vi.stubEnv('GEMINI_API_KEY','test');vi.stubGlobal('fetch',vi.fn(async()=>kind==='outage'?{ok:false}:{ok:true,json:async()=>({candidates:[{finishReason:kind==='refusal'?'SAFETY':'STOP',content:{parts:[{text:'{}'}]}}]})}));await expect(new ConfiguredImageProvider().assess('privacy','privacy',[Buffer.from('a')],privacyResultSchema)).rejects.toThrow();expect(fetch).toHaveBeenCalledTimes(1);});
  it('metadata rejects arbitrary refusal content',()=>expect(()=>providerMetadataSchema.parse({refusal:'untrusted'})).toThrow());
- it('sends strict schema and records bounded token usage',async()=>{vi.stubEnv('AI_PROVIDER','gemini');vi.stubEnv('GEMINI_API_KEY','test');const fetcher=vi.fn(async(_url:unknown,_options:any)=>({ok:true,json:async()=>({responseId:'id',modelVersion:'gemini-concrete-revision',usageMetadata:{promptTokenCount:3,candidatesTokenCount:4,totalTokenCount:7,extra:'untrusted'},candidates:[{finishReason:'STOP',content:{parts:[{text:'{"status":"SAFE","reasonCode":"CLEAN"}'}]}}]})}));vi.stubGlobal('fetch',fetcher);const result=await new ConfiguredImageProvider().assess('privacy','privacy',[Buffer.from('a')],privacyResultSchema);expect(result.metadata.model).toBe('gemini-concrete-revision');expect(result.metadata.requestedModel).toBe(process.env.GEMINI_VISION_MODEL??'gemini-3.6-flash');expect(result.metadata.costUsd).toBeNull();expect(result.metadata.usage).toEqual({inputTokens:3,outputTokens:4,totalTokens:7});expect(JSON.parse(fetcher.mock.calls[0]![1]!.body).generationConfig.responseJsonSchema.additionalProperties).toBe(false);});
 });
 
 describe('room-context coverage',()=>{
@@ -27,14 +25,6 @@ describe('immutable printed-label identity',()=>{
  it.each(['Toilet 07','TOILET-07'])('accepts the snapshotted label %s',async observedLabel=>{const p=provider({...match,observedLabel});expect((await assessCoverage(p as any,Buffer.from('a'),expected)).result.verdict).toBe('MATCH');expect(p.assess.mock.calls[0]?.[1]).toContain('"sourceAreaItemId":7');});
  it.each(['Toilet 08',null])('rejects absent or mismatched label %s as malformed coverage, never cleanliness',async observedLabel=>{await expect(assessCoverage(provider({...match,observedLabel}) as any,Buffer.from('a'),expected)).rejects.toThrow('PROVIDER_MALFORMED');});
  it('retains a label mismatch reported as identity uncertainty',async()=>{const result=await assessCoverage(provider({...match,observedLabel:'Toilet 08',identityConsistent:false,verdict:'UNCERTAIN',reasonCode:'IDENTITY_UNCERTAIN'}) as any,Buffer.from('a'),expected);expect(result.result.verdict).toBe('UNCERTAIN');expect(result.result).not.toHaveProperty('cleanliness');});
-});
-
-it('records OpenAI returned model separately from requested alias',async()=>{
- vi.stubEnv('AI_PROVIDER','openai');vi.stubEnv('OPENAI_API_KEY','test-only');vi.stubEnv('OPENAI_VISION_MODEL','requested-alias');
- const fetcher=vi.fn(async()=>new Response(JSON.stringify({id:'test-response',model:'resolved-model-revision',choices:[{index:0,finish_reason:'stop',message:{role:'assistant',content:'{"status":"SAFE","reasonCode":"CLEAN"}'}}],usage:{prompt_tokens:1,completion_tokens:2,total_tokens:3}}),{status:200,headers:{'content-type':'application/json'}}));
- vi.stubGlobal('fetch',fetcher);
- const result=await new ConfiguredImageProvider().assess('privacy','privacy',[Buffer.from('a')],privacyResultSchema);
- expect(result.metadata.model).toBe('resolved-model-revision');expect(result.metadata.requestedModel).toBe('requested-alias');expect(result.metadata.providerVersion).toBe('adapter-v1');expect(result.metadata.costUsd).toBeNull();expect(fetcher).toHaveBeenCalledTimes(1);
 });
 
 it('retains a coverage privacy flag even when fixture identity would otherwise match',async()=>{

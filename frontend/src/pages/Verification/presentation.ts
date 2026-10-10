@@ -13,5 +13,6 @@ export function exceptionStateLabel(state: string): string {
   return ({ OPEN: 'Needs manager', MANAGER_REVIEW: 'Needs manager', STAFF_ACTION_REQUIRED: 'Staff fixing', WAITING_SERVICE: 'Waiting for service', RESOLVED: 'Resolved' } as Record<string, string>)[state] ?? state.replaceAll('_', ' ').toLowerCase();
 }
 export function plainReason(code: string): string {
-  return code.toLowerCase().replaceAll('_', ' ').replace(/^./, character => character.toUpperCase());
+  const labels: Record<string, string> = { AUTO_PASS_NOT_VALIDATED: 'Cleanliness needs review', CANNOT_ASSESS: 'Needs review', SERVICE_FAILURE: 'Photo checks could not finish' };
+  return labels[code] ?? code.toLowerCase().replaceAll('_', ' ').replace(/^./, character => character.toUpperCase());
 }

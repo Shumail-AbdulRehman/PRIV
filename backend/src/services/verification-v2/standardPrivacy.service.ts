@@ -3,7 +3,7 @@ import { prisma } from '../../prisma/prisma.js';
 import { ApiError } from '../../utils/ApiError.js';
 import { requireAreaAccess, requireOperationalRole, type VerificationActor } from './authorization.service.js';
 import { assessPrivacy } from './coverage.service.js';
-import { ConfiguredImageProvider, type ImageAssessmentProvider } from './provider.service.js';
+import { ClefImageProvider, type ImageAssessmentProvider } from './provider.service.js';
 import { privateImageBytes } from './media.service.js';
 import { writeAuditLog } from '../auditLog.service.js';
 
@@ -11,7 +11,7 @@ const MAX_CHECKS = 4;
 const CHECK_LEASE_MS = 60_000;
 /** Standards are optional guidance, never task evidence. Failed safety calls leave delivery restricted. */
 export async function screenStandardPrivacy(actor: VerificationActor, standardId: number,
-  provider: ImageAssessmentProvider = new ConfiguredImageProvider(), read = privateImageBytes) {
+  provider: ImageAssessmentProvider = new ClefImageProvider(), read = privateImageBytes) {
   requireOperationalRole(actor);
   const standard = await prisma.areaStandardPhoto.findFirst({
     where: { id: standardId, area: { location: { companyId: actor.companyId } } }, include: { media: true },
@@ -52,7 +52,7 @@ export async function screenStandardPrivacy(actor: VerificationActor, standardId
     });
     await writeAuditLog({ ...scope, actorType: 'SYSTEM', action: 'STANDARD_PRIVACY_FINISHED',
       reason: assessment ? assessment.result.reasonCode : 'SERVICE_FAILURE',
-      newValue: { checkId, evaluatorVersion: 'standard-privacy-v1', assessment, latencyMs: Date.now() - before } }, tx);
+      newValue: { checkId, evaluatorVersion: 'standard-clef-privacy-v1', assessment, latencyMs: Date.now() - before } }, tx);
     const asset = await tx.evidenceAsset.findUniqueOrThrow({ where: { id: standard.mediaAssetId } });
     return { standardId, privacyState: asset.privacyState, reasonCode: assessment?.result.reasonCode ?? 'SERVICE_FAILURE' };
   });

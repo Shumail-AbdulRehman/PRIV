@@ -7,8 +7,6 @@ export type PlanFeature =
   | "managerAccess"
   | "automaticAssignment"
   | "automaticReassignment"
-  | "multiAreaTasks"
-  | "verificationInsights"
   | "inventoryVerification";
 export type LimitedResource = "locations" | "staff" | "managers";
 
@@ -20,7 +18,6 @@ type PlanDefinition = {
     locations: number;
     staff: number;
     managers: number;
-    referenceImagesPerTask: number;
   };
   features: Record<PlanFeature, boolean>;
   featureLabels: string[];
@@ -31,13 +28,11 @@ export const PLAN_DEFINITIONS: Record<PlanCode, PlanDefinition> = {
     code: "STARTER",
     name: "Starter",
     description: "For individuals and very small cleaning teams.",
-    limits: { locations: 1, staff: 3, managers: 1, referenceImagesPerTask: 1 },
+    limits: { locations: 1, staff: 3, managers: 1 },
     features: {
       managerAccess: false,
       automaticAssignment: false,
       automaticReassignment: false,
-      multiAreaTasks: false,
-      verificationInsights: true,
       inventoryVerification: true,
     },
     featureLabels: [
@@ -52,13 +47,11 @@ export const PLAN_DEFINITIONS: Record<PlanCode, PlanDefinition> = {
     code: "PRO",
     name: "Pro",
     description: "For small cleaning companies managing multiple teams.",
-    limits: { locations: 5, staff: 25, managers: 3, referenceImagesPerTask: 5 },
+    limits: { locations: 5, staff: 25, managers: 3 },
     features: {
       managerAccess: true,
       automaticAssignment: true,
       automaticReassignment: true,
-      multiAreaTasks: true,
-      verificationInsights: true,
       inventoryVerification: true,
     },
     featureLabels: [
@@ -74,13 +67,11 @@ export const PLAN_DEFINITIONS: Record<PlanCode, PlanDefinition> = {
     code: "ADVANCED",
     name: "Enterprise",
     description: "For larger cleaning operations with more locations and staff.",
-    limits: { locations: 20, staff: 200, managers: 20, referenceImagesPerTask: 10 },
+    limits: { locations: 20, staff: 200, managers: 20 },
     features: {
       managerAccess: true,
       automaticAssignment: true,
       automaticReassignment: true,
-      multiAreaTasks: true,
-      verificationInsights: true,
       inventoryVerification: true,
     },
     featureLabels: [
@@ -162,24 +153,6 @@ export const assertCompanyCanAdd = async (
     throw new ApiError(
       403,
       `${definition.name} allows up to ${limit} ${resourceLabels[resource]}. Upgrade your plan to add more.`
-    );
-  }
-};
-
-export const assertReferenceImageAllowance = async (companyId: number, count: number) => {
-  const { company, definition } = await getCompanyPlan(companyId);
-  const hasAccess = company.billingSubscriptionId
-    ? await companyHasPaidAccess(companyId)
-    : company.subscriptionStatus === "ACTIVE";
-  if (!hasAccess) {
-    throw new ApiError(403, "Your subscription is not active. Contact your company administrator.");
-  }
-  const limit = definition.limits.referenceImagesPerTask;
-
-  if (count > limit) {
-    throw new ApiError(
-      403,
-      `${definition.name} allows up to ${limit} reference ${limit === 1 ? "area" : "areas"} per task. Upgrade your plan to add more.`
     );
   }
 };

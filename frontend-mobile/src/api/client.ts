@@ -1,5 +1,5 @@
 import axios, { AxiosHeaders, InternalAxiosRequestConfig } from "axios";
-import { API_BASE_URL } from "../config";
+import { getServerAddress, loadServerAddress, saveServerAddress } from './serverAddress';
 import type { AuthTokens } from "../types";
 
 type ApiAuthBridge = {
@@ -11,14 +11,22 @@ type ApiAuthBridge = {
 
 let authBridge: ApiAuthBridge | null = null;
 let nativeAppVersion='0.0.0';
-export function configureNativeAppVersion(version:string|null){nativeAppVersion=version??'0.0.0';client.defaults.headers.common['X-Hygene-App-Version']=nativeAppVersion;}
+export function configureNativeAppVersion(version:string|null){nativeAppVersion=version??'0.0.0';client.defaults.headers.common['X-Hygene-App-Version']=nativeAppVersion;client.defaults.headers['X-Hygene-App-Version']=nativeAppVersion;}
 
 export const configureApiAuth = (bridge: ApiAuthBridge) => {
   authBridge = bridge;
 };
 
+export async function changeApiServerAddress(input: string): Promise<string> {
+  if (authBridge?.getScope()) throw new Error('Sign out before changing the server address.');
+  return saveServerAddress(input);
+}
+
 const isFormData = (value: unknown): value is FormData =>
   typeof FormData !== "undefined" && value instanceof FormData;
+
+const isLoginRequest = (url?: string) =>
+  url?.split("?")[0].replace(/\/+$/, "").endsWith("/staff/staff-login") === true;
 
 const setHeader = (
   config: InternalAxiosRequestConfig,
@@ -57,20 +65,28 @@ const removeHeader = (config: InternalAxiosRequestConfig, key: string) => {
 export const accountRequest = (scope: string) => ({ _scope: scope } as import('axios').AxiosRequestConfig & { _scope: string });
 
 export const client = axios.create({
-  baseURL: API_BASE_URL,
+  baseURL: getServerAddress(),
   timeout: 20000,
   headers:{"X-Hygene-Workflow":"2","X-Hygene-App-Version":nativeAppVersion},
 });
 
 client.interceptors.request.use(async (config) => {
+  await loadServerAddress();
+  config.baseURL = getServerAddress();
   const request = config as InternalAxiosRequestConfig & { _scope?: string | null };
   const scope = authBridge?.getScope() ?? null;
   if (request._scope !== undefined && request._scope !== scope) throw new Error('Account changed. Request stopped.');
   request._scope = scope;
   const tokens = await authBridge?.getTokens();
   if (request._scope !== (authBridge?.getScope() ?? null)) throw new Error('Account changed. Request stopped.');
+  // Use the actual native version even when a queued/retried request retains
+  // headers created before App initialized its version.
+  setHeader(config, 'X-Hygene-Workflow', '2');
+  setHeader(config, 'X-Hygene-App-Version', nativeAppVersion);
 
-  if (tokens?.accessToken) {
+  if (isLoginRequest(config.url)) {
+    removeHeader(config, "Authorization");
+  } else if (tokens?.accessToken) {
     setHeader(config, "Authorization", `Bearer ${tokens.accessToken}`);
   }
 
@@ -93,7 +109,8 @@ export const refreshApiTokens = (): Promise<Required<AuthTokens>> => {
     const tokens = await bridge.getTokens();
     if (!tokens.refreshToken) throw new Error("Sign in again to upload saved photos.");
     try {
-      const response = await axios.post(`${API_BASE_URL}/common/refresh-token`, { refreshToken: tokens.refreshToken }, { timeout: 20000 });
+      await loadServerAddress();
+      const response = await axios.post(`${getServerAddress()}/common/refresh-token`, { refreshToken: tokens.refreshToken }, { timeout: 20000 });
       const nextTokens = { accessToken: response.data.data.accessToken as string, refreshToken: response.data.data.refreshToken as string };
       if (bridge.getScope() !== scope || (await bridge.getTokens()).refreshToken !== tokens.refreshToken) throw new Error("Account changed during token refresh.");
       await bridge.setTokens(nextTokens);
@@ -107,9 +124,17 @@ export const refreshApiTokens = (): Promise<Required<AuthTokens>> => {
   refreshInFlight = { scope, promise };
   return promise;
 };
-client.interceptors.response.use(response => response, async error => {
+client.interceptors.response.use(response => {
+  if ((response.config as InternalAxiosRequestConfig & {_scope?:string|null})._scope !== (authBridge?.getScope()??null)) {
+    throw new Error('Account changed. Response stopped.');
+  }
+  return response;
+}, async error => {
   const original = error.config as InternalAxiosRequestConfig & { _retry?: boolean };
-  if (!original || error.response?.status !== 401 || original._retry || original.url?.includes("/common/refresh-token")) throw error;
+  if (original && '_scope' in original && original._scope !== (authBridge?.getScope()??null)) {
+    throw new Error('Account changed. Response stopped.');
+  }
+  if (!original || error.response?.status !== 401 || original._retry || isLoginRequest(original.url) || original.url?.includes("/common/refresh-token")) throw error;
   original._retry = true;
   if ((original as typeof original & {_scope?:string|null})._scope !== (authBridge?.getScope()??null)) throw new Error('Account changed. Request stopped.');
   const current=await authBridge?.getTokens();
@@ -120,6 +145,7 @@ client.interceptors.response.use(response => response, async error => {
 
 /** Rebuild multipart after refresh; native fetch supports React Native file parts. */
 export const uploadFormData = async <T = unknown>(path: string, input: FormData | (() => FormData), timeoutMs = 20000, guard: () => boolean = () => true): Promise<T> => {
+  await loadServerAddress();
   const scope = authBridge?.getScope() ?? null;
   for (let retry = 0; retry < 2; retry++) {
     const tokens = await authBridge?.getTokens();
@@ -127,10 +153,11 @@ export const uploadFormData = async <T = unknown>(path: string, input: FormData 
     const controller = new AbortController();
     const timeout = setTimeout(() => controller.abort(), timeoutMs);
     try {
-      const response = await fetch(`${API_BASE_URL}${path}`, {
+      const response = await fetch(`${getServerAddress()}${path}`, {
         method: "POST", headers: {"X-Hygene-Workflow":"2","X-Hygene-App-Version":nativeAppVersion,...(tokens?.accessToken?{Authorization:`Bearer ${tokens.accessToken}`}:{})},
         body: typeof input === "function" ? input() : input, signal: controller.signal,
       });
+      if (!guard() || scope !== (authBridge?.getScope() ?? null)) throw new Error('Account changed. Response stopped.');
       if (response.status === 401 && retry === 0) {
         if (!guard() || scope !== (authBridge?.getScope() ?? null)) throw new Error('Account changed. Saved photos are locked.');
         const current=await authBridge?.getTokens();
@@ -138,6 +165,7 @@ export const uploadFormData = async <T = unknown>(path: string, input: FormData 
         continue;
       }
       const json = await response.json();
+      if (!guard() || scope !== (authBridge?.getScope() ?? null)) throw new Error('Account changed. Response stopped.');
       if (!response.ok) {
         const error = new Error(json?.message ?? "Request failed") as Error & { response: unknown };
         error.response = { status: response.status, data: json, headers: { 'retry-after': response.headers.get('Retry-After') } };

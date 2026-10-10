@@ -2,7 +2,6 @@ import TemplateInventoryEditor from "@/pages/Area/TemplateInventoryEditor";
 import { useAreas } from "@/pages/Area/queries";
 import { Link } from "react-router-dom";
 import { useState } from "react";
-import { QRCodeSVG } from "qrcode.react";
 import { formatInTimeZone } from "date-fns-tz";
 import DeleteButton from "@/components/common/DeleteButton";
 import StatusBadge from "@/components/common/StatusBadge";
@@ -15,6 +14,7 @@ import type { EditTaskTemplateInput } from "@/pages/Task/api";
 import type { LocationStaff, TaskTemplate } from "../types";
 import { toDateStr, buildDateTimeIso } from "@/pages/Task/taskScheduleForm";
 import TaskScheduleWizard from "@/pages/Task/components/TaskScheduleWizard";
+import TaskTemplateQr from "./TaskTemplateQr";
 
 const fmtTimeWithTz = (d: string | null, timeZone = "UTC") => {
   if (!d) return "—";
@@ -334,25 +334,7 @@ export default function LocationTemplatesTab({
               </div>
             </div>
 
-            {t.verificationVersion !== 2 && t.qrToken && (
-              <div className="mt-3 border-t border-gray-100 pt-3">
-                <p className="text-[10px] font-semibold uppercase tracking-wider text-gray-400 mb-2">
-                  QR Code
-                </p>
-                <div className="flex flex-col items-center gap-2 rounded-lg bg-white p-3 border border-gray-100">
-                  <QRCodeSVG
-                    value={t.qrToken}
-                    size={140}
-                    level="M"
-                    bgColor="#ffffff"
-                    fgColor="#1a1a1a"
-                  />
-                  <p className="text-[10px] text-gray-400 font-mono break-all text-center select-all">
-                    {t.qrToken}
-                  </p>
-                </div>
-              </div>
-            )}
+            <TaskTemplateQr template={t} />
           </div>
         ))}
       </div>

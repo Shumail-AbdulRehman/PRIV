@@ -47,7 +47,7 @@ export default function TaskScheduleWizard({ locationId, locationName, timeZone,
   const qc = useQueryClient();
   const areasQuery = useAreas(locationId);
   const areas = areasQuery.data?.filter(area => area.status === "ACTIVE") ?? [];
-  const [form, setForm] = useState<TemplateCreateForm>(() => blankCreateForm(true));
+  const [form, setForm] = useState<TemplateCreateForm>(() => blankCreateForm());
   const [step, setStep] = useState<ScheduleStep>(0);
   const [phase, setPhase] = useState<Phase>("editing");
   const [error, setError] = useState<string | null>(null);
@@ -147,6 +147,7 @@ export default function TaskScheduleWizard({ locationId, locationName, timeZone,
         title: form.title.trim(),
         description: form.description.trim() || undefined,
         locationId,
+        staffId: form.staffId ? Number(form.staffId) : undefined,
         shiftStart: new Date(buildDateTimeIso(timeZone, form.effectiveDate, form.shiftStart)),
         shiftEnd: new Date(buildDateTimeIso(timeZone, form.effectiveDate, form.shiftEnd)),
         recurringType: form.recurringType,
@@ -161,7 +162,7 @@ export default function TaskScheduleWizard({ locationId, locationName, timeZone,
       if (!Number.isSafeInteger(id) || id <= 0) throw new Error("The server did not return a schedule ID. Check the schedule list before trying again.");
       savedId.current = id;
       invalidateSaved();
-      if (form.staffId) await assign(id, Number(form.staffId));
+      if (form.staffId) finish("manual");
       else finish("automatic");
     } catch (err) {
       if (!savedId.current) {

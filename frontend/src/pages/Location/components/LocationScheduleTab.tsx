@@ -29,14 +29,17 @@ export default function LocationScheduleTab({ locationId }: { locationId: string
     });
     if (!value && !week) void query.refetch();
   };
-  const time = (value: string) => formatInTimeZone(value, data!.location.timezone, 'HH:mm');
+  // The compiler may inspect callback dependencies before the query resolves.
+  const weekStart = data?.weekStart;
+  const timezone = data?.location.timezone;
+  const time = (value: string) => timezone ? formatInTimeZone(value, timezone, 'HH:mm') : '—';
   return <section className="space-y-5" aria-label="Weekly schedule">
     <div className="flex flex-wrap items-start justify-between gap-4">
       <div><h2 className="text-xl font-semibold text-slate-900">Week at a glance</h2><p className="mt-1 text-sm text-slate-500">Planned tasks preview the automatic schedule. Assignments can change.</p></div>
       <div className="flex flex-wrap gap-2">
-        <Button variant="outline" disabled={!data || query.isFetching} onClick={() => setWeek(moveWeek(data!.weekStart, -1))}>Previous week</Button>
+        <Button variant="outline" disabled={!data || query.isFetching} onClick={() => { if (weekStart) setWeek(moveWeek(weekStart, -1)); }}>Previous week</Button>
         <Button variant="outline" disabled={query.isFetching} onClick={() => setWeek()}>This week</Button>
-        <Button variant="outline" disabled={!data || query.isFetching} onClick={() => setWeek(moveWeek(data!.weekStart, 1))}>Next week</Button>
+        <Button variant="outline" disabled={!data || query.isFetching} onClick={() => { if (weekStart) setWeek(moveWeek(weekStart, 1)); }}>Next week</Button>
       </div>
     </div>
     {query.isPending ? <div role="status" className="rounded-xl border p-8 text-slate-500">Loading weekly schedule…</div>

@@ -13,6 +13,8 @@ import AsyncStorage from "@react-native-async-storage/async-storage";
 import { useQueryClient } from "@tanstack/react-query";
 import { client, configureApiAuth } from "../api/client";
 import { STORAGE_KEY } from "../config";
+import { loadServerAddress } from '../api/serverAddress';
+import { createSessionStorage } from './sessionStorage';
 import type { ApiEnvelope, AuthSession, AuthTokens, StaffUser } from "../types";
 
 type AuthContextValue = {
@@ -31,18 +33,19 @@ const emptySession: AuthSession = {
 
 const AuthContext = createContext<AuthContextValue | null>(null);
 
+const sessionStorage = createSessionStorage(Platform.OS !== 'web', STORAGE_KEY, AsyncStorage, {
+  getItemAsync: SecureStore.getItemAsync,
+  setItemAsync: (key, value) => SecureStore.setItemAsync(key, value, { keychainAccessible: SecureStore.WHEN_UNLOCKED_THIS_DEVICE_ONLY }),
+  deleteItemAsync: SecureStore.deleteItemAsync,
+});
+
 const persistSession = async (session: AuthSession) => {
   if (!session.user || !session.accessToken || !session.refreshToken) {
-    await AsyncStorage.removeItem(STORAGE_KEY);
-    if (Platform.OS !== "web") await SecureStore.deleteItemAsync(STORAGE_KEY);
+    await sessionStorage.write(null);
     return;
   }
 
-  if (Platform.OS === "web") await AsyncStorage.setItem(STORAGE_KEY, JSON.stringify(session));
-  else {
-    await SecureStore.setItemAsync(STORAGE_KEY, JSON.stringify(session), { keychainAccessible: SecureStore.WHEN_UNLOCKED_THIS_DEVICE_ONLY });
-    await AsyncStorage.removeItem(STORAGE_KEY);
-  }
+  await sessionStorage.write(JSON.stringify(session));
 };
 
 export function AuthProvider({ children }: PropsWithChildren) {
@@ -52,9 +55,9 @@ export function AuthProvider({ children }: PropsWithChildren) {
   const sessionRef = useRef<AuthSession>(emptySession);
 
   const applySession = async (nextSession: AuthSession) => {
+    await persistSession(nextSession);
     sessionRef.current = nextSession;
     setSession(nextSession);
-    await persistSession(nextSession);
   };
 
   const clearSession = async () => {
@@ -93,9 +96,9 @@ export function AuthProvider({ children }: PropsWithChildren) {
 
     void (async () => {
       try {
+        await loadServerAddress();
         if(Platform.OS !== "web") { try { cleanPreviousProcessCaptureCache(); } catch { /* Normal per-capture cleanup also runs. */ } }
-        const legacy = await AsyncStorage.getItem(STORAGE_KEY);
-        const storedSession = Platform.OS === "web" ? legacy : (await SecureStore.getItemAsync(STORAGE_KEY)) ?? legacy;
+        const storedSession = await sessionStorage.read();
 
         if (!storedSession) {
           setIsBootstrapping(false);

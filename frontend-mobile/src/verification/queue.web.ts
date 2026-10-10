@@ -11,3 +11,5 @@ export async function saveRequest(_key:string,_value:{path:string;body:Record<st
 export async function removeRequest(_key:string){unsupported();}
 
 export function cleanPreviousProcessCaptureCache(){}
+
+export const persistSpatialCheckpoint = async (..._args:unknown[]) => { throw new Error("Use the native app for secure photo storage."); };

@@ -220,6 +220,7 @@ model TaskInstance {
   hasManualOverride      Boolean                      @default(false)
   evidenceReadyAt        DateTime?
   verificationResolvedAt DateTime?
+  staffSubmittedAt       DateTime?
   completionTiming       String?
   completionLateMinutes  Int?
   verificationDeadline   DateTime?
@@ -257,6 +258,7 @@ model TaskInstance {
   updatedAt              DateTime                     @updatedAt
   isActive               Boolean                      @default(true)
 
+  @@index([staffSubmittedAt])
   @@unique([id, areaId])
   @@unique([templateId, date])
   @@index([locationId, isActive, date])
@@ -763,6 +765,7 @@ model CaptureSlot {
   generation    Int                      @default(0)
   nonceHash     String
   expiresAt     DateTime
+  activatedAt   DateTime?
   attemptId     String?                  @unique
   attempt       VerificationAttempt?
 
@@ -819,6 +822,9 @@ model VerificationAttempt {
   coverageResult      Json?
   cleanlinessResult   Json?
   duplicateResult     Json?
+  spatialEvidence     Json?
+  spatialDecision     Json?
+  spatialVersion      Int?
   state               AttemptState             @default(RESERVED)
   supersedesAttemptId String?
   createdAt           DateTime                 @default(now())
