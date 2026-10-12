@@ -62,7 +62,7 @@ def inspect(apk, api_url, commit):
         'expo.modules.securestore.SecureStoreModule', 'expo.modules.filesystem.FileSystemModule',
         'expo.modules.filesystem.legacy.FileSystemLegacyModule', 'expo.modules.crypto.CryptoModule',
         'com.reactnativecommunity.netinfo.NetInfoModule',
-        'ai.onnxruntime.reactnative.OnnxruntimeModule',
+        'expo.modules.speech.SpeechModule',
     }
     with zipfile.ZipFile(apk) as archive:
         names = archive.namelist()
@@ -84,15 +84,13 @@ def inspect(apk, api_url, commit):
                                b'Secure photo storage could not open.']
         if not all(marker in bundle for marker in storage_fix_markers):
             raise ValueError('Device storage fixes missing from bundled JavaScript')
-        model_sha = hashlib.sha256(archive.read('assets/clip-vision-int8.onnx')).hexdigest()
-        if model_sha != '583fd1110a514667812fee7d684952aaf82a99b959760c8d7dca7e0ab9839299':
-            raise ValueError('Bundled fixture model is missing or changed')
-        if 'assets/CLIP-LICENSE.txt' not in names:
-            raise ValueError('Bundled fixture model license is missing')
+        if any(name.endswith('.onnx') or 'clip-text-vectors' in name or 'onnxruntime' in name.lower() for name in names):
+            raise ValueError('Removed local AI model/runtime is still packaged')
+        if any(name.startswith('ai.onnxruntime.') for name in classes):
+            raise ValueError('Removed ONNX Java runtime is still packaged')
         abis = {name.split('/')[1] for name in names if name.startswith('lib/') and name.endswith('.so')}
         for abi in ('arm64-v8a', 'armeabi-v7a'):
-            required_libraries = {f'lib/{abi}/libarcore_sdk_jni.so', f'lib/{abi}/libexpo-sqlite.so',
-                                  f'lib/{abi}/libonnxruntime.so', f'lib/{abi}/libonnxruntimejsi.so'}
+            required_libraries = {f'lib/{abi}/libarcore_sdk_jni.so', f'lib/{abi}/libexpo-sqlite.so'}
             if not required_libraries <= set(names):
                 raise ValueError(f'Missing ARCore/SQLite native libraries for {abi}')
             if b'cipher_version' not in archive.read(f'lib/{abi}/libexpo-sqlite.so'):
@@ -102,7 +100,7 @@ def inspect(apk, api_url, commit):
         raise ValueError(f'Unexpected APK size: {size} bytes')
     return {'applicationId': package, 'versionName': root.get(android + 'versionName'),
             'versionCode': int(root.get(android + 'versionCode')), 'deviceStorageFixesBundled': True,
-            'localCategoryModelSha256': model_sha, 'localCategoryModelBundled': True,
+            'localCategoryModelBundled': False, 'onnxRuntimeBundled': False,
             'sizeBytes': size, 'sha256': hashlib.file_digest(apk.open('rb'), 'sha256').hexdigest(),
             'apiBaseUrl': normalized_url, 'commit': commit, 'abis': sorted(abis),
             'permissions': sorted(permissions), 'arCore': 'optional',

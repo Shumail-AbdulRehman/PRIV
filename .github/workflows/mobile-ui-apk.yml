@@ -46,16 +46,16 @@ jobs:
         run: |
           cd android
           ./gradlew :app:assembleRelease -PreactNativeArchitectures=arm64-v8a,armeabi-v7a --no-daemon --max-workers=2 --console=plain 2>&1 | tee ../build-output/native-build.log
-          cp app/build/outputs/apk/release/app-release.apk ../build-output/HygeneOps-staff-2.1.3-ui.apk
+          cp app/build/outputs/apk/release/app-release.apk ../build-output/HygeneOps-staff-2.1.4-small.apk
       - name: Inspect compiled APK
         run: |
-          python3 scripts/inspect-testing-apk.py build-output/HygeneOps-staff-2.1.3-ui.apk --api-url "$EXPO_PUBLIC_API_BASE_URL" --commit "$GITHUB_SHA" --output build-output/apk-inspection.json
-          "$ANDROID_HOME/build-tools/36.0.0/apksigner" verify --verbose --print-certs build-output/HygeneOps-staff-2.1.3-ui.apk > build-output/signature.txt
-          "$ANDROID_HOME/build-tools/36.0.0/zipalign" -c -P 16 4 build-output/HygeneOps-staff-2.1.3-ui.apk
+          python3 scripts/inspect-testing-apk.py build-output/HygeneOps-staff-2.1.4-small.apk --api-url "$EXPO_PUBLIC_API_BASE_URL" --commit "$GITHUB_SHA" --output build-output/apk-inspection.json
+          "$ANDROID_HOME/build-tools/36.0.0/apksigner" verify --verbose --print-certs build-output/HygeneOps-staff-2.1.4-small.apk > build-output/signature.txt
+          "$ANDROID_HOME/build-tools/36.0.0/zipalign" -c -P 16 4 build-output/HygeneOps-staff-2.1.4-small.apk
       - uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a
         if: always()
         with:
-          name: mobile-ui-apk
+          name: mobile-small-apk
           path: frontend-mobile/build-output/
           if-no-files-found: warn
           retention-days: 7

@@ -2,7 +2,7 @@
   "expo": {
     "name": "Hygene Ops Staff",
     "slug": "cleanops-staff",
-    "version": "2.1.3",
+    "version": "2.1.4",
     "orientation": "portrait",
     "icon": "./assets/hygene-ops-icon.png",
     "userInterfaceStyle": "light",
@@ -25,7 +25,7 @@
       "bundleIdentifier": "com.hygeneops.staff"
     },
     "android": {
-      "versionCode": 6,
+      "versionCode": 7,
       "adaptiveIcon": {
         "foregroundImage": "./assets/hygene-ops-adaptive.png",
         "backgroundColor": "#ffffff"
@@ -48,7 +48,7 @@
     },
     "scheme": "cleanopsstaff",
     "plugins": [
-      "./scripts/with-local-category-model.cjs",
+      "./scripts/with-shared-ndk.cjs",
       [
         "expo-sqlite",
         {

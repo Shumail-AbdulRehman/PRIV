@@ -51,7 +51,6 @@ globalThis.lifecycleMocks = {
     installationId: async () => 'device', openCaptureSession: async () => {}, retakeSlots: async () => {} },
   spatial: { spatialTracking: native, SpatialCamera: 'SpatialCamera', unavailableSample: () => ({
     tracking: 'UNAVAILABLE', continuity: 'BROKEN', camera: null, worldPoint: null, nativeTimestampMs: null }) },
-  category: { inspectLocalCategory: async (_uri,expectedCategory) => ({outcome:'MATCH',expectedCategory,predictedCategory:expectedCategory,score:.9,margin:.3,durationMs:20,modelVersion:'adapter-test',reason:'CATEGORY_MATCH'}) },
   quality: { captureClock: () => ({ bootId: 'boot', elapsedMs: clock++ }),
     inspectStill: async () => ({ width: 1800, height: 1200, luminance: 128, clipping: 0, laplacianVariance: 200 }) },
   fs: { File: class { constructor(uri) { this.uri = uri; } exists = false; bytes = async () => new Uint8Array([1]); } },
@@ -82,7 +81,6 @@ const mocks = {
   '/auth/AuthContext': '{useAuth:()=>({user:{companyId:1,id:1}})}',
   '/verification/queue': 'globalThis.lifecycleMocks.queue',
   '/verification/api': 'globalThis.lifecycleMocks.api',
-  '/verification/localCategory': 'globalThis.lifecycleMocks.category',
   '/verification/sync': '{syncEvidence:async()=>{},subscribeEvidenceSync:()=>()=>{},retrySavedUploads:async()=>{}}',
   '/modules/spatial-tracking': 'globalThis.lifecycleMocks.spatial',
   '/modules/capture-quality': 'globalThis.lifecycleMocks.quality',
@@ -200,16 +198,12 @@ test('guided spatial continuity, native fallback, and QR callbacks survive lifec
     native.start=async()=>{};availability=sample;
     await flush(()=>{renderer=create(React.createElement(VerificationScreen,{route:{params:{taskId:7}},navigation:{goBack(){}}}));});
     await click(renderer,'Continue photos');await tick();
-    let categoryCalls=0;
-    globalThis.lifecycleMocks.category.inspectLocalCategory=async()=>{categoryCalls++;throw new Error('Local category unavailable');};
     await click(renderer,'Take photo');
-    assert.equal(categoryCalls,0,'Local uncertainty cannot block a quality photo from reaching Clef');
     assert.equal(rows.length,1,'Photo is durably saved for server checking');
     assert.equal(rows[0].metadata.localCategoryResult,undefined);
     assert.ok(JSON.stringify(renderer.toJSON()).includes('Photo 2 of 2'));
     const save=globalThis.lifecycleMocks.queue.saveCapture;let completeSave;
     globalThis.lifecycleMocks.queue.saveCapture=(...args)=>new Promise(resolve=>{completeSave=async()=>{await save(...args);resolve();};});
-    globalThis.lifecycleMocks.category.inspectLocalCategory=async()=>({outcome:'MATCH',expectedCategory:'SINK',predictedCategory:'SINK'});
     await click(renderer,'Take photo');
     assert.equal(rows.length,1,'UI cannot advance before the encrypted save commits');
     assert.ok(JSON.stringify(renderer.toJSON()).includes('Photo 2 of 2'));

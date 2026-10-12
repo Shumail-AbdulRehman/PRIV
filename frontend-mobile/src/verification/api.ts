@@ -52,7 +52,7 @@ export async function uploadCapture(row:QueueRow,scope:string) {
     const acknowledgment=(await uploadFormData<ApiEnvelope<{attemptId:string;assetId:string;state:string;storage?:string}>>(`/capture-session/${row.sessionId}/attempts`,()=>{
       const form=new FormData();form.append('photo',createImagePart(file.uri,`${row.id}.jpg`,'image/jpeg'));
       for(const key of ['clientCaptureId','slotId','nonce','sha256','claimedCapturedAt','elapsedMs','bootId','deviceId'] as const) form.append(key,String(row.metadata[key]));
-      if(row.metadata.timings)form.append('clientDiagnostics',JSON.stringify({...row.metadata.timings,localCategory:row.metadata.localCategoryResult}));
+      if(row.metadata.timings)form.append('clientDiagnostics',JSON.stringify(row.metadata.timings));
       if(row.metadata.spatialEvidence)form.append('spatialEvidence',JSON.stringify(row.metadata.spatialEvidence));
       return form;
     },90_000,()=>queueAccount()===scope)).data;
