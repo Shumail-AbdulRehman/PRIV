@@ -1,6 +1,7 @@
 export type StaffTabsParamList = {
   Shift: undefined;
   Tasks: undefined;
+  Help: undefined;
 };
 
 export type RootStackParamList = {
@@ -12,7 +13,7 @@ export type RootStackParamList = {
 
 };
 
-export type StaffTabId = "Shift" | "Tasks";
+export type StaffTabId = "Shift" | "Tasks" | "Help";
 
 export type StaffUser = {
   id: number;

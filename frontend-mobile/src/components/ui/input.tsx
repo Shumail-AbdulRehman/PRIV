@@ -1,3 +1,4 @@
+import { useLanguage } from "../../i18n/LanguageProvider";
 import * as React from "react";
 import { TextInput, View, type TextInputProps } from "react-native";
 import { Icon, type LucideIconName } from "./icon";
@@ -11,11 +12,13 @@ export interface InputProps extends TextInputProps {
 
 const Input = React.forwardRef<TextInput, InputProps>(
   ({ className, containerClassName, iconLeft, iconRight, ...props }, ref) => {
+    const { isRTL } = useLanguage();
     return (
       <View
+        style={{ flexDirection: isRTL ? "row-reverse" : "row" }}
         className={cn(
           "flex-row items-center rounded-md border border-input bg-background px-3",
-          containerClassName
+          containerClassName,
         )}
       >
         {iconLeft ? (
@@ -28,11 +31,30 @@ const Input = React.forwardRef<TextInput, InputProps>(
         <TextInput
           ref={ref}
           className={cn(
-            "flex-1 min-h-[44px] py-2.5 text-base text-foreground",
-            className
+            "flex-1 min-h-[52px] py-2.5 text-base text-foreground",
+            className,
           )}
           placeholderTextColor="#71717A"
           {...props}
+          style={[
+            {
+              textAlign:
+                props.keyboardType === "email-address" ||
+                props.keyboardType === "url"
+                  ? "left"
+                  : isRTL
+                    ? "right"
+                    : "left",
+              writingDirection:
+                props.keyboardType === "email-address" ||
+                props.keyboardType === "url"
+                  ? "ltr"
+                  : isRTL
+                    ? "rtl"
+                    : "ltr",
+            },
+            props.style,
+          ]}
         />
         {iconRight ? (
           <Icon
@@ -43,7 +65,7 @@ const Input = React.forwardRef<TextInput, InputProps>(
         ) : null}
       </View>
     );
-  }
+  },
 );
 Input.displayName = "Input";
 

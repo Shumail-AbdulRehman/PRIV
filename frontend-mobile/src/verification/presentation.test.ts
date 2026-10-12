@@ -16,6 +16,15 @@ test('a newly saved retake shows upload progress without counting an older rejec
  const rows=[{id:'new-photo',slotId:'new-slot',state:'SAVED',metadata:{slotId:'new-slot'}}] as QueueRow[];
  assert.equal(photoStatuses(manifest,local,rows).find(p=>p.key==='r')?.state,'SAVED');
 });
+test('a retrying upload shows its saved state and the actual upload error',()=>{
+ const manifest={task:{},sessions:[],items:[{nameSnapshot:'Toilet 1',requirements:[{id:'r',state:'MISSING',instructionsSnapshot:'Show bowl'}]}]} as unknown as Manifest;
+ const local={manifest,session:{id:'s',slots:[{id:'slot',requirementId:'r',generation:0}]}} as LocalSession;
+ const rows=[{id:'photo',slotId:'slot',state:'RETRY_WAIT',lastError:'Network request failed',metadata:{slotId:'slot'}}] as QueueRow[];
+ const photo=photoStatuses(manifest,local,rows).find(item=>item.key==='r')!;
+ assert.equal(statusLabel(photo.state,photo.cleanlinessOutcome),'Waiting to retry');
+ assert.equal(photo.cleanlinessOutcome,null);
+ assert.match(photo.detail,/Network request failed/);
+});
 
 test('new sessions require one room photo while legacy session layout remains visible',()=>{
  const manifest={task:{},sessions:[{id:'new',slots:[{id:'e',contextKey:'ENTRANCE',generation:0,state:'AVAILABLE'}]}],items:[]} as unknown as Manifest;

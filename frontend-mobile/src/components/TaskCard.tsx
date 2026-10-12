@@ -1,73 +1,108 @@
-import { verificationTaskLabel } from '../verification/taskPresentation';
 import { View } from "react-native";
 import * as Haptics from "expo-haptics";
 import { Card, CardContent } from "./ui/card";
 import { Text } from "./ui/text";
 import { Button } from "./ui/button";
 import { Icon } from "./ui/icon";
-import { formatTaskWindow, formatClockTime } from "../utils/format";
+import { useLanguage } from "../i18n/LanguageProvider";
+import { formatTaskWindow } from "../utils/format";
 import type { TaskInstance } from "../types";
-
-type TaskCardProps = {
+export function TaskCard({
+  task,
+  onStart,
+  onComplete,
+  starting = false,
+}: {
   task: TaskInstance;
   onStart?: () => void;
   onComplete?: () => void;
   starting?: boolean;
-};
-
-export function TaskCard({ task, onStart, onComplete, starting = false }: TaskCardProps) {
-  const handlePress = (callback?: () => void) => {
-    return () => {
-      void Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
-      callback?.();
-    };
-  };
-
+}) {
+  const { t, isRTL } = useLanguage();
+  const submitted = task.status === "COMPLETED" || !!task.completionOutcome;
+  const pending = task.status === "PENDING";
+  const callback = pending ? onStart : submitted ? undefined : onComplete;
+  const status = submitted
+    ? "Work submitted"
+    : pending
+      ? "Not started"
+      : task.verificationState === "PROCESSING"
+        ? "Photo received and being checked"
+        : task.verificationState === "REWORK_REQUIRED"
+          ? "Photo needs attention"
+          : task.status === "MISSED"
+            ? "Missed"
+            : "In progress";
   return (
-    <Card className="mb-3">
-      <CardContent className="p-4">
-        <View className="flex-row items-start justify-between gap-3">
-          <View className="flex-1">
-            <Text className="text-base font-bold text-card-foreground">
-              {task.title}
-            </Text>
-            <View className="mt-1.5 flex-row items-center gap-1.5">
-              <Icon name="MapPin" size={14} className="text-muted-foreground" />
-              <Text className="text-sm text-muted-foreground">
-                {task.areaNameSnapshot??task.template?.location?.name ?? "Assigned location"}
-              </Text>
-            </View>
-            <View className="mt-1 flex-row items-center gap-1.5">
-              <Icon name="Clock" size={14} className="text-muted-foreground" />
-              <Text className="text-sm text-muted-foreground">
-                {formatTaskWindow(task.shiftStart, task.shiftEnd,task.location?.timezone??task.template?.location?.timezone)}
-              </Text>
-            </View>
+    <Card className="mb-2">
+      <CardContent className="gap-3 p-4">
+        <View
+          style={{
+            flexDirection: isRTL ? "row-reverse" : "row",
+            alignItems: "flex-start",
+            gap: 12,
+          }}
+        >
+          <View className="rounded-full bg-accent p-3">
+            <Icon
+              name={submitted ? "CircleCheck" : "DoorOpen"}
+              size={22}
+              className="text-primary"
+            />
           </View>
-          <Text className="text-sm font-semibold">{verificationTaskLabel(task)}</Text>
+          <View style={{ flex: 1 }}>
+            <Text className="text-lg font-bold">
+              {task.areaNameSnapshot ?? task.title}
+            </Text>
+            {task.areaNameSnapshot ? (
+              <Text className="mt-1 text-base text-muted-foreground">
+                {task.title}
+              </Text>
+            ) : null}
+          </View>
         </View>
-        {task.template?.description ? <Text className="mt-3 text-sm">{task.template.description}</Text> : null}
-        {task.startedAt ? <Text className="mt-2 text-sm text-muted-foreground">Started {formatClockTime(task.startedAt, task.location?.timezone ?? task.template?.location?.timezone)}</Text> : null}
-
-        {task.status === "PENDING" && onStart ? (
-          <Button
-            className="mt-4"
-            iconLeft="Play"
-            onPress={handlePress(onStart)}
-            loading={starting}
+        <View
+          style={{
+            flexDirection: isRTL ? "row-reverse" : "row",
+            gap: 8,
+            alignItems: "center",
+          }}
+        >
+          <Icon name="Clock" size={18} className="text-muted-foreground" />
+          <Text
+            style={{
+              writingDirection: "ltr",
+              textAlign: isRTL ? "right" : "left",
+            }}
+            className="flex-1 text-base text-muted-foreground"
           >
-            {starting ? 'Starting cleaning…' : 'Start cleaning'}
+            {formatTaskWindow(
+              task.shiftStart,
+              task.shiftEnd,
+              task.location?.timezone ?? task.template?.location?.timezone,
+            )}
+          </Text>
+        </View>
+        <Text className="self-start rounded-full bg-accent px-3 py-1 text-sm font-semibold text-primary">
+          {t(status)}
+        </Text>
+        {callback ? (
+          <Button
+            size="lg"
+            iconLeft={pending ? "QrCode" : "Camera"}
+            loading={starting}
+            onPress={() => {
+              void Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
+              callback();
+            }}
+          >
+            {t(pending ? "Start cleaning" : "Take task photos")}
           </Button>
         ) : null}
-        {(task.status === "IN_PROGRESS" || task.verificationVersion===2) && onComplete ? (
-          <Button
-            className="mt-4"
-            variant="outline"
-            iconLeft="Camera"
-            onPress={handlePress(onComplete)}
-          >
-            {verificationTaskLabel(task,true)}
-          </Button>
+        {task.template?.description ? (
+          <Text className="text-base text-muted-foreground">
+            {task.template.description}
+          </Text>
         ) : null}
       </CardContent>
     </Card>

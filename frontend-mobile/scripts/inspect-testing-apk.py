@@ -78,8 +78,8 @@ def inspect(apk, api_url, commit):
         bundle = archive.read('assets/index.android.bundle')
         if normalized_url.encode() not in bundle:
             raise ValueError('Expected phone-accessible API URL missing from bundled JavaScript')
-        if not all(marker in bundle for marker in [b'Needs review', b'AUTO_PASS_NOT_VALIDATED', b'Re-clean, then scan QR']):
-            raise ValueError('Three-outcome cleanliness UX is missing from bundled JavaScript')
+        if not all(marker in bundle for marker in [b'Task completed', b'Photo received and being checked', b'Scan the room QR again', b'activate-photo']):
+            raise ValueError('Sequential staff submission UX is missing from bundled JavaScript')
         storage_fix_markers = [b'The saved-photo database directory is unavailable.',
                                b'Secure photo storage could not open.']
         if not all(marker in bundle for marker in storage_fix_markers):
@@ -89,8 +89,6 @@ def inspect(apk, api_url, commit):
             raise ValueError('Bundled fixture model is missing or changed')
         if 'assets/CLIP-LICENSE.txt' not in names:
             raise ValueError('Bundled fixture model license is missing')
-        if b'clip-vit-b32-int8-d15189d-category-v1' not in bundle:
-            raise ValueError('Local fixture category runtime missing from bundled JavaScript')
         abis = {name.split('/')[1] for name in names if name.startswith('lib/') and name.endswith('.so')}
         for abi in ('arm64-v8a', 'armeabi-v7a'):
             required_libraries = {f'lib/{abi}/libarcore_sdk_jni.so', f'lib/{abi}/libexpo-sqlite.so',
@@ -110,7 +108,7 @@ def inspect(apk, api_url, commit):
             'permissions': sorted(permissions), 'arCore': 'optional',
             'nativeModules': sorted(required_modules), 'sqlCipherNativeProbePresent': True,
             'spatialAutomaticAcceptance': False, 'cleanlinessAutomaticPassing': 'server-controlled validated release',
-            'staffCleanlinessOutcomes': ['CLEAN', 'DIRTY', 'NEEDS_REVIEW'],
+            'staffSubmissionLabels': ['Task completed'], 'sequentialPhotoChecks': True, 'localCategoryGate': False,
             'physicalSensorAccuracyValidated': False, 'signingPurpose': 'testing/debug key'}
 
 

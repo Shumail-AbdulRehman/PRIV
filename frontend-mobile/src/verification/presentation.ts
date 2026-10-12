@@ -45,7 +45,10 @@ export function photoStatuses(manifest: Manifest, local: LocalSession | null, ro
     // Displayed state is authoritative: a pending upload or manual acceptance cannot become Clean.
     const cleanlinessOutcome=view.manualOutcome?null:inferred==='CLEAN'&&!view.fixture?null:view.declaredOutcome==='NEEDS_REVIEW'&&inferred? 'NEEDS_REVIEW':inferred;
     const actionLabel=state==='RECAPTURE_REQUIRED'?'Retake photo':state==='CLEANING_REQUIRED'?'Re-clean, then scan QR':state==='PRIVACY_HOLD'?'Wait until the room is empty':null;
-    return { cleanlinessOutcome,reviewReason:view.reviewReason,actionLabel,key: view.key, title: view.title, detail: row?.state === 'BLOCKED' ? row.lastError ?? 'Your photo is saved. Ask your manager for help.' : view.detail, state };
+    const detail=row?.state==='BLOCKED' ? row.lastError ?? 'Your photo is saved. Ask your manager for help.'
+      : row?.state==='RETRY_WAIT' ? `Photo saved on this phone. ${row.lastError??'Upload did not finish.'} Check the connection and tap Retry saved uploads.`
+      : view.detail;
+    return { cleanlinessOutcome,reviewReason:view.reviewReason,actionLabel,key: view.key, title: view.title, detail, state };
   });
 }
 

@@ -1,3 +1,6 @@
+import { LanguageChoice } from "../components/LanguageChoice";
+import { ListenButton } from "../components/ListenButton";
+import { useLanguage } from "../i18n/LanguageProvider";
 import { useEffect, useRef, useState } from 'react';
 import { AppState, Linking, Platform, ScrollView, StyleSheet, View } from 'react-native';
 import { useIsFocused } from '@react-navigation/native';
@@ -21,6 +24,7 @@ type Props = NativeStackScreenProps<RootStackParamList, 'StartTask'>;
 /** Starting records a room-marker event only. Finish owns its own QR/GPS session. */
 export function StartTaskScreen({ route, navigation }: Props) {
   const { user } = useAuth();
+  const {t,isRTL}=useLanguage();
   const taskId = route.params.taskId;
   const focused = useIsFocused();
   const cache = useQueryClient();
@@ -100,9 +104,10 @@ export function StartTaskScreen({ route, navigation }: Props) {
   const timeZone = task?.location?.timezone ?? task?.template?.location?.timezone;
   const started = task?.status === 'IN_PROGRESS';
   return <ScrollView className="flex-1 bg-background" contentContainerStyle={{ padding: 20, gap: 20, paddingBottom: 36 }}>
-    <View className="gap-2">
-      <Text className="text-xs font-semibold uppercase tracking-widest text-muted-foreground">Assigned area</Text>
-      <Text className="text-3xl font-bold text-foreground">{task?.areaNameSnapshot ?? 'Your cleaning task'}</Text>
+    <View className="items-center gap-3 py-4">
+      <View className="items-center justify-center rounded-full bg-accent" style={{width:88,height:88}}><Icon name="DoorOpen" size={40} className="text-primary"/></View>
+      <Text className="text-sm font-semibold text-muted-foreground">Cleaning task</Text>
+      <Text style={{textAlign:"center"}} className="text-3xl font-bold text-foreground">{task?.areaNameSnapshot ?? 'Your cleaning task'}</Text>
       <View className="flex-row items-center gap-2">
         <Icon name={started ? 'CircleCheck' : 'QrCode'} size={16} className={started ? 'text-success' : 'text-primary'} />
         <Text className="text-sm font-semibold text-muted-foreground" accessibilityLiveRegion="polite">
@@ -110,13 +115,14 @@ export function StartTaskScreen({ route, navigation }: Props) {
         </Text>
       </View>
     </View>
+    <LanguageChoice/>
     {task ? <>
       <View className="gap-2 border-y border-border py-4">
         <Text className="text-lg font-semibold">{task.title}</Text>
         {task.template?.description ? <Text className="text-base leading-6 text-muted-foreground">{task.template.description}</Text> : null}
         <View className="flex-row items-center gap-2">
           <Icon name="Clock" size={16} className="text-muted-foreground" />
-          <Text className="flex-1 text-sm text-muted-foreground">{formatTaskWindow(task.shiftStart, task.shiftEnd, timeZone)}</Text>
+          <Text style={{writingDirection:"ltr",textAlign:isRTL?"right":"left"}} className="flex-1 text-sm text-muted-foreground">{formatTaskWindow(task.shiftStart, task.shiftEnd, timeZone)}</Text>
         </View>
       </View>
     </> : <Text>{taskQuery.isPending ? 'Loading assigned task…' : 'Task could not be loaded.'}</Text>}
@@ -124,15 +130,16 @@ export function StartTaskScreen({ route, navigation }: Props) {
     {started ? <>
       <View className="gap-3 rounded-xl bg-accent p-5">
         <Icon name="CircleCheck" size={28} className="text-accent-foreground" />
-        <Text className="text-xl font-bold text-accent-foreground">Ready to clean</Text>
+        <Text className="text-xl font-bold text-accent-foreground">2 · Clean, then take photos</Text>
         {task.startedAt ? <Text className="text-sm font-semibold text-accent-foreground">Started {formatClockTime(task.startedAt, timeZone)}</Text> : null}
-        <Text className="text-base leading-6 text-accent-foreground">Clean the area. When you're done, finish your task to scan the area QR again and take the required photos.</Text>
+        <Text className="text-base leading-6 text-accent-foreground">Clean the area. When you’re done, scan the room QR again to take task photos.</Text>
       </View>
-      <Button size="lg" iconRight="ArrowRight" onPress={() => navigation.replace('Verification', { taskId })}>Finish task</Button>
+      <Button size="lg" iconRight="ArrowRight" onPress={() => navigation.replace('Verification', { taskId })}>Take task photos</Button>
     </> : null}
     {canStart ? <>
+      <ListenButton text={t("Scan the assigned room QR to start cleaning.")}/>
       <View className="gap-1">
-        <Text className="text-lg font-bold">Scan the area QR</Text>
+        <Text className="text-xl font-bold">1 · Scan room QR</Text>
         <Text className="text-base leading-6 text-muted-foreground">Use the room marker for {task.areaNameSnapshot ?? 'your assigned area'}. Your task starts after the area is confirmed.</Text>
       </View>
       {Platform.OS === 'web' ? <Text>Open the installed Hygene Ops Staff app to scan the area QR.</Text> : <>

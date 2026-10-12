@@ -12,7 +12,7 @@
     "build:web": "expo export --platform web",
     "typecheck": "tsc --noEmit",
     "validate:device-config": "node scripts/validate-device-config.mjs",
-    "test": "tsx --test src/api/*.test.ts src/verification/*.test.ts tests/*.test.mjs",
+    "test": "tsx --test src/api/*.test.ts src/auth/*.test.ts src/verification/*.test.ts tests/*.test.mjs",
     "build:android": "npm run validate:device-config && expo prebuild --platform android --no-install && expo run:android",
     "build:ios": "expo prebuild --platform ios --no-install && expo run:ios"
   },
@@ -38,6 +38,7 @@
     "expo-image-picker": "~17.0.11",
     "expo-location": "~19.0.8",
     "expo-secure-store": "~15.0.8",
+    "expo-speech": "~14.0.8",
     "expo-sqlite": "~16.0.10",
     "expo-status-bar": "~3.0.9",
     "expo-system-ui": "~6.0.9",

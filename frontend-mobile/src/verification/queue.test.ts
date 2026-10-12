@@ -27,8 +27,8 @@ test('offline and suspended sync retain bytes; reconnect uploads exact metadata 
  const {syncEvidence}=await import('./sync');const {configureApiAuth,client}=await import('../api/client');
  configureApiAuth({getScope:()=>queue.queueAccount(),getTokens:async()=>({accessToken:'access',refreshToken:'refresh'}),setTokens:async()=>{},clearSession:async()=>{}});
  const fetch=globalThis.fetch;const adapter=client.defaults.adapter;let uploads=0;
- client.defaults.adapter=async(config)=>({data:{data:{id:'server-attempt',state:'REVIEW_REQUIRED'}},status:200,statusText:'OK',headers:{},config});
- globalThis.fetch=async(_url,input)=>{uploads++;const body=input!.body as FormData;assert.deepEqual([...(body as unknown as {keys():IterableIterator<string>}).keys()].sort(),['photo','clientCaptureId','slotId','nonce','sha256','claimedCapturedAt','elapsedMs','bootId','deviceId','clientDiagnostics'].sort());assert.equal(body.get('clientCaptureId'),'capture-id');const diagnostics=JSON.parse(String(body.get('clientDiagnostics')));assert.ok(diagnostics.durableSavedAt);assert.ok(diagnostics.uploadStartedAt);return new Response(JSON.stringify({data:{attemptId:'server-attempt',assetId:'stored-asset',state:'RECEIVED'}}),{status:202});};
+ client.defaults.adapter=async(config)=>({data:{data:{id:'server-attempt',state:'REVIEW_REQUIRED',storage:'cloud'}},status:200,statusText:'OK',headers:{},config});
+ globalThis.fetch=async(_url,input)=>{uploads++;const body=input!.body as FormData;assert.deepEqual([...(body as unknown as {keys():IterableIterator<string>}).keys()].sort(),['photo','clientCaptureId','slotId','nonce','sha256','claimedCapturedAt','elapsedMs','bootId','deviceId','clientDiagnostics'].sort());assert.equal(body.get('clientCaptureId'),'capture-id');const diagnostics=JSON.parse(String(body.get('clientDiagnostics')));assert.ok(diagnostics.durableSavedAt);assert.ok(diagnostics.uploadStartedAt);return new Response(JSON.stringify({data:{attemptId:'server-attempt',assetId:'stored-asset',state:'RECEIVED',storage:'cloud'}}),{status:202});};
  try{setConnectivity(false);await syncEvidence();assert.equal(await queue.pendingCount(),1);assert.equal(uploads,0);setConnectivity(true);setAppState('background');await syncEvidence();assert.equal(uploads,0);setAppState('active');await syncEvidence();assert.equal(uploads,1);assert.equal(await queue.pendingCount(),0);await syncEvidence();assert.equal((await queue.queueRows())[0].state,'FINAL');}finally{globalThis.fetch=fetch;client.defaults.adapter=adapter;}
 });
 test('only durable server acknowledgment releases bytes; metadata remains resumable',async()=>{
@@ -143,4 +143,27 @@ test('manual upload retry returns while a slow upload runs and exposes live queu
   release(new Response(JSON.stringify({data:{attemptId:'slow-ack',assetId:'asset',state:'RECEIVED'}}),{status:202}));
   await syncEvidence();await reconcileEvidence();assert.equal((await queue.queueRows(88))[0].state,'PROCESSING');
  }finally{await reconcileEvidence();unsubscribe();globalThis.fetch=original;client.defaults.adapter=originalAdapter;}
+});
+
+test('temporary receipt keeps phone bytes until cloud confirmation or a dirty verdict; service failure retains them', async () => {
+  const { syncEvidence, reconcileEvidence } = await import('./sync');
+  const { configureApiAuth, client } = await import('../api/client');
+  await queue.unlockQueue({companyId:8,id:8}); setConnectivity(true); setAppState('active');
+  configureApiAuth({getScope:()=>queue.queueAccount(),getTokens:async()=>({accessToken:'access',refreshToken:'refresh'}),setTokens:async()=>{},clearSession:async()=>{}});
+  const oldFetch=globalThis.fetch, oldAdapter=client.defaults.adapter;
+  let state='PROCESSING', storage='buffered';
+  client.defaults.adapter=async config=>({data:{data:{id:'buffered-attempt',state,storage}},status:200,statusText:'OK',headers:{},config});
+  globalThis.fetch=async()=>new Response(JSON.stringify({data:{attemptId:'buffered-attempt',assetId:'temporary-asset',state:'RECEIVED',storage:'buffered'}}),{status:202});
+  const metadata={taskId:7,sessionId:'temporary-session',nonce:'nonce',sha256:'hash',claimedCapturedAt:'2026-10-06T10:00:00Z',elapsedMs:1,bootId:'boot',deviceId:'device'};
+  try {
+    await queue.saveCapture({...metadata,clientCaptureId:'buffered-photo',slotId:'buffered-photo'},new Uint8Array([1,2,3]));
+    await syncEvidence(); await reconcileEvidence(); assert.deepEqual(Array.from(await queue.queueBytes('buffered-photo')),[1,2,3]);
+    state='CLEANING_REQUIRED';storage='discarded';await reconcileEvidence();assert.equal(await queue.pendingCount(),0);assert.equal((await queue.queueRows())[0].state,'FINAL');
+    state='PROCESSING';storage='buffered';await queue.saveCapture({...metadata,clientCaptureId:'service-photo',slotId:'service-photo'},new Uint8Array([4,5,6]));
+    await syncEvidence();await reconcileEvidence();state='SERVICE_FAILURE';await reconcileEvidence();assert.deepEqual(Array.from(await queue.queueBytes('service-photo')),[4,5,6]);
+    state='PROCESSING';await queue.saveCapture({...metadata,clientCaptureId:'cloud-photo',slotId:'cloud-photo'},new Uint8Array([7]));
+    await syncEvidence();await reconcileEvidence();state='REVIEW_REQUIRED';storage='cloud';await reconcileEvidence();
+    assert.equal((await queue.queueRows()).find(r=>r.id==='cloud-photo')?.state,'FINAL');
+    await assert.rejects(queue.queueBytes('cloud-photo'));
+  } finally { globalThis.fetch=oldFetch;client.defaults.adapter=oldAdapter; }
 });

@@ -26,7 +26,7 @@ export function reconcileEvidence():Promise<void> {
           if(queueAccount()!==scope)return;
           const next=reconciledState(row,accepted);
           const firstResult=next.state==='FINAL'&&!row.metadata.timings?.resultReceivedAt;
-          await updateQueue(row.id,next.state,{attemptId:next.attemptId,...(firstResult?{timings:{resultReceivedAt:Date.now()}}:{})});
+          await updateQueue(row.id,next.state,{attemptId:next.attemptId,releaseBytes:(accepted as {storage?:string}).storage==='cloud'||['CLEANING_REQUIRED','RECAPTURE_REQUIRED'].includes(accepted.state),...(firstResult?{timings:{resultReceivedAt:Date.now()}}:{})});
           if(firstResult&&typeof __DEV__!=='undefined'&&__DEV__)console.info('verification.mobile.result',{taskId:row.taskId,sessionId:row.sessionId,clientCaptureId:row.id,attemptId:accepted.id,state:accepted.state,resultReceivedAt:Date.now()});
         }catch{/* Saved authority and server acknowledgment survive; next poll resumes. */}
       }));
@@ -55,8 +55,8 @@ export function syncEvidence():Promise<void> {
           if(queueAccount()!==scope)return;
           if (!result.id) throw new Error('Upload acknowledgment incomplete. Saved photo will retry.');
           const uploadAcceptedAt=Date.now();
-          // Protected cloud storage and a durable server attempt permit local byte cleanup.
-          await updateQueue(row.id,'SERVER_ACCEPTED',{attemptId:result.id,releaseBytes:true,timings:{uploadAcceptedAt}});
+          // A temporary server receipt keeps local bytes. Release only after cloud storage or a rejected final result.
+          await updateQueue(row.id,'SERVER_ACCEPTED',{attemptId:result.id,releaseBytes:result.storage==='cloud',timings:{uploadAcceptedAt}});
           if(typeof __DEV__!=='undefined'&&__DEV__)console.info('verification.mobile.upload',{taskId:row.taskId,sessionId:row.sessionId,clientCaptureId:row.id,attemptId:result.id,uploadStartedAt,uploadAcceptedAt,durationMs:uploadAcceptedAt-uploadStartedAt});
           void reconcileEvidence().catch(()=>{});
         } catch(error) {

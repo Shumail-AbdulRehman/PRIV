@@ -70,6 +70,8 @@ const mocks = {
   'expo-haptics': '{notificationAsync:async()=>{},NotificationFeedbackType:{Success:1}}',
   '@react-native-community/netinfo': '{addEventListener:()=>()=>{}}',
   '@react-navigation/native': '{useIsFocused:()=>true}',
+  'react-native-safe-area-context': '{useSafeAreaInsets:()=>({top:0,bottom:24,left:0,right:0})}',
+  '/components/PhotoCaptureControls': '{CaptureFrame:"CaptureFrame",PhotoStepProgress:({current,total})=>globalThis.React.createElement("Text",null,`Photo ${current} of ${total}`),PhotoCaptureControls:({disabled,busy,label,onCapture})=>globalThis.React.createElement("Button",{disabled:disabled||busy,loading:busy,onPress:onCapture},label)}',
   '/components/ui/button': '{Button:"Button"}', '/components/ui/text': '{Text:"Text"}',
   '/components/ui/card': '{Card:"Card",CardContent:"CardContent"}',
   '/components/ui/icon': '{Icon:"Icon"}', '/components/EmptyState': '{EmptyState:"EmptyState"}',
@@ -91,7 +93,7 @@ const urls = Object.fromEntries(Object.entries(mocks).map(([name, expression], i
   return [name, pathToFileURL(file).href];
 }));
 const hook = registerHooks({ resolve(specifier, context, next) {
-  const key = Object.keys(urls).find(name => specifier === name || name.startsWith('/') && specifier.endsWith(name));
+  const key = Object.keys(urls).find(name => specifier === name || name.startsWith('/') && (specifier.endsWith(name) || new URL(specifier, context.parentURL).pathname.replace(/\.(tsx?|mjs)$/, '').endsWith(name)));
   return key ? { url: urls[key], shortCircuit: true } : next(specifier, context);
 } });
 const flush = async work => act(async () => { await work?.(); await Promise.resolve(); });
@@ -181,7 +183,7 @@ test('guided spatial continuity, native fallback, and QR callbacks survive lifec
     assert.ok(JSON.stringify(renderer.toJSON()).includes('Location could not be found'));
     await flush(()=>renderer.unmount());
     manifest.spatialCaptureEnabled=false;
-    manifest.items=[{id:'fixture',nameSnapshot:'Sink 1',typeSnapshot:'SINK',identificationSnapshot:{},requirements:[{id:'r',state:'PROCESSING',instructionsSnapshot:'Show the basin'}]}];
+    manifest.items=[{id:'fixture',nameSnapshot:'Sink 1',typeSnapshot:'SINK',mandatory:true,identificationSnapshot:{},requirements:[{id:'r',mandatory:true,state:'PROCESSING',instructionsSnapshot:'Show the basin'}]}];
     local={session:{id:'progress-session',state:'ACTIVE',serverTime:new Date().toISOString(),captureExpiresAt:new Date(Date.now()+600000).toISOString(),slots:[{id:'used-slot',requirementId:'r',generation:0}]},manifest,anchorBootId:'boot',anchorElapsedMs:0,paused:false};
     rows=[{id:'pending-photo',sessionId:'progress-session',slotId:'used-slot',state:'UPLOADING',metadata:{slotId:'used-slot'}}];
     await flush(()=>{renderer=create(React.createElement(VerificationScreen,{route:{params:{taskId:7}},navigation:{goBack(){}}}));});
@@ -193,34 +195,17 @@ test('guided spatial continuity, native fallback, and QR callbacks survive lifec
     assert.ok(renderer.root.findAllByType('Button').some(button=>button.props.children==='Retake affected views'&&!button.props.loading));
     await flush(()=>renderer.unmount());renderer=undefined;
     rows=[];manifest.spatialCaptureEnabled=true;
-    manifest.items=[{id:'sink',nameSnapshot:'Sink 1',typeSnapshot:'SINK',identificationSnapshot:{},requirements:[{id:'r',state:'MISSING',instructionsSnapshot:'Show the basin',decisionVersion:0},{id:'r2',state:'MISSING',instructionsSnapshot:'Show the tap',decisionVersion:0}]}];
+    manifest.items=[{id:'sink',nameSnapshot:'Sink 1',typeSnapshot:'SINK',mandatory:true,identificationSnapshot:{},requirements:[{id:'r',mandatory:true,state:'MISSING',instructionsSnapshot:'Show the basin',decisionVersion:0},{id:'r2',mandatory:true,state:'MISSING',instructionsSnapshot:'Show the tap',decisionVersion:0}]}];
     local={session:{id:'category-session',state:'ACTIVE',serverTime:new Date().toISOString(),captureExpiresAt:new Date(Date.now()+600000).toISOString(),slots:[{id:'first',requirementId:'r',generation:0,sequence:1,nonce:'n'},{id:'second',requirementId:'r2',generation:0,sequence:2,nonce:'n'}]},manifest,anchorBootId:'boot',anchorElapsedMs:0,paused:false};
     native.start=async()=>{};availability=sample;
     await flush(()=>{renderer=create(React.createElement(VerificationScreen,{route:{params:{taskId:7}},navigation:{goBack(){}}}));});
     await click(renderer,'Continue photos');await tick();
-    globalThis.lifecycleMocks.category.inspectLocalCategory=async()=>({outcome:'CLEAR_MISMATCH',expectedCategory:'SINK',predictedCategory:'TOILET'});
+    let categoryCalls=0;
+    globalThis.lifecycleMocks.category.inspectLocalCategory=async()=>{categoryCalls++;throw new Error('Local category unavailable');};
     await click(renderer,'Take photo');
-    assert.equal(rows.length,0,'A local mismatch is never durably queued for upload');
-    assert.ok(JSON.stringify(renderer.toJSON()).includes("doesn't look like a sink"));
-    assert.ok(JSON.stringify(renderer.toJSON()).includes('Photo 1 of 2'),'Mismatch stays on the same view');
-    globalThis.lifecycleMocks.category.inspectLocalCategory=async()=>({outcome:'UNCERTAIN',expectedCategory:'SINK',predictedCategory:null});
-    await click(renderer,'Take photo');
-    assert.equal(rows.length,0,'Uncertain does not automatically count as matched or queue');
-    assert.ok(renderer.root.findAllByType('Button').some(button=>button.props.children==='Send for checking'));
-    await click(renderer,'Retake photo');assert.equal(rows.length,0);
-    await click(renderer,'Take photo');
-    await click(renderer,'Room occupied — pause');
-    assert.equal(rows.length,0,'Pausing discards an undecided uncertain capture without saving it');
-    assert.ok(JSON.stringify(renderer.toJSON()).includes('This photo was not saved'));
-    await click(renderer,'Continue photos');await tick();
-    assert.equal(renderer.root.findAllByType('Button').some(button=>button.props.children==='Send for checking'),false,'An old uncertain photo cannot be committed after a pause');
-    await click(renderer,'Take photo');
-    await flush(()=>{globalThis.lifecycleMocks.rn.AppState.currentState='background';for(const listener of listeners)listener('background');});
-    assert.equal(rows.length,0);assert.ok(JSON.stringify(renderer.toJSON()).includes('This photo was not saved'));
-    await flush(()=>{globalThis.lifecycleMocks.rn.AppState.currentState='active';for(const listener of listeners)listener('active');});await tick();
-    assert.equal(renderer.root.findAllByType('Button').some(button=>button.props.children==='Send for checking'),false,'Foreground does not resurrect undecided capture bytes');
-    await click(renderer,'Take photo');await click(renderer,'Send for checking');
-    assert.equal(rows.length,1);assert.equal(rows[0].metadata.localCategoryResult.outcome,'UNCERTAIN');
+    assert.equal(categoryCalls,0,'Local uncertainty cannot block a quality photo from reaching Clef');
+    assert.equal(rows.length,1,'Photo is durably saved for server checking');
+    assert.equal(rows[0].metadata.localCategoryResult,undefined);
     assert.ok(JSON.stringify(renderer.toJSON()).includes('Photo 2 of 2'));
     const save=globalThis.lifecycleMocks.queue.saveCapture;let completeSave;
     globalThis.lifecycleMocks.queue.saveCapture=(...args)=>new Promise(resolve=>{completeSave=async()=>{await save(...args);resolve();};});
@@ -231,6 +216,62 @@ test('guided spatial continuity, native fallback, and QR callbacks survive lifec
     await flush(()=>completeSave());assert.equal(rows.length,2);
     globalThis.lifecycleMocks.queue.saveCapture=save;
     await flush(()=>renderer.unmount());renderer=undefined;
+    // SQLite JSON reads return snapshots. A slow poll must not restore the
+    // unactivated snapshot after the activation response has opened the camera.
+    const readSession=globalThis.lifecycleMocks.queue.getSession;
+    const readManifest=globalThis.lifecycleMocks.api.verificationManifest;
+    globalThis.lifecycleMocks.queue.getSession=async()=>structuredClone(local);
+    manifest.spatialCaptureEnabled=false;manifest.pendingJobs=0;rows=[];
+    local={...local,anchorElapsedMs:clock,session:{...local.session,id:'activation-race',sequentialChecks:true,serverTime:new Date().toISOString(),captureExpiresAt:new Date(Date.now()+600000).toISOString(),slots:[{id:'race-one',requirementId:'r',generation:0,sequence:0,nonce:'n'},{id:'race-two',requirementId:'r2',generation:0,sequence:1,nonce:'n'}]}};
+    let resolveActivation,resolvePoll,activationCount=0;
+    globalThis.lifecycleMocks.api.activatePhoto=()=>{activationCount++;return new Promise(resolve=>{resolveActivation=resolve;});};
+    await flush(()=>{renderer=create(React.createElement(VerificationScreen,{route:{params:{taskId:7}},navigation:{goBack(){}}}));});
+    await click(renderer,'Continue photos');
+    globalThis.lifecycleMocks.api.verificationManifest=()=>new Promise(resolve=>{resolvePoll=resolve;});
+    await tick();assert.equal(typeof resolvePoll,'function');
+    const activatedSession={...local.session,slots:local.session.slots.map(slot=>slot.id==='race-one'?{...slot,activatedAt:new Date().toISOString(),expiresAt:new Date(Date.now()+90000).toISOString()}:slot)};
+    await flush(()=>resolveActivation(activatedSession));
+    await flush(()=>new Promise(resolve=>setTimeout(resolve,400)));
+    const activeCamera=renderer.root.findByType('CameraView');
+    await flush(()=>resolvePoll(structuredClone(manifest)));
+    assert.equal(activationCount,1,'A delayed pre-activation poll cannot trigger another activation');
+    assert.equal(local.session.slots[0].activatedAt,activatedSession.slots[0].activatedAt,'The activated deadline survives a stale response');
+    assert.equal(renderer.root.findByType('CameraView'),activeCamera,'The active camera stays mounted when a stale poll returns');
+    globalThis.lifecycleMocks.api.verificationManifest=readManifest;
+    for(let refresh=0;refresh<3;refresh++){await tick();assert.equal(renderer.root.findByType('CameraView'),activeCamera);}
+    await flush(()=>renderer.unmount());renderer=undefined;
+    globalThis.lifecycleMocks.queue.getSession=readSession;
+    manifest.spatialCaptureEnabled=true;
+    // Screen progression waits for checks, resumes after expiry, and completes uncertain work.
+    rows=[];manifest.pendingJobs=0;manifest.task.status='IN_PROGRESS';
+    manifest.items[0].mandatory=true;
+    for(const requirement of manifest.items[0].requirements){requirement.state='MISSING';requirement.mandatory=true;}
+    local={...local,anchorElapsedMs:clock,session:{...local.session,id:'sequential-session',sequentialChecks:true,serverTime:new Date().toISOString(),captureExpiresAt:new Date(Date.now()+600000).toISOString(),slots:[{id:'seq-one',requirementId:'r',generation:0,sequence:0,nonce:'n'},{id:'seq-two',requirementId:'r2',generation:0,sequence:1,nonce:'n'}]}};
+    const activations=[];let submissions=0;
+    globalThis.lifecycleMocks.api.activatePhoto=async(_id,slotId)=>{activations.push(slotId);return {...local.session,slots:local.session.slots.map(slot=>slot.id===slotId?{...slot,activatedAt:new Date().toISOString(),expiresAt:new Date(Date.now()+90000).toISOString()}:slot)};};
+    globalThis.lifecycleMocks.api.finishSubmission=async()=>{submissions++;manifest.staffSubmittedAt=new Date().toISOString();manifest.task.status='COMPLETED';};
+    await flush(()=>{renderer=create(React.createElement(VerificationScreen,{route:{params:{taskId:7}},navigation:{goBack(){}}}));});
+    await click(renderer,'Continue photos');await tick();
+    assert.deepEqual(activations,['seq-one']);assert.ok(JSON.stringify(renderer.toJSON()).includes('Time remaining:'));
+    await click(renderer,'Take photo');await tick();
+    assert.equal(rows.length,1);assert.equal(renderer.root.findAllByType('Button').some(button=>button.props.children==='Take photo'),false);
+    manifest.items[0].requirements[0].state='REVIEW_REQUIRED';manifest.pendingJobs=1;await tick();
+    assert.deepEqual(activations,['seq-one'],'Review state cannot advance while checks are pending');
+    manifest.pendingJobs=0;await tick();await tick();
+    assert.deepEqual(activations,['seq-one','seq-two']);
+    clock+=91000;await tick();
+    assert.ok(JSON.stringify(renderer.toJSON()).includes('Scan the area QR'));assert.equal(rows.length,1,'Expiry preserves previous photos');
+    globalThis.lifecycleMocks.api.openCaptureSession=async()=>({...local.session,id:'renewed-seq',serverTime:new Date().toISOString(),slots:[{id:'renewed-two',requirementId:'r2',generation:1,sequence:0,nonce:'n'}]});
+    await flush(()=>new Promise(resolve=>setTimeout(resolve,400)));
+    await flush(()=>{const scanner=renderer.root.findByType('CameraView');scanner.props.onCameraReady();scanner.props.onBarcodeScanned({data:'renew-qr'});});await tick();
+    assert.equal(rows.length,1);assert.equal(local.manifest.items[0].requirements[0].state,'REVIEW_REQUIRED');
+    await click(renderer,'Take photo');manifest.items[0].requirements[1].state='REVIEW_REQUIRED';await tick();await tick();
+    assert.equal(submissions,0,'Ready work is not automatically submitted');
+    await click(renderer,'Submit work');await tick();
+    assert.equal(submissions,1);assert.ok(JSON.stringify(renderer.toJSON()).includes('Work submitted'));assert.equal(renderer.root.findAllByType('Button').some(button=>button.props.children==='Take photo'),false);assert.equal(JSON.stringify(renderer.toJSON()).includes('Needs review'),false);
+    await flush(()=>renderer.unmount());renderer=undefined;
+    delete manifest.staffSubmittedAt;manifest.task.status='IN_PROGRESS';delete manifest.pendingJobs;
+    local={...local,session:{...local.session,sequentialChecks:false}};
     manifest.spatialCaptureEnabled=false;
     manifest.items[0].requirements[0].state='PASSED';manifest.items[0].requirements[1].state='CLEANING_REQUIRED';
     manifest.items[0].requirements[1].decisionVersion=3;
@@ -263,7 +304,7 @@ test('guided spatial continuity, native fallback, and QR callbacks survive lifec
     assert.ok(JSON.stringify(renderer.toJSON()).includes('Show the drain clearly'),'Mixed failure recovery returns to only the remaining view');
     await flush(()=>renderer.unmount());renderer=undefined;
     const {VerificationProgress}=await import('../src/screens/verification/VerificationProgress.tsx');
-    const outcomes={task:{verificationState:'NEEDS_REVIEW'},sessions:[{id:'display',slots:[{id:'entrance-approved',contextKey:'ENTRANCE',generation:0,state:'PASSED'}]}],items:[{nameSnapshot:'Sink 1',requirements:[
+    const outcomes={task:{verificationState:'NEEDS_REVIEW'},sessions:[{id:'display',slots:[{id:'entrance-approved',contextKey:'ENTRANCE',generation:0,state:'PASSED'}]}],items:[{nameSnapshot:'Sink 1',mandatory:true,requirements:[
       {id:'clean',state:'PASSED',currentAttempt:{cleanlinessOutcome:'CLEAN'}},
       {id:'dirty',state:'CLEANING_REQUIRED',currentAttempt:{cleanlinessOutcome:'DIRTY',instructions:'Clean around the basin.'}},
       {id:'uncertain',state:'RECAPTURE_REQUIRED',currentAttempt:{cleanlinessOutcome:'NEEDS_REVIEW',reviewReason:'CANNOT_ASSESS',instructions:'Show the whole tap.'}},
@@ -272,17 +313,21 @@ test('guided spatial continuity, native fallback, and QR callbacks survive lifec
       {id:'waived',state:'WAIVED'},
       {id:'failure',state:'REVIEW_REQUIRED',currentAttempt:{state:'SERVICE_FAILURE',reviewReason:'SERVICE_FAILURE'}},
     ]}]};
+    for(const requirement of outcomes.items[0].requirements)requirement.mandatory=true;
     await flush(()=>{renderer=create(React.createElement(VerificationProgress,{manifest:outcomes,local:null,rows:[],online:true,lastUpdated:Date.now()}));});
     const textContent=children=>Array.isArray(children)?children.map(textContent).join(''):typeof children==='string'||typeof children==='number'?String(children):'';
     const labels=()=>renderer.root.findAllByType('Text').map(node=>textContent(node.props.children));
-    assert.ok(labels().includes('Clean'));assert.ok(labels().includes('Dirty'));assert.ok(labels().includes('Needs review'));
-    assert.ok(labels().includes('Accepted'));assert.ok(labels().includes('Waived'));assert.ok(labels().includes('Passed'),'Entrance approval is not labeled Clean');
-    assert.ok(labels().includes('1 Clean · 1 Dirty · 3 Needs review'),'Manual resolutions never inflate automated Clean count');
-    assert.ok(labels().includes('Retake photo'));assert.ok(labels().includes('Re-clean, then scan QR'));
-    assert.ok(JSON.stringify(renderer.toJSON()).includes('still being validated'));assert.ok(JSON.stringify(renderer.toJSON()).includes('do not need to clean or take another photo'));
-    outcomes.task.completionOutcome='COMPLETED_WITH_EXCEPTIONS';
-    await flush(()=>renderer.update(React.createElement(VerificationProgress,{manifest:outcomes,local:null,rows:[],online:true,lastUpdated:Date.now()})));
-    assert.ok(labels().includes('Completed with exceptions'));assert.equal(labels().includes('Verified complete'),false);
+    assert.ok(labels().includes('Photo approved'));
+    assert.ok(JSON.stringify(renderer.toJSON()).includes('Clean around the basin.'));
+    assert.equal(labels().some(label=>['Clean','Dirty','Needs review','Accepted','Waived'].includes(label)),false);
+    for(const completionOutcome of ['COMPLETED_WITH_EXCEPTIONS','VERIFIED_COMPLETE']){
+      outcomes.task.completionOutcome=completionOutcome;
+      await flush(()=>renderer.update(React.createElement(VerificationProgress,{manifest:outcomes,local:null,rows:[],online:true,lastUpdated:Date.now()})));
+      assert.ok(labels().includes('Work submitted'));
+      assert.equal(JSON.stringify(renderer.toJSON()).includes('exceptions'),false);
+      assert.equal(JSON.stringify(renderer.toJSON()).includes('Verified complete'),false);
+    }
+
 
 
 

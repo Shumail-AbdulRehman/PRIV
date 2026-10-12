@@ -49,7 +49,7 @@ export async function uploadCapture(row:QueueRow,scope:string) {
   const file=await materializeUpload(row.id);
   try {
     if(queueAccount()!==scope)throw new Error('Account changed. Saved photos are locked.');
-    const acknowledgment=(await uploadFormData<ApiEnvelope<{attemptId:string;assetId:string;state:string}>>(`/capture-session/${row.sessionId}/attempts`,()=>{
+    const acknowledgment=(await uploadFormData<ApiEnvelope<{attemptId:string;assetId:string;state:string;storage?:string}>>(`/capture-session/${row.sessionId}/attempts`,()=>{
       const form=new FormData();form.append('photo',createImagePart(file.uri,`${row.id}.jpg`,'image/jpeg'));
       for(const key of ['clientCaptureId','slotId','nonce','sha256','claimedCapturedAt','elapsedMs','bootId','deviceId'] as const) form.append(key,String(row.metadata[key]));
       if(row.metadata.timings)form.append('clientDiagnostics',JSON.stringify({...row.metadata.timings,localCategory:row.metadata.localCategoryResult}));
@@ -57,9 +57,12 @@ export async function uploadCapture(row:QueueRow,scope:string) {
       return form;
     },90_000,()=>queueAccount()===scope)).data;
     if(!acknowledgment.attemptId||!acknowledgment.assetId)throw new Error('Upload acknowledgment incomplete. Your photo is still saved.');
-    return {id:acknowledgment.attemptId,state:acknowledgment.state};
+    return {id:acknowledgment.attemptId,state:acknowledgment.state,storage:acknowledgment.storage};
   } finally { if(file.exists)file.delete(); }
 }
 export async function commitManifest(row:QueueRow) { const {clientCaptureId,slotId,nonce,sha256,claimedCapturedAt,elapsedMs,bootId,deviceId,spatialEvidence}=row.metadata; return client.post(`/capture-session/${row.sessionId}/attempts/manifest`,{clientCaptureId,slotId,nonce,sha256,claimedCapturedAt,elapsedMs,bootId,deviceId,...(spatialEvidence?{spatialEvidence}:{})}); }
-export async function attemptStatus(id:string,scope?:string) { return (await client.get<ApiEnvelope<{id:string;state:string}>>(`/verification-attempt/${id}`,scope?accountRequest(scope):undefined)).data.data; }
+export async function attemptStatus(id:string,scope?:string) { return (await client.get<ApiEnvelope<{id:string;state:string;storage?:string}>>(`/verification-attempt/${id}`,scope?accountRequest(scope):undefined)).data.data; }
 export async function reportIssue(taskId:number,payload:Record<string,unknown>,scope?:string) { return client.post(`/task-instance/${taskId}/verification-issues`,payload,scope?accountRequest(scope):undefined); }
+
+export async function activatePhoto(sessionId:string,slotId:string):Promise<CaptureSession>{const scope=queueAccount();if(!scope)throw new Error('Sign in again to continue.');return (await client.post<ApiEnvelope<CaptureSession>>(`/capture-session/${sessionId}/activate-photo`,{slotId,deviceId:await installationId()},accountRequest(scope))).data.data;}
+export async function finishSubmission(taskId:number){const scope=queueAccount();if(!scope)throw new Error('Sign in again to continue.');return (await client.post<ApiEnvelope<{id:number;status:string;staffSubmittedAt:string}>>(`/task-instance/${taskId}/complete`,{},accountRequest(scope))).data.data;}
