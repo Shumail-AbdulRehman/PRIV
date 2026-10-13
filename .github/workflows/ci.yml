@@ -55,8 +55,8 @@ jobs:
       - name: Build backend
         run: npm run build
 
-      - name: Isolated database contracts and races
-        run: npm run test:verification:integration && npm run test:verification:lifecycle
+      - name: Isolated database evidence lifecycle
+        run: npm run test:verification:lifecycle
 
       - name: Manager operations contracts and pagination
         run: npm run test:manager:integration

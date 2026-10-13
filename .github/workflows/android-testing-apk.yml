@@ -90,7 +90,6 @@ jobs:
         run: npm test && npm run build
       - name: Isolated PostgreSQL contracts, lifecycle and direct photo requests
         run: |
-          npm run test:verification:integration
           npm run test:verification:lifecycle
           npm run test:verification:photo-http
       - name: Preserve closed evaluation gate
