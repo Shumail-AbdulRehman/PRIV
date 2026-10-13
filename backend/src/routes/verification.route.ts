@@ -1,7 +1,8 @@
+import { reviewableMedia, photoStorageState } from "../services/verification-v2/evidenceBuffer.js";
+import { processDirectPhoto, directPhotoStatus } from "../services/verification-v2/directPhoto.service.js";
 import {activatePhotoSlot} from '../services/verification-v2/sequentialCapture.service.js';
-import {staffTaskPresentation} from '../services/verification-v2/sequentialPolicy.js';
+import {staffTaskPresentation,managerTaskPresentation} from '../services/verification-v2/sequentialPolicy.js';
 import {verificationEvent} from '../services/verification-v2/latency.js';
-import {clientDiagnosticsSchema} from '../services/verification-v2/contracts.js';
 import { verificationCapabilities,requireNativeVerification } from '../services/verification-v2/compatibility.service.js';
 import { requireVerificationSchema, verificationSchemaReadiness } from '../services/verification-v2/readiness.service.js';
 import {Router} from 'express';
@@ -12,7 +13,6 @@ import {verifyJwt} from '../middlewares/auth.middleware.js';
 import {ApiError} from '../utils/ApiError.js';
 import {requireActiveActor,requireTaskAccess,requireOperationalRole} from '../services/verification-v2/authorization.service.js';
 import {createCaptureSession,createReworkCaptureSession,resumeSession,reserveAttempt,retakeSlots,authorizedSession,staffAttemptResult} from '../services/verification-v2/captureSession.service.js';
-import {storeReservedEvidence} from '../services/verification-v2/evidence.service.js';
 import {sha256} from '../services/verification-v2/quality.service.js';
 import {verificationManifestSchema} from '../services/verification-v2/contracts.js';
 import {resolvePolicy,taskDeadlines} from '../services/verification-v2/verificationPolicy.service.js';
@@ -43,9 +43,8 @@ router.get('/task-instance/staff/me/verification-work',async(req,res)=>{
 router.get('/task-instance/:taskId/verification',async(req,res)=>{
  const task=await requireTaskAccess(req.user!,z.coerce.number().int().positive().parse(req.params.taskId));
  if(task.verificationVersion!==2)throw new ApiError(409,'Inventory verification required');
- const [items,pendingJobs,caseSummary,sessions]=await Promise.all([
+ const [items,caseSummary,sessions]=await Promise.all([
  prisma.taskVerificationItem.findMany({where:{taskInstanceId:task.id},include:{requirements:true},orderBy:{orderSnapshot:'asc'}}),
- prisma.verificationJob.count({where:{attempt:{session:{taskInstanceId:task.id}},state:{in:['PENDING','RUNNING','RETRY_WAIT']}}}),
  prisma.verificationException.findUnique({where:{taskInstanceId:task.id},select:{id:true,state:true,priority:true,rowVersion:true,updatedAt:true,issues:{where:{state:{not:'RESOLVED'}},select:{id:true,requirementId:true,reasonCode:true,state:true,recommendedAction:true}}}}),
  prisma.captureSession.findMany({where:{taskInstanceId:task.id},orderBy:{issuedAt:'desc'},take:20,select:{id:true,state:true,assignmentEpoch:true,captureExpiresAt:true,uploadExpiresAt:true,presenceStatus:true,contextStatus:true,locationCheck:true,slots:{where:{contextKey:{not:null}},orderBy:{generation:'desc'},select:{id:true,contextKey:true,generation:true,sequence:true,expiresAt:true,activatedAt:true,attemptId:true}},attempts:{where:{contextKey:{not:null}},select:{id:true,slotId:true,state:true,qualityResult:true,coverageResult:true,cleanlinessResult:true,spatialDecision:true,duplicateResult:true,media:{select:{privacyState:true}}}}}})
  ]);
@@ -58,11 +57,13 @@ router.get('/task-instance/:taskId/verification',async(req,res)=>{
  const deadlineWarning=canCapture&&captureDeadline>now&&+captureDeadline-+now<=5*60000?{reasonCode:'CAPTURE_WINDOW_ENDING',deadline:captureDeadline,remainingSeconds:Math.ceil((+captureDeadline-+now)/1000)}:undefined;
  const attemptIds=items.flatMap(i=>i.requirements.map(r=>r.currentAttemptId)).filter((id):id is string=>!!id);
  const attempts=await prisma.verificationAttempt.findMany({where:{id:{in:attemptIds}},include:{media:{select:{privacyState:true}}}});
- send(res,{...base,task:{id:task.id,title:task.title,...(req.user!.role==='STAFF'?staffTaskPresentation({status:task.status,staffSubmittedAt:task.staffSubmittedAt,verificationState:task.verificationState,completionOutcome:task.completionOutcome}):{status:task.status,staffSubmittedAt:task.staffSubmittedAt,verificationState:task.verificationState,completionOutcome:task.completionOutcome}),verificationVersion:2,completionTiming:task.completionTiming,areaNameSnapshot:task.areaNameSnapshot,shiftEnd:task.shiftEnd,verificationDeadline,uploadDeadline,location:{id:task.location.id,name:task.location.name,timezone:task.location.timezone}},
- items:base.items.map(i=>({...i,...{itemCodeSnapshot:items.find(x=>x.id===i.id)!.itemCodeSnapshot,typeSnapshot:items.find(x=>x.id===i.id)!.typeSnapshot,orderSnapshot:items.find(x=>x.id===i.id)!.orderSnapshot,identificationSnapshot:items.find(x=>x.id===i.id)!.identificationSnapshot},requirements:i.requirements.map(r=>{const a=attempts.find(a=>a.id===items.flatMap(i=>i.requirements).find(x=>x.id===r.id)?.currentAttemptId);return {...r,manualOutcome:r.state==='MANAGER_ACCEPTED'||r.state==='WAIVED'?r.state:null,currentAttempt:a?{id:a.id,state:a.state,...staffAttemptResult(a,a.media?.privacyState==='SAFE',r.state)}:null};})})),spatialCaptureEnabled:resolvePolicy(task.policySnapshot).spatial.mode!=='OFF',serverTime:now,deadlineWarning,verificationState:req.user!.role==='STAFF'?undefined:task.verificationState,outcome:req.user!.role==='STAFF'?undefined:task.completionOutcome,verificationDeadline,uploadDeadline,pendingJobs,caseSummary:req.user!.role==='STAFF'?undefined:caseSummary,
+ const taskSummary={status:task.status,staffSubmittedAt:task.staffSubmittedAt,verificationState:task.verificationState,completionOutcome:task.completionOutcome};
+ const presentedTask=req.user!.role==='STAFF'?staffTaskPresentation(taskSummary):managerTaskPresentation(taskSummary);
+ send(res,{...base,task:{id:task.id,title:task.title,...presentedTask,verificationVersion:2,completionTiming:task.completionTiming,areaNameSnapshot:task.areaNameSnapshot,shiftEnd:task.shiftEnd,verificationDeadline,uploadDeadline,location:{id:task.location.id,name:task.location.name,timezone:task.location.timezone}},
+ items:base.items.map(i=>({...i,...{itemCodeSnapshot:items.find(x=>x.id===i.id)!.itemCodeSnapshot,typeSnapshot:items.find(x=>x.id===i.id)!.typeSnapshot,orderSnapshot:items.find(x=>x.id===i.id)!.orderSnapshot,identificationSnapshot:items.find(x=>x.id===i.id)!.identificationSnapshot},requirements:i.requirements.map(r=>{const a=attempts.find(a=>a.id===items.flatMap(i=>i.requirements).find(x=>x.id===r.id)?.currentAttemptId);return {...r,manualOutcome:r.state==='MANAGER_ACCEPTED'||r.state==='WAIVED'?r.state:null,currentAttempt:a?{id:a.id,state:a.state,...staffAttemptResult(a,reviewableMedia(a.media?.privacyState),r.state)}:null};})})),spatialCaptureEnabled:false,serverTime:now,deadlineWarning,verificationState:req.user!.role==='STAFF'?undefined:task.verificationState,outcome:req.user!.role==='STAFF'?undefined:task.completionOutcome,verificationDeadline,uploadDeadline,pendingJobs:0,caseSummary:req.user!.role==='STAFF'?undefined:caseSummary,
  requiredContextKeys:live?requiredContextKeys(live.locationCheck):CURRENT_CONTEXT_KEYS,
- staffSubmittedAt:task.staffSubmittedAt,sequentialChecks:true,objectCaptureSeconds:resolvePolicy(task.policySnapshot).objectCaptureSeconds,allowedActions:{reworkSession:canCapture&&items.some(i=>i.requirements.some(r=>r.state==='CLEANING_REQUIRED')),createSession:canCapture&&!live,resumeSession:current&&!!live,renewSession:canCapture&&!!live,retakeSlots:canCapture&&live?.state==='ACTIVE'&&live.captureExpiresAt>now,upload:current&&!task.staffSubmittedAt&&task.status!=='COMPLETED',uploadReviewOnly:current&&now>=uploadDeadline,reportIssue:current&&!task.staffSubmittedAt&&task.status!=='COMPLETED'},
- sessions:sessions.map(s=>({...s,locationCheck:undefined,requiredContextKeys:requiredContextKeys(s.locationCheck),slots:s.slots.map(slot=>{const attempt=s.attempts.find(a=>a.id===slot.attemptId);return {...slot,state:attempt?.state??'AVAILABLE',...(attempt?staffAttemptResult({...attempt,contextKey:slot.contextKey},attempt.media?.privacyState==='SAFE'):{})};}),attempts:undefined}))});
+ staffSubmittedAt:task.staffSubmittedAt,sequentialChecks:true,objectCaptureSeconds:resolvePolicy(task.policySnapshot).objectCaptureSeconds,allowedActions:{reworkSession:canCapture&&items.some(i=>i.requirements.some(r=>r.state==='CLEANING_REQUIRED')),createSession:canCapture&&!live,resumeSession:current&&!!live,renewSession:canCapture&&!!live,retakeSlots:canCapture&&live?.state==='ACTIVE'&&live.captureExpiresAt>now,upload:current&&!task.staffSubmittedAt&&task.status!=='COMPLETED',uploadReviewOnly:current&&now>=uploadDeadline,reportIssue:false},
+ sessions:sessions.map(s=>({...s,locationCheck:undefined,requiredContextKeys:requiredContextKeys(s.locationCheck),slots:s.slots.map(slot=>{const attempt=s.attempts.find(a=>a.id===slot.attemptId);return {...slot,state:attempt?.state??'AVAILABLE',...(attempt?staffAttemptResult({...attempt,contextKey:slot.contextKey},reviewableMedia(attempt.media?.privacyState)):{})};}),attempts:undefined}))});
 });
 // Explicit evaluation export, scoped to operational roles; no photos, GPS, tokens or AR maps.
 router.get('/task-instance/:taskId/verification/spatial-evaluation',async(req,res)=>{
@@ -79,7 +80,8 @@ router.get('/task-instance/:taskId/verification/history',async(req,res)=>{
  if(cursor&&!await prisma.verificationAttempt.findFirst({where:{id:cursor,session:{taskInstanceId:task.id}}}))throw new ApiError(404,'History cursor not found');
  const rows=await prisma.verificationAttempt.findMany({where:{session:{taskInstanceId:task.id}},orderBy:[{createdAt:'desc'},{id:'desc'}],take:51,...(cursor?{cursor:{id:cursor},skip:1}:{}),include:{media:{select:{privacyState:true}},requirement:{select:{viewKey:true,state:true,currentAttemptId:true,item:{select:{nameSnapshot:true}}}}}});
  const staff=await prisma.staff.findMany({where:{companyId:req.user!.companyId,id:{in:rows.map(a=>a.staffId)}},select:{id:true,name:true}});
- send(res,{attempts:rows.slice(0,50).map(a=>({id:a.id,requirementId:a.requirementId,contextKey:a.contextKey,state:a.state,createdAt:a.createdAt,receivedAt:a.receivedAt,staff:staff.find(s=>s.id===a.staffId)??null,requirement:a.requirement,privacyState:a.media?.privacyState,mediaAssetId:a.media?.privacyState==='SAFE'&&a.state!=='PRIVACY_HOLD'?a.mediaAssetId:null,...staffAttemptResult(a,a.media?.privacyState==='SAFE',a.requirement?.currentAttemptId===a.id?a.requirement.state:undefined)})),nextCursor:rows.length>50?rows[49]!.id:null});
+ const manualClean=task.hasManualOverride&&task.completionOutcome==='COMPLETED_WITH_EXCEPTIONS'&&await prisma.auditLog.findFirst({where:{companyId:req.user!.companyId,entityType:'TASK_INSTANCE',entityId:task.id,action:'USER_MARK_CLEAN'},select:{id:true}});
+ send(res,{attempts:rows.slice(0,50).map(a=>({id:a.id,requirementId:a.requirementId,contextKey:a.contextKey,state:a.state,createdAt:a.createdAt,receivedAt:a.receivedAt,staff:staff.find(s=>s.id===a.staffId)??null,requirement:a.requirement,privacyState:a.media?.privacyState,mediaAssetId:(reviewableMedia(a.media?.privacyState)||a.media?.privacyState==='HOLD'&&['ADMIN','MANAGER'].includes(req.user!.role))?a.mediaAssetId:null,...staffAttemptResult(a,reviewableMedia(a.media?.privacyState),manualClean&&a.contextKey?'MANAGER_ACCEPTED':a.requirement?.currentAttemptId===a.id?a.requirement.state:undefined)})),nextCursor:rows.length>50?rows[49]!.id:null});
 });
 router.post('/task-instance/:taskId/capture-sessions',async(req,res)=>send(res,await createCaptureSession(req.user!,z.coerce.number().int().positive().parse(req.params.taskId),req.body),201));
 router.post('/task-instance/:taskId/capture-sessions/rework',async(req,res)=>send(res,await createReworkCaptureSession(req.user!,z.coerce.number().int().positive().parse(req.params.taskId),req.body),201));
@@ -89,12 +91,20 @@ router.post('/capture-session/:id/renew',async(req,res)=>{const s=await authoriz
 router.post('/capture-session/:id/retake-slots',async(req,res)=>send(res,await retakeSlots(req.user!,String(req.params.id),req.body)));
 router.post('/capture-session/:id/attempts/manifest',async(req,res)=>send(res,await reserveAttempt(req.user!,String(req.params.id),req.body,true),201));
 const upload=multer({storage:multer.memoryStorage(),limits:{fileSize:5*1024*1024,files:1,fields:10,fieldSize:4096}});
-router.post('/capture-session/:id/attempts',async(req,_res,next)=>{await authorizedSession(req.user!,String(req.params.id),prisma,undefined,true);next();},upload.single('photo'),async(req,res)=>{if(!req.file)throw new ApiError(400,'Photo required');if(sha256(req.file.buffer)!==req.body.sha256)throw new ApiError(409,'Photo bytes do not match commitment');const uploadedAt=Date.now();const a=await reserveAttempt(req.user!,String(req.params.id),req.body,false);verificationEvent('UPLOAD_RESERVED',{sessionId:String(req.params.id),attemptId:a.id},{reservationMs:Date.now()-uploadedAt});send(res,await storeReservedEvidence(req.user!,a.id,req.file.buffer,undefined,clientDiagnosticsSchema.parse(req.body.clientDiagnostics)),202);});
+router.post('/capture-session/:id/attempts',async(req,_res,next)=>{await authorizedSession(req.user!,String(req.params.id),prisma,undefined,true);next();},upload.single('photo'),async(req,res)=>{if(!req.file)throw new ApiError(400,'Photo required');if(sha256(req.file.buffer)!==req.body.sha256)throw new ApiError(409,'Photo bytes do not match commitment');const uploadedAt=Date.now();const a=await reserveAttempt(req.user!,String(req.params.id),req.body,false);verificationEvent('UPLOAD_RESERVED',{sessionId:String(req.params.id),attemptId:a.id},{reservationMs:Date.now()-uploadedAt});send(res,await processDirectPhoto(req.user!,a.id,req.file.buffer));});
+router.get('/capture-session/:id/attempts/by-capture/:captureId',async(req,res)=>{
+ const s=await prisma.captureSession.findUnique({where:{id:z.uuid().parse(req.params.id)}});
+ if(!s||s.staffId!==req.user!.id||req.user!.role!=='STAFF')throw new ApiError(404,'Session not found');
+ await requireTaskAccess(req.user!,s.taskInstanceId);
+ const captureId=z.uuid().parse(req.params.captureId);
+ const a=await prisma.verificationAttempt.findUnique({where:{sessionId_clientCaptureId:{sessionId:s.id,clientCaptureId:captureId}},select:{id:true}});
+ send(res,a?await directPhotoStatus(req.user!,a.id):null);
+});
 router.get('/verification-attempt/:id',async(req,res)=>{
- const a=await prisma.verificationAttempt.findUnique({where:{id:z.uuid().parse(req.params.id)},include:{session:{select:{taskInstanceId:true}},requirement:{select:{state:true,currentAttemptId:true}},media:{select:{privacyState:true}},jobs:{orderBy:{createdAt:'asc'},select:{stage:true,state:true}}}});
+ const a=await prisma.verificationAttempt.findUnique({where:{id:z.uuid().parse(req.params.id)},include:{session:{select:{taskInstanceId:true}},requirement:{select:{state:true,currentAttemptId:true}},media:{select:{privacyState:true,deliveryType:true}},}});
  if(!a)throw new ApiError(404,'Attempt not found');await requireTaskAccess(req.user!,a.session.taskInstanceId);
- const safe=a.media?.privacyState==='SAFE'&&a.state!=='PRIVACY_HOLD';
- send(res,{workflowVersion:2,id:a.id,state:a.state,requirementId:a.requirementId,contextKey:a.contextKey,assetId:safe?a.mediaAssetId:null,...staffAttemptResult(a,safe,a.requirement?.currentAttemptId===a.id?a.requirement.state:undefined),stages:a.jobs.map(j=>({stage:j.stage,state:j.state}))});
+ const safe=reviewableMedia(a.media?.privacyState)&&a.state!=='PRIVACY_HOLD';
+ send(res,{workflowVersion:2,id:a.id,state:a.state,requirementId:a.requirementId,contextKey:a.contextKey,assetId:safe?a.mediaAssetId:null,storage:photoStorageState(a.media),...staffAttemptResult(a,safe,a.requirement?.currentAttemptId===a.id?a.requirement.state:undefined),stages:[]});
 });
 router.use((error:any,req:any,res:any,next:any)=>{
  if(error instanceof z.ZodError)error=new ApiError(400,'Invalid verification request',[{code:'INVALID_REQUEST'},...error.issues]);

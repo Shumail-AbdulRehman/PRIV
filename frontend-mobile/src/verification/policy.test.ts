@@ -24,3 +24,7 @@ test('fresh targeted generations clear stale failed state without altering passe
  assert.equal(next.items[0].requirements[1].state,'MISSING');assert.equal(next.items[0].requirements[1].decisionVersion,3);assert.equal(next.items[0].requirements[1].currentAttempt,null);
  assert.equal(next.items[0].requirements[2].state,'RECAPTURE_REQUIRED');
 });
+test('retired entrance slot cannot precede a manager-required item',()=>{
+ const updated={...local,session:{...local.session,requiredContextKeys:[],slots:[{id:'entrance',contextKey:'ENTRANCE',sequence:-1},...local.session.slots]}} as LocalSession;
+ assert.equal(nextSlot(updated,[])?.id,'missing');
+});

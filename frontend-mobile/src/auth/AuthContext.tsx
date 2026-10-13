@@ -8,7 +8,7 @@ import {
 } from "react";
 import { Platform } from "react-native";
 import * as SecureStore from "expo-secure-store";
-import { unlockQueue, lockQueue, cleanPreviousProcessCaptureCache } from "../verification/queue";
+import { setCaptureAccount } from "../verification/captureAccount";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import { useQueryClient } from "@tanstack/react-query";
 import { client, configureApiAuth } from "../api/client";
@@ -56,12 +56,13 @@ export function AuthProvider({ children }: PropsWithChildren) {
 
   const applySession = async (nextSession: AuthSession) => {
     await persistSession(nextSession);
+    setCaptureAccount(nextSession.user);
     sessionRef.current = nextSession;
     setSession(nextSession);
   };
 
   const clearSession = async () => {
-    await lockQueue();
+    setCaptureAccount(null);
     await applySession(emptySession);
     queryClient.clear();
   };
@@ -97,7 +98,6 @@ export function AuthProvider({ children }: PropsWithChildren) {
     void (async () => {
       try {
         await loadServerAddress();
-        if(Platform.OS !== "web") { try { cleanPreviousProcessCaptureCache(); } catch { /* Normal per-capture cleanup also runs. */ } }
         const storedSession = await sessionStorage.read();
 
         if (!storedSession) {
@@ -106,12 +106,10 @@ export function AuthProvider({ children }: PropsWithChildren) {
         }
 
         const parsed = JSON.parse(storedSession) as AuthSession;
+        setCaptureAccount(parsed.user);
         sessionRef.current = parsed;
         setSession(parsed);
         await persistSession(parsed);
-        if (Platform.OS !== "web" && parsed.user) {
-          try { await unlockQueue(parsed.user); } catch { /* Camera flow explains unsupported native build. */ }
-        }
 
         if (parsed.accessToken) {
           await refreshCurrentUser();
@@ -141,7 +139,7 @@ export function AuthProvider({ children }: PropsWithChildren) {
 
     const { accessToken, refreshToken, ...user } = response.data.data;
 
-    await lockQueue();
+    setCaptureAccount(null);
     queryClient.clear();
     await applySession({
       user,
@@ -149,14 +147,11 @@ export function AuthProvider({ children }: PropsWithChildren) {
       refreshToken,
     });
 
-    if (Platform.OS !== "web") {
-      try { await unlockQueue(user); } catch { /* Native build required for encrypted evidence. */ }
-    }
     await queryClient.invalidateQueries({ queryKey: ["staff"] });
   };
 
   const logout = async () => {
-    await lockQueue();
+    setCaptureAccount(null);
     try {
       if (sessionRef.current.accessToken) {
         await client.post("/common/logout");

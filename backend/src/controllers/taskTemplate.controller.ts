@@ -11,7 +11,7 @@ import {writeAuditLog} from '../services/auditLog.service.js';
 import { DEFAULT_TIME_ZONE, getZonedClockMinutes, getZonedDayRange } from "../utils/dateTime.js";
 import { assertLocationAccess } from "../utils/scope.js";
 import { Prisma } from "@prisma/client";
-import type { VerificationTransaction } from "../services/verification-v2/jobQueue.service.js";
+import type { VerificationTransaction } from "../services/verification-v2/transaction.js";
 
 // Hosted database round trips and lock waits can exceed Prisma's 5s default.
 // Keep the longer budget local to inventory schedule saves.

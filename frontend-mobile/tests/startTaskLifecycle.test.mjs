@@ -46,7 +46,7 @@ const urls = Object.fromEntries(Object.entries(mocks).map(([name, expression], i
   return [name, pathToFileURL(file).href];
 }));
 const hook = registerHooks({ resolve(specifier, context, next) {
-  const key = Object.keys(urls).find(name => specifier === name || name.startsWith('/') && specifier.endsWith(name));
+  const key = Object.keys(urls).find(name => specifier === name || name.startsWith('/') && (specifier.endsWith(name) || new URL(specifier, context.parentURL).pathname.replace(/\.(tsx?|mjs)$/, '').endsWith(name)));
   return key ? { url: urls[key], shortCircuit: true } : next(specifier, context);
 } });
 const flush = async work => act(async () => { await work?.(); await Promise.resolve(); });
@@ -94,8 +94,8 @@ test('start scanner rejects duplicate/background callbacks, retries wrong QR, an
     assert.equal(renderer.root.findAllByType('CameraView').length, 0);
     assert.ok(JSON.stringify(renderer.toJSON()).includes('In progress'));
     assert.equal(navigation.length, 0, 'Starting must leave the worker in the cleaning period');
-    await click(renderer, 'Finish task');
-    assert.deepEqual(navigation, [['Verification', { taskId: 7 }]], 'Finish receives no start QR/session authority');
+    await click(renderer, 'Take task photos');
+    assert.deepEqual(navigation, [['Verification', { taskId: 7, requirePhotoQr: true }]], 'Finish receives no start QR/session authority');
   } finally {
     if (renderer) await flush(() => renderer.unmount());
     hook.deregister(); rmSync(directory, { recursive: true, force: true });

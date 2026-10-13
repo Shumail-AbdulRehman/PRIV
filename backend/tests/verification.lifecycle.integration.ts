@@ -588,8 +588,8 @@ try {
   });
   assert.equal(
     await prisma.$transaction((tx) => finalizeTask(tx, optional.task.id)),
-    null,
-    "optional privacy pending blocks completion",
+    "VERIFIED_COMPLETE",
+    "retired queue jobs cannot block completion of safe media",
   );
   await prisma.verificationJob.update({
     where: { id: optionalJob.id },
@@ -976,10 +976,12 @@ try {
   const privacyDetail = await route("/verification-exceptions/:id", "get", {
     id: String(privacyCase.id),
   });
+  // Authorized managers may inspect the audited HOLD review variant. This
+  // descriptor does not grant acceptance or access to the original bytes.
+  assert.equal(privacyDetail.attempts.find((a: any) => a.id === privacy.attempt.id).privacyState, 'HOLD');
   assert.equal(
-    privacyDetail.attempts.find((a: any) => a.id === privacy.attempt.id)
-      .mediaAssetId,
-    null,
+    privacyDetail.attempts.find((a: any) => a.id === privacy.attempt.id).mediaAssetId,
+    (await prisma.verificationAttempt.findUniqueOrThrow({where:{id:privacy.attempt.id}})).mediaAssetId,
   );
   const superseded = await fresh({ state: "PROCESSING" });
   await superseded.evidence();
@@ -1454,8 +1456,8 @@ try {
         where: { id: acceptedPending.task.id },
       })
     ).status,
-    "IN_PROGRESS",
-    "manual acceptance waits for pending cleanliness job",
+    "COMPLETED",
+    "audited acceptance completes without the retired queue",
   );
   assert.equal(await failVerificationJob(acceptedJob), true);
   assert.equal(

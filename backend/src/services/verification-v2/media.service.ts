@@ -5,7 +5,7 @@ import { IMAGE_LIMIT_BYTES } from './quality.service.js';
 /** Existing storage account, authenticated assets only; never publish delivery URLs. */
 export async function storePrivateImage(bytes: Buffer, publicId: string, boundHash: string) {
   try {
-    const existing = await cloudinary.api.resource(publicId, { type: 'authenticated', resource_type: 'image', context: true });
+    const existing = await cloudinary.api.resource(publicId, { type: 'authenticated', resource_type: 'image', context: true, timeout: 30_000 });
     if (existing.context?.custom?.sha256 !== boundHash) throw new ApiError(409, 'Stored evidence does not match this capture');
     return existing;
   } catch (error) {
@@ -14,7 +14,7 @@ export async function storePrivateImage(bytes: Buffer, publicId: string, boundHa
     if (status !== 404) throw new ApiError(503, 'Photo storage is temporarily unavailable');
   }
   try {
-    return await uploadBufferToCloudinary(bytes, { public_id: publicId, type: 'authenticated', resource_type: 'image', overwrite: false,
+    return await uploadBufferToCloudinary(bytes, { public_id: publicId, type: 'authenticated', resource_type: 'image', overwrite: false, timeout: 30_000,
       context: { sha256: boundHash } });
   } catch { throw new ApiError(503, 'Photo upload could not be confirmed. Retry this same capture.'); }
 }

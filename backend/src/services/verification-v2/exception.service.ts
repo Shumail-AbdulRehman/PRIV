@@ -1,5 +1,6 @@
+import { reviewableMedia } from "./evidenceBuffer.js";
 import { z } from "zod";
-import type { VerificationTransaction } from "./jobQueue.service.js";
+import type { VerificationTransaction } from "./transaction.js";
 import { prisma } from "../../prisma/prisma.js";
 import { ApiError } from "../../utils/ApiError.js";
 import {
@@ -212,11 +213,12 @@ const managerInputSchema = decisionRequestSchema.extend({
   extensionMinutes: z.number().int().min(1).max(120).optional(),
   followUpTaskInstanceId: z.number().int().positive().optional(),
 });
-async function resolveCompletedConcern(
+export async function resolveCompletedConcern(
   tx: VerificationTransaction,
   actor: VerificationActor,
   c: { id: number; taskInstanceId: number | null },
   input: z.infer<typeof managerInputSchema>,
+  readOnly = false,
 ) {
   if (
     input.action !== "RESOLVE_ISSUE" ||
@@ -291,7 +293,7 @@ async function resolveCompletedConcern(
       id: { in: contributingIds },
       session: { taskInstanceId: followUp.id },
       receivedAt: { not: null },
-      media: { privacyState: "SAFE" },
+      media: { privacyState: { in: ["SAFE", "NOT_REQUIRED"] } },
     },
     include: { media: true, session: true },
   });
@@ -319,7 +321,7 @@ async function resolveCompletedConcern(
         session: { taskInstanceId: followUp.id },
         contextKey: previous?.contextKey ?? { not: null },
         receivedAt: { not: null },
-        media: { privacyState: "SAFE" },
+        media: { privacyState: { in: ["SAFE", "NOT_REQUIRED"] } },
         OR: [
           { state: "PASSED", session: { contextStatus: "ACCEPTABLE" } },
           {
@@ -360,12 +362,13 @@ async function resolveCompletedConcern(
     await tx.verificationJob.count({
       where: {
         attemptId: replacement.id,
-        stage: { in: ["QUALITY", "PRIVACY", "COVERAGE"] },
+        stage: { in: ["PHOTO", "QUALITY", "PRIVACY", "COVERAGE"] },
         state: { in: ["PENDING", "RUNNING", "RETRY_WAIT"] },
       },
     })
   )
     throw new ApiError(409, "Replacement safety checks are pending");
+  if (readOnly) return replacement;
   const decision = await tx.verificationDecision.create({
     data: {
       exceptionId: c.id,
@@ -523,7 +526,7 @@ export async function managerDecision(
         !evidence ||
         !evidence.contextKey ||
         !evidence.receivedAt ||
-        evidence.media?.privacyState !== "SAFE"
+        !reviewableMedia(evidence.media?.privacyState)
       )
         throw new ApiError(422, "Safe context evidence required");
       const contextAttempts = await tx.verificationAttempt.findMany({
@@ -554,6 +557,18 @@ export async function managerDecision(
         },
         data: { state: "RESOLVED", resolvedAt: new Date() },
       });
+      // Origin uncertainty is tied to one photograph. An audited acceptance
+      // settles that photograph, without accepting other context captures.
+      await tx.verificationIssue.updateMany({
+        where: {
+          exceptionId: id,
+          requirementId: null,
+          latestAttemptId: evidence.id,
+          reasonCode: "PHOTO_ORIGIN_UNCERTAIN",
+          state: { not: "RESOLVED" },
+        },
+        data: { state: "RESOLVED", resolvedAt: new Date() },
+      });
     } else if (
       [
         "ACCEPT_EVIDENCE",
@@ -569,7 +584,7 @@ export async function managerDecision(
         (!evidence ||
           evidence.requirementId !== r.id ||
           !evidence.receivedAt ||
-          evidence.media?.privacyState !== "SAFE")
+          !reviewableMedia(evidence.media?.privacyState))
       )
         throw new ApiError(422, "Safe evidence for this requirement required");
       const state =
@@ -716,223 +731,7 @@ export async function managerDecision(
       });
     } else if (input.action === "RESOLVE_ISSUE") {
       if (!issue) throw new ApiError(422, "Issue required");
-      let satisfied = false;
-      if (issue.requirementId) {
-        const requirement =
-          r ??
-          (await tx.taskEvidenceRequirement.findUniqueOrThrow({
-            where: { id: issue.requirementId },
-          }));
-        satisfied = ["PASSED", "MANAGER_ACCEPTED", "WAIVED"].includes(
-          requirement.state,
-        );
-        if (GLOBAL_BLOCKING_REASONS.includes(issue.reasonCode)) {
-          const replacement = requirement.currentAttemptId
-            ? await tx.verificationAttempt.findUnique({
-                where: { id: requirement.currentAttemptId },
-                include: { media: true, session: true },
-              })
-            : null;
-          const safeAccepted =
-            !!replacement &&
-            replacement.media?.privacyState === "SAFE" &&
-            !!replacement.receivedAt &&
-            ["PASSED", "MANAGER_ACCEPTED"].includes(requirement.state);
-          if (issue.reasonCode === "PRIVACY_HOLD") {
-            // The held original remains private. Only independently screened replacement bytes can satisfy the hold.
-            satisfied =
-              safeAccepted &&
-              replacement!.id !== issue.latestAttemptId &&
-              replacement!.mediaAssetId !==
-                (issue.latestAttemptId
-                  ? (
-                      await tx.verificationAttempt.findUnique({
-                        where: { id: issue.latestAttemptId },
-                        select: { mediaAssetId: true },
-                      })
-                    )?.mediaAssetId
-                  : null);
-          } else if (issue.reasonCode === "SERVICE_FAILURE") {
-            satisfied = safeAccepted;
-          } else if (issue.reasonCode === "DUPLICATE_EVIDENCE") {
-            // Waiving gives no image credit. The separate reasoned resolution records the integrity disposition.
-            const previous = issue.latestAttemptId
-              ? await tx.verificationAttempt.findUnique({
-                  where: { id: issue.latestAttemptId },
-                  include: { media: true },
-                })
-              : null;
-            satisfied =
-              requirement.state === "WAIVED" ||
-              (safeAccepted &&
-                replacement!.id !== issue.latestAttemptId &&
-                replacement!.media?.sha256 !== previous?.media?.sha256);
-          } else if (issue.reasonCode === "STALE_ASSIGNMENT") {
-            satisfied = requirement.state === "WAIVED";
-            if (safeAccepted) {
-              const decisions = await tx.verificationDecision.findMany({
-                where: { exceptionId: id, action: "ACCEPT_CONTEXT" },
-                select: { evidenceAttemptId: true },
-              });
-              satisfied = !!(await tx.verificationAttempt.findFirst({
-                where: {
-                  id: {
-                    in: decisions
-                      .map((d) => d.evidenceAttemptId)
-                      .filter((id): id is string => !!id),
-                  },
-                  sessionId: replacement!.sessionId,
-                  contextKey: { not: null },
-                  media: { privacyState: "SAFE" },
-                },
-              }));
-            }
-          }
-        }
-      } else if (
-        issue.reasonCode === "MISSING_EVIDENCE" ||
-        (issue.reasonCode === "SERVICE_FAILURE" && !issue.latestAttemptId)
-      ) {
-        const requirements = await tx.taskEvidenceRequirement.findMany({
-          where: {
-            item: { taskInstanceId: task.id, mandatory: true },
-            mandatory: true,
-          },
-        });
-        satisfied =
-          requirements.length > 0 &&
-          requirements.every((r) =>
-            ["PASSED", "MANAGER_ACCEPTED", "WAIVED"].includes(r.state),
-          );
-        if (satisfied) {
-          const nonWaived = requirements.filter((r) => r.state !== "WAIVED");
-          const attempts = await tx.verificationAttempt.findMany({
-            where: {
-              id: {
-                in: nonWaived
-                  .map((r) => r.currentAttemptId)
-                  .filter((id): id is string => !!id),
-              },
-              receivedAt: { not: null },
-              media: { privacyState: "SAFE" },
-            },
-            include: { session: true },
-          });
-          satisfied = attempts.length === nonWaived.length;
-          const decisions = await tx.verificationDecision.findMany({
-            where: { exceptionId: id, action: "ACCEPT_CONTEXT" },
-            select: { evidenceAttemptId: true },
-          });
-          const overrides = await tx.verificationAttempt.findMany({
-            where: {
-              id: {
-                in: decisions
-                  .map((d) => d.evidenceAttemptId)
-                  .filter((id): id is string => !!id),
-              },
-              contextKey: { not: null },
-              media: { privacyState: "SAFE" },
-            },
-            select: { sessionId: true },
-          });
-          satisfied =
-            satisfied &&
-            attempts.every(
-              (a) =>
-                a.session.contextStatus === "ACCEPTABLE" ||
-                overrides.some((o) => o.sessionId === a.sessionId),
-            );
-        }
-      } else if (
-        ["OCCUPIED", "INACCESSIBLE", "DAMAGED"].includes(issue.reasonCode)
-      ) {
-        // Explicit manager confirmation addresses the reported room condition, never fixture requirements.
-        satisfied = true;
-      } else if (
-        [
-          "PRIVACY_HOLD",
-          "SERVICE_FAILURE",
-          "STALE_ASSIGNMENT",
-          "DUPLICATE_EVIDENCE",
-        ].includes(issue.reasonCode) &&
-        issue.latestAttemptId
-      ) {
-        const previous = await tx.verificationAttempt.findUnique({
-          where: { id: issue.latestAttemptId },
-        });
-        if (previous?.contextKey)
-          satisfied = !!(await tx.verificationAttempt.findFirst({
-            where: {
-              id: { not: previous.id },
-              contextKey: previous.contextKey,
-              session: {
-                taskInstanceId: task.id,
-                assignmentEpoch: task.assignmentEpoch,
-              },
-              state: "PASSED",
-              media: { privacyState: "SAFE" },
-            },
-          }));
-      }
-      if (
-        !satisfied &&
-        issue.reasonCode === "PRIVACY_HOLD" &&
-        !issue.requirementId &&
-        issue.latestAttemptId
-      ) {
-        const previous = await tx.verificationAttempt.findUnique({
-          where: { id: issue.latestAttemptId },
-        });
-        if (previous?.contextKey) {
-          const decisions = await tx.verificationDecision.findMany({
-            where: { exceptionId: id, action: "ACCEPT_CONTEXT" },
-            select: { evidenceAttemptId: true },
-          });
-          satisfied = !!(await tx.verificationAttempt.findFirst({
-            where: {
-              id: {
-                in: decisions
-                  .map((d) => d.evidenceAttemptId)
-                  .filter((id): id is string => !!id),
-                not: previous.id,
-              },
-              contextKey: previous.contextKey,
-              session: { taskInstanceId: task.id },
-              mediaAssetId: { not: previous.mediaAssetId ?? "" },
-              media: { privacyState: "SAFE" },
-              receivedAt: { not: null },
-            },
-          }));
-        }
-      }
-      if (
-        !satisfied &&
-        issue.reasonCode === "STALE_ASSIGNMENT" &&
-        !issue.requirementId &&
-        issue.latestAttemptId
-      ) {
-        const previous = await tx.verificationAttempt.findUnique({
-          where: { id: issue.latestAttemptId },
-        });
-        if (previous) {
-          const decisions = await tx.verificationDecision.findMany({
-            where: { exceptionId: id, action: "ACCEPT_CONTEXT" },
-            select: { evidenceAttemptId: true },
-          });
-          satisfied = !!(await tx.verificationAttempt.findFirst({
-            where: {
-              id: {
-                in: decisions
-                  .map((d) => d.evidenceAttemptId)
-                  .filter((id): id is string => !!id),
-              },
-              sessionId: previous.sessionId,
-              contextKey: { not: null },
-              media: { privacyState: "SAFE" },
-            },
-          }));
-        }
-      }
+      const satisfied = await issueSatisfied(tx, task, id, issue, r);
       if (!satisfied)
         throw new ApiError(409, "Resolve the blocking condition first");
       await tx.verificationIssue.update({
@@ -981,8 +780,236 @@ export async function managerDecision(
       },
       tx,
     );
-    await refreshCase(tx, id);
     await finalizeTask(tx, task.id);
+    await refreshCase(tx, id);
     return d;
   });
+}
+
+export async function issueSatisfied(
+  tx: VerificationTransaction,
+  task: { id: number; assignmentEpoch: number },
+  id: number,
+  issue: import("@prisma/client").VerificationIssue,
+  r: import("@prisma/client").TaskEvidenceRequirement | null = null,
+) {
+  let satisfied = false;
+  if (issue.requirementId) {
+    const requirement =
+      r ??
+      (await tx.taskEvidenceRequirement.findUniqueOrThrow({
+        where: { id: issue.requirementId },
+      }));
+    satisfied = ["PASSED", "MANAGER_ACCEPTED", "WAIVED"].includes(
+      requirement.state,
+    );
+    if (GLOBAL_BLOCKING_REASONS.includes(issue.reasonCode)) {
+      const replacement = requirement.currentAttemptId
+        ? await tx.verificationAttempt.findUnique({
+            where: { id: requirement.currentAttemptId },
+            include: { media: true, session: true },
+          })
+        : null;
+      const safeAccepted =
+        !!replacement &&
+        reviewableMedia(replacement.media?.privacyState) &&
+        !!replacement.receivedAt &&
+        ["PASSED", "MANAGER_ACCEPTED"].includes(requirement.state);
+      if (issue.reasonCode === "PRIVACY_HOLD") {
+        // The held original remains private. Only independently screened replacement bytes can satisfy the hold.
+        satisfied =
+          safeAccepted &&
+          replacement!.id !== issue.latestAttemptId &&
+          replacement!.mediaAssetId !==
+            (issue.latestAttemptId
+              ? (
+                  await tx.verificationAttempt.findUnique({
+                    where: { id: issue.latestAttemptId },
+                    select: { mediaAssetId: true },
+                  })
+                )?.mediaAssetId
+              : null);
+      } else if (issue.reasonCode === "SERVICE_FAILURE") {
+        satisfied = safeAccepted;
+      } else if (issue.reasonCode === "DUPLICATE_EVIDENCE") {
+        // Waiving gives no image credit. The separate reasoned resolution records the integrity disposition.
+        const previous = issue.latestAttemptId
+          ? await tx.verificationAttempt.findUnique({
+              where: { id: issue.latestAttemptId },
+              include: { media: true },
+            })
+          : null;
+        satisfied =
+          requirement.state === "WAIVED" ||
+          (safeAccepted &&
+            replacement!.id !== issue.latestAttemptId &&
+            replacement!.media?.sha256 !== previous?.media?.sha256);
+      } else if (issue.reasonCode === "STALE_ASSIGNMENT") {
+        satisfied = requirement.state === "WAIVED";
+        if (safeAccepted) {
+          const decisions = await tx.verificationDecision.findMany({
+            where: { exceptionId: id, action: "ACCEPT_CONTEXT" },
+            select: { evidenceAttemptId: true },
+          });
+          satisfied = !!(await tx.verificationAttempt.findFirst({
+            where: {
+              id: {
+                in: decisions
+                  .map((d) => d.evidenceAttemptId)
+                  .filter((id): id is string => !!id),
+              },
+              sessionId: replacement!.sessionId,
+              contextKey: { not: null },
+              media: { privacyState: { in: ["SAFE", "NOT_REQUIRED"] } },
+            },
+          }));
+        }
+      }
+    }
+  } else if (
+    issue.reasonCode === "MISSING_EVIDENCE" ||
+    (issue.reasonCode === "SERVICE_FAILURE" && !issue.latestAttemptId)
+  ) {
+    const requirements = await tx.taskEvidenceRequirement.findMany({
+      where: {
+        item: { taskInstanceId: task.id, mandatory: true },
+        mandatory: true,
+      },
+    });
+    satisfied =
+      requirements.length > 0 &&
+      requirements.every((r) =>
+        ["PASSED", "MANAGER_ACCEPTED", "WAIVED"].includes(r.state),
+      );
+    if (satisfied) {
+      const nonWaived = requirements.filter((r) => r.state !== "WAIVED");
+      const attempts = await tx.verificationAttempt.findMany({
+        where: {
+          id: {
+            in: nonWaived
+              .map((r) => r.currentAttemptId)
+              .filter((id): id is string => !!id),
+          },
+          receivedAt: { not: null },
+          media: { privacyState: { in: ["SAFE", "NOT_REQUIRED"] } },
+        },
+        include: { session: true },
+      });
+      satisfied = attempts.length === nonWaived.length;
+      const decisions = await tx.verificationDecision.findMany({
+        where: { exceptionId: id, action: "ACCEPT_CONTEXT" },
+        select: { evidenceAttemptId: true },
+      });
+      const overrides = await tx.verificationAttempt.findMany({
+        where: {
+          id: {
+            in: decisions
+              .map((d) => d.evidenceAttemptId)
+              .filter((id): id is string => !!id),
+          },
+          contextKey: { not: null },
+          media: { privacyState: { in: ["SAFE", "NOT_REQUIRED"] } },
+        },
+        select: { sessionId: true },
+      });
+      satisfied =
+        satisfied &&
+        attempts.every(
+          (a) =>
+            a.session.contextStatus === "ACCEPTABLE" ||
+            overrides.some((o) => o.sessionId === a.sessionId),
+        );
+    }
+  } else if (
+    ["OCCUPIED", "INACCESSIBLE", "DAMAGED"].includes(issue.reasonCode)
+  ) {
+    // Explicit manager confirmation addresses the reported room condition, never fixture requirements.
+    satisfied = true;
+  } else if (
+    [
+      "PRIVACY_HOLD",
+      "SERVICE_FAILURE",
+      "STALE_ASSIGNMENT",
+      "DUPLICATE_EVIDENCE",
+    ].includes(issue.reasonCode) &&
+    issue.latestAttemptId
+  ) {
+    const previous = await tx.verificationAttempt.findUnique({
+      where: { id: issue.latestAttemptId },
+    });
+    if (previous?.contextKey)
+      satisfied = !!(await tx.verificationAttempt.findFirst({
+        where: {
+          id: { not: previous.id },
+          contextKey: previous.contextKey,
+          session: {
+            taskInstanceId: task.id,
+            assignmentEpoch: task.assignmentEpoch,
+          },
+          state: "PASSED",
+          media: { privacyState: { in: ["SAFE", "NOT_REQUIRED"] } },
+        },
+      }));
+  }
+  if (
+    !satisfied &&
+    issue.reasonCode === "PRIVACY_HOLD" &&
+    !issue.requirementId &&
+    issue.latestAttemptId
+  ) {
+    const previous = await tx.verificationAttempt.findUnique({
+      where: { id: issue.latestAttemptId },
+    });
+    if (previous?.contextKey) {
+      const decisions = await tx.verificationDecision.findMany({
+        where: { exceptionId: id, action: "ACCEPT_CONTEXT" },
+        select: { evidenceAttemptId: true },
+      });
+      satisfied = !!(await tx.verificationAttempt.findFirst({
+        where: {
+          id: {
+            in: decisions
+              .map((d) => d.evidenceAttemptId)
+              .filter((id): id is string => !!id),
+            not: previous.id,
+          },
+          contextKey: previous.contextKey,
+          session: { taskInstanceId: task.id },
+          mediaAssetId: { not: previous.mediaAssetId ?? "" },
+          media: { privacyState: { in: ["SAFE", "NOT_REQUIRED"] } },
+          receivedAt: { not: null },
+        },
+      }));
+    }
+  }
+  if (
+    !satisfied &&
+    issue.reasonCode === "STALE_ASSIGNMENT" &&
+    !issue.requirementId &&
+    issue.latestAttemptId
+  ) {
+    const previous = await tx.verificationAttempt.findUnique({
+      where: { id: issue.latestAttemptId },
+    });
+    if (previous) {
+      const decisions = await tx.verificationDecision.findMany({
+        where: { exceptionId: id, action: "ACCEPT_CONTEXT" },
+        select: { evidenceAttemptId: true },
+      });
+      satisfied = !!(await tx.verificationAttempt.findFirst({
+        where: {
+          id: {
+            in: decisions
+              .map((d) => d.evidenceAttemptId)
+              .filter((id): id is string => !!id),
+          },
+          sessionId: previous.sessionId,
+          contextKey: { not: null },
+          media: { privacyState: { in: ["SAFE", "NOT_REQUIRED"] } },
+        },
+      }));
+    }
+  }
+
+  return satisfied;
 }

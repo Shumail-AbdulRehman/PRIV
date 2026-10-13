@@ -43,18 +43,3 @@ services:
       - backend
     ports:
       - "${FRONTEND_PORT:-5173}:80"
-
-  verification-worker:
-    image: ${BACKEND_IMAGE:-shumail47891/fyp:backend}
-    restart: unless-stopped
-    command: ["node", "dist/workers/verificationWorker.js"]
-    depends_on:
-      - backend
-    healthcheck:
-      test: ["CMD", "node", "dist/workers/verificationWorkerHealth.js"]
-      interval: 15s
-      timeout: 10s
-      start_period: 60s
-      retries: 3
-    environment: *backend-environment
-    volumes: *verification-release-volumes

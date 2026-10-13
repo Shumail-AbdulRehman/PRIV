@@ -1,4 +1,5 @@
 import { permanentlyDelete } from "../services/deletion.service.js";
+import { managerTaskPresentation } from "../services/verification-v2/sequentialPolicy.js";
 import { Request, Response } from "express";
 import jwt from "jsonwebtoken";
 import {
@@ -334,7 +335,7 @@ export const getTodayStatus = async (req: Request, res: Response) => {
                 id: true,
                 title: true,
                 status: true,
-                verificationVersion:true, verificationState:true, completionOutcome:true, completionTiming:true, areaNameSnapshot:true,
+                verificationVersion:true, verificationState:true, completionOutcome:true, completionTiming:true, areaNameSnapshot:true, staffSubmittedAt:true,
                 shiftStart: true,
                 shiftEnd: true,
                 isLate: true,
@@ -386,7 +387,7 @@ export const getTodayStatus = async (req: Request, res: Response) => {
                 : null;
 
             return {
-                ...task,
+                ...managerTaskPresentation(task),
                 assignmentSummary: {
                     originalAssignee: task.assignments[0]?.staff ?? null,
                     currentAssignee: task.assignments.find((assignment) => assignment.isCurrent)?.staff ?? null,

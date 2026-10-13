@@ -1,3 +1,4 @@
+import { bufferedEvaluatorVersion } from "./bufferedPhoto.provider.js";
 import {photoEvaluatorVersion} from './clefPhoto.provider.js';
 import {createHash} from 'node:crypto';
 import {readFileSync,statSync} from 'node:fs';
@@ -11,7 +12,7 @@ const sha=z.string().regex(/^[a-f0-9]{64}$/);
 const version=z.string().regex(/^[a-zA-Z0-9._-]{1,60}$/);
 export function verificationReleaseConfiguration(){
  const screening=clefScreeningConfiguration();
- return {version:'verification-v2-clef-release-3',photoVersion:photoEvaluatorVersion(),originalityVersion:'clef-photo-v1',qualityVersion:'quality-v1',privacyVersion:clefScreeningEvaluatorVersion('PRIVACY'),coverageVersion:clefScreeningEvaluatorVersion('COVERAGE'),duplicateVersion:'duplicate-v1',privacyCoverageProvider:'cloudflare',privacyCoverageModel:screening.model,screeningThreshold:screening.threshold,spatialAutomaticAcceptance:false};
+ return {version:'verification-v2-clef-release-5',processingMode:'DIRECT_REQUEST_V1',photoVersion:bufferedEvaluatorVersion(),privacyAssessment:false,fixtureIdentityAssessment:false,originalityVersion:'clef-photo-v1',qualityVersion:'quality-v1',privacyVersion:clefScreeningEvaluatorVersion('PRIVACY'),coverageVersion:clefScreeningEvaluatorVersion('COVERAGE'),duplicateVersion:'duplicate-v1',privacyCoverageProvider:'cloudflare',privacyCoverageModel:screening.model,screeningThreshold:screening.threshold,spatialAutomaticAcceptance:false};
 }
 const configurationSchema=z.object({provider:z.literal('cloudflare'),model:z.enum(['clef','clef-flash']),promptVersion:z.literal('clef-surfaces-v1'),providerVersion:z.literal('cloudflare-system-one-v1')}).strict();
 export const calibrationSchema=z.object({schemaVersion:z.literal(1),createdAt:z.iso.datetime(),developmentSha256:sha,pipelineConfigurationSha256:sha,configuration:configurationSchema,threshold:z.number().finite().min(0).max(1),thresholdVersion:version,fixtureTypes:z.array(z.string().min(1)).min(1),developmentRooms:z.array(z.string()),developmentFixtures:z.array(z.string()),developmentImages:z.array(sha),metrics:z.record(z.string(),z.object({dirty:z.number().int(),clean:z.number().int(),uncertain:z.number().int(),falseClean:z.number().int(),correctClean:z.number().int()}).strict())}).strict();

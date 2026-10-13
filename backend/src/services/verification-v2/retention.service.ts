@@ -2,7 +2,7 @@ import {prisma} from '../../prisma/prisma.js';
 import {ApiError} from '../../utils/ApiError.js';
 import {writeAuditLog} from '../auditLog.service.js';
 import {requireOperationalRole,requireLocationAccess,requireActiveActor,type VerificationActor} from './authorization.service.js';
-import type {VerificationTransaction} from './jobQueue.service.js';
+import type {VerificationTransaction} from './transaction.js';
 export type RetainedEntity='location'|'staff'|'manager'|'taskTemplate';
 export async function assertDeletionAllowed(tx:VerificationTransaction,entity:RetainedEntity,id:number) {
  let retained=false;

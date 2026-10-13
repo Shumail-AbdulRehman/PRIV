@@ -1,16 +1,19 @@
+import { LanguageChoice } from "../components/LanguageChoice";
 import { useEffect, useState } from "react";
 import {
   Alert,
   Image,
+  Keyboard,
   KeyboardAvoidingView,
   Platform,
   ScrollView,
   View,
 } from "react-native";
+import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { useAuth } from "../auth/AuthContext";
 import { API_BASE_URL } from "../config";
-import { changeApiServerAddress } from '../api/client';
-import { getServerAddress, loadServerAddress } from '../api/serverAddress';
+import { changeApiServerAddress } from "../api/client";
+import { getServerAddress, loadServerAddress } from "../api/serverAddress";
 import { Button } from "../components/ui/button";
 import { Input } from "../components/ui/input";
 import { Text } from "../components/ui/text";
@@ -18,6 +21,13 @@ import { Card, CardContent } from "../components/ui/card";
 
 export function LoginScreen() {
   const { login } = useAuth();
+  const insets = useSafeAreaInsets();
+  const [keyboardHeight, setKeyboardHeight] = useState(0);
+  useEffect(() => {
+    const show = Keyboard.addListener("keyboardDidShow", event => setKeyboardHeight(event.endCoordinates.height));
+    const hide = Keyboard.addListener("keyboardDidHide", () => setKeyboardHeight(0));
+    return () => { show.remove(); hide.remove(); };
+  }, []);
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [loading, setLoading] = useState(false);
@@ -25,10 +35,14 @@ export function LoginScreen() {
   const [serverAddress, setServerAddress] = useState(API_BASE_URL);
   const [serverDraft, setServerDraft] = useState(API_BASE_URL);
   const [editingServer, setEditingServer] = useState(false);
+  const [showServerSettings, setShowServerSettings] = useState(false);
   const [savingServer, setSavingServer] = useState(false);
 
   useEffect(() => {
-    void loadServerAddress().then(address => { setServerAddress(address); setServerDraft(address); });
+    void loadServerAddress().then((address) => {
+      setServerAddress(address);
+      setServerDraft(address);
+    });
   }, []);
 
   const saveServer = async () => {
@@ -40,7 +54,12 @@ export function LoginScreen() {
       setLastError(null);
       setEditingServer(false);
     } catch (error) {
-      Alert.alert('Server address', error instanceof Error ? error.message : 'Could not save the server address.');
+      Alert.alert(
+        "Server address",
+        error instanceof Error
+          ? error.message
+          : "Could not save the server address.",
+      );
     } finally {
       setSavingServer(false);
     }
@@ -64,7 +83,8 @@ export function LoginScreen() {
         "Unable to sign in.";
 
       const detail =
-        ["ERR_NETWORK", "ECONNABORTED", "ETIMEDOUT"].includes(error?.code) && getServerAddress().startsWith("http://")
+        ["ERR_NETWORK", "ECONNABORTED", "ETIMEDOUT"].includes(error?.code) &&
+        getServerAddress().startsWith("http://")
           ? `${message}\n\nServer: ${getServerAddress()}\nCheck that your phone and server are on the same network, or change the server address below.`
           : message;
 
@@ -77,19 +97,31 @@ export function LoginScreen() {
 
   return (
     <KeyboardAvoidingView
-      behavior={Platform.OS === "ios" ? "padding" : undefined}
+      behavior={Platform.OS === "ios" ? "padding" : "height"}
       className="flex-1 bg-background"
     >
       <ScrollView
-        contentContainerClassName="flex-grow justify-center p-6 gap-6"
+        style={{ flex: 1 }}
+        contentContainerStyle={{ flexGrow: 1, padding: 24, paddingTop: insets.top + 24, paddingBottom: insets.bottom + 24 + (Platform.OS === "android" ? keyboardHeight : 0), gap: 24 }}
+        keyboardDismissMode="on-drag"
+        automaticallyAdjustKeyboardInsets={Platform.OS === "ios"}
         keyboardShouldPersistTaps="handled"
         showsVerticalScrollIndicator={false}
       >
+        <LanguageChoice />
         <View className="flex-row items-center gap-3">
-          <Image source={require("../../assets/hygene-ops-mark.png")} style={{ width: 48, height: 48 }} accessible={false} />
+          <Image
+            source={require("../../assets/hygene-ops-mark.png")}
+            style={{ width: 48, height: 48 }}
+            accessible={false}
+          />
           <View>
-            <Text className="text-base font-bold text-foreground">Hygene Ops Staff</Text>
-            <Text className="text-sm text-muted-foreground">Field operations</Text>
+            <Text className="text-base font-bold text-foreground">
+              Hygene Ops Staff
+            </Text>
+            <Text className="text-sm text-muted-foreground">
+              Field operations
+            </Text>
           </View>
         </View>
 
@@ -98,7 +130,7 @@ export function LoginScreen() {
             Sign in to your shift
           </Text>
           <Text className="text-base text-muted-foreground">
-            Attendance, QR starts, and proof uploads stay close to the work.
+            Check in, clean your area, and send your task photos.
           </Text>
         </View>
 
@@ -118,7 +150,9 @@ export function LoginScreen() {
             </View>
 
             <View className="gap-1.5">
-              <Text className="text-sm font-medium text-foreground">Password</Text>
+              <Text className="text-sm font-medium text-foreground">
+                Password
+              </Text>
               <Input
                 iconLeft="Lock"
                 autoCapitalize="none"
@@ -142,30 +176,66 @@ export function LoginScreen() {
               <Text className="text-sm text-destructive">{lastError}</Text>
             ) : null}
 
-            <View className="rounded-lg bg-secondary p-3 gap-1">
-              <Text className="text-xs font-medium text-muted-foreground">
-                Server address
-              </Text>
-              <Text className="text-sm text-foreground" selectable>{serverAddress}</Text>
-              {editingServer ? (
-                <View className="gap-2 pt-2">
-                  <Input
-                    accessibilityLabel="Server address"
-                    autoCapitalize="none"
-                    autoCorrect={false}
-                    keyboardType="url"
-                    value={serverDraft}
-                    onChangeText={setServerDraft}
-                    placeholder="http://192.168.1.10:8080/api"
-                  />
-                  <Text className="text-xs text-muted-foreground">Use the server computer’s Wi-Fi address. Include :8080/api.</Text>
-                  <Button onPress={() => void saveServer()} loading={savingServer} disabled={loading}>Save address</Button>
-                  <Button variant="outline" onPress={() => { setServerDraft(serverAddress); setEditingServer(false); }} disabled={savingServer}>Cancel</Button>
-                </View>
-              ) : (
-                <Button variant="outline" onPress={() => setEditingServer(true)} disabled={loading}>Change server address</Button>
-              )}
-            </View>
+            <Button
+              variant="ghost"
+              onPress={() => setShowServerSettings((value) => !value)}
+            >
+              {showServerSettings
+                ? "Hide connection settings"
+                : "Show connection settings"}
+            </Button>
+            {showServerSettings ? (
+              <View className="rounded-lg bg-secondary p-3 gap-1">
+                <Text className="text-xs font-medium text-muted-foreground">
+                  Server address
+                </Text>
+                <Text className="text-sm text-foreground" selectable>
+                  {serverAddress}
+                </Text>
+                {editingServer ? (
+                  <View className="gap-2 pt-2">
+                    <Input
+                      accessibilityLabel="Server address"
+                      autoCapitalize="none"
+                      autoCorrect={false}
+                      keyboardType="url"
+                      value={serverDraft}
+                      onChangeText={setServerDraft}
+                      placeholder="http://192.168.1.10:8080/api"
+                    />
+                    <Text className="text-xs text-muted-foreground">
+                      Use the server computer’s Wi-Fi address. Include
+                      :8080/api.
+                    </Text>
+                    <Button
+                      onPress={() => void saveServer()}
+                      loading={savingServer}
+                      disabled={loading}
+                    >
+                      Save address
+                    </Button>
+                    <Button
+                      variant="outline"
+                      onPress={() => {
+                        setServerDraft(serverAddress);
+                        setEditingServer(false);
+                      }}
+                      disabled={savingServer}
+                    >
+                      Cancel
+                    </Button>
+                  </View>
+                ) : (
+                  <Button
+                    variant="outline"
+                    onPress={() => setEditingServer(true)}
+                    disabled={loading}
+                  >
+                    Change server address
+                  </Button>
+                )}
+              </View>
+            ) : null}
           </CardContent>
         </Card>
       </ScrollView>

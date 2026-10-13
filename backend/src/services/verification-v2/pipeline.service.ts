@@ -1,3 +1,4 @@
+import { processBufferedPhoto } from "./bufferedPipeline.service.js";
 import {sequentialCapture} from './sequentialPolicy.js';
 import {ClefPhotoProvider,photoEvaluatorVersion,type PhotoVerificationProvider,type PhotoAssessment} from './clefPhoto.provider.js';
 import {requiredContextKeys} from './contextPolicy.js';
@@ -18,43 +19,10 @@ import {lockTask} from './captureSession.service.js';
 import {raiseIssue} from './exception.service.js';
 import {finalizeTask} from './completion.service.js';
 import {resolvePolicy,requirementDecision} from './verificationPolicy.service.js';
-export async function applyDecision(tx:VerificationTransaction,id:string,state:'PASSED'|'RECAPTURE_REQUIRED'|'CLEANING_REQUIRED'|'REVIEW_REQUIRED'|'PRIVACY_HOLD',reasonCode:string,cleanlinessAssessment?:Prisma.InputJsonObject){
- const initial=await tx.verificationAttempt.findUniqueOrThrow({where:{id},select:{session:{select:{taskInstanceId:true}}}});await lockTask(tx,initial.session.taskInstanceId);
- const a=await tx.verificationAttempt.findUniqueOrThrow({where:{id},include:{session:{include:{task:true}},slot:true}});
- const task=await tx.taskInstance.findUniqueOrThrow({where:{id:a.session.taskInstanceId},include:{location:{include:{company:true}}}});const completed=task.status==='COMPLETED';
- if(completed){
-  await tx.verificationAttempt.update({where:{id},data:{state,...(cleanlinessAssessment&&a.cleanlinessResult===null?{cleanlinessResult:{...cleanlinessAssessment,policyDecisionReason:reasonCode}}:{})}});
-  // Privacy publication already restricts media and links its serious issue.
-  if(reasonCode==='DUPLICATE_EVIDENCE')await raiseIssue(tx,task.id,reasonCode,null,id);
-  return;
- }
- const current=task.isActive&&task.assignmentEpoch===a.assignmentEpoch&&task.staffId===a.staffId&&a.session.state!=='REVOKED'&&['IN_PROGRESS','NOT_COMPLETED_INTIME'].includes(task.status);
- const staff=await tx.staff.findFirst({where:{id:a.staffId,isActive:true,locationId:task.locationId}}),area=await tx.area.findUniqueOrThrow({where:{id:a.session.areaId}});const allowed=current&&a.session.presenceStatus==='ACCEPTABLE'&&a.timingEvidence!=='UNCERTAIN'&&!!a.receivedAt&&a.receivedAt<=a.session.uploadExpiresAt&&!!staff&&task.location.isActive&&task.location.company.isActive&&area.qrVersion===a.session.qrVersion;
- const effective=state==='PRIVACY_HOLD'?state:allowed?state:'REVIEW_REQUIRED';
- const policyDecisionReason=effective==='PRIVACY_HOLD'?'PRIVACY_HOLD':!allowed?'STALE_ASSIGNMENT':reasonCode;
- await tx.verificationAttempt.update({where:{id},data:{state:effective,...(cleanlinessAssessment&&a.cleanlinessResult===null?{cleanlinessResult:{...cleanlinessAssessment,policyDecisionReason}}:{})}});
- if(a.requirementId){const r=await tx.taskEvidenceRequirement.findUniqueOrThrow({where:{id:a.requirementId}});if(r.currentAttemptId!==id||r.decisionVersion!==a.slot.generation||['PASSED','MANAGER_ACCEPTED','WAIVED'].includes(r.state))return;
-  await tx.taskEvidenceRequirement.update({where:{id:r.id},data:{state:effective==='PRIVACY_HOLD'?'REVIEW_REQUIRED':effective,decisionVersion:{increment:1}}});
-  const cleaning=effective==='CLEANING_REQUIRED',recapture=effective==='RECAPTURE_REQUIRED',policy=resolvePolicy(task.policySnapshot);
-  const failures=cleaning||recapture?await tx.verificationAttempt.count({where:{requirementId:r.id,state:effective}}):0;
-  if(!allowed||effective==='PRIVACY_HOLD'||effective==='REVIEW_REQUIRED'||cleaning&&failures>=policy.cleaningFailuresBeforeEscalation||recapture&&failures>=policy.recaptureFailuresBeforeEscalation)await raiseIssue(tx,task.id,!allowed?'STALE_ASSIGNMENT':reasonCode,r.id,id);
-  else await tx.taskInstance.update({where:{id:task.id},data:{verificationState:effective==='PASSED'?'PROCESSING':'REWORK_REQUIRED'}});
-  if(effective==='PASSED')await tx.verificationIssue.updateMany({where:{requirementId:r.id,reasonCode:{not:'PRIVACY_HOLD'}},data:{state:'RESOLVED',resolvedAt:new Date()}});
- }else{
-  const latestSlot=await tx.captureSlot.findFirst({where:{sessionId:a.sessionId,contextKey:a.contextKey},orderBy:{generation:'desc'}});
-  if(!latestSlot||latestSlot.generation!==a.slot.generation)return;
-  const contexts=await tx.verificationAttempt.findMany({where:{sessionId:a.sessionId,contextKey:{not:null}},orderBy:{createdAt:'desc'}});const contextSlots=await tx.captureSlot.findMany({where:{sessionId:a.sessionId,contextKey:{not:null}},orderBy:{generation:'desc'}});
-  const latestContexts=new Map<string,string|null>();for(const slot of contextSlots)if(slot.contextKey&&!latestContexts.has(slot.contextKey))latestContexts.set(slot.contextKey,slot.attemptId);
-  const contextKeys=requiredContextKeys(a.session.locationCheck);
-  const passed=contextKeys.every(key=>contexts.some(c=>c.id===latestContexts.get(key)&&c.state==='PASSED'));
-  if(passed)await tx.captureSession.update({where:{id:a.sessionId},data:{contextAttemptIds:contextKeys.map(key=>latestContexts.get(key)!)} });
-  await tx.captureSession.update({where:{id:a.sessionId},data:{contextStatus:passed?'ACCEPTABLE':effective==='PASSED'?'PENDING':'UNCERTAIN'}});
-  const policy=resolvePolicy(task.policySnapshot);
-  if(contextNeedsReview(effective,allowed,reasonCode,contexts.filter(c=>c.contextKey===a.contextKey&&c.state==='RECAPTURE_REQUIRED').length,policy.recaptureFailuresBeforeEscalation))await raiseIssue(tx,task.id,effective==='PRIVACY_HOLD'?'PRIVACY_HOLD':!allowed?'STALE_ASSIGNMENT':reasonCode,null,id);
- }
- // The publication transaction finalizes once after its stage and decision are recorded.
-}
+import {applyDecision} from './photoDecision.service.js';
+export {applyDecision,contextNeedsReview} from './photoDecision.service.js';
 export async function processVerificationJob(job:VerificationJob,provider:ImageAssessmentProvider=new ClefImageProvider(),read:typeof privateImageBytes=privateImageBytes,cleanlinessProvider:CleanlinessProvider=new ClefCleanlinessProvider(),photoProvider:PhotoVerificationProvider=new ClefPhotoProvider()){
+ if(job.stage==='PHOTO')return processBufferedPhoto(job);
  const stageStarted=Date.now();const measurements:Record<string,unknown>={...jobTiming(job.result),stageStartedAt:new Date().toISOString()};
  const timed=async<T>(name:string,work:()=>Promise<T>)=>{const start=Date.now();measurements[name+'StartedAt']=new Date(start).toISOString();verificationEvent(name.toUpperCase()+'_STARTED',{attemptId:job.attemptId,jobId:job.id,stage:job.stage});try{return await work();}finally{measurements[name+'Ms']=Date.now()-start;measurements[name+'CompletedAt']=new Date().toISOString();verificationEvent(name.toUpperCase()+'_COMPLETED',{attemptId:job.attemptId,jobId:job.id,stage:job.stage},{durationMs:measurements[name+'Ms']});}};
  if(!await prisma.verificationJob.findFirst({where:{id:job.id,state:'RUNNING',leaseToken:job.leaseToken,leaseUntil:{gt:new Date()}},select:{id:true}}))return false;
@@ -161,8 +129,4 @@ export async function processVerificationJob(job:VerificationJob,provider:ImageA
  });
  verificationEvent('POLICY_COMMITTED',{taskId:a.session.taskInstanceId,sessionId:a.sessionId,attemptId:a.id,jobId:job.id,stage:job.stage},{...measurements,publicationMs:Date.now()-publicationStarted,totalMs:Date.now()-stageStarted,published});
  return published;
-}
-
-export function contextNeedsReview(state:string,authorityValid:boolean,reason:string,failures:number,threshold:number){
- return !authorityValid||state==='PRIVACY_HOLD'||state==='REVIEW_REQUIRED'||['DUPLICATE_EVIDENCE','STALE_ASSIGNMENT','PRIVACY_HOLD'].includes(reason)||state!=='PASSED'&&failures>=threshold;
 }

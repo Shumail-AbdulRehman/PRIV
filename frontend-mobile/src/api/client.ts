@@ -104,10 +104,10 @@ export const refreshApiTokens = (): Promise<Required<AuthTokens>> => {
   const scope = authBridge?.getScope() ?? null;
   if (refreshInFlight?.scope === scope) return refreshInFlight.promise;
   const promise = (async () => {
-    if (!authBridge) throw new Error("Sign in again to upload saved photos.");
+    if (!authBridge) throw new Error("Sign in again to upload photos.");
     const bridge = authBridge;
     const tokens = await bridge.getTokens();
-    if (!tokens.refreshToken) throw new Error("Sign in again to upload saved photos.");
+    if (!tokens.refreshToken) throw new Error("Sign in again to upload photos.");
     try {
       await loadServerAddress();
       const response = await axios.post(`${getServerAddress()}/common/refresh-token`, { refreshToken: tokens.refreshToken }, { timeout: 20000 });
@@ -149,7 +149,7 @@ export const uploadFormData = async <T = unknown>(path: string, input: FormData 
   const scope = authBridge?.getScope() ?? null;
   for (let retry = 0; retry < 2; retry++) {
     const tokens = await authBridge?.getTokens();
-    if (!guard() || scope !== (authBridge?.getScope() ?? null)) throw new Error('Account changed. Saved photos are locked.');
+    if (!guard() || scope !== (authBridge?.getScope() ?? null)) throw new Error('Account changed. Upload stopped.');
     const controller = new AbortController();
     const timeout = setTimeout(() => controller.abort(), timeoutMs);
     try {
@@ -159,7 +159,7 @@ export const uploadFormData = async <T = unknown>(path: string, input: FormData 
       });
       if (!guard() || scope !== (authBridge?.getScope() ?? null)) throw new Error('Account changed. Response stopped.');
       if (response.status === 401 && retry === 0) {
-        if (!guard() || scope !== (authBridge?.getScope() ?? null)) throw new Error('Account changed. Saved photos are locked.');
+        if (!guard() || scope !== (authBridge?.getScope() ?? null)) throw new Error('Account changed. Upload stopped.');
         const current=await authBridge?.getTokens();
         if(current?.accessToken===tokens?.accessToken)await refreshApiTokens();
         continue;
@@ -173,9 +173,9 @@ export const uploadFormData = async <T = unknown>(path: string, input: FormData 
       }
       return json as T;
     } catch (error) {
-      if (error instanceof Error && error.name === "AbortError") throw new Error("Upload timed out. Your saved photo will retry.");
+      if (error instanceof Error && error.name === "AbortError") throw new Error("Upload timed out. Check the result, then upload the photo again.");
       throw error;
     } finally { clearTimeout(timeout); }
   }
-  throw new Error("Sign in again to upload your saved photos.");
+  throw new Error("Sign in again to upload your photos.");
 };

@@ -1,4 +1,5 @@
 import { Request, Response } from "express";
+import { managerTaskPresentation, operationalTaskStatus } from "../services/verification-v2/sequentialPolicy.js";
 import tzLookup from "tz-lookup";
 import { createLocationSchema, editLocationSchema } from "../validations/location.validation.js";
 import { prisma } from "../prisma/prisma.js";
@@ -228,7 +229,7 @@ export const getLocationStatsById = async (req: Request, res: Response) => {
   }),
 
   prisma.taskInstance.groupBy({
-    by: ["status"],
+    by: ["status", "staffSubmittedAt"],
     where: {
       locationId,
       isActive: true,
@@ -243,5 +244,12 @@ export const getLocationStatsById = async (req: Request, res: Response) => {
 
 
 
-  res.status(200).json(new ApiResponse(200, {locationInfo,taskStats}, "Location stats fetched successfully"));
+  const counts = new Map<string, number>();
+  for (const group of taskStats) {
+    const status = operationalTaskStatus(group);
+    counts.set(status, (counts.get(status) ?? 0) + group._count.status);
+  }
+  const presentedLocation = locationInfo ? {...locationInfo, taskInstances: locationInfo.taskInstances.map(managerTaskPresentation)} : null;
+  const presentedStats = [...counts].map(([status, count]) => ({status, _count: {status: count}}));
+  res.status(200).json(new ApiResponse(200, {locationInfo: presentedLocation, taskStats: presentedStats}, "Location stats fetched successfully"));
 };

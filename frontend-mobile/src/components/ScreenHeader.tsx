@@ -1,3 +1,4 @@
+import { useLanguage } from "../i18n/LanguageProvider";
 import { View } from "react-native";
 import { Text } from "./ui/text";
 import { cn } from "../lib/utils";
@@ -9,15 +10,28 @@ type ScreenHeaderProps = {
   className?: string;
 };
 
-export function ScreenHeader({ title, subtitle, right, className }: ScreenHeaderProps) {
+export function ScreenHeader({
+  title,
+  subtitle,
+  right,
+  className,
+}: ScreenHeaderProps) {
+  const { isRTL } = useLanguage();
   return (
-    <View className={cn("flex-row items-start justify-between gap-4", className)}>
+    <View
+      style={{
+        flexDirection: isRTL ? "row-reverse" : "row",
+        flexWrap: "wrap",
+        gap: 12,
+      }}
+      className={cn("items-start justify-between", className)}
+    >
       <View className="flex-1">
-        <Text className="text-2xl font-extrabold tracking-tight text-foreground">
+        <Text className="text-3xl font-bold tracking-tight text-foreground">
           {title}
         </Text>
         {subtitle ? (
-          <Text className="mt-1 text-sm text-muted-foreground">{subtitle}</Text>
+          <Text className="mt-2 text-base text-muted-foreground">{subtitle}</Text>
         ) : null}
       </View>
       {right ? <View>{right}</View> : null}

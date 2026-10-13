@@ -64,3 +64,8 @@ test('legacy states map safely without requiring new DTO fields',()=>{
  assert.equal(statusLabel('PASSED'),'Clean');assert.equal(statusLabel('CLEANING_REQUIRED'),'Dirty');assert.equal(statusLabel('RECAPTURE_REQUIRED'),'Needs review');assert.equal(statusLabel('SERVICE_FAILURE'),'Needs review');
  assert.equal(statusLabel('SAVED'),'Saved');assert.equal(statusLabel('UPLOADING'),'Uploading');assert.equal(statusLabel('MANAGER_ACCEPTED'),'Accepted');
 });
+test('server retirement removes the entrance row even when the phone has the old policy',()=>{
+ const manifest={task:{},sessions:[{id:'s',requiredContextKeys:[],slots:[{id:'e',contextKey:'ENTRANCE',generation:0,state:'AVAILABLE'}]}],items:[{nameSnapshot:'Sink',requirements:[{id:'r',state:'MISSING'}]}]} as unknown as Manifest;
+ const local={manifest,session:{id:'s',requiredContextKeys:['ENTRANCE'],slots:[{id:'e',contextKey:'ENTRANCE',generation:0}]}} as LocalSession;
+ assert.deepEqual(photoStatuses(manifest,local,[]).map(row=>row.key),['r']);
+});

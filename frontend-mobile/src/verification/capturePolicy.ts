@@ -15,7 +15,7 @@ export function slotInstruction(local:LocalSession,slot:CaptureSlot) {
   const item=local.manifest.items.find(i=>i.requirements.some(r=>r.id===slot.requirementId));
   const requirement=item?.requirements.find(r=>r.id===slot.requirementId);
   const fixtures=local.manifest.items.filter(i=>i.typeSnapshot===item?.typeSnapshot);
-  return {title:`${item?.nameSnapshot ?? 'Item'} (${fixtures.findIndex(i=>i.id===item?.id)+1} of ${fixtures.length})`,view:requirement?.instructionsSnapshot ?? 'Show the whole item.',progress:`Photo ${(item?.requirements.findIndex(r=>r.id===slot.requirementId)??0)+1} of ${item?.requirements.length??1}`,hint:[item?.identificationSnapshot.positionHint,item?.identificationSnapshot.existingNumber&&`Include number ${item.identificationSnapshot.existingNumber}`].filter(Boolean).join('. ')};
+  return {title:`${item?.nameSnapshot ?? 'Item'} (${fixtures.findIndex(i=>i.id===item?.id)+1} of ${fixtures.length})`,view:requirement?.instructionsSnapshot ?? 'Show the whole item.',progress:`Photo ${(item?.requirements.findIndex(r=>r.id===slot.requirementId)??0)+1} of ${item?.requirements.length??1}`,hint:[item?.identificationSnapshot?.positionHint,item?.identificationSnapshot?.existingNumber&&`Include number ${item.identificationSnapshot.existingNumber}`].filter(Boolean).join('. ')};
 }
 export function captureProgress(local:LocalSession,queue:QueueRow[]) {
   const requirements=local.manifest.items.flatMap(i=>i.requirements);

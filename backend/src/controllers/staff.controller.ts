@@ -1,16 +1,32 @@
 import { Request, Response } from "express";
-import { createStaffSchema, editStaffSchema, staffLoginSchema } from "../validations/staff.validation.js";
+import {
+  managerTaskPresentation,
+  operationalTaskStatus,
+} from "../services/verification-v2/sequentialPolicy.js";
+import {
+  createStaffSchema,
+  editStaffSchema,
+  staffLoginSchema,
+} from "../validations/staff.validation.js";
 import { prisma } from "../prisma/prisma.js";
 import { ApiResponse } from "../utils/ApiResponse.js";
 import { ApiError } from "../utils/ApiError.js";
-import { generateAccessToken, generateRefreshToken, isPasswordCorrect } from "../utils/auth.js";
-import { DEFAULT_TIME_ZONE, getZonedClockMinutes, getZonedDayRangeFromDateInput, getZonedMonthRange } from "../utils/dateTime.js";
+import {
+  generateAccessToken,
+  generateRefreshToken,
+  isPasswordCorrect,
+} from "../utils/auth.js";
+import {
+  DEFAULT_TIME_ZONE,
+  getZonedClockMinutes,
+  getZonedDayRangeFromDateInput,
+  getZonedMonthRange,
+} from "../utils/dateTime.js";
 import { syncTodaysOpenAttendanceWindow } from "../utils/syncAttendanceWindow.js";
 import { getCookieOptions } from "../utils/cookies.js";
 import { permanentlyDelete } from "../services/deletion.service.js";
 import { getScopedLocationIds, assertLocationAccess } from "../utils/scope.js";
 import { assertCompanyCanAdd } from "../services/subscription.service.js";
-
 
 export const loginStaff = async (req: Request, res: Response) => {
   const result = staffLoginSchema.safeParse(req.body);
@@ -51,20 +67,25 @@ export const loginStaff = async (req: Request, res: Response) => {
 
   const cookieOptions = getCookieOptions();
 
-  res.status(200)
+  res
+    .status(200)
     .cookie("accessToken", accessToken, cookieOptions)
     .cookie("refreshToken", refreshToken, cookieOptions)
     .json(
-      new ApiResponse(200, {
-        id: staff.id,
-        name: staff.name,
-        email: staff.email,
-        role: staff.role,
-        companyId: staff.companyId,
-        locationId: staff.locationId,
-        accessToken,
-        refreshToken,
-      }, "Login successful")
+      new ApiResponse(
+        200,
+        {
+          id: staff.id,
+          name: staff.name,
+          email: staff.email,
+          role: staff.role,
+          companyId: staff.companyId,
+          locationId: staff.locationId,
+          accessToken,
+          refreshToken,
+        },
+        "Login successful",
+      ),
     );
 };
 
@@ -72,29 +93,35 @@ export const createStaff = async (req: Request, res: Response) => {
   const result = createStaffSchema.safeParse(req.body);
 
   if (!result.success) {
-    const errors = result.error.issues.map(e => ({
+    const errors = result.error.issues.map((e) => ({
       field: e.path.join("."),
-      message: e.message
+      message: e.message,
     }));
     throw new ApiError(400, "Validation failed", errors);
   }
 
-  const { name, email, phone, password, locationId, shiftStart, shiftEnd } = result.data;
+  const { name, email, phone, password, locationId, shiftStart, shiftEnd } =
+    result.data;
 
   const existingStaff = await prisma.staff.findUnique({ where: { email } });
-  if (existingStaff) throw new ApiError(409, "Staff with this email already exists");
+  if (existingStaff)
+    throw new ApiError(409, "Staff with this email already exists");
 
   await assertCompanyCanAdd(req.user!.companyId, "staff");
 
   if (locationId) {
-    const location = await prisma.location.findUnique({ where: { id: locationId } });
-    if (!location || location.companyId !== req.user!.companyId || !location.isActive) {
+    const location = await prisma.location.findUnique({
+      where: { id: locationId },
+    });
+    if (
+      !location ||
+      location.companyId !== req.user!.companyId ||
+      !location.isActive
+    ) {
       throw new ApiError(404, "Location not found in your company");
     }
     assertLocationAccess(req.user!, locationId);
   }
-
-
 
   const staff = await prisma.staff.create({
     data: {
@@ -106,14 +133,14 @@ export const createStaff = async (req: Request, res: Response) => {
       locationId: locationId || null,
       shiftStart: shiftStart || null,
       shiftEnd: shiftEnd || null,
-    }
+    },
   });
 
   const { password: _, ...safeStaff } = staff;
 
-  res.status(201).json(
-    new ApiResponse(201, safeStaff, "Staff created successfully")
-  );
+  res
+    .status(201)
+    .json(new ApiResponse(201, safeStaff, "Staff created successfully"));
 };
 
 export const getStaff = async (req: Request, res: Response) => {
@@ -137,11 +164,13 @@ export const getStaff = async (req: Request, res: Response) => {
       createdAt: true,
       updatedAt: true,
       shiftStart: true,
-      shiftEnd: true
-    }
+      shiftEnd: true,
+    },
   });
 
-  res.status(200).json(new ApiResponse(200, staff, "Staff fetched successfully"));
+  res
+    .status(200)
+    .json(new ApiResponse(200, staff, "Staff fetched successfully"));
 };
 
 export const deleteStaff = async (req: Request, res: Response) => {
@@ -167,8 +196,8 @@ export const getStaffById = async (req: Request, res: Response) => {
       createdAt: true,
       updatedAt: true,
       shiftStart: true,
-      shiftEnd: true
-    }
+      shiftEnd: true,
+    },
   });
 
   if (!staff || staff.companyId !== req.user!.companyId) {
@@ -182,7 +211,9 @@ export const getStaffById = async (req: Request, res: Response) => {
     assertLocationAccess(req.user!, staff.locationId);
   }
 
-  res.status(200).json(new ApiResponse(200, staff, "Staff fetched successfully"));
+  res
+    .status(200)
+    .json(new ApiResponse(200, staff, "Staff fetched successfully"));
 };
 
 export const getStaffByLocation = async (req: Request, res: Response) => {
@@ -191,7 +222,9 @@ export const getStaffByLocation = async (req: Request, res: Response) => {
 
   assertLocationAccess(req.user!, locationId);
 
-  const location = await prisma.location.findUnique({ where: { id: locationId } });
+  const location = await prisma.location.findUnique({
+    where: { id: locationId },
+  });
 
   if (!location || location.companyId !== req.user!.companyId) {
     throw new ApiError(404, "Location not found in your company");
@@ -211,11 +244,13 @@ export const getStaffByLocation = async (req: Request, res: Response) => {
       createdAt: true,
       updatedAt: true,
       shiftStart: true,
-      shiftEnd: true
-    }
+      shiftEnd: true,
+    },
   });
 
-  res.status(200).json(new ApiResponse(200, staff, "Staff fetched successfully"));
+  res
+    .status(200)
+    .json(new ApiResponse(200, staff, "Staff fetched successfully"));
 };
 
 export const getProfile = async (req: Request, res: Response) => {
@@ -233,15 +268,17 @@ export const getProfile = async (req: Request, res: Response) => {
       createdAt: true,
       updatedAt: true,
       shiftStart: true,
-      shiftEnd: true
-    }
+      shiftEnd: true,
+    },
   });
 
   if (!staff) {
     throw new ApiError(404, "Staff not found");
   }
 
-  res.status(200).json(new ApiResponse(200, staff, "Profile fetched successfully"));
+  res
+    .status(200)
+    .json(new ApiResponse(200, staff, "Profile fetched successfully"));
 };
 
 export const editStaff = async (req: Request, res: Response) => {
@@ -251,9 +288,9 @@ export const editStaff = async (req: Request, res: Response) => {
   const result = editStaffSchema.safeParse(req.body);
 
   if (!result.success) {
-    const errors = result.error.issues.map(e => ({
+    const errors = result.error.issues.map((e) => ({
       field: e.path.join("."),
-      message: e.message
+      message: e.message,
     }));
     throw new ApiError(400, "Validation failed", errors);
   }
@@ -276,66 +313,75 @@ export const editStaff = async (req: Request, res: Response) => {
   }
 
   if (result.data.email && result.data.email !== staff.email) {
-    const existing = await prisma.staff.findUnique({ where: { email: result.data.email } });
+    const existing = await prisma.staff.findUnique({
+      where: { email: result.data.email },
+    });
     if (existing) {
       throw new ApiError(409, "A staff member with this email already exists");
     }
   }
 
-  console.log("staff data::",result.data);
+  console.log("staff data::", result.data);
 
-  const shiftChanged = result.data.shiftStart !== undefined || result.data.shiftEnd !== undefined;
+  const shiftChanged =
+    result.data.shiftStart !== undefined || result.data.shiftEnd !== undefined;
 
- if (result.data.shiftStart || result.data.shiftEnd) {
-  
-  const newStart = result.data.shiftStart ?? staff.shiftStart;
-  const newEnd = result.data.shiftEnd ?? staff.shiftEnd;
+  if (result.data.shiftStart || result.data.shiftEnd) {
+    const newStart = result.data.shiftStart ?? staff.shiftStart;
+    const newEnd = result.data.shiftEnd ?? staff.shiftEnd;
 
-  if (newStart && newEnd) {
-   
-    const staffTemplates = await prisma.taskTemplate.findMany({
-      where: {
-        staffId,
-        isActive: true,
-      },
-      include: { location: { select: { timezone: true } } },
-    });
+    if (newStart && newEnd) {
+      const staffTemplates = await prisma.taskTemplate.findMany({
+        where: {
+          staffId,
+          isActive: true,
+        },
+        include: { location: { select: { timezone: true } } },
+      });
 
-    const locationTimeZone = staff.location?.timezone ?? DEFAULT_TIME_ZONE;
-    const newStartMin = getZonedClockMinutes(newStart, locationTimeZone);
-    const newEndMin = getZonedClockMinutes(newEnd, locationTimeZone);
-    const isOvernightShift = newEndMin < newStartMin;
+      const locationTimeZone = staff.location?.timezone ?? DEFAULT_TIME_ZONE;
+      const newStartMin = getZonedClockMinutes(newStart, locationTimeZone);
+      const newEndMin = getZonedClockMinutes(newEnd, locationTimeZone);
+      const isOvernightShift = newEndMin < newStartMin;
 
-    const conflicts = staffTemplates.filter((t) => {
-      const templateTimeZone = t.location.timezone;
-      const tStartMin = getZonedClockMinutes(t.shiftStart, templateTimeZone);
-      const tEndMin = getZonedClockMinutes(t.shiftEnd, templateTimeZone);
+      const conflicts = staffTemplates.filter((t) => {
+        const templateTimeZone = t.location.timezone;
+        const tStartMin = getZonedClockMinutes(t.shiftStart, templateTimeZone);
+        const tEndMin = getZonedClockMinutes(t.shiftEnd, templateTimeZone);
 
-      if (isOvernightShift) {
-        return !(tStartMin >= newStartMin || tEndMin <= newEndMin);
+        if (isOvernightShift) {
+          return !(tStartMin >= newStartMin || tEndMin <= newEndMin);
+        }
+        return !(tStartMin >= newStartMin && tEndMin <= newEndMin);
+      });
+
+      if (conflicts.length > 0) {
+        const names = conflicts.map((c) => `"${c.title}"`).join(", ");
+        throw new ApiError(
+          400,
+          `Cannot update shift: ${names} task template(s) fall outside the new shift window. Remove or reassign them first.`,
+        );
       }
-      return !(tStartMin >= newStartMin && tEndMin <= newEndMin);
-    });
-
-    if (conflicts.length > 0) {
-      const names = conflicts.map((c) => `"${c.title}"`).join(", ");
-      throw new ApiError(
-        400,
-        `Cannot update shift: ${names} task template(s) fall outside the new shift window. Remove or reassign them first.`
-      );
     }
   }
-}
-
 
   const updated = await prisma.staff.update({
     where: { id: staffId },
     data: result.data,
     select: {
-      id: true, name: true, email: true, phone: true, role: true, isActive: true,
-      companyId: true, locationId: true, shiftStart: true, shiftEnd: true,
-      createdAt: true, updatedAt: true,
-    }
+      id: true,
+      name: true,
+      email: true,
+      phone: true,
+      role: true,
+      isActive: true,
+      companyId: true,
+      locationId: true,
+      shiftStart: true,
+      shiftEnd: true,
+      createdAt: true,
+      updatedAt: true,
+    },
   });
 
   if (shiftChanged) {
@@ -347,7 +393,9 @@ export const editStaff = async (req: Request, res: Response) => {
     });
   }
 
-  res.status(200).json(new ApiResponse(200, updated, "Staff updated successfully"));
+  res
+    .status(200)
+    .json(new ApiResponse(200, updated, "Staff updated successfully"));
 };
 
 export const getStaffDetails = async (req: Request, res: Response) => {
@@ -373,7 +421,9 @@ export const getStaffDetails = async (req: Request, res: Response) => {
       shiftEnd: true,
       createdAt: true,
       updatedAt: true,
-      location: { select: { id: true, name: true, address: true, timezone: true } },
+      location: {
+        select: { id: true, name: true, address: true, timezone: true },
+      },
     },
   });
 
@@ -412,11 +462,14 @@ export const getStaffDetails = async (req: Request, res: Response) => {
     }
 
     dateFilter = { gte: monthRange.start, lt: monthRange.end };
-    periodLabel = new Date(Date.UTC(year, monthIndex, 15)).toLocaleDateString("en-US", {
-      month: "long",
-      year: "numeric",
-      timeZone,
-    });
+    periodLabel = new Date(Date.UTC(year, monthIndex, 15)).toLocaleDateString(
+      "en-US",
+      {
+        month: "long",
+        year: "numeric",
+        timeZone,
+      },
+    );
   } else if (dateFromParam || dateToParam) {
     if (!dateFromParam || !dateToParam) {
       throw new ApiError(400, "Both dateFrom and dateTo are required together");
@@ -426,7 +479,10 @@ export const getStaffDetails = async (req: Request, res: Response) => {
     const endRange = getZonedDayRangeFromDateInput(dateToParam, timeZone);
 
     if (!startRange || !endRange) {
-      throw new ApiError(400, "Invalid dateFrom or dateTo format. Use YYYY-MM-DD");
+      throw new ApiError(
+        400,
+        "Invalid dateFrom or dateTo format. Use YYYY-MM-DD",
+      );
     }
 
     if (startRange.start > endRange.start) {
@@ -440,12 +496,32 @@ export const getStaffDetails = async (req: Request, res: Response) => {
   const taskInstanceWhere = {
     staffId,
     isActive: true,
-    ...(dateFilter ? { date: dateFilter } : {}),
+    ...(dateFilter
+      ? {
+          OR: [
+            { date: dateFilter },
+            {
+              shiftStart: { lt: dateFilter.lt },
+              shiftEnd: { gt: dateFilter.gte },
+            },
+          ],
+        }
+      : {}),
   };
 
   const attendanceWhere = {
     staffId,
-    ...(dateFilter ? { date: dateFilter } : {}),
+    ...(dateFilter
+      ? {
+          OR: [
+            { date: dateFilter },
+            {
+              expectedStart: { lt: dateFilter.lt },
+              expectedEnd: { gt: dateFilter.gte },
+            },
+          ],
+        }
+      : {}),
   };
 
   const [
@@ -488,7 +564,12 @@ export const getStaffDetails = async (req: Request, res: Response) => {
         startedAt: true,
         completedAt: true,
         proofImageUrls: true,
-        verificationVersion:true, verificationState:true, completionOutcome:true, completionTiming:true, areaNameSnapshot:true,
+        verificationVersion: true,
+        verificationState: true,
+        completionOutcome: true,
+        completionTiming: true,
+        areaNameSnapshot: true,
+        staffSubmittedAt: true,
         location: { select: { id: true, name: true, timezone: true } },
       },
     }),
@@ -515,7 +596,7 @@ export const getStaffDetails = async (req: Request, res: Response) => {
       where: { staffId, isActive: true },
     }),
     prisma.taskInstance.groupBy({
-      by: ["status"],
+      by: ["status", "staffSubmittedAt"],
       where: taskInstanceWhere,
       _count: { status: true },
     }),
@@ -538,12 +619,25 @@ export const getStaffDetails = async (req: Request, res: Response) => {
     }),
   ]);
 
-  const totalTaskInstances = taskStatusGroups.reduce((sum, group) => sum + group._count.status, 0);
-  const totalAttendanceRecords = attendanceStatusGroups.reduce((sum, group) => sum + group._count.status, 0);
+  const totalTaskInstances = taskStatusGroups.reduce(
+    (sum, group) => sum + group._count.status,
+    0,
+  );
+  const totalAttendanceRecords = attendanceStatusGroups.reduce(
+    (sum, group) => sum + group._count.status,
+    0,
+  );
 
-  const taskStatusMap = new Map(taskStatusGroups.map((group) => [group.status, group._count.status]));
+  const taskStatusMap = new Map<string, number>();
+  for (const group of taskStatusGroups) {
+    const status = operationalTaskStatus(group);
+    taskStatusMap.set(
+      status,
+      (taskStatusMap.get(status) ?? 0) + group._count.status,
+    );
+  }
   const attendanceStatusMap = new Map(
-    attendanceStatusGroups.map((group) => [group.status, group._count.status])
+    attendanceStatusGroups.map((group) => [group.status, group._count.status]),
   );
 
   const taskStats = {
@@ -567,14 +661,18 @@ export const getStaffDetails = async (req: Request, res: Response) => {
   };
 
   res.status(200).json(
-    new ApiResponse(200, {
-      ...staff,
-      taskTemplates,
-      taskInstances,
-      attendances,
-      taskStats,
-      attendanceStats,
-      periodLabel,
-    }, "Staff details fetched successfully")
+    new ApiResponse(
+      200,
+      {
+        ...staff,
+        taskTemplates,
+        taskInstances: taskInstances.map(managerTaskPresentation),
+        attendances,
+        taskStats,
+        attendanceStats,
+        periodLabel,
+      },
+      "Staff details fetched successfully",
+    ),
   );
 };

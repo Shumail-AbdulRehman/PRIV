@@ -2,7 +2,7 @@ import type { Prisma } from '@prisma/client';
 import { prisma } from '../../prisma/prisma.js';
 import { ApiError } from '../../utils/ApiError.js';
 export type VerificationActor = {id:number;companyId:number;role:'ADMIN'|'MANAGER'|'STAFF';locationIds?:number[];locationId?:number|null};
-type Db = import('./jobQueue.service.js').VerificationTransaction;
+type Db = import('./transaction.js').VerificationTransaction;
 const defaultDb = prisma as unknown as Db;
 export function requireOperationalRole(actor:VerificationActor) {
  if (!['ADMIN','MANAGER'].includes(actor.role)) throw new ApiError(403,'Manager or admin account required');
