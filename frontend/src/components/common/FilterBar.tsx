@@ -11,7 +11,7 @@ export default function FilterBar({ children, className }: FilterBarProps) {
   return (
     <div
       className={cn(
-        "grid gap-3 rounded-xl border border-border/70 bg-card/95 p-4  sm:grid-cols-2 xl:grid-cols-[minmax(0,1fr)_auto_auto_auto]",
+        "workspace-filterbar grid gap-3 rounded-xl border border-border/70 bg-card/95 p-4  sm:grid-cols-2 xl:grid-cols-[minmax(0,1fr)_auto_auto_auto]",
         className,
       )}
     >

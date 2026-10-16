@@ -1,5 +1,9 @@
-import { Link } from 'react-router-dom';
-import { verificationLabel,timingLabel } from '@/pages/Verification/presentation';
+import OperationsState from "../Manager/OperationsState";
+import { Link } from "react-router-dom";
+import {
+  verificationLabel,
+  timingLabel,
+} from "@/pages/Verification/presentation";
 import React, { useMemo, useState } from "react";
 import { useParams, useNavigate, useSearchParams } from "react-router-dom";
 import {
@@ -49,7 +53,11 @@ interface StaffTaskInstanceRow {
   shiftStart: string | null;
   shiftEnd: string | null;
   status: string;
-  verificationVersion?:number;verificationState?:string;completionOutcome?:string|null;completionTiming?:string|null;
+  staffSubmittedAt?: string | null;
+  verificationVersion?: number;
+  verificationState?: string;
+  completionOutcome?: string | null;
+  completionTiming?: string | null;
   isLate: boolean;
   startedAt: string | null;
   completedAt: string | null;
@@ -175,10 +183,8 @@ const StaffDetailPage: React.FC = () => {
   });
   const monthOptions = useMemo(() => getMonthOptions(), []);
 
-  const { data, isLoading, isFetching } = useGetStaffDetails(
-    Number(id),
-    filters,
-  );
+  const staffQuery = useGetStaffDetails(Number(id), filters);
+  const { data, isLoading, isFetching } = staffQuery;
 
   const instanceColumns: Column<StaffTaskInstanceRow>[] = useMemo(
     () => [
@@ -214,8 +220,21 @@ const StaffDetailPage: React.FC = () => {
         header: "Status",
         render: (instance) => (
           <div className="flex flex-wrap items-center gap-2">
-            {instance.verificationVersion===2?<Link className="text-primary underline" to={`/verification/${instance.id}`}>{verificationLabel(instance)}</Link>:<StatusBadge status={instance.status} />}
-            {instance.completionTiming?<span className="text-xs text-muted-foreground">{timingLabel(instance.completionTiming)}</span>:null}
+            {instance.verificationVersion === 2 ? (
+              <Link
+                className="text-primary underline"
+                to={`/verification/${instance.id}?returnTo=${encodeURIComponent(`/staff/${id}?${searchParams.toString()}`)}`}
+              >
+                {verificationLabel(instance)}
+              </Link>
+            ) : (
+              <StatusBadge status={instance.status} />
+            )}
+            {instance.completionTiming ? (
+              <span className="text-xs text-muted-foreground">
+                {timingLabel(instance.completionTiming)}
+              </span>
+            ) : null}
             {instance.isLate ? (
               <span className="text-[10px] font-medium text-amber-600">
                 Late start
@@ -252,7 +271,14 @@ const StaffDetailPage: React.FC = () => {
         key: "proof",
         header: "Proof",
         render: (instance) =>
-          instance.proofImageUrls && instance.proofImageUrls.length > 0 ? (
+          instance.verificationVersion === 2 ? (
+            <Link
+              className="inline-flex min-h-11 items-center text-sm font-medium text-primary underline"
+              to={`/verification/${instance.id}?returnTo=${encodeURIComponent(`/staff/${id}?${searchParams.toString()}`)}`}
+            >
+              View task photos
+            </Link>
+          ) : instance.proofImageUrls && instance.proofImageUrls.length > 0 ? (
             <div className="flex gap-1">
               {instance.proofImageUrls.map((url, i) => (
                 <a key={i} href={url} target="_blank" rel="noopener noreferrer">
@@ -269,7 +295,7 @@ const StaffDetailPage: React.FC = () => {
           ),
       },
     ],
-    [],
+    [id, searchParams],
   );
 
   const attendanceColumns: Column<StaffAttendanceRow>[] = useMemo(
@@ -499,6 +525,16 @@ const StaffDetailPage: React.FC = () => {
   };
 
   if (isLoading) return <LoadingSpinner fullScreen />;
+  if (staffQuery.isError)
+    return (
+      <div className="ops-page">
+        <PageHeader title="Team member" />
+        <OperationsState
+          error={staffQuery.error}
+          retry={() => void staffQuery.refetch()}
+        />
+      </div>
+    );
 
   const staff = data?.data;
   if (!staff) {
@@ -520,11 +556,10 @@ const StaffDetailPage: React.FC = () => {
   const staffTz: string = staff.location?.timezone ?? "UTC";
 
   const taskChartData = [
-    { name: "Completed", value: taskStats.completed, fill: "#10b981" },
-    { name: "Pending", value: taskStats.pending, fill: "#64748b" },
-    { name: "In Progress", value: taskStats.inProgress, fill: "#0ea5e9" },
-    { name: "Missed", value: taskStats.missed, fill: "#ef4444" },
-    { name: "Late", value: taskStats.late, fill: "#f59e0b" },
+    { name: "Work submitted", value: taskStats.completed, fill: "#3d8f7b" },
+    { name: "Pending", value: taskStats.pending, fill: "#91a5ab" },
+    { name: "In Progress", value: taskStats.inProgress, fill: "#ba8d34" },
+    { name: "Missed", value: taskStats.missed, fill: "#c75a52" },
   ].filter((d) => d.value > 0);
 
   return (
@@ -595,6 +630,7 @@ const StaffDetailPage: React.FC = () => {
             Month
           </label>
           <select
+            aria-label="Month"
             value={month}
             onChange={(e) => setMonth(e.target.value)}
             className="h-11 w-full rounded-lg border border-border/80 bg-background/90 px-4 py-2 text-sm shadow-xs outline-none focus:border-primary/60 focus:ring-4 focus:ring-primary/10"
@@ -618,6 +654,7 @@ const StaffDetailPage: React.FC = () => {
           </label>
           <Input
             type="date"
+            aria-label="From date"
             value={dateFrom}
             onChange={(e) => setDateFrom(e.target.value)}
           />
@@ -628,6 +665,7 @@ const StaffDetailPage: React.FC = () => {
           </label>
           <Input
             type="date"
+            aria-label="To date"
             value={dateTo}
             onChange={(e) => setDateTo(e.target.value)}
           />
@@ -654,7 +692,7 @@ const StaffDetailPage: React.FC = () => {
           icon={ClipboardList}
         />
         <StatCard
-          label="Completed"
+          label="Work submitted"
           value={taskStats.completed}
           icon={CheckCircle2}
           tone="emerald"
@@ -757,24 +795,28 @@ const StaffDetailPage: React.FC = () => {
                   <CartesianGrid strokeDasharray="3 3" stroke="#dbe3ea" />
                   <XAxis
                     type="number"
-                    tick={{ fontSize: 12, fill: "#64748b" }}
+                    tick={{ fontSize: 12, fill: "#91a5ab" }}
                     allowDecimals={false}
                   />
                   <YAxis
                     type="category"
                     dataKey="name"
-                    tick={{ fontSize: 12, fill: "#64748b" }}
+                    tick={{ fontSize: 12, fill: "#91a5ab" }}
                     width={90}
                   />
                   <Tooltip
                     contentStyle={{
-                      backgroundColor: "#fff",
+                      backgroundColor: "var(--card)",
                       border: "1px solid #e2e8f0",
-                      borderRadius: "16px",
+                      borderRadius: "6px",
                       fontSize: 13,
                     }}
                   />
-                  <Bar dataKey="value" radius={[0, 8, 8, 0]} />
+                  <Bar
+                    dataKey="value"
+                    radius={[0, 3, 3, 0]}
+                    isAnimationActive={false}
+                  />
                 </BarChart>
               </ResponsiveContainer>
             ) : (
@@ -802,7 +844,7 @@ const StaffDetailPage: React.FC = () => {
                 <p className="text-2xl font-semibold text-emerald-700">
                   {attendanceStats.present}
                 </p>
-                <p className="mt-1 text-xs uppercase tracking-[0.18em] text-emerald-700/80">
+                <p className="mt-1 text-xs uppercase tracking-[0.18em] text-emerald-700">
                   Present
                 </p>
               </div>
@@ -818,7 +860,7 @@ const StaffDetailPage: React.FC = () => {
                 <p className="text-2xl font-semibold text-amber-700">
                   {attendanceStats.late}
                 </p>
-                <p className="mt-1 text-xs uppercase tracking-[0.18em] text-amber-700/80">
+                <p className="mt-1 text-xs uppercase tracking-[0.18em] text-amber-700">
                   Late
                 </p>
               </div>
@@ -828,60 +870,59 @@ const StaffDetailPage: React.FC = () => {
       )}
 
       {activeTab === "templates" && (
-        <div className="grid grid-cols-1 gap-4 md:grid-cols-2 xl:grid-cols-3">
-          {staff.taskTemplates.length === 0 ? (
-            <SurfaceCard
-              className="md:col-span-2 xl:col-span-3"
-              contentClassName="py-16"
-            >
-              <div className="text-center text-sm text-muted-foreground">
-                No active task templates assigned.
-              </div>
-            </SurfaceCard>
-          ) : (
-            staff.taskTemplates.map((t: StaffTaskTemplateRow) => (
-              <SurfaceCard key={t.id}>
-                <div className="space-y-4">
-                  <div>
-                    <h3 className="text-base font-semibold text-foreground">
-                      {t.title}
-                    </h3>
-                    {t.description ? (
-                      <p className="mt-1 text-sm text-muted-foreground">
-                        {t.description}
-                      </p>
-                    ) : null}
-                  </div>
-                  <div className="flex flex-wrap gap-2">
-                    <StatusBadge status={t.recurringType ?? "ONCE"} />
-                    <StatusBadge status={t.isActive ? "ACTIVE" : "INACTIVE"} />
-                  </div>
-                  <div className="grid grid-cols-2 gap-3 text-sm">
-                    <div>
-                      <p className="text-muted-foreground">Location</p>
-                      <p className="font-medium text-foreground">
-                        {t.location?.name ?? "—"}
-                      </p>
-                    </div>
-                    <div>
-                      <p className="text-muted-foreground">Shift</p>
-                      <p className="font-medium text-foreground">
-                        {fmtTime(t.shiftStart, t.location?.timezone ?? "UTC")} –{" "}
-                        {fmtTime(t.shiftEnd, t.location?.timezone ?? "UTC")}
-                      </p>
-                    </div>
-                    <div>
-                      <p className="text-muted-foreground">Effective</p>
-                      <p className="font-medium text-foreground">
-                        {fmtDate(t.effectiveDate)}
-                      </p>
-                    </div>
-                  </div>
+        <DataTable<StaffTaskTemplateRow>
+          data={staff.taskTemplates}
+          pageSize={20}
+          rowKey={(row) => row.id}
+          emptyMessage="No active cleaning schedules assigned."
+          columns={[
+            {
+              key: "title",
+              header: "Cleaning schedule",
+              sortValue: (row) => row.title,
+              render: (row) => (
+                <div>
+                  <strong>{row.title}</strong>
+                  {row.description ? <p>{row.description}</p> : null}
                 </div>
-              </SurfaceCard>
-            ))
-          )}
-        </div>
+              ),
+            },
+            {
+              key: "location",
+              header: "Location",
+              sortValue: (row) => row.location?.name ?? "",
+              render: (row) => row.location?.name ?? "—",
+            },
+            {
+              key: "shift",
+              header: "Shift",
+              render: (row) =>
+                fmtTime(row.shiftStart, row.location?.timezone ?? "UTC") +
+                " – " +
+                fmtTime(row.shiftEnd, row.location?.timezone ?? "UTC"),
+            },
+            {
+              key: "recurrence",
+              header: "Recurrence",
+              render: (row) => (
+                <StatusBadge status={row.recurringType ?? "ONCE"} />
+              ),
+            },
+            {
+              key: "effective",
+              header: "Effective",
+              sortValue: (row) => row.effectiveDate ?? "",
+              render: (row) => fmtDate(row.effectiveDate),
+            },
+            {
+              key: "status",
+              header: "Status",
+              render: (row) => (
+                <StatusBadge status={row.isActive ? "ACTIVE" : "INACTIVE"} />
+              ),
+            },
+          ]}
+        />
       )}
 
       {activeTab === "instances" && (
@@ -891,6 +932,7 @@ const StaffDetailPage: React.FC = () => {
           contentClassName="p-0"
         >
           <DataTable
+            pageSize={20}
             columns={instanceColumns}
             data={staff.taskInstances}
             rowKey={(i) => i.id}
@@ -908,6 +950,7 @@ const StaffDetailPage: React.FC = () => {
           contentClassName="p-0"
         >
           <DataTable
+            pageSize={20}
             columns={attendanceColumns}
             data={staff.attendances}
             rowKey={(a) => a.id}

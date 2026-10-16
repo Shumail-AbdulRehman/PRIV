@@ -11,6 +11,7 @@ export interface StaffStatusEntry {
   };
   attendance: {
     status: string;
+    staffSubmittedAt?: string | null;
     expectedStart: string;
     expectedEnd: string;
     checkInTime: string | null;

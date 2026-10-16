@@ -1,7 +1,12 @@
 import { deleteLocation } from "./api";
 import { invalidateWorkspace } from "@/lib/invalidateWorkspace";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
-import { getLocations, createLocation, getLocationById, getLocationSchedule } from "./api";
+import {
+  getLocations,
+  createLocation,
+  getLocationById,
+  getLocationSchedule,
+} from "./api";
 import type { LocationStatsFilter } from "./api";
 
 export const useGetLocations = () => {
@@ -17,6 +22,7 @@ export const useCreateLocation = () => {
     mutationFn: createLocation,
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["getLocations"] });
+      void invalidateWorkspace(queryClient);
     },
   });
 };
@@ -41,9 +47,13 @@ export const useDeleteLocation = () => {
   });
 };
 
-export const useLocationSchedule = (companyId: number | undefined, id: string, week?: string) =>
+export const useLocationSchedule = (
+  companyId: number | undefined,
+  id: string,
+  week?: string,
+) =>
   useQuery({
-    queryKey: ['location', 'schedule', companyId, id, week ?? 'current'],
+    queryKey: ["location", "schedule", companyId, id, week ?? "current"],
     queryFn: ({ signal }) => getLocationSchedule(id, week, signal),
     enabled: !!companyId && !!id,
   });

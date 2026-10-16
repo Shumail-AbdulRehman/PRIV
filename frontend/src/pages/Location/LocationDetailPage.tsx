@@ -1,12 +1,27 @@
-import LocationAreasTab from '../Area/LocationAreasTab';
+import OperationStatus from "@/components/common/OperationStatus";
+import { verificationLabel } from "../Verification/presentation";
+import LocationOverview from "./LocationOverview";
+import PageHeader from "@/components/common/PageHeader";
+import { Button } from "@/components/ui/button";
+import OperationsState from "../Manager/OperationsState";
+import DataTable from "@/components/common/DataTable";
+import TaskWorker from "@/components/common/TaskWorker";
+import { taskAssignee } from "../Task/taskAssignee";
+import { useLanguage } from "@/i18n/context";
+import LocationAreasTab from "../Area/LocationAreasTab";
 import DeleteButton from "@/components/common/DeleteButton";
 import { useSelector } from "react-redux";
 import type { RootState } from "@/store/store";
-import React, { useState } from "react";
+import React, { useEffect, useRef, useState } from "react";
 import LocationScheduleTab from "./components/LocationScheduleTab";
 import LocationTemplatesTab from "./components/LocationTemplatesTab";
 import type { LocationStaff, ReferenceImage, TaskTemplate } from "./types";
-import { useParams, useNavigate, useSearchParams, Link } from "react-router-dom";
+import {
+  useParams,
+  useNavigate,
+  useSearchParams,
+  Link,
+} from "react-router-dom";
 import { formatInTimeZone } from "date-fns-tz";
 import { useGetLocationById, useDeleteLocation } from "./queries";
 import type { LocationStatsFilter } from "./queries";
@@ -14,8 +29,6 @@ import StatusBadge from "@/components/common/StatusBadge";
 import LoadingSpinner from "@/components/common/LoadingSpinner";
 import AreaSubmissionsPanel from "@/pages/Task/components/AreaSubmissionsPanel";
 import {
-  MapPin,
-  Building2,
   Clock,
   Users,
   ClipboardList,
@@ -28,6 +41,9 @@ import {
   RefreshCw,
   ChevronDown,
   ChevronUp,
+  Plus,
+  Settings2,
+  LayoutDashboard,
 } from "lucide-react";
 
 const toDateStr = (d: Date) =>
@@ -104,12 +120,14 @@ function StatCard({
   );
 }
 
-type Tab = "areas" | "staff" | "templates" | "instances" | "schedule";
+type Tab =
+  "overview" | "areas" | "staff" | "templates" | "instances" | "schedule";
 const TABS: { key: Tab; label: string; icon: React.ElementType }[] = [
+  { key: "overview", label: "Overview", icon: LayoutDashboard },
   { key: "areas", label: "Areas and inventory", icon: ClipboardList },
-  { key: "staff", label: "Team", icon: Users },
+  { key: "staff", label: "Staff and shifts", icon: Users },
   { key: "templates", label: "Cleaning schedule", icon: ClipboardList },
-  { key: "schedule", label: "Schedule", icon: Calendar },
+  { key: "schedule", label: "Weekly schedule", icon: Calendar },
   { key: "instances", label: "Task history", icon: Clock },
 ];
 
@@ -134,11 +152,16 @@ interface TaskAssignment {
 
 interface TaskInstance {
   id: number;
+  staffId: number | null;
   title: string;
   date: string;
   shiftStart: string | null;
   shiftEnd: string | null;
   status: string;
+  verificationVersion?: number;
+  verificationState?: string;
+  completionOutcome?: string | null;
+  staffSubmittedAt?: string | null;
   isLate?: boolean;
   lateMinutes?: number | null;
   proofImageUrls?: string[];
@@ -173,14 +196,6 @@ interface LocationInfo {
   taskTemplates: TaskTemplate[];
   taskInstances: TaskInstance[];
 }
-
-const getTaskAssignee = (taskInstance: TaskInstance) => {
-  const assignments = taskInstance.assignments ?? [];
-  const currentAssignment = assignments.find(
-    (assignment) => assignment.isCurrent,
-  );
-  return currentAssignment ?? assignments[assignments.length - 1] ?? null;
-};
 
 const getLatestAttempts = (taskInstance: TaskInstance) => {
   return taskInstance.completionAttempts ?? [];
@@ -278,18 +293,27 @@ const VerificationCell = ({ attempts }: { attempts: CompletionAttempt[] }) => {
 };
 
 const LocationDetailPage: React.FC = () => {
+  const { t } = useLanguage();
+  const [settingsOpen, setSettingsOpen] = useState(false);
   const user = useSelector((state: RootState) => state.auth.user);
   const deleteLocation = useDeleteLocation();
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
   const [activeFilter, setActiveFilter] = useState<FilterKey>("all");
   const [searchParams, setSearchParams] = useSearchParams();
-  const activeTab = TABS.find((tab) => tab.key === searchParams.get("tab"))?.key ?? "staff";
-  const setActiveTab = (tab: Tab) => setSearchParams((previous) => {
-    const next = new URLSearchParams(previous);
-    next.set("tab", tab);
-    return next;
-  });
+  const taskParam = searchParams.get("taskId") ?? "";
+  const selectedTaskId = /^[1-9]\d*$/.test(taskParam)
+    ? Number(taskParam)
+    : null;
+  const taskHistoryRef = useRef<HTMLElement>(null);
+  const activeTab =
+    TABS.find((tab) => tab.key === searchParams.get("tab"))?.key ?? "overview";
+  const setActiveTab = (tab: Tab) =>
+    setSearchParams((previous) => {
+      const next = new URLSearchParams(previous);
+      next.set("tab", tab);
+      return next;
+    });
   const [expandedInstanceId, setExpandedInstanceId] = useState<number | null>(
     null,
   );
@@ -297,9 +321,27 @@ const LocationDetailPage: React.FC = () => {
   const currentFilter = FILTERS.find((f) => f.key === activeFilter)!;
   const filter = currentFilter.toFilter();
 
-  const { data, isLoading, isFetching } = useGetLocationById(id!, filter);
+  const detailQuery = useGetLocationById(id!, filter);
+  const { data, isLoading, isFetching } = detailQuery;
   const locationInfo = data?.data?.locationInfo as LocationInfo | undefined;
   const taskStats: TaskStatEntry[] = data?.data?.taskStats ?? [];
+  useEffect(() => {
+    if (
+      activeTab !== "instances" ||
+      !selectedTaskId ||
+      isLoading ||
+      detailQuery.isError
+    )
+      return;
+    const frame = requestAnimationFrame(() => {
+      taskHistoryRef.current?.scrollIntoView({
+        block: "start",
+        behavior: "instant",
+      });
+      taskHistoryRef.current?.focus({ preventScroll: true });
+    });
+    return () => cancelAnimationFrame(frame);
+  }, [activeTab, selectedTaskId, isLoading, detailQuery.isError]);
 
   const staffCount = locationInfo?.staff?.length ?? 0;
   const templateCount = locationInfo?.taskTemplates?.length ?? 0;
@@ -310,6 +352,16 @@ const LocationDetailPage: React.FC = () => {
 
   if (isLoading) return <LoadingSpinner fullScreen />;
 
+  if (detailQuery.isError)
+    return (
+      <div className="ops-page">
+        <PageHeader title="Location" />
+        <OperationsState
+          error={detailQuery.error}
+          retry={() => void detailQuery.refetch()}
+        />
+      </div>
+    );
   if (!locationInfo) {
     return (
       <div className="flex h-64 items-center justify-center">
@@ -342,217 +394,213 @@ const LocationDetailPage: React.FC = () => {
         <span className="text-gray-900 font-medium">{locationInfo.name}</span>
       </div>
 
-      <div className="rounded-xl border border-gray-200 bg-white p-6">
-        <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
-          <div className="flex items-center gap-4">
-            <div className="flex h-14 w-14 items-center justify-center rounded-xl bg-blue-50">
-              <MapPin className="h-7 w-7 text-blue-600" />
-            </div>
-            <div>
-              <h1 className="text-2xl font-bold text-gray-900">
-                {locationInfo.name}
-              </h1>
-              <p className="mt-0.5 flex items-center gap-1.5 text-sm text-gray-500">
-                <Building2 className="h-3.5 w-3.5" />
-                {locationInfo.address}
-              </p>
-            </div>
-          </div>
-          <div className="flex items-center gap-3">
+      <PageHeader
+        title={locationInfo.name}
+        subtitle={locationInfo.address}
+        action={
+          <>
             <StatusBadge
               status={locationInfo.isActive ? "ACTIVE" : "INACTIVE"}
             />
-            {user?.role === "ADMIN" && (
-              <DeleteButton
-                name={locationInfo.name}
-                description="This location, its schedules, task history, attendance, and evidence records will be removed. Staff accounts will stay, with their location and shift cleared."
-                onDelete={async () => {
-                  await deleteLocation.mutateAsync(locationInfo.id);
-                  navigate("/locations", { replace: true });
-                }}
-              />
-            )}
-          </div>
-        </div>
-
-        <details className="mt-4 border-t border-border pt-4">
-          <summary className="cursor-pointer text-sm text-muted-foreground">
-            Location settings
-          </summary>
-          <div className="mt-3 flex flex-wrap gap-2">
-            <span className="inline-flex items-center gap-1.5 rounded-lg bg-gray-100 px-3 py-1.5 text-xs text-gray-500">
-              <Navigation className="h-3 w-3" /> Lat:{" "}
-              {fmtCoord(locationInfo.latitude)}
-            </span>
-            <span className="inline-flex items-center gap-1.5 rounded-lg bg-gray-100 px-3 py-1.5 text-xs text-gray-500">
-              <Navigation className="h-3 w-3 rotate-90" /> Lng:{" "}
+            {locationInfo.isActive ? (
+              <Button asChild>
+                <Link to={"/locations/" + locationInfo.id + "/areas/new"}>
+                  <Plus size={16} />
+                  {t("Add area")}
+                </Link>
+              </Button>
+            ) : null}
+            <Button
+              variant="outline"
+              aria-expanded={settingsOpen}
+              onClick={() => setSettingsOpen(!settingsOpen)}
+            >
+              <Settings2 size={16} />
+              {t("Location settings")}
+            </Button>
+          </>
+        }
+      />
+      {settingsOpen ? (
+        <section className="detail-settings space-y-4">
+          <h2>{t("Location settings")}</h2>
+          <div className="flex flex-wrap gap-3 text-sm text-muted-foreground">
+            <span>
+              <Navigation size={14} className="inline" />{" "}
+              {fmtCoord(locationInfo.latitude)},{" "}
               {fmtCoord(locationInfo.longitude)}
             </span>
-            <span className="inline-flex items-center gap-1.5 rounded-lg bg-gray-100 px-3 py-1.5 text-xs text-gray-500">
-              <Radius className="h-3 w-3" /> Radius: {locationInfo.radiusMeters}
-              m
+            <span>
+              <Radius size={14} className="inline" />{" "}
+              {locationInfo.radiusMeters} m
             </span>
-            <span className="inline-flex items-center gap-1.5 rounded-lg bg-gray-100 px-3 py-1.5 text-xs text-gray-500">
-              <Clock className="h-3 w-3" /> {locationInfo.timezone}
+            <span>
+              <Clock size={14} className="inline" /> {locationInfo.timezone}
             </span>
           </div>
-        </details>
-      </div>
-
-      <div className="flex items-center justify-between flex-wrap gap-3">
-        <div className="flex flex-wrap items-center gap-1.5 rounded-lg border border-gray-200 bg-white p-1">
-          <Calendar className="ml-2 h-4 w-4 text-gray-400 shrink-0" />
-          {FILTERS.map((f) => (
-            <button
-              key={f.key}
-              aria-pressed={activeFilter === f.key}
-              onClick={() => setActiveFilter(f.key)}
-              className={`inline-flex items-center gap-1.5 rounded-md px-3 py-1.5 text-sm font-medium transition-all ${
-                f.key === activeFilter
-                  ? "bg-primary text-white shadow-sm"
-                  : "text-gray-500 hover:bg-gray-100 hover:text-gray-900"
-              }`}
-            >
-              {f.key === activeFilter && isFetching && (
-                <RefreshCw className="h-3 w-3 animate-spin" />
-              )}
-              {f.label}
-            </button>
-          ))}
-        </div>
-      </div>
-
-      <div className="grid grid-cols-2 gap-4 lg:grid-cols-4">
-        <StatCard
-          label="Active Staff"
-          value={staffCount}
-          icon={Users}
-          color="indigo"
-        />
-        <StatCard
-          label="Scheduled tasks"
-          value={templateCount}
-          icon={ClipboardList}
-          color="purple"
-        />
-        <StatCard
-          label="Tasks in period"
-          value={instanceCount}
-          icon={Activity}
-          color="cyan"
-        />
-        <StatCard
-          label="Completed"
-          value={completedCount}
-          icon={CalendarCheck}
-          color="emerald"
-        />
-      </div>
-
-      {taskStats.length > 0 && (
-        <div className="flex flex-wrap gap-3">
-          {taskStats.map((entry) => (
-            <div key={entry.status} className="flex items-center gap-2">
-              <StatusBadge status={entry.status} />
-              <span className="text-sm font-semibold text-gray-900">
-                {entry._count.status}
-              </span>
+          {user?.role === "ADMIN" ? (
+            <DeleteButton
+              name={locationInfo.name}
+              description="This location, its schedules, task history, attendance, and evidence records will be removed. Staff accounts will stay, with their location and shift cleared."
+              onDelete={async () => {
+                await deleteLocation.mutateAsync(locationInfo.id);
+                navigate("/locations", { replace: true });
+              }}
+            />
+          ) : null}
+        </section>
+      ) : null}
+      {activeTab !== "overview" ? (
+        <>
+          <div className="flex items-center justify-between flex-wrap gap-3">
+            <div className="flex flex-wrap items-center gap-1.5 rounded-lg border border-gray-200 bg-white p-1">
+              <Calendar className="ml-2 h-4 w-4 text-gray-400 shrink-0" />
+              {FILTERS.map((f) => (
+                <button
+                  key={f.key}
+                  aria-pressed={activeFilter === f.key}
+                  onClick={() => setActiveFilter(f.key)}
+                  className={`inline-flex items-center gap-1.5 rounded-md px-3 py-1.5 text-sm font-medium transition-all ${
+                    f.key === activeFilter
+                      ? "bg-primary text-white shadow-sm"
+                      : "text-gray-500 hover:bg-gray-100 hover:text-gray-900"
+                  }`}
+                >
+                  {f.key === activeFilter && isFetching && (
+                    <RefreshCw className="h-3 w-3 animate-spin" />
+                  )}
+                  {f.label}
+                </button>
+              ))}
             </div>
-          ))}
-        </div>
-      )}
+          </div>
 
-      <div className="border-b border-gray-200">
-        <div className="flex flex-wrap gap-0">
+          <div className="grid grid-cols-2 gap-4 lg:grid-cols-4">
+            <StatCard
+              label="Active Staff"
+              value={staffCount}
+              icon={Users}
+              color="indigo"
+            />
+            <StatCard
+              label="Scheduled tasks"
+              value={templateCount}
+              icon={ClipboardList}
+              color="purple"
+            />
+            <StatCard
+              label="Tasks in period"
+              value={instanceCount}
+              icon={Activity}
+              color="cyan"
+            />
+            <StatCard
+              label="Work submitted"
+              value={completedCount}
+              icon={CalendarCheck}
+              color="emerald"
+            />
+          </div>
+
+          {taskStats.length > 0 && (
+            <div className="flex flex-wrap gap-3">
+              {taskStats.map((entry) => (
+                <div key={entry.status} className="flex items-center gap-2">
+                  <StatusBadge status={entry.status} />
+                  <span className="text-sm font-semibold text-gray-900">
+                    {entry._count.status}
+                  </span>
+                </div>
+              ))}
+            </div>
+          )}
+        </>
+      ) : null}
+      <div className="ops-tabs" aria-label={t("Location sections")}>
+        <div className="detail-tab-list">
           {TABS.map(({ key, label, icon: Icon }) => (
             <button
               key={key}
               aria-pressed={activeTab === key}
               onClick={() => setActiveTab(key)}
-              className={`inline-flex items-center gap-2 border-b-2 px-5 py-3 text-sm font-medium transition-colors ${
-                activeTab === key
-                  ? "border-primary text-primary"
-                  : "border-transparent text-gray-500 hover:border-gray-300 hover:text-gray-600"
-              }`}
+              className={activeTab === key ? "is-active" : ""}
             >
               <Icon className="h-4 w-4" />
-              {label}
+              {t(label)}
             </button>
           ))}
         </div>
       </div>
 
+      {activeTab === "overview" && (
+        <LocationOverview locationId={locationInfo.id} onTab={setActiveTab} />
+      )}
       {activeTab === "staff" && (
-        <div className="overflow-x-auto rounded-xl border border-gray-200 bg-white">
-          <table className="w-full text-sm">
-            <thead>
-              <tr className="border-b border-gray-200 bg-gray-50/80">
-                <th className="px-5 py-3 text-left text-xs font-semibold uppercase tracking-wide text-gray-500">
-                  Name
-                </th>
-                <th className="px-5 py-3 text-left text-xs font-semibold uppercase tracking-wide text-gray-500">
-                  Email
-                </th>
-                <th className="px-5 py-3 text-left text-xs font-semibold uppercase tracking-wide text-gray-500">
-                  Shift
-                </th>
-                <th className="px-5 py-3 text-left text-xs font-semibold uppercase tracking-wide text-gray-500">
-                  Status
-                </th>
-              </tr>
-            </thead>
-            <tbody className="divide-y divide-gray-100">
-              {locationInfo.staff?.length > 0 ? (
-                locationInfo.staff.map((s) => (
-                  <tr
-                    key={s.id}
-                    className="transition-colors hover:bg-gray-100/50"
-                  >
-                    <td className="px-5 py-3.5">
-                      <div className="flex items-center gap-3">
-                        <div className="flex h-8 w-8 items-center justify-center rounded-full bg-blue-50 text-xs font-bold text-blue-600">
-                          {s.name
-                            .split(" ")
-                            .map((w: string) => w[0])
-                            .join("")
-                            .slice(0, 2)
-                            .toUpperCase()}
-                        </div>
-                        <span className="font-medium text-gray-900">
-                          {s.name}
-                        </span>
-                      </div>
-                    </td>
-                    <td className="px-5 py-3.5 text-gray-500">{s.email}</td>
-                    <td className="px-5 py-3.5 text-gray-600">
-                      {fmtTime(s.shiftStart, locationTz)} –{" "}
-                      {fmtTime(s.shiftEnd, locationTz)}
-                    </td>
-                    <td className="px-5 py-3.5">
-                      <StatusBadge
-                        status={s.isActive ? "ACTIVE" : "INACTIVE"}
-                      />
-                    </td>
-                  </tr>
-                ))
-              ) : (
-                <tr>
-                  <td
-                    colSpan={4}
-                    className="px-5 py-8 text-center text-sm text-gray-400"
-                  >
-                    No staff assigned to this location.
-                  </td>
-                </tr>
-              )}
-            </tbody>
-          </table>
-        </div>
+        <DataTable
+          data={locationInfo.staff ?? []}
+          pageSize={20}
+          rowKey={(s) => s.id}
+          emptyMessage="No staff assigned to this location."
+          columns={[
+            {
+              key: "name",
+              header: "Name",
+              sortValue: (s) => s.name,
+              render: (s) => (
+                <div className="table-identity">
+                  <span className="workspace-avatar">
+                    {s.name
+                      .split(" ")
+                      .map((w) => w[0])
+                      .join("")
+                      .slice(0, 2)}
+                  </span>
+                  <strong>{s.name}</strong>
+                </div>
+              ),
+            },
+            {
+              key: "email",
+              header: "Email",
+              sortValue: (s) => s.email,
+              render: (s) => s.email,
+            },
+            {
+              key: "shift",
+              header: "Shift",
+              render: (s) =>
+                fmtTime(s.shiftStart, locationTz) +
+                " – " +
+                fmtTime(s.shiftEnd, locationTz),
+            },
+            {
+              key: "status",
+              header: "Status",
+              sortValue: (s) => (s.isActive ? 1 : 0),
+              render: (s) => (
+                <StatusBadge status={s.isActive ? "ACTIVE" : "INACTIVE"} />
+              ),
+            },
+            {
+              key: "action",
+              header: "Action",
+              render: (s) => (
+                <Button asChild variant="outline">
+                  <Link to={"/staff/" + s.id}>{t("View worker")}</Link>
+                </Button>
+              ),
+            },
+          ]}
+        />
       )}
 
-      {activeTab === "areas" && id && <LocationAreasTab locationId={Number(id)} />}
+      {activeTab === "areas" && id && (
+        <LocationAreasTab locationId={Number(id)} />
+      )}
 
-      {activeTab === "schedule" && id && <LocationScheduleTab locationId={id} />}
+      {activeTab === "schedule" && id && (
+        <LocationScheduleTab locationId={id} />
+      )}
 
       {activeTab === "templates" && (
         <LocationTemplatesTab
@@ -565,177 +613,215 @@ const LocationDetailPage: React.FC = () => {
       )}
 
       {activeTab === "instances" && (
-        <div className="overflow-x-auto rounded-xl border border-gray-200 bg-white">
-          <table className="w-full text-sm">
-            <thead>
-              <tr className="border-b border-gray-200 bg-gray-50/80">
-                <th className="px-5 py-3 text-left text-xs font-semibold uppercase tracking-wide text-gray-500">
-                  Title
-                </th>
-                <th className="px-5 py-3 text-left text-xs font-semibold uppercase tracking-wide text-gray-500">
-                  Date
-                </th>
-                <th className="px-5 py-3 text-left text-xs font-semibold uppercase tracking-wide text-gray-500">
-                  Shift
-                </th>
-                <th className="px-5 py-3 text-left text-xs font-semibold uppercase tracking-wide text-gray-500">
-                  Assigned To
-                </th>
-                <th className="px-5 py-3 text-left text-xs font-semibold uppercase tracking-wide text-gray-500">
-                  Status
-                </th>
-                <th className="px-5 py-3 text-left text-xs font-semibold uppercase tracking-wide text-gray-500">
-                  Late
-                </th>
-                <th className="px-5 py-3 text-left text-xs font-semibold uppercase tracking-wide text-gray-500">
-                  Proof
-                </th>
-                <th className="px-5 py-3 text-left text-xs font-semibold uppercase tracking-wide text-gray-500">
-                  Verification
-                </th>
-                <th className="px-5 py-3 text-left text-xs font-semibold uppercase tracking-wide text-gray-500">
-                  Areas
-                </th>
-              </tr>
-            </thead>
-            <tbody className="divide-y divide-gray-100">
-              {locationInfo.taskInstances?.length > 0 ? (
-                locationInfo.taskInstances.map((ti) => {
-                  const assignee = getTaskAssignee(ti);
-                  const reassignmentCount = Math.max(
+        <section
+          ref={taskHistoryRef}
+          id="location-task-history"
+          tabIndex={-1}
+          aria-label={t("Task history")}
+          data-task-id={selectedTaskId ?? undefined}
+          className={selectedTaskId ? "task-history-selection" : undefined}
+        >
+          {selectedTaskId ? (
+            <div className="ops-panel-heading">
+              <h2>{t("Selected task")}</h2>
+              <Button
+                variant="outline"
+                onClick={() =>
+                  setSearchParams((previous) => {
+                    const next = new URLSearchParams(previous);
+                    next.delete("taskId");
+                    return next;
+                  })
+                }
+              >
+                {t("Show all tasks")}
+              </Button>
+            </div>
+          ) : null}
+          <DataTable
+            key={selectedTaskId ?? "all"}
+            data={(locationInfo.taskInstances ?? []).filter(
+              (task) => !selectedTaskId || task.id === selectedTaskId,
+            )}
+            pageSize={20}
+            rowKey={(ti) => ti.id}
+            emptyMessage={
+              selectedTaskId
+                ? "This task is not available for this location and period."
+                : "No task instances for this period."
+            }
+            expandedRow={(ti) =>
+              expandedInstanceId === ti.id ? (
+                <AreaSubmissionsPanel taskInstanceId={ti.id} />
+              ) : null
+            }
+            columns={[
+              {
+                key: "title",
+                header: "Task",
+                sortValue: (ti) => ti.title,
+                render: (ti) => <strong>{ti.title}</strong>,
+              },
+              {
+                key: "date",
+                header: "Date",
+                sortValue: (ti) => ti.date,
+                render: (ti) =>
+                  new Date(ti.date).toLocaleDateString("en-PK", {
+                    day: "numeric",
+                    month: "short",
+                    year: "numeric",
+                    timeZone: "UTC",
+                  }),
+              },
+              {
+                key: "shift",
+                header: "Shift",
+                render: (ti) =>
+                  fmtTime(ti.shiftStart, locationTz) +
+                  " – " +
+                  fmtTime(ti.shiftEnd, locationTz),
+              },
+              {
+                key: "staff",
+                header: "Assigned to",
+                sortValue: (ti) => taskAssignee(ti).worker?.name ?? "",
+                render: (ti) => {
+                  const reassigned = Math.max(
                     (ti.assignments?.length ?? 0) - 1,
                     0,
                   );
-
                   return (
-                    <>
-                      <tr
-                        key={ti.id}
-                        className="transition-colors hover:bg-gray-100/50"
-                      >
-                        <td className="px-5 py-3.5 font-medium text-gray-900">
-                          {ti.title}
-                        </td>
-                        <td className="px-5 py-3.5 text-gray-600">
-                          {new Date(ti.date).toLocaleDateString("en-US", {
-                            day: "numeric",
-                            month: "short",
-                            year: "numeric",
-                            timeZone: "UTC",
-                          })}
-                        </td>
-                        <td className="px-5 py-3.5 text-gray-600">
-                          {fmtTime(ti.shiftStart, locationTz)} –{" "}
-                          {fmtTime(ti.shiftEnd, locationTz)}
-                        </td>
-                        <td className="px-5 py-3.5">
-                          {assignee?.staff ? (
-                            <div className="min-w-40">
-                              <p className="font-medium text-gray-900">
-                                {assignee.staff.name}
-                              </p>
-                              {assignee.staff.email && (
-                                <p className="text-xs text-gray-500">
-                                  {assignee.staff.email}
-                                </p>
-                              )}
-                              <div className="mt-1 flex flex-wrap items-center gap-1.5">
-                                <span className="rounded-full bg-blue-50 px-2 py-0.5 text-[11px] font-medium text-blue-700">
-                                  {assignee.isCurrent
-                                    ? "Current"
-                                    : assignee.status}
-                                </span>
-                                {reassignmentCount > 0 && (
-                                  <span className="rounded-full bg-amber-50 px-2 py-0.5 text-[11px] font-medium text-amber-700">
-                                    {reassignmentCount} reassigned
-                                  </span>
-                                )}
-                              </div>
-                            </div>
-                          ) : (
-                            <span className="text-gray-400">Unassigned</span>
-                          )}
-                        </td>
-                        <td className="px-5 py-3.5">
-                          <StatusBadge status={ti.status} />
-                        </td>
-                        <td className="px-5 py-3.5">
-                          {ti.isLate ? (
-                            <span className="font-semibold text-amber-400">
-                              +{ti.lateMinutes ?? "?"}m
-                            </span>
-                          ) : (
-                            <span className="text-emerald-400">On time</span>
-                          )}
-                        </td>
-                        <td className="px-5 py-3.5">
-                          {ti.proofImageUrls && ti.proofImageUrls.length > 0 ? (
-                            <div className="flex gap-1">
-                              {ti.proofImageUrls.map(
-                                (url: string, i: number) => (
-                                  <a
-                                    key={i}
-                                    href={url}
-                                    target="_blank"
-                                    rel="noopener noreferrer"
-                                  >
-                                    <img
-                                      src={url}
-                                      alt={`Proof ${i + 1}`}
-                                      className="h-9 w-9 rounded-md object-cover border border-gray-200 hover:ring-2 hover:ring-blue-400 transition-all cursor-pointer"
-                                    />
-                                  </a>
-                                ),
-                              )}
-                            </div>
-                          ) : (
-                            <span className="text-gray-400">—</span>
-                          )}
-                        </td>
-                        <td className="px-5 py-3.5">
-                          <VerificationCell attempts={getLatestAttempts(ti)} />
-                        </td>
-                        <td className="px-5 py-3.5">
-                          <button
-                            onClick={() =>
-                              setExpandedInstanceId(
-                                expandedInstanceId === ti.id ? null : ti.id,
-                              )
-                            }
-                            className="inline-flex items-center gap-1 rounded-md border border-gray-200 px-2 py-1 text-xs font-medium text-gray-600 transition-colors hover:bg-gray-100 hover:text-gray-900"
-                          >
-                            {expandedInstanceId === ti.id ? (
-                              <ChevronUp className="h-3.5 w-3.5" />
-                            ) : (
-                              <ChevronDown className="h-3.5 w-3.5" />
-                            )}
-                            Areas
-                          </button>
-                        </td>
-                      </tr>
-                      {expandedInstanceId === ti.id && (
-                        <tr>
-                          <td colSpan={9} className="bg-gray-50/50 px-5 py-4">
-                            <AreaSubmissionsPanel taskInstanceId={ti.id} />
-                          </td>
-                        </tr>
-                      )}
-                    </>
+                    <div>
+                      <TaskWorker
+                        task={{
+                          ...ti,
+                          staff: locationInfo.staff.find(
+                            (s) => s.id === ti.staffId,
+                          ),
+                        }}
+                        details
+                      />
+                      {reassigned > 0 ? (
+                        <small>
+                          {reassigned} {t("reassigned")}
+                        </small>
+                      ) : null}
+                    </div>
                   );
-                })
-              ) : (
-                <tr>
-                  <td
-                    colSpan={9}
-                    className="px-5 py-8 text-center text-sm text-gray-400"
-                  >
-                    No task instances for this period.
-                  </td>
-                </tr>
-              )}
-            </tbody>
-          </table>
-        </div>
+                },
+              },
+              {
+                key: "status",
+                header: "Work status",
+                render: (ti) => (
+                  <OperationStatus
+                    state={
+                      ti.staffSubmittedAt || ti.status === "COMPLETED"
+                        ? "PASSED"
+                        : ti.status
+                    }
+                    label={
+                      ti.staffSubmittedAt || ti.status === "COMPLETED"
+                        ? "Work submitted"
+                        : ti.status === "IN_PROGRESS"
+                          ? "In progress"
+                          : ti.status === "MISSED" ||
+                              ti.status === "NOT_COMPLETED_INTIME"
+                            ? "Overdue"
+                            : ti.status === "CANCELLED"
+                              ? "Cancelled"
+                              : "Not started"
+                    }
+                  />
+                ),
+              },
+              {
+                key: "late",
+                header: "Late start",
+                render: (ti) =>
+                  ti.isLate ? (
+                    <span className="text-amber-700">
+                      +{ti.lateMinutes ?? "?"}m
+                    </span>
+                  ) : (
+                    t("No late start recorded")
+                  ),
+              },
+              {
+                key: "review",
+                header: "Verification",
+                render: (ti) =>
+                  ti.verificationVersion === 2 ? (
+                    <OperationStatus
+                      state={ti.verificationState}
+                      label={verificationLabel(ti)}
+                    />
+                  ) : (
+                    <VerificationCell attempts={getLatestAttempts(ti)} />
+                  ),
+              },
+              {
+                key: "actions",
+                header: "Actions",
+                render: (ti) => (
+                  <div className="flex flex-wrap gap-2">
+                    {ti.verificationVersion === 2 ? (
+                      <Button asChild variant="outline">
+                        <Link
+                          to={
+                            "/verification/" +
+                            ti.id +
+                            "?returnTo=" +
+                            encodeURIComponent(
+                              "/locations/" +
+                                id +
+                                "?" +
+                                searchParams.toString(),
+                            )
+                          }
+                        >
+                          {t("View task photos")}
+                        </Link>
+                      </Button>
+                    ) : (
+                      ti.proofImageUrls?.map((url, i) => (
+                        <a
+                          key={url}
+                          href={url}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                        >
+                          <img
+                            src={url}
+                            alt={"Proof " + (i + 1)}
+                            className="h-9 w-9 rounded-md object-cover"
+                          />
+                        </a>
+                      ))
+                    )}
+                    <Button
+                      variant="ghost"
+                      aria-expanded={expandedInstanceId === ti.id}
+                      onClick={() =>
+                        setExpandedInstanceId(
+                          expandedInstanceId === ti.id ? null : ti.id,
+                        )
+                      }
+                    >
+                      {expandedInstanceId === ti.id ? (
+                        <ChevronUp size={14} />
+                      ) : (
+                        <ChevronDown size={14} />
+                      )}{" "}
+                      {t("Areas")}
+                    </Button>
+                  </div>
+                ),
+              },
+            ]}
+          />
+        </section>
       )}
     </div>
   );

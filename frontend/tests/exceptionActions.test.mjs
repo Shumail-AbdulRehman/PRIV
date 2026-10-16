@@ -10,7 +10,7 @@ test('waivers and acceptance show manual completion consequence; maintenance and
 test('unsafe or unavailable evidence cannot expose an accept action',()=>{
  const detail={allowedActions:['ACCEPT_EVIDENCE','WAIVE_REQUIREMENT','MARK_MAINTENANCE'],attempts:[]};
  assert.deepEqual(issueActions(detail,{id:1,latestAttempt:{id:'held',mediaAssetId:null}}),['WAIVE_REQUIREMENT','MARK_MAINTENANCE']);
- assert.ok(issueActions(detail,{id:1,latestAttempt:{id:'safe',mediaAssetId:'protected-id'}}).includes('ACCEPT_EVIDENCE'));
+ assert.ok(issueActions(detail,{id:1,latestAttempt:{id:'safe',mediaAssetId:'protected-id',privacyState:'SAFE'}}).includes('ACCEPT_EVIDENCE'));
 });
 test('completed case exposes only follow-up resolution allowed by server',()=>{
  assert.deepEqual(issueActions({allowedActions:['RESOLVE_ISSUE'],requiresFollowUp:true,attempts:[]},{id:1}),['RESOLVE_ISSUE']);

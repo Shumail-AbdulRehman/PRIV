@@ -24,6 +24,7 @@ export const useCreateTaskTemplate = (autoInvalidate = true) => {
     onSuccess: () => {
       if (autoInvalidate) {
         qc.invalidateQueries({ queryKey: ["location"] });
+        qc.invalidateQueries({ queryKey: ["operations"] });
       }
     },
   });
@@ -36,6 +37,7 @@ export const useEditTaskTemplate = () => {
       editTaskTemplate(id, data),
     onSuccess: () => {
       qc.invalidateQueries({ queryKey: ["location"] });
+      qc.invalidateQueries({ queryKey: ["operations"] });
     },
   });
 };

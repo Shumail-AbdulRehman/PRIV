@@ -2,7 +2,18 @@ import type { QueryClient } from "@tanstack/react-query";
 
 // Deletions affect lists, detail screens, assignment options, today's totals and billing usage.
 const workspaceKeys = new Set([
-  "exceptions", "exception", "exception-count", "verification-history", "verification-task", "today-status",
+  "operations",
+  "review-page",
+  "review-next",
+  "follow-ups",
+  "daily-schedule",
+  "owner-trends",
+  "exceptions",
+  "exception",
+  "exception-count",
+  "verification-history",
+  "verification-task",
+  "today-status",
   "staff",
   "location",
   "getLocations",
@@ -12,7 +23,16 @@ const workspaceKeys = new Set([
   "attendance",
   "subscription",
   "area-submissions",
-  "area-migration", "areas", "area", "area-qr", "area-labels", "area-standards", "verification", "verification-exceptions",
+  "area-review-preview",
+  "area-daily-work",
+  "area-migration",
+  "areas",
+  "area",
+  "area-qr",
+  "area-labels",
+  "area-standards",
+  "verification",
+  "verification-exceptions",
 ]);
 export async function invalidateWorkspace(client: QueryClient) {
   await client.invalidateQueries({

@@ -1,3 +1,4 @@
+import { useLanguage } from "@/i18n/context";
 import { Badge } from "@/components/ui/badge";
 
 const COLORS: Record<string, string> = {
@@ -31,17 +32,31 @@ export default function StatusBadge({
   status,
   className = "",
 }: StatusBadgeProps) {
+  const { t } = useLanguage();
   const safeStatus = status ?? "UNKNOWN";
   const color = COLORS[safeStatus] ?? "bg-gray-100 text-gray-600";
   const words = safeStatus.replace(/_/g, " ").toLowerCase();
-  const label = words.charAt(0).toUpperCase() + words.slice(1);
+  const label =
+    (
+      {
+        PENDING: "Not started",
+        COMPLETED: "Completed",
+        NOT_COMPLETED_INTIME: "Overdue work",
+        CHECKED_IN: "Checked in",
+        CHECKED_OUT: "Checked out",
+        MISSED_CHECKOUT: "Missed Checkout",
+        ABSENT: "Not checked in",
+        SHIFT_NOT_STARTED: "Upcoming Shift",
+        NO_RECORD_TODAY: "Not recorded",
+      } as Record<string, string>
+    )[safeStatus] ?? words.charAt(0).toUpperCase() + words.slice(1);
 
   return (
     <Badge
       variant="outline"
       className={`whitespace-nowrap border ${color} ${className}`}
     >
-      {label}
+      {t(label)}
     </Badge>
   );
 }

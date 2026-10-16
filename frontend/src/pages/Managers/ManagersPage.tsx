@@ -1,15 +1,25 @@
 import DeleteButton from "@/components/common/DeleteButton";
 import { useState } from "react";
 import { Link } from "react-router-dom";
-import { MapPin, Pencil, Plus, UserCheck, Users } from "lucide-react";
-
+import {
+  MapPin,
+  Pencil,
+  Plus,
+  UserCheck,
+  Users,
+  Search,
+  ShieldCheck,
+} from "lucide-react";
 import PageHeader from "@/components/common/PageHeader";
 import StatCard from "@/components/common/StatCard";
 import EmptyState from "@/components/common/EmptyState";
 import LoadingSpinner from "@/components/common/LoadingSpinner";
+import DataTable from "@/components/common/DataTable";
+import StatusBadge from "@/components/common/StatusBadge";
+import OperationsState from "../Manager/OperationsState";
+import { useLanguage } from "@/i18n/context";
 import { Button } from "@/components/ui/button";
-import { Badge } from "@/components/ui/badge";
-import { Card, CardContent } from "@/components/ui/card";
+import { Input } from "@/components/ui/input";
 import { useGetLocations } from "../Location/queries";
 import { useGetManagers, useDeleteManager } from "./queries";
 import ManagerFormDialog from "./ManagerFormDialog";
@@ -17,171 +27,229 @@ import type { LocationWithCounts } from "../Location/types";
 import type { Manager } from "./types";
 
 export default function ManagersPage() {
-  const getManagers = useGetManagers();
-  const getLocations = useGetLocations();
-  const deleteManager = useDeleteManager();
-
+  const { t } = useLanguage();
+  const getManagers = useGetManagers(),
+    getLocations = useGetLocations(),
+    deleteManager = useDeleteManager();
   const [dialogOpen, setDialogOpen] = useState(false);
   const [editingManager, setEditingManager] = useState<Manager | null>(null);
-
+  const [search, setSearch] = useState("");
+  const [status, setStatus] = useState("all");
+  const [success, setSuccess] = useState("");
   if (getManagers.isPending || getLocations.isPending)
     return <LoadingSpinner fullScreen />;
-
+  if (getManagers.isError || getLocations.isError)
+    return (
+      <div className="ops-page">
+        <PageHeader title="Managers" />
+        <OperationsState
+          error={getManagers.error ?? getLocations.error}
+          retry={() => {
+            void getManagers.refetch();
+            void getLocations.refetch();
+          }}
+        />
+      </div>
+    );
   const managers: Manager[] = getManagers.data?.data ?? [];
-  const locations = (getLocations.data?.data ?? []).filter(
-    (loc: LocationWithCounts) => loc.isActive,
+  const locations: LocationWithCounts[] = (
+    getLocations.data?.data ?? []
+  ).filter((loc: LocationWithCounts) => loc.isActive);
+  const covered = new Set(
+    managers.flatMap((m) => m.locations.map((l) => l.id)),
   );
-  const activeManagers = managers.filter((manager) => manager.isActive).length;
-  const coveredLocationIds = new Set(
-    managers.flatMap((manager) => manager.locations.map((loc) => loc.id)),
-  );
-
-  const takenLocations = new Map<number, string>();
-  for (const manager of managers) {
-    if (editingManager && manager.id === editingManager.id) continue;
-    for (const loc of manager.locations) {
-      takenLocations.set(loc.id, manager.name);
-    }
+  const taken = new Map<number, string>();
+  for (const m of managers) {
+    if (m.id === editingManager?.id) continue;
+    for (const l of m.locations) taken.set(l.id, m.name);
   }
-
-  const openCreateDialog = () => {
+  const openCreate = () => {
     setEditingManager(null);
     setDialogOpen(true);
   };
-
-  const openEditDialog = (manager: Manager) => {
-    setEditingManager(manager);
-    setDialogOpen(true);
-  };
-
-  const initials = (name: string) =>
-    name
-      .split(" ")
-      .map((word) => word[0])
-      .join("")
-      .slice(0, 2)
-      .toUpperCase();
-
+  const filtered = managers.filter(
+    (m) =>
+      (status === "all" || m.isActive === (status === "active")) &&
+      (m.name + " " + m.email + " " + m.locations.map((l) => l.name).join(" "))
+        .toLowerCase()
+        .includes(search.toLowerCase()),
+  );
   return (
     <div className="space-y-6">
       <PageHeader
         title="Managers"
-        subtitle="Create managers and decide which locations each of them can see and manage."
+        subtitle="Give each manager access to the locations they look after."
         action={
-          locations.length > 0 ? (
-            <Button className="rounded-lg px-4" onClick={openCreateDialog}>
-              <Plus className="h-4 w-4" /> Add Manager
+          locations.length ? (
+            <Button onClick={openCreate}>
+              <Plus size={16} />
+              {t("Add manager")}
             </Button>
           ) : undefined
         }
       />
-
-      <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-3">
+      {success ? (
+        <p className="ops-save-result" role="status">
+          {t(success)}
+        </p>
+      ) : null}
+      <div className="grid gap-4 sm:grid-cols-3">
         <StatCard label="Total managers" value={managers.length} icon={Users} />
         <StatCard
           label="Active managers"
-          value={activeManagers}
+          value={managers.filter((m) => m.isActive).length}
           icon={UserCheck}
           tone="emerald"
         />
         <StatCard
           label="Locations covered"
-          value={coveredLocationIds.size}
+          value={covered.size}
           icon={MapPin}
           tone="sky"
         />
       </div>
-
-      {locations.length === 0 ? (
-        <EmptyState
-          icon={<MapPin className="h-12 w-12" />}
-          message="You need at least one location before you can create a manager."
-          action={
-            <Link to="/locations">
-              <Button className="rounded-lg px-4">Go to locations</Button>
-            </Link>
-          }
-        />
-      ) : managers.length > 0 ? (
-        <div className="grid grid-cols-1 gap-4 md:grid-cols-2 lg:grid-cols-3">
-          {managers.map((manager) => (
-            <Card key={manager.id} className="border-border/70">
-              <CardContent className="flex h-full flex-col gap-4 p-5">
-                <div className="flex items-start justify-between gap-3">
-                  <div className="flex min-w-0 items-center gap-3">
-                    <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-lg bg-primary text-sm font-semibold text-primary-foreground">
-                      {initials(manager.name)}
-                    </div>
-                    <div className="min-w-0">
-                      <p className="truncate text-sm font-semibold text-foreground">
-                        {manager.name}
-                      </p>
-                      <p className="truncate text-xs text-muted-foreground">
-                        {manager.email}
-                      </p>
+      {locations.length ? (
+        <>
+          <div className="ops-toolbar">
+            <label className="ops-search">
+              <span className="flex items-center gap-2">
+                <Search size={14} />
+                {t("Search managers")}
+              </span>
+              <Input
+                value={search}
+                onChange={(e) => setSearch(e.target.value)}
+                placeholder={t("Search by name, email or location")}
+              />
+            </label>
+            <label>
+              {t("Account status")}
+              <select
+                value={status}
+                onChange={(e) => setStatus(e.target.value)}
+              >
+                <option value="all">{t("All accounts")}</option>
+                <option value="active">{t("Active")}</option>
+                <option value="inactive">{t("Inactive")}</option>
+              </select>
+            </label>
+          </div>
+          <DataTable
+            data={filtered}
+            pageSize={20}
+            rowKey={(m) => m.id}
+            emptyMessage="No managers match these filters."
+            columns={[
+              {
+                key: "name",
+                header: "Manager",
+                sortValue: (m) => m.name,
+                render: (m) => (
+                  <div className="table-identity">
+                    <span className="workspace-avatar">
+                      {m.name
+                        .split(" ")
+                        .map((w) => w[0])
+                        .join("")
+                        .slice(0, 2)
+                        .toUpperCase()}
+                    </span>
+                    <div>
+                      <strong>{m.name}</strong>
+                      <p>{m.email}</p>
                     </div>
                   </div>
-                  <Badge variant={manager.isActive ? "default" : "secondary"}>
-                    {manager.isActive ? "Active" : "Inactive"}
-                  </Badge>
-                </div>
-
-                <div>
-                  <p className="mb-2 text-xs uppercase tracking-[0.18em] text-muted-foreground">
-                    Assigned locations
-                  </p>
-                  <div className="flex flex-wrap gap-1.5">
-                    {manager.locations.map((loc) => (
-                      <Badge key={loc.id} variant="outline">
-                        <MapPin className="mr-1 h-3 w-3" />
-                        {loc.name}
-                      </Badge>
+                ),
+              },
+              {
+                key: "locations",
+                header: "Assigned locations",
+                sortValue: (m) => m.locations.length,
+                render: (m) => (
+                  <div className="manager-location-links">
+                    {m.locations.map((l) => (
+                      <Link key={l.id} to={"/locations/" + l.id}>
+                        <MapPin size={13} />
+                        {l.name}
+                      </Link>
                     ))}
+                    {!m.locations.length ? t("No locations assigned") : null}
                   </div>
-                </div>
-
-                <div className="mt-auto flex gap-2 pt-1">
-                  <Button
-                    variant="outline"
-                    className="flex-1 rounded-lg"
-                    onClick={() => openEditDialog(manager)}
-                  >
-                    <Pencil className="h-4 w-4" /> Edit
-                  </Button>
-                  <DeleteButton
-                    name={manager.name}
-                    description="Their manager account and location access will be removed. The locations and staff will remain."
-                    onDelete={() => deleteManager.mutateAsync(manager.id)}
-                  />
-                </div>
-              </CardContent>
-            </Card>
-          ))}
-        </div>
+                ),
+              },
+              {
+                key: "status",
+                header: "Account status",
+                sortValue: (m) => (m.isActive ? 1 : 0),
+                render: (m) => (
+                  <StatusBadge status={m.isActive ? "ACTIVE" : "INACTIVE"} />
+                ),
+              },
+              {
+                key: "actions",
+                header: "Actions",
+                render: (m) => (
+                  <div className="flex gap-2">
+                    <Button
+                      variant="outline"
+                      onClick={() => {
+                        setEditingManager(m);
+                        setDialogOpen(true);
+                      }}
+                    >
+                      <Pencil size={14} />
+                      {t("Edit")}
+                    </Button>
+                    <DeleteButton
+                      name={m.name}
+                      description="Their manager account and location access will be removed."
+                      onDelete={async () => {
+                        await deleteManager.mutateAsync(m.id);
+                        setSuccess("Manager removed.");
+                      }}
+                    />
+                  </div>
+                ),
+              },
+            ]}
+          />
+        </>
       ) : (
         <EmptyState
-          icon={<Users className="h-12 w-12" />}
-          message="No managers yet. Create your first manager and assign them locations."
+          icon={<MapPin />}
+          message="You need at least one location before you can create a manager."
           action={
-            <Button onClick={openCreateDialog} className="rounded-lg px-4">
-              <Plus className="h-4 w-4" /> Add Manager
+            <Button asChild>
+              <Link to="/locations">{t("Go to locations")}</Link>
             </Button>
           }
         />
       )}
-
-      {dialogOpen && (
+      <div className="directory-guide">
+        <ShieldCheck size={23} />
+        <div>
+          <strong>{t("Access follows assigned locations")}</strong>
+          <p>
+            {t(
+              "Managers see their assigned sites. Company owners retain access across the workspace.",
+            )}
+          </p>
+        </div>
+      </div>
+      {dialogOpen ? (
         <ManagerFormDialog
           open={dialogOpen}
           onOpenChange={setDialogOpen}
           manager={editingManager}
-          locations={locations.map((loc: LocationWithCounts) => ({
-            id: loc.id,
-            name: loc.name,
-          }))}
-          takenLocations={takenLocations}
+          locations={locations.map((l) => ({ id: l.id, name: l.name }))}
+          takenLocations={taken}
+          onSaved={() =>
+            setSuccess(
+              editingManager ? "Manager changes saved." : "Manager added.",
+            )
+          }
         />
-      )}
+      ) : null}
     </div>
   );
 }

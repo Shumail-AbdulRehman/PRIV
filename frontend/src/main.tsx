@@ -1,6 +1,7 @@
-import ExceptionInboxPage from './pages/Exceptions/ExceptionInboxPage';
-import ExceptionDetailPage from './pages/Exceptions/ExceptionDetailPage';
-import VerificationHistoryPage from './pages/Verification/VerificationHistoryPage';
+import { ExceptionInboxPage, ExceptionDetailPage, VerificationHistoryPage, AreaSetupPage, AreaDetailPage, LocationsPage, LocationDetailPage, DashboardPage, StaffPage, StaffDetailPage, AttendancePage, TodayStatusPage, ManagersPage, SubscriptionPage } from "./routes/workspacePages";
+import '@fontsource/noto-sans-arabic/arabic-400.css';
+import '@fontsource/noto-sans-arabic/arabic-600.css';
+import { LanguageProvider } from './i18n/LanguageProvider';
 import { createRoot } from 'react-dom/client';
 import './index.css';
 import App, { GuestRoute, ProtectedRoute, RequireRole } from './App.tsx';
@@ -13,19 +14,8 @@ import DashboardLayout from './components/layout/DashboardLayout.tsx';
 import { PublicLayout } from './components/layout/PublicLayout.tsx';
 import SignUp from './pages/Signup/SignUpPage.tsx';
 import Login from './pages/Login/LoginPage.tsx';
-import AreaSetupPage from './pages/Area/AreaSetupPage';
-import AreaDetailPage from './pages/Area/AreaDetailPage';
-import LocationsPage from './pages/Location/LocationsPage.tsx';
-import LocationDetailPage from './pages/Location/LocationDetailPage.tsx';
-import DashboardPage from './pages/Dashboard/DashboardPage.tsx';
-import StaffPage from './pages/Staff/StaffPage.tsx';
-import StaffDetailPage from './pages/Staff/StaffDetailPage.tsx';
-import AttendancePage from './pages/Attendance/AttendancePage.tsx';
-import TodayStatusPage from './pages/Manager/TodayStatusPage.tsx';
-import ManagersPage from './pages/Managers/ManagersPage.tsx';
 import LandingPage from './pages/Landing/LandingPage.tsx';
 import FeaturesPage from './pages/Landing/FeaturesPage.tsx';
-import SubscriptionPage from './pages/Subscription/SubscriptionPage.tsx';
 import PricingPage from './pages/Pricing/PricingPage.tsx';
 import WelcomePage from './pages/Pricing/WelcomePage.tsx';
 import ChoosePlanPage from './pages/Pricing/ChoosePlanPage.tsx';
@@ -118,7 +108,7 @@ const router = createBrowserRouter([
 createRoot(document.getElementById('root')!).render(
     <Provider store={store}>
       <QueryClientProvider client={queryClient}>
-        <RouterProvider router={router} />
+        <LanguageProvider><RouterProvider router={router} /></LanguageProvider>
       </QueryClientProvider>
     </Provider>
  

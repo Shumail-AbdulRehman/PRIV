@@ -1,29 +1,382 @@
-import { Link, useSearchParams } from 'react-router-dom';
-import PageHeader from '@/components/common/PageHeader';
-import { Button } from '@/components/ui/button';
-import { useGetLocations } from '../Location/queries';
-import { useAreas } from '../Area/queries';
-import { useExceptions } from './queries';
-import { exceptionStateLabel, plainReason } from '../Verification/presentation';
-import type { ExceptionFilters } from './types';
-const filterKeys=['locationId','areaId','workerId','reasonCode','priority','state'] as const;
-export default function ExceptionInboxPage(){
- const [params,setParams]=useSearchParams();const filters:ExceptionFilters=Object.fromEntries(filterKeys.map(key=>[key,params.get(key)||undefined]));
- const query=useExceptions(filters);const locations=useGetLocations();const areas=useAreas(Number(filters.locationId));
- function filter(key:string,value:string){setParams(previous=>{const next=new URLSearchParams(previous);if(value)next.set(key,value);else next.delete(key);if(key==='locationId')next.delete('areaId');return next;});}
- const rows=query.data?.pages.flatMap(p=>p.cases)??[];
- const field='min-h-11 w-full rounded-lg border border-border bg-background px-3 text-sm';
- return <div className="space-y-6"><PageHeader title="Exception inbox" subtitle="One case per task. Review the affected items and keep the team moving."/>
- <div className="grid gap-3 sm:grid-cols-2 xl:grid-cols-6">
- <label className="space-y-1 text-sm">Location<select aria-label="Location" className={field} value={filters.locationId??''} onChange={e=>filter('locationId',e.target.value)}><option value="">All locations</option>{(locations.data?.data??[]).map((l:{id:number;name:string})=><option key={l.id} value={l.id}>{l.name}</option>)}</select></label>
- <label className="space-y-1 text-sm">Area<select aria-label="Area" className={field} value={filters.areaId??''} onChange={e=>filter('areaId',e.target.value)}><option value="">All areas</option>{areas.data?.map(a=><option key={a.id} value={a.id}>{a.name}</option>)}</select></label>
- <label className="space-y-1 text-sm">State<select aria-label="State" className={field} value={filters.state??''} onChange={e=>filter('state',e.target.value)}><option value="">All states</option>{['MANAGER_REVIEW','STAFF_ACTION_REQUIRED','WAITING_SERVICE','RESOLVED'].map(s=><option key={s} value={s}>{exceptionStateLabel(s)}</option>)}</select></label>
- <label className="space-y-1 text-sm">Priority<select aria-label="Priority" className={field} value={filters.priority??''} onChange={e=>filter('priority',e.target.value)}><option value="">All priorities</option>{[5,4,3,2,1,0].map(p=><option key={p} value={p}>Priority {p}</option>)}</select></label>
- <label className="space-y-1 text-sm">Reason<select aria-label="Reason" className={field} value={filters.reasonCode??''} onChange={e=>filter('reasonCode',e.target.value)}><option value="">All reasons</option>{['CLEANING_REQUIRED','CANNOT_ASSESS','WRONG_ITEM','MISSING_SURFACE','PRIVACY_HOLD','GPS_UNCERTAIN','CONTEXT_UNCERTAIN','DAMAGED','INACCESSIBLE','OCCUPIED','SERVICE_FAILURE','MISSING_EVIDENCE','DUPLICATE_EVIDENCE','SETUP_REQUIRED'].map(s=><option key={s} value={s}>{plainReason(s)}</option>)}</select></label>
- <label className="space-y-1 text-sm">Worker ID<input aria-label="Worker ID" className={field} type="number" min="1" value={filters.workerId??''} onChange={e=>filter('workerId',e.target.value)} placeholder="All workers"/></label>
- </div>
- <div className="flex items-center justify-between"><p className="text-sm text-muted-foreground">{query.data?.pages[0].total??rows.length} cases · {query.data?.pages[0].unreadCount??0} unread needing manager</p><Button variant="outline" onClick={()=>setParams({})}>Clear filters</Button></div>
- {query.isPending?<p role="status">Loading cases…</p>:query.isError?<div role="alert">Could not load cases. <Button variant="outline" onClick={()=>void query.refetch()}>Retry</Button></div>:!rows.length?<p className="rounded-xl border border-border p-8">No cases match these filters.</p>:<div className="divide-y divide-border rounded-xl border border-border bg-card">{rows.map(c=><Link to={`/exceptions/${c.id}`} key={c.id} className="flex flex-wrap items-center justify-between gap-4 p-5 hover:bg-muted/50 focus-visible:outline-2 focus-visible:outline-primary"><div className="min-w-0 flex-1"><div className="flex gap-2"><span className="font-semibold">{c.area?.name??c.task?.areaNameSnapshot??'Area setup'}</span>{c.unread?<span className="rounded bg-primary/10 px-2 text-xs font-semibold text-primary">Unread</span>:null}</div><p className="text-sm">{c.task?.title??'Inventory setup needed'}</p><p className="mt-1 text-xs text-muted-foreground">{c.location?.name} · {c.task?.staff?.name??'Unassigned'} · {c.issues.filter(i=>i.state!=='RESOLVED').length} open issues</p></div><div className="text-right text-sm"><p>{exceptionStateLabel(c.state)} · Priority {c.priority}</p>{c.task?.shiftEnd?<p className="text-xs text-muted-foreground">Due {new Date(c.task.shiftEnd).toLocaleString(undefined,{timeZone:c.location?.timezone})}</p>:null}</div></Link>)}</div>}
- {query.hasNextPage?<Button disabled={query.isFetchingNextPage} onClick={()=>void query.fetchNextPage()}>Load more cases</Button>:null}
- </div>;
+import { useDebouncedValue } from "@/hooks/useDebouncedValue";
+import { useEffect, useRef } from "react";
+import {
+  Link,
+  useSearchParams,
+  useLocation,
+  useNavigate,
+} from "react-router-dom";
+import { useSelector } from "react-redux";
+import { useQuery } from "@tanstack/react-query";
+import type { RootState } from "@/store/store";
+import { client } from "@/api/client";
+import { useLanguage } from "@/i18n/context";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import DataTable from "@/components/common/DataTable";
+import Pagination from "@/components/common/Pagination";
+import OperationsState from "../Manager/OperationsState";
+import { localTime } from "../Manager/operations";
+import { useAreas } from "../Area/queries";
+import { plainReason } from "../Verification/presentation";
+import type { VerificationException } from "./types";
+type Page = {
+  cases: VerificationException[];
+  page: number;
+  pageSize: number;
+  total: number;
+  totalPages: number;
+  locations: Array<{ id: number; name: string; timezone: string }>;
+  queueCounts: Record<string, number>;
+};
+export default function ExceptionInboxPage() {
+  const { t, language } = useLanguage();
+  const scope = useSelector(
+    (s: RootState) =>
+      `${s.auth.user?.companyId}:${s.auth.user?.role}:${s.auth.user?.id}`,
+  );
+  const [params, setParams] = useSearchParams();
+  const location = useLocation();
+  const restored = useRef<string | null>(null);
+  const navigate = useNavigate();
+  const filters = Object.fromEntries(
+    ["locationId", "areaId", "queue", "period", "date", "q", "page", "pageSize"]
+      .map((k) => [k, params.get(k) ?? ""])
+      .filter(([, v]) => v),
+  );
+  filters.queue ??=
+    params.get("state") === "STAFF_ACTION_REQUIRED"
+      ? "staff"
+      : params.get("state") === "WAITING_SERVICE"
+        ? "service"
+        : params.get("state") === "RESOLVED"
+          ? "resolved"
+          : "needs-me";
+  filters.page ??= "1";
+  const search = useDebouncedValue(params.get("q") ?? "");
+  const appliedFilters = { ...filters, q: search };
+  const query = useQuery({
+    queryKey: ["review-page", scope, appliedFilters],
+    queryFn: async ({ signal }) =>
+      (
+        await client.get<{ data: Page }>("/verification-exceptions", {
+          params: appliedFilters,
+          signal,
+        })
+      ).data.data,
+    refetchInterval: 30000,
+    refetchOnWindowFocus: true,
+  });
+  const data = query.data;
+  const areas = useAreas(Number(filters.locationId));
+  function update(k: string, v: string) {
+    setParams((old) => {
+      const next = new URLSearchParams(old);
+      if (v) next.set(k, v);
+      else next.delete(k);
+      if (k !== "page") next.delete("page");
+      if (k === "locationId") next.delete("areaId");
+      next.delete("state");
+      next.delete("priority");
+      next.delete("workerId");
+      next.delete("reasonCode");
+      return next;
+    });
+  }
+  useEffect(() => {
+    if (data && Number(filters.page) !== data.page)
+      setParams(
+        (old) => {
+          const next = new URLSearchParams(old);
+          next.set("page", String(data.page));
+          return next;
+        },
+        { replace: true },
+      );
+  }, [data, filters.page, setParams]);
+  useEffect(() => {
+    if (!data || restored.current === location.key) return;
+    const state = location.state as {
+      scrollY?: number;
+      focusId?: number;
+    } | null;
+    if (state?.scrollY !== undefined) {
+      restored.current = location.key;
+      requestAnimationFrame(() => {
+        window.scrollTo(0, state.scrollY ?? 0);
+        if (state.focusId)
+          Array.from(
+            document.querySelectorAll<HTMLAnchorElement>("[data-review-id]"),
+          )
+            .find(
+              (el) =>
+                el.dataset.reviewId === String(state.focusId) &&
+                el.getClientRects().length > 0,
+            )
+            ?.focus({ preventScroll: true });
+      });
+    }
+  }, [data, location.state, location.key]);
+  const queue = filters.queue;
+  const returnTo = location.pathname + "?" + new URLSearchParams(filters);
+  const total = data?.total;
+  return (
+    <div className="ops-page">
+      <header className="ops-header">
+        <div>
+          <h1>{t("Reviews")}</h1>
+          <p>
+            {t(
+              "Check the reason, look at the photos, choose what happens next.",
+            )}
+          </p>
+        </div>
+      </header>
+      <div className="ops-tabs" role="tablist" aria-label={t("Review queues")}>
+        {[
+          ["needs-me", "Needs my decision"],
+          ["staff", "Waiting for staff"],
+          ["service", "Checks pending"],
+          ["resolved", "Resolved"],
+        ].map(([v, l]) => (
+          <button
+            role="tab"
+            className={queue === v ? "is-active" : ""}
+            aria-selected={queue === v}
+            key={v}
+            onClick={() => update("queue", v)}
+          >
+            {t(l)}
+            {data ? <span>{data.queueCounts[v]}</span> : null}
+          </button>
+        ))}
+      </div>
+      <div className="ops-toolbar">
+        <label>
+          {t("Location")}
+          <select
+            value={filters.locationId ?? ""}
+            onChange={(e) => update("locationId", e.target.value)}
+          >
+            <option value="">
+              {t(
+                scope.includes(":ADMIN:")
+                  ? "All locations"
+                  : "My assigned locations",
+              )}
+            </option>
+            {data?.locations.map((l) => (
+              <option key={l.id} value={l.id}>
+                {l.name}
+              </option>
+            ))}
+          </select>
+        </label>
+        <label>
+          {t("Area")}
+          <select
+            disabled={!filters.locationId}
+            value={filters.areaId ?? ""}
+            onChange={(e) => update("areaId", e.target.value)}
+          >
+            <option value="">{t("All areas")}</option>
+            {areas.data?.map((a) => (
+              <option value={a.id} key={a.id}>
+                {a.name}
+              </option>
+            ))}
+          </select>
+          {!filters.locationId ? (
+            <small>{t("Choose a location to filter rooms.")}</small>
+          ) : null}
+        </label>
+        <label className="ops-search">
+          {t("Find a review")}
+          <Input
+            placeholder={t("Search name, room or task")}
+            value={filters.q ?? ""}
+            onChange={(e) => update("q", e.target.value)}
+          />
+        </label>
+        <label>
+          {t("Period")}
+          <select
+            value={filters.period ?? "all"}
+            onChange={(e) => update("period", e.target.value)}
+          >
+            {[
+              ["all", "All dates"],
+              ["today", "Today"],
+              ["earlier", "Earlier work"],
+              ["date", "Specific date"],
+            ].map(([v, l]) => (
+              <option key={v} value={v}>
+                {t(l)}
+              </option>
+            ))}
+          </select>
+        </label>
+        {filters.period === "date" ? (
+          <label>
+            {t("Date")}
+            <input
+              type="date"
+              value={filters.date === "today" ? "" : (filters.date ?? "")}
+              onChange={(e) => update("date", e.target.value)}
+            />
+          </label>
+        ) : null}
+        <Button variant="ghost" onClick={() => setParams({ queue })}>
+          {t("Clear filters")}
+        </Button>
+      </div>
+      <OperationsState
+        loading={query.isPending}
+        error={query.error}
+        retry={() => void query.refetch()}
+      />
+      {data && !query.isError ? (
+        <>
+          <p className="ops-result-count">
+            {t("{count} reviews", { count: total ?? 0 })} ·{" "}
+            {t(
+              filters.period === "today"
+                ? "Cases from today’s work"
+                : "Earlier unresolved work stays visible here.",
+            )}
+          </p>
+          <section className="ops-records">
+            <DataTable
+              data={data.cases}
+              rowKey={(c) => c.id}
+              emptyMessage={
+                filters.q ||
+                filters.locationId ||
+                filters.areaId ||
+                filters.period
+                  ? "No reviews match these filters."
+                  : "Nothing needs your decision in this queue."
+              }
+              columns={[
+                {
+                  key: "area",
+                  header: "Area / task",
+                  render: (c) => (
+                    <div>
+                      <strong>
+                        {c.area?.name ??
+                          c.task?.areaNameSnapshot ??
+                          t("Room setup")}
+                      </strong>
+                      <p>
+                        {c.task?.title ?? t("Inventory setup needed")} ·{" "}
+                        {c.location?.name}
+                      </p>
+                    </div>
+                  ),
+                },
+                {
+                  key: "reason",
+                  header: "Why it needs you",
+                  render: (c) => (
+                    <div>
+                      <strong>
+                        {t(
+                          plainReason(
+                            c.displayReasonCode ??
+                              c.issues.find((i) => i.state !== "RESOLVED")
+                                ?.reasonCode ??
+                              (c.kind === "SETUP"
+                                ? "SETUP_REQUIRED"
+                                : "REVIEW_REQUIRED"),
+                          ),
+                        )}
+                      </strong>
+                      {c.openIssueCount && c.openIssueCount > 1 ? (
+                        <p>
+                          {t("{count} other issues", {
+                            count: c.openIssueCount - 1,
+                          })}
+                        </p>
+                      ) : null}
+                    </div>
+                  ),
+                },
+                {
+                  key: "worker",
+                  header: "Worker",
+                  render: (c) => c.task?.staff?.name ?? t("Unassigned"),
+                },
+                {
+                  key: "time",
+                  header: "Scheduled",
+                  render: (c) =>
+                    c.task?.shiftStart ? (
+                      <div>
+                        <bdi>
+                          {localTime(
+                            c.task.shiftStart,
+                            c.location?.timezone ?? "Asia/Karachi",
+                            language,
+                            true,
+                          )}
+                        </bdi>
+                        {c.task.shiftEnd &&
+                        Date.parse(c.task.shiftEnd) < Date.now() - 86400000 ? (
+                          <p>{t("Earlier work")}</p>
+                        ) : null}
+                      </div>
+                    ) : (
+                      t("Room setup")
+                    ),
+                },
+                {
+                  key: "action",
+                  header: "Next action",
+                  render: (c) => (
+                    <Button asChild>
+                      <Link
+                        data-review-id={c.id}
+                        to={`/exceptions/${c.id}?returnTo=${encodeURIComponent(returnTo)}`}
+                        onClick={(e) => {
+                          if (
+                            e.button === 0 &&
+                            !e.ctrlKey &&
+                            !e.metaKey &&
+                            !e.shiftKey
+                          ) {
+                            e.preventDefault();
+                            navigate(
+                              `/exceptions/${c.id}?returnTo=${encodeURIComponent(returnTo)}`,
+                              {
+                                state: {
+                                  returnTo,
+                                  scrollY: window.scrollY,
+                                  focusId: c.id,
+                                },
+                              },
+                            );
+                          }
+                        }}
+                      >
+                        {t("Review")}
+                      </Link>
+                    </Button>
+                  ),
+                },
+              ]}
+            />
+            <Pagination
+              page={data.page}
+              totalPages={data.totalPages}
+              pageSize={data.pageSize}
+              total={data.total}
+              onPage={(p) => update("page", String(p))}
+              onSize={(p) => update("pageSize", String(p))}
+            />
+          </section>
+        </>
+      ) : null}
+    </div>
+  );
 }

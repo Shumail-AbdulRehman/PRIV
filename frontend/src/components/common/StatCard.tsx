@@ -1,3 +1,4 @@
+import { useLanguage } from "@/i18n/context";
 import type { ElementType } from "react";
 
 import { Card, CardContent } from "@/components/ui/card";
@@ -26,16 +27,17 @@ export default function StatCard({
   tone = "default",
   hint,
 }: StatCardProps) {
+  const { t } = useLanguage();
   return (
-    <Card className="border-border/70">
+    <Card className="stat-card border-border/70">
       <CardContent className="flex items-start justify-between gap-3 pt-5">
         <div className="space-y-1">
-          <p className="text-sm text-muted-foreground">{label}</p>
+          <p className="text-sm text-muted-foreground">{t(label)}</p>
           <p className="text-3xl font-semibold tracking-tight text-foreground">
             {value}
           </p>
           {hint ? (
-            <p className="text-xs text-muted-foreground">{hint}</p>
+            <p className="text-xs text-muted-foreground">{t(hint)}</p>
           ) : null}
         </div>
         <div

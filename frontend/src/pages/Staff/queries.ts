@@ -42,7 +42,10 @@ export const useCreateStaff = () => {
   const qc = useQueryClient();
   return useMutation({
     mutationFn: (data: CreateStaffInput) => createStaff(data),
-    onSuccess: () => qc.invalidateQueries({ queryKey: ["staff"] }),
+    onSuccess: () => Promise.all([
+      qc.invalidateQueries({ queryKey: ["staff"] }),
+      qc.invalidateQueries({ queryKey: ["operations"] }),
+    ]),
   });
 };
 
@@ -59,7 +62,10 @@ export const useAssignShift = () => {
   return useMutation({
     mutationFn: ({ id, data }: { id: number; data: AssignShiftInput }) =>
       assignShift(id, data),
-    onSuccess: () => qc.invalidateQueries({ queryKey: ["staff"] }),
+    onSuccess: () => Promise.all([
+      qc.invalidateQueries({ queryKey: ["staff"] }),
+      qc.invalidateQueries({ queryKey: ["operations"] }),
+    ]),
   });
 };
 
@@ -71,6 +77,7 @@ export const useEditStaff = () => {
     onSuccess: () => {
       qc.invalidateQueries({ queryKey: ["staff"] });
       qc.invalidateQueries({ queryKey: ["location"] });
+      qc.invalidateQueries({ queryKey: ["operations"] });
     },
   });
 };

@@ -20,6 +20,7 @@ interface ManagerFormDialogProps {
   manager?: Manager | null;
   locations: { id: number; name: string }[];
   takenLocations?: Map<number, string>;
+  onSaved?: () => void;
 }
 
 export default function ManagerFormDialog({
@@ -28,6 +29,7 @@ export default function ManagerFormDialog({
   manager,
   locations,
   takenLocations,
+  onSaved,
 }: ManagerFormDialogProps) {
   const isEdit = !!manager;
   const createManager = useCreateManager();
@@ -72,6 +74,7 @@ export default function ManagerFormDialog({
           locationIds,
         });
       }
+      onSaved?.();
       onOpenChange(false);
     } catch (error: unknown) {
       const apiError = error as { response?: { data?: { message?: string } } };
@@ -86,9 +89,7 @@ export default function ManagerFormDialog({
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="border-border/70 bg-card text-card-foreground sm:max-w-xl">
         <DialogHeader>
-          <DialogTitle>
-            {isEdit ? "Edit Manager" : "Create New Manager"}
-          </DialogTitle>
+          <DialogTitle>{isEdit ? "Edit manager" : "Add manager"}</DialogTitle>
         </DialogHeader>
         <form onSubmit={handleSubmit(onSubmit)} className="space-y-4 pt-2">
           {serverError && (

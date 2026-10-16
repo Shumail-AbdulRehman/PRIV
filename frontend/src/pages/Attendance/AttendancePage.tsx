@@ -1,3 +1,4 @@
+import OperationsState from "../Manager/OperationsState";
 import { useState } from "react";
 import { useGetAttendance } from "./queries";
 import { useGetStaff } from "../Staff/queries";
@@ -107,7 +108,8 @@ export default function AttendancePage() {
   });
   const monthOptions = getMonthOptions();
 
-  const { data, isLoading } = useGetAttendance(appliedFilters);
+  const attendanceQuery = useGetAttendance(appliedFilters);
+  const { data, isLoading } = attendanceQuery;
   const staffQuery = useGetStaff();
 
   if (isLoading) return <LoadingSpinner fullScreen />;
@@ -210,6 +212,7 @@ export default function AttendancePage() {
     {
       key: "staff",
       header: "Staff",
+      sortValue: (r) => r.staff.name,
       render: (r) => (
         <div className="flex items-center gap-3">
           <div className="flex h-8 w-8 items-center justify-center rounded-full bg-blue-50 text-xs font-bold text-blue-700">
@@ -227,11 +230,13 @@ export default function AttendancePage() {
     {
       key: "location",
       header: "Location",
+      sortValue: (r) => r.location.name,
       render: (r) => <span className="text-gray-500">{r.location.name}</span>,
     },
     {
       key: "date",
       header: "Date",
+      sortValue: (r) => r.date,
       render: (r) => <span className="text-gray-600">{fmtDate(r.date)}</span>,
     },
     {
@@ -269,6 +274,8 @@ export default function AttendancePage() {
     {
       key: "status",
       header: "Status",
+      sortValue: (r) =>
+        getAttendanceDisplayStatus(r, new Date(), r.location.timezone),
       render: (r) => (
         <StatusBadge
           status={getAttendanceDisplayStatus(
@@ -389,6 +396,7 @@ export default function AttendancePage() {
             Staff
           </label>
           <select
+            aria-label="Staff"
             value={staffFilter}
             onChange={(e) => setStaffFilter(e.target.value)}
             className={inputCls}
@@ -406,6 +414,7 @@ export default function AttendancePage() {
             Month
           </label>
           <select
+            aria-label="Month"
             value={month}
             onChange={(e) => setMonth(e.target.value)}
             className={inputCls}
@@ -432,6 +441,7 @@ export default function AttendancePage() {
           </label>
           <Input
             type="date"
+            aria-label="From date"
             value={dateFrom}
             onChange={(e) => setDateFrom(e.target.value)}
           />
@@ -442,6 +452,7 @@ export default function AttendancePage() {
           </label>
           <Input
             type="date"
+            aria-label="To date"
             value={dateTo}
             onChange={(e) => setDateTo(e.target.value)}
           />
@@ -465,13 +476,20 @@ export default function AttendancePage() {
         </div>
       </FilterBar>
 
-      <DataTable
-        columns={columns}
-        data={records}
-        rowKey={(r) => r.id}
-        emptyIcon={<CalendarCheck className="h-12 w-12" />}
-        emptyMessage="No attendance records found for the selected filters."
+      <OperationsState
+        error={attendanceQuery.error}
+        retry={() => void attendanceQuery.refetch()}
       />
+      {!attendanceQuery.isError ? (
+        <DataTable
+          pageSize={20}
+          columns={columns}
+          data={records}
+          rowKey={(r) => r.id}
+          emptyIcon={<CalendarCheck className="h-12 w-12" />}
+          emptyMessage="No attendance records found for the selected filters."
+        />
+      ) : null}
     </div>
   );
 }

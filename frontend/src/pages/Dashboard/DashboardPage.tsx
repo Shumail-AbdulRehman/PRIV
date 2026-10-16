@@ -1,222 +1,278 @@
-import VerificationOverview from '@/pages/Verification/VerificationOverview';
-import {
-  MapPin,
-  Users,
-  ClipboardCheck,
-  ArrowRight,
-  CircleAlert,
-  CalendarCheck,
-} from "lucide-react";
-import { Link } from "react-router-dom";
+import { Link, useSearchParams } from "react-router-dom";
 import { useSelector } from "react-redux";
 import type { RootState } from "@/store/store";
-import { useGetDashboardLocations } from "./queries";
-import { useGetTodayStatus } from "@/pages/Manager/queries";
-import type { StaffStatusEntry } from "@/pages/Manager/types";
-import { attentionReasons, sortedStaff, staffTodayLink } from "@/pages/Manager/todayPresentation";
-import PageHeader from "@/components/common/PageHeader";
-import LoadingSpinner from "@/components/common/LoadingSpinner";
-import StatCard from "@/components/common/StatCard";
-import SurfaceCard from "@/components/common/SurfaceCard";
-import StatusBadge from "@/components/common/StatusBadge";
+import { ArrowRight, Building2, CalendarDays, RefreshCw } from "lucide-react";
+import { useLanguage } from "@/i18n/context";
 import { Button } from "@/components/ui/button";
+import ScopeFilters from "@/components/common/ScopeFilters";
+import DataTable from "@/components/common/DataTable";
+import OperationalSummary from "@/components/common/OperationalSummary";
+import WorkProgress from "@/components/common/WorkProgress";
+import AttentionList from "@/components/common/AttentionList";
+import OperationStatus from "@/components/common/OperationStatus";
+import TaskWorker from "@/components/common/TaskWorker";
+import {
+  useOperations,
+  scopeParams,
+  dailyLink,
+  locationTaskLink,
+  workLabel,
+  localTime,
+  type OperationOverview,
+} from "../Manager/operations";
+import OwnerTrends from "../Manager/OwnerTrends";
+import OperationsState from "../Manager/OperationsState";
 
-interface DashboardLocation {
-  id: number;
-  name: string;
-  address: string;
-  isActive: boolean;
-  _count?: { staff?: number; taskTemplates?: number };
-}
 export default function DashboardPage() {
-  const user = useSelector((s: RootState) => s.auth.user);
-  const sites = useGetDashboardLocations();
-  const today = useGetTodayStatus();
-  const locations: DashboardLocation[] = sites.data?.data ?? [];
-  const entries: StaffStatusEntry[] = today.data?.data?.staffStatus ?? [];
-  const attention = sortedStaff(entries, true, today.data?.data?.asOf ?? "");
-  const summary = today.data?.data?.summary;
-  if (sites.isLoading || today.isLoading) return <LoadingSpinner fullScreen />;
-  return (
-    <div className="space-y-7">
-      <PageHeader
-        title={`Hello, ${user?.name?.split(" ")[0] || "there"}`}
-        subtitle="Here’s how your cleaning operation is looking today."
-        action={
-          <Button asChild>
-            <Link to="/today-status">
-              View today
-              <ArrowRight size={16} />
-            </Link>
-          </Button>
-        }
-      />
-      <VerificationOverview entries={entries}/>
-      {today.isError ? (
-        <div
-          role="alert"
-          className="flex flex-wrap items-center justify-between gap-3 rounded-xl border border-border bg-card p-5"
-        >
-          <p className="text-sm">Today’s activity couldn’t be loaded.</p>
-          <Button variant="outline" onClick={() => today.refetch()}>
-            Try again
-          </Button>
+  const { t, language } = useLanguage();
+  const owner = useSelector((s: RootState) => s.auth.user?.role === "ADMIN");
+  const [params] = useSearchParams();
+  const query = useOperations<OperationOverview>(
+    "overview",
+    scopeParams(params),
+  );
+  const data = query.data;
+  const historical = !!params.get("date") && params.get("date") !== "today";
+  const comparison = data ? (
+    <section className="ops-panel overview-comparison">
+      <div className="ops-panel-heading">
+        <div>
+          <h2>
+            {t(historical ? "Locations for this day" : "Locations today")}
+          </h2>
+          <p>{t("Attendance and submitted work at each site")}</p>
         </div>
-      ) : (
-        <div className="grid grid-cols-2 gap-4 xl:grid-cols-4">
-          <StatCard
-            label="Staff present"
-            value={summary?.present ?? 0}
-            hint={`of ${summary?.totalStaff ?? 0} active team members`}
-            icon={Users}
-          />
-          <StatCard
-            label="Tasks completed"
-            value={summary?.completedTasks ?? 0}
-            hint="Today’s completed work"
-            icon={ClipboardCheck}
-            tone="emerald"
-          />
-          <StatCard
-            label="Tasks in progress"
-            value={summary?.inProgressTasks ?? 0}
-            hint={`${summary?.pendingTasks ?? 0} still pending`}
-            icon={CalendarCheck}
-          />
-          <StatCard
-            label="People to review"
-            value={attention.length}
-            hint="Attendance or task exceptions"
-            icon={CircleAlert}
-            tone="amber"
-          />
-        </div>
-      )}
-      <div className="grid items-start gap-6 xl:grid-cols-[1.35fr_1fr]">
-        <SurfaceCard
-          title="Your locations"
-          description="Open a site to manage its team and cleaning schedule."
-        >
-          {sites.isError ? (
-            <div role="alert">
-              <p className="mb-3 text-sm">Locations couldn’t be loaded.</p>
-              <Button variant="outline" onClick={() => sites.refetch()}>
-                Try again
-              </Button>
-            </div>
-          ) : locations.length ? (
-            <>
-              {locations.slice(0, 6).map((site) => (
-                <Link
-                  to={`/locations/${site.id}`}
-                  key={site.id}
-                  className="workspace-list-link"
-                >
-                  <span className="flex size-10 shrink-0 items-center justify-center rounded-lg bg-[#edf1ff] text-primary">
-                    <MapPin size={18} />
-                  </span>
-                  <div className="min-w-0 flex-1">
-                    <p className="text-sm font-semibold">{site.name}</p>
-                    <p className="mt-1 truncate text-xs text-muted-foreground">
-                      {site._count?.staff ?? 0} staff · {site.address}
-                    </p>
-                  </div>
-                  <StatusBadge status={site.isActive ? "ACTIVE" : "INACTIVE"} />
-                  <ArrowRight
-                    size={16}
-                    className="shrink-0 text-muted-foreground"
+        <Link className="ops-text-link" to="/locations">
+          {t("View all locations")}
+          <ArrowRight size={15} />
+        </Link>
+      </div>
+      <DataTable
+        data={data.comparison.slice(0, 4)}
+        rowKey={(r) => r.location.id}
+        emptyMessage="No locations assigned to this workspace."
+        columns={[
+          {
+            key: "location",
+            header: "Location",
+            render: (r) => (
+              <div className="table-identity">
+                <Building2 size={18} />
+                <strong>{r.location.name}</strong>
+              </div>
+            ),
+          },
+          {
+            key: "staff",
+            header: "Staff present",
+            render: (r) => (
+              <div className="table-progress">
+                <small>
+                  {r.present} {t("of")} {r.scheduled}
+                </small>
+                {r.scheduled > 0 ? (
+                  <progress
+                    aria-label={t("Staff present")}
+                    max={r.scheduled}
+                    value={r.present}
                   />
-                </Link>
-              ))}
-              <Link
-                to="/locations"
-                className="mt-5 inline-flex items-center gap-2 text-sm font-medium text-primary"
-              >
-                All locations ({locations.length})<ArrowRight size={15} />
-              </Link>
-            </>
-          ) : (
-            <div className="py-6">
-              <MapPin className="mb-4 text-primary" />
-              <h3 className="font-semibold">Set up your first location</h3>
-              <p className="mb-5 mt-2 text-sm leading-6 text-muted-foreground">
-                Add a site, assign your team, then create their cleaning
-                schedule.
-              </p>
-              <Button asChild>
-                <Link to="/locations">Add a location</Link>
-              </Button>
-            </div>
-          )}
-        </SurfaceCard>
-        <SurfaceCard
-          title="Needs your attention"
-          description="People with attendance or task exceptions today."
-        >
-          {today.isError ? (
-            <p className="text-sm text-muted-foreground">
-              Retry today’s activity above to see exceptions.
-            </p>
-          ) : attention.length ? (
-            <>
-              {attention.slice(0, 5).map((entry) => (
+                ) : null}
+              </div>
+            ),
+          },
+          {
+            key: "tasks",
+            header: "Work submitted",
+            render: (r) => (
+              <div className="table-progress is-blue">
+                <small>
+                  {r.submitted} {t("of")} {r.tasks}
+                </small>
+                {r.tasks > 0 ? (
+                  <progress
+                    aria-label={t("Work submitted")}
+                    max={r.tasks}
+                    value={r.submitted}
+                  />
+                ) : null}
+              </div>
+            ),
+          },
+          {
+            key: "review",
+            header: "Reviews",
+            render: (r) => (
+              <OperationStatus
+                state={r.reviews ? "REVIEW_REQUIRED" : "PASSED"}
+                label={
+                  r.reviews
+                    ? String(r.reviews) + " " + t("reviews")
+                    : "No open reviews"
+                }
+              />
+            ),
+          },
+          {
+            key: "action",
+            header: "Action",
+            render: (r) => (
+              <Button asChild variant="outline">
                 <Link
-                  key={entry.staff.id}
-                  to={staffTodayLink(entry)}
-                  className="workspace-list-link"
+                  to={dailyLink(params, { locationId: String(r.location.id) })}
                 >
-                  <span className="workspace-avatar">
-                    {entry.staff.name
-                      .split(" ")
-                      .map((n) => n[0])
-                      .join("")
-                      .slice(0, 2)}
-                  </span>
-                  <div className="min-w-0 flex-1">
-                    <p className="text-sm font-medium">{entry.staff.name}</p>
-                    <p className="mt-1 text-xs text-muted-foreground">
-                      {attentionReasons(entry, today.data?.data?.asOf ?? "").slice(0, 2).join(" · ") || "Task exception"}{" "}
-                      · {entry.staff.location?.name ?? "Unassigned"}
-                    </p>
-                  </div>
-                  <ArrowRight size={16} />
+                  {t("View")}
+                  <ArrowRight size={14} />
                 </Link>
-              ))}
-              <Link
-                to="/today-status?view=attention"
-                className="mt-5 inline-flex items-center gap-2 text-sm font-medium text-primary"
-              >
-                Review all ({attention.length})<ArrowRight size={15} />
-              </Link>
-            </>
-          ) : (
-            <div className="py-6">
-              <span className="mb-4 flex size-10 items-center justify-center rounded-full bg-emerald-50 text-emerald-700">
-                <ClipboardCheck size={20} />
-              </span>
-              <p className="font-medium">
-                {entries.length
-                  ? "Nothing needs your attention"
-                  : "Your daily overview starts here"}
-              </p>
-              <p className="mt-2 text-sm leading-6 text-muted-foreground">
-                {entries.length
-                  ? "No attendance or task exceptions are recorded right now."
-                  : "Once your team is assigned, attendance and task updates will appear here."}
-              </p>
+              </Button>
+            ),
+          },
+        ]}
+      />
+      {data.comparison.length > 4 ? (
+        <div className="panel-footer">
+          <span>{t("Showing {count} locations", { count: 4 })}</span>
+          <Link to="/locations">
+            {t("View all locations")}
+            <ArrowRight size={14} />
+          </Link>
+        </div>
+      ) : null}
+    </section>
+  ) : null;
+  const recent = data ? (
+    <section className="ops-panel overview-recent">
+      <div className="ops-panel-heading">
+        <div>
+          <h2>{t(historical ? "Tasks for this day" : "Today’s tasks")}</h2>
+          <p>{t("Scheduled work and its next action")}</p>
+        </div>
+        <Link
+          className="ops-text-link"
+          to={dailyLink(params, { tab: "tasks" })}
+        >
+          {t("View all tasks")}
+          <ArrowRight size={15} />
+        </Link>
+      </div>
+      {data.tasks.length ? (
+        data.tasks.slice(0, 4).map((task) => (
+          <Link
+            className="ops-task-preview"
+            key={task.id}
+            to={locationTaskLink(task)}
+          >
+            <div>
+              <strong>{task.areaNameSnapshot ?? task.title}</strong>
+              <TaskWorker task={task} />
+              <p>{task.location.name}</p>
             </div>
-          )}
-        </SurfaceCard>
-      </div>
-      <div className="flex flex-wrap gap-x-7 gap-y-3 border-t border-border pt-5 text-sm text-muted-foreground">
-        <span>Manage your workspace</span>
-        <Link className="hover:text-primary" to="/staff">
-          Team & shifts →
-        </Link>
-        <Link className="hover:text-primary" to="/attendance">
-          Attendance history →
-        </Link>
-      </div>
+            <span>
+              <OperationStatus
+                state={task.staffSubmittedAt ? "PASSED" : task.rawStatus}
+                label={workLabel(task)}
+              />
+              <ArrowRight size={14} />
+            </span>
+          </Link>
+        ))
+      ) : (
+        <p className="ops-empty">{t("No scheduled work for this day.")}</p>
+      )}
+    </section>
+  ) : null;
+  return (
+    <div className="ops-page">
+      <header className="ops-header">
+        <div>
+          <span className="ops-eyebrow">
+            <CalendarDays size={13} />
+            {t(owner ? "Across your company" : "Your assigned locations")}
+          </span>
+          <h1>
+            {t(
+              owner
+                ? "Company overview"
+                : historical
+                  ? "Operations overview"
+                  : "Today’s work",
+            )}
+          </h1>
+          <p>
+            {t(
+              owner
+                ? "A clear view of work across your locations."
+                : "Your team, cleaning progress, and what needs a decision.",
+            )}
+          </p>
+        </div>
+        <ScopeFilters locations={data?.locations ?? []} />
+      </header>
+      <OperationsState
+        loading={query.isPending}
+        error={query.error}
+        retry={() => void query.refetch()}
+      />
+      {data && !query.isError ? (
+        <>
+          <OperationalSummary data={data} params={params} />
+          <div className="overview-composition">
+            <div className="overview-column">
+              {owner ? (
+                <>
+                  <WorkProgress data={data} params={params} />
+                  {comparison}
+                </>
+              ) : (
+                <>
+                  <AttentionList data={data} params={params} />
+                  {recent}
+                </>
+              )}
+            </div>
+            <div className="overview-column">
+              {owner ? (
+                <>
+                  <AttentionList data={data} params={params} />
+                  <OwnerTrends
+                    locations={data.selected}
+                    asOf={data.asOf}
+                    date={params.get("date") ?? "today"}
+                  />
+                  {recent}
+                </>
+              ) : (
+                <>
+                  <WorkProgress data={data} params={params} />
+                  {comparison}
+                </>
+              )}
+            </div>
+          </div>
+          <footer className="dashboard-updated">
+            <span>
+              {t("Updated {time}", {
+                time: localTime(
+                  data.asOf,
+                  data.selected[0]?.timezone ?? "Asia/Karachi",
+                  language,
+                  true,
+                ),
+              })}
+            </span>
+            <Button
+              variant="ghost"
+              disabled={query.isFetching}
+              onClick={() => void query.refetch()}
+            >
+              <RefreshCw
+                size={14}
+                className={query.isFetching ? "animate-spin" : ""}
+              />
+              {t("Refresh")}
+            </Button>
+          </footer>
+        </>
+      ) : null}
     </div>
   );
 }

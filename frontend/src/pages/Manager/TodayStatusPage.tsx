@@ -1,369 +1,496 @@
-import VerificationOverview from '@/pages/Verification/VerificationOverview';
-import { useMemo, useState } from "react";
-import { useNavigate, useSearchParams } from "react-router-dom";
-import {
-  CalendarCheck,
-  Clock3,
-  MapPin,
-  Search,
-  Users,
-  CircleAlert,
-  RefreshCw,
-} from "lucide-react";
-
-import PageHeader from "@/components/common/PageHeader";
-import StatCard from "@/components/common/StatCard";
-import SurfaceCard from "@/components/common/SurfaceCard";
-import FilterBar from "@/components/common/FilterBar";
-import DataTable, { type Column } from "@/components/common/DataTable";
-import StatusBadge from "@/components/common/StatusBadge";
-import LoadingSpinner from "@/components/common/LoadingSpinner";
-import { Input } from "@/components/ui/input";
+import { useDebouncedValue } from "@/hooks/useDebouncedValue";
+import { useSelector } from "react-redux";
+import type { RootState } from "@/store/store";
+import { useEffect } from "react";
+import { Link, useLocation, useSearchParams } from "react-router-dom";
+import { useQuery } from "@tanstack/react-query";
+import { useLanguage } from "@/i18n/context";
 import { Button } from "@/components/ui/button";
-import { useGetTodayStatus } from "./queries";
-import { formatInTimeZone } from "date-fns-tz";
-
-import type { StaffStatusEntry } from "./types";
-import { attentionReasons, needsAttention, sortedStaff, staffTodayLink } from "./todayPresentation";
-
-type AttendanceFilter =
-  "all" | "present" | "absent" | "late" | "shift-not-started";
-type TaskFilter = "all" | "pending" | "in-progress" | "completed" | "attention";
-
-const fmtTime = (value: string | null, timeZone = "UTC") => {
-  if (!value) return "—";
-  return formatInTimeZone(new Date(value), timeZone, "HH:mm");
-};
-
-export default function TodayStatusPage() {
-  const navigate = useNavigate();
-  const [searchParams, setSearchParams] = useSearchParams();
-  const attentionOnly = searchParams.get("view") === "attention";
-  const [locationId, setLocationId] = useState<string>("all");
-  const [search, setSearch] = useState("");
-  const [attendanceFilter, setAttendanceFilter] =
-    useState<AttendanceFilter>("all");
-  const [taskFilter, setTaskFilter] = useState<TaskFilter>("all");
-
-  const filters = useMemo(
-    () => ({
-      locationId: locationId === "all" ? undefined : Number(locationId),
-    }),
-    [locationId],
+import { Input } from "@/components/ui/input";
+import DataTable from "@/components/common/DataTable";
+import ScopeFilters from "@/components/common/ScopeFilters";
+import Pagination from "@/components/common/Pagination";
+import OperationalSummary from "@/components/common/OperationalSummary";
+import AttentionList from "@/components/common/AttentionList";
+import WorkProgress from "@/components/common/WorkProgress";
+import OperationStatus from "@/components/common/OperationStatus";
+import TaskWorker from "@/components/common/TaskWorker";
+import { CalendarDays, Search } from "lucide-react";
+import {
+  useOperations,
+  scopeParams,
+  dailyLink,
+  locationTaskLink,
+  workLabel,
+  localTime,
+  type OperationsPage,
+  type OperationTask,
+  type OperationStaff,
+  type OperationOverview,
+} from "./operations";
+import OperationsState from "./OperationsState";
+import { verificationLabel } from "../Verification/presentation";
+import { client } from "@/api/client";
+import type { VerificationSummary } from "../Verification/presentation";
+function TaskPanel({ id, close }: { id: number; close: () => void }) {
+  const { t, language } = useLanguage();
+  const actorScope = useSelector(
+    (s: RootState) =>
+      `${s.auth.user?.companyId}:${s.auth.user?.role}:${s.auth.user?.id}`,
   );
-
-  const { data, isLoading, isFetching, isError, refetch } =
-    useGetTodayStatus(filters);
-
-  if (isLoading) return <LoadingSpinner fullScreen />;
-  if (isError)
-    return (
-      <div role="alert" className="space-y-4">
-        <PageHeader
-          title="Today"
-          subtitle="Today’s activity could not be loaded."
-        />
-        <Button onClick={() => refetch()}>Try again</Button>
-      </div>
-    );
-
-  const payload = data?.data;
-  const summary = payload?.summary;
-  const locations = payload?.locations ?? [];
-  const staffStatus: StaffStatusEntry[] = payload?.staffStatus ?? [];
-  const asOf: string = payload?.asOf ?? payload?.date ?? "";
-  const attentionCount = staffStatus.filter(needsAttention).length;
-  const hasFilters = Boolean(search || locationId !== "all" || attendanceFilter !== "all" || taskFilter !== "all");
-
-  const filteredStaff = sortedStaff(staffStatus, attentionOnly, asOf).filter((entry) => {
-    const query = search.trim().toLocaleLowerCase();
-    const matchesSearch =
-      entry.staff.name.toLocaleLowerCase().includes(query) ||
-      entry.staff.email.toLocaleLowerCase().includes(query);
-
-    const matchesAttendance =
-      attendanceFilter === "all" ||
-      (attendanceFilter === "present" && entry.flags.isPresent) ||
-      (attendanceFilter === "absent" && entry.flags.isAbsent) ||
-      (attendanceFilter === "late" && entry.flags.isLateAttendance) ||
-      (attendanceFilter === "shift-not-started" &&
-        entry.flags.isShiftNotStarted);
-
-    const matchesTask =
-      taskFilter === "all" ||
-      (taskFilter === "pending" && entry.taskCounts.pending > 0) ||
-      (taskFilter === "in-progress" && entry.taskCounts.inProgress > 0) ||
-      (taskFilter === "completed" && entry.taskCounts.completed > 0) ||
-      (taskFilter === "attention" && entry.flags.hasAttentionTasks);
-
-    return (
-      matchesSearch &&
-      matchesAttendance &&
-      matchesTask
-    );
+  const query = useQuery({
+    queryKey: ["verification-task", actorScope, id],
+    queryFn: async ({ signal }) =>
+      (
+        await client.get<{ data: OperationTask & VerificationSummary }>(
+          `/task-instance/${id}`,
+          { signal },
+        )
+      ).data.data,
   });
-  const columns: Column<StaffStatusEntry>[] = [
-    {
-      key: "staff",
-      header: "Staff",
-      render: (entry) => (
-        <div className="flex items-center gap-3">
-          <div className="flex h-9 w-9 items-center justify-center rounded-full bg-primary/10 text-xs font-semibold text-primary">
-            {entry.staff.name
-              .split(" ")
-              .map((part) => part[0])
-              .join("")
-              .slice(0, 2)
-              .toUpperCase()}
-          </div>
-          <div>
-            <p className="font-medium text-foreground">{entry.staff.name}</p>
-            <p className="text-xs text-muted-foreground">{entry.staff.email}</p>
-          </div>
-        </div>
-      ),
-    },
-    {
-      key: "location",
-      header: "Location",
-      render: (entry) => (
-        <span className="text-foreground">
-          {entry.staff.location?.name ?? "Unassigned"}
-        </span>
-      ),
-    },
-    {
-      key: "attendance",
-      header: "Attendance",
-      render: (entry) => (
-        <div className="space-y-1">
-          <div>
-            <StatusBadge
-              status={
-                entry.attendanceDisplayStatus ??
-                entry.attendance?.status ??
-                "NO_RECORD_TODAY"
-              }
-            />
-          </div>
-          <p className="text-xs text-muted-foreground">
-            {entry.flags.isAbsent
-              ? "Missing check-in"
-              : entry.flags.isShiftNotStarted
-                ? "Scheduled shift has not started"
-                : entry.attendance?.status === "MISSED_CHECKOUT"
-                  ? "Missing check-out"
-                  : !entry.attendance
-                    ? "No check-in record"
-                    : entry.attendance
-              ? `In ${fmtTime(entry.attendance.checkInTime ?? null, entry.staff.location?.timezone ?? "UTC")} / Out ${fmtTime(entry.attendance.checkOutTime ?? null, entry.staff.location?.timezone ?? "UTC")}`
-              : null}
-          </p>
-        </div>
-      ),
-    },
-    {
-      key: "tasks",
-      header: "Task Progress",
-      render: (entry) => (
-        <div className="space-y-1 text-xs">
-          <p className="text-foreground">
-            {entry.taskCounts.completed} of {entry.taskCounts.total} completed
-          </p>
-          <p className="text-muted-foreground">
-            {entry.taskCounts.pending} pending · {entry.taskCounts.inProgress}{" "}
-            in progress
-          </p>
-        </div>
-      ),
-    },
-    {
-      key: "attention",
-      header: "Attention",
-      render: (entry) => {
-        const reasons = attentionReasons(entry, asOf);
-        return reasons.length ? (
-          <div className="max-w-56 text-xs text-amber-800">
-            <p>{reasons.slice(0, 2).join(" · ")}</p>
-            {reasons.length > 2 && (
-              <details className="mt-1" onClick={(event) => event.stopPropagation()}>
-                <summary className="cursor-pointer font-medium">{reasons.length - 2} more reasons</summary>
-                <p className="mt-1">{reasons.slice(2).join(" · ")}</p>
-              </details>
-            )}
-          </div>
-        ) : <span className="text-xs text-muted-foreground">—</span>;
-      },
-    },
-    {
-      key: "details",
-      header: "Details",
-      render: (entry) => (
-        <Button
-          variant="outline"
-          size="sm"
-          className="rounded-xl"
-          onClick={(event) => {
-            event.stopPropagation();
-            navigate(staffTodayLink(entry));
-          }}
-        >
-          View Today
-        </Button>
-      ),
-    },
-  ];
-
+  const task = query.data;
+  useEffect(() => {
+    if (!task) return;
+    requestAnimationFrame(() => {
+      const panel = document.getElementById("ops-task-detail");
+      panel?.scrollIntoView({ block: "start", behavior: "instant" });
+      panel?.focus({ preventScroll: true });
+    });
+  }, [task]);
   return (
-    <div className="space-y-6">
-      <PageHeader
-        title="Today"
-        subtitle="Check attendance, follow task progress, and resolve today’s exceptions."
-        action={
-          <Button
-            variant="outline"
-            onClick={() => refetch()}
-            disabled={isFetching}
-          >
-            <RefreshCw
-              className={isFetching ? "size-4 animate-spin" : "size-4"}
-            />
-            Refresh
-          </Button>
-        }
-      />
-
-      <VerificationOverview entries={staffStatus}/>
-      <div className="grid grid-cols-2 gap-4 xl:grid-cols-4">
-        <StatCard
-          label="Present"
-          value={summary?.present ?? 0}
-          icon={CalendarCheck}
-          tone="emerald"
-        />
-        <StatCard
-          label="Absent"
-          value={summary?.absent ?? 0}
-          icon={Users}
-          tone="amber"
-        />
-        <StatCard
-          label="Pending tasks"
-          value={summary?.pendingTasks ?? 0}
-          icon={Clock3}
-        />
-        <StatCard
-          label="Review items"
-          value={summary?.attentionTasks ?? 0}
-          icon={CircleAlert}
-          tone="amber"
-        />
-      </div>
-      <div className="flex flex-wrap gap-2" aria-label="Staff view">
-        <Button
-          variant="outline"
-          aria-pressed={!attentionOnly}
-          onClick={() => setSearchParams({})}
-        >
-          All staff
-        </Button>
-        <Button
-          variant="outline"
-          aria-pressed={attentionOnly}
-          onClick={() => setSearchParams({ view: "attention" })}
-        >
-          Needs attention ({attentionCount})
+    <section
+      className="ops-panel ops-task-panel"
+      aria-label={t("Task details")}
+      id="ops-task-detail"
+      tabIndex={-1}
+    >
+      <div className="ops-panel-heading">
+        <h2>{task?.areaNameSnapshot ?? task?.title ?? t("Task details")}</h2>
+        <Button variant="outline" onClick={close}>
+          {t("Close details")}
         </Button>
       </div>
-      <FilterBar className="xl:grid-cols-[minmax(0,1fr)_auto_auto_auto]">
-        <div className="relative">
-          <Search className="absolute left-3 top-1/2 size-4 -translate-y-1/2 text-muted-foreground" />
-          <Input
-            aria-label="Search staff"
-            value={search}
-            onChange={(e) => setSearch(e.target.value)}
-            placeholder="Search staff by name or email"
-            className="pl-10"
-          />
+      <div className="ops-panel-body">
+        <OperationsState
+          loading={query.isPending}
+          error={query.error}
+          retry={() => void query.refetch()}
+        />
+        {task ? (
+          <>
+            <p>
+              <strong>{t("Task")}:</strong> {task.title}
+            </p>
+            <p>{task.location?.name}</p>
+            <TaskWorker task={task} />
+            <p>
+              {task.location
+                ? localTime(
+                    task.shiftStart,
+                    task.location.timezone,
+                    language,
+                    true,
+                  )
+                : task.shiftStart}{" "}
+              –{" "}
+              {task.location
+                ? localTime(task.shiftEnd, task.location.timezone, language)
+                : task.shiftEnd}
+            </p>
+            <p>
+              {t("Task status")}: {t(workLabel(task))}
+            </p>
+            <p>
+              {t("Review status")}: {t(verificationLabel(task))}
+            </p>
+            {task.verificationException ? (
+              <Button asChild>
+                <Link to={`/exceptions/${task.verificationException.id}`}>
+                  {t("Review")}
+                </Link>
+              </Button>
+            ) : null}
+            {!task.staffId && task.templateId ? (
+              <Button asChild variant="outline">
+                <Link
+                  to={`/locations/${task.locationId}?tab=templates#schedule-${task.templateId}`}
+                >
+                  {t("Open cleaning schedule")}
+                </Link>
+              </Button>
+            ) : null}
+          </>
+        ) : null}
+      </div>
+    </section>
+  );
+}
+export default function TodayStatusPage() {
+  const { t, language } = useLanguage();
+  const isManager = useSelector(
+    (s: RootState) => s.auth.user?.role === "MANAGER",
+  );
+  const [params, setParams] = useSearchParams();
+  const { hash, key: navigationKey } = useLocation();
+  useEffect(() => {
+    if (hash !== "#daily-records") return;
+    const frame = requestAnimationFrame(() => {
+      const records = document.getElementById("daily-records");
+      records?.scrollIntoView({ block: "start", behavior: "instant" });
+      records?.focus({ preventScroll: true });
+    });
+    return () => cancelAnimationFrame(frame);
+  }, [hash, navigationKey]);
+  const tab =
+    params.get("tab") === "tasks" || (!params.get("tab") && isManager)
+      ? "tasks"
+      : "staff";
+  const overview = useOperations<OperationOverview>(
+    "overview",
+    scopeParams(params),
+  );
+  const filters = {
+    ...scopeParams(params),
+    ...Object.fromEntries(
+      ["q", "attendance", "status", "workerId", "page", "pageSize"]
+        .map((k) => [k, params.get(k) ?? ""])
+        .filter(([, v]) => v),
+    ),
+  };
+  const search = useDebouncedValue(params.get("q") ?? "");
+  const appliedFilters = { ...filters, q: search };
+  const staff = useOperations<OperationsPage<OperationStaff>>(
+    "staff",
+    appliedFilters,
+    tab === "staff",
+  );
+  const tasks = useOperations<OperationsPage<OperationTask>>(
+    "tasks",
+    appliedFilters,
+    tab === "tasks",
+  );
+  const query = tab === "staff" ? staff : tasks;
+  const data = query.data;
+  function update(key: string, value: string) {
+    setParams((old) => {
+      const next = new URLSearchParams(old);
+      if (value) next.set(key, value);
+      else next.delete(key);
+      if (key !== "page") next.delete("page");
+      return next;
+    });
+  }
+  useEffect(() => {
+    if (data && params.get("page") && Number(params.get("page")) !== data.page)
+      setParams(
+        (old) => {
+          const next = new URLSearchParams(old);
+          next.set("page", String(data.page));
+          return next;
+        },
+        { replace: true },
+      );
+  }, [data, params, setParams]);
+  return (
+    <div className="ops-page daily-work-page">
+      <header className="ops-header">
+        <div>
+          <span className="ops-eyebrow">
+            <CalendarDays size={13} />
+            {t("Daily operations")}
+          </span>
+          <h1>
+            {t(
+              params.get("date") && params.get("date") !== "today"
+                ? "Daily records"
+                : "Today",
+            )}
+          </h1>
+          <p>{t("Your team and cleaning work. Times follow each location.")}</p>
         </div>
-        <div className="relative">
-          <MapPin className="absolute left-3 top-1/2 size-4 -translate-y-1/2 text-muted-foreground" />
-          <select
-            aria-label="Filter by location"
-            value={locationId}
-            onChange={(e) => setLocationId(e.target.value)}
-            className="h-11 w-full rounded-lg border border-border/80 bg-background/90 px-10 py-2 text-sm shadow-xs outline-none focus:border-primary/60 focus:ring-4 focus:ring-primary/10"
+        <ScopeFilters locations={data?.locations ?? []} />
+      </header>
+      {overview.data && !overview.isError ? (
+        <>
+          <OperationalSummary data={overview.data} params={params} />
+          <div className="ops-overview-columns">
+            <AttentionList data={overview.data} params={params} limit={3} />
+            <WorkProgress data={overview.data} params={params} />
+          </div>
+        </>
+      ) : null}
+      <div
+        className="ops-tabs"
+        role="tablist"
+        aria-label={t("Daily records")}
+        id="daily-records"
+        tabIndex={-1}
+      >
+        {["staff", "tasks"].map((v) => (
+          <Link
+            role="tab"
+            aria-selected={tab === v}
+            className={tab === v ? "is-active" : ""}
+            key={v}
+            to={dailyLink(params, { tab: v })}
           >
-            <option value="all">All locations</option>
-            {locations.map((location: { id: number; name: string }) => (
-              <option key={location.id} value={location.id}>
-                {location.name}
+            {t(v === "staff" ? "Staff" : "Tasks")}
+          </Link>
+        ))}
+      </div>
+      <div className="ops-toolbar">
+        <label className="ops-search">
+          <span className="flex items-center gap-2">
+            <Search size={14} />
+            {t(tab === "staff" ? "Search staff" : "Find a task")}
+          </span>
+          <Input
+            value={params.get("q") ?? ""}
+            onChange={(e) => update("q", e.target.value)}
+            placeholder={t("Search name, room or task")}
+          />
+        </label>
+        <label>
+          {t(tab === "staff" ? "Attendance" : "Work status")}
+          <select
+            value={
+              params.get(tab === "staff" ? "attendance" : "status") ?? "all"
+            }
+            onChange={(e) =>
+              update(tab === "staff" ? "attendance" : "status", e.target.value)
+            }
+          >
+            {(tab === "staff"
+              ? [
+                  ["all", "All staff"],
+                  ["present", "Present"],
+                  ["absent", "Not checked in"],
+                  ["upcoming", "Shift not started"],
+                  ["missing", "No attendance record"],
+                ]
+              : [
+                  ["all", "All tasks"],
+                  ["not-started", "Not started"],
+                  ["in-progress", "In progress"],
+                  ["overdue", "Overdue"],
+                  ["submitted", "Work submitted"],
+                  ["unassigned", "Unassigned work"],
+                ]
+            ).map(([v, l]) => (
+              <option value={v} key={v}>
+                {t(l)}
               </option>
             ))}
           </select>
-        </div>
-        <div>
-          <select
-            aria-label="Filter by attendance"
-            value={attendanceFilter}
-            onChange={(e) =>
-              setAttendanceFilter(e.target.value as AttendanceFilter)
-            }
-            className="h-11 w-full rounded-lg border border-border/80 bg-background/90 px-4 py-2 text-sm shadow-xs outline-none focus:border-primary/60 focus:ring-4 focus:ring-primary/10"
-          >
-            <option value="all">All attendance</option>
-            <option value="present">Present</option>
-            <option value="absent">Absent</option>
-            <option value="late">Late</option>
-            <option value="shift-not-started">Shift not started</option>
-          </select>
-        </div>
-        <div>
-          <select
-            aria-label="Filter by task status"
-            value={taskFilter}
-            onChange={(e) => setTaskFilter(e.target.value as TaskFilter)}
-            className="h-11 w-full rounded-lg border border-border/80 bg-background/90 px-4 py-2 text-sm shadow-xs outline-none focus:border-primary/60 focus:ring-4 focus:ring-primary/10"
-          >
-            <option value="all">All task states</option>
-            <option value="pending">Pending tasks</option>
-            <option value="in-progress">In progress</option>
-            <option value="completed">Completed</option>
-            <option value="attention">Needs attention</option>
-          </select>
-        </div>
-      </FilterBar>
-      {hasFilters && (
-        <Button variant="ghost" size="sm" onClick={() => {
-          setSearch("");
-          setLocationId("all");
-          setAttendanceFilter("all");
-          setTaskFilter("all");
-        }}>Clear filters</Button>
-      )}
-
-      <SurfaceCard
-        title="Today by staff"
-        description={
-          isFetching
-            ? "Refreshing current status..."
-            : `${filteredStaff.length} staff ${filteredStaff.length === 1 ? "member" : "members"} shown`
-        }
-      >
-        <DataTable
-          columns={columns}
-          data={filteredStaff}
-          rowKey={(entry) => entry.staff.id}
-          emptyIcon={<Users className="h-12 w-12" />}
-          emptyMessage={
-            staffStatus.length
-              ? "No matches. Try another search or clear your filters."
-              : "No staff assigned yet. Add team members to a location to see their daily activity."
-          }
-          className="border-none shadow-none"
-          onRowClick={(entry) => navigate(staffTodayLink(entry))}
+        </label>
+      </div>
+      <OperationsState
+        loading={query.isPending}
+        error={query.error}
+        retry={() => void query.refetch()}
+      />
+      {data && !query.isError ? (
+        <section className="ops-records">
+          {tab === "staff" ? (
+            <DataTable
+              data={staff.data?.rows ?? []}
+              rowKey={(r) => r.id}
+              emptyMessage="No workers match these filters."
+              columns={[
+                {
+                  key: "staff",
+                  header: "Worker",
+                  render: (r) => (
+                    <div>
+                      <strong>{r.name}</strong>
+                      <p>{r.location.name}</p>
+                      {r.carryOver ? (
+                        <small>
+                          {t("Started yesterday · overnight shift")}
+                        </small>
+                      ) : null}
+                    </div>
+                  ),
+                },
+                {
+                  key: "shift",
+                  header: "Shift",
+                  render: (r) =>
+                    r.attendance ? (
+                      <>
+                        {localTime(
+                          r.attendance.expectedStart,
+                          r.location.timezone,
+                          language,
+                        )}{" "}
+                        –{" "}
+                        {localTime(
+                          r.attendance.expectedEnd,
+                          r.location.timezone,
+                          language,
+                        )}
+                      </>
+                    ) : (
+                      t("No attendance record")
+                    ),
+                },
+                {
+                  key: "attendance",
+                  header: "Attendance",
+                  render: (r) => (
+                    <OperationStatus
+                      state={
+                        r.attendance?.checkOutTime
+                          ? "CHECKED_OUT"
+                          : r.attendance?.checkInTime
+                            ? r.attendance.status
+                            : r.attendance?.status === "ABSENT" &&
+                                Date.parse(r.attendance.expectedStart) <=
+                                  Date.parse(data.asOf)
+                              ? "ABSENT"
+                              : "PENDING"
+                      }
+                      label={
+                        r.attendance?.checkInTime
+                          ? r.attendance.checkOutTime
+                            ? "Checked out"
+                            : r.attendance.status === "LATE"
+                              ? "Late check-in"
+                              : r.attendance.status === "MISSED_CHECKOUT"
+                                ? "Missed checkout"
+                                : "Present"
+                          : r.attendance?.status === "ABSENT"
+                            ? Date.parse(r.attendance.expectedStart) >
+                              Date.parse(data.asOf)
+                              ? "Shift not started"
+                              : "Not checked in"
+                            : "No attendance record"
+                      }
+                    />
+                  ),
+                },
+                {
+                  key: "progress",
+                  header: "Work submitted",
+                  render: (r) => `${r.submittedCount} / ${r.taskCount}`,
+                },
+                {
+                  key: "action",
+                  header: "Next action",
+                  render: (r) => (
+                    <Button asChild variant="outline">
+                      <Link
+                        to={`/staff/${r.id}?dateFrom=${r.localDate}&dateTo=${r.localDate}&tab=overview&focus=today`}
+                      >
+                        {t("View worker")}
+                      </Link>
+                    </Button>
+                  ),
+                },
+              ]}
+            />
+          ) : (
+            <DataTable
+              data={tasks.data?.rows ?? []}
+              rowKey={(r) => r.id}
+              emptyMessage="No tasks match these filters."
+              columns={[
+                {
+                  key: "task",
+                  header: "Area / task",
+                  render: (r) => (
+                    <div>
+                      <strong>{r.areaNameSnapshot ?? r.title}</strong>
+                      <p>
+                        {r.title} · {r.location.name}
+                      </p>
+                      {r.carryOver ? (
+                        <small>
+                          {t("Started yesterday · overnight shift")}
+                        </small>
+                      ) : null}
+                    </div>
+                  ),
+                },
+                {
+                  key: "worker",
+                  header: "Worker / schedule",
+                  render: (r) => (
+                    <div>
+                      <TaskWorker task={r} />
+                      <p>
+                        {localTime(r.shiftStart, r.location.timezone, language)}{" "}
+                        – {localTime(r.shiftEnd, r.location.timezone, language)}
+                      </p>
+                    </div>
+                  ),
+                },
+                {
+                  key: "status",
+                  header: "Work status",
+                  render: (r) => (
+                    <OperationStatus
+                      state={
+                        r.staffSubmittedAt || r.status === "COMPLETED"
+                          ? "PASSED"
+                          : Date.parse(r.shiftEnd) < Date.parse(data.asOf)
+                            ? "NOT_COMPLETED_INTIME"
+                            : r.rawStatus
+                      }
+                      label={
+                        !r.staffSubmittedAt &&
+                        r.status !== "COMPLETED" &&
+                        Date.parse(r.shiftEnd) < Date.parse(data.asOf)
+                          ? "Overdue"
+                          : workLabel(r)
+                      }
+                    />
+                  ),
+                },
+                {
+                  key: "review",
+                  header: "Review status",
+                  render: (r) => (
+                    <OperationStatus
+                      state={r.verificationState}
+                      label={verificationLabel(r)}
+                    />
+                  ),
+                },
+                {
+                  key: "action",
+                  header: "Next action",
+                  render: (r) => (
+                    <Button asChild variant="outline">
+                      <Link to={locationTaskLink(r)}>{t("Open task")}</Link>
+                    </Button>
+                  ),
+                },
+              ]}
+            />
+          )}
+          <Pagination
+            page={data.page}
+            totalPages={data.totalPages}
+            pageSize={data.pageSize}
+            total={data.total}
+            onPage={(p) => update("page", String(p))}
+            onSize={(p) => update("pageSize", String(p))}
+          />
+        </section>
+      ) : null}
+      {params.get("taskId") && Number(params.get("taskId")) > 0 ? (
+        <TaskPanel
+          key={params.get("taskId")}
+          id={Number(params.get("taskId"))}
+          close={() => update("taskId", "")}
         />
-      </SurfaceCard>
+      ) : null}
+      <p className="ops-backlog-link">
+        <Link to="/exceptions?queue=needs-me&period=earlier">
+          {t("Earlier unresolved reviews")} →
+        </Link>
+      </p>
     </div>
   );
 }

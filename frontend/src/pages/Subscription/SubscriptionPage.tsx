@@ -1,3 +1,4 @@
+import OperationsState from "../Manager/OperationsState";
 import {
   CircleGauge,
   ExternalLink,
@@ -72,7 +73,7 @@ export default function SubscriptionPage() {
   const subscription = useSubscription();
   const portalSession = useCustomerPortalSession();
 
-  if (subscription.isPending) return <LoadingSpinner />;
+  if (subscription.isPending) return <LoadingSpinner fullScreen />;
 
   if (subscription.isError || !subscription.data) {
     return (
@@ -81,9 +82,10 @@ export default function SubscriptionPage() {
           title="Plan & usage"
           subtitle="Subscription information could not be loaded."
         />
-        <div className="rounded-2xl border border-red-200 bg-red-50 p-5 text-sm text-red-700">
-          Please refresh the page and try again.
-        </div>
+        <OperationsState
+          error={subscription.error ?? new Error("Unavailable")}
+          retry={() => void subscription.refetch()}
+        />
       </div>
     );
   }
@@ -195,7 +197,7 @@ export default function SubscriptionPage() {
         </summary>
         <section
           aria-labelledby="plans-heading"
-          className="mt-6 marketing-site"
+          className="mt-6 subscription-comparison"
         >
           <div className="mb-4">
             <h2
@@ -210,7 +212,7 @@ export default function SubscriptionPage() {
             </p>
           </div>
           <PaddlePricing
-            appearance="marketing"
+            appearance="default"
             currentPlan={
               summary.company.subscriptionStatus === "ACTIVE"
                 ? summary.company.plan

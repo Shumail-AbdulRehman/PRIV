@@ -9,8 +9,8 @@ export function actionConsequence(action:ExceptionAction):string {
 }
 export function issueActions(detail:ExceptionDetail,issue:VerificationIssue):ExceptionAction[] {
  return (issue.allowedActions??detail.allowedActions).filter(action=>{
- if(action==='ACCEPT_EVIDENCE')return !!issue.latestAttempt?.mediaAssetId;
- if(action==='ACCEPT_CONTEXT')return !!(issue.latestAttempt?.contextKey&&issue.latestAttempt.mediaAssetId)||!!detail.attempts?.some(a=>a.contextKey&&a.mediaAssetId);
+ if(action==='ACCEPT_EVIDENCE')return !!issue.latestAttempt?.mediaAssetId&&issue.latestAttempt.privacyState==='SAFE';
+ if(action==='ACCEPT_CONTEXT')return !!(issue.latestAttempt?.contextKey&&issue.latestAttempt.mediaAssetId&&issue.latestAttempt.privacyState==='SAFE')||!!detail.attempts?.some(a=>a.contextKey&&a.mediaAssetId&&a.privacyState==='SAFE');
  return true;
  });
 }

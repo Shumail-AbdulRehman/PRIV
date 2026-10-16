@@ -1,68 +1,626 @@
-import { useEffect, useRef, useState } from 'react';
-import { Link, useParams } from 'react-router-dom';
-import { useMutation, useQueryClient } from '@tanstack/react-query';
-import PageHeader from '@/components/common/PageHeader';
-import { Button } from '@/components/ui/button';
-import { invalidateWorkspace } from '@/lib/invalidateWorkspace';
-import ProtectedEvidence from '../Verification/ProtectedEvidence';
-import { exceptionStateLabel,plainReason,verificationLabel } from '../Verification/presentation';
-import { useException } from './queries';
-import { decideException,getException,readException } from './api';
-import { actionConsequence,actionLabels,issueActions } from './actionPresentation';
-import type { ExceptionAction,ExceptionDetail,VerificationIssue } from './types';
-import type { EvidenceAttempt } from '../Verification/types';
-
-function DecisionForm({detail,issue,onDone}:{detail:ExceptionDetail;issue:VerificationIssue;onDone:()=>Promise<void>}){
- const actions=issueActions(detail,issue);
- const [action,setAction]=useState<ExceptionAction>(actions[0]??'RESOLVE_ISSUE');
- const [reason,setReason]=useState('');const [note,setNote]=useState('');const [minutes,setMinutes]=useState(60);const [followUp,setFollowUp]=useState('');
- const context=[...new Map([...(issue.latestAttempt?.contextKey&&issue.latestAttempt.mediaAssetId?[issue.latestAttempt]:[]),...(detail.attempts?.filter(a=>a.contextKey&&a.mediaAssetId)??[])].map(a=>[a.id,a])).values()];
- const pendingDecision=useRef<{body:string;requestId:string}|null>(null);
- const [evidence,setEvidence]=useState(issue.latestAttempt?.mediaAssetId?issue.latestAttempt.id:context[0]?.id??'');
- const mutation=useMutation({mutationFn:()=>{const input={expectedVersion:detail.rowVersion,issueId:issue.id,...(issue.requirementId?{requirementId:issue.requirementId}:{}),action,reasonCode:reason,note,...(['ACCEPT_EVIDENCE','ACCEPT_CONTEXT'].includes(action)?{evidenceAttemptId:evidence}:{}),...(action==='EXTEND_WINDOW'?{extensionMinutes:minutes}:{}),...(detail.requiresFollowUp?{followUpTaskInstanceId:Number(followUp)}:{})};const body=JSON.stringify(input);if(pendingDecision.current?.body!==body)pendingDecision.current={body,requestId:crypto.randomUUID()};return decideException(detail.id,{...input,requestId:pendingDecision.current.requestId});},onSuccess:onDone});
- if(!actions.length)return null;
- const field='min-h-11 rounded-md border border-border bg-background px-3 py-2 text-sm';
- const conflict=(mutation.error as {response?:{status?:number}})?.response?.status===409;
- return <form className="mt-5 space-y-3 border-t border-border pt-5" onSubmit={e=>{e.preventDefault();mutation.mutate();}}>
- <label className="flex flex-col gap-1 text-sm">Decision<select aria-label="Decision" className={field} value={action} onChange={e=>setAction(e.target.value as ExceptionAction)}>{actions.map(a=><option key={a} value={a}>{actionLabels[a]}</option>)}</select></label>
- <p className="max-w-prose text-sm text-muted-foreground">{actionConsequence(action)}</p>
- {action==='ACCEPT_CONTEXT'?<label className="flex flex-col gap-1 text-sm">Reviewed room photo<select aria-label="Reviewed room photo" className={field} value={evidence} onChange={e=>setEvidence(e.target.value)}>{context.map(a=><option key={a.id} value={a.id}>{a.contextKey} · {new Date(a.createdAt).toLocaleString()}</option>)}</select></label>:null}
- {action==='EXTEND_WINDOW'?<label className="flex flex-col gap-1 text-sm">Minutes beyond original deadline<input aria-label="Minutes beyond original deadline" className={field} type="number" min="1" max={detail.policyBounds?.maxExtensionMinutes??120} value={minutes} onChange={e=>setMinutes(Number(e.target.value))}/></label>:null}
- {detail.requiresFollowUp?<label className="flex flex-col gap-1 text-sm">Completed follow-up task ID<input aria-label="Completed follow-up task ID" required className={field} type="number" min="1" value={followUp} onChange={e=>setFollowUp(e.target.value)}/><span className="text-muted-foreground">Use a completed task in this same room with fresh accepted replacement evidence.</span></label>:null}
- <label className="flex flex-col gap-1 text-sm">Reason<select aria-label="Reason" required className={field} value={reason} onChange={e=>setReason(e.target.value)}><option value="">Choose a reviewed reason</option>{['CLEAN','CANNOT_ASSESS','WRONG_ITEM','CLEANING_REQUIRED','DAMAGED','INACCESSIBLE','OCCUPIED','GPS_UNCERTAIN','CONTEXT_UNCERTAIN','IDENTITY_UNCERTAIN','SERVICE_FAILURE','PRIVACY_HOLD','MISSING_EVIDENCE','CLOCK_UNCERTAIN','DUPLICATE_EVIDENCE','STALE_ASSIGNMENT'].map(r=><option key={r} value={r}>{plainReason(r)}</option>)}</select></label>
- <label className="flex flex-col gap-1 text-sm">Decision note<textarea aria-label="Decision note" required maxLength={1000} rows={2} className={field} value={note} onChange={e=>setNote(e.target.value)} placeholder="Explain what you reviewed and why."/></label>
- {mutation.isError?<p role="alert" className="text-sm text-destructive">{conflict?'This case changed. Refresh it before deciding. Your note is kept.':(mutation.error as {response?:{data?:{message?:string}}}).response?.data?.message??'Decision failed. Try again.'}</p>:null}
- {conflict?<Button type="button" variant="outline" onClick={()=>void onDone()}>Refresh case</Button>:null}
- <Button disabled={mutation.isPending||!actions.includes(action)}>{mutation.isPending?'Saving decision…':actionLabels[action]}</Button>
- </form>;
+import OperationStatus from "@/components/common/OperationStatus";
+import { useSelector } from "react-redux";
+import type { RootState } from "@/store/store";
+import { useEffect, useState } from "react";
+import {
+  Link,
+  useParams,
+  useSearchParams,
+  useLocation,
+} from "react-router-dom";
+import { useQuery, useQueryClient } from "@tanstack/react-query";
+import {
+  ArrowLeft,
+  ArrowRight,
+  CheckCircle2,
+  Camera,
+  MapPin,
+  UserRound,
+  Clock3,
+} from "lucide-react";
+import { useLanguage } from "@/i18n/context";
+import { useOnline } from "@/hooks/useOnline";
+import { Button } from "@/components/ui/button";
+import { client } from "@/api/client";
+import { invalidateWorkspace } from "@/lib/invalidateWorkspace";
+import ListenButton from "@/components/common/ListenButton";
+import ProtectedEvidence from "../Verification/ProtectedEvidence";
+import {
+  exceptionStateLabel,
+  plainReason,
+  verificationLabel,
+} from "../Verification/presentation";
+import { localTime } from "../Manager/operations";
+import OperationsState from "../Manager/OperationsState";
+import DecisionForm from "./DecisionForm";
+import { useException } from "./queries";
+import { getException, readException } from "./api";
+import { reviewGuidance, reviewActionLabels } from "./reviewPresentation";
+import type {
+  ExceptionDetail,
+  VerificationIssue,
+  ExceptionAction,
+} from "./types";
+function safeReviewReturn(value: string | null) {
+  return value && /^\/(exceptions|dashboard|today-status|staff\/\d+|locations\/\d+)(\?|$)/.test(value)
+    ? value
+    : "/exceptions";
 }
-function Attempt({attempt}:{attempt:EvidenceAttempt}){return <div className="space-y-2"><p className="text-sm">{plainReason(attempt.state)} · {new Date(attempt.createdAt).toLocaleString()} · {attempt.staff?.name??'Worker'}</p>{attempt.mediaAssetId?<ProtectedEvidence assetId={attempt.mediaAssetId} privacyState={attempt.privacyState??'SAFE'}/>:<p className="text-sm text-muted-foreground">Photo is unavailable until privacy checks allow review.</p>}</div>;}
-export default function ExceptionDetailPage(){const id=Number(useParams().id);return <CaseDetail key={id} id={id}/>;}
-function CaseDetail({id}:{id:number}){
- const query=useException(id);const client=useQueryClient();
- const [more,setMore]=useState<{attempts:EvidenceAttempt[];events:ExceptionDetail['events'];decisions:ExceptionDetail['decisions'];nextAttemptCursor?:string|null;nextEventCursor?:string|null;nextDecisionCursor?:string|null;loaded?:boolean}>({attempts:[],events:[],decisions:[]});
- const [historyError,setHistoryError]=useState('');const [readError,setReadError]=useState('');const [loadingHistory,setLoadingHistory]=useState(false);
- const detail=query.data;
- const readVersion=detail?.rowVersion;
- useEffect(()=>{if(readVersion===undefined)return;void readException(id).then(()=>{setReadError('');return client.invalidateQueries({queryKey:['exception-count']});}).catch(()=>setReadError('Read receipt could not be saved.'));},[id,readVersion,client]);
- const done=async()=>{await invalidateWorkspace(client);await query.refetch();};
- async function loadHistory(){if(!detail)return;setLoadingHistory(true);try{const page=await getException(id,{attemptCursor:(more.loaded?more.nextAttemptCursor:detail.nextAttemptCursor)??undefined,eventCursor:(more.loaded?more.nextEventCursor:detail.nextEventCursor)??undefined,decisionCursor:(more.loaded?more.nextDecisionCursor:detail.nextDecisionCursor)??undefined});setMore(old=>({loaded:true,attempts:[...old.attempts,...page.attempts??[]],events:[...old.events,...page.events],decisions:[...old.decisions,...page.decisions],nextAttemptCursor:page.nextAttemptCursor,nextEventCursor:page.nextEventCursor,nextDecisionCursor:page.nextDecisionCursor}));setHistoryError('');}catch{setHistoryError('Could not load older history.');}finally{setLoadingHistory(false);}}
- if(query.isPending)return <p role="status">Loading case…</p>;
- if(!detail)return <p role="alert">Case unavailable. Check your location access. <Button onClick={()=>void query.refetch()}>Retry</Button></p>;
- const attempts=[...new Map([...(detail.attempts??[]),...more.attempts].map(a=>[a.id,a])).values()];
- const events=[...new Map([...detail.events,...more.events].map(e=>[e.id,e])).values()];const decisions=[...new Map([...detail.decisions,...more.decisions].map(d=>[d.id,d])).values()];
- const timeline=[...decisions.map(d=>({key:`decision:${d.id}`,createdAt:d.createdAt,title:`${actionLabels[d.action as ExceptionAction]??plainReason(d.action)} · ${d.actorManager?.name??'Manager'}`,description:`${plainReason(d.reasonCode)}${d.note?`: ${d.note}`:''}`})),...events.map(e=>({key:`event:${e.id}`,createdAt:e.createdAt,title:plainReason(e.type),description:'System event'}))].sort((a,b)=>Date.parse(b.createdAt)-Date.parse(a.createdAt));
-
- return <div className="space-y-6"><Link to="/exceptions" className="text-sm text-primary">← Exception inbox</Link><PageHeader title={detail.area?.name??detail.task?.areaNameSnapshot??'Setup case'} subtitle={`${detail.task?.title??'Room setup'} · ${exceptionStateLabel(detail.state)} · Priority ${detail.priority}`}/>
- <div className="flex flex-wrap gap-x-8 gap-y-2 border-y border-border py-4 text-sm"><span>{detail.location?.name}</span><span>Worker: {detail.task?.staff?.name??'Unassigned'}</span>{detail.task?.shiftEnd?<span>Original deadline: {new Date(detail.task.shiftEnd).toLocaleString(undefined,{timeZone:detail.location?.timezone})}</span>:null}{detail.taskInstanceId?<Link className="text-primary" to={`/verification/${detail.taskInstanceId}`}>Verification history</Link>:null}</div>
- {readError?<p role="alert">{readError} <Button variant="outline" onClick={()=>void readException(id).then(()=>setReadError(''))}>Mark read</Button></p>:null}
- {detail.requiresFollowUp?<p className="rounded-lg bg-muted p-4">This task is already complete. Resolve new concerns using fresh evidence from a completed follow-up task. Its original completion remains unchanged.</p>:null}
- {detail.kind==='SETUP'?<Button asChild variant="outline"><Link to={`/locations/${detail.locationId}`}>Review room setup</Link></Button>:null}
- <div className="space-y-8">{detail.issues.map(issue=><section className="rounded-xl border border-border bg-card p-5 sm:p-6" key={issue.id}><div className="flex flex-wrap justify-between gap-2"><h2 className="text-lg font-semibold">{issue.requirement?.item?.nameSnapshot??'Room or task'}{issue.requirement?` · ${plainReason(issue.requirement.viewKey)}`:''}</h2><span className="text-sm">{exceptionStateLabel(issue.state)}</span></div><p className="mt-2 font-medium">{plainReason(issue.reasonCode)}</p><p className="mt-1 text-sm text-muted-foreground">{issue.recommendedAction}</p>
- <div className="mt-4 grid gap-5 md:grid-cols-2"><div><h3 className="mb-2 text-sm font-semibold">Latest evidence</h3>{issue.latestAttempt?<Attempt attempt={issue.latestAttempt}/>:<p className="text-sm text-muted-foreground">No reviewable image in this page of history.</p>}</div><div><h3 className="mb-2 text-sm font-semibold">Previous attempts</h3>{attempts.filter(a=>a.requirementId===issue.requirementId&&a.id!==issue.latestAttemptId).map(a=><details key={a.id} className="mb-2"><summary className="cursor-pointer text-sm">{new Date(a.createdAt).toLocaleString()} · {plainReason(a.state)}</summary><Attempt attempt={a}/></details>)}</div></div>
- {issue.state!=='RESOLVED'?<DecisionForm detail={detail} issue={issue} onDone={done}/>:null}</section>)}</div>
- {detail.task?<p className="text-sm">Current outcome: {verificationLabel(detail.task)}</p>:null}
- <section className="space-y-3"><h2 className="text-lg font-semibold">Decision and audit timeline</h2>{timeline.map(event=><div key={event.key} className="border-b border-border py-3"><p className="font-medium">{event.title}</p><p className="text-sm">{event.description}</p><time className="text-xs text-muted-foreground">{new Date(event.createdAt).toLocaleString()}</time></div>)}</section>
- {historyError?<p role="alert">{historyError}</p>:null}{(more.loaded?more.nextAttemptCursor:detail.nextAttemptCursor)||(more.loaded?more.nextDecisionCursor:detail.nextDecisionCursor)||(more.loaded?more.nextEventCursor:detail.nextEventCursor)?<Button variant="outline" disabled={loadingHistory} onClick={()=>void loadHistory()}>Load more history</Button>:null}
- </div>;
+export default function ExceptionDetailPage() {
+  const { t } = useLanguage();
+  const id = Number(useParams().id);
+  if (!Number.isSafeInteger(id) || id < 1)
+    return <p role="alert">{t("Review unavailable.")}</p>;
+  return <Workspace key={id} id={id} />;
+}
+function Workspace({ id }: { id: number }) {
+  const { t, language } = useLanguage();
+  const online = useOnline();
+  const [params, setParams] = useSearchParams();
+  const location = useLocation();
+  const query = useException(id);
+  const cache = useQueryClient();
+  const detail = query.data;
+  const [notice, setNotice] = useState("");
+  const [history, setHistory] = useState<ExceptionDetail | null>(null);
+  const [historyError, setHistoryError] = useState("");
+  const [loadingHistory, setLoadingHistory] = useState(false);
+  const returnTo = safeReviewReturn(
+    params.get("returnTo") ??
+      (location.state as { returnTo?: string } | null)?.returnTo ??
+      null,
+  );
+  const returnState = location.state as {
+    scrollY?: number;
+    focusId?: number;
+  } | null;
+  const actorScope = useSelector(
+    (s: RootState) =>
+      `${s.auth.user?.companyId}:${s.auth.user?.role}:${s.auth.user?.id}`,
+  );
+  const listFilters = Object.fromEntries(
+    new URLSearchParams(returnTo.split("?")[1] ?? ""),
+  );
+  const next = useQuery({
+    queryKey: ["review-next", actorScope, id, listFilters],
+    queryFn: async ({ signal }) =>
+      (
+        await client.get<{ data: { nextId: number | null } }>(
+          `/verification-exceptions/${id}/next`,
+          {
+            params: { ...listFilters, queue: listFilters.queue ?? "needs-me" },
+            signal,
+          },
+        )
+      ).data.data,
+    enabled: id > 0,
+  });
+  useEffect(() => {
+    if (detail?.rowVersion === undefined) return;
+    void readException(id)
+      .then(() => cache.invalidateQueries({ queryKey: ["exception-count"] }))
+      .catch(() => {});
+  }, [id, detail?.rowVersion, cache]);
+  async function done(message?: string) {
+    if (message) setNotice(message);
+    await invalidateWorkspace(cache);
+    try {
+      const refreshed = await query.refetch({ throwOnError: true });
+      if (message && refreshed.data) {
+        const remaining = refreshed.data.issues.filter(
+          (i) => i.state !== "RESOLVED",
+        );
+        const target =
+          remaining.find((i) => ["OPEN", "MANAGER_REVIEW"].includes(i.state)) ??
+          remaining[0];
+        setParams(
+          (old) => {
+            const n = new URLSearchParams(old);
+            n.delete("requirementId");
+            if (target) n.set("issueId", String(target.id));
+            else n.delete("issueId");
+            return n;
+          },
+          { replace: true },
+        );
+      }
+      await next.refetch();
+    } catch {
+      if (message)
+        setNotice(
+          "Decision saved; updated details could not load. Refresh before another decision.",
+        );
+    }
+  }
+  async function loadOlder() {
+    if (!detail) return;
+    setLoadingHistory(true);
+    try {
+      const cursors = {
+        attemptCursor:
+          (history ? history.nextAttemptCursor : detail.nextAttemptCursor) ??
+          undefined,
+        decisionCursor:
+          (history ? history.nextDecisionCursor : detail.nextDecisionCursor) ??
+          undefined,
+        eventCursor:
+          (history ? history.nextEventCursor : detail.nextEventCursor) ??
+          undefined,
+      };
+      const page = await getException(id, cursors);
+      setHistory((old) => ({
+        ...page,
+        attempts: [
+          ...(old?.attempts ?? []),
+          ...(cursors.attemptCursor ? (page.attempts ?? []) : []),
+        ],
+        decisions: [
+          ...(old?.decisions ?? []),
+          ...(cursors.decisionCursor ? page.decisions : []),
+        ],
+        events: [
+          ...(old?.events ?? []),
+          ...(cursors.eventCursor ? page.events : []),
+        ],
+      }));
+      setHistoryError("");
+    } catch {
+      setHistoryError("Older history could not load. Try again.");
+    } finally {
+      setLoadingHistory(false);
+    }
+  }
+  if (query.isPending || !detail)
+    return (
+      <div className="ops-page">
+        <Link className="ops-text-link" to={returnTo}>
+          {t(returnTo.startsWith("/exceptions") ? "Back to reviews" : "Back")}
+        </Link>
+        <OperationsState
+          loading={query.isPending}
+          error={query.error}
+          retry={() => void query.refetch()}
+        />
+      </div>
+    );
+  const selectedRequirement = detail.items
+    ?.flatMap((i) => i.requirements.map((r) => ({ ...r, item: i })))
+    .find((r) => r.id === params.get("requirementId"));
+  const open = detail.issues.filter((i) => i.state !== "RESOLVED");
+  const chosen =
+    detail.issues.find((i) => i.id === Number(params.get("issueId"))) ??
+    open[0] ??
+    detail.issues[0];
+  const requirementIssue: VerificationIssue | undefined = selectedRequirement
+    ? {
+        id: -1,
+        reasonCode:
+          selectedRequirement.state === "MISSING"
+            ? "MISSING_EVIDENCE"
+            : selectedRequirement.state,
+        requirementId: selectedRequirement.id,
+        requirement: selectedRequirement,
+        state: selectedRequirement.state,
+        occurrences: 1,
+        recommendedAction: selectedRequirement.instructionsSnapshot,
+        firstSeenAt: detail.firstRaisedAt,
+        lastSeenAt: detail.updatedAt,
+        latestAttempt: selectedRequirement.currentAttempt,
+        allowedActions: selectedRequirement.allowedActions,
+      }
+    : undefined;
+  const issue = requirementIssue ?? chosen;
+  const photo = issue?.latestAttempt;
+  const item =
+    selectedRequirement?.item ??
+    detail.items?.find((i) =>
+      i.requirements.some((r) => r.id === issue?.requirementId),
+    );
+  const requirement =
+    selectedRequirement ??
+    item?.requirements.find((r) => r.id === issue?.requirementId) ??
+    issue?.requirement;
+  const timezone = detail.location?.timezone ?? "Asia/Karachi";
+  function selectIssue(issueId: number) {
+    setParams((old) => {
+      const n = new URLSearchParams(old);
+      n.set("issueId", String(issueId));
+      n.delete("requirementId");
+      return n;
+    });
+  }
+  function selectRequirement(requirementId: string) {
+    setParams((old) => {
+      const n = new URLSearchParams(old);
+      n.set("requirementId", requirementId);
+      return n;
+    });
+  }
+  const decisions = [
+    ...new Map(
+      [...detail.decisions, ...(history?.decisions ?? [])].map((d) => [
+        d.id,
+        d,
+      ]),
+    ).values(),
+  ];
+  const attempts = [
+    ...new Map(
+      [...(detail.attempts ?? []), ...(history?.attempts ?? [])].map((a) => [
+        a.id,
+        a,
+      ]),
+    ).values(),
+  ];
+  const older = history ?? detail;
+  return (
+    <div className="ops-page ops-review-workspace">
+      <div className="ops-review-navigation">
+        <Link className="ops-text-link" to={returnTo} state={returnState}>
+          <ArrowLeft size={16} />
+          {t(returnTo.startsWith("/exceptions") ? "Back to reviews" : "Back")}
+        </Link>
+        {next.data?.nextId ? (
+          <Button asChild variant="outline">
+            <Link
+              to={`/exceptions/${next.data.nextId}?returnTo=${encodeURIComponent(returnTo)}`}
+              state={returnState}
+            >
+              {t("Next review")}
+              <ArrowRight size={16} />
+            </Link>
+          </Button>
+        ) : (
+          <Button variant="outline" onClick={() => void next.refetch()}>
+            {t("Check for next review")}
+          </Button>
+        )}
+      </div>
+      <header className="ops-header">
+        <div>
+          <h1>
+            {detail.area?.name ??
+              detail.task?.areaNameSnapshot ??
+              t("Room setup")}
+          </h1>
+          <div className="ops-case-meta">
+            <span>
+              <MapPin size={16} />
+              {detail.location?.name}
+            </span>
+            <span>
+              <UserRound size={16} />
+              {detail.task?.staff?.name ?? t("Unassigned")}
+            </span>
+            {detail.task?.shiftEnd ? (
+              <span>
+                <Clock3 size={16} />
+                <bdi>
+                  {localTime(detail.task.shiftEnd, timezone, language, true)}
+                </bdi>
+              </span>
+            ) : null}
+          </div>
+        </div>
+      </header>
+      <div className="ops-case-status">
+        <OperationStatus
+          state={detail.state}
+          label={exceptionStateLabel(detail.state)}
+        />
+        <span>
+          {detail.task?.staffSubmittedAt
+            ? t("Work submitted")
+            : detail.task?.title}
+        </span>
+        {detail.task?.completionOutcome || detail.task?.staffSubmittedAt ? (
+          <span>{t(verificationLabel(detail.task))}</span>
+        ) : null}
+      </div>
+      <OperationsState error={query.error} retry={() => void query.refetch()} />
+      {!online ? (
+        <p className="operations-notice" role="status">
+          {t(
+            "Internet needed to save a decision. Reconnect and try again. Your note stays on this page.",
+          )}
+        </p>
+      ) : null}
+      {notice ? (
+        <div className="ops-save-result" role="status">
+          <CheckCircle2 size={20} />
+          <div>
+            <strong>{t(notice)}</strong>
+            <p>
+              {t("{count} unresolved issues remain", { count: open.length })}
+            </p>
+          </div>
+        </div>
+      ) : null}
+      {open.length ? (
+        <div className="ops-issue-tabs" aria-label={t("Issues in this review")}>
+          {open.map((i) => (
+            <button
+              key={i.id}
+              aria-pressed={!requirementIssue && issue?.id === i.id}
+              onClick={() => selectIssue(i.id)}
+            >
+              {t(plainReason(i.reasonCode))}
+            </button>
+          ))}
+        </div>
+      ) : null}
+      {detail.kind === "SETUP" ? (
+        <section className="ops-panel ops-panel-body">
+          <h2>{t("Room inventory needs setup")}</h2>
+          <p>
+            {t(
+              "Configure the room and its schedule. Photos cannot be reviewed until the inventory is ready.",
+            )}
+          </p>
+          <Button asChild>
+            <Link to={`/locations/${detail.locationId}?tab=templates`}>
+              {t("Review room setup")}
+            </Link>
+          </Button>
+          <Button variant="outline" onClick={() => void done()}>
+            {t("Check again")}
+          </Button>
+        </section>
+      ) : (
+        <div className="ops-review-columns">
+          <section className="ops-panel ops-evidence-column">
+            <div className="ops-panel-heading">
+              <div>
+                <h2>
+                  {item?.nameSnapshot ??
+                    issue?.requirement?.item?.nameSnapshot ??
+                    t("Task photos")}
+                </h2>
+                <p>
+                  {requirement
+                    ? t(plainReason(requirement.viewKey))
+                    : t("Room and fixture evidence")}
+                </p>
+              </div>
+              <OperationStatus
+                state={photo?.state ?? requirement?.state ?? "MISSING"}
+                label={plainReason(
+                  photo?.state ?? requirement?.state ?? "MISSING",
+                )}
+              />
+            </div>
+            <div className="ops-panel-body">
+              {photo?.mediaAssetId ? (
+                <ProtectedEvidence
+                  assetId={photo.mediaAssetId}
+                  privacyState={photo.privacyState}
+                  allowRestrictedReview
+                  alt={`${item?.nameSnapshot ?? detail.area?.name ?? t("Room photo")} · ${t(plainReason(requirement?.viewKey ?? photo.contextKey ?? "Photo"))}`}
+                />
+              ) : (
+                <div className="ops-evidence-placeholder">
+                  <Camera size={30} />
+                  <strong>
+                    {t(
+                      photo
+                        ? "This photo is not available for review yet."
+                        : "No photo received for this view",
+                    )}
+                  </strong>
+                  <p>
+                    {t(
+                      "Photos saved only on the worker’s phone appear after uploading.",
+                    )}
+                  </p>
+                </div>
+              )}
+              {photo?.receivedAt ? (
+                <p className="ops-photo-caption">
+                  {t("Received")}{" "}
+                  <bdi>
+                    {localTime(photo.receivedAt, timezone, language, true)}
+                  </bdi>
+                </p>
+              ) : null}
+              {requirement ? (
+                <div className="ops-instructions">
+                  <h3>{t("What this photo must show")}</h3>
+                  <p>{requirement.instructionsSnapshot}</p>
+                </div>
+              ) : null}
+              {detail.items?.length ? (
+                <section className="ops-requirements">
+                  <h3>{t("All required photos")}</h3>
+                  {detail.items.map((i) => (
+                    <div key={i.id}>
+                      {i.requirements.map((r) => (
+                        <button
+                          className="ops-requirement"
+                          key={r.id}
+                          onClick={() => selectRequirement(r.id)}
+                          aria-pressed={requirement?.id === r.id}
+                        >
+                          <span>
+                            <strong>{i.nameSnapshot}</strong>
+                            <small>
+                              {t(plainReason(r.viewKey))}
+                              {!r.mandatory ? ` · ${t("Optional")}` : ""}
+                            </small>
+                          </span>
+                          <span className="ops-status">
+                            {t(plainReason(r.state))}
+                          </span>
+                        </button>
+                      ))}
+                    </div>
+                  ))}
+                </section>
+              ) : null}
+              {detail.standards?.filter(
+                (s) => !s.areaItemId || s.areaItemId === item?.sourceAreaItemId,
+              ).length ? (
+                <details className="ops-history">
+                  <summary>{t("Example guidance")}</summary>
+                  <p>
+                    {t(
+                      "Current room guidance. Task requirements above remain unchanged.",
+                    )}
+                  </p>
+                  {detail.standards
+                    .filter(
+                      (s) =>
+                        !s.areaItemId ||
+                        s.areaItemId === item?.sourceAreaItemId,
+                    )
+                    .map((s) => (
+                      <div key={s.id}>
+                        <p>{s.caption}</p>
+                        <ProtectedEvidence
+                          assetId={s.mediaAssetId}
+                          privacyState="SAFE"
+                          alt={s.caption ?? t("Example guidance")}
+                        />
+                      </div>
+                    ))}
+                </details>
+              ) : null}
+              {(detail.attempts ?? []).some((a) => a.contextKey) ? (
+                <details className="ops-history">
+                  <summary>{t("Room context photos")}</summary>
+                  {detail.attempts
+                    ?.filter((a) => a.contextKey)
+                    .map((a) => (
+                      <div key={a.id}>
+                        <p>{t(plainReason(a.contextKey!))}</p>
+                        {a.mediaAssetId ? (
+                          <ProtectedEvidence
+                            assetId={a.mediaAssetId}
+                            privacyState={a.privacyState}
+                            allowRestrictedReview
+                          />
+                        ) : (
+                          <p>
+                            {t(
+                              "Privacy check pending. Photo is not available for routine review yet.",
+                            )}
+                          </p>
+                        )}
+                      </div>
+                    ))}
+                </details>
+              ) : null}
+            </div>
+          </section>
+          <section className="ops-panel ops-action-column">
+            <div className="ops-panel-body">
+              <h2>
+                {t(issue ? plainReason(issue.reasonCode) : "Issue closed")}
+              </h2>
+              <p className="ops-guidance">
+                {issue
+                  ? t(reviewGuidance(issue))
+                  : t("This case has no unresolved issues.")}
+              </p>
+              {issue ? <ListenButton text={t(reviewGuidance(issue))} /> : null}
+              {issue?.blockedReason ? (
+                <p className="ops-blocked">{t(issue.blockedReason)}</p>
+              ) : null}
+              {detail.requiresFollowUp ? (
+                <p className="ops-blocked">
+                  {t(
+                    "This task is already complete. Use a completed follow-up task with fresh accepted photos to address new concerns. The original completion stays unchanged.",
+                  )}
+                </p>
+              ) : null}
+              {issue && issue.state !== "RESOLVED" ? (
+                <DecisionForm
+                  key={issue.requirementId ?? issue.id}
+                  detail={detail}
+                  issue={issue}
+                  onDone={done}
+                />
+              ) : (
+                <p className="ops-save-result">{t("Issue closed")}</p>
+              )}
+              {!issue?.allowedActions?.some((a) =>
+                ["REQUEST_RECAPTURE", "REQUEST_CLEANING"].includes(a),
+              ) && detail.taskInstanceId ? (
+                <div className="ops-followup-link">
+                  <Button asChild variant="outline">
+                    <Link to={`/locations/${detail.locationId}?tab=templates`}>
+                      {t("Open cleaning schedule")}
+                    </Link>
+                  </Button>
+                  <p>
+                    {t(
+                      "If no photo window is available, arrange follow-up work in this room.",
+                    )}
+                  </p>
+                </div>
+              ) : null}
+            </div>
+          </section>
+        </div>
+      )}
+      <details className="ops-panel ops-history">
+        <summary>{t("Previous decisions and earlier photos")}</summary>
+        {decisions.length ? (
+          decisions.map((d) => (
+            <article key={d.id}>
+              <strong>
+                {t(
+                  reviewActionLabels[d.action as ExceptionAction] ??
+                    plainReason(d.action),
+                )}{" "}
+                · {d.actorManager?.name ?? t("Manager")}
+              </strong>
+              <p>
+                {t(plainReason(d.reasonCode))} · {d.note}
+              </p>
+              <time>{localTime(d.createdAt, timezone, language, true)}</time>
+            </article>
+          ))
+        ) : (
+          <p>{t("No review decisions yet.")}</p>
+        )}
+        {attempts.map((a) => (
+          <details key={a.id}>
+            <summary>
+              {t(plainReason(a.state))} ·{" "}
+              {localTime(a.createdAt, timezone, language, true)}
+            </summary>
+            {a.mediaAssetId ? (
+              <ProtectedEvidence
+                assetId={a.mediaAssetId}
+                privacyState={a.privacyState}
+                allowRestrictedReview
+              />
+            ) : (
+              <p>{t("This photo is not available for review yet.")}</p>
+            )}
+          </details>
+        ))}
+        {[...detail.events, ...(history?.events ?? [])]
+          .filter((e, i, a) => a.findIndex((x) => x.id === e.id) === i)
+          .map((e) => (
+            <p key={e.id}>
+              {t(plainReason(e.type))} ·{" "}
+              {localTime(e.createdAt, timezone, language, true)}
+            </p>
+          ))}
+        {historyError ? <p role="alert">{t(historyError)}</p> : null}
+        {older.nextAttemptCursor ||
+        older.nextDecisionCursor ||
+        older.nextEventCursor ? (
+          <Button
+            variant="outline"
+            disabled={loadingHistory}
+            onClick={() => void loadOlder()}
+          >
+            {t(loadingHistory ? "Loading…" : "Load older history")}
+          </Button>
+        ) : null}
+      </details>
+    </div>
+  );
 }

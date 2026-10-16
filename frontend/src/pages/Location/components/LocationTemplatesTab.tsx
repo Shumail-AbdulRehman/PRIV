@@ -1,14 +1,20 @@
+import DataTable from "@/components/common/DataTable";
+import { QrCode } from "lucide-react";
+import { useLanguage } from "@/i18n/context";
 import TemplateInventoryEditor from "@/pages/Area/TemplateInventoryEditor";
 import { useAreas } from "@/pages/Area/queries";
-import { Link } from "react-router-dom";
-import { useState } from "react";
+import { Link, useLocation } from "react-router-dom";
+import { useEffect, useState } from "react";
 import { formatInTimeZone } from "date-fns-tz";
 import DeleteButton from "@/components/common/DeleteButton";
 import StatusBadge from "@/components/common/StatusBadge";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { ClipboardList, MoreVertical, Pencil, Plus } from "lucide-react";
-import { useDeleteTaskTemplate, useEditTaskTemplate } from "@/pages/Task/queries";
+import { Pencil, Plus } from "lucide-react";
+import {
+  useDeleteTaskTemplate,
+  useEditTaskTemplate,
+} from "@/pages/Task/queries";
 import { useAssignStaffToTemplate } from "@/pages/Assignment/queries";
 import type { EditTaskTemplateInput } from "@/pages/Task/api";
 import type { LocationStaff, TaskTemplate } from "../types";
@@ -46,11 +52,19 @@ export default function LocationTemplatesTab({
   timeZone: string;
   locationName: string;
 }) {
+  const { t: translate } = useLanguage();
+  const { hash } = useLocation();
+  useEffect(() => {
+    if (hash.startsWith("#schedule-"))
+      document
+        .getElementById(hash.slice(1))
+        ?.scrollIntoView({ block: "center" });
+  }, [hash, templates]);
   const areasQuery = useAreas(locationId);
   const deleteTemplate = useDeleteTaskTemplate();
   const editTemplate = useEditTaskTemplate();
   const assignStaff = useAssignStaffToTemplate();
-  const [openMenu, setOpenMenu] = useState<number | null>(null);
+  const [expandedQr, setExpandedQr] = useState<number | null>(null);
   const [editingTemplate, setEditingTemplate] = useState<TaskTemplate | null>(
     null,
   );
@@ -98,7 +112,6 @@ export default function LocationTemplatesTab({
   };
 
   const handleEditOpen = (t: TaskTemplate) => {
-    setOpenMenu(null);
     setEditError(null);
     setEditingTemplate(t);
     setEditForm({
@@ -196,148 +209,159 @@ export default function LocationTemplatesTab({
     <>
       <div className="flex items-center justify-between gap-3">
         <div>
-          <p className="text-sm font-medium text-foreground">Task templates</p>
+          <p className="text-sm font-medium text-foreground">
+            {translate("Cleaning schedules")}
+          </p>
           <p className="text-sm text-muted-foreground">
-            Create schedules for this location and optionally choose a team member.
+            Create schedules for this location and optionally choose a team
+            member.
           </p>
         </div>
-        <Button className="rounded-lg" onClick={() => setCreateDialogOpen(true)}>
-          <Plus className="size-4" /> Add template
+        <Button
+          className="rounded-lg"
+          onClick={() => setCreateDialogOpen(true)}
+        >
+          <Plus className="size-4" /> {translate("Add cleaning schedule")}
         </Button>
-        {createDialogOpen && <TaskScheduleWizard
-          locationId={locationId}
-          locationName={locationName}
-          timeZone={timeZone}
-          staffOptions={staffList}
-          open={createDialogOpen}
-          onOpenChange={setCreateDialogOpen}
-          onCreated={() => undefined}
-        />}
+        {createDialogOpen && (
+          <TaskScheduleWizard
+            locationId={locationId}
+            locationName={locationName}
+            timeZone={timeZone}
+            staffOptions={staffList}
+            open={createDialogOpen}
+            onOpenChange={setCreateDialogOpen}
+            onCreated={() => undefined}
+          />
+        )}
       </div>
 
-      {templates.length === 0 ? (
-        <div className="flex flex-col items-center justify-center rounded-xl border border-gray-200 bg-white py-16 text-center">
-          <ClipboardList className="mb-4 h-12 w-12 text-gray-400" />
-          <p className="text-sm text-gray-500">
-            No task templates for this location.
-          </p>
-        </div>
-      ) : null}
-
-      <div className="grid grid-cols-1 gap-4 md:grid-cols-2 lg:grid-cols-3">
-        {templates.map((t) => (
-          <div
-            key={t.id}
-            className="relative rounded-xl border border-gray-200 bg-white p-5 shadow-sm transition-all hover:border-gray-300 hover:shadow-md"
-          >
-            <div className="flex items-start justify-between gap-2">
-              <div className="min-w-0 flex-1">
-                <h3 className="text-sm font-semibold text-gray-900 truncate">
-                  {t.title}
-                </h3>
-                {t.areaId && <Link className="text-xs text-primary underline" to={`/areas/${t.areaId}`}>{t.area?.name ?? areasQuery.data?.find(area=>area.id===t.areaId)?.name ?? `Area ${t.areaId}`} · {t.inventorySelection === 'SUBSET' ? 'Selected fixtures' : 'All active fixtures'}</Link>}
-                {t.setupStatus === 'NEEDS_REVIEW' && <Link className="block text-xs text-amber-800 underline" to={`/locations/${locationId}?tab=areas`}>Inventory needs review</Link>}
-                {t.description && (
-                  <p className="mt-0.5 text-xs text-gray-400 line-clamp-2">
-                    {t.description}
+      <DataTable
+        data={templates}
+        rowKey={(row) => row.id}
+        emptyMessage="No cleaning schedules for this location."
+        expandedRow={(row) =>
+          expandedQr === row.id ? <TaskTemplateQr template={row} /> : null
+        }
+        columns={[
+          {
+            key: "schedule",
+            header: "Cleaning schedule",
+            sortValue: (row) => row.title,
+            render: (row) => (
+              <div id={"schedule-" + row.id}>
+                <strong>{row.title}</strong>
+                {row.description ? <p>{row.description}</p> : null}
+                {row.setupStatus === "NEEDS_REVIEW" ? (
+                  <Link
+                    className="text-amber-800 underline text-xs"
+                    to={"/locations/" + locationId + "?tab=areas"}
+                  >
+                    {translate("Inventory needs review")}
+                  </Link>
+                ) : null}
+                {row.referenceImages?.length ? (
+                  <p>
+                    {row.referenceImages.length} {translate("reference areas")}
                   </p>
-                )}
+                ) : row.referenceImageUrl ? (
+                  <p>{translate("Reference set")}</p>
+                ) : null}
               </div>
-              {t.referenceImages && t.referenceImages.length > 0 ? (
-                <span className="shrink-0 rounded-md bg-blue-50 px-2 py-0.5 text-[10px] font-semibold text-blue-700">
-                  {t.referenceImages.length} reference{" "}
-                  {t.referenceImages.length === 1 ? "area" : "areas"}
-                </span>
-              ) : t.referenceImageUrl ? (
-                <span className="shrink-0 rounded-md bg-blue-50 px-2 py-0.5 text-[10px] font-semibold text-blue-700">
-                  Reference set
-                </span>
-              ) : null}
-
-              <div className="relative shrink-0">
-                <button
-                  aria-label={`Actions for ${t.title}`}
-                  onClick={() => setOpenMenu(openMenu === t.id ? null : t.id)}
-                  className="rounded-md p-1.5 text-gray-500 transition-colors hover:bg-gray-100 hover:text-gray-900"
-                >
-                  <MoreVertical className="h-4 w-4" />
-                </button>
-
-                {openMenu === t.id && (
-                  <>
-                    <div
-                      className="fixed inset-0 z-40"
-                      onClick={() => setOpenMenu(null)}
-                    />
-                    <div className="absolute right-0 top-8 z-50 w-36 rounded-lg border border-gray-200 bg-white py-1 shadow-xl">
-                      <button
-                        onClick={() => handleEditOpen(t)}
-                        className="flex w-full items-center gap-2 px-3 py-2 text-sm text-gray-600 transition-colors hover:bg-gray-50 hover:text-gray-900"
-                      >
-                        <Pencil className="h-3.5 w-3.5" />
-                        Edit
-                      </button>
-                      <DeleteButton
-                        name={t.title}
-                        description="This schedule and all its task history, assignments, and evidence records will be removed."
-                        onDelete={() => deleteTemplate.mutateAsync(t.id)}
-                      />
-                    </div>
-                  </>
-                )}
-              </div>
-            </div>
-
-            <div className="mt-3 flex flex-wrap gap-2">
-              <StatusBadge status={t.recurringType ?? "ONCE"} />
-              <StatusBadge status={t.isActive ? "ACTIVE" : "INACTIVE"} />
-            </div>
-
-            <div className="mt-3 border-t border-gray-100 pt-3">
-              <p className="text-[10px] font-semibold uppercase tracking-wider text-gray-400 mb-1.5">
-                Assigned To
-              </p>
-              {t.staff ? (
-                <div className="flex items-center gap-2">
-                  <div className="flex h-7 w-7 items-center justify-center rounded-full bg-blue-50 text-[10px] font-bold text-blue-600">
-                    {t.staff.name
-                      .split(" ")
-                      .map((w: string) => w[0])
-                      .join("")
-                      .slice(0, 2)
-                      .toUpperCase()}
-                  </div>
-                  <span className="text-sm text-gray-600">{t.staff.name}</span>
+            ),
+          },
+          {
+            key: "area",
+            header: "Area",
+            sortValue: (row) => row.area?.name ?? "",
+            render: (row) =>
+              row.areaId ? (
+                <div>
+                  <Link className="text-primary" to={"/areas/" + row.areaId}>
+                    {row.area?.name ??
+                      areasQuery.data?.find((area) => area.id === row.areaId)
+                        ?.name ??
+                      "Area " + row.areaId}
+                  </Link>
+                  <p>
+                    {translate(
+                      row.inventorySelection === "SUBSET"
+                        ? "Selected fixtures"
+                        : "All active fixtures",
+                    )}
+                  </p>
                 </div>
               ) : (
-                <span className="text-xs text-gray-400 italic">Unassigned</span>
-              )}
-            </div>
-
-            <div className="mt-3 grid grid-cols-2 gap-2 text-xs">
+                "—"
+              ),
+          },
+          {
+            key: "staff",
+            header: "Assigned to",
+            sortValue: (row) => row.staff?.name ?? "",
+            render: (row) => row.staff?.name ?? translate("Unassigned"),
+          },
+          {
+            key: "shift",
+            header: "Shift",
+            render: (row) => (
               <div>
-                <p className="text-gray-400">Shift</p>
-                <p className="text-gray-600 font-medium">
-                  {fmtTimeWithTz(t.shiftStart, timeZone)} –{" "}
-                  {fmtTimeWithTz(t.shiftEnd, timeZone)}
-                </p>
+                {fmtTimeWithTz(row.shiftStart, timeZone)}
+                <p>{fmtTimeWithTz(row.shiftEnd, timeZone)}</p>
+                {row.effectiveDate ? (
+                  <p>
+                    {translate("Effective")}:{" "}
+                    {new Date(row.effectiveDate).toLocaleDateString("en-PK", {
+                      timeZone: "UTC",
+                    })}
+                  </p>
+                ) : null}
               </div>
-              <div>
-                <p className="text-gray-400">Effective</p>
-                <p className="text-gray-600 font-medium">
-                  {t.effectiveDate
-                    ? new Date(t.effectiveDate).toLocaleDateString("en-US", {
-                        timeZone: "UTC",
-                      })
-                    : "—"}
-                </p>
+            ),
+          },
+          {
+            key: "recurrence",
+            header: "Recurrence",
+            render: (row) => (
+              <StatusBadge status={row.recurringType ?? "ONCE"} />
+            ),
+          },
+          {
+            key: "status",
+            header: "Status",
+            render: (row) => (
+              <StatusBadge status={row.isActive ? "ACTIVE" : "INACTIVE"} />
+            ),
+          },
+          {
+            key: "actions",
+            header: "Actions",
+            render: (row) => (
+              <div className="flex flex-wrap gap-2">
+                <Button variant="outline" onClick={() => handleEditOpen(row)}>
+                  <Pencil size={14} />
+                  {translate("Edit schedule")}
+                </Button>
+                <Button
+                  variant="ghost"
+                  aria-expanded={expandedQr === row.id}
+                  onClick={() =>
+                    setExpandedQr(expandedQr === row.id ? null : row.id)
+                  }
+                >
+                  <QrCode size={14} />
+                  {translate("QR")}
+                </Button>
+                <DeleteButton
+                  name={row.title}
+                  description="This schedule and all its task history, assignments, and evidence records will be removed."
+                  onDelete={() => deleteTemplate.mutateAsync(row.id)}
+                />
               </div>
-            </div>
-
-            <TaskTemplateQr template={t} />
-          </div>
-        ))}
-      </div>
+            ),
+          },
+        ]}
+      />
 
       {editingTemplate && (
         <div
@@ -358,6 +382,7 @@ export default function LocationTemplatesTab({
                 </label>
                 <input
                   type="text"
+                  aria-label="Schedule title"
                   value={editForm.title}
                   onChange={(e) =>
                     setEditForm({ ...editForm, title: e.target.value })
@@ -371,6 +396,7 @@ export default function LocationTemplatesTab({
                   Description
                 </label>
                 <textarea
+                  aria-label="Description"
                   value={editForm.description}
                   onChange={(e) =>
                     setEditForm({ ...editForm, description: e.target.value })
@@ -383,6 +409,7 @@ export default function LocationTemplatesTab({
               <div>
                 <label className={formLabelCls}>Assigned Staff</label>
                 <select
+                  aria-label="Assigned staff"
                   value={editForm.staffId}
                   onChange={(e) =>
                     setEditForm({ ...editForm, staffId: e.target.value })
@@ -403,6 +430,7 @@ export default function LocationTemplatesTab({
                   <label className={formLabelCls}>Shift Start</label>
                   <Input
                     type="time"
+                    aria-label="Shift start"
                     value={editForm.shiftStart}
                     onChange={(e) =>
                       setEditForm({ ...editForm, shiftStart: e.target.value })
@@ -413,6 +441,7 @@ export default function LocationTemplatesTab({
                   <label className={formLabelCls}>Shift End</label>
                   <Input
                     type="time"
+                    aria-label="Shift end"
                     value={editForm.shiftEnd}
                     onChange={(e) =>
                       setEditForm({ ...editForm, shiftEnd: e.target.value })
@@ -424,6 +453,7 @@ export default function LocationTemplatesTab({
               <div>
                 <label className={formLabelCls}>Recurring Type</label>
                 <select
+                  aria-label="Recurrence"
                   value={editForm.recurringType}
                   onChange={(e) =>
                     setEditForm({ ...editForm, recurringType: e.target.value })
@@ -440,6 +470,7 @@ export default function LocationTemplatesTab({
                 <label className={formLabelCls}>Effective Date</label>
                 <Input
                   type="date"
+                  aria-label="Effective date"
                   value={editForm.effectiveDate}
                   onChange={(e) =>
                     setEditForm({ ...editForm, effectiveDate: e.target.value })
@@ -448,7 +479,13 @@ export default function LocationTemplatesTab({
                 />
               </div>
 
-              {editingTemplate.areaId && <TemplateInventoryEditor key={editingTemplate.id} templateId={editingTemplate.id} areaId={editingTemplate.areaId}/>}
+              {editingTemplate.areaId && (
+                <TemplateInventoryEditor
+                  key={editingTemplate.id}
+                  templateId={editingTemplate.id}
+                  areaId={editingTemplate.areaId}
+                />
+              )}
 
               {editError && (
                 <div className="rounded-lg border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-600">

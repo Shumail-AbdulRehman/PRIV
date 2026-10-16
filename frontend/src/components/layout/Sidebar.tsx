@@ -1,6 +1,7 @@
-import { useExceptionCount } from '@/pages/Exceptions/queries';
-import BrandLogo from "@/components/common/BrandLogo";
-import { NavLink, Link } from "react-router-dom";
+import WorkspaceBrand from "@/components/common/WorkspaceBrand";
+import { useLanguage } from "@/i18n/context";
+import { Link, NavLink } from "react-router-dom";
+import { useExceptionCount } from "@/pages/Exceptions/queries";
 import {
   LayoutDashboard,
   MapPin,
@@ -10,6 +11,7 @@ import {
   LogOut,
   ClipboardCheck,
   CreditCard,
+  Leaf,
 } from "lucide-react";
 import { useLogout } from "@/queries/auth";
 import { useSelector } from "react-redux";
@@ -22,47 +24,16 @@ import {
 } from "@/components/ui/dialog";
 import { cn } from "@/lib/utils";
 
-const GROUPS = [
-  {
-    label: "Workspace",
-    items: [
-      {
-        to: "/dashboard",
-        icon: LayoutDashboard,
-        label: "Overview",
-        adminOnly: false,
-      },
-      {
-        to: "/today-status",
-        icon: ClipboardCheck,
-        label: "Today",
-        adminOnly: false,
-      },
-      { to: "/exceptions", icon: ClipboardCheck, label:"Exceptions",adminOnly:false },
-      { to: "/locations", icon: MapPin, label: "Locations", adminOnly: false },
-      { to: "/staff", icon: Users, label: "Team", adminOnly: false },
-      {
-        to: "/attendance",
-        icon: CalendarCheck,
-        label: "Attendance",
-        adminOnly: false,
-      },
-    ],
-  },
-  {
-    label: "Administration",
-    items: [
-      { to: "/managers", icon: UserCog, label: "Managers", adminOnly: true },
-      {
-        to: "/subscription",
-        icon: CreditCard,
-        label: "Plan & billing",
-        adminOnly: false,
-      },
-    ],
-  },
+const WORK = [
+  { to: "/dashboard", icon: LayoutDashboard, label: "Overview" },
+  { to: "/today-status", icon: CalendarCheck, label: "Today" },
+  { to: "/exceptions", icon: ClipboardCheck, label: "Reviews" },
 ];
-
+const ORGANIZATION = [
+  { to: "/locations", icon: MapPin, label: "Locations" },
+  { to: "/staff", icon: Users, label: "Team" },
+  { to: "/attendance", icon: CalendarCheck, label: "Attendance" },
+];
 export default function Sidebar({
   open = false,
   onClose,
@@ -70,43 +41,84 @@ export default function Sidebar({
   open?: boolean;
   onClose?: () => void;
 }) {
+  const { t } = useLanguage();
   const user = useSelector((s: RootState) => s.auth.user);
   const logout = useLogout();
-  const exceptions = useExceptionCount(user?.role==="ADMIN"||user?.role==="MANAGER");
+  const exceptions = useExceptionCount(
+    user?.role === "ADMIN" || user?.role === "MANAGER",
+  );
+  const groups = [
+    { label: "Daily operations", items: WORK },
+    { label: "Your organization", items: ORGANIZATION },
+    {
+      label: "Administration",
+      items: [
+        ...(user?.role === "ADMIN"
+          ? [{ to: "/managers", icon: UserCog, label: "Managers" }]
+          : []),
+        { to: "/subscription", icon: CreditCard, label: "Plan & billing" },
+      ],
+    },
+  ];
   const content = (
     <>
       <Link to="/dashboard" onClick={onClose} className="workspace-brand">
-        <BrandLogo /><span className="sr-only"> overview</span>
+        <WorkspaceBrand />
       </Link>
-      <nav aria-label="Workspace navigation" className="flex-1 space-y-7 py-8">
-        {GROUPS.map((group) => (
-          <div key={group.label}>
-            <p className="mb-2 px-3 text-xs font-medium text-muted-foreground">
-              {group.label}
-            </p>
-            <div className="space-y-1">
-              {group.items
-                .filter((item) => !item.adminOnly || user?.role === "ADMIN")
-                .map(({ to, icon: Icon, label }) => (
-                  <NavLink
-                    key={to}
-                    to={to}
-                    onClick={onClose}
-                    className={({ isActive }) =>
-                      cn("workspace-nav-link", isActive && "is-active")
+      <p className="workspace-brand-caption">{t("Cleaning operations")}</p>
+      <div className="workspace-role">
+        <Leaf size={15} />
+        <span>
+          {t(
+            user?.role === "ADMIN" ? "Company workspace" : "Manager workspace",
+          )}
+        </span>
+      </div>
+      <nav
+        aria-label={t("Workspace navigation")}
+        className="workspace-navigation"
+      >
+        {groups.map((group) => (
+          <div className="workspace-nav-group" key={group.label}>
+            <p className="workspace-nav-label">{t(group.label)}</p>
+            {group.items.map(({ to, icon: Icon, label }) => (
+              <NavLink
+                key={to}
+                to={to}
+                onClick={onClose}
+                className={({ isActive }) =>
+                  cn("workspace-nav-link", isActive && "is-active")
+                }
+              >
+                <Icon size={19} strokeWidth={1.75} />
+                <span>{t(label)}</span>
+                {to === "/exceptions" && !!exceptions.data?.total ? (
+                  <span
+                    className="workspace-nav-count"
+                    aria-label={
+                      exceptions.data.total + " " + t("Waiting for review")
                     }
                   >
-                    <Icon size={18} />
-                    {label}
-                    {to==="/exceptions"&&!!exceptions.data?.unreadCount?<span className="ml-auto rounded bg-primary/10 px-2 text-xs font-semibold text-primary" aria-label={`${exceptions.data.unreadCount} unread exceptions`}>{exceptions.data.unreadCount}</span>:null}
-                  </NavLink>
-                ))}
-            </div>
+                    {exceptions.data.total > 99 ? "99+" : exceptions.data.total}
+                  </span>
+                ) : null}
+              </NavLink>
+            ))}
           </div>
         ))}
       </nav>
-      <div className="border-t border-border pt-4">
-        <div className="flex items-center gap-3 px-2 pb-3">
+      <div className="workspace-sidebar-footer">
+        <div className="workspace-sidebar-note">
+          <span className="workspace-note-mark">
+            <Leaf size={20} />
+          </span>
+          <p>
+            {t("Cleaner spaces.")}
+            <br />
+            <strong>{t("A clearer working day.")}</strong>
+          </p>
+        </div>
+        <div className="workspace-sidebar-account">
           <span className="workspace-avatar">
             {user?.name
               ?.split(" ")
@@ -115,20 +127,20 @@ export default function Sidebar({
               .slice(0, 2)
               .toUpperCase() || "?"}
           </span>
-          <div className="min-w-0">
-            <p className="truncate text-sm font-medium">{user?.name}</p>
-            <p className="text-xs text-muted-foreground">
-              {user?.role === "ADMIN" ? "Administrator" : "Manager"}
-            </p>
+          <div>
+            <strong>{user?.name}</strong>
+            <small>
+              {t(user?.role === "ADMIN" ? "Company owner" : "Location manager")}
+            </small>
           </div>
         </div>
         <button
-          className="workspace-nav-link w-full"
+          className="workspace-nav-link workspace-signout"
           disabled={logout.isPending}
           onClick={() => logout.mutate()}
         >
           <LogOut size={17} />
-          {logout.isPending ? "Signing out…" : "Sign out"}
+          {t(logout.isPending ? "Signing out…" : "Sign out")}
         </button>
       </div>
     </>
@@ -149,9 +161,9 @@ export default function Sidebar({
             document.getElementById("workspace-menu-trigger")?.focus();
           }}
         >
-          <DialogTitle className="sr-only">Workspace menu</DialogTitle>
+          <DialogTitle className="sr-only">{t("Workspace menu")}</DialogTitle>
           <DialogDescription className="sr-only">
-            Navigate your Hygene Ops workspace.
+            {t("Navigate your Hygene Ops workspace.")}
           </DialogDescription>
           {content}
         </DialogContent>

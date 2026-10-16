@@ -7,5 +7,6 @@ export const useGetTodayStatus = (filters?: TodayStatusFilters) => {
     queryKey: ["manager", "today-status", filters ?? null],
     queryFn: () => getTodayStatus(filters),
     staleTime: 30 * 1000,
+    refetchInterval: 5 * 1000,
   });
 };

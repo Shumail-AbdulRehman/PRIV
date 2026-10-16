@@ -1,9 +1,16 @@
-import { useEffect, useState } from "react";
+import LoadingSpinner from "@/components/common/LoadingSpinner";
+import LanguageChoice from "@/components/common/LanguageChoice";
+import { WorkspaceTheme } from "@/components/common/WorkspaceTheme";
+import { useLanguage } from "@/i18n/context";
+import { Suspense, useEffect, useState } from "react";
 import { Link, Outlet, useLocation } from "react-router-dom";
-import { Menu, ArrowUpRight, ChevronRight } from "lucide-react";
+import { useSelector } from "react-redux";
+import type { RootState } from "@/store/store";
+import { Menu, ChevronRight, Building2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import Sidebar from "./Sidebar";
 import "@/workspace.css";
+import "@/workspace-refresh.css";
 
 const TITLES: Record<string, string> = {
   dashboard: "Overview",
@@ -13,68 +20,103 @@ const TITLES: Record<string, string> = {
   attendance: "Attendance",
   managers: "Managers",
   subscription: "Plan & billing",
+  exceptions: "Reviews",
+  verification: "Task photos",
+  areas: "Room",
 };
 export default function DashboardLayout() {
+  const { t } = useLanguage();
+  const user = useSelector((s: RootState) => s.auth.user);
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
   const { pathname } = useLocation();
   const [section, detail] = pathname.split("/").filter(Boolean);
   useEffect(() => {
-    document.title = `${TITLES[section] || "Workspace"} · Hygene Ops`;
+    document.title = t(TITLES[section] || "Workspace") + " · Hygene Ops";
     window.scrollTo(0, 0);
-  }, [pathname, section]);
+  }, [pathname, section, t]);
   return (
-    <div className="workspace min-h-screen">
-      <a href="#workspace-content" className="workspace-skip">
-        Skip to content
-      </a>
-      <Sidebar open={isSidebarOpen} onClose={() => setIsSidebarOpen(false)} />
-      <div className="lg:pl-60">
-        <header className="workspace-topbar">
-          <div className="flex min-w-0 items-center gap-3">
-            <Button
-              variant="ghost"
-              size="icon"
-              className="lg:hidden"
-              id="workspace-menu-trigger"
-              aria-label="Open navigation"
-              onClick={() => setIsSidebarOpen(true)}
-            >
-              <Menu size={20} />
-            </Button>
-            <nav
-              aria-label="Breadcrumb"
-              className="flex items-center gap-2 text-sm"
-            >
-              <Link
-                to={`/${section}`}
-                className="text-muted-foreground hover:text-primary"
+    <WorkspaceTheme.Provider value={true}>
+      <div className="workspace min-h-screen">
+        <a href="#workspace-content" className="workspace-skip">
+          {t("Skip to content")}
+        </a>
+        <Sidebar open={isSidebarOpen} onClose={() => setIsSidebarOpen(false)} />
+        <div className="workspace-main">
+          <header className="workspace-topbar">
+            <div className="workspace-topbar-leading">
+              <Button
+                variant="ghost"
+                size="icon"
+                className="lg:hidden"
+                id="workspace-menu-trigger"
+                aria-label={t("Open navigation")}
+                onClick={() => setIsSidebarOpen(true)}
               >
-                {TITLES[section] || "Workspace"}
-              </Link>
-              {detail && (
-                <>
-                  <ChevronRight size={14} />
-                  <span>Details</span>
-                </>
-              )}
-            </nav>
-          </div>
-          <Link
-            to="/"
-            className="flex items-center gap-1 text-xs text-muted-foreground hover:text-primary"
+                <Menu size={20} />
+              </Button>
+              <nav
+                aria-label={t("Breadcrumb")}
+                className="workspace-breadcrumb"
+              >
+                <Building2 size={16} aria-hidden="true" />
+                <Link
+                  to={
+                    section === "areas"
+                      ? "/locations"
+                      : section === "verification"
+                        ? "/today-status?tab=tasks"
+                        : "/" + section
+                  }
+                >
+                  {t(
+                    section === "areas"
+                      ? "Locations"
+                      : TITLES[section] || "Workspace",
+                  )}
+                </Link>
+                {detail && (
+                  <>
+                    <ChevronRight size={14} aria-hidden="true" />
+                    <span>{t(section === "areas" ? "Room" : "Details")}</span>
+                  </>
+                )}
+              </nav>
+            </div>
+            <div className="workspace-topbar-tools">
+              <LanguageChoice />
+              <div className="workspace-topbar-account">
+                <span className="workspace-avatar" aria-hidden="true">
+                  {user?.name
+                    ?.split(" ")
+                    .map((w) => w[0])
+                    .join("")
+                    .slice(0, 2)
+                    .toUpperCase() || "?"}
+                </span>
+                <div>
+                  <strong>{user?.name}</strong>
+                  <small>
+                    {t(
+                      user?.role === "ADMIN"
+                        ? "Company owner"
+                        : "Location manager",
+                    )}
+                  </small>
+                </div>
+              </div>
+            </div>
+          </header>
+          <main
+            id="workspace-content"
+            tabIndex={-1}
+            className="workspace-content"
           >
-            View website
-            <ArrowUpRight size={14} />
-          </Link>
-        </header>
-        <main
-          id="workspace-content"
-          tabIndex={-1}
-          className="workspace-content"
-        >
-          <Outlet />
-        </main>
+            <Suspense fallback={<LoadingSpinner fullScreen />}>
+              <Outlet />
+            </Suspense>
+          </main>
+        </div>
       </div>
-    </div>
+    </WorkspaceTheme.Provider>
   );
 }

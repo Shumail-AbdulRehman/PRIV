@@ -1,3 +1,4 @@
+import OperationsState from "../Manager/OperationsState";
 import DeleteButton from "@/components/common/DeleteButton";
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
@@ -98,7 +99,9 @@ const inputCls =
   "flex h-11 w-full rounded-lg border border-border/80 bg-background/90 px-4 py-2 text-sm shadow-xs outline-none focus:border-primary/60 focus:ring-4 focus:ring-primary/10";
 
 export default function StaffPage() {
-  const { data, isLoading } = useGetStaff();
+  const staffQuery = useGetStaff();
+  const { data, isLoading } = staffQuery;
+  const [success, setSuccess] = useState("");
   const locationsQuery = useGetLocations();
   const createStaff = useCreateStaff();
   const deleteStaff = useDeleteStaff();
@@ -130,6 +133,16 @@ export default function StaffPage() {
   } = useForm<CreateStaffForm>();
 
   if (isLoading) return <LoadingSpinner fullScreen />;
+  if (staffQuery.isError)
+    return (
+      <div className="ops-page">
+        <PageHeader title="Team" />
+        <OperationsState
+          error={staffQuery.error}
+          retry={() => void staffQuery.refetch()}
+        />
+      </div>
+    );
 
   const staff: StaffMember[] = data?.data ?? [];
   const locations = (locationsQuery.data?.data ?? []) as LocationOption[];
@@ -229,6 +242,7 @@ export default function StaffPage() {
         });
       }
       setEditingStaff(null);
+      setSuccess("Team member changes saved.");
     } catch (err: unknown) {
       setEditError(extractError(err));
     }
@@ -238,6 +252,7 @@ export default function StaffPage() {
     {
       key: "name",
       header: "Name",
+      sortValue: (s) => s.name,
       render: (s) => (
         <div className="flex items-center gap-3">
           <div className="flex h-8 w-8 items-center justify-center rounded-full bg-blue-50 text-xs font-bold text-blue-700">
@@ -255,6 +270,7 @@ export default function StaffPage() {
     {
       key: "email",
       header: "Email",
+      sortValue: (s) => s.email,
       render: (s) => <span className="text-gray-500">{s.email}</span>,
     },
     {
@@ -265,6 +281,7 @@ export default function StaffPage() {
     {
       key: "location",
       header: "Location",
+      sortValue: (s) => locMap.get(s.locationId ?? -1) ?? "",
       render: (s) =>
         s.locationId ? (
           <span className="rounded-full bg-blue-50 px-2.5 py-0.5 text-xs font-medium text-blue-700">
@@ -287,6 +304,7 @@ export default function StaffPage() {
     {
       key: "status",
       header: "Status",
+      sortValue: (s) => (s.isActive ? 1 : 0),
       render: (s) => (
         <StatusBadge status={s.isActive ? "ACTIVE" : "INACTIVE"} />
       ),
@@ -302,9 +320,10 @@ export default function StaffPage() {
               e.stopPropagation();
               handleEditOpen(s);
             }}
-            className="rounded-lg px-3 py-1.5 text-xs font-medium text-blue-600 transition-colors hover:bg-blue-50"
+            className="inline-flex min-h-12 items-center gap-2 rounded-lg px-3 py-2 text-sm font-medium text-primary hover:bg-accent"
           >
-            <Pencil className="h-3.5 w-3.5" />
+            <Pencil className="h-4 w-4" />
+            <span>Edit</span>
           </button>
           <DeleteButton
             name={s.name}
@@ -346,6 +365,7 @@ export default function StaffPage() {
         onSuccess: () => {
           reset();
           setDialogOpen(false);
+          setSuccess("Team member added.");
         },
       },
     );
@@ -360,24 +380,28 @@ export default function StaffPage() {
           <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
             <DialogTrigger asChild>
               <Button className="rounded-lg px-4">
-                <Plus className="h-4 w-4" /> Add Staff
+                <Plus className="h-4 w-4" /> Add staff
               </Button>
             </DialogTrigger>
             <DialogContent className="border-border/70 bg-card text-card-foreground sm:max-w-xl">
               <DialogHeader>
-                <DialogTitle>Add Staff Member</DialogTitle>
+                <DialogTitle>Add team member</DialogTitle>
               </DialogHeader>
               <form
                 onSubmit={handleSubmit(onCreateSubmit)}
                 className="space-y-4 pt-2"
               >
                 <div>
-                  <label className="mb-1.5 block text-sm font-medium text-foreground">
+                  <label
+                    htmlFor="staff-create-name"
+                    className="mb-1.5 block text-sm font-medium text-foreground"
+                  >
                     Full Name
                   </label>
                   <Input
+                    id="staff-create-name"
                     {...register("name", { required: "Name is required" })}
-                    placeholder="John Smith"
+                    placeholder="Ali Raza"
                   />
                   {errors.name && (
                     <p className="mt-1 text-xs text-red-500">
@@ -386,13 +410,17 @@ export default function StaffPage() {
                   )}
                 </div>
                 <div>
-                  <label className="mb-1.5 block text-sm font-medium text-foreground">
+                  <label
+                    htmlFor="staff-create-email"
+                    className="mb-1.5 block text-sm font-medium text-foreground"
+                  >
                     Email
                   </label>
                   <Input
                     type="email"
+                    id="staff-create-email"
                     {...register("email", { required: "Email is required" })}
-                    placeholder="john@company.com"
+                    placeholder="ali@company.com"
                   />
                   {errors.email && (
                     <p className="mt-1 text-xs text-red-500">
@@ -401,11 +429,15 @@ export default function StaffPage() {
                   )}
                 </div>
                 <div>
-                  <label className="mb-1.5 block text-sm font-medium text-foreground">
+                  <label
+                    htmlFor="staff-create-phone"
+                    className="mb-1.5 block text-sm font-medium text-foreground"
+                  >
                     Phone Number
                   </label>
                   <Input
                     type="tel"
+                    id="staff-create-phone"
                     {...register("phone", {
                       required: "Phone number is required",
                       minLength: {
@@ -426,11 +458,15 @@ export default function StaffPage() {
                   )}
                 </div>
                 <div>
-                  <label className="mb-1.5 block text-sm font-medium text-foreground">
+                  <label
+                    htmlFor="staff-create-password"
+                    className="mb-1.5 block text-sm font-medium text-foreground"
+                  >
                     Password
                   </label>
                   <Input
                     type="password"
+                    id="staff-create-password"
                     {...register("password", {
                       required: "Password is required",
                     })}
@@ -446,7 +482,11 @@ export default function StaffPage() {
                   <label className="mb-1.5 block text-sm font-medium text-foreground">
                     Location (optional)
                   </label>
-                  <select {...register("locationId")} className={inputCls}>
+                  <select
+                    id="staff-create-locationId"
+                    {...register("locationId")}
+                    className={inputCls}
+                  >
                     <option value="">No location</option>
                     {locations.map((l) => (
                       <option key={l.id} value={l.id}>
@@ -457,11 +497,15 @@ export default function StaffPage() {
                 </div>
                 <div className="grid grid-cols-2 gap-4">
                   <div>
-                    <label className="mb-1.5 block text-sm font-medium text-foreground">
+                    <label
+                      htmlFor="staff-create-shiftStart"
+                      className="mb-1.5 block text-sm font-medium text-foreground"
+                    >
                       Shift Start
                     </label>
                     <Input
                       type="time"
+                      id="staff-create-shiftStart"
                       {...register("shiftStart", {
                         required: "Shift start is required",
                       })}
@@ -473,11 +517,15 @@ export default function StaffPage() {
                     )}
                   </div>
                   <div>
-                    <label className="mb-1.5 block text-sm font-medium text-foreground">
+                    <label
+                      htmlFor="staff-create-shiftEnd"
+                      className="mb-1.5 block text-sm font-medium text-foreground"
+                    >
                       Shift End
                     </label>
                     <Input
                       type="time"
+                      id="staff-create-shiftEnd"
                       {...register("shiftEnd", {
                         required: "Shift end is required",
                       })}
@@ -489,6 +537,11 @@ export default function StaffPage() {
                     )}
                   </div>
                 </div>
+                {createStaff.isError ? (
+                  <p role="alert" className="operations-notice">
+                    {extractError(createStaff.error)}
+                  </p>
+                ) : null}
                 <div className="flex gap-3 pt-2">
                   <Button
                     type="button"
@@ -515,6 +568,11 @@ export default function StaffPage() {
         }
       />
 
+      {success ? (
+        <p role="status" className="ops-save-result">
+          {success}
+        </p>
+      ) : null}
       <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-3">
         <StatCard label="Team members" value={staff.length} icon={Users} />
         <StatCard
@@ -563,6 +621,7 @@ export default function StaffPage() {
       </FilterBar>
 
       <DataTable
+        pageSize={20}
         columns={columns}
         data={filtered}
         rowKey={(s) => s.id}
@@ -621,7 +680,10 @@ export default function StaffPage() {
                 />
               </div>
               <div>
-                <label className="mb-1.5 block text-sm font-medium text-foreground">
+                <label
+                  htmlFor="staff-create-locationId"
+                  className="mb-1.5 block text-sm font-medium text-foreground"
+                >
                   Location
                 </label>
                 <select

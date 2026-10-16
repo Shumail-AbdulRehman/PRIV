@@ -10,6 +10,7 @@ export const useAssignStaffToLocation = () => {
       qc.invalidateQueries({ queryKey: ["location"] });
       qc.invalidateQueries({ queryKey: ["task"] });
       qc.invalidateQueries({ queryKey: ["staff"] });
+      qc.invalidateQueries({ queryKey: ["operations"] });
     },
   });
 };
@@ -23,6 +24,7 @@ export const useAssignStaffToTemplate = () => {
       qc.invalidateQueries({ queryKey: ["location"] });
       qc.invalidateQueries({ queryKey: ["task"] });
       qc.invalidateQueries({ queryKey: ["staff"] });
+      qc.invalidateQueries({ queryKey: ["operations"] });
     },
   });
 };
