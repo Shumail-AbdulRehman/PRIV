@@ -44,11 +44,13 @@ const {default:sharp}=await import('sharp');
 const {createHash}=await import('node:crypto');
 const {Writable}=await import('node:stream');
 let scenario='clean',aiCalls=0,cloudCalls=0,storageFail=false;
-BufferedClefProvider.prototype.evaluate=async()=>{
+BufferedClefProvider.prototype.evaluate=async(_image,_rubric,view)=>{
  aiCalls++;if(scenario==='failure')throw new Error('Controlled AI failure');
  await new Promise(r=>setTimeout(r,30));
- const verdict=scenario==='dirty'?'DIRTY':'CLEAN';
- return {objectMatch:scenario==='wrong-object'?'WRONG_ITEM':scenario==='missing-view'?'MISSING_SURFACE':scenario==='object-uncertain'?'UNCERTAIN':'MATCH',originality:scenario==='screen'?'SCREEN_RECAPTURE':'DIRECT',cleanliness:{verdict,surfaces:[{surface:'basin',verdict}],confidence:.99,reasonCode:verdict==='DIRTY'?'CLEANING_REQUIRED':'CLEAN'},metadata:{} as any};
+ const verdict=scenario==='dirty'?'DIRTY':scenario==='cleanliness-uncertain'?'CANNOT_ASSESS':'CLEAN';
+ const toiletStyle=scenario==='squat'?'SQUAT' as const:scenario==='western'?'WESTERN' as const:undefined;
+ const checkedSurfaces=toiletStyle==='SQUAT'?(view==='exterior_base'?['pan_edges','surrounding_floor']:['pan','drain','footrests']):toiletStyle==='WESTERN'?(view==='exterior_base'?['exterior','base']:['bowl','seat']):['basin'];
+ return {toiletStyle,viewMatch:scenario==='missing-view'?'MISSING_SURFACE':scenario==='view-uncertain'?'UNCERTAIN':'MATCH',missingSurfaces:scenario==='missing-view'?['tap']:[],objectMatch:scenario==='wrong-object'?'WRONG_ITEM':scenario==='object-uncertain'?'UNCERTAIN':'MATCH',originality:scenario==='screen'?'SCREEN_RECAPTURE':'DIRECT',cleanliness:{verdict,surfaces:checkedSurfaces.map(surface=>({surface,verdict})),confidence:.99,reasonCode:verdict==='DIRTY'?'CLEANING_REQUIRED':verdict==='CANNOT_ASSESS'?'CANNOT_ASSESS':'CLEAN'},metadata:{} as any};
 };
 const assets=new Map<string,any>();
 cloudinary.api.resource=(async(id:string)=>{
@@ -77,16 +79,16 @@ async function request(path:string,body?:unknown,expected=200,auth=staffToken){
  const r=await fetch(base+path,{method:body===undefined?'GET':'POST',headers:{...headers(auth),...(body===undefined?{}:{'Content-Type':'application/json'})},...(body===undefined?{}:{body:JSON.stringify(body)})});
  const result=await r.json() as any;assert.equal(r.status,expected,`${path}: ${JSON.stringify(result)}`);return result.data;
 }
-async function newTask(label:string){
- const template=await prisma.taskTemplate.create({data:{locationId:location.id,areaId:area.id,staffId:staff.id,title:label,verificationVersion:2,inventorySelection:'ALL',setupStatus:'READY',shiftStart:new Date(+now-120000),shiftEnd:end,effectiveDate:now}});
+async function newTask(label:string,targetArea=area){
+ const template=await prisma.taskTemplate.create({data:{locationId:location.id,areaId:targetArea.id,staffId:staff.id,title:label,verificationVersion:2,inventorySelection:'ALL',setupStatus:'READY',shiftStart:new Date(+now-120000),shiftEnd:end,effectiveDate:now}});
  const task=await createTaskInstanceWithSnapshot({templateId:template.id,title:label,locationId:location.id,date:new Date(),shiftStart:new Date(+now-120000),shiftEnd:end});assert.ok(task);
- await request(`/task-instance/${task.id}/start`,{areaQr:signAreaQr(area)});
+ await request(`/task-instance/${task.id}/start`,{areaQr:signAreaQr(targetArea)});
  await request(`/task-instance/${task.id}/complete`,{},409);
- const s=await request(`/task-instance/${task.id}/capture-sessions`,{requestId:randomUUID(),areaQr:signAreaQr(area),deviceId:'http-test-device',clientBootId:'http-test-boot',clientTime:new Date().toISOString(),location:{latitude:24.8607,longitude:67.0011,accuracy:3,sampledAt:new Date().toISOString()}},201);
+ const s=await request(`/task-instance/${task.id}/capture-sessions`,{requestId:randomUUID(),areaQr:signAreaQr(targetArea),deviceId:'http-test-device',clientBootId:'http-test-boot',clientTime:new Date().toISOString(),location:{latitude:24.8607,longitude:67.0011,accuracy:3,sampledAt:new Date().toISOString()}},201);
  return {task,s};
 }
 async function photo(s:any){
- const activated=await request(`/capture-session/${s.id}/activate-photo`,{slotId:s.slots[0].id,deviceId:'http-test-device'}),slot=activated.slots[0];
+ const activated=await request(`/capture-session/${s.id}/activate-photo`,{slotId:s.slots[0].id,deviceId:'http-test-device'}),slot=activated.slots.find((candidate:any)=>candidate.id===s.slots[0].id);
  const pixels=Buffer.alloc(1000*1000*3);for(let i=0;i<pixels.length;i++)pixels[i]=120+(i*37)%100;
  const image=await sharp(pixels,{raw:{width:1000,height:1000,channels:3}}).jpeg({quality:90}).toBuffer();
  const captured=Date.now(),metadata={clientCaptureId:randomUUID(),slotId:slot.id,nonce:slot.nonce,sha256:createHash('sha256').update(image).digest('hex'),claimedCapturedAt:new Date(captured).toISOString(),elapsedMs:captured-Date.parse(s.serverTimeAnchor),bootId:'http-test-boot',deviceId:'http-test-device'};
@@ -98,7 +100,7 @@ async function photo(s:any){
  return {upload,metadata};
 }
 try{
- for(const kind of ['clean','dirty','screen','wrong-object','missing-view','object-uncertain','failure','storage-failure','interrupted','renew'] as const){
+ for(const kind of ['clean','dirty','screen','wrong-object','missing-view','object-uncertain','view-uncertain','cleanliness-uncertain','failure','storage-failure','interrupted','renew'] as const){
   // Independent actors keep rapid fixtures within the per-worker session limit.
   if(kind!=='clean'){
    staff=await prisma.staff.create({data:{companyId:company.id,locationId:location.id,name:'Photo test staff',email:randomUUID()+'@test.invalid',password:'isolated-test-password'}});
@@ -126,15 +128,29 @@ try{
     await prisma.verificationAttempt.update({where:{id:a.id},data:{state:'CLEANLINESS_CHECK',directProcessingToken:randomUUID(),directProcessingStartedAt:new Date(Date.now()-200000)}});
     scenario='clean';
    }
-   const result=await p.upload();assert.equal(result.storage,['dirty','screen','wrong-object','missing-view','object-uncertain'].includes(kind)?'discarded':'cloud');
-   if(['dirty','screen','wrong-object','missing-view','object-uncertain'].includes(kind)){
+   const result=await p.upload();
+   if(['object-uncertain','view-uncertain','cleanliness-uncertain'].includes(kind)){
+    assert.equal(result.state,'REVIEW_REQUIRED');assert.equal(result.storage,'cloud');
+    assert.equal(result.reasonCode,kind==='object-uncertain'?'OBJECT_UNCERTAIN':kind==='view-uncertain'?'VIEW_UNCERTAIN':'CANNOT_ASSESS');
+    assert.match(result.instructions,/Your manager will check/);assert.doesNotMatch(result.instructions,/take another photo/);
+    const current=await request(`/task-instance/${task.id}/verification`);
+    assert.equal(current.items[0].requirements[0].state,'REVIEW_REQUIRED');
+    assert.equal(current.items[0].requirements[0].currentAttempt.instructions,result.instructions);
+    const issue=await prisma.verificationIssue.findFirst({where:{exception:{taskInstanceId:task.id},reasonCode:result.reasonCode}});
+    assert.ok(issue);assert.equal(issue.state,'MANAGER_REVIEW');
+   }
+   assert.equal(result.storage,['dirty','screen','wrong-object','missing-view'].includes(kind)?'discarded':'cloud');
+   if(['dirty','screen','wrong-object','missing-view'].includes(kind)){
     assert.equal(result.state,kind==='dirty'?'CLEANING_REQUIRED':'RECAPTURE_REQUIRED');
-    if(kind==='wrong-object')assert.equal(result.reasonCode,'WRONG_ITEM');
-    if(kind==='missing-view')assert.equal(result.reasonCode,'MISSING_SURFACE');
-    if(kind==='object-uncertain')assert.equal(result.reasonCode,'CANNOT_ASSESS');
+    if(kind==='wrong-object'){assert.equal(result.reasonCode,'WRONG_ITEM');assert.match(result.instructions,/This photo does not show the sink/);}
+    if(kind==='missing-view'){assert.equal(result.reasonCode,'MISSING_SURFACE');assert.match(result.instructions,/does not show the tap/);assert.match(result.instructions,/whole sink basin, drain and tap/);}
+    if(kind==='dirty')assert.match(result.instructions,/The sink is not clean/);
     assert.equal(cloudCalls,beforeCloud);
     await request(`/task-instance/${task.id}/complete`,{},409);
     const manifest=await request(`/task-instance/${task.id}/verification`),r=manifest.items[0].requirements[0];
+    assert.equal(r.currentAttempt.instructions,result.instructions,'refresh preserves the specific correction');
+    const polled=await request(`/verification-attempt/${result.attemptId}`);
+    assert.equal(polled.instructions,result.instructions,'polling preserves the specific correction');
     const path=kind==='dirty'?`/task-instance/${task.id}/capture-sessions/rework`:`/capture-session/${s.id}/renew`;
     const retrySession=await request(path,{requestId:randomUUID(),areaQr:signAreaQr(area),deviceId:'http-test-device',clientBootId:'http-test-boot',clientTime:new Date().toISOString(),location:{latitude:24.8607,longitude:67.0011,accuracy:3,sampledAt:new Date().toISOString()},...(kind==='dirty'?{requirements:[{requirementId:r.id,expectedGeneration:r.decisionVersion}]}:{})},201);
     scenario='clean';await(await photo(retrySession)).upload();await request(`/task-instance/${task.id}/complete`,{});
@@ -146,10 +162,27 @@ try{
    }
   }
   assert.equal(await prisma.verificationJob.count({where:{attempt:{session:{taskInstanceId:task.id}}}}),0,'direct uploads cannot create queue jobs');
-  if(!['dirty','screen','wrong-object','missing-view','object-uncertain'].includes(kind))await request(`/task-instance/${task.id}/complete`,{});
+  if(!['dirty','screen','wrong-object','missing-view'].includes(kind))await request(`/task-instance/${task.id}/complete`,{});
+ }
+ const toiletArea=await prisma.area.create({data:{locationId:location.id,name:'Both toilet designs',roomType:'WASHROOM',status:'ACTIVE'}});
+ await prisma.areaItem.create({data:{areaId:toiletArea.id,stableCode:'TOILET-TEST',displayName:'Test toilet',fixtureType:'TOILET',sequence:1,rubricKey:'visible-v1',requiredViews:[{key:'bowl_seat',instructions:'Show the bowl interior and seat.',mandatory:true},{key:'exterior_base',instructions:'Show the exterior and base.',mandatory:true}]}});
+ for(const style of ['squat','western']){
+  scenario=style;const{task,s}=await newTask(style,toiletArea);
+  const manifest=await request(`/task-instance/${task.id}/verification`);
+  assert.match(manifest.items[0].requirements.find((r:any)=>r.viewKey==='bowl_seat').instructions,/Indian\/squat/,'existing Western-only snapshots display both toilet guides');
+  assert.equal(s.slots.length,2,'both toilet photos remain mandatory');
+  for(const slot of s.slots){
+   const result=await(await photo({...s,slots:[slot]})).upload();
+   assert.equal(result.state,'REVIEW_REQUIRED','matching toilets retain the existing uncalibrated-clean review policy');
+   assert.equal(result.storage,'cloud');
+  }
+  await request(`/task-instance/${task.id}/complete`,{});
+  const attempts=await prisma.verificationAttempt.findMany({where:{sessionId:s.id},select:{cleanlinessResult:true}});
+  assert.equal(attempts.length,2);
+  assert.ok(attempts.every(a=>(a.cleanlinessResult as any).photoContext.toiletStyle===(style==='squat'?'SQUAT':'WESTERN')));
  }
  assert.equal(await prisma.verificationWorkerHeartbeat.count(),0);
- console.log('PASS direct HTTP: object/view mismatch rejection and QR retakes, synchronous AI/storage, no queue/worker, invalid hash and staff denial, mandatory submission, manual AI/storage retry, cached replay, lost-response lookup, interrupted request and QR renewal.');
+ console.log('PASS direct HTTP: independent object/view/cleanliness gates, uncertain cases retained for manager review with no retake instruction, confirmed missing parts named; Indian/squat and Western toilet photos, preserved two mandatory views and legacy snapshot guidance; simple object/view/cleaning corrections across upload, refresh and polling; mismatch rejection and QR retakes, synchronous AI/storage, no queue/worker, invalid hash and staff denial, mandatory submission, manual AI/storage retry, cached replay, lost-response lookup, interrupted request and QR renewal.');
 }finally{
  await new Promise<void>((resolve,reject)=>server.close(e=>e?reject(e):resolve()));await prisma.$disconnect();
  const cleanup=new pg.Client({connectionString:source});await cleanup.connect();await cleanup.query(`DROP DATABASE "${database}" WITH (FORCE)`);await cleanup.end();

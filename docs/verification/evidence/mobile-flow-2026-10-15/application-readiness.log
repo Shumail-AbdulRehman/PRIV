@@ -1,0 +1,65 @@
+
+> fyp@1.0.0 verification:doctor
+> tsx scripts/verificationDoctor.ts
+
+{
+  "schema": {
+    "ready": false,
+    "missingColumns": [
+      "directProcessingToken",
+      "directProcessingStartedAt",
+      "directAssessment"
+    ],
+    "requiredMigration": "202610130001_direct_photo_processing"
+  },
+  "processing": {
+    "mode": "DIRECT_REQUEST_V1",
+    "separateWorker": false,
+    "queue": false
+  },
+  "credentials": {
+    "VERIFICATION_QR_SECRET": true,
+    "VERIFICATION_SLOT_SECRET": true,
+    "CLOUDFLARE_ACCOUNT_ID": true,
+    "CLOUDFLARE_API_TOKEN": true
+  },
+  "screening": {
+    "provider": "cloudflare",
+    "model": "clef",
+    "threshold": 0.9,
+    "timeoutMs": 30000,
+    "providerVersion": "cloudflare-system-one-v1",
+    "promptVersion": "clef-screening-v1"
+  },
+  "cleanliness": {
+    "model": "clef",
+    "candidateThresholdConfigured": false,
+    "candidateVersionConfigured": false,
+    "releaseByFixture": {
+      "TOILET": {
+        "allowed": false,
+        "reason": "RELEASE_NOT_CONFIGURED"
+      },
+      "SINK": {
+        "allowed": false,
+        "reason": "RELEASE_NOT_CONFIGURED"
+      },
+      "MIRROR": {
+        "allowed": false,
+        "reason": "RELEASE_NOT_CONFIGURED"
+      },
+      "FLOOR": {
+        "allowed": false,
+        "reason": "RELEASE_NOT_CONFIGURED"
+      },
+      "BIN": {
+        "allowed": false,
+        "reason": "RELEASE_NOT_CONFIGURED"
+      }
+    }
+  },
+  "spatial": {
+    "automaticAcceptance": false,
+    "assistedRecapture": false
+  }
+}

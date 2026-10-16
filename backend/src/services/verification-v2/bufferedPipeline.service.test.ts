@@ -12,7 +12,7 @@ import { applyDecision } from './pipeline.service.js';
 import { bufferedDecision, processBufferedPhoto } from './bufferedPipeline.service.js';
 import { bufferedEvaluatorVersion, type BufferedAssessment } from './bufferedPhoto.provider.js';
 function assessment(verdict: 'CLEAN' | 'DIRTY' | 'CANNOT_ASSESS' = 'CLEAN', originality: BufferedAssessment['originality'] = 'DIRECT'): BufferedAssessment {
-  return { originality, objectMatch: 'MATCH', cleanliness: { verdict, surfaces: [{ surface: 'basin', verdict }], confidence: .98, reasonCode: verdict === 'DIRTY' ? 'CLEANING_REQUIRED' : verdict === 'CLEAN' ? 'CLEAN' : 'CANNOT_ASSESS' }, metadata: {} as any };
+  return { originality, objectMatch: 'MATCH', viewMatch: 'MATCH', cleanliness: { verdict, surfaces: [{ surface: 'basin', verdict }], confidence: .98, reasonCode: verdict === 'DIRTY' ? 'CLEANING_REQUIRED' : verdict === 'CLEAN' ? 'CLEAN' : 'CANNOT_ASSESS' }, metadata: {} as any };
 }
 let tx: any;
 beforeEach(() => {

@@ -1,6 +1,7 @@
 import OperationStatus from "@/components/common/OperationStatus";
 import { verificationLabel } from "../Verification/presentation";
 import LocationOverview from "./LocationOverview";
+import LocationFormDialog from "./LocationFormDialog";
 import PageHeader from "@/components/common/PageHeader";
 import { Button } from "@/components/ui/button";
 import OperationsState from "../Manager/OperationsState";
@@ -30,6 +31,7 @@ import LoadingSpinner from "@/components/common/LoadingSpinner";
 import AreaSubmissionsPanel from "@/pages/Task/components/AreaSubmissionsPanel";
 import {
   Clock,
+  MapPin,
   Users,
   ClipboardList,
   Navigation,
@@ -295,6 +297,8 @@ const VerificationCell = ({ attempts }: { attempts: CompletionAttempt[] }) => {
 const LocationDetailPage: React.FC = () => {
   const { t } = useLanguage();
   const [settingsOpen, setSettingsOpen] = useState(false);
+  const [editOpen, setEditOpen] = useState(false);
+  const [saved, setSaved] = useState(false);
   const user = useSelector((state: RootState) => state.auth.user);
   const deleteLocation = useDeleteLocation();
   const { id } = useParams<{ id: string }>();
@@ -421,9 +425,39 @@ const LocationDetailPage: React.FC = () => {
           </>
         }
       />
+      {user?.role === "ADMIN" ? (
+        <LocationFormDialog
+          open={editOpen}
+          onOpenChange={setEditOpen}
+          location={locationInfo}
+          onSaved={() => {
+            setEditOpen(false);
+            setSaved(true);
+          }}
+        />
+      ) : null}
+      {saved ? (
+        <p className="ops-save-result" role="status">
+          {t("Location updated.")}
+        </p>
+      ) : null}
       {settingsOpen ? (
         <section className="detail-settings space-y-4">
-          <h2>{t("Location settings")}</h2>
+          <div className="flex items-center justify-between gap-3">
+            <h2>{t("Location settings")}</h2>
+            {user?.role === "ADMIN" ? (
+              <Button
+                variant="outline"
+                onClick={() => {
+                  setSaved(false);
+                  setEditOpen(true);
+                }}
+              >
+                <MapPin size={16} />
+                {t("Edit location")}
+              </Button>
+            ) : null}
+          </div>
           <div className="flex flex-wrap gap-3 text-sm text-muted-foreground">
             <span>
               <Navigation size={14} className="inline" />{" "}

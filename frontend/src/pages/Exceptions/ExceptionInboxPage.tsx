@@ -232,6 +232,7 @@ export default function ExceptionInboxPage() {
       </div>
       <OperationsState
         loading={query.isPending}
+        layout="reviews"
         error={query.error}
         retry={() => void query.refetch()}
       />

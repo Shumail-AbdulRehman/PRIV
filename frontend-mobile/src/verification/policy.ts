@@ -10,7 +10,7 @@ export function captureAllowed(local: LocalSession, clock: { bootId: string; ela
 }
 export const checkedPhotoState=(state:string)=>['PASSED','REVIEW_REQUIRED','PRIVACY_HOLD','MANAGER_ACCEPTED','WAIVED','SERVICE_FAILURE'].includes(state);
 export function nextSlot(local:LocalSession,queue:QueueRow[]):CaptureSlot|undefined {
- const ordered=[...local.session.slots].sort((a,b)=>a.sequence-b.sequence);
+ const ordered=local.session.slots.filter(slot=>!slot.contextKey||!local.session.requiredContextKeys||local.session.requiredContextKeys.includes(slot.contextKey)).sort((a,b)=>a.sequence-b.sequence);
  const requirements=new Map(local.manifest.items.flatMap(i=>i.requirements).map(r=>[r.id,r]));
  const sequential=local.session.sequentialChecks===true;
  if(sequential&&(local.manifest.pendingJobs??0)>0)return undefined;
@@ -59,5 +59,5 @@ export function reconciledState(local: QueueRow, accepted: { id: string; state: 
 }
 export function mergeManifest(local: LocalSession, manifest: Manifest): LocalSession {
   const serverSession=manifest.sessions?.find(s=>s.id===local.session.id);
-  return {...local,manifest,session:{...local.session,...(serverSession?{state:serverSession.state}:{}),...(manifest.task.status==='COMPLETED'?{state:'CLOSED'}:{})}};
+  return {...local,manifest,session:{...local.session,...(serverSession?{state:serverSession.state,...(serverSession.requiredContextKeys?{requiredContextKeys:serverSession.requiredContextKeys,slots:local.session.slots.filter(slot=>!slot.contextKey||serverSession.requiredContextKeys!.includes(slot.contextKey))}:{})}:{}),...(manifest.task.status==='COMPLETED'?{state:'CLOSED'}:{})}};
 }

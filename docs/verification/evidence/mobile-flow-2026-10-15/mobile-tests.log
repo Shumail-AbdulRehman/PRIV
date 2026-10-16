@@ -1,0 +1,80 @@
+
+> frontend-mobile@2.1.5 test
+> tsx --test src/api/*.test.ts src/auth/*.test.ts src/verification/*.test.ts tests/*.test.mjs
+
+✔ editable server address validates physical-device URLs (2.951841ms)
+✔ a saved server address drives login, ordinary requests, refresh and uploads (15.428759ms)
+✔ native version reaches session requests and uploads consistently, including stale request headers (5.670066ms)
+✔ login rejection preserves the server error without refreshing a session (6.299852ms)
+✔ responses arriving after an account switch cannot restore the old user or acknowledge an upload (9.918583ms)
+✔ confirmed start appears immediately while the background feed is still pending (39.998109ms)
+✔ a stale in-flight task feed cannot overwrite the confirmed start (18.108841ms)
+✔ a rejected start preserves pending state and does not refresh the feed (16.113125ms)
+✔ native login persists and reopens with Android-compatible SecureStore keys (4.34361ms)
+✔ legacy account recovery migrates only after successful secure persistence (1.530066ms)
+✔ secure account takes precedence and successful migration or logout removes legacy auth only (0.527616ms)
+✔ web sessions keep their existing AsyncStorage key (0.452442ms)
+✔ concurrent refresh is serialized and multipart is rebuilt after expiry (48.406934ms)
+✔ network failure during refresh retains sign-in; explicit revocation clears it (3.552518ms)
+✔ account switch during refresh cannot save another worker tokens or retry multipart (7.18526ms)
+✔ Axios stops an old account request even when token retrieval overlaps switching accounts (23.689047ms)
+✔ network, server setup and native storage errors give distinct recovery instructions (2.189088ms)
+✔ delivery, checks, cleaning and review have distinct staff guidance (2.440618ms)
+✔ required progress excludes optional fixtures and views (1.673639ms)
+✔ Urdu instructions interpolate user names and speech never selects an English voice for Urdu (1.206168ms)
+✔ specific cleaning corrections retain named surfaces in Urdu without technical error codes (1.390414ms)
+✔ Android SQLite paths become file URIs; iOS URIs keep their exact directory (2.700252ms)
+✔ GPS stops its watch after a fresh accurate position, including synchronous first callback (5.895996ms)
+✔ GPS times out without stale coordinates and removes a late native subscription (16.187678ms)
+✔ GPS sends the best fresh uncertain reading for backend policy instead of hanging for accuracy (12.037923ms)
+✔ GPS native errors give recovery guidance and clean up the subscription (1.073219ms)
+✔ process restart recovers upload identity without creating a new capture (2.606191ms)
+✔ offline sequence retains passed views and advances only with durable queue row (0.655811ms)
+✔ expiry, paused room, backwards monotonic time and reboot stop capture (0.46099ms)
+✔ network outages retry but revoked auth pauses; rejected authority needs reconciliation (0.565613ms)
+✔ quality guidance never reports a cleaning failure (0.566218ms)
+✔ targeted rework excludes passed, processing and manager-review requirements (1.819499ms)
+✔ exhausted provider failure is a final unresolved result, never infinite processing or passed (0.604011ms)
+✔ fresh targeted generations clear stale failed state without altering passed or other failed views (0.627073ms)
+✔ retired entrance slot cannot precede a manager-required item (0.362929ms)
+✔ server recapture and restricted review remain visible while other photos upload (3.528376ms)
+✔ a newly saved retake shows upload progress without counting an older rejected capture as passed (0.4236ms)
+✔ a retrying upload shows its saved state and the actual upload error (0.902825ms)
+✔ new sessions require one room photo while legacy session layout remains visible (2.033777ms)
+✔ staff cleanliness outcomes preserve automated clean, dirty and unresolved reasons without relabeling manual resolution (1.088231ms)
+✔ operational failures and pending uploads never become Dirty or Clean, and entrance approval is not a cleanliness result (1.293345ms)
+✔ legacy states map safely without requiring new DTO fields (0.413512ms)
+✔ server retirement removes the entrance row even when the phone has the old policy (0.417664ms)
+✔ one photo blocks the next until upload and all server checks finish (2.824459ms)
+✔ dirty or unusable current photo prevents moving to another item (0.862351ms)
+✔ countdown uses a fixed server deadline and monotonic clock; refresh cannot reset it (0.551235ms)
+✔ one world survives sequential fixture observations and records camera displacement separately (2.934016ms)
+✔ background/restart cannot silently restore continuity (0.528728ms)
+✔ lost native continuity remains broken even when subsequent tracking is good (0.589432ms)
+✔ unsupported capture explicitly has unavailable tracking and no continuous AR world (0.600045ms)
+✔ bad native coordinates downgrade spatial evidence without discarding the still (0.445906ms)
+✔ overdue task status cannot fall through to in progress or processing (2.013007ms)
+react-test-renderer is deprecated. See https://react.dev/warnings/react-test-renderer
+✔ attendance uses its front camera, guards duplicate captures and retries failed uploads (457.52828ms)
+✔ physical-device build refuses absent, relative, loopback, emulator and credential-bearing API URLs (2.626692ms)
+react-test-renderer is deprecated. See https://react.dev/warnings/react-test-renderer
+✔ Android login reserves scroll space for the keyboard and keeps sign-in reachable (292.859108ms)
+react-test-renderer is deprecated. See https://react.dev/warnings/react-test-renderer
+✔ native photo shutter stays circular through styling, pressing and loading (158.346319ms)
+react-test-renderer is deprecated. See https://react.dev/warnings/react-test-renderer
+✔ start scanner rejects duplicate/background callbacks, retries wrong QR, and keeps cleaning separate from finish (1978.920295ms)
+react-test-renderer is deprecated. See https://react.dev/warnings/react-test-renderer
+react-test-renderer is deprecated. See https://react.dev/warnings/react-test-renderer
+✔ failed upload needs manual reupload, has no automatic retry or staff exception buttons (552.071134ms)
+react-test-renderer is deprecated. See https://react.dev/warnings/react-test-renderer
+✔ lost response reconciles the existing result without another upload (63.551726ms)
+react-test-renderer is deprecated. See https://react.dev/warnings/react-test-renderer
+✔ leaving the screen discards the temporary picture and remount cannot restore it (57.468093ms)
+ℹ tests 60
+ℹ suites 0
+ℹ pass 60
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 4465.466447

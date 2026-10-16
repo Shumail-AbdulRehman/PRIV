@@ -22,13 +22,13 @@ export function currentLocation(
       position.timestamp <= Date.now() + 5000;
     const timer = setTimeout(() => {
       if (best && fresh(best)) finish(best);
-      else finish(undefined, new Error('Location could not be found in 20 seconds. Turn on precise location, move near the doorway, then scan again.'));
+      else finish(undefined, new Error('Location could not be found in 20 seconds. Turn on precise location, move near the doorway, then try again.'));
     }, timeoutMs);
     void subscribe(position => {
       if (finished || !fresh(position)) return;
       if (!best || (position.coords.accuracy ?? Infinity) < (best.coords.accuracy ?? Infinity)) best = position;
       if ((position.coords.accuracy ?? Infinity) <= 50) finish(position);
-    }, () => finish(undefined, new Error('Location is unavailable. Check that precise location is on, then scan again.')))
+    }, () => finish(undefined, new Error('Location is unavailable. Check that precise location is on, then try again.')))
       .then(value => { subscription = value; if (finished) value.remove(); })
       .catch(() => finish(undefined, new Error('Location could not start. Enable location services and try again.')));
   });

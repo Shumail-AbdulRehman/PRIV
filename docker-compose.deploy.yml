@@ -26,6 +26,9 @@ services:
       - ${VERIFICATION_RELEASES_DIRECTORY:-./backend/verification-releases}:/run/hygeneops/releases:ro
     environment: &backend-environment
       PORT: 8080
+      GOOGLE_MAP_API_KEY: ${GOOGLE_MAP_API_KEY:-}
+      GOOGLE_MAP_BROWSER_API_KEY: ${GOOGLE_MAP_BROWSER_API_KEY:-}
+      GOOGLE_MAP_ID: ${GOOGLE_MAP_ID:-}
       DATABASE_URL: ${DATABASE_URL}
       FRONTEND_URL: ${FRONTEND_URL}
       ACCESS_TOKEN_SECRET: ${ACCESS_TOKEN_SECRET}
@@ -74,20 +77,6 @@ services:
     ports:
       - "${MOBILE_WEB_PORT:-8081}:80"
 
-  verification-worker:
-    image: ${BACKEND_IMAGE:-shumail47891/fyp:backend}
-    restart: unless-stopped
-    command: ["node", "dist/workers/verificationWorker.js"]
-    depends_on:
-      - backend
-    healthcheck:
-      test: ["CMD", "node", "dist/workers/verificationWorkerHealth.js"]
-      interval: 15s
-      timeout: 10s
-      start_period: 60s
-      retries: 3
-    environment: *backend-environment
-    volumes: *verification-release-volumes
 
 volumes:
   postgres_data:

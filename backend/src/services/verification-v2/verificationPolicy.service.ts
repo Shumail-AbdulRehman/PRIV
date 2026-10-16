@@ -118,6 +118,7 @@ export function reduceIssue(state:string,event:'STAFF_ACTION'|'REVIEW'|'SATISFIE
 }
 
 Object.assign(reasonInstructions, {
+ OBJECT_UNCERTAIN:'Check whether the photo shows the required object. The automatic check was uncertain.',VIEW_UNCERTAIN:'Check whether all required parts are visible. The automatic check was uncertain.',
  PHOTO_OF_SCREEN:'Review a suspected photograph of a picture displayed on another screen. This is not proof of intent.',PHOTO_ORIGIN_UNCERTAIN:'Review whether the photo directly shows the physical item.',CLEF_CALIBRATION_REQUIRED:'Cleanliness predictions need review because calibration is not configured.',
  PHOTO_TOO_DARK:'Turn on the light or torch.',PHOTO_BLURRY:'Hold still and retake.',PHOTO_TOO_SMALL:'Move closer and take a readable photo.',
  FIXTURE_POSITION_TOO_CLOSE_TO_PREVIOUS:'This looks like an item you already photographed. Move to the next item and take another photo.',

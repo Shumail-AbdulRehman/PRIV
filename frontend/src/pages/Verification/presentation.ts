@@ -76,6 +76,8 @@ export function plainReason(code: string): string {
     OVERDUE: "Cleaning is overdue",
     UNASSIGNED: "No worker assigned",
     DUPLICATE_EVIDENCE: "This photo may have been used before",
+    OBJECT_UNCERTAIN: "The automatic check could not confirm the required object",
+    VIEW_UNCERTAIN: "The automatic check could not confirm all required parts",
     IDENTITY_UNCERTAIN: "The fixture needs checking",
     CONTEXT_UNCERTAIN: "The room needs checking",
     GPS_UNCERTAIN: "Location needs checking",

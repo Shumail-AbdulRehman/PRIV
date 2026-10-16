@@ -2,6 +2,8 @@ import { cn } from "@/lib/utils";
 import { useLanguage } from "@/i18n/context";
 import { useContext } from "react";
 import { WorkspaceTheme } from "./WorkspaceTheme";
+import LoadingSkeleton, { type SkeletonVariant } from "./LoadingSkeleton";
+import PageLoadingSkeleton from "./PageLoadingSkeleton";
 
 type SpinnerSize = "small" | "default" | "large";
 
@@ -11,6 +13,7 @@ interface LoadingSpinnerProps {
   overlay?: boolean;
   color?: string;
   thickness?: number;
+  skeleton?: SkeletonVariant;
 }
 
 interface SpinnerGlyphProps {
@@ -64,29 +67,14 @@ export default function LoadingSpinner({
   overlay = false,
   color,
   thickness = 3,
+  skeleton,
 }: LoadingSpinnerProps) {
   const workspace = useContext(WorkspaceTheme);
-  const { t } = useLanguage();
   if (workspace && fullScreen) {
-    return (
-      <div
-        className="workspace-loading"
-        role="status"
-        aria-label={t("Loading…")}
-      >
-        <span className="sr-only">{t("Loading…")}</span>
-        <div className="workspace-loading-title" />
-        <div className="workspace-loading-metrics">
-          {[0, 1, 2, 3].map((i) => (
-            <div key={i} />
-          ))}
-        </div>
-        <div className="workspace-loading-table">
-          {[0, 1, 2, 3, 4].map((i) => (
-            <div key={i} />
-          ))}
-        </div>
-      </div>
+    return skeleton ? (
+      <LoadingSkeleton variant={skeleton} header />
+    ) : (
+      <PageLoadingSkeleton />
     );
   }
   if (!fullScreen && !overlay) {

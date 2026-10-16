@@ -1,0 +1,484 @@
+.workspace-dialog.location-form-dialog {
+  width: min(1060px, calc(100vw - 40px));
+  max-width: 1060px;
+  padding: 0;
+  gap: 0;
+  background: var(--card);
+  border-radius: 12px;
+  max-height: 92dvh;
+}
+.location-dialog-header {
+  flex-direction: row;
+  gap: 14px;
+  align-items: center;
+  padding: 24px 32px;
+  border-bottom: 1px solid var(--border);
+}
+.location-dialog-header [data-slot="dialog-title"] {
+  font-size: 22px;
+  font-weight: 700;
+  letter-spacing: -0.04em;
+  line-height: 1.35;
+}
+.location-dialog-header [data-slot="dialog-description"] {
+  margin-top: 4px;
+  padding-inline-end: 20px;
+}
+.location-dialog-icon {
+  color: var(--primary);
+  background: var(--accent);
+  width: 46px;
+  height: 46px;
+  display: grid;
+  place-items: center;
+  border-radius: 10px;
+  flex-shrink: 0;
+}
+.location-editor-body {
+  display: grid;
+  grid-template-columns: minmax(0, 1.35fr) minmax(0, 1fr);
+}
+.location-editor-map {
+  padding: 26px 28px 22px;
+  min-width: 0;
+  background: var(--surface);
+}
+.location-editor-details {
+  padding: 26px 28px;
+  border-inline-start: 1px solid var(--border);
+  min-width: 0;
+}
+.location-map-heading {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  margin-bottom: 18px;
+  color: var(--primary);
+}
+.location-eyebrow {
+  display: block;
+  font-size: 12px;
+  font-weight: 650;
+  color: var(--muted-foreground);
+  margin-bottom: 5px;
+}
+.location-map-heading h3 {
+  margin: 0;
+  color: var(--foreground);
+  font-size: 18px;
+  font-weight: 650;
+  letter-spacing: -0.03em;
+}
+.location-place-search {
+  position: relative;
+  margin-bottom: 14px;
+  z-index: 2;
+}
+.location-place-search label,
+.location-field label {
+  display: block;
+  font-size: 13px;
+  font-weight: 600;
+  margin-bottom: 7px;
+}
+.location-search-input {
+  display: flex;
+  align-items: center;
+  gap: 9px;
+  padding: 0 12px;
+  min-height: 48px;
+  background: var(--card);
+  border: 1px solid var(--input);
+  border-radius: 6px;
+  color: var(--muted-foreground);
+}
+.location-search-input:focus-within {
+  outline: 2px solid var(--ring);
+  outline-offset: 2px;
+}
+.location-search-input input {
+  border: 0;
+  box-shadow: none;
+  padding: 0;
+  min-width: 0;
+  outline: 0 !important;
+  background: transparent;
+}
+.location-search-input input:focus-visible {
+  box-shadow: none;
+}
+.location-search-input > svg {
+  flex-shrink: 0;
+}
+.location-search-input button {
+  display: grid;
+  place-items: center;
+  min-width: 28px;
+  min-height: 36px;
+  cursor: pointer;
+}
+.location-place-results {
+  position: absolute;
+  width: 100%;
+  top: 100%;
+  margin-top: 6px;
+  padding: 5px;
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  background: var(--card);
+  box-shadow: 0 8px 20px oklch(0.24 0.029 220 / 0.1);
+  max-height: 260px;
+  overflow-y: auto;
+}
+.location-place-results li {
+  display: flex;
+  gap: 10px;
+  align-items: center;
+  min-height: 58px;
+  padding: 10px;
+  border-radius: 4px;
+  cursor: pointer;
+  color: var(--primary);
+}
+.location-place-results li:hover,
+.location-place-results [aria-selected="true"] {
+  background: var(--accent);
+}
+.location-place-results li > svg {
+  flex-shrink: 0;
+}
+.location-place-results li > span {
+  min-width: 0;
+  flex: 1;
+}
+.location-place-results strong,
+.location-place-results small {
+  display: block;
+  overflow-wrap: anywhere;
+}
+.location-place-results strong {
+  color: var(--foreground);
+  font-size: 13px;
+  font-weight: 600;
+}
+.location-place-results small {
+  color: var(--muted-foreground);
+  font-size: 12px;
+  margin-top: 2px;
+}
+.location-map-frame {
+  height: 340px;
+  position: relative;
+  overflow: hidden;
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  background: var(--muted);
+}
+.location-map-canvas {
+  width: 100%;
+  height: 100%;
+}
+.location-map-placeholder {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 32px;
+  gap: 12px;
+  background: var(--muted);
+  text-align: center;
+  color: var(--muted-foreground);
+}
+.location-map-placeholder strong {
+  color: var(--foreground);
+  font-size: 16px;
+}
+.location-map-placeholder p {
+  font-size: 13px;
+  max-width: 32ch;
+  margin: 0;
+}
+.location-map-hint {
+  position: absolute;
+  top: 12px;
+  inset-inline-start: 12px;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 8px 10px;
+  background: var(--card);
+  border: 1px solid var(--border);
+  border-radius: 5px;
+  font-size: 12px;
+  color: var(--foreground);
+  pointer-events: none;
+  max-width: calc(100% - 24px);
+}
+.location-center-button {
+  position: absolute;
+  bottom: 32px;
+  inset-inline-start: 12px;
+  background: var(--card) !important;
+  width: 42px;
+  height: 42px;
+}
+.location-map-caption {
+  display: flex;
+  align-items: center;
+  gap: 7px;
+  font-size: 11px;
+  color: var(--muted-foreground);
+  padding: 10px 0;
+}
+.location-map-caption strong {
+  margin-inline-start: auto;
+  white-space: nowrap;
+  color: var(--primary);
+}
+.location-radius-dot {
+  width: 10px;
+  height: 10px;
+  border: 1px solid var(--primary);
+  background: var(--accent);
+  border-radius: 50%;
+  flex-shrink: 0;
+}
+.location-current-position {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 12px;
+  padding-top: 16px;
+  border-top: 1px solid var(--border);
+}
+.location-current-position strong {
+  display: block;
+  font-size: 13px;
+  font-weight: 600;
+}
+.location-current-position p {
+  font-size: 12px;
+  color: var(--muted-foreground);
+  margin: 3px 0 0;
+}
+.location-current-position button {
+  flex-shrink: 0;
+}
+.location-section-label {
+  margin-bottom: 19px;
+}
+.location-section-label p {
+  font-size: 13px;
+  color: var(--muted-foreground);
+  margin: 0;
+}
+.location-field {
+  margin-bottom: 17px;
+}
+.location-field input,
+.location-field select {
+  min-height: 46px;
+  background: var(--card);
+}
+.location-field select {
+  width: 100%;
+  border: 1px solid var(--input);
+  border-radius: 5px;
+  padding: 8px;
+  font-size: 13px;
+}
+.location-field-note {
+  font-size: 12px;
+  color: var(--muted-foreground);
+  margin: 6px 0 0;
+}
+.location-field-error {
+  font-size: 13px;
+  color: var(--danger-ink, var(--destructive));
+  margin: 7px 0 0;
+}
+.location-radius-setting {
+  padding: 17px 0;
+  border-top: 1px solid var(--border);
+}
+.location-radius-heading {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 8px;
+}
+.location-radius-heading label {
+  display: flex;
+  gap: 7px;
+  align-items: center;
+  font-size: 13px;
+  font-weight: 600;
+}
+.location-radius-heading > span {
+  color: var(--muted-foreground);
+  font-size: 12px;
+}
+.location-radius-presets {
+  display: flex;
+  gap: 7px;
+  margin: 9px 0;
+}
+.location-radius-presets button {
+  padding: 5px 10px;
+  min-height: 34px;
+  border: 1px solid var(--border);
+  border-radius: 5px;
+  font-size: 12px;
+  cursor: pointer;
+  background: var(--card);
+}
+.location-radius-presets button[aria-pressed="true"] {
+  background: var(--accent);
+  border-color: var(--primary);
+  color: var(--primary);
+  font-weight: 650;
+}
+.location-coordinate-details {
+  border-top: 1px solid var(--border);
+}
+.location-coordinate-details summary {
+  display: flex;
+  cursor: pointer;
+  align-items: center;
+  justify-content: space-between;
+  padding: 14px 0;
+  font-size: 13px;
+  font-weight: 600;
+  list-style: none;
+}
+.location-coordinate-details summary::-webkit-details-marker {
+  display: none;
+}
+.location-coordinate-details[open] summary svg {
+  transform: rotate(180deg);
+}
+.location-coordinate-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 12px;
+}
+.location-position-status {
+  display: flex;
+  align-items: center;
+  gap: 9px;
+  padding-top: 12px;
+  color: var(--muted-foreground);
+}
+.location-position-status strong,
+.location-position-status small {
+  display: block;
+}
+.location-position-status strong {
+  font-size: 12px;
+  font-weight: 600;
+}
+.location-position-status small {
+  font-size: 11px;
+  margin-top: 3px;
+}
+.location-position-status.is-selected > svg {
+  color: var(--primary);
+}
+.location-selection-notice {
+  display: flex;
+  gap: 7px;
+  align-items: start;
+  margin-top: 12px;
+  color: var(--primary);
+  font-size: 12px;
+}
+.location-selection-notice svg {
+  flex-shrink: 0;
+  margin-top: 2px;
+}
+.location-editor-footer {
+  border-top: 1px solid var(--border);
+  padding: 18px 28px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 20px;
+  background: var(--card);
+  position: sticky;
+  bottom: 0;
+  z-index: 3;
+}
+.location-footer-message {
+  font-size: 12px;
+  color: var(--muted-foreground);
+  max-width: 52ch;
+}
+.location-footer-message p {
+  margin: 0;
+}
+.location-footer-actions {
+  display: flex;
+  gap: 10px;
+  flex-shrink: 0;
+}
+@media (max-width: 760px) {
+  .workspace-dialog.location-form-dialog {
+    width: calc(100vw - 24px);
+    max-height: 94dvh;
+  }
+  .location-dialog-header {
+    padding: 22px 20px;
+    align-items: start;
+  }
+  .location-dialog-header [data-slot="dialog-title"] {
+    font-size: 21px;
+  }
+  .location-editor-body {
+    grid-template-columns: minmax(0, 1fr);
+  }
+  .location-editor-map,
+  .location-editor-details {
+    padding: 20px;
+  }
+  .location-editor-details {
+    border-inline-start: 0;
+    border-top: 1px solid var(--border);
+  }
+  .location-map-frame {
+    height: 290px;
+  }
+  .location-map-heading h3 {
+    font-size: 17px;
+  }
+  .location-current-position {
+    flex-wrap: wrap;
+  }
+  .location-map-caption {
+    font-size: 11px;
+  }
+  .location-editor-footer {
+    padding: 14px 20px;
+    flex-direction: column;
+    gap: 10px;
+    align-items: stretch;
+  }
+  .location-footer-actions {
+    justify-content: flex-end;
+  }
+  .location-footer-actions button {
+    flex: 1;
+    min-height: 46px;
+  }
+  .location-radius-presets button {
+    flex: 1;
+    min-height: 42px;
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .location-editor .animate-spin {
+    animation: none;
+  }
+}

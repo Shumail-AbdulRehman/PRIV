@@ -23,10 +23,10 @@ type Processing = { directProcessingToken?:string|null;directProcessingStartedAt
 const json = (value: unknown) => JSON.parse(JSON.stringify(value)) as Prisma.InputJsonObject;
 
 export async function directPhotoStatus(actor: VerificationActor, id: string) {
-  const a = await prisma.verificationAttempt.findUniqueOrThrow({where:{id},include:{session:true,media:true,requirement:true}});
+  const a = await prisma.verificationAttempt.findUniqueOrThrow({where:{id},include:{session:true,media:true,requirement:{include:{item:true}}}});
   await requireTaskAccess(actor,a.session.taskInstanceId);
   return {attemptId:a.id,assetId:a.mediaAssetId,state:directRequestExpired(a)?'RESERVED':a.state,storage:photoStorageState(a.media),
-    ...staffAttemptResult(a,reviewableMedia(a.media?.privacyState),a.requirement?.currentAttemptId===a.id?a.requirement.state:undefined)};
+    ...staffAttemptResult(a,reviewableMedia(a.media?.privacyState),a.requirement?.currentAttemptId===a.id?a.requirement.state:undefined,a.requirement?{fixtureType:a.requirement.item.typeSnapshot,viewKey:a.requirement.viewKey}:undefined)};
 }
 
 /** AI and conditional cloud storage finish in the upload request. No queue or disk buffer. */
@@ -36,7 +36,7 @@ export async function processDirectPhoto(actor: VerificationActor, attemptId: st
   const initial=await prisma.verificationAttempt.findUniqueOrThrow({where:{id:attemptId},include:{session:true}});
   if(initial.staffId!==actor.id)throw new ApiError(404,'Capture not found');
   await requireTaskAccess(actor,initial.session.taskInstanceId,{staffMutation:true});
-  if(sha256(bytes)!==initial.committedHash)throw new ApiError(409,'Different bytes require a new photo.');
+  if(sha256(bytes)!==initial.committedHash)throw new ApiError(409,'This photo changed before it finished uploading. Please take a new photo.');
   const info=await inspectImage(bytes), token=randomUUID(), started=Date.now();
   const claim=await prisma.$transaction(async tx=>{
     await lockTask(tx,initial.session.taskInstanceId);
@@ -44,7 +44,7 @@ export async function processDirectPhoto(actor: VerificationActor, attemptId: st
     if(a.media&&['PASSED','REVIEW_REQUIRED','PRIVACY_HOLD','RECAPTURE_REQUIRED','CLEANING_REQUIRED'].includes(a.state))return {finished:true as const,attempt:a};
     const prior=a as Processing;
     if(prior.directProcessingToken&&started-+(prior.directProcessingStartedAt??new Date(0))<DIRECT_REQUEST_TTL_MS)
-      throw new ApiError(409,'This photo is still being checked. Refresh its result before uploading again.',[{code:'PHOTO_PROCESSING'}]);
+      throw new ApiError(409,'This photo is still being checked. Tap Check result before uploading again.',[{code:'PHOTO_PROCESSING'}]);
     const quality={...info.quality,workflow:WORKFLOW};
     await tx.verificationAttempt.update({where:{id:attemptId},data:{state:'CLEANLINESS_CHECK',receivedAt:a.receivedAt??new Date(started),directProcessingToken:token,directProcessingStartedAt:new Date(started),...(a.qualityResult===null?{qualityResult:json(quality)}:{})}});
     return {finished:false as const,attempt:a,quality};
@@ -86,6 +86,7 @@ export async function processDirectPhoto(actor: VerificationActor, attemptId: st
       await tx.verificationAttempt.update({where:{id:attemptId},data:{mediaAssetId:media.id,
         directProcessingToken:null,directProcessingStartedAt:null}});
       await applyDecision(tx,attemptId,decision.state,decision.reason,json({workflow:WORKFLOW,
+        ...(claim.attempt.requirement?{photoContext:{fixtureType:claim.attempt.requirement.item.typeSnapshot,viewKey:claim.attempt.requirement.viewKey,...(assessment?.toiletStyle?{toiletStyle:assessment.toiletStyle}:{}),...(assessment?.missingSurfaces?.length?{missingSurfaces:assessment.missingSurfaces}:{})}}:{}),
         ...(assessment?.cleanliness?{result:assessment.cleanliness,metadata:assessment.metadata}:{})}));
       await finalizeTask(tx,initial.session.taskInstanceId);
     });
@@ -100,6 +101,6 @@ export async function processDirectPhoto(actor: VerificationActor, attemptId: st
         state:'RESERVED',directProcessingToken:null,directProcessingStartedAt:null}});
     });
     if(error instanceof ApiError)throw error;
-    throw new ApiError(503,'The photo check or upload could not finish. Upload this photo again.',[{code:'PHOTO_UPLOAD_AGAIN',attemptId}]);
+    throw new ApiError(503,'We could not finish uploading or checking your photo. Check your internet and tap Upload again.',[{code:'PHOTO_UPLOAD_AGAIN',attemptId}]);
   }
 }

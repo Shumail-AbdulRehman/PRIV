@@ -58,11 +58,11 @@ def inspect(apk, api_url, commit):
     required_modules = {
         'expo.modules.spatialtracking.SpatialTrackingModule',
         'expo.modules.capturequality.CaptureQualityModule', 'expo.modules.camera.CameraViewModule',
-        'expo.modules.location.LocationModule', 'expo.modules.sqlite.SQLiteModule',
+        'expo.modules.location.LocationModule',
         'expo.modules.securestore.SecureStoreModule', 'expo.modules.filesystem.FileSystemModule',
         'expo.modules.filesystem.legacy.FileSystemLegacyModule', 'expo.modules.crypto.CryptoModule',
         'com.reactnativecommunity.netinfo.NetInfoModule',
-        'ai.onnxruntime.reactnative.OnnxruntimeModule',
+        'expo.modules.speech.SpeechModule',
     }
     with zipfile.ZipFile(apk) as archive:
         names = archive.namelist()
@@ -78,35 +78,32 @@ def inspect(apk, api_url, commit):
         bundle = archive.read('assets/index.android.bundle')
         if normalized_url.encode() not in bundle:
             raise ValueError('Expected phone-accessible API URL missing from bundled JavaScript')
-        if not all(marker in bundle for marker in [b'Task completed', b'Checking photo', b'Scan the room QR again', b'activate-photo']):
+        if not all(marker in bundle for marker in [b'Task completed', b'Photo received and being checked', b'Scan the room QR again', b'activate-photo']):
             raise ValueError('Sequential staff submission UX is missing from bundled JavaScript')
-        storage_fix_markers = [b'The saved-photo database directory is unavailable.',
-                               b'Secure photo storage could not open.']
-        if not all(marker in bundle for marker in storage_fix_markers):
-            raise ValueError('Device storage fixes missing from bundled JavaScript')
-        model_sha = hashlib.sha256(archive.read('assets/clip-vision-int8.onnx')).hexdigest()
-        if model_sha != '583fd1110a514667812fee7d684952aaf82a99b959760c8d7dca7e0ab9839299':
-            raise ValueError('Bundled fixture model is missing or changed')
-        if 'assets/CLIP-LICENSE.txt' not in names:
-            raise ValueError('Bundled fixture model license is missing')
+        direct_markers = [b'Upload again', b'Check result', b'This picture is temporary.']
+        if not all(marker in bundle for marker in direct_markers):
+            raise ValueError('Direct photo upload UX missing from bundled JavaScript')
+        if 'expo.modules.sqlite.SQLiteModule' in classes:
+            raise ValueError('Removed persistent photo storage is still packaged')
+        if any(name.endswith('.onnx') or 'clip-text-vectors' in name or 'onnxruntime' in name.lower() for name in names):
+            raise ValueError('Removed local AI model/runtime is still packaged')
+        if any(name.startswith('ai.onnxruntime.') for name in classes):
+            raise ValueError('Removed ONNX Java runtime is still packaged')
         abis = {name.split('/')[1] for name in names if name.startswith('lib/') and name.endswith('.so')}
         for abi in ('arm64-v8a', 'armeabi-v7a'):
-            required_libraries = {f'lib/{abi}/libarcore_sdk_jni.so', f'lib/{abi}/libexpo-sqlite.so',
-                                  f'lib/{abi}/libonnxruntime.so', f'lib/{abi}/libonnxruntimejsi.so'}
+            required_libraries = {f'lib/{abi}/libarcore_sdk_jni.so'}
             if not required_libraries <= set(names):
-                raise ValueError(f'Missing ARCore/SQLite native libraries for {abi}')
-            if b'cipher_version' not in archive.read(f'lib/{abi}/libexpo-sqlite.so'):
-                raise ValueError(f'SQLCipher version probe missing from native SQLite for {abi}')
+                raise ValueError(f'Missing ARCore native libraries for {abi}')
     size = apk.stat().st_size
     if not 10 * 1024 * 1024 < size < 500 * 1024 * 1024:
         raise ValueError(f'Unexpected APK size: {size} bytes')
     return {'applicationId': package, 'versionName': root.get(android + 'versionName'),
-            'versionCode': int(root.get(android + 'versionCode')), 'deviceStorageFixesBundled': True,
-            'localCategoryModelSha256': model_sha, 'localCategoryModelBundled': True,
+            'versionCode': int(root.get(android + 'versionCode')), 'directPhotoUploads': True, 'persistentPhotoStorage': False,
+            'localCategoryModelBundled': False, 'onnxRuntimeBundled': False,
             'sizeBytes': size, 'sha256': hashlib.file_digest(apk.open('rb'), 'sha256').hexdigest(),
             'apiBaseUrl': normalized_url, 'commit': commit, 'abis': sorted(abis),
             'permissions': sorted(permissions), 'arCore': 'optional',
-            'nativeModules': sorted(required_modules), 'sqlCipherNativeProbePresent': True,
+            'nativeModules': sorted(required_modules), 'sqlCipherNativeProbePresent': False,
             'spatialAutomaticAcceptance': False, 'cleanlinessAutomaticPassing': 'server-controlled validated release',
             'staffSubmissionLabels': ['Task completed'], 'sequentialPhotoChecks': True, 'localCategoryGate': False,
             'physicalSensorAccuracyValidated': False, 'signingPurpose': 'testing/debug key'}

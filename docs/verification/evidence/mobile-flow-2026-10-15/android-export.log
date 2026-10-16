@@ -1,0 +1,41 @@
+env: load .env
+env: export EXPO_PUBLIC_API_BASE_URL
+Starting Metro Bundler
+Android ./index.ts ░░░░░░░░░░░░░░░░  0.0% (0/1)
+| (node:16817) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+| (Use `node --trace-warnings ...` to show where the warning was created)
+| (node:16818) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+| (Use `node --trace-warnings ...` to show where the warning was created)
+| (node:16824) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+| (Use `node --trace-warnings ...` to show where the warning was created)
+| (node:16842) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+| (Use `node --trace-warnings ...` to show where the warning was created)
+| (node:16836) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+| (Use `node --trace-warnings ...` to show where the warning was created)
+| (node:16830) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+| (Use `node --trace-warnings ...` to show where the warning was created)
+Android ./index.ts ▓▓░░░░░░░░░░░░░░ 16.6% (127/337)
+Android ./index.ts ▓▓▓▓▓▓░░░░░░░░░░ 40.4% (470/741)
+Android ./index.ts ▓▓▓▓▓▓▓▓▓▓░░░░░░ 64.2% (757/945)
+Android ./index.ts ▓▓▓▓▓▓▓▓▓▓▓▓░░░░ 76.6% (1019/2945)
+Android ./index.ts ▓▓▓▓▓▓▓▓▓▓▓▓░░░░ 76.6% (1568/3007)
+Android ./index.ts ▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓░ 95.0% (2931/3007)
+Android ./index.ts ▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓░ 99.9% (3322/3322)
+Android Bundled 33198ms index.ts (3322 modules)
+Android ./index.ts ▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓░ 99.9% (3322/3322)
+
+› Assets (18):
+assets/hygene-ops-mark.png (3.01 kB)
+node_modules/@react-navigation/elements/lib/module/assets/back-icon-mask.png (653 B)
+node_modules/@react-navigation/elements/lib/module/assets/back-icon.png (4 variations | 152 B)
+node_modules/@react-navigation/elements/lib/module/assets/clear-icon.png (4 variations | 425 B)
+node_modules/@react-navigation/elements/lib/module/assets/close-icon.png (4 variations | 235 B)
+node_modules/@react-navigation/elements/lib/module/assets/search-icon.png (4 variations | 599 B)
+
+› android bundles (1):
+_expo/static/js/android/index-358df949ed1d336a07861008e7dd6215.hbc (6.4 MB)
+
+› Files (1):
+metadata.json (1.41 kB)
+
+Exported: /tmp/hygene-flow-test-20261015/android-export

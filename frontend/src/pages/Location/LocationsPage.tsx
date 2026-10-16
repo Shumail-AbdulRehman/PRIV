@@ -1,6 +1,4 @@
-import { useForm } from "react-hook-form";
-import type { SubmitHandler } from "react-hook-form";
-import { useCreateLocation, useGetLocations } from "./queries";
+import { useGetLocations } from "./queries";
 import DataTable from "@/components/common/DataTable";
 import StatusBadge from "@/components/common/StatusBadge";
 import OperationStatus from "@/components/common/OperationStatus";
@@ -8,12 +6,11 @@ import OperationsState from "../Manager/OperationsState";
 import { useOperations, type OperationOverview } from "../Manager/operations";
 import { useLanguage } from "@/i18n/context";
 import { Link } from "react-router-dom";
-import type { LocationWithCounts, LocationFormValues } from "./types";
+import type { LocationWithCounts } from "./types";
 import LoadingSpinner from "@/components/common/LoadingSpinner";
 import PageHeader from "@/components/common/PageHeader";
 import EmptyState from "@/components/common/EmptyState";
 import {
-  LocateFixed,
   MapPin,
   Plus,
   Search,
@@ -26,23 +23,10 @@ import {
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import StatCard from "@/components/common/StatCard";
-import {
-  Dialog,
-  DialogContent,
-  DialogHeader,
-  DialogTitle,
-  DialogTrigger,
-} from "@/components/ui/dialog";
-import { useEffect, useMemo, useRef, useState } from "react";
-import { getPreciseCurrentPosition } from "./currentPosition";
+import { useState } from "react";
+import LocationFormDialog from "./LocationFormDialog";
 import { useSelector } from "react-redux";
 import type { RootState } from "@/store/store";
-
-type CapturedLocation = {
-  latitude: string;
-  longitude: string;
-  accuracy: number;
-};
 
 export default function LocationsPage() {
   const { t } = useLanguage();
@@ -52,119 +36,10 @@ export default function LocationsPage() {
   const operations = useOperations<OperationOverview>("overview", {
     date: "today",
   });
-  const createLocation = useCreateLocation();
   const getLocations = useGetLocations();
   const user = useSelector((s: RootState) => s.auth.user);
   const isAdmin = user?.role === "ADMIN";
   const [dialogOpen, setDialogOpen] = useState(false);
-  const [locationError, setLocationError] = useState<string | null>(null);
-  const [isLocating, setIsLocating] = useState(false);
-  const locationRequest = useRef<AbortController | null>(null);
-  useEffect(() => () => locationRequest.current?.abort(), []);
-  const [capturedLocation, setCapturedLocation] =
-    useState<CapturedLocation | null>(null);
-  const timeZones = useMemo<string[]>(
-    () => Intl.supportedValuesOf("timeZone"),
-    [],
-  );
-
-  const {
-    register,
-    handleSubmit,
-    reset,
-    setValue,
-    formState: { errors },
-  } = useForm<LocationFormValues>({
-    defaultValues: { timezone: "" },
-  });
-
-  const changeDialogOpen = (open: boolean) => {
-    if (!open) {
-      locationRequest.current?.abort();
-      setIsLocating(false);
-    }
-    setDialogOpen(open);
-  };
-
-  const editCoordinates = () => {
-    locationRequest.current?.abort();
-    setIsLocating(false);
-    setCapturedLocation(null);
-    setLocationError(null);
-  };
-
-  const fillCurrentLocation = async () => {
-    locationRequest.current?.abort();
-    setLocationError(null);
-    setCapturedLocation(null);
-
-    if (!navigator.geolocation) {
-      setLocationError("Location access is not supported by this browser.");
-      return;
-    }
-
-    const request = new AbortController();
-    locationRequest.current = request;
-    setIsLocating(true);
-    try {
-      const position = await getPreciseCurrentPosition(
-        navigator.geolocation,
-        request.signal,
-      );
-      if (request.signal.aborted) return;
-      const latitude = position.coords.latitude.toFixed(6);
-      const longitude = position.coords.longitude.toFixed(6);
-      const accuracy = position.coords.accuracy;
-
-      setValue("latitude", latitude, {
-        shouldDirty: true,
-        shouldValidate: true,
-      });
-      setValue("longitude", longitude, {
-        shouldDirty: true,
-        shouldValidate: true,
-      });
-      setCapturedLocation({ latitude, longitude, accuracy });
-    } catch (error) {
-      if (!request.signal.aborted)
-        setLocationError(
-          error instanceof Error
-            ? error.message
-            : "Could not get your location. Enter coordinates manually or try again.",
-        );
-    } finally {
-      if (locationRequest.current === request && !request.signal.aborted)
-        setIsLocating(false);
-    }
-  };
-
-  const onSubmit: SubmitHandler<LocationFormValues> = async (data) => {
-    try {
-      await createLocation.mutateAsync(
-        {
-          name: data.name,
-          address: data.address,
-          latitude: data.latitude,
-          longitude: data.longitude,
-          ...(data.timezone ? { timezone: data.timezone } : {}),
-        },
-        {
-          onSuccess: () => {
-            reset();
-            setLocationError(null);
-            setCapturedLocation(null);
-            changeDialogOpen(false);
-            setSuccess(
-              "Location created. Add areas and assign your team to get started.",
-            );
-          },
-        },
-      );
-    } catch {
-      /* The mutation error stays visible in the form. */
-    }
-  };
-
   if (getLocations.isPending) return <LoadingSpinner fullScreen />;
 
   if (getLocations.isError)
@@ -210,245 +85,26 @@ export default function LocationsPage() {
         subtitle="See your sites, teams, and today’s cleaning work."
         action={
           isAdmin ? (
-            <Dialog open={dialogOpen} onOpenChange={changeDialogOpen}>
-              <DialogTrigger asChild>
-                <Button className="rounded-lg px-4">
-                  <Plus className="h-4 w-4" /> Add location
-                </Button>
-              </DialogTrigger>
-              <DialogContent className="border-border/70 bg-card text-card-foreground sm:max-w-xl">
-                <DialogHeader>
-                  <DialogTitle>Create location</DialogTitle>
-                </DialogHeader>
-                <form
-                  onSubmit={handleSubmit(onSubmit)}
-                  className="space-y-4 pt-2"
-                >
-                  <div>
-                    <label
-                      htmlFor="location-name"
-                      className="mb-1.5 block text-sm font-medium text-foreground"
-                    >
-                      Location Name
-                    </label>
-                    <Input
-                      id="location-name"
-                      {...register("name", { required: "Name is required" })}
-                      placeholder="Blue Area Office"
-                    />
-                    {errors.name && (
-                      <p className="mt-1 text-xs text-red-500">
-                        {errors.name.message}
-                      </p>
-                    )}
-                  </div>
-                  <div>
-                    <label
-                      htmlFor="location-address"
-                      className="mb-1.5 block text-sm font-medium text-foreground"
-                    >
-                      Address
-                    </label>
-                    <Input
-                      id="location-address"
-                      {...register("address", {
-                        required: "Address is required",
-                      })}
-                      placeholder="Blue Area, Islamabad"
-                    />
-                    {errors.address && (
-                      <p className="mt-1 text-xs text-red-500">
-                        {errors.address.message}
-                      </p>
-                    )}
-                  </div>
-                  <div className="grid grid-cols-2 gap-4">
-                    <div>
-                      <label
-                        htmlFor="location-latitude"
-                        className="mb-1.5 block text-sm font-medium text-foreground"
-                      >
-                        Latitude
-                      </label>
-                      <Input
-                        type="number"
-                        step="any"
-                        id="location-latitude"
-                        {...register("latitude", {
-                          onChange: editCoordinates,
-                          required: "Latitude is required",
-                          min: {
-                            value: -90,
-                            message: "Latitude must be between -90 and 90",
-                          },
-                          max: {
-                            value: 90,
-                            message: "Latitude must be between -90 and 90",
-                          },
-                        })}
-                        placeholder="33.6844"
-                      />
-                      {errors.latitude && (
-                        <p className="mt-1 text-xs text-red-500">
-                          {errors.latitude.message}
-                        </p>
-                      )}
-                    </div>
-                    <div>
-                      <label
-                        htmlFor="location-longitude"
-                        className="mb-1.5 block text-sm font-medium text-foreground"
-                      >
-                        Longitude
-                      </label>
-                      <Input
-                        type="number"
-                        step="any"
-                        id="location-longitude"
-                        {...register("longitude", {
-                          onChange: editCoordinates,
-                          required: "Longitude is required",
-                          min: {
-                            value: -180,
-                            message: "Longitude must be between -180 and 180",
-                          },
-                          max: {
-                            value: 180,
-                            message: "Longitude must be between -180 and 180",
-                          },
-                        })}
-                        placeholder="73.0479"
-                      />
-                      {errors.longitude && (
-                        <p className="mt-1 text-xs text-red-500">
-                          {errors.longitude.message}
-                        </p>
-                      )}
-                    </div>
-                  </div>
-                  <div>
-                    <label
-                      htmlFor="location-timezone"
-                      className="mb-1.5 block text-sm font-medium text-foreground"
-                    >
-                      Timezone
-                    </label>
-                    <select
-                      id="location-timezone"
-                      {...register("timezone")}
-                      className="flex h-11 w-full rounded-lg border border-border/80 bg-background/90 px-4 py-2 text-sm shadow-xs outline-none focus:border-primary/60 focus:ring-4 focus:ring-primary/10"
-                    >
-                      <option value="">Auto-detect from coordinates</option>
-                      {timeZones.map((tz) => (
-                        <option key={tz} value={tz}>
-                          {tz}
-                        </option>
-                      ))}
-                    </select>
-                    <p className="mt-1 text-xs text-muted-foreground">
-                      Detected automatically from the latitude/longitude. Only
-                      change it if the detected zone is wrong.
-                    </p>
-                  </div>
-                  <div className="rounded-lg border border-border/70 bg-muted/30 p-3">
-                    <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
-                      <div>
-                        <p className="text-sm font-medium text-foreground">
-                          Use current coordinates
-                        </p>
-                        <p className="text-xs text-muted-foreground">
-                          Use this only while at the site. We wait up to 15
-                          seconds for a reading accurate to 50 m or better.
-                        </p>
-                      </div>
-                      <Button
-                        type="button"
-                        variant="outline"
-                        className="rounded-lg"
-                        onClick={fillCurrentLocation}
-                        disabled={isLocating}
-                      >
-                        <LocateFixed className="h-4 w-4" />
-                        {isLocating ? "Locating..." : "Get my location"}
-                      </Button>
-                    </div>
-                    {capturedLocation && (
-                      <div className="mt-3 rounded-xl border border-border/60 bg-background/80 p-3">
-                        <div className="grid grid-cols-2 gap-2 text-xs">
-                          <div>
-                            <span className="text-muted-foreground">
-                              Latitude:
-                            </span>{" "}
-                            <span className="font-medium text-foreground">
-                              {capturedLocation.latitude}
-                            </span>
-                          </div>
-                          <div>
-                            <span className="text-muted-foreground">
-                              Longitude:
-                            </span>{" "}
-                            <span className="font-medium text-foreground">
-                              {capturedLocation.longitude}
-                            </span>
-                          </div>
-                          <div className="col-span-2">
-                            <span className="text-muted-foreground">
-                              Estimated accuracy:
-                            </span>{" "}
-                            <span className="font-medium text-foreground">
-                              {`±${Math.round(capturedLocation.accuracy)} m`}
-                            </span>
-                          </div>
-                        </div>
-                      </div>
-                    )}
-                    {locationError && (
-                      <p role="alert" className="mt-2 text-xs text-destructive">
-                        {locationError}
-                      </p>
-                    )}
-                  </div>
-                  {createLocation.isError ? (
-                    <p role="alert" className="operations-notice">
-                      {(
-                        createLocation.error as {
-                          response?: { data?: { message?: string } };
-                        }
-                      ).response?.data?.message ??
-                        "Location could not be created. Check the details and try again."}
-                    </p>
-                  ) : null}
-                  <div className="flex gap-3 pt-2">
-                    <Button
-                      type="button"
-                      variant="outline"
-                      className="flex-1 rounded-lg"
-                      onClick={() => {
-                        reset();
-                        setLocationError(null);
-                        setCapturedLocation(null);
-                        changeDialogOpen(false);
-                      }}
-                    >
-                      Cancel
-                    </Button>
-                    <Button
-                      type="submit"
-                      disabled={createLocation.isPending || isLocating}
-                      className="flex-1 rounded-lg"
-                    >
-                      {createLocation.isPending
-                        ? "Creating..."
-                        : "Create location"}
-                    </Button>
-                  </div>
-                </form>
-              </DialogContent>
-            </Dialog>
+            <Button onClick={() => setDialogOpen(true)}>
+              <Plus size={16} />
+              {t("Add location")}
+            </Button>
           ) : undefined
         }
       />
 
+      {isAdmin ? (
+        <LocationFormDialog
+          open={dialogOpen}
+          onOpenChange={setDialogOpen}
+          onSaved={() => {
+            setDialogOpen(false);
+            setSuccess(
+              "Location created. Add areas and assign your team to get started.",
+            );
+          }}
+        />
+      ) : null}
       {success ? (
         <p className="ops-save-result" role="status">
           {t(success)}

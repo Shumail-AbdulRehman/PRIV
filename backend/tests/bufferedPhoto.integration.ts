@@ -64,7 +64,7 @@ async function claim(attemptId:string) {
   return prisma.verificationJob.update({where:{id:job.id},data:{state:'RUNNING',attempts:{increment:1},leaseToken:randomUUID(),leaseUntil:new Date(Date.now()+90000)}});
 }
 function value(verdict:'CLEAN'|'DIRTY'|'CANNOT_ASSESS',origin:'DIRECT'|'SCREEN_RECAPTURE'='DIRECT') {
-  return {objectMatch:'MATCH',originality:origin,cleanliness:{verdict,surfaces:[{surface:'basin',verdict}],confidence:.98,reasonCode:verdict==='DIRTY'?'CLEANING_REQUIRED':verdict==='CLEAN'?'CLEAN':'CANNOT_ASSESS'},metadata:{provider:'fake'}} as any;
+  return {objectMatch:'MATCH',viewMatch:'MATCH',originality:origin,cleanliness:{verdict,surfaces:[{surface:'basin',verdict}],confidence:.98,reasonCode:verdict==='DIRTY'?'CLEANING_REQUIRED':verdict==='CLEAN'?'CLEAN':'CANNOT_ASSESS'},metadata:{provider:'fake'}} as any;
 }
 let cloudCalls=0, providerCalls=0, failStore=false;
 const io={read:readBufferedPhoto,remove:removeBufferedPhoto,store:async()=>{cloudCalls++;if(failStore){failStore=false;throw new Error('Storage unavailable');}return {asset_id:'test-cloud'} as any;}};

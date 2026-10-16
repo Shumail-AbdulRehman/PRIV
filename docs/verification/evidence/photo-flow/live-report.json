@@ -1,0 +1,1074 @@
+{
+  "mode": "live-cloudflare-cloudinary",
+  "database": "priv_verification_test_photo_http_1791810466989",
+  "apiBase": "http://127.0.0.1:33359/api",
+  "images": "synthetic test fixtures, not real camera photos",
+  "rows": [
+    {
+      "label": "clean-context",
+      "taskId": 1,
+      "attemptId": "9db3e29d-1276-4958-8055-87b5ce618e47",
+      "receiptMs": 395,
+      "durationMs": 6560,
+      "state": "REVIEW_REQUIRED",
+      "storage": "cloud",
+      "reason": "PHOTO_ORIGIN_UNCERTAIN",
+      "instructions": "Review whether the photo directly shows the physical item.",
+      "assessment": {
+        "metadata": {
+          "model": "clef",
+          "usage": {
+            "input_tokens": 1037,
+            "output_tokens": 0
+          },
+          "costUsd": null,
+          "provider": "cloudflare",
+          "latencyMs": 1975,
+          "requestId": "a49654992a7ee8c7-KHI",
+          "threshold": null,
+          "promptVersion": "photo-buffer-v1",
+          "requestedModel": "clef",
+          "providerVersion": "cloudflare-system-one-v1",
+          "screeningAnswers": {
+            "originality": {
+              "type": "choice",
+              "choice": "DIRECT",
+              "confidence": 0.8544,
+              "probabilities": {
+                "DIRECT": 0.9495,
+                "UNCERTAIN": 0.0304,
+                "SCREEN_RECAPTURE": 0.0201
+              }
+            }
+          },
+          "thresholdVersion": "unvalidated-no-threshold",
+          "thresholdValidated": false
+        },
+        "cleanliness": null,
+        "originality": "UNCERTAIN"
+      },
+      "decision": {
+        "keep": true,
+        "state": "REVIEW_REQUIRED",
+        "reason": "PHOTO_ORIGIN_UNCERTAIN"
+      }
+    },
+    {
+      "label": "clean-fixture",
+      "taskId": 1,
+      "attemptId": "3474dac9-9ad1-4d81-a3fb-f5560da3c182",
+      "receiptMs": 104,
+      "durationMs": 4531,
+      "state": "REVIEW_REQUIRED",
+      "storage": "cloud",
+      "reason": "PHOTO_ORIGIN_UNCERTAIN",
+      "instructions": "Review whether the photo directly shows the physical item.",
+      "assessment": {
+        "metadata": {
+          "model": "clef",
+          "usage": {
+            "input_tokens": 1530,
+            "output_tokens": 0
+          },
+          "costUsd": null,
+          "provider": "cloudflare",
+          "latencyMs": 1996,
+          "requestId": "a49654c6ef0da033-SIN",
+          "threshold": null,
+          "promptVersion": "photo-buffer-v1",
+          "requestedModel": "clef",
+          "providerVersion": "cloudflare-system-one-v1",
+          "screeningAnswers": {
+            "originality": {
+              "type": "choice",
+              "choice": "DIRECT",
+              "confidence": 0.7402,
+              "probabilities": {
+                "DIRECT": 0.9069,
+                "UNCERTAIN": 0.0458,
+                "SCREEN_RECAPTURE": 0.0473
+              }
+            }
+          },
+          "thresholdVersion": "unvalidated-no-threshold",
+          "thresholdValidated": false
+        },
+        "cleanliness": {
+          "details": {
+            "threshold": null,
+            "predictions": [
+              {
+                "type": "choice",
+                "choice": "CLEAN",
+                "surface": "basin",
+                "confidence": 0.8147,
+                "probabilities": {
+                  "CLEAN": 0.9351,
+                  "DIRTY": 0.0335,
+                  "CANNOT_ASSESS": 0.0314
+                }
+              },
+              {
+                "type": "choice",
+                "choice": "CLEAN",
+                "surface": "drain",
+                "confidence": 0.5625,
+                "probabilities": {
+                  "CLEAN": 0.8333,
+                  "DIRTY": 0.0868,
+                  "CANNOT_ASSESS": 0.0799
+                }
+              },
+              {
+                "type": "choice",
+                "choice": "CLEAN",
+                "surface": "tap",
+                "confidence": 0.5233,
+                "probabilities": {
+                  "CLEAN": 0.8153,
+                  "DIRTY": 0.1074,
+                  "CANNOT_ASSESS": 0.0773
+                }
+              }
+            ],
+            "assessmentStatus": "THRESHOLD_UNCONFIGURED",
+            "thresholdVersion": "unvalidated-no-threshold"
+          },
+          "verdict": "CANNOT_ASSESS",
+          "surfaces": [
+            {
+              "surface": "basin",
+              "verdict": "CANNOT_ASSESS"
+            },
+            {
+              "surface": "drain",
+              "verdict": "CANNOT_ASSESS"
+            },
+            {
+              "surface": "tap",
+              "verdict": "CANNOT_ASSESS"
+            }
+          ],
+          "confidence": 0.5233,
+          "reasonCode": "CANNOT_ASSESS"
+        },
+        "originality": "UNCERTAIN"
+      },
+      "decision": {
+        "keep": true,
+        "state": "REVIEW_REQUIRED",
+        "reason": "PHOTO_ORIGIN_UNCERTAIN"
+      }
+    },
+    {
+      "label": "dirty-context",
+      "taskId": 2,
+      "attemptId": "aaeb317a-0803-41e4-9817-a40c9858c205",
+      "receiptMs": 102,
+      "durationMs": 4568,
+      "state": "REVIEW_REQUIRED",
+      "storage": "cloud",
+      "reason": "PHOTO_ORIGIN_UNCERTAIN",
+      "instructions": "Review whether the photo directly shows the physical item.",
+      "assessment": {
+        "metadata": {
+          "model": "clef",
+          "usage": {
+            "input_tokens": 1037,
+            "output_tokens": 0
+          },
+          "costUsd": null,
+          "provider": "cloudflare",
+          "latencyMs": 2195,
+          "requestId": "a49654e0db37a033-SIN",
+          "threshold": null,
+          "promptVersion": "photo-buffer-v1",
+          "requestedModel": "clef",
+          "providerVersion": "cloudflare-system-one-v1",
+          "screeningAnswers": {
+            "originality": {
+              "type": "choice",
+              "choice": "DIRECT",
+              "confidence": 0.8544,
+              "probabilities": {
+                "DIRECT": 0.9495,
+                "UNCERTAIN": 0.0304,
+                "SCREEN_RECAPTURE": 0.0201
+              }
+            }
+          },
+          "thresholdVersion": "unvalidated-no-threshold",
+          "thresholdValidated": false
+        },
+        "cleanliness": null,
+        "originality": "UNCERTAIN"
+      },
+      "decision": {
+        "keep": true,
+        "state": "REVIEW_REQUIRED",
+        "reason": "PHOTO_ORIGIN_UNCERTAIN"
+      }
+    },
+    {
+      "label": "dirty-fixture",
+      "taskId": 2,
+      "attemptId": "55e17490-e569-4835-95b7-d87ff5c5f42e",
+      "receiptMs": 112,
+      "durationMs": 2981,
+      "state": "CLEANING_REQUIRED",
+      "storage": "discarded",
+      "reason": "CLEANING_REQUIRED",
+      "instructions": "Clean the basin and take another photo.",
+      "assessment": {
+        "metadata": {
+          "model": "clef",
+          "usage": {
+            "input_tokens": 1530,
+            "output_tokens": 0
+          },
+          "costUsd": null,
+          "provider": "cloudflare",
+          "latencyMs": 1953,
+          "requestId": "a49654ffdc7aa033-SIN",
+          "threshold": null,
+          "promptVersion": "photo-buffer-v1",
+          "requestedModel": "clef",
+          "providerVersion": "cloudflare-system-one-v1",
+          "screeningAnswers": {
+            "originality": {
+              "type": "choice",
+              "choice": "DIRECT",
+              "confidence": 0.8428,
+              "probabilities": {
+                "DIRECT": 0.9453,
+                "UNCERTAIN": 0.0317,
+                "SCREEN_RECAPTURE": 0.023
+              }
+            }
+          },
+          "thresholdVersion": "unvalidated-no-threshold",
+          "thresholdValidated": false
+        },
+        "cleanliness": {
+          "details": {
+            "threshold": null,
+            "predictions": [
+              {
+                "type": "choice",
+                "choice": "DIRTY",
+                "surface": "basin",
+                "confidence": 0.9524,
+                "probabilities": {
+                  "CLEAN": 0.0043,
+                  "DIRTY": 0.9839,
+                  "CANNOT_ASSESS": 0.0118
+                }
+              },
+              {
+                "type": "choice",
+                "choice": "DIRTY",
+                "surface": "drain",
+                "confidence": 0.4995,
+                "probabilities": {
+                  "CLEAN": 0.1099,
+                  "DIRTY": 0.8043,
+                  "CANNOT_ASSESS": 0.0858
+                }
+              },
+              {
+                "type": "choice",
+                "choice": "CLEAN",
+                "surface": "tap",
+                "confidence": 0.3918,
+                "probabilities": {
+                  "CLEAN": 0.7491,
+                  "DIRTY": 0.1559,
+                  "CANNOT_ASSESS": 0.095
+                }
+              }
+            ],
+            "assessmentStatus": "THRESHOLD_UNCONFIGURED",
+            "thresholdVersion": "unvalidated-no-threshold"
+          },
+          "verdict": "CANNOT_ASSESS",
+          "surfaces": [
+            {
+              "surface": "basin",
+              "verdict": "DIRTY"
+            },
+            {
+              "surface": "drain",
+              "verdict": "CANNOT_ASSESS"
+            },
+            {
+              "surface": "tap",
+              "verdict": "CANNOT_ASSESS"
+            }
+          ],
+          "confidence": 0.3918,
+          "reasonCode": "CANNOT_ASSESS"
+        },
+        "originality": "UNCERTAIN"
+      },
+      "decision": {
+        "keep": false,
+        "state": "CLEANING_REQUIRED",
+        "reason": "CLEANING_REQUIRED"
+      }
+    },
+    {
+      "label": "dirty-after-cleaning",
+      "taskId": 2,
+      "attemptId": "09c77280-40c7-40a1-878a-43ee84a9c860",
+      "receiptMs": 87,
+      "durationMs": 5817,
+      "state": "REVIEW_REQUIRED",
+      "storage": "cloud",
+      "reason": "PHOTO_ORIGIN_UNCERTAIN",
+      "instructions": "Review whether the photo directly shows the physical item.",
+      "assessment": {
+        "metadata": {
+          "model": "clef",
+          "usage": {
+            "input_tokens": 1530,
+            "output_tokens": 0
+          },
+          "costUsd": null,
+          "provider": "cloudflare",
+          "latencyMs": 2616,
+          "requestId": "a49655192816a033-SIN",
+          "threshold": null,
+          "promptVersion": "photo-buffer-v1",
+          "requestedModel": "clef",
+          "providerVersion": "cloudflare-system-one-v1",
+          "screeningAnswers": {
+            "originality": {
+              "type": "choice",
+              "choice": "DIRECT",
+              "confidence": 0.7402,
+              "probabilities": {
+                "DIRECT": 0.9069,
+                "UNCERTAIN": 0.0458,
+                "SCREEN_RECAPTURE": 0.0473
+              }
+            }
+          },
+          "thresholdVersion": "unvalidated-no-threshold",
+          "thresholdValidated": false
+        },
+        "cleanliness": {
+          "details": {
+            "threshold": null,
+            "predictions": [
+              {
+                "type": "choice",
+                "choice": "CLEAN",
+                "surface": "basin",
+                "confidence": 0.8147,
+                "probabilities": {
+                  "CLEAN": 0.9351,
+                  "DIRTY": 0.0335,
+                  "CANNOT_ASSESS": 0.0314
+                }
+              },
+              {
+                "type": "choice",
+                "choice": "CLEAN",
+                "surface": "drain",
+                "confidence": 0.5625,
+                "probabilities": {
+                  "CLEAN": 0.8333,
+                  "DIRTY": 0.0868,
+                  "CANNOT_ASSESS": 0.0799
+                }
+              },
+              {
+                "type": "choice",
+                "choice": "CLEAN",
+                "surface": "tap",
+                "confidence": 0.5233,
+                "probabilities": {
+                  "CLEAN": 0.8153,
+                  "DIRTY": 0.1074,
+                  "CANNOT_ASSESS": 0.0773
+                }
+              }
+            ],
+            "assessmentStatus": "THRESHOLD_UNCONFIGURED",
+            "thresholdVersion": "unvalidated-no-threshold"
+          },
+          "verdict": "CANNOT_ASSESS",
+          "surfaces": [
+            {
+              "surface": "basin",
+              "verdict": "CANNOT_ASSESS"
+            },
+            {
+              "surface": "drain",
+              "verdict": "CANNOT_ASSESS"
+            },
+            {
+              "surface": "tap",
+              "verdict": "CANNOT_ASSESS"
+            }
+          ],
+          "confidence": 0.5233,
+          "reasonCode": "CANNOT_ASSESS"
+        },
+        "originality": "UNCERTAIN"
+      },
+      "decision": {
+        "keep": true,
+        "state": "REVIEW_REQUIRED",
+        "reason": "PHOTO_ORIGIN_UNCERTAIN"
+      }
+    }
+  ],
+  "requests": [
+    {
+      "path": "/task-instance/1/start",
+      "status": 422,
+      "ms": 132
+    },
+    {
+      "path": "/task-instance/1/start",
+      "status": 200,
+      "ms": 61
+    },
+    {
+      "path": "/task-instance/1/complete",
+      "status": 409,
+      "ms": 64
+    },
+    {
+      "path": "/task-instance/1/capture-sessions",
+      "status": 201,
+      "ms": 207
+    },
+    {
+      "path": "/capture-session/587651e9-999d-4aa7-b6ae-b6bc8996eb05/activate-photo",
+      "status": 200,
+      "ms": 82
+    },
+    {
+      "path": "/verification-attempt/9db3e29d-1276-4958-8055-87b5ce618e47",
+      "status": 200,
+      "ms": 46
+    },
+    {
+      "path": "/verification-attempt/9db3e29d-1276-4958-8055-87b5ce618e47",
+      "status": 200,
+      "ms": 26
+    },
+    {
+      "path": "/verification-attempt/9db3e29d-1276-4958-8055-87b5ce618e47",
+      "status": 200,
+      "ms": 22
+    },
+    {
+      "path": "/verification-attempt/9db3e29d-1276-4958-8055-87b5ce618e47",
+      "status": 200,
+      "ms": 14
+    },
+    {
+      "path": "/verification-attempt/9db3e29d-1276-4958-8055-87b5ce618e47",
+      "status": 200,
+      "ms": 11
+    },
+    {
+      "path": "/verification-attempt/9db3e29d-1276-4958-8055-87b5ce618e47",
+      "status": 200,
+      "ms": 9
+    },
+    {
+      "path": "/verification-attempt/9db3e29d-1276-4958-8055-87b5ce618e47",
+      "status": 200,
+      "ms": 14
+    },
+    {
+      "path": "/verification-attempt/9db3e29d-1276-4958-8055-87b5ce618e47",
+      "status": 200,
+      "ms": 10
+    },
+    {
+      "path": "/verification-attempt/9db3e29d-1276-4958-8055-87b5ce618e47",
+      "status": 200,
+      "ms": 12
+    },
+    {
+      "path": "/verification-attempt/9db3e29d-1276-4958-8055-87b5ce618e47",
+      "status": 200,
+      "ms": 11
+    },
+    {
+      "path": "/verification-attempt/9db3e29d-1276-4958-8055-87b5ce618e47",
+      "status": 200,
+      "ms": 9
+    },
+    {
+      "path": "/verification-attempt/9db3e29d-1276-4958-8055-87b5ce618e47",
+      "status": 200,
+      "ms": 8
+    },
+    {
+      "path": "/verification-attempt/9db3e29d-1276-4958-8055-87b5ce618e47",
+      "status": 200,
+      "ms": 13
+    },
+    {
+      "path": "/verification-attempt/9db3e29d-1276-4958-8055-87b5ce618e47",
+      "status": 200,
+      "ms": 15
+    },
+    {
+      "path": "/verification-attempt/9db3e29d-1276-4958-8055-87b5ce618e47",
+      "status": 200,
+      "ms": 9
+    },
+    {
+      "path": "/verification-attempt/9db3e29d-1276-4958-8055-87b5ce618e47",
+      "status": 200,
+      "ms": 13
+    },
+    {
+      "path": "/verification-attempt/9db3e29d-1276-4958-8055-87b5ce618e47",
+      "status": 200,
+      "ms": 8
+    },
+    {
+      "path": "/verification-attempt/9db3e29d-1276-4958-8055-87b5ce618e47",
+      "status": 200,
+      "ms": 10
+    },
+    {
+      "path": "/verification-attempt/9db3e29d-1276-4958-8055-87b5ce618e47",
+      "status": 200,
+      "ms": 8
+    },
+    {
+      "path": "/verification-attempt/9db3e29d-1276-4958-8055-87b5ce618e47",
+      "status": 200,
+      "ms": 9
+    },
+    {
+      "path": "/verification-attempt/9db3e29d-1276-4958-8055-87b5ce618e47",
+      "status": 200,
+      "ms": 10
+    },
+    {
+      "path": "/verification-attempt/9db3e29d-1276-4958-8055-87b5ce618e47",
+      "status": 200,
+      "ms": 8
+    },
+    {
+      "path": "/verification-attempt/9db3e29d-1276-4958-8055-87b5ce618e47",
+      "status": 200,
+      "ms": 10
+    },
+    {
+      "path": "/verification-attempt/9db3e29d-1276-4958-8055-87b5ce618e47",
+      "status": 200,
+      "ms": 8
+    },
+    {
+      "path": "/capture-session/587651e9-999d-4aa7-b6ae-b6bc8996eb05/activate-photo",
+      "status": 200,
+      "ms": 22
+    },
+    {
+      "path": "/verification-attempt/3474dac9-9ad1-4d81-a3fb-f5560da3c182",
+      "status": 200,
+      "ms": 8
+    },
+    {
+      "path": "/verification-attempt/3474dac9-9ad1-4d81-a3fb-f5560da3c182",
+      "status": 200,
+      "ms": 7
+    },
+    {
+      "path": "/verification-attempt/3474dac9-9ad1-4d81-a3fb-f5560da3c182",
+      "status": 200,
+      "ms": 8
+    },
+    {
+      "path": "/verification-attempt/3474dac9-9ad1-4d81-a3fb-f5560da3c182",
+      "status": 200,
+      "ms": 8
+    },
+    {
+      "path": "/verification-attempt/3474dac9-9ad1-4d81-a3fb-f5560da3c182",
+      "status": 200,
+      "ms": 10
+    },
+    {
+      "path": "/verification-attempt/3474dac9-9ad1-4d81-a3fb-f5560da3c182",
+      "status": 200,
+      "ms": 9
+    },
+    {
+      "path": "/verification-attempt/3474dac9-9ad1-4d81-a3fb-f5560da3c182",
+      "status": 200,
+      "ms": 7
+    },
+    {
+      "path": "/verification-attempt/3474dac9-9ad1-4d81-a3fb-f5560da3c182",
+      "status": 200,
+      "ms": 8
+    },
+    {
+      "path": "/verification-attempt/3474dac9-9ad1-4d81-a3fb-f5560da3c182",
+      "status": 200,
+      "ms": 8
+    },
+    {
+      "path": "/verification-attempt/3474dac9-9ad1-4d81-a3fb-f5560da3c182",
+      "status": 200,
+      "ms": 7
+    },
+    {
+      "path": "/verification-attempt/3474dac9-9ad1-4d81-a3fb-f5560da3c182",
+      "status": 200,
+      "ms": 8
+    },
+    {
+      "path": "/verification-attempt/3474dac9-9ad1-4d81-a3fb-f5560da3c182",
+      "status": 200,
+      "ms": 8
+    },
+    {
+      "path": "/verification-attempt/3474dac9-9ad1-4d81-a3fb-f5560da3c182",
+      "status": 200,
+      "ms": 10
+    },
+    {
+      "path": "/verification-attempt/3474dac9-9ad1-4d81-a3fb-f5560da3c182",
+      "status": 200,
+      "ms": 8
+    },
+    {
+      "path": "/verification-attempt/3474dac9-9ad1-4d81-a3fb-f5560da3c182",
+      "status": 200,
+      "ms": 7
+    },
+    {
+      "path": "/verification-attempt/3474dac9-9ad1-4d81-a3fb-f5560da3c182",
+      "status": 200,
+      "ms": 8
+    },
+    {
+      "path": "/verification-attempt/3474dac9-9ad1-4d81-a3fb-f5560da3c182",
+      "status": 200,
+      "ms": 8
+    },
+    {
+      "path": "/verification-attempt/3474dac9-9ad1-4d81-a3fb-f5560da3c182",
+      "status": 200,
+      "ms": 13
+    },
+    {
+      "path": "/task-instance/1/complete",
+      "status": 200,
+      "ms": 34
+    },
+    {
+      "path": "/task-instance/1",
+      "status": 200,
+      "ms": 15
+    },
+    {
+      "path": "/verification-exceptions/1",
+      "status": 200,
+      "ms": 47
+    },
+    {
+      "path": "/verification-exceptions/1",
+      "status": 200,
+      "ms": 21
+    },
+    {
+      "path": "/verification-exceptions/1/actions",
+      "status": 200,
+      "ms": 65
+    },
+    {
+      "path": "/verification-exceptions/1",
+      "status": 200,
+      "ms": 22
+    },
+    {
+      "path": "/verification-exceptions/1/actions",
+      "status": 200,
+      "ms": 65
+    },
+    {
+      "path": "/task-instance/1",
+      "status": 200,
+      "ms": 8
+    },
+    {
+      "path": "/verification-exceptions?queue=needs-me&page=1",
+      "status": 200,
+      "ms": 31
+    },
+    {
+      "path": "/task-instance/2/start",
+      "status": 422,
+      "ms": 19
+    },
+    {
+      "path": "/task-instance/2/start",
+      "status": 200,
+      "ms": 25
+    },
+    {
+      "path": "/task-instance/2/complete",
+      "status": 409,
+      "ms": 16
+    },
+    {
+      "path": "/task-instance/2/capture-sessions",
+      "status": 201,
+      "ms": 65
+    },
+    {
+      "path": "/capture-session/eee26645-feb8-44c0-820c-1a4c91f724bf/activate-photo",
+      "status": 200,
+      "ms": 21
+    },
+    {
+      "path": "/verification-attempt/aaeb317a-0803-41e4-9817-a40c9858c205",
+      "status": 200,
+      "ms": 7
+    },
+    {
+      "path": "/verification-attempt/aaeb317a-0803-41e4-9817-a40c9858c205",
+      "status": 200,
+      "ms": 13
+    },
+    {
+      "path": "/verification-attempt/aaeb317a-0803-41e4-9817-a40c9858c205",
+      "status": 200,
+      "ms": 18
+    },
+    {
+      "path": "/verification-attempt/aaeb317a-0803-41e4-9817-a40c9858c205",
+      "status": 200,
+      "ms": 9
+    },
+    {
+      "path": "/verification-attempt/aaeb317a-0803-41e4-9817-a40c9858c205",
+      "status": 200,
+      "ms": 8
+    },
+    {
+      "path": "/verification-attempt/aaeb317a-0803-41e4-9817-a40c9858c205",
+      "status": 200,
+      "ms": 12
+    },
+    {
+      "path": "/verification-attempt/aaeb317a-0803-41e4-9817-a40c9858c205",
+      "status": 200,
+      "ms": 9
+    },
+    {
+      "path": "/verification-attempt/aaeb317a-0803-41e4-9817-a40c9858c205",
+      "status": 200,
+      "ms": 8
+    },
+    {
+      "path": "/verification-attempt/aaeb317a-0803-41e4-9817-a40c9858c205",
+      "status": 200,
+      "ms": 8
+    },
+    {
+      "path": "/verification-attempt/aaeb317a-0803-41e4-9817-a40c9858c205",
+      "status": 200,
+      "ms": 10
+    },
+    {
+      "path": "/verification-attempt/aaeb317a-0803-41e4-9817-a40c9858c205",
+      "status": 200,
+      "ms": 8
+    },
+    {
+      "path": "/verification-attempt/aaeb317a-0803-41e4-9817-a40c9858c205",
+      "status": 200,
+      "ms": 7
+    },
+    {
+      "path": "/verification-attempt/aaeb317a-0803-41e4-9817-a40c9858c205",
+      "status": 200,
+      "ms": 16
+    },
+    {
+      "path": "/verification-attempt/aaeb317a-0803-41e4-9817-a40c9858c205",
+      "status": 200,
+      "ms": 15
+    },
+    {
+      "path": "/verification-attempt/aaeb317a-0803-41e4-9817-a40c9858c205",
+      "status": 200,
+      "ms": 8
+    },
+    {
+      "path": "/verification-attempt/aaeb317a-0803-41e4-9817-a40c9858c205",
+      "status": 200,
+      "ms": 8
+    },
+    {
+      "path": "/verification-attempt/aaeb317a-0803-41e4-9817-a40c9858c205",
+      "status": 200,
+      "ms": 14
+    },
+    {
+      "path": "/verification-attempt/aaeb317a-0803-41e4-9817-a40c9858c205",
+      "status": 200,
+      "ms": 8
+    },
+    {
+      "path": "/capture-session/eee26645-feb8-44c0-820c-1a4c91f724bf/activate-photo",
+      "status": 200,
+      "ms": 23
+    },
+    {
+      "path": "/verification-attempt/55e17490-e569-4835-95b7-d87ff5c5f42e",
+      "status": 200,
+      "ms": 7
+    },
+    {
+      "path": "/verification-attempt/55e17490-e569-4835-95b7-d87ff5c5f42e",
+      "status": 200,
+      "ms": 7
+    },
+    {
+      "path": "/verification-attempt/55e17490-e569-4835-95b7-d87ff5c5f42e",
+      "status": 200,
+      "ms": 8
+    },
+    {
+      "path": "/verification-attempt/55e17490-e569-4835-95b7-d87ff5c5f42e",
+      "status": 200,
+      "ms": 7
+    },
+    {
+      "path": "/verification-attempt/55e17490-e569-4835-95b7-d87ff5c5f42e",
+      "status": 200,
+      "ms": 12
+    },
+    {
+      "path": "/verification-attempt/55e17490-e569-4835-95b7-d87ff5c5f42e",
+      "status": 200,
+      "ms": 7
+    },
+    {
+      "path": "/verification-attempt/55e17490-e569-4835-95b7-d87ff5c5f42e",
+      "status": 200,
+      "ms": 9
+    },
+    {
+      "path": "/verification-attempt/55e17490-e569-4835-95b7-d87ff5c5f42e",
+      "status": 200,
+      "ms": 8
+    },
+    {
+      "path": "/verification-attempt/55e17490-e569-4835-95b7-d87ff5c5f42e",
+      "status": 200,
+      "ms": 7
+    },
+    {
+      "path": "/verification-attempt/55e17490-e569-4835-95b7-d87ff5c5f42e",
+      "status": 200,
+      "ms": 7
+    },
+    {
+      "path": "/verification-attempt/55e17490-e569-4835-95b7-d87ff5c5f42e",
+      "status": 200,
+      "ms": 8
+    },
+    {
+      "path": "/verification-attempt/55e17490-e569-4835-95b7-d87ff5c5f42e",
+      "status": 200,
+      "ms": 8
+    },
+    {
+      "path": "/task-instance/2/complete",
+      "status": 409,
+      "ms": 10
+    },
+    {
+      "path": "/task-instance/2/verification",
+      "status": 200,
+      "ms": 28
+    },
+    {
+      "path": "/task-instance/2/capture-sessions/rework",
+      "status": 201,
+      "ms": 50
+    },
+    {
+      "path": "/capture-session/c098dc82-048c-4c03-a43f-b193c3fccb37/activate-photo",
+      "status": 200,
+      "ms": 19
+    },
+    {
+      "path": "/verification-attempt/09c77280-40c7-40a1-878a-43ee84a9c860",
+      "status": 200,
+      "ms": 7
+    },
+    {
+      "path": "/verification-attempt/09c77280-40c7-40a1-878a-43ee84a9c860",
+      "status": 200,
+      "ms": 7
+    },
+    {
+      "path": "/verification-attempt/09c77280-40c7-40a1-878a-43ee84a9c860",
+      "status": 200,
+      "ms": 7
+    },
+    {
+      "path": "/verification-attempt/09c77280-40c7-40a1-878a-43ee84a9c860",
+      "status": 200,
+      "ms": 24
+    },
+    {
+      "path": "/verification-attempt/09c77280-40c7-40a1-878a-43ee84a9c860",
+      "status": 200,
+      "ms": 7
+    },
+    {
+      "path": "/verification-attempt/09c77280-40c7-40a1-878a-43ee84a9c860",
+      "status": 200,
+      "ms": 7
+    },
+    {
+      "path": "/verification-attempt/09c77280-40c7-40a1-878a-43ee84a9c860",
+      "status": 200,
+      "ms": 13
+    },
+    {
+      "path": "/verification-attempt/09c77280-40c7-40a1-878a-43ee84a9c860",
+      "status": 200,
+      "ms": 7
+    },
+    {
+      "path": "/verification-attempt/09c77280-40c7-40a1-878a-43ee84a9c860",
+      "status": 200,
+      "ms": 8
+    },
+    {
+      "path": "/verification-attempt/09c77280-40c7-40a1-878a-43ee84a9c860",
+      "status": 200,
+      "ms": 7
+    },
+    {
+      "path": "/verification-attempt/09c77280-40c7-40a1-878a-43ee84a9c860",
+      "status": 200,
+      "ms": 8
+    },
+    {
+      "path": "/verification-attempt/09c77280-40c7-40a1-878a-43ee84a9c860",
+      "status": 200,
+      "ms": 10
+    },
+    {
+      "path": "/verification-attempt/09c77280-40c7-40a1-878a-43ee84a9c860",
+      "status": 200,
+      "ms": 7
+    },
+    {
+      "path": "/verification-attempt/09c77280-40c7-40a1-878a-43ee84a9c860",
+      "status": 200,
+      "ms": 7
+    },
+    {
+      "path": "/verification-attempt/09c77280-40c7-40a1-878a-43ee84a9c860",
+      "status": 200,
+      "ms": 7
+    },
+    {
+      "path": "/verification-attempt/09c77280-40c7-40a1-878a-43ee84a9c860",
+      "status": 200,
+      "ms": 7
+    },
+    {
+      "path": "/verification-attempt/09c77280-40c7-40a1-878a-43ee84a9c860",
+      "status": 200,
+      "ms": 7
+    },
+    {
+      "path": "/verification-attempt/09c77280-40c7-40a1-878a-43ee84a9c860",
+      "status": 200,
+      "ms": 7
+    },
+    {
+      "path": "/verification-attempt/09c77280-40c7-40a1-878a-43ee84a9c860",
+      "status": 200,
+      "ms": 12
+    },
+    {
+      "path": "/verification-attempt/09c77280-40c7-40a1-878a-43ee84a9c860",
+      "status": 200,
+      "ms": 7
+    },
+    {
+      "path": "/verification-attempt/09c77280-40c7-40a1-878a-43ee84a9c860",
+      "status": 200,
+      "ms": 7
+    },
+    {
+      "path": "/verification-attempt/09c77280-40c7-40a1-878a-43ee84a9c860",
+      "status": 200,
+      "ms": 8
+    },
+    {
+      "path": "/verification-attempt/09c77280-40c7-40a1-878a-43ee84a9c860",
+      "status": 200,
+      "ms": 7
+    },
+    {
+      "path": "/task-instance/2/complete",
+      "status": 200,
+      "ms": 22
+    },
+    {
+      "path": "/task-instance/2",
+      "status": 200,
+      "ms": 11
+    },
+    {
+      "path": "/verification-exceptions/3",
+      "status": 200,
+      "ms": 17
+    },
+    {
+      "path": "/verification-exceptions/3",
+      "status": 200,
+      "ms": 15
+    },
+    {
+      "path": "/verification-exceptions/3/actions",
+      "status": 200,
+      "ms": 43
+    },
+    {
+      "path": "/verification-exceptions/3",
+      "status": 200,
+      "ms": 15
+    },
+    {
+      "path": "/verification-exceptions/3/actions",
+      "status": 200,
+      "ms": 45
+    },
+    {
+      "path": "/task-instance/2",
+      "status": 200,
+      "ms": 6
+    },
+    {
+      "path": "/verification-exceptions?queue=needs-me&page=1",
+      "status": 200,
+      "ms": 10
+    }
+  ]
+}

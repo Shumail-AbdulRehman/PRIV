@@ -81,7 +81,7 @@ if(live){
 const clean=await readFile(new URL('clean-synthetic.jpg',output)),dirty=await readFile(new URL('dirty-synthetic.jpg',output));
 const controlledStore=async(_bytes:Buffer,_id:string,_hash:string)=>({asset_id:'controlled-cloud-asset'} as any);
 let activeScenario='clean';
-const fakeProvider={evaluate:async(_image:Buffer,_rubric?:unknown,view?:string)=>({objectMatch:view?'MATCH':null,originality:activeScenario.startsWith('origin')?'UNCERTAIN':activeScenario==='screen'&&view?'SCREEN_RECAPTURE':'DIRECT',cleanliness:view?{verdict:activeScenario.includes('dirty')?'DIRTY':'CLEAN',surfaces:['basin','drain','tap'].map(surface=>({surface,verdict:activeScenario.includes('dirty')?'DIRTY':'CLEAN'})),confidence:.99,reasonCode:activeScenario.includes('dirty')?'CLEANING_REQUIRED':'CLEAN'}:null,metadata:{provider:'controlled-test'}} as any)};
+const fakeProvider={evaluate:async(_image:Buffer,_rubric?:unknown,view?:string)=>({objectMatch:view?'MATCH':null,viewMatch:view?'MATCH':null,originality:activeScenario.startsWith('origin')?'UNCERTAIN':activeScenario==='screen'&&view?'SCREEN_RECAPTURE':'DIRECT',cleanliness:view?{verdict:activeScenario.includes('dirty')?'DIRTY':'CLEAN',surfaces:['basin','drain','tap'].map(surface=>({surface,verdict:activeScenario.includes('dirty')?'DIRTY':'CLEAN'})),confidence:.99,reasonCode:activeScenario.includes('dirty')?'CLEANING_REQUIRED':'CLEAN'}:null,metadata:{provider:'controlled-test'}} as any)};
 async function waitResult(id:string){
  const deadline=Date.now()+180000;
  for(;;){

@@ -178,6 +178,7 @@ function Workspace({ id }: { id: number }) {
         </Link>
         <OperationsState
           loading={query.isPending}
+          layout="review-detail"
           error={query.error}
           retry={() => void query.refetch()}
         />

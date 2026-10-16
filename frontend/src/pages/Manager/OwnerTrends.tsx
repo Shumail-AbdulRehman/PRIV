@@ -1,3 +1,4 @@
+import PageLoadingSkeleton from "@/components/common/PageLoadingSkeleton";
 import { useState } from "react";
 import { useQueries } from "@tanstack/react-query";
 import { formatInTimeZone } from "date-fns-tz";
@@ -121,7 +122,7 @@ export default function OwnerTrends({
             </span>
           </div>
           {queries.some((q) => q.isPending) ? (
-            <p role="status">{t("Loading…")}</p>
+            <PageLoadingSkeleton layout="trends" section />
           ) : null}
           {queries.some((q) => q.isError) ? (
             <div role="alert" className="operations-notice">

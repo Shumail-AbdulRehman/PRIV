@@ -1,14 +1,23 @@
 import { Button } from "@/components/ui/button";
 import { useLanguage } from "@/i18n/context";
 import { useOnline } from "@/hooks/useOnline";
+import LoadingSkeleton, {
+  type SkeletonVariant,
+} from "@/components/common/LoadingSkeleton";
+import PageLoadingSkeleton from "@/components/common/PageLoadingSkeleton";
+import type { PageLoadingLayout } from "@/components/common/loadingLayout";
 export default function OperationsState({
   loading,
   error,
   retry,
+  skeleton = "panel",
+  layout,
 }: {
   loading?: boolean;
   error?: unknown;
   retry?: () => void;
+  skeleton?: SkeletonVariant;
+  layout?: PageLoadingLayout;
 }) {
   const { t } = useLanguage();
   const online = useOnline();
@@ -31,12 +40,10 @@ export default function OperationsState({
     );
   }
   if (loading)
-    return (
-      <div role="status" aria-label={t("Loading…")} className="ops-skeleton">
-        <div />
-        <div />
-        <div />
-      </div>
+    return layout ? (
+      <PageLoadingSkeleton layout={layout} section />
+    ) : (
+      <LoadingSkeleton variant={skeleton} />
     );
   return !online ? (
     <p className="operations-notice" role="status">

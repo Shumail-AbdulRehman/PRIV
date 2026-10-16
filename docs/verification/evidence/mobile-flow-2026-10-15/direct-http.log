@@ -1,0 +1,46 @@
+
+> fyp@1.0.0 test:verification:photo-http
+> tsx tests/directPhoto.http.integration.ts
+
+{"type":"VERIFICATION_TIMING","event":"UPLOAD_REJECTED","at":"2026-10-14T19:24:51.454Z","sessionId":"2fa07e51-696e-4e3b-8e1c-4d4af52f813b","status":409,"code":"CONFLICT"}
+{"type":"VERIFICATION_TIMING","event":"UPLOAD_REJECTED","at":"2026-10-14T19:24:51.471Z","sessionId":"2fa07e51-696e-4e3b-8e1c-4d4af52f813b","status":404,"code":"NOT_FOUND"}
+{"type":"VERIFICATION_TIMING","event":"UPLOAD_RESERVED","at":"2026-10-14T19:24:51.563Z","sessionId":"2fa07e51-696e-4e3b-8e1c-4d4af52f813b","attemptId":"fad0a458-d9ad-4c24-ad29-bb07c5dcbc03","reservationMs":60}
+(node:16422) DeprecationWarning: Calling client.query() when the client is already executing a query is deprecated and will be removed in pg@9.0. Use async/await or an external async flow control mechanism instead.
+(Use `node --trace-deprecation ...` to show where the warning was created)
+{"type":"VERIFICATION_TIMING","event":"DIRECT_PHOTO_FINISHED","at":"2026-10-14T19:24:51.794Z","attemptId":"fad0a458-d9ad-4c24-ad29-bb07c5dcbc03","taskId":1,"durationMs":155,"state":"REVIEW_REQUIRED"}
+{"type":"VERIFICATION_TIMING","event":"UPLOAD_RESERVED","at":"2026-10-14T19:24:51.854Z","sessionId":"2fa07e51-696e-4e3b-8e1c-4d4af52f813b","attemptId":"fad0a458-d9ad-4c24-ad29-bb07c5dcbc03","reservationMs":23}
+{"type":"VERIFICATION_TIMING","event":"UPLOAD_REJECTED","at":"2026-10-14T19:24:52.274Z","sessionId":"ddd8839f-69e8-42f3-a84d-fa91e4869ba0","status":409,"code":"CONFLICT"}
+{"type":"VERIFICATION_TIMING","event":"UPLOAD_REJECTED","at":"2026-10-14T19:24:52.282Z","sessionId":"ddd8839f-69e8-42f3-a84d-fa91e4869ba0","status":404,"code":"NOT_FOUND"}
+{"type":"VERIFICATION_TIMING","event":"UPLOAD_RESERVED","at":"2026-10-14T19:24:52.333Z","sessionId":"ddd8839f-69e8-42f3-a84d-fa91e4869ba0","attemptId":"3f9ed722-c82b-46f1-b538-d8058ba41097","reservationMs":37}
+{"type":"VERIFICATION_TIMING","event":"DIRECT_PHOTO_FINISHED","at":"2026-10-14T19:24:52.502Z","attemptId":"3f9ed722-c82b-46f1-b538-d8058ba41097","taskId":2,"durationMs":91,"state":"CLEANING_REQUIRED"}
+{"type":"VERIFICATION_TIMING","event":"UPLOAD_RESERVED","at":"2026-10-14T19:24:52.734Z","sessionId":"1f92c7b7-1952-4750-b620-d3204896e2c2","attemptId":"50d248d3-f45d-43b1-92c3-23d10e88fdc6","reservationMs":32}
+{"type":"VERIFICATION_TIMING","event":"DIRECT_PHOTO_FINISHED","at":"2026-10-14T19:24:52.911Z","attemptId":"50d248d3-f45d-43b1-92c3-23d10e88fdc6","taskId":2,"durationMs":111,"state":"REVIEW_REQUIRED"}
+{"type":"VERIFICATION_TIMING","event":"UPLOAD_REJECTED","at":"2026-10-14T19:24:53.119Z","sessionId":"615b8aeb-500a-4f7b-8034-78c90eda20dc","status":409,"code":"CONFLICT"}
+{"type":"VERIFICATION_TIMING","event":"UPLOAD_REJECTED","at":"2026-10-14T19:24:53.126Z","sessionId":"615b8aeb-500a-4f7b-8034-78c90eda20dc","status":404,"code":"NOT_FOUND"}
+{"type":"VERIFICATION_TIMING","event":"UPLOAD_RESERVED","at":"2026-10-14T19:24:53.164Z","sessionId":"615b8aeb-500a-4f7b-8034-78c90eda20dc","attemptId":"d0bd57e6-5ece-4385-a939-ed85ab46d7b2","reservationMs":26}
+{"type":"VERIFICATION_TIMING","event":"DIRECT_PHOTO_FINISHED","at":"2026-10-14T19:24:53.309Z","attemptId":"d0bd57e6-5ece-4385-a939-ed85ab46d7b2","taskId":3,"durationMs":86,"state":"RECAPTURE_REQUIRED"}
+{"type":"VERIFICATION_TIMING","event":"UPLOAD_RESERVED","at":"2026-10-14T19:24:53.519Z","sessionId":"7511146b-e5ca-409e-8490-24ed8e6982d3","attemptId":"c2f728b7-938e-4d46-866e-32c958c9f8b6","reservationMs":51}
+{"type":"VERIFICATION_TIMING","event":"DIRECT_PHOTO_FINISHED","at":"2026-10-14T19:24:53.694Z","attemptId":"c2f728b7-938e-4d46-866e-32c958c9f8b6","taskId":3,"durationMs":101,"state":"REVIEW_REQUIRED"}
+{"type":"VERIFICATION_TIMING","event":"UPLOAD_REJECTED","at":"2026-10-14T19:24:53.902Z","sessionId":"f8f30510-c1a0-4181-b53a-b4663ad9a69a","status":409,"code":"CONFLICT"}
+{"type":"VERIFICATION_TIMING","event":"UPLOAD_REJECTED","at":"2026-10-14T19:24:53.909Z","sessionId":"f8f30510-c1a0-4181-b53a-b4663ad9a69a","status":404,"code":"NOT_FOUND"}
+{"type":"VERIFICATION_TIMING","event":"UPLOAD_RESERVED","at":"2026-10-14T19:24:53.954Z","sessionId":"f8f30510-c1a0-4181-b53a-b4663ad9a69a","attemptId":"6141a8c4-2ad1-4089-8447-2c5a6c83251d","reservationMs":31}
+{"type":"VERIFICATION_TIMING","event":"UPLOAD_REJECTED","at":"2026-10-14T19:24:54.037Z","sessionId":"f8f30510-c1a0-4181-b53a-b4663ad9a69a","status":503,"code":"PHOTO_UPLOAD_AGAIN"}
+{"type":"VERIFICATION_TIMING","event":"UPLOAD_RESERVED","at":"2026-10-14T19:24:54.076Z","sessionId":"f8f30510-c1a0-4181-b53a-b4663ad9a69a","attemptId":"6141a8c4-2ad1-4089-8447-2c5a6c83251d","reservationMs":16}
+{"type":"VERIFICATION_TIMING","event":"DIRECT_PHOTO_FINISHED","at":"2026-10-14T19:24:54.246Z","attemptId":"6141a8c4-2ad1-4089-8447-2c5a6c83251d","taskId":4,"durationMs":111,"state":"REVIEW_REQUIRED"}
+{"type":"VERIFICATION_TIMING","event":"UPLOAD_REJECTED","at":"2026-10-14T19:24:54.413Z","sessionId":"c952d250-b782-4fab-86e3-cb08447259a2","status":409,"code":"CONFLICT"}
+{"type":"VERIFICATION_TIMING","event":"UPLOAD_REJECTED","at":"2026-10-14T19:24:54.418Z","sessionId":"c952d250-b782-4fab-86e3-cb08447259a2","status":404,"code":"NOT_FOUND"}
+{"type":"VERIFICATION_TIMING","event":"UPLOAD_RESERVED","at":"2026-10-14T19:24:54.450Z","sessionId":"c952d250-b782-4fab-86e3-cb08447259a2","attemptId":"44674b50-d94f-49c0-823e-369a9acf4585","reservationMs":23}
+{"type":"VERIFICATION_TIMING","event":"UPLOAD_REJECTED","at":"2026-10-14T19:24:54.570Z","sessionId":"c952d250-b782-4fab-86e3-cb08447259a2","status":503,"code":"SERVICE_FAILURE"}
+{"type":"VERIFICATION_TIMING","event":"UPLOAD_RESERVED","at":"2026-10-14T19:24:54.628Z","sessionId":"c952d250-b782-4fab-86e3-cb08447259a2","attemptId":"44674b50-d94f-49c0-823e-369a9acf4585","reservationMs":23}
+{"type":"VERIFICATION_TIMING","event":"DIRECT_PHOTO_FINISHED","at":"2026-10-14T19:24:54.740Z","attemptId":"44674b50-d94f-49c0-823e-369a9acf4585","taskId":5,"durationMs":44,"state":"REVIEW_REQUIRED"}
+{"type":"VERIFICATION_TIMING","event":"UPLOAD_REJECTED","at":"2026-10-14T19:24:54.885Z","sessionId":"e8d437d8-85fd-4c95-ac4b-0d248d6e3078","status":409,"code":"CONFLICT"}
+{"type":"VERIFICATION_TIMING","event":"UPLOAD_REJECTED","at":"2026-10-14T19:24:54.890Z","sessionId":"e8d437d8-85fd-4c95-ac4b-0d248d6e3078","status":404,"code":"NOT_FOUND"}
+{"type":"VERIFICATION_TIMING","event":"UPLOAD_RESERVED","at":"2026-10-14T19:24:54.923Z","sessionId":"e8d437d8-85fd-4c95-ac4b-0d248d6e3078","attemptId":"7b9d0244-84d1-4c54-8bea-8ad4be20e35c","reservationMs":23}
+{"type":"VERIFICATION_TIMING","event":"UPLOAD_REJECTED","at":"2026-10-14T19:24:54.986Z","sessionId":"e8d437d8-85fd-4c95-ac4b-0d248d6e3078","status":503,"code":"PHOTO_UPLOAD_AGAIN"}
+{"type":"VERIFICATION_TIMING","event":"UPLOAD_RESERVED","at":"2026-10-14T19:24:55.013Z","sessionId":"e8d437d8-85fd-4c95-ac4b-0d248d6e3078","attemptId":"7b9d0244-84d1-4c54-8bea-8ad4be20e35c","reservationMs":14}
+{"type":"VERIFICATION_TIMING","event":"DIRECT_PHOTO_FINISHED","at":"2026-10-14T19:24:55.189Z","attemptId":"7b9d0244-84d1-4c54-8bea-8ad4be20e35c","taskId":6,"durationMs":119,"state":"REVIEW_REQUIRED"}
+{"type":"VERIFICATION_TIMING","event":"UPLOAD_REJECTED","at":"2026-10-14T19:24:55.371Z","sessionId":"c82fd19b-6839-405a-ba62-5c009e1a57f0","status":409,"code":"CONFLICT"}
+{"type":"VERIFICATION_TIMING","event":"UPLOAD_REJECTED","at":"2026-10-14T19:24:55.378Z","sessionId":"c82fd19b-6839-405a-ba62-5c009e1a57f0","status":404,"code":"NOT_FOUND"}
+{"type":"VERIFICATION_TIMING","event":"UPLOAD_RESERVED","at":"2026-10-14T19:24:55.416Z","sessionId":"c82fd19b-6839-405a-ba62-5c009e1a57f0","attemptId":"0dd03198-437e-4296-9ad0-cb6286ea947a","reservationMs":27}
+{"type":"VERIFICATION_TIMING","event":"UPLOAD_REJECTED","at":"2026-10-14T19:24:55.488Z","sessionId":"c82fd19b-6839-405a-ba62-5c009e1a57f0","status":503,"code":"PHOTO_UPLOAD_AGAIN"}
+PASS direct HTTP: synchronous AI/storage, no queue/worker, invalid hash and staff denial, mandatory submission, manual AI/storage retry, cached replay, lost-response lookup, interrupted request and QR renewal.

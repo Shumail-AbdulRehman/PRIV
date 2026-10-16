@@ -20,7 +20,7 @@ export function assessmentDetail(requirement:Requirement):string {
 export function photoStatuses(manifest: Manifest, local: LocalSession | null, rows: QueueRow[]): PhotoStatus[] {
   const sessions = manifest.sessions ?? [];
   const activeSession=sessions.find(s=>s.id===local?.session.id)??sessions[0];
-  const keys=local?.session.requiredContextKeys??[...new Set((activeSession?.slots??local?.session.slots??[]).map(s=>s.contextKey).filter((key):key is string=>!!key))];
+  const keys=activeSession?.requiredContextKeys??local?.session.requiredContextKeys??[...new Set((activeSession?.slots??local?.session.slots??[]).map(s=>s.contextKey).filter((key):key is string=>!!key))];
   const contexts = keys.map(key => {
     // Most recent server session owns context; local data fills in unuploaded slots.
     const slot = (activeSession?.slots??[]).slice().sort((a,b) => b.generation-a.generation)

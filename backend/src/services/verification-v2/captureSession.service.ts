@@ -1,4 +1,5 @@
 import {releaseInterruptedPhotos} from './directProcessing.js';
+import {staffPhotoInstructions, type PhotoFeedbackContext} from './staffPhotoInstructions.js';
 import { retireContextPhotos } from "./retireContextPhotos.js";
 import { reviewableMedia } from "./evidenceBuffer.js";
 import {SEQUENTIAL_WORKFLOW,sequentialCapture,checkedAttempt,currentPhotoSlots} from './sequentialPolicy.js';
@@ -132,7 +133,7 @@ export async function retakeSlots(actor:VerificationActor,id:string,raw:unknown)
 function safeWindows(...args:Parameters<typeof sessionWindows>){try{return sessionWindows(...args);}catch{throw fail(410,'CAPTURE_EXPIRED','Capture window unavailable');}}
 
 /** Staff DTOs expose enumerated decisions and catalog copy, never provider prose or confidence. */
-export function staffAttemptResult(attempt:{state:string;qualityResult:unknown;coverageResult:unknown;cleanlinessResult:unknown;spatialDecision?:unknown;duplicateResult?:unknown;contextKey?:string|null},evidenceVisible:boolean,requirementState?:string){
+export function staffAttemptResult(attempt:{state:string;qualityResult:unknown;coverageResult:unknown;cleanlinessResult:unknown;spatialDecision?:unknown;duplicateResult?:unknown;contextKey?:string|null},evidenceVisible:boolean,requirementState?:string,photoContext?:PhotoFeedbackContext){
  const privacySafe=evidenceVisible||(attempt.qualityResult as {workflow?:string}|null)?.workflow==='BUFFERED_PHOTO_V1'||(attempt.qualityResult as {workflow?:string}|null)?.workflow==='DIRECT_PHOTO_V1';
  const quality=z.object({acceptable:z.boolean(),reasons:z.array(z.string()).optional()}).safeParse(attempt.qualityResult);
  const coverage=z.object({result:z.object({verdict:z.enum(['MATCH','WRONG_ITEM','MISSING_SURFACE','UNCERTAIN']),reasonCode:z.string().optional()})}).safeParse(attempt.coverageResult);
@@ -145,10 +146,10 @@ export function staffAttemptResult(attempt:{state:string;qualityResult:unknown;c
  const aliases:Record<string,string>={TOO_DARK:'PHOTO_TOO_DARK',BLURRY:'PHOTO_BLURRY',TOO_SMALL:'PHOTO_TOO_SMALL'};
  const parsed=reasonCodeSchema.safeParse(raw?aliases[raw]??raw:undefined),reasonCode=parsed.success?parsed.data:null;
  let instructions=attempt.state==='REVIEW_REQUIRED'&&reasonCode==='CLEAN'?'Your photo is waiting for manager review.':reasonCode?(reasonInstructions[reasonCode]??({PHOTO_TOO_DARK:'Turn on the light or torch.',PHOTO_BLURRY:'Hold still and retake.',PHOTO_TOO_SMALL:'Move closer and include the required surface.',CLEANING_REQUIRED:'Clean the required surface, then take a new photo.',PRIVACY_HOLD:'Your photo needs restricted review. Wait for your manager.'} as Record<string,string>)[reasonCode]??'Check the photo result and complete the required views.'):attempt.state==='RECAPTURE_REQUIRED'?'Show the whole required surface and retake.':attempt.state==='REVIEW_REQUIRED'?'Wait for your manager to review this capture.':null;
- if(reasonCode==='CLEF_CALIBRATION_REQUIRED')instructions='Your photo needs your manager’s review. Continue with the remaining photos.';
- if(attempt.state==='RECAPTURE_REQUIRED'&&reasonCode==='PHOTO_OF_SCREEN')instructions='Photograph the actual room or surface, not an image on another screen. Take another photo.';
- const surfaceNames:Record<string,string>={bowl:'bowl',seat:'seat',pan:'squat pan',footrests:'footrests',exterior:'exterior',base:'base',basin:'basin',drain:'drain',tap:'tap',reflective_surface:'mirror surface',whole_floor_zone:'floor zone',opening:'bin opening',interior:'bin interior',surrounding_floor:'surrounding floor'};
- if(privacySafe&&attempt.state==='CLEANING_REQUIRED'&&cleanliness.success){const dirty=cleanliness.data.result.surfaces?.filter(s=>['DIRTY','NEEDS_ATTENTION'].includes(s.verdict)).map(s=>surfaceNames[s.surface]).filter((s):s is string=>!!s);if(dirty?.length)instructions=`Clean the ${dirty.join(' and ')} and take another photo.`;}
+ const storedContext=z.object({fixtureType:z.string().max(100).optional(),viewKey:z.string().max(100).optional(),toiletStyle:z.enum(['WESTERN','SQUAT','UNCERTAIN']).optional(),missingSurfaces:z.array(z.string().max(100)).max(20).optional()}).safeParse((attempt.cleanlinessResult as {photoContext?:unknown}|null)?.photoContext);
+ const clarified=staffPhotoInstructions({state:attempt.state,reasonCode,context:{...(storedContext.success?storedContext.data:{}),...photoContext},dirtySurfaces:privacySafe&&cleanliness.success?cleanliness.data.result.surfaces?.filter(s=>['DIRTY','NEEDS_ATTENTION'].includes(s.verdict)).map(s=>s.surface):undefined});
+ // Preserve specialized spatial guidance, and never expose object/cleanliness hints during a hold.
+ if(clarified&&(!spatialRecapture||attempt.state==='PRIVACY_HOLD'))instructions=clarified;
  const manualOutcome=requirementState==='MANAGER_ACCEPTED'||requirementState==='WAIVED'?requirementState:null;
  if(manualOutcome)instructions=manualOutcome==='MANAGER_ACCEPTED'?'Your manager accepted this photo.':'Your manager approved an exception for this item.';
  let cleanlinessOutcome:'CLEAN'|'DIRTY'|'NEEDS_REVIEW'|null=null;

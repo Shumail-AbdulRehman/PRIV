@@ -1,0 +1,9 @@
+BROWSER Failed to load resource: the server responded with a status of 409 (Conflict)
+BROWSER Failed to load resource: the server responded with a status of 503 (Service Unavailable)
+BROWSER Failed to load resource: the server responded with a status of 503 (Service Unavailable)
+PASS Overview cache: fresh return, stale refresh, isolated dates, inactive expiry
+PASS 1440: card destinations, task panel/case ID, 47-row pagination/search/clamp, return filters, complete evidence workspace, conflict/idempotency/partial success, privacy, RTL/200% text
+BROWSER Failed to load resource: the server responded with a status of 409 (Conflict)
+BROWSER Failed to load resource: the server responded with a status of 503 (Service Unavailable)
+BROWSER Failed to load resource: the server responded with a status of 503 (Service Unavailable)
+PASS 390: card destinations, task panel/case ID, 47-row pagination/search/clamp, return filters, complete evidence workspace, conflict/idempotency/partial success, privacy, RTL/200% text

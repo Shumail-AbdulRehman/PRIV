@@ -1,4 +1,5 @@
 import { Link } from 'react-router-dom';
+import PageLoadingSkeleton from '@/components/common/PageLoadingSkeleton';
 import { verificationLabel } from '@/pages/Verification/presentation';
 import { useState } from 'react';
 import { useSearchParams } from 'react-router-dom';
@@ -42,7 +43,7 @@ export default function LocationScheduleTab({ locationId }: { locationId: string
         <Button variant="outline" disabled={!data || query.isFetching} onClick={() => { if (weekStart) setWeek(moveWeek(weekStart, 1)); }}>Next week</Button>
       </div>
     </div>
-    {query.isPending ? <div role="status" className="rounded-xl border p-8 text-slate-500">Loading weekly schedule…</div>
+    {query.isPending ? <PageLoadingSkeleton layout="schedule" section />
       : query.isError ? <div role="alert" className="rounded-xl border border-red-200 bg-red-50 p-5"><p>We couldn’t load this week. Try again.</p><Button variant="outline" className="mt-3" onClick={() => void query.refetch()}>Retry</Button></div>
       : data && <>
         <div className="flex flex-wrap items-center justify-between gap-2 text-sm"><p className="font-medium text-slate-800">{dayLabel(data.weekStart, 'd MMM')} – {dayLabel(data.days[6].date, 'd MMM yyyy')}</p><p className="text-slate-500">Site time: {data.location.timezone}{query.isFetching ? ' · Updating…' : ''}</p></div>

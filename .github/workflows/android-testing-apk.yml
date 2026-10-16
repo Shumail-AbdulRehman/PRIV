@@ -87,12 +87,11 @@ jobs:
       - run: npm ci
       - run: npx prisma generate
       - name: Backend contracts and build
-        run: npm test && npm run build && npm run worker:verification:check
-      - name: Isolated PostgreSQL contracts, lifecycle and worker health
+        run: npm test && npm run build
+      - name: Isolated PostgreSQL contracts, lifecycle and direct photo requests
         run: |
-          npm run test:verification:integration
           npm run test:verification:lifecycle
-          npm run test:verification:worker
+          npm run test:verification:photo-http
       - name: Preserve closed evaluation gate
         run: npm run verification:benchmark
 
@@ -146,15 +145,12 @@ jobs:
           modules = json.loads(Path('build-output/autolinking.json').read_text())['modules']
           names = {module['packageName'] for module in modules}
           required = {'capture-quality', 'spatial-tracking', 'expo-camera', 'expo-location',
-                      'expo-sqlite', 'expo-secure-store', 'expo-file-system', 'expo-crypto'}
+                      'expo-secure-store', 'expo-file-system', 'expo-crypto'}
           assert required <= names, f'Missing native modules: {required - names}'
           rn_modules = json.loads(Path('build-output/react-native-config.json').read_text())['dependencies']
-          onnx = rn_modules.get('onnxruntime-react-native', {}).get('platforms', {}).get('android', {})
-          assert onnx.get('packageInstance') == 'new OnnxruntimePackage()', 'ONNX Runtime ReactPackage is not registered'
-          model = Path('android/app/src/main/assets/clip-vision-int8.onnx')
-          assert hashlib.sha256(model.read_bytes()).hexdigest() == '583fd1110a514667812fee7d684952aaf82a99b959760c8d7dca7e0ab9839299'
-          assert 'com.microsoft.onnxruntime:onnxruntime-android:1.24.3' in Path('android/build.gradle').read_text()
-          assert 'expo.sqlite.useSQLCipher=true' in Path('android/gradle.properties').read_text()
+          assert 'onnxruntime-react-native' not in rn_modules, 'Removed runtime is still registered'
+          assert not list(Path('android/app/src/main/assets').glob('*.onnx')), 'Removed AI model is still bundled'
+          assert 'expo-sqlite' not in names, 'Removed persistent photo storage is still registered'
           assert 'autoIdentityAcceptance:z.literal(false)' in Path('../backend/src/services/verification-v2/spatial.contracts.ts').read_text().replace(' ', '')
           cleanliness = Path('../backend/src/services/verification-v2/cleanliness.service.ts').read_text().replace(' ', '')
           assert 'returncleanlinessReleaseStatus(fixtureType,rubricVersion).allowed;' in cleanliness
@@ -163,7 +159,7 @@ jobs:
           assert 'Date.parse(record.review.expiresAt)<=now.getTime()' in release
           assert "reason:'CONFIGURATION_CHANGED'" in release
           assert 'verificationReleaseConfiguration()' in release
-          print('Required native modules and SQLCipher resolved; spatial auto-acceptance is closed, and cleanliness remains behind its reviewed release gate.')
+          print('Required native modules resolved without persistent photo storage; spatial auto-acceptance is closed, and cleanliness remains behind its reviewed release gate.')
           PY
       - name: Compile native Android before APK packaging
         run: |
@@ -172,7 +168,7 @@ jobs:
             -PreactNativeArchitectures="$TEST_ANDROID_ABIS" \
             --no-daemon --max-workers=2 --console=plain \
             2>&1 | tee ../build-output/native-compilation.log
-          grep -R -q 'new OnnxruntimePackage(' app/build/generated
+          if grep -R -q 'new OnnxruntimePackage(' app/build/generated; then exit 1; fi
           test ! -f app/build/outputs/apk/release/app-release.apk
       - name: Package standalone testing APK with the generated test signing key
         run: |

@@ -1,0 +1,77 @@
+{
+  "startedAt": "2026-10-14T19:26:31.355Z",
+  "mode": "real-cloudflare-real-cloudinary-isolated-postgresql",
+  "hardware": "HTTP simulation; synthetic sink images stand in for camera files",
+  "steps": [
+    "Staff login rejects incorrect password and signs in with valid credentials",
+    "Authenticated staff profile",
+    "Refresh session",
+    "Attendance rejects location outside assigned site",
+    "Check-in with multipart image and accurate site location",
+    "Attendance list reflects check-in",
+    "Direct-photo database readiness",
+    "clean: correct QR starts task and missing-photo submission is blocked",
+    "clean: assigned task appears in staff feed",
+    "clean: real AI and conditional protected storage return REVIEW_REQUIRED",
+    "Lost-response lookup and duplicate upload retain same capture",
+    "clean: staff submits after mandatory evidence is received",
+    "clean: submitted work is visible to manager",
+    "dirty: correct QR starts task and missing-photo submission is blocked",
+    "dirty: assigned task appears in staff feed",
+    "dirty: real AI and conditional protected storage return CLEANING_REQUIRED",
+    "Dirty photo blocks task submission",
+    "Rescan after cleaning creates new photo and accepts it for review",
+    "dirty: staff submits after mandatory evidence is received",
+    "dirty: submitted work is visible to manager",
+    "Zero verification queue jobs and worker heartbeats",
+    "Checkout enforces minimum attendance time",
+    "Check-out after simulated 31 minutes",
+    "Logout revokes refresh session"
+  ],
+  "photos": [
+    {
+      "kind": "clean",
+      "state": "REVIEW_REQUIRED",
+      "storage": "cloud",
+      "durationMs": 4298
+    },
+    {
+      "kind": "dirty",
+      "state": "CLEANING_REQUIRED",
+      "storage": "discarded",
+      "durationMs": 1186
+    },
+    {
+      "kind": "after-cleaning",
+      "state": "REVIEW_REQUIRED",
+      "storage": "cloud"
+    }
+  ],
+  "cleanup": [
+    {
+      "publicId": "attendance-selfies/prhv1tqx4v8naubgx69a",
+      "result": "ok"
+    },
+    {
+      "publicId": "verification/1/attempts/d9887d04-8e44-4455-976d-34a779ea808a/original",
+      "result": "ok"
+    },
+    {
+      "publicId": "verification/1/attempts/d9887d04-8e44-4455-976d-34a779ea808a/review",
+      "result": "ok"
+    },
+    {
+      "publicId": "verification/1/attempts/9f33e55b-ad94-4ca9-a8e4-2aa123450cc1/original",
+      "result": "ok"
+    },
+    {
+      "publicId": "verification/1/attempts/9f33e55b-ad94-4ca9-a8e4-2aa123450cc1/review",
+      "result": "ok"
+    },
+    {
+      "publicId": "attendance-check-out-image/nmsrgo1hk8drfhp8gx88",
+      "result": "ok"
+    }
+  ],
+  "status": "PASS"
+}

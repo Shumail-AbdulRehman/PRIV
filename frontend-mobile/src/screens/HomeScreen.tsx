@@ -1,8 +1,11 @@
-import { verificationTaskLabel } from '../verification/taskPresentation';
-import { pendingCount as pendingPhotoCount } from '../verification/queue';
-import { useState } from "react";
-import { Alert, RefreshControl, ScrollView, View } from "react-native";
-import * as ImagePicker from "expo-image-picker";
+import NetInfo from "@react-native-community/netinfo";
+import { useLanguage } from "../i18n/LanguageProvider";
+import { StaffBrand } from "../components/StaffBrand";
+import { ListenButton } from "../components/ListenButton";
+import { TaskCard } from "../components/TaskCard";
+import { useEffect, useState } from "react";
+import { Alert, Linking, RefreshControl, ScrollView, View } from "react-native";
+import { useCameraPermissions } from "expo-camera";
 import * as Location from "expo-location";
 import * as Haptics from "expo-haptics";
 import { useNavigation } from "@react-navigation/native";
@@ -14,13 +17,14 @@ import { useAuth } from "../auth/AuthContext";
 import { Button } from "../components/ui/button";
 import { LoadingState } from "../components/LoadingState";
 import { ScreenHeader } from "../components/ScreenHeader";
-import { StatusBadge } from "../components/StatusBadge";
-import { StatCard } from "../components/StatCard";
-import { FactRow } from "../components/FactRow";
 import { Card, CardContent } from "../components/ui/card";
 import { Text } from "../components/ui/text";
 import { Icon } from "../components/ui/icon";
-import { staffQueryKeys, useMyAttendanceQuery, useTodaysTasksQuery } from "../queries/staff";
+import {
+  staffQueryKeys,
+  useMyAttendanceQuery,
+  useTodaysTasksQuery,
+} from "../queries/staff";
 import type { AttendanceRecord, StaffTabsParamList } from "../types";
 import {
   getCheckInOpenAt,
@@ -37,6 +41,8 @@ import {
   formatTaskWindow,
 } from "../utils/format";
 import { createImagePart } from "../utils/upload";
+import { AttendanceCamera } from "../components/AttendanceCamera";
+import { currentLocation } from "../verification/location";
 
 type AttendanceActionMode = "check-in" | "check-out";
 
@@ -73,7 +79,8 @@ const buildAttendanceViewModel = ({
       statusLabel: "Not Assigned",
       tone: "neutral",
       title: "No location assigned",
-      message: "Ask your manager to assign a location and shift before using mobile attendance.",
+      message:
+        "Ask your manager to assign a location and shift before using mobile attendance.",
       facts: [],
       action: null,
     };
@@ -85,7 +92,7 @@ const buildAttendanceViewModel = ({
       tone: "neutral",
       title: "No shift loaded for today",
       message:
-        "There is no attendance record for today's Karachi shift yet. Pull to refresh in a moment or contact your manager if it stays missing.",
+        "Refresh to load your shift. If it is still missing, ask your manager.",
       facts: [],
       action: null,
     };
@@ -112,7 +119,10 @@ const buildAttendanceViewModel = ({
         record.checkInTime
           ? { label: "Checked In", value: formatClockTime(record.checkInTime) }
           : { label: "Checked In", value: "Not recorded" },
-        { label: "Checked Out", value: formatClockTime(record.checkOutTime ?? record.expectedEnd) },
+        {
+          label: "Checked Out",
+          value: formatClockTime(record.checkOutTime ?? record.expectedEnd),
+        },
       ],
       action: null,
     };
@@ -124,7 +134,6 @@ const buildAttendanceViewModel = ({
     const isLate = now.getTime() > lateDeadline.getTime();
 
     if (checkInHasOpened && !shiftHasEnded) {
-
       return {
         statusLabel: isLate ? "Late Window" : "Check-In Open",
         tone: isLate ? "warning" : "accent",
@@ -206,7 +215,7 @@ const buildAttendanceViewModel = ({
         mode: "check-out",
         label: "Complete Check Out",
         disabled: false,
-        helper: "This attendance will remain flagged as a missed checkout in backend history.",
+        helper: "This late checkout stays in your attendance history.",
       },
     };
   }
@@ -217,7 +226,9 @@ const buildAttendanceViewModel = ({
     return {
       statusLabel: formatAttendanceStatus(record.status),
       tone: record.status === "LATE" ? "warning" : "success",
-      title: checkoutReady ? "Ready to check out" : "You are currently on shift",
+      title: checkoutReady
+        ? "Ready to check out"
+        : "You are currently on shift",
       message: checkoutReady
         ? `Your shift ended at ${formatClockTime(record.expectedEnd)}. Capture a checkout selfie to close it now.`
         : `You checked in at ${formatClockTime(record.checkInTime ?? record.expectedStart)}. Your shift ends at ${formatClockTime(record.expectedEnd)}.`,
@@ -238,7 +249,7 @@ const buildAttendanceViewModel = ({
         disabled: !checkoutReady,
         helper: checkoutReady
           ? "Checkout requires a fresh selfie and your current location."
-          : `Your shift ends at ${formatClockTime(record.expectedEnd)}.${minimumCheckoutAt ? ` Backend checkout is also blocked until ${formatClockTime(minimumCheckoutAt)}.` : ""}`,
+          : `Your shift ends at ${formatClockTime(record.expectedEnd)}.${minimumCheckoutAt ? ` Check-out opens at ${formatClockTime(minimumCheckoutAt)}.` : ""}`,
       },
     };
   }
@@ -267,27 +278,37 @@ const toneButtonVariantMap: Record<
   neutral: "ghost",
 };
 
-const greeting = () => {
-  const hour = new Date().getHours();
-  if (hour < 12) return "Good morning";
-  if (hour < 17) return "Good afternoon";
-  return "Good evening";
-};
-
-const todaySubtitle = () => {
-  return new Date().toLocaleDateString("en-US", {
-    weekday: "long",
-    month: "long",
-    day: "numeric",
-  });
-};
-
 export function HomeScreen() {
-  const { user, logout } = useAuth();
+  const { user } = useAuth();
+  const { t, isRTL, language } = useLanguage();
+  const [shiftDetails, setShiftDetails] = useState(false);
+  const [notice, setNotice] = useState("");
+  const [permissionNotice, setPermissionNotice] = useState(false);
+  const [online, setOnline] = useState(true);
+  const [now, setNow] = useState(() => new Date());
+  useEffect(() => {
+    const timer = setInterval(() => setNow(new Date()), 30000);
+    return () => clearInterval(timer);
+  }, []);
+  useEffect(
+    () =>
+      NetInfo.addEventListener((state) =>
+        setOnline(
+          state.isConnected !== false && state.isInternetReachable !== false,
+        ),
+      ),
+    [],
+  );
   const navigation = useNavigation<NavigationProp>();
   const queryClient = useQueryClient();
   const insets = useSafeAreaInsets();
-  const [submittingMode, setSubmittingMode] = useState<AttendanceActionMode | null>(null);
+  const [submittingMode, setSubmittingMode] =
+    useState<AttendanceActionMode | null>(null);
+  const [, requestCameraPermission] = useCameraPermissions();
+  const [attendanceCapture, setAttendanceCapture] = useState<{
+    mode: AttendanceActionMode;
+    coords: Awaited<ReturnType<typeof currentLocation>>;
+  } | null>(null);
   const staffId = user?.id;
   const attendanceQuery = useMyAttendanceQuery(staffId);
   const tasksQuery = useTodaysTasksQuery(staffId);
@@ -307,34 +328,62 @@ export function HomeScreen() {
 
     if (error) {
       const apiError = error as any;
-      Alert.alert("Refresh failed", apiError?.response?.data?.message ?? "Unable to refresh.");
+      Alert.alert(
+        "Refresh failed",
+        apiError?.response?.data?.message ?? "Unable to refresh.",
+      );
     }
   };
 
   const handleAttendanceAction = async (mode: AttendanceActionMode) => {
     try {
+      setNotice("");
+      setPermissionNotice(false);
+      if (!online) {
+        setNotice(t("Internet needed to continue"));
+        return;
+      }
       setSubmittingMode(mode);
 
-      const cameraPermission = await ImagePicker.requestCameraPermissionsAsync();
+      const cameraPermission = await requestCameraPermission();
 
       if (!cameraPermission.granted) {
-        Alert.alert("Camera required", "Allow camera access to capture an attendance image.");
+        setPermissionNotice(true);
+        setNotice(t("Allow camera access to capture an attendance image."));
+        Alert.alert(
+          t("Camera required"),
+          t("Allow camera access to capture an attendance image."),
+        );
         return;
       }
 
-      const locationPermission = await Location.requestForegroundPermissionsAsync();
+      const locationPermission =
+        await Location.requestForegroundPermissionsAsync();
 
       if (!locationPermission.granted) {
-        Alert.alert("Location required", "Allow location access to mark attendance.");
+        setPermissionNotice(true);
+        setNotice(t("Allow location access to mark attendance."));
+        Alert.alert(
+          t("Location required"),
+          t("Allow location access to mark attendance."),
+        );
         return;
       }
 
       // Get a fresh, high-accuracy location BEFORE opening the camera.
       // Indoor GPS can be inaccurate; Highest accuracy reduces the chance
       // that a staff member is rejected while standing at the correct location.
-      const coords = await Location.getCurrentPositionAsync({
-        accuracy: Location.Accuracy.Highest,
-      });
+      const coords = await currentLocation((next, failure) =>
+        Location.watchPositionAsync(
+          {
+            accuracy: Location.Accuracy.Highest,
+            timeInterval: 1000,
+            distanceInterval: 0,
+          },
+          next,
+          failure,
+        ),
+      );
 
       const accuracyMeters = coords.coords.accuracy ?? 0;
       if (accuracyMeters > 50) {
@@ -345,7 +394,7 @@ export function HomeScreen() {
             [
               { text: "Continue anyway", onPress: () => resolve(false) },
               { text: "Retry", onPress: () => resolve(true), style: "cancel" },
-            ]
+            ],
           );
         });
         if (shouldRetry) {
@@ -354,199 +403,363 @@ export function HomeScreen() {
         }
       }
 
-      const imageResult = await ImagePicker.launchCameraAsync({
-        mediaTypes: ["images"],
-        quality: 0.7,
-      });
+      setAttendanceCapture({ mode, coords });
+    } catch (error: any) {
+      const detail =
+        error?.code === "ERR_NETWORK"
+          ? t("Internet needed to continue")
+          : (error?.response?.data?.message ??
+            error?.message ??
+            t("Unable to open attendance."));
+      setNotice(detail);
+      Alert.alert(t("Attendance failed"), detail);
+    } finally {
+      setSubmittingMode(null);
+    }
+  };
 
-      if (imageResult.canceled || !imageResult.assets[0]) {
-        return;
-      }
-
-      const image = imageResult.assets[0];
+  const submitAttendanceSelfie = async (uri: string) => {
+    if (!attendanceCapture) return;
+    const { mode, coords } = attendanceCapture;
+    try {
       const formData = new FormData();
       formData.append("latitude", String(coords.coords.latitude));
       formData.append("longitude", String(coords.coords.longitude));
       formData.append("accuracy", String(coords.coords.accuracy ?? 0));
       formData.append(
         "image",
-        createImagePart(image.uri, image.fileName ?? `${mode}.jpg`, image.mimeType)
+        createImagePart(uri, `${mode}.jpg`, "image/jpeg"),
       );
 
-      await uploadFormData(`/attendance/${mode}`, formData);
+      await uploadFormData(`/attendance/${mode}`, formData, 60000);
+      setAttendanceCapture(null);
       await Promise.all([
-        queryClient.invalidateQueries({ queryKey: staffQueryKeys.attendance(staffId) }),
-        queryClient.invalidateQueries({ queryKey: staffQueryKeys.tasksToday(staffId) }),
+        queryClient.invalidateQueries({
+          queryKey: staffQueryKeys.attendance(staffId),
+        }),
+        queryClient.invalidateQueries({
+          queryKey: staffQueryKeys.tasksToday(staffId),
+        }),
       ]);
 
-      Alert.alert(
-        "Success",
-        mode === "check-in" ? "Checked in successfully." : "Checked out successfully."
+      setNotice(
+        t(mode === "check-in" ? "Check-in recorded." : "Check-out recorded."),
       );
     } catch (error: any) {
-      Alert.alert(
-        "Attendance failed",
-        error?.response?.data?.message ?? error?.message ?? `Unable to ${mode.replace("-", " ")}.`
+      throw new Error(
+        error?.response?.data?.message ??
+          error?.message ??
+          `Unable to ${mode.replace("-", " ")}.`,
       );
-    } finally {
-      setSubmittingMode(null);
     }
   };
 
-  const handleSignOut = async () => {
-    const count = await pendingPhotoCount().catch(() => 0);
-    Alert.alert("Sign out", count ? `${count} photos are waiting to upload. They stay locked on this phone. Sign in with this same account and reopen the app to upload them.` : "Sign out of this account?", [
-      { text: "Cancel", style: "cancel" },
-      { text: "Sign Out", style: "destructive", onPress: () => void logout() },
-    ]);
-  };
-
-  const now = new Date();
   const activeAttendance = getRelevantAttendanceRecord(attendanceRecords, now);
   const attendanceView = buildAttendanceViewModel({
     record: activeAttendance,
     hasAssignedLocation: Boolean(user?.locationId),
     now,
   });
-  const pendingCount = tasks.filter((task) => task.status === "PENDING").length;
-  const inProgressCount = tasks.filter((task) => task.status === "IN_PROGRESS").length;
-  const completedCount = tasks.filter((task) => task.status === "COMPLETED").length;
+  const completedCount = tasks.filter(
+    (task) => task.status === "COMPLETED",
+  ).length;
   const attendanceAction = attendanceView.action;
   const actionVariant = toneButtonVariantMap[attendanceView.tone];
 
-  const previewTasks = tasks.slice(0, 3);
-  const firstName = user?.name?.split(" ")[0] ?? user?.name ?? "Staff";
+  const nextTask = [...tasks]
+    .filter((task) =>
+      ["PENDING", "IN_PROGRESS", "NOT_COMPLETED_INTIME"].includes(task.status),
+    )
+    .sort((a, b) =>
+      a.status === "IN_PROGRESS"
+        ? -1
+        : b.status === "IN_PROGRESS"
+          ? 1
+          : Date.parse(a.shiftStart) - Date.parse(b.shiftStart),
+    )[0];
 
-  if (isInitialLoading) {
+
+  if (attendanceCapture)
+    return (
+      <AttendanceCamera
+        mode={attendanceCapture.mode}
+        onCapture={submitAttendanceSelfie}
+        onCancel={() => setAttendanceCapture(null)}
+      />
+    );
+
+  if (isInitialLoading && online) {
     return (
       <View
         className="flex-1 justify-center px-5"
-        style={{ paddingTop: insets.top + 20, paddingBottom: insets.bottom + 20 }}
+        style={{
+          paddingTop: insets.top + 20,
+          paddingBottom: insets.bottom + 20,
+        }}
       >
         <LoadingState fullScreen />
       </View>
     );
   }
 
+  const checkedIn = !!activeAttendance && hasOpenCheckout(activeAttendance);
+  const onShiftWaiting = checkedIn && !!attendanceAction?.disabled;
+  const instruction = t(
+    attendanceAction?.disabled
+      ? "If you were on shift and this is wrong, contact your manager."
+      : attendanceAction
+        ? "Take a fresh selfie. Keep location turned on."
+        : attendanceView.title,
+  );
   return (
     <ScrollView
       className="flex-1 bg-background"
-      contentContainerClassName="gap-4 p-4"
       contentContainerStyle={{
-        paddingTop: insets.top + 16,
-        paddingBottom: insets.bottom + 16,
+        padding: 20,
+        paddingTop: insets.top + 20,
+        paddingBottom: insets.bottom + 24,
+        gap: 20,
       }}
-      refreshControl={<RefreshControl refreshing={refreshing} onRefresh={onRefresh} />}
+      refreshControl={
+        <RefreshControl refreshing={refreshing} onRefresh={onRefresh} />
+      }
     >
+      <StaffBrand />
       <ScreenHeader
-        title={`${greeting()}, ${firstName}`}
-        subtitle={todaySubtitle()}
-        right={
-          <Button
-            variant="ghost"
-            size="icon"
-            iconLeft="LogOut"
-            onPress={handleSignOut}
-            accessibilityLabel="Sign out"
-          />
-        }
+        title={t("Today")}
+        subtitle={new Intl.DateTimeFormat(
+          language === "ur" ? "ur-PK" : "en-PK",
+          { weekday: "long", day: "numeric", month: "long" },
+        ).format(now)}
       />
-
-      <Card>
-        <CardContent className="gap-3 p-4">
-          <View className="flex-row items-center justify-between">
-            <Text className="text-base font-semibold text-card-foreground">Attendance</Text>
-            <StatusBadge status={attendanceView.statusLabel} />
-          </View>
-
-          <Text className="text-xl font-bold text-card-foreground">
-            {attendanceView.title}
+      {!online ? (
+        <View className="gap-2 rounded-xl bg-secondary p-4">
+          <Text className="text-base font-semibold">
+            {t("Internet needed to continue")}
           </Text>
-          <Text className="text-sm text-muted-foreground">
-            {attendanceView.message}
+          <Text className="text-base">
+            {t("You are viewing the last loaded information.")}
           </Text>
-
-          {attendanceView.facts.length ? (
-            <View className="rounded-lg bg-secondary p-3">
-              <View className="flex-row flex-wrap gap-y-3 gap-x-4">
-                {attendanceView.facts.map((fact) => (
-                  <FactRow key={fact.label} label={fact.label} value={fact.value} />
-                ))}
-              </View>
-            </View>
+        </View>
+      ) : null}
+      {notice ? (
+        <View className="rounded-xl bg-accent p-4">
+          <Text
+            accessibilityLiveRegion="polite"
+            className="text-base font-semibold"
+          >
+            {notice}
+          </Text>
+          {permissionNotice ? (
+            <Button variant="ghost" onPress={() => void Linking.openSettings()}>
+              {t("Open settings")}
+            </Button>
           ) : null}
-
-          {attendanceAction ? (
+        </View>
+      ) : null}
+      {attendanceQuery.isError ? (
+        <View className="gap-2 rounded-xl border border-border p-4">
+          <Text accessibilityLiveRegion="polite">
+            {t("Attendance could not load. Try again.")}
+          </Text>
+          <Button
+            variant="outline"
+            onPress={() => void attendanceQuery.refetch()}
+          >
+            {t("Try again")}
+          </Button>
+        </View>
+      ) : null}
+      <Card>
+        <CardContent className="gap-4 p-5">
+          <View
+            style={{
+              flexDirection: isRTL ? "row-reverse" : "row",
+              gap: 12,
+              alignItems: "center",
+            }}
+          >
+            <View className="rounded-full bg-accent p-3">
+              <Icon
+                name={checkedIn ? "CircleCheck" : "CalendarDays"}
+                size={26}
+                className="text-primary"
+              />
+            </View>
+            <View className="flex-1">
+              <Text className="text-sm font-semibold text-muted-foreground">
+                {t("My shift")}
+              </Text>
+              <Text className="mt-1 text-xl font-bold">
+                {activeAttendance?.location?.name ??
+                  t(user?.locationId ? "Location" : "No location assigned")}
+              </Text>
+            </View>
+          </View>
+          {activeAttendance ? (
+            <Text
+              style={{
+                writingDirection: "ltr",
+                textAlign: isRTL ? "right" : "left",
+              }}
+              className="text-lg font-semibold"
+            >
+              {formatTaskWindow(
+                activeAttendance.expectedStart,
+                activeAttendance.expectedEnd,
+              )}
+            </Text>
+          ) : null}
+          <Text className="text-xl font-bold">
+            {t(onShiftWaiting ? "Checked in" : attendanceView.title)}
+          </Text>
+          {!onShiftWaiting?<Text className="text-base leading-6 text-muted-foreground">
+            {onShiftWaiting
+              ? t("Your attendance is recorded. Continue with your next task.")
+              : language === "ur"
+                ? checkedIn
+                  ? `آپ کی حاضری درج ہے۔ ${attendanceAction?.disabled ? "روانگی کا وقت آنے تک اپنا کام جاری رکھیں۔" : "روانگی درج کرنے کے لیے اپنی تصویر لیں۔"}`
+                  : attendanceAction?.disabled
+                    ? "حاضری کا وقت چیک کریں۔ مسئلہ ہو تو منیجر سے پوچھیں۔"
+                    : "حاضری کے لیے اپنی تصویر لیں۔ کیمرہ اور لوکیشن کی اجازت ضروری ہے۔"
+                : attendanceView.message}
+          </Text>:null}
+          <Button variant="ghost" iconRight={shiftDetails ? "ChevronUp" : "ChevronDown"} aria-expanded={shiftDetails} accessibilityState={{expanded:shiftDetails}} onPress={()=>setShiftDetails(value=>!value)}>{t("Shift details")}</Button>
+          {shiftDetails ? <View className="gap-3 border-t border-border pt-4">{attendanceView.facts.map(fact=><View key={fact.label} style={{flexDirection:isRTL?'row-reverse':'row',justifyContent:'space-between',gap:12,flexWrap:'wrap'}}><Text className="text-base text-muted-foreground">{t(fact.label)}</Text><Text className="text-base font-semibold">{fact.value}</Text></View>)}<ListenButton text={instruction}/></View> : null}
+          {onShiftWaiting && activeAttendance ? (
+            <Text className="text-base text-muted-foreground">
+              {t("Check-out opens at {time}", {
+                time: `\u2066${formatClockTime(getRecommendedCheckoutAt(activeAttendance))}\u2069`,
+              })}
+            </Text>
+          ) : attendanceAction ? (
             <View className="gap-2">
               <Button
+                size="lg"
                 variant={actionVariant}
+                iconLeft={attendanceAction.mode === "check-in" ? "LogIn" : "LogOut"}
                 loading={submittingMode === attendanceAction.mode}
-                disabled={attendanceAction.disabled}
-                onPress={() => {
-                  void Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
-                  if (!attendanceAction.disabled) {
-                    void handleAttendanceAction(attendanceAction.mode);
-                  }
-                }}
+                disabled={
+                  attendanceAction.disabled ||
+                  !online ||
+                  attendanceQuery.isError
+                }
+                onPress={() =>
+                  void handleAttendanceAction(attendanceAction.mode)
+                }
               >
-                {attendanceAction.label}
+                {t(attendanceAction.label)}
               </Button>
-              {attendanceAction.helper ? (
-                <Text className="text-center text-xs text-muted-foreground">
-                  {attendanceAction.helper}
+              {!online ? (
+                <Text className="text-base text-muted-foreground">
+                  {t("Internet needed to continue")}
+                </Text>
+              ) : attendanceAction.helper ? (
+                <Text className="text-base leading-6 text-muted-foreground">
+                  {language === "ur" && activeAttendance
+                    ? attendanceAction.disabled &&
+                      now.getTime() >
+                        Date.parse(activeAttendance.expectedEnd) &&
+                      attendanceAction.mode === "check-in"
+                      ? t(
+                          "If you were on shift and this is wrong, contact your manager.",
+                        )
+                      : attendanceAction.disabled
+                        ? t(
+                            attendanceAction.mode === "check-in"
+                              ? "Check-in opens at {time}"
+                              : "Check-out opens at {time}",
+                            {
+                              time: formatClockTime(
+                                attendanceAction.mode === "check-in"
+                                  ? getCheckInOpenAt(activeAttendance)
+                                  : getRecommendedCheckoutAt(activeAttendance),
+                              ),
+                            },
+                          )
+                        : t("Take a fresh selfie. Keep location turned on.")
+                    : attendanceAction.helper}
                 </Text>
               ) : null}
             </View>
           ) : null}
         </CardContent>
       </Card>
-
-      <View className="flex-row gap-3">
-        <StatCard label="Pending" value={pendingCount} icon="Clock" />
-        <StatCard label="In Progress" value={inProgressCount} icon="Loader" />
-        <StatCard label="Completed" value={completedCount} icon="CheckCircle2" />
-      </View>
-
-      <Card>
-        <CardContent className="gap-3 p-4">
-          <Text className="text-base font-semibold text-card-foreground">
-            Today's tasks
+      <View className="gap-3">
+        <View
+          style={{
+            flexDirection: isRTL ? "row-reverse" : "row",
+            alignItems: "center",
+            justifyContent: "space-between",
+            gap: 12,
+          }}
+        >
+          <Text className="text-xl font-bold">{t("Today’s tasks")}</Text>
+          <Text className="text-base text-muted-foreground">
+            {t("{count} of {total} submitted", {
+              count: completedCount,
+              total: tasks.length,
+            })}
           </Text>
-
-          {previewTasks.length ? (
-            <View className="gap-2">
-              {previewTasks.map((task) => (
-                <View
-                  key={task.id}
-                  className="flex-row items-center justify-between rounded-lg bg-secondary px-3 py-2"
-                >
-                  <Text
-                    className="flex-1 text-sm font-medium text-secondary-foreground"
-                    numberOfLines={1}
-                  >
-                    {task.areaNameSnapshot??task.title}
-                  </Text>
-                  {task.verificationVersion===2?<Text className="text-sm">{verificationTaskLabel(task)}</Text>:<StatusBadge status={task.status} />}
-                </View>
-              ))}
-            </View>
-          ) : (
-            <Text className="text-sm text-muted-foreground">
-              No tasks yet today.
+        </View>
+        {!tasksQuery.data && !online ? (
+          <Text>{t("Today has not loaded yet. Reconnect and refresh.")}</Text>
+        ) : tasksQuery.isError ? (
+          <View className="gap-2">
+            <Text>
+              {t("Today could not load. Check your internet and try again.")}
             </Text>
-          )}
-
-          <Button
-            variant="outline"
-            onPress={() => {
-              void Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
-              navigation.navigate("Tasks");
-            }}
-          >
-            View all tasks
-          </Button>
-        </CardContent>
-      </Card>
+            <Button variant="outline" onPress={() => void tasksQuery.refetch()}>
+              {t("Try again")}
+            </Button>
+          </View>
+        ) : nextTask ? (
+          <>
+            <TaskCard
+              task={nextTask}
+              onStart={
+                checkedIn
+                  ? () =>
+                      navigation
+                        .getParent()
+                        ?.navigate("StartTask", { taskId: nextTask.id })
+                  : undefined
+              }
+              onComplete={() =>
+                navigation
+                  .getParent()
+                  ?.navigate("Verification", { taskId: nextTask.id, requirePhotoQr: true })
+              }
+            />
+            {!checkedIn ? (
+              <Text className="text-base text-muted-foreground">
+                {t("Check in")} · {t("Start cleaning")}
+              </Text>
+            ) : null}
+          </>
+        ) : (
+          <View className="gap-2 rounded-xl bg-accent p-5">
+            <Icon name="CircleCheck" size={26} className="text-primary" />
+            <Text className="text-xl font-bold">
+              {t(tasks.length ? "All done for today" : "No tasks for today")}
+            </Text>
+            <Text className="text-base text-muted-foreground">
+              {t(
+                tasks.length
+                  ? "Your submitted work is kept in your task list."
+                  : "Your manager has not assigned work for today.",
+              )}
+            </Text>
+          </View>
+        )}
+        <Button
+          variant="outline"
+          iconRight="ArrowRight"
+          onPress={() => navigation.navigate("Tasks")}
+        >
+          {t("View all tasks")}
+        </Button>
+      </View>
     </ScrollView>
   );
 }

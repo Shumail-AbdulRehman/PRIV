@@ -36,7 +36,9 @@ __pycache__/
 
 # Personal context / discussion notes
 FYP_ML_DISCUSSION.md
-PROJECT_CONTEXT.txt
+
+# Current shared project context
+!PROJECT_CONTEXT.md
 
 # Shareable implementation handoff
 !docs/PRODUCT_IMPROVEMENT_HANDOFF.md
@@ -63,3 +65,27 @@ PROJECT_CONTEXT.txt
 # Calibration/release records contain private evaluation provenance.
 /backend/verification-releases/*
 !/backend/verification-releases/.gitkeep
+
+# Current operations design system and validation record
+!PRODUCT.md
+!DESIGN.md
+!docs/UX_REDESIGN.md
+
+# Manager web design and implementation handoff
+!docs/MANAGER_WEB_IMPLEMENTATION_PLAN.md
+
+!docs/MANAGER_WEB_IMPLEMENTATION_RESULTS.md
+
+# Temporary encrypted evidence must never enter source control.
+/backend/var/evidence-buffer/
+!docs/verification/BUFFERED_PHOTO_FLOW.md
+
+!docs/verification/PHOTO_FLOW_E2E_RESULTS.md
+
+!docs/MOBILE_REFERENCE_UI_RESULTS.md
+
+!docs/verification/MOBILE_UI_APK_BUILD.md
+
+!docs/verification/MOBILE_LOCAL_AI_REMOVAL.md
+
+!docs/verification/MOBILE_CAMERA_KEYBOARD_FIX.md

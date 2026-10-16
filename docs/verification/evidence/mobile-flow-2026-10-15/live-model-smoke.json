@@ -1,0 +1,147 @@
+{
+  "date": "2026-10-14T19:24:26.076Z",
+  "results": [
+    {
+      "kind": "clean",
+      "input": "existing synthetic sink test image",
+      "quality": {
+        "version": "quality-thresholds-v1",
+        "hashAlgorithmVersion": "dct64-v1",
+        "luminance": 170.4453125,
+        "blurVariance": 430.2661960894575,
+        "clippedRatio": 0,
+        "reasons": [],
+        "acceptable": true
+      },
+      "model": "clef",
+      "latencyMs": 1625,
+      "originality": "UNCERTAIN",
+      "verdict": "CANNOT_ASSESS",
+      "surfaces": [
+        {
+          "surface": "basin",
+          "verdict": "CANNOT_ASSESS"
+        },
+        {
+          "surface": "drain",
+          "verdict": "CANNOT_ASSESS"
+        },
+        {
+          "surface": "tap",
+          "verdict": "CANNOT_ASSESS"
+        }
+      ],
+      "predictions": [
+        {
+          "surface": "basin",
+          "type": "choice",
+          "choice": "CLEAN",
+          "confidence": 0.8147,
+          "probabilities": {
+            "CLEAN": 0.9351,
+            "DIRTY": 0.0335,
+            "CANNOT_ASSESS": 0.0314
+          }
+        },
+        {
+          "surface": "drain",
+          "type": "choice",
+          "choice": "CLEAN",
+          "confidence": 0.5625,
+          "probabilities": {
+            "CLEAN": 0.8333,
+            "DIRTY": 0.0868,
+            "CANNOT_ASSESS": 0.0799
+          }
+        },
+        {
+          "surface": "tap",
+          "type": "choice",
+          "choice": "CLEAN",
+          "confidence": 0.5233,
+          "probabilities": {
+            "CLEAN": 0.8153,
+            "DIRTY": 0.1074,
+            "CANNOT_ASSESS": 0.0773
+          }
+        }
+      ],
+      "decision": {
+        "state": "REVIEW_REQUIRED",
+        "reason": "PHOTO_ORIGIN_UNCERTAIN",
+        "keep": true
+      }
+    },
+    {
+      "kind": "dirty",
+      "input": "existing synthetic sink test image",
+      "quality": {
+        "version": "quality-thresholds-v1",
+        "hashAlgorithmVersion": "dct64-v1",
+        "luminance": 159.74858940972223,
+        "blurVariance": 986.8922437117304,
+        "clippedRatio": 0.00021701388888888888,
+        "reasons": [],
+        "acceptable": true
+      },
+      "model": "clef",
+      "latencyMs": 2374,
+      "originality": "UNCERTAIN",
+      "verdict": "CANNOT_ASSESS",
+      "surfaces": [
+        {
+          "surface": "basin",
+          "verdict": "DIRTY"
+        },
+        {
+          "surface": "drain",
+          "verdict": "CANNOT_ASSESS"
+        },
+        {
+          "surface": "tap",
+          "verdict": "CANNOT_ASSESS"
+        }
+      ],
+      "predictions": [
+        {
+          "surface": "basin",
+          "type": "choice",
+          "choice": "DIRTY",
+          "confidence": 0.9524,
+          "probabilities": {
+            "CLEAN": 0.0043,
+            "DIRTY": 0.9839,
+            "CANNOT_ASSESS": 0.0118
+          }
+        },
+        {
+          "surface": "drain",
+          "type": "choice",
+          "choice": "DIRTY",
+          "confidence": 0.4995,
+          "probabilities": {
+            "CLEAN": 0.1099,
+            "DIRTY": 0.8043,
+            "CANNOT_ASSESS": 0.0858
+          }
+        },
+        {
+          "surface": "tap",
+          "type": "choice",
+          "choice": "CLEAN",
+          "confidence": 0.3918,
+          "probabilities": {
+            "CLEAN": 0.7491,
+            "DIRTY": 0.1559,
+            "CANNOT_ASSESS": 0.095
+          }
+        }
+      ],
+      "decision": {
+        "state": "CLEANING_REQUIRED",
+        "reason": "CLEANING_REQUIRED",
+        "keep": false
+      }
+    }
+  ]
+}

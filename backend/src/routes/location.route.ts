@@ -10,8 +10,10 @@ import {
 import { verifyJwt } from "../middlewares/auth.middleware.js";
 import authorize from "../middlewares/authorize.middleware.js";
 import { getLocationSchedule } from "../controllers/locationSchedule.controller.js";
+import { getLocationMapConfig } from "../controllers/mapConfig.controller.js";
 
 const router = Router();
+router.get("/map-config", verifyJwt, authorize("ADMIN", "MANAGER"), getLocationMapConfig);
 
 router.post("/", verifyJwt, authorize("ADMIN"), createLocation);
 router.get("/", verifyJwt, authorize("ADMIN", "MANAGER"), getLocations);

@@ -14,7 +14,7 @@ vi.mock('./cleanliness.service.js',()=>({autoPassAllowed:()=>false}));
 vi.mock('./bufferedPhoto.provider.js',()=>({BufferedClefProvider:class{},bufferedEvaluatorVersion:()=>"test-v1"}));
 import {processDirectPhoto,directPhotoStatus} from './directPhoto.service.js';
 const actor={id:1,companyId:1,role:'STAFF' as const};
-const clean={originality:'DIRECT' as const,objectMatch:'MATCH' as const,cleanliness:{verdict:'CLEAN' as const,surfaces:[{surface:'basin',verdict:'CLEAN' as const}],confidence:.99,reasonCode:'CLEAN' as const},metadata:{} as any};
+const clean={originality:'DIRECT' as const,objectMatch:'MATCH' as const,viewMatch:'MATCH' as const,cleanliness:{verdict:'CLEAN' as const,surfaces:[{surface:'basin',verdict:'CLEAN' as const}],confidence:.99,reasonCode:'CLEAN' as const},metadata:{} as any};
 beforeEach(()=>{vi.clearAllMocks();m.attempt={id:'a',staffId:1,committedHash:'hash',state:'RESERVED',session:{taskInstanceId:7,task:{locationId:2}},requirement:{id:'r',viewKey:'basin',item:{typeSnapshot:'SINK',rubricSnapshot:{version:1}}},media:null,qualityResult:null};m.store.mockResolvedValue({asset_id:'cloud'});m.decision.mockImplementation(async(_tx,_id,state)=>{m.attempt.state=state;});});
 it('finishes AI then protected cloud storage before returning, with no job queue',async()=>{
  const provider={evaluate:vi.fn(async()=>clean)};
@@ -66,13 +66,21 @@ it('rejects another staff member and checks live access before AI',async()=>{
  expect(provider.evaluate).not.toHaveBeenCalled();
 });
 
-it.each(['WRONG_ITEM','MISSING_SURFACE','UNCERTAIN'] as const)('rejects %s before storage or manager-review fallback',async objectMatch=>{
+it.each(['WRONG_ITEM','MISSING_SURFACE'] as const)('rejects confirmed %s before storage or manager-review fallback',async objectMatch=>{
  const evaluate=vi.fn(async()=>({...clean,objectMatch,originality:'UNCERTAIN' as const}));
  const result=await processDirectPhoto(actor,'a',Buffer.from('photo'),{evaluate},m.store);
  expect(evaluate).toHaveBeenCalledWith(expect.any(Buffer),{version:1},'basin','SINK');
  expect(m.store).not.toHaveBeenCalled();
  expect(result).toMatchObject({state:'RECAPTURE_REQUIRED',storage:'discarded'});
- expect(m.decision).toHaveBeenCalledWith(expect.anything(),'a','RECAPTURE_REQUIRED',objectMatch==='UNCERTAIN'?'CANNOT_ASSESS':objectMatch,expect.anything());
+ expect(m.decision).toHaveBeenCalledWith(expect.anything(),'a','RECAPTURE_REQUIRED',objectMatch,expect.anything());
+});
+
+it.each(['OBJECT','VIEW'] as const)('keeps %s uncertainty for manager review instead of asking for another photo',async gate=>{
+ const evaluate=vi.fn(async()=>({...clean,...(gate==='OBJECT'?{objectMatch:'UNCERTAIN' as const}:{viewMatch:'UNCERTAIN' as const})}));
+ const result=await processDirectPhoto(actor,'a',Buffer.from('photo'),{evaluate},m.store);
+ expect(result).toMatchObject({state:'REVIEW_REQUIRED',storage:'cloud'});
+ expect(m.store).toHaveBeenCalledTimes(2);
+ expect(m.decision).toHaveBeenCalledWith(expect.anything(),'a','REVIEW_REQUIRED',`${gate}_UNCERTAIN`,expect.anything());
 });
 
 it('does not reuse an assessment cached before the object check was introduced',async()=>{

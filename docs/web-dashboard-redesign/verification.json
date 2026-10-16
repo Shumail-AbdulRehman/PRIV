@@ -1,0 +1,24 @@
+{
+  "date": "2026-10-15",
+  "fixturesOnly": true,
+  "webTestsPassed": 38,
+  "eslintPassed": true,
+  "productionBuildPassed": true,
+  "browserRoles": [
+    "ADMIN",
+    "MANAGER"
+  ],
+  "viewportWidths": [
+    1440,
+    768,
+    390
+  ],
+  "routeVisits": 129,
+  "auditedScreensAndDialogs": 23,
+  "accessibilityViolations": 0,
+  "managerWorkflowRegressionPassed": true,
+  "mobileDiffBefore": "76488e83676df250b0ba2dea2e19982a6d5e92b7ada53ecce07d2986327f6e2e",
+  "mobileDiffAfter": "76488e83676df250b0ba2dea2e19982a6d5e92b7ada53ecce07d2986327f6e2e",
+  "deployed": false,
+  "applicationDatabaseMigrated": false
+}

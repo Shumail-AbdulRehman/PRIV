@@ -1,5 +1,91 @@
 // Manager-only wording. Shared staff vocabulary remains in translations.ts.
 export const managerUrdu: Record<string, string> = {
+  "Edit location": "مقام میں ترمیم",
+  "Find your site and set where your team can check in.":
+    "اپنا مقام تلاش کریں اور عملے کی حاضری کی حدود مقرر کریں۔",
+  "Site position": "مقام کی جگہ",
+  "Put your workplace on the map": "نقشے پر کام کی جگہ منتخب کریں",
+  "Search for a place or address": "جگہ یا پتہ تلاش کریں",
+  "Search a building, business or street": "عمارت، کاروبار یا سڑک تلاش کریں",
+  "Searching places": "جگہیں تلاش ہو رہی ہیں",
+  "Suggested places": "تجویز کردہ مقامات",
+  "Clear search": "تلاش صاف کریں",
+  "Choose the work location": "کام کا مقام منتخب کریں",
+  "Drag to the exact work location": "نشان کو کام کی صحیح جگہ پر لے جائیں",
+  "Location map": "مقام کا نقشہ",
+  "Map unavailable": "نقشہ دستیاب نہیں",
+  "Loading your map": "نقشہ کھل رہا ہے",
+  "Find the site, then fine-tune its position.":
+    "مقام تلاش کریں، پھر اس کی صحیح جگہ منتخب کریں۔",
+  "Retry map": "نقشہ دوبارہ کھولیں",
+  "Drag the pin to fine-tune": "نشان کھینچ کر جگہ درست کریں",
+  "Click the map to place your pin": "نشان لگانے کے لیے نقشے پر کلک کریں",
+  "Use map center": "نقشے کا درمیانی مقام منتخب کریں",
+  "Shaded circle: attendance check-in area": "رنگین دائرہ: حاضری کی حدود",
+  "Already at the site?": "کیا آپ مقام پر موجود ہیں؟",
+  "Use your device position, then adjust the pin.":
+    "اپنے آلے کی جگہ استعمال کریں، پھر نشان درست کریں۔",
+  "Use my location": "میرا مقام استعمال کریں",
+  "Locating...": "مقام معلوم ہو رہا ہے...",
+  "Location details": "مقام کی تفصیل",
+  "Give this site a name your team will recognise.":
+    "مقام کا ایسا نام رکھیں جسے عملہ پہچان سکے۔",
+  "Location name": "مقام کا نام",
+  "e.g. Blue Area Office": "مثلاً بلیو ایریا دفتر",
+  "Street address": "مکمل پتہ",
+  "Building, street, city": "عمارت، گلی، شہر",
+  "Filled from search. Add a floor or entrance if helpful.":
+    "تلاش سے پتہ بھرا جاتا ہے۔ ضرورت ہو تو منزل یا داخلی راستہ شامل کریں۔",
+  "Attendance radius": "حاضری کا دائرہ",
+  metres: "میٹر",
+  "Suggested attendance radii": "حاضری کے تجویز کردہ دائرے",
+  "Staff must be inside this circle to check in. Choose a boundary that covers the work site.":
+    "حاضری کے لیے عملہ اس دائرے کے اندر ہونا چاہیے۔ ایسا دائرہ منتخب کریں جو کام کی جگہ کو گھیرے۔",
+  "Coordinates & timezone": "عرض بلد، طول بلد اور ٹائم زون",
+  Latitude: "عرض بلد",
+  Longitude: "طول بلد",
+  Timezone: "ٹائم زون",
+  "Auto-detect from coordinates": "مقام سے خود معلوم کریں",
+  "Used for shifts, schedules and attendance times.":
+    "شفٹ، کام اور حاضری کے اوقات کے لیے استعمال ہوتا ہے۔",
+  "Site position selected": "مقام منتخب ہو گیا",
+  "Choose your site position": "اپنے مقام کی جگہ منتخب کریں",
+  "Search, click the map or enter coordinates.":
+    "تلاش کریں، نقشے پر کلک کریں یا عرض بلد اور طول بلد درج کریں۔",
+  "Changes apply to future attendance checks.":
+    "تبدیلیاں آئندہ حاضری پر لاگو ہوں گی۔",
+  "Next, add areas and assign your team.":
+    "اگلے مرحلے میں حصے شامل کریں اور عملہ مقرر کریں۔",
+  "Saving...": "محفوظ ہو رہا ہے...",
+  "Create location": "مقام بنائیں",
+  "Save changes": "تبدیلیاں محفوظ کریں",
+  "Location updated.": "مقام کی تفصیل محفوظ ہو گئی۔",
+  "Place selected. Adjust the pin if needed.":
+    "مقام منتخب ہو گیا۔ ضرورت ہو تو نشان درست کریں۔",
+  "Pin updated. Check the address before saving.":
+    "نشان بدل گیا۔ محفوظ کرنے سے پہلے پتہ دیکھ لیں۔",
+  "Device position selected. Accuracy: {accuracy} m. Check the pin and address.":
+    "آلے کا مقام منتخب ہو گیا۔ درستگی: {accuracy} میٹر۔ نشان اور پتہ دیکھ لیں۔",
+  "Choose a radius between 25 and 5,000 m":
+    "25 سے 5,000 میٹر کے درمیان دائرہ منتخب کریں",
+  "Enter an attendance radius": "حاضری کے دائرے کی پیمائش درج کریں",
+  "Use a whole number of metres": "میٹر کی پوری تعداد درج کریں",
+  "Choose a location on the map or enter coordinates":
+    "نقشے پر مقام منتخب کریں یا عرض بلد اور طول بلد درج کریں",
+  "Enter valid coordinates": "درست عرض بلد اور طول بلد درج کریں",
+  "The map is not configured yet. You can enter coordinates below.":
+    "نقشہ ابھی ترتیب نہیں دیا گیا۔ نیچے عرض بلد اور طول بلد درج کر سکتے ہیں۔",
+  "The map could not load. Check your connection or enter coordinates manually.":
+    "نقشہ نہیں کھل سکا۔ انٹرنیٹ دیکھیں یا عرض بلد اور طول بلد درج کریں۔",
+  "Google Maps could not authorize this website. You can still enter coordinates manually.":
+    "گوگل میپس اس ویب سائٹ پر دستیاب نہیں۔ آپ عرض بلد اور طول بلد درج کر سکتے ہیں۔",
+  "Place search is unavailable. You can still select a point on the map.":
+    "جگہ کی تلاش دستیاب نہیں۔ آپ نقشے پر مقام منتخب کر سکتے ہیں۔",
+  "No places found. Try another address or choose a point on the map.":
+    "کوئی مقام نہیں ملا۔ دوسرا پتہ تلاش کریں یا نقشے پر مقام منتخب کریں۔",
+  "This place could not be selected. Try again or choose a point on the map.":
+    "یہ مقام منتخب نہیں ہو سکا۔ دوبارہ کوشش کریں یا نقشے پر مقام منتخب کریں۔",
+
   Back: "واپس",
   "Task photos and required views": "کام کی تصاویر اور ضروری منظر",
   "{received} of {total} required photos received":

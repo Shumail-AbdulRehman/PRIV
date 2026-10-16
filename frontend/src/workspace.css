@@ -822,15 +822,6 @@
 .ops-task-panel {
   scroll-margin-top: 24px;
 }
-.ops-skeleton {
-  display: grid;
-  gap: 14px;
-}
-.ops-skeleton > div {
-  height: 100px;
-  border-radius: 12px;
-  background: var(--muted);
-}
 .ops-review-navigation {
   display: flex;
   justify-content: space-between;

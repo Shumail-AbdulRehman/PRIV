@@ -1,0 +1,763 @@
+{
+  "mode": "controlled-providers",
+  "database": "priv_verification_test_photo_http_1791815695559",
+  "apiBase": "http://127.0.0.1:36279/api",
+  "images": "synthetic test fixtures, not real camera photos",
+  "rows": [
+    {
+      "label": "clean-fixture",
+      "taskId": 1,
+      "attemptId": "5b072966-738e-4414-b8dc-1e40c51c5231",
+      "receiptMs": 196,
+      "durationMs": 522,
+      "state": "REVIEW_REQUIRED",
+      "storage": "cloud",
+      "reason": "AUTO_PASS_NOT_VALIDATED",
+      "instructions": "Your photo is saved and waiting for manager review.",
+      "assessment": {
+        "metadata": {
+          "provider": "controlled-test"
+        },
+        "cleanliness": {
+          "verdict": "CLEAN",
+          "surfaces": [
+            {
+              "surface": "basin",
+              "verdict": "CLEAN"
+            },
+            {
+              "surface": "drain",
+              "verdict": "CLEAN"
+            },
+            {
+              "surface": "tap",
+              "verdict": "CLEAN"
+            }
+          ],
+          "confidence": 0.99,
+          "reasonCode": "CLEAN"
+        },
+        "originality": "DIRECT"
+      },
+      "decision": {
+        "keep": true,
+        "state": "REVIEW_REQUIRED",
+        "reason": "AUTO_PASS_NOT_VALIDATED"
+      }
+    },
+    {
+      "label": "dirty-fixture",
+      "taskId": 2,
+      "attemptId": "b8c7052c-8605-4c6b-9b61-aaa44a56720b",
+      "receiptMs": 215,
+      "durationMs": 420,
+      "state": "CLEANING_REQUIRED",
+      "storage": "discarded",
+      "reason": "CLEANING_REQUIRED",
+      "instructions": "Clean the basin and drain and tap and take another photo.",
+      "assessment": {
+        "metadata": {
+          "provider": "controlled-test"
+        },
+        "cleanliness": {
+          "verdict": "DIRTY",
+          "surfaces": [
+            {
+              "surface": "basin",
+              "verdict": "DIRTY"
+            },
+            {
+              "surface": "drain",
+              "verdict": "DIRTY"
+            },
+            {
+              "surface": "tap",
+              "verdict": "DIRTY"
+            }
+          ],
+          "confidence": 0.99,
+          "reasonCode": "CLEANING_REQUIRED"
+        },
+        "originality": "DIRECT"
+      },
+      "decision": {
+        "keep": false,
+        "state": "CLEANING_REQUIRED",
+        "reason": "CLEANING_REQUIRED"
+      }
+    },
+    {
+      "label": "dirty-after-cleaning",
+      "taskId": 2,
+      "attemptId": "a0c46475-2a58-4f98-9ab9-bf15d10ab149",
+      "receiptMs": 171,
+      "durationMs": 387,
+      "state": "REVIEW_REQUIRED",
+      "storage": "cloud",
+      "reason": "AUTO_PASS_NOT_VALIDATED",
+      "instructions": "Your photo is saved and waiting for manager review.",
+      "assessment": {
+        "metadata": {
+          "provider": "controlled-test"
+        },
+        "cleanliness": {
+          "verdict": "CLEAN",
+          "surfaces": [
+            {
+              "surface": "basin",
+              "verdict": "CLEAN"
+            },
+            {
+              "surface": "drain",
+              "verdict": "CLEAN"
+            },
+            {
+              "surface": "tap",
+              "verdict": "CLEAN"
+            }
+          ],
+          "confidence": 0.99,
+          "reasonCode": "CLEAN"
+        },
+        "originality": "DIRECT"
+      },
+      "decision": {
+        "keep": true,
+        "state": "REVIEW_REQUIRED",
+        "reason": "AUTO_PASS_NOT_VALIDATED"
+      }
+    },
+    {
+      "label": "screen-fixture",
+      "taskId": 3,
+      "attemptId": "e1431c30-786b-44fe-9041-3b5d99fade6f",
+      "receiptMs": 147,
+      "durationMs": 339,
+      "state": "RECAPTURE_REQUIRED",
+      "storage": "discarded",
+      "reason": "PHOTO_OF_SCREEN",
+      "instructions": "Photograph the actual room or surface, not an image on another screen. Take another photo.",
+      "assessment": {
+        "metadata": {
+          "provider": "controlled-test"
+        },
+        "cleanliness": {
+          "verdict": "CLEAN",
+          "surfaces": [
+            {
+              "surface": "basin",
+              "verdict": "CLEAN"
+            },
+            {
+              "surface": "drain",
+              "verdict": "CLEAN"
+            },
+            {
+              "surface": "tap",
+              "verdict": "CLEAN"
+            }
+          ],
+          "confidence": 0.99,
+          "reasonCode": "CLEAN"
+        },
+        "originality": "SCREEN_RECAPTURE"
+      },
+      "decision": {
+        "keep": false,
+        "state": "RECAPTURE_REQUIRED",
+        "reason": "PHOTO_OF_SCREEN"
+      }
+    },
+    {
+      "label": "screen-retake",
+      "taskId": 3,
+      "attemptId": "8df04167-3f6e-4fbf-a37b-2f6a008967b6",
+      "receiptMs": 145,
+      "durationMs": 333,
+      "state": "REVIEW_REQUIRED",
+      "storage": "cloud",
+      "reason": "AUTO_PASS_NOT_VALIDATED",
+      "instructions": "Your photo is saved and waiting for manager review.",
+      "assessment": {
+        "metadata": {
+          "provider": "controlled-test"
+        },
+        "cleanliness": {
+          "verdict": "CLEAN",
+          "surfaces": [
+            {
+              "surface": "basin",
+              "verdict": "CLEAN"
+            },
+            {
+              "surface": "drain",
+              "verdict": "CLEAN"
+            },
+            {
+              "surface": "tap",
+              "verdict": "CLEAN"
+            }
+          ],
+          "confidence": 0.99,
+          "reasonCode": "CLEAN"
+        },
+        "originality": "DIRECT"
+      },
+      "decision": {
+        "keep": true,
+        "state": "REVIEW_REQUIRED",
+        "reason": "AUTO_PASS_NOT_VALIDATED"
+      }
+    },
+    {
+      "label": "origin-fixture",
+      "taskId": 4,
+      "attemptId": "3965fedf-fa1d-43e5-a5de-19d9fa2803ad",
+      "receiptMs": 151,
+      "durationMs": 340,
+      "state": "REVIEW_REQUIRED",
+      "storage": "cloud",
+      "reason": "PHOTO_ORIGIN_UNCERTAIN",
+      "instructions": "Review whether the photo directly shows the physical item.",
+      "assessment": {
+        "metadata": {
+          "provider": "controlled-test"
+        },
+        "cleanliness": {
+          "verdict": "CLEAN",
+          "surfaces": [
+            {
+              "surface": "basin",
+              "verdict": "CLEAN"
+            },
+            {
+              "surface": "drain",
+              "verdict": "CLEAN"
+            },
+            {
+              "surface": "tap",
+              "verdict": "CLEAN"
+            }
+          ],
+          "confidence": 0.99,
+          "reasonCode": "CLEAN"
+        },
+        "originality": "UNCERTAIN"
+      },
+      "decision": {
+        "keep": true,
+        "state": "REVIEW_REQUIRED",
+        "reason": "PHOTO_ORIGIN_UNCERTAIN"
+      }
+    },
+    {
+      "label": "origin-dirty-fixture",
+      "taskId": 5,
+      "attemptId": "8880c2c8-73c4-4fb3-a79a-7dc357f1de40",
+      "receiptMs": 118,
+      "durationMs": 259,
+      "state": "CLEANING_REQUIRED",
+      "storage": "discarded",
+      "reason": "CLEANING_REQUIRED",
+      "instructions": "Clean the basin and drain and tap and take another photo.",
+      "assessment": {
+        "metadata": {
+          "provider": "controlled-test"
+        },
+        "cleanliness": {
+          "verdict": "DIRTY",
+          "surfaces": [
+            {
+              "surface": "basin",
+              "verdict": "DIRTY"
+            },
+            {
+              "surface": "drain",
+              "verdict": "DIRTY"
+            },
+            {
+              "surface": "tap",
+              "verdict": "DIRTY"
+            }
+          ],
+          "confidence": 0.99,
+          "reasonCode": "CLEANING_REQUIRED"
+        },
+        "originality": "UNCERTAIN"
+      },
+      "decision": {
+        "keep": false,
+        "state": "CLEANING_REQUIRED",
+        "reason": "CLEANING_REQUIRED"
+      }
+    },
+    {
+      "label": "origin-dirty-after-cleaning",
+      "taskId": 5,
+      "attemptId": "dad0283c-2d87-4525-b9c6-a12196dd2892",
+      "receiptMs": 97,
+      "durationMs": 219,
+      "state": "REVIEW_REQUIRED",
+      "storage": "cloud",
+      "reason": "AUTO_PASS_NOT_VALIDATED",
+      "instructions": "Your photo is saved and waiting for manager review.",
+      "assessment": {
+        "metadata": {
+          "provider": "controlled-test"
+        },
+        "cleanliness": {
+          "verdict": "CLEAN",
+          "surfaces": [
+            {
+              "surface": "basin",
+              "verdict": "CLEAN"
+            },
+            {
+              "surface": "drain",
+              "verdict": "CLEAN"
+            },
+            {
+              "surface": "tap",
+              "verdict": "CLEAN"
+            }
+          ],
+          "confidence": 0.99,
+          "reasonCode": "CLEAN"
+        },
+        "originality": "DIRECT"
+      },
+      "decision": {
+        "keep": true,
+        "state": "REVIEW_REQUIRED",
+        "reason": "AUTO_PASS_NOT_VALIDATED"
+      }
+    }
+  ],
+  "requests": [
+    {
+      "path": "/task-instance/1/start",
+      "status": 422,
+      "ms": 101
+    },
+    {
+      "path": "/task-instance/1/start",
+      "status": 200,
+      "ms": 39
+    },
+    {
+      "path": "/task-instance/1/complete",
+      "status": 409,
+      "ms": 27
+    },
+    {
+      "path": "/task-instance/1/capture-sessions",
+      "status": 201,
+      "ms": 131
+    },
+    {
+      "path": "/capture-session/626fc9e3-13fd-4f35-b6b3-7bf43635d1cb/resume",
+      "status": 200,
+      "ms": 64
+    },
+    {
+      "path": "/capture-session/626fc9e3-13fd-4f35-b6b3-7bf43635d1cb/activate-photo",
+      "status": 200,
+      "ms": 44
+    },
+    {
+      "path": "/verification-attempt/5b072966-738e-4414-b8dc-1e40c51c5231",
+      "status": 200,
+      "ms": 35
+    },
+    {
+      "path": "/task-instance/1/complete",
+      "status": 200,
+      "ms": 52
+    },
+    {
+      "path": "/task-instance/1",
+      "status": 200,
+      "ms": 33
+    },
+    {
+      "path": "/verification-exceptions/1",
+      "status": 200,
+      "ms": 59
+    },
+    {
+      "path": "/verification-exceptions/1",
+      "status": 200,
+      "ms": 43
+    },
+    {
+      "path": "/verification-exceptions/1/actions",
+      "status": 200,
+      "ms": 152
+    },
+    {
+      "path": "/verification-exceptions/1",
+      "status": 200,
+      "ms": 29
+    },
+    {
+      "path": "/task-instance/1",
+      "status": 200,
+      "ms": 12
+    },
+    {
+      "path": "/verification-exceptions?queue=needs-me&page=1",
+      "status": 200,
+      "ms": 37
+    },
+    {
+      "path": "/task-instance/2/start",
+      "status": 422,
+      "ms": 15
+    },
+    {
+      "path": "/task-instance/2/start",
+      "status": 200,
+      "ms": 22
+    },
+    {
+      "path": "/task-instance/2/complete",
+      "status": 409,
+      "ms": 15
+    },
+    {
+      "path": "/task-instance/2/capture-sessions",
+      "status": 201,
+      "ms": 51
+    },
+    {
+      "path": "/capture-session/a6764c13-ceea-49da-b4d0-e42240657b2c/activate-photo",
+      "status": 200,
+      "ms": 31
+    },
+    {
+      "path": "/verification-attempt/b8c7052c-8605-4c6b-9b61-aaa44a56720b",
+      "status": 200,
+      "ms": 19
+    },
+    {
+      "path": "/task-instance/2/complete",
+      "status": 409,
+      "ms": 15
+    },
+    {
+      "path": "/task-instance/2/verification",
+      "status": 200,
+      "ms": 33
+    },
+    {
+      "path": "/task-instance/2/capture-sessions/rework",
+      "status": 201,
+      "ms": 66
+    },
+    {
+      "path": "/capture-session/23831b25-dc26-4637-ba04-33442d09970e/activate-photo",
+      "status": 200,
+      "ms": 40
+    },
+    {
+      "path": "/verification-attempt/a0c46475-2a58-4f98-9ab9-bf15d10ab149",
+      "status": 200,
+      "ms": 12
+    },
+    {
+      "path": "/task-instance/2/complete",
+      "status": 200,
+      "ms": 39
+    },
+    {
+      "path": "/task-instance/2",
+      "status": 200,
+      "ms": 21
+    },
+    {
+      "path": "/verification-exceptions/2",
+      "status": 200,
+      "ms": 35
+    },
+    {
+      "path": "/verification-exceptions/2",
+      "status": 200,
+      "ms": 28
+    },
+    {
+      "path": "/verification-exceptions/2/actions",
+      "status": 200,
+      "ms": 91
+    },
+    {
+      "path": "/verification-exceptions/2",
+      "status": 200,
+      "ms": 24
+    },
+    {
+      "path": "/task-instance/2",
+      "status": 200,
+      "ms": 11
+    },
+    {
+      "path": "/verification-exceptions?queue=needs-me&page=1",
+      "status": 200,
+      "ms": 20
+    },
+    {
+      "path": "/task-instance/3/start",
+      "status": 422,
+      "ms": 13
+    },
+    {
+      "path": "/task-instance/3/start",
+      "status": 200,
+      "ms": 26
+    },
+    {
+      "path": "/task-instance/3/complete",
+      "status": 409,
+      "ms": 11
+    },
+    {
+      "path": "/task-instance/3/capture-sessions",
+      "status": 201,
+      "ms": 38
+    },
+    {
+      "path": "/capture-session/4d54af4a-4795-4baf-b339-1c7c22099b87/activate-photo",
+      "status": 200,
+      "ms": 27
+    },
+    {
+      "path": "/verification-attempt/e1431c30-786b-44fe-9041-3b5d99fade6f",
+      "status": 200,
+      "ms": 23
+    },
+    {
+      "path": "/task-instance/3/verification",
+      "status": 200,
+      "ms": 15
+    },
+    {
+      "path": "/capture-session/4d54af4a-4795-4baf-b339-1c7c22099b87/retake-slots",
+      "status": 200,
+      "ms": 36
+    },
+    {
+      "path": "/capture-session/4d54af4a-4795-4baf-b339-1c7c22099b87/activate-photo",
+      "status": 200,
+      "ms": 32
+    },
+    {
+      "path": "/verification-attempt/8df04167-3f6e-4fbf-a37b-2f6a008967b6",
+      "status": 200,
+      "ms": 11
+    },
+    {
+      "path": "/task-instance/3/complete",
+      "status": 200,
+      "ms": 32
+    },
+    {
+      "path": "/task-instance/3",
+      "status": 200,
+      "ms": 14
+    },
+    {
+      "path": "/verification-exceptions/3",
+      "status": 200,
+      "ms": 20
+    },
+    {
+      "path": "/verification-exceptions/3",
+      "status": 200,
+      "ms": 22
+    },
+    {
+      "path": "/verification-exceptions/3/actions",
+      "status": 200,
+      "ms": 72
+    },
+    {
+      "path": "/verification-exceptions/3",
+      "status": 200,
+      "ms": 25
+    },
+    {
+      "path": "/task-instance/3",
+      "status": 200,
+      "ms": 11
+    },
+    {
+      "path": "/verification-exceptions?queue=needs-me&page=1",
+      "status": 200,
+      "ms": 18
+    },
+    {
+      "path": "/task-instance/4/start",
+      "status": 422,
+      "ms": 16
+    },
+    {
+      "path": "/task-instance/4/start",
+      "status": 200,
+      "ms": 17
+    },
+    {
+      "path": "/task-instance/4/complete",
+      "status": 409,
+      "ms": 12
+    },
+    {
+      "path": "/task-instance/4/capture-sessions",
+      "status": 201,
+      "ms": 45
+    },
+    {
+      "path": "/capture-session/dd0a6ba9-2f0d-40e2-9dd1-ad30472f0702/activate-photo",
+      "status": 200,
+      "ms": 30
+    },
+    {
+      "path": "/verification-attempt/3965fedf-fa1d-43e5-a5de-19d9fa2803ad",
+      "status": 200,
+      "ms": 9
+    },
+    {
+      "path": "/task-instance/4/complete",
+      "status": 200,
+      "ms": 28
+    },
+    {
+      "path": "/task-instance/4",
+      "status": 200,
+      "ms": 10
+    },
+    {
+      "path": "/verification-exceptions/4",
+      "status": 200,
+      "ms": 21
+    },
+    {
+      "path": "/verification-exceptions/4",
+      "status": 200,
+      "ms": 18
+    },
+    {
+      "path": "/verification-exceptions/4/actions",
+      "status": 200,
+      "ms": 61
+    },
+    {
+      "path": "/verification-exceptions/4",
+      "status": 200,
+      "ms": 20
+    },
+    {
+      "path": "/task-instance/4",
+      "status": 200,
+      "ms": 8
+    },
+    {
+      "path": "/verification-exceptions?queue=needs-me&page=1",
+      "status": 200,
+      "ms": 17
+    },
+    {
+      "path": "/task-instance/5/start",
+      "status": 422,
+      "ms": 10
+    },
+    {
+      "path": "/task-instance/5/start",
+      "status": 200,
+      "ms": 21
+    },
+    {
+      "path": "/task-instance/5/complete",
+      "status": 409,
+      "ms": 10
+    },
+    {
+      "path": "/task-instance/5/capture-sessions",
+      "status": 201,
+      "ms": 38
+    },
+    {
+      "path": "/capture-session/2633b7de-ad5e-4800-b4f4-70f6da2a2c11/activate-photo",
+      "status": 200,
+      "ms": 28
+    },
+    {
+      "path": "/verification-attempt/8880c2c8-73c4-4fb3-a79a-7dc357f1de40",
+      "status": 200,
+      "ms": 9
+    },
+    {
+      "path": "/task-instance/5/complete",
+      "status": 409,
+      "ms": 12
+    },
+    {
+      "path": "/task-instance/5/verification",
+      "status": 200,
+      "ms": 10
+    },
+    {
+      "path": "/task-instance/5/capture-sessions/rework",
+      "status": 201,
+      "ms": 38
+    },
+    {
+      "path": "/capture-session/38922caa-d274-44dc-ab4b-6ebed93711ec/activate-photo",
+      "status": 200,
+      "ms": 21
+    },
+    {
+      "path": "/verification-attempt/dad0283c-2d87-4525-b9c6-a12196dd2892",
+      "status": 200,
+      "ms": 8
+    },
+    {
+      "path": "/task-instance/5/complete",
+      "status": 200,
+      "ms": 17
+    },
+    {
+      "path": "/task-instance/5",
+      "status": 200,
+      "ms": 6
+    },
+    {
+      "path": "/verification-exceptions/5",
+      "status": 200,
+      "ms": 15
+    },
+    {
+      "path": "/verification-exceptions/5",
+      "status": 200,
+      "ms": 16
+    },
+    {
+      "path": "/verification-exceptions/5/actions",
+      "status": 200,
+      "ms": 37
+    },
+    {
+      "path": "/verification-exceptions/5",
+      "status": 200,
+      "ms": 17
+    },
+    {
+      "path": "/task-instance/5",
+      "status": 200,
+      "ms": 7
+    },
+    {
+      "path": "/verification-exceptions?queue=needs-me&page=1",
+      "status": 200,
+      "ms": 12
+    }
+  ]
+}

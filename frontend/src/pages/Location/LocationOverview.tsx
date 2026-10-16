@@ -43,6 +43,7 @@ export default function LocationOverview({
     <div className="detail-overview">
       <OperationsState
         loading={overview.isPending}
+        skeleton="metrics"
         error={overview.error}
         retry={() => void overview.refetch()}
       />
@@ -63,6 +64,7 @@ export default function LocationOverview({
           </div>
           <OperationsState
             loading={areas.isPending}
+            layout="area-table"
             error={areas.error}
             retry={() => void areas.refetch()}
           />
@@ -144,6 +146,7 @@ export default function LocationOverview({
         </div>
         <OperationsState
           loading={staff.isPending}
+          layout="staff-preview"
           error={staff.error}
           retry={() => void staff.refetch()}
         />

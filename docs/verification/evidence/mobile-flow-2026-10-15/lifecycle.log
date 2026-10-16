@@ -1,0 +1,17 @@
+
+> fyp@1.0.0 test:verification:lifecycle
+> tsx tests/verification.lifecycle.integration.ts
+
+(node:16427) DeprecationWarning: Calling client.query() when the client is already executing a query is deprecated and will be removed in pg@9.0. Use async/await or an external async flow control mechanism instead.
+(Use `node --trace-deprecation ...` to show where the warning was created)
+{"type":"VERIFICATION_TIMING","event":"JOB_FAILURE","at":"2026-10-14T19:24:52.288Z","attemptId":"dc3fc3c2-cfab-4aa4-92bd-f4de49a99d7d","jobId":"135d921a-9c36-41cd-8bd7-a78b7f704295","stage":"CLEANLINESS","code":"SERVICE_FAILURE","claimCount":4,"exhausted":true}
+prisma:error Follow-up task scope, completion or start time is invalid
+prisma:error Follow-up task scope, completion or start time is invalid
+prisma:error Follow-up fixture/view must have accepted replacement evidence
+prisma:error Follow-up task scope, completion or start time is invalid
+prisma:error Held source bytes cannot be follow-up evidence
+prisma:error Decision evidence belongs to another task
+{"type":"VERIFICATION_TIMING","event":"JOB_FAILURE","at":"2026-10-14T19:24:53.767Z","attemptId":"04998832-81e4-4193-82c8-45be38ec3895","jobId":"f836d2ab-67ea-4cce-b980-4fab085b41b2","stage":"CLEANLINESS","code":"SERVICE_FAILURE","claimCount":4,"exhausted":true}
+{"type":"VERIFICATION_TIMING","event":"JOB_FAILURE","at":"2026-10-14T19:24:53.785Z","attemptId":"04998832-81e4-4193-82c8-45be38ec3895","jobId":"f836d2ab-67ea-4cce-b980-4fab085b41b2","stage":"CLEANLINESS","code":"SERVICE_FAILURE","claimCount":4,"exhausted":true}
+PASS lifecycle: completion race, item aggregation, epochs, privacy/presence, maintenance, waiver, extension, deadline/pending jobs, no spam, company revocation
+Retained isolated database: priv_verification_test_lifecycle_1792005885977

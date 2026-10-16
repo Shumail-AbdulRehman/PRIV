@@ -14,6 +14,7 @@ import {
 import DataTable from "@/components/common/DataTable";
 import AreaDailyWork, { AreaReviewPreview } from "./AreaDailyWork";
 import OperationsState from "../Manager/OperationsState";
+import LoadingSpinner from "@/components/common/LoadingSpinner";
 import { useLanguage } from "@/i18n/context";
 import { useState } from "react";
 import { Link, useParams, useSearchParams } from "react-router-dom";
@@ -128,7 +129,7 @@ export default function AreaDetailPage() {
       setBusy(false);
     }
   };
-  if (query.isPending) return <OperationsState loading />;
+  if (query.isPending) return <LoadingSpinner fullScreen />;
   if (query.isError || !query.data)
     return (
       <div role="alert">

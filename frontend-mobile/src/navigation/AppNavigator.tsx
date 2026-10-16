@@ -1,6 +1,6 @@
-import { SpatialDiagnosticScreen } from '../screens/verification/SpatialDiagnosticScreen';
-import { VerificationScreen } from '../screens/verification/VerificationScreen';
-import { StartTaskScreen } from '../screens/StartTaskScreen';
+import { SpatialDiagnosticScreen } from "../screens/verification/SpatialDiagnosticScreen";
+import { VerificationScreen } from "../screens/verification/VerificationScreen";
+import { StartTaskScreen } from "../screens/StartTaskScreen";
 import { createNativeStackNavigator } from "@react-navigation/native-stack";
 import { useAuth } from "../auth/AuthContext";
 import { LoadingState } from "../components/LoadingState";
@@ -8,9 +8,12 @@ import { StaffTabs } from "./StaffTabs";
 import { LoginScreen } from "../screens/LoginScreen";
 import type { RootStackParamList } from "../types";
 
+import { useLanguage } from "../i18n/LanguageProvider";
+
 const Stack = createNativeStackNavigator<RootStackParamList>();
 
 export function AppNavigator() {
+  const { t } = useLanguage();
   const { user, isBootstrapping } = useAuth();
 
   if (isBootstrapping) {
@@ -28,15 +31,15 @@ export function AppNavigator() {
       screenOptions={{
         headerShadowVisible: false,
         headerStyle: {
-          backgroundColor: "#FFFFFF",
+          backgroundColor: "#FCFAF6",
         },
         headerTitleStyle: {
-          color: "#18181B",
+          color: "#10232D",
           fontWeight: "700",
         },
-        headerTintColor: "#0F766E",
+        headerTintColor: "#093F45",
         contentStyle: {
-          backgroundColor: "#FFFFFF",
+          backgroundColor: "#FCFAF6",
         },
       }}
     >
@@ -47,9 +50,24 @@ export function AppNavigator() {
             component={StaffTabs}
             options={{ headerShown: false }}
           />
-          {__DEV__ ? <Stack.Screen name="SpatialDiagnostic" component={SpatialDiagnosticScreen} options={{title:"Spatial diagnostic"}} /> : null}
-          <Stack.Screen name="Verification" component={VerificationScreen} options={{title:"Task photos"}} />
-          <Stack.Screen name="StartTask" component={StartTaskScreen} options={{title:"Start cleaning"}} />
+          {__DEV__ ? (
+            <Stack.Screen
+              name="SpatialDiagnostic"
+              component={SpatialDiagnosticScreen}
+              options={{ title: "Spatial diagnostic" }}
+            />
+          ) : null}
+          <Stack.Screen
+            name="Verification"
+            initialParams={{requirePhotoQr:true}}
+            component={VerificationScreen}
+            options={{ title: t("Task photos") }}
+          />
+          <Stack.Screen
+            name="StartTask"
+            component={StartTaskScreen}
+            options={{ title: t("Start cleaning") }}
+          />
         </>
       ) : (
         <Stack.Screen

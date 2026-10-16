@@ -140,7 +140,7 @@ export default function DashboardPage() {
     </section>
   ) : null;
   const recent = data ? (
-    <section className="ops-panel overview-recent">
+    <section className="ops-panel overview-recent overview-wide-tasks">
       <div className="ops-panel-heading">
         <div>
           <h2>{t(historical ? "Tasks for this day" : "Today’s tasks")}</h2>
@@ -164,8 +164,8 @@ export default function DashboardPage() {
             <div>
               <strong>{task.areaNameSnapshot ?? task.title}</strong>
               <TaskWorker task={task} />
-              <p>{task.location.name}</p>
             </div>
+            <p className="overview-task-location">{task.location.name}</p>
             <span>
               <OperationStatus
                 state={task.staffSubmittedAt ? "PASSED" : task.rawStatus}
@@ -209,44 +209,36 @@ export default function DashboardPage() {
       </header>
       <OperationsState
         loading={query.isPending}
+        layout={owner ? "owner-overview" : "manager-overview"}
         error={query.error}
         retry={() => void query.refetch()}
       />
       {data && !query.isError ? (
         <>
           <OperationalSummary data={data} params={params} />
-          <div className="overview-composition">
-            <div className="overview-column">
+          <div className="overview-flow">
+            <div className="overview-primary">
               {owner ? (
                 <>
                   <WorkProgress data={data} params={params} />
-                  {comparison}
+                  <AttentionList data={data} params={params} />
                 </>
               ) : (
                 <>
                   <AttentionList data={data} params={params} />
-                  {recent}
-                </>
-              )}
-            </div>
-            <div className="overview-column">
-              {owner ? (
-                <>
-                  <AttentionList data={data} params={params} />
-                  <OwnerTrends
-                    locations={data.selected}
-                    asOf={data.asOf}
-                    date={params.get("date") ?? "today"}
-                  />
-                  {recent}
-                </>
-              ) : (
-                <>
                   <WorkProgress data={data} params={params} />
-                  {comparison}
                 </>
               )}
             </div>
+            {comparison}
+            {owner ? (
+              <OwnerTrends
+                locations={data.selected}
+                asOf={data.asOf}
+                date={params.get("date") ?? "today"}
+              />
+            ) : null}
+            {recent}
           </div>
           <footer className="dashboard-updated">
             <span>

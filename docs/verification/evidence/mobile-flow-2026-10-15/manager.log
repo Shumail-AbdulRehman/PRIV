@@ -1,0 +1,7 @@
+
+> fyp@1.0.0 test:manager:integration
+> tsx tests/managerOperations.integration.ts
+
+(node:16666) DeprecationWarning: Calling client.query() when the client is already executing a query is deprecated and will be removed in pg@9.0. Use async/await or an external async flow control mechanism instead.
+(Use `node --trace-deprecation ...` to show where the warning was created)
+PASS isolated PostgreSQL: local dates, carry-over, submission, no-staff/unassigned tasks, tenant scope, 47-case pagination/search/next/clamp and resolution satisfaction, real workspace/action routes, audited resolution and idempotency

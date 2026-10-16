@@ -68,6 +68,7 @@ export default function LocationAreasTab({
       </div>
       <OperationsState
         loading={query.isPending}
+        layout="area-table"
         error={query.error}
         retry={() => void query.refetch()}
       />

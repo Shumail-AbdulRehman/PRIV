@@ -4,6 +4,7 @@ export type CreateLocationInput = {
   latitude: string;
   longitude: string;
   timezone?: string;
+  radiusMeters?: number;
 };
 
 
@@ -13,6 +14,7 @@ export type LocationFormValues = {
   latitude: string;
   longitude: string;
   timezone: string;
+  radiusMeters: number;
 };
 
 export type AssignShiftInput = {

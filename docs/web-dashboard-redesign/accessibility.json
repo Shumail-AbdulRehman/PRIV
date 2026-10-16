@@ -1,0 +1,94 @@
+[
+  {
+    "page": "dashboard",
+    "violations": []
+  },
+  {
+    "page": "today",
+    "violations": []
+  },
+  {
+    "page": "locations",
+    "violations": []
+  },
+  {
+    "page": "location",
+    "violations": []
+  },
+  {
+    "page": "location-areas",
+    "violations": []
+  },
+  {
+    "page": "area-create",
+    "violations": []
+  },
+  {
+    "page": "location-team",
+    "violations": []
+  },
+  {
+    "page": "location-schedules",
+    "violations": []
+  },
+  {
+    "page": "location-week",
+    "violations": []
+  },
+  {
+    "page": "location-history",
+    "violations": []
+  },
+  {
+    "page": "room",
+    "violations": []
+  },
+  {
+    "page": "room-tasks",
+    "violations": []
+  },
+  {
+    "page": "room-qr",
+    "violations": []
+  },
+  {
+    "page": "room-guidance",
+    "violations": []
+  },
+  {
+    "page": "room-history",
+    "violations": []
+  },
+  {
+    "page": "team",
+    "violations": []
+  },
+  {
+    "page": "team-detail",
+    "violations": []
+  },
+  {
+    "page": "attendance",
+    "violations": []
+  },
+  {
+    "page": "reviews",
+    "violations": []
+  },
+  {
+    "page": "review-detail",
+    "violations": []
+  },
+  {
+    "page": "billing",
+    "violations": []
+  },
+  {
+    "page": "managers",
+    "violations": []
+  },
+  {
+    "page": "create-location-dialog",
+    "violations": []
+  }
+]

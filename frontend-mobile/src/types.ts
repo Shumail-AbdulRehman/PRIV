@@ -1,18 +1,19 @@
 export type StaffTabsParamList = {
   Shift: undefined;
   Tasks: undefined;
+  Help: undefined;
 };
 
 export type RootStackParamList = {
   Login: undefined;
   StaffTabs: undefined;
-  Verification: { taskId: number };
+  Verification: { taskId: number; requirePhotoQr?: boolean };
   StartTask: { taskId: number };
   SpatialDiagnostic: undefined;
 
 };
 
-export type StaffTabId = "Shift" | "Tasks";
+export type StaffTabId = "Shift" | "Tasks" | "Help";
 
 export type StaffUser = {
   id: number;

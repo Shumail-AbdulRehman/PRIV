@@ -73,6 +73,7 @@ function TaskPanel({ id, close }: { id: number; close: () => void }) {
       <div className="ops-panel-body">
         <OperationsState
           loading={query.isPending}
+          layout="task-summary"
           error={query.error}
           retry={() => void query.refetch()}
         />
@@ -210,6 +211,7 @@ export default function TodayStatusPage() {
         </div>
         <ScopeFilters locations={data?.locations ?? []} />
       </header>
+      <OperationsState loading={overview.isPending} layout="today-summary" />
       {overview.data && !overview.isError ? (
         <>
           <OperationalSummary data={overview.data} params={params} />
@@ -286,6 +288,7 @@ export default function TodayStatusPage() {
       </div>
       <OperationsState
         loading={query.isPending}
+        layout="today-table"
         error={query.error}
         retry={() => void query.refetch()}
       />
@@ -486,11 +489,6 @@ export default function TodayStatusPage() {
           close={() => update("taskId", "")}
         />
       ) : null}
-      <p className="ops-backlog-link">
-        <Link to="/exceptions?queue=needs-me&period=earlier">
-          {t("Earlier unresolved reviews")} →
-        </Link>
-      </p>
     </div>
   );
 }

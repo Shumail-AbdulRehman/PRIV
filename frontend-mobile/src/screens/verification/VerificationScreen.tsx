@@ -1,397 +1,191 @@
-import {spatialTracking,SpatialCamera,unavailableSample,type SpatialCapability} from '../../../modules/spatial-tracking';
-import {beginSpatialWorld,breakSpatialContinuity,observationForCapture,spatialCaptureHint} from '../../verification/spatialSession';
-import type {SpatialCheckpoint} from '../../verification/spatialTypes';
 import { useCallback, useEffect, useRef, useState } from 'react';
-import {useQueryClient} from '@tanstack/react-query';
-import {staffQueryKeys} from '../../queries/staff';
-import { AppState, Linking, Platform, ScrollView, StyleSheet, View } from 'react-native';
+import { AppState, Image, Linking, Platform, ScrollView, StyleSheet, View, useWindowDimensions } from 'react-native';
 import { useIsFocused } from '@react-navigation/native';
 import type { NativeStackScreenProps } from '@react-navigation/native-stack';
+import { useQueryClient } from '@tanstack/react-query';
 import { CameraView, useCameraPermissions } from 'expo-camera';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { File } from 'expo-file-system';
 import { manipulateAsync, SaveFormat } from 'expo-image-manipulator';
 import * as Crypto from 'expo-crypto';
-import * as Haptics from 'expo-haptics';
 import NetInfo from '@react-native-community/netinfo';
+import { captureClock, inspectStill } from '../../../modules/capture-quality';
+import { useAuth } from '../../auth/AuthContext';
+import { useLanguage } from '../../i18n/LanguageProvider';
+import { LanguageChoice } from '../../components/LanguageChoice';
+import { ListenButton } from '../../components/ListenButton';
+import { PhotoGuide } from '../../components/PhotoGuide';
+import { CaptureFrame, PhotoCaptureControls, PhotoStepProgress } from '../../components/PhotoCaptureControls';
 import { Button } from '../../components/ui/button';
 import { Text } from '../../components/ui/text';
-import { captureClock, inspectStill } from '../../../modules/capture-quality';
-import { getSession, queueRows, saveCapture, saveIssue, saveSession, queueAccount, removeRequest, unlockQueue, persistSpatialCheckpoint, updateQueue } from '../../verification/queue';
-import { useAuth } from '../../auth/AuthContext';
-import { activatePhoto, finishSubmission, installationId, openCaptureSession, resumeCapture, retakeSlots, verificationManifest } from '../../verification/api';
-import { captureAllowed, mergeManifest, nextSlot, pendingPhotoCheck, objectSecondsRemaining } from '../../verification/policy';
-import { captureProgress, qualityInstruction, reworkRequirements, slotInstruction, manifestForAllocatedSlots } from '../../verification/capturePolicy';
-import { syncEvidence, subscribeEvidenceSync, retrySavedUploads } from '../../verification/sync';
+import { captureAccount } from '../../verification/captureAccount';
+import { activatePhoto, finishSubmission, findUploadedPhoto, installationId, openCaptureSession, resumeCapture, uploadPhoto, verificationManifest } from '../../verification/api';
+import { captureAllowed, checkedPhotoState, mergeManifest, nextSlot, objectSecondsRemaining } from '../../verification/policy';
+import { qualityInstruction, reworkRequirements, slotInstruction } from '../../verification/capturePolicy';
+import { requiredPhotoIds } from '../../verification/feedback';
 import { VerificationProgress } from './VerificationProgress';
-import { Icon } from '../../components/ui/icon';
-import { formatClockTime } from '../../utils/format';
-import type { LocalSession, Manifest, QueueRow } from '../../verification/types';
+import { staffQueryKeys } from '../../queries/staff';
+import type { CaptureMetadata, LocalSession, Manifest } from '../../verification/types';
 import type { RootStackParamList } from '../../types';
-import { verificationErrorMessage } from '../../verification/errors';
 
 type Props=NativeStackScreenProps<RootStackParamList,'Verification'>;
-type Mode='prepare'|'scan'|'locating'|'capture'|'progress'|'problem';
+type Mode='prepare'|'scan'|'locating'|'capture'|'progress';
+type PendingPhoto={metadata:CaptureMetadata;uri:string};
 const scanSettings={barcodeTypes:['qr' as const]};
-const errorMessage=verificationErrorMessage;
-export function VerificationScreen({route,navigation}:Props) {
-  const {user}=useAuth();
-  const queryClient=useQueryClient();
-  const insets=useSafeAreaInsets();
-  const taskId=route.params.taskId;
-  const focused=useIsFocused();
-  const [permission,requestPermission]=useCameraPermissions();
-  const [local,setLocal]=useState<LocalSession|null>(null);
-  const [manifest,setManifest]=useState<Manifest|null>(null);
-  const [rows,setRows]=useState<QueueRow[]>([]);
-  const [mode,setMode]=useState<Mode>('prepare');
-  const [message,setMessage]=useState('');
-  const [loadError,setLoadError]=useState('');
-  const [storageError,setStorageError]=useState<string|null>(null);
-  const [busy,setBusy]=useState(false);
-  const [busyLabel,setBusyLabel]=useState('Please wait…');
-  const [helpOpen,setHelpOpen]=useState(false);
-  const [secondsLeft,setSecondsLeft]=useState<number|null>(null);
-  const activation=useRef<string|null>(null);
-  const submitting=useRef(false);
-  const reworkTargets=useRef<{requirementId:string;expectedGeneration:number}[]|undefined>(undefined);
-  const latestLocal=useRef(local);latestLocal.current=local;
-  const [lastUpdated,setLastUpdated]=useState<number|null>(null);
-  const [refreshing,setRefreshing]=useState(false);
-  const loading=useRef(false);
-  const mounted=useRef(true);
-  const mutation=useRef(0);
-  const scope=queueAccount();
-  useEffect(()=>{mounted.current=true;return()=>{mounted.current=false;};},[]);
-  const [torch,setTorch]=useState(false);
-  const [online,setOnline]=useState(true);
-  const [foreground,setForeground]=useState(AppState.currentState==='active');
-  const [cameraActive,setCameraActive]=useState(false);
-  const [cameraKey,setCameraKey]=useState(0);
-  const camera=useRef<CameraView>(null);
-  const [spatialMode,setSpatialMode]=useState<'idle'|'starting'|'active'|'fallback'>('idle');
-  const [spatialHint,setSpatialHint]=useState('');
-  const capability=useRef<SpatialCapability>('NO_SPATIAL');
-  const spatialStartedAt=useRef(0);
-  const spatialHadFrame=useRef(false);
-  const checkpoint=useRef<SpatialCheckpoint|undefined>(undefined);
-  const spatialSession=useRef<string|null>(null);
-  const interruptSpatial=useCallback((reason:string)=>{
-    ready.current=false;
-    if(checkpoint.current&&spatialSession.current){
-      checkpoint.current=breakSpatialContinuity(checkpoint.current,reason);
-      void persistSpatialCheckpoint(taskId,spatialSession.current,checkpoint.current).catch(()=>{});
-    }
-    void spatialTracking.interrupt().catch(()=>{});setSpatialMode('idle');
-  },[taskId]);
+const messageFor=(error:unknown)=>error instanceof Error?error.message:'Could not finish. Please try again.';
+const removeTemporary=(uri:string)=>{try{const file=new File(uri);if(file.exists)file.delete();}catch{/* Do not hide the upload result. */}};
 
-  const ready=useRef(false);
-  const paused=useRef(false);
-  const actionInFlight=useRef(false);
+export function VerificationScreen({route,navigation}:Props) {
+  const {user}=useAuth(),{t}=useLanguage();
+  const taskId=route.params.taskId,scope=user?`${user.companyId}_${user.id}`:null;
+  const queryClient=useQueryClient(),insets=useSafeAreaInsets(),focused=useIsFocused();
+  const [permission,requestPermission]=useCameraPermissions();
+  const [manifest,setManifest]=useState<Manifest|null>(null),[local,setLocal]=useState<LocalSession|null>(null);
+  const [mode,setMode]=useState<Mode>('prepare'),[pending,setPending]=useState<PendingPhoto|null>(null);
+  const pendingRef=useRef<PendingPhoto|null>(null),localRef=useRef(local);localRef.current=local;
+  const [busy,setBusy]=useState(false),[busyLabel,setBusyLabel]=useState('Please wait…');
+  const [message,setMessage]=useState(''),[refreshing,setRefreshing]=useState(false);
+  const [online,setOnline]=useState(true),[foreground,setForeground]=useState(AppState.currentState==='active');
+  const [cameraReady,setCameraReady]=useState(false),[cameraKey,setCameraKey]=useState(0),[torch,setTorch]=useState(false);
+  const [lastUpdated,setLastUpdated]=useState<number|null>(null),[seconds,setSeconds]=useState<number|null>(null);
+  const camera=useRef<CameraView>(null),mounted=useRef(true),inFlight=useRef(false),loading=useRef(false),activation=useRef<string|null>(null);
+  const {width,height}=useWindowDimensions();
+  const cameraHeight=Math.max(220,Math.min(420,(width-40)*1.25,height*.48));
+  const valid=()=>mounted.current&&scope!==null&&captureAccount()===scope;
+  const rememberPending=(photo:PendingPhoto|null)=>{pendingRef.current=photo;if(mounted.current)setPending(photo);};
+  const finished=!!manifest&&(!!manifest.staffSubmittedAt||manifest.task.status==='COMPLETED');
+  const required=manifest?requiredPhotoIds(manifest):new Set<string>();
+  const mandatory=manifest?.items.flatMap(i=>i.requirements).filter(r=>required.has(r.id))??[];
+  const canSubmit=!pending&&!finished&&mandatory.length>0&&mandatory.every(r=>checkedPhotoState(r.state)&&(r.state==='WAIVED'||!!r.currentAttempt));
+  const dirty=mandatory.some(r=>r.state==='CLEANING_REQUIRED'),retake=mandatory.some(r=>r.state==='RECAPTURE_REQUIRED');
+  const slot=local?nextSlot(local,[]):undefined,heading=local&&slot?slotInstruction(local,slot):null;
+  const slotActive=!!slot&&(!local?.session.sequentialChecks||!!slot.activatedAt);
+  let allowed=false;try{allowed=!!local&&captureAllowed(local,captureClock())&&seconds!==0;}catch{/* Scan QR to establish the native clock. */}
   const load=useCallback(async()=>{
-    if(loading.current)return;
-    loading.current=true;setRefreshing(true);
-    const version=mutation.current;
-    const valid=()=>mounted.current&&version===mutation.current&&queueAccount()===scope;
-    try {
-    let stored:LocalSession|null=null;
-    try {
-      stored=await getSession(taskId);
-      const pending=await queueRows(taskId);
-      captureClock();
-      if(!valid())return;
-      setStorageError(null);setRows(pending);setLocal(stored);if(stored)setManifest(stored.manifest);
-    }catch(error){if(valid())setStorageError(errorMessage(error));}
-    if(!valid())return;
-    try {
-      const current=await verificationManifest(taskId);if(!valid())return;setManifest(current);setLoadError('');setLastUpdated(Date.now());
-      if(stored){const next=mergeManifest(stored,current);await saveSession(next);setLocal(next);}
-    }catch(error){
-      if(!valid())return;
-      const status=(error as {response?:{status?:number}}).response?.status;
-      if(stored&&[403,404,410].includes(status??0)){const revoked={...stored,paused:true,session:{...stored.session,state:'REVOKED'}};await saveSession(revoked);setLocal(revoked);setMessage('Your task access changed. Saved photos are kept. Ask your manager.');}
-      else setLoadError(errorMessage(error));
-    }
+    if(loading.current)return null;loading.current=true;setRefreshing(true);
+    try{
+      const current=await verificationManifest(taskId);
+      if(!mounted.current||captureAccount()!==scope)return null;
+      setManifest(current);setLastUpdated(Date.now());setLocal(previous=>previous?mergeManifest(previous,current):null);return current;
     }finally{loading.current=false;if(mounted.current)setRefreshing(false);}
   },[taskId,scope]);
-  useEffect(()=>{let live=true;void load().then(()=>{if(live&&!actionInFlight.current)setMode(value=>value==='prepare'?'prepare':value);}).catch(error=>setMessage(errorMessage(error)));const timer=setInterval(()=>{if(focused&&AppState.currentState==='active'&&!actionInFlight.current)void load().catch(()=>{});},2500);return()=>{live=false;clearInterval(timer);};},[load,focused]);
-  useEffect(()=>subscribeEvidenceSync(()=>{void queueRows(taskId).then(pending=>{if(mounted.current&&queueAccount()===scope)setRows(pending);}).catch(()=>{});}),[taskId,scope]);
+  useEffect(()=>{mounted.current=true;return()=>{mounted.current=false;if(pendingRef.current)removeTemporary(pendingRef.current.uri);pendingRef.current=null;};},[]);
+  useEffect(()=>{if(focused)void load().catch(error=>{if(mounted.current)setMessage(messageFor(error));});},[load,focused]);
   useEffect(()=>NetInfo.addEventListener(state=>setOnline(state.isConnected!==false&&state.isInternetReachable!==false)),[]);
-  useEffect(()=>{const listener=AppState.addEventListener('change',state=>{setForeground(state==='active');if(state!=='active'){interruptSpatial('BACKGROUND');}});return()=>listener.remove();},[interruptSpatial]);
-  const slot=local?nextSlot(local,rows):undefined;
-  const waiting=!!local&&pendingPhotoCheck(local,rows);
-  const slotActive=!local?.session.sequentialChecks||!!slot?.activatedAt;
+  useEffect(()=>{const listener=AppState.addEventListener('change',state=>{setForeground(state==='active');setCameraReady(false);});return()=>listener.remove();},[]);
+  useEffect(()=>{setCameraReady(false);},[mode,focused,cameraKey]);
   useEffect(()=>{
-   if(!local?.session.sequentialChecks||!slot||slot.activatedAt||mode!=='capture'||activation.current===slot.id)return;
-   activation.current=slot.id;let live=true;
-   void activatePhoto(local.session.id,slot.id).then(async response=>{if(!live||!mounted.current||queueAccount()!==scope)return;const current=latestLocal.current;if(current?.session.id!==local.session.id)return;const next={...current,session:{...current.session,...response,serverTime:current.session.serverTime}};mutation.current++;await saveSession(next);setLocal(next);}).catch(error=>{if(!live)return;const status=(error as {response?:{status?:number}}).response?.status;if(status===410){setMessage('Time expired. Scan the room QR again to continue this item.');setMode('scan');}else setMessage(errorMessage(error));}).finally(()=>{activation.current=null;});
-   return()=>{live=false;};
-  },[local?.session.id,slot?.id,slot?.activatedAt,mode,scope]);
-  useEffect(()=>{const tick=()=>{try{setSecondsLeft(local?objectSecondsRemaining(local,slot,captureClock()):null);}catch{setSecondsLeft(null);}};tick();const timer=setInterval(tick,1000);return()=>clearInterval(timer);},[local,slot?.id,slot?.activatedAt]);
-  useEffect(()=>{if(mode==='capture'&&local?.session.sequentialChecks&&slot?.activatedAt&&secondsLeft===0&&!busy&&!waiting){setMessage('Time expired. Scan the room QR again to continue this item. Your earlier photos are kept.');setMode('scan');}},[mode,secondsLeft,busy,waiting,slot?.id]);
-  let allowed=false;try{allowed=!!local&&captureAllowed(local,captureClock());}catch{/* Requires native build. */}
-  const showCamera=!storageError&&focused&&foreground&&!paused.current&&permission?.granted&&(mode==='scan'||(mode==='capture'&&allowed&&slotActive&&!!slot&&(!local?.manifest.spatialCaptureEnabled||spatialMode==='fallback')));
-  useEffect(()=>{ready.current=false;setCameraActive(false);if(!showCamera)return;const timer=setTimeout(()=>setCameraActive(true),350);return()=>clearTimeout(timer);},[showCamera]);
-  useEffect(()=>{if(!cameraActive)return;const timer=setTimeout(()=>{if(!ready.current)setMessage('Camera has not opened. Tap Restart camera or check camera access in Settings.');},4000);return()=>clearTimeout(timer);},[cameraActive,cameraKey]);
+    const tick=()=>{try{setSeconds(local?objectSecondsRemaining(local,slot,captureClock()):null);}catch{setSeconds(0);}};
+    tick();const timer=setInterval(tick,1000);return()=>clearInterval(timer);
+  },[local,slot?.id,slot?.activatedAt]);
   useEffect(()=>{
-    if(!focused||!foreground||!permission?.granted||paused.current||storageError||!allowed||!slot||mode!=='capture'||!local?.manifest.spatialCaptureEnabled){interruptSpatial(!permission?.granted?'PERMISSION_CHANGED':'NAVIGATION');return;}
-    let live=true;setSpatialMode('starting');
-    const capturedLocal=local;
-    void (async()=>{
-      const elapsed=captureClock().elapsedMs-capturedLocal.anchorElapsedMs+Math.max(0,Date.parse(capturedLocal.session.serverTime)-Date.parse(capturedLocal.session.serverTimeAnchor??capturedLocal.session.serverTime));
-      checkpoint.current=beginSpatialWorld(Crypto.randomUUID(),elapsed,capturedLocal.spatialCheckpoint??checkpoint.current,spatialSession.current&&spatialSession.current!==capturedLocal.session.id?'SESSION_RENEWED':'RESTART');
-      spatialSession.current=capturedLocal.session.id;
-      await persistSpatialCheckpoint(taskId,capturedLocal.session.id,checkpoint.current);
-      if(!live)return;
-      capability.current=await spatialTracking.isSupported();
-      if(!live)return;
-      if(capability.current==='NO_SPATIAL'){setSpatialMode('fallback');return;}
-      try{await spatialTracking.start();if(live){spatialStartedAt.current=Date.now();spatialHadFrame.current=false;setSpatialMode('active');}else await spatialTracking.stop();}
-      catch{checkpoint.current=breakSpatialContinuity(checkpoint.current,'NATIVE_FAILURE');await persistSpatialCheckpoint(taskId,capturedLocal.session.id,checkpoint.current);if(live)setSpatialMode('fallback');}
-    })().catch(error=>{if(live){if(checkpoint.current){checkpoint.current=breakSpatialContinuity(checkpoint.current,'NATIVE_FAILURE');void persistSpatialCheckpoint(taskId,capturedLocal.session.id,checkpoint.current).catch(()=>{});}capability.current='NO_SPATIAL';setMessage(errorMessage(error));setSpatialMode('fallback');}});
-    return()=>{live=false;interruptSpatial('NAVIGATION');};
-  },[focused,foreground,permission?.granted,mode,local?.session.id,local?.manifest.spatialCaptureEnabled,cameraKey,taskId,interruptSpatial,allowed,!!slot,storageError]);
-  useEffect(()=>{
-    if(spatialMode!=='active')return;
-    let live=true;
-    const timer=setInterval(()=>{void spatialTracking.getTrackingState().then(sample=>{
-      if(!live)return;ready.current=sample.nativeTimestampMs!==null;
-      if(sample.tracking==='UNAVAILABLE'&&!spatialHadFrame.current&&Date.now()-spatialStartedAt.current<4000)return;
-      if(sample.nativeTimestampMs!==null)spatialHadFrame.current=true;
-      if(sample.continuity==='BROKEN'&&checkpoint.current){checkpoint.current=breakSpatialContinuity(checkpoint.current,'TRACKING_LOST');if(spatialSession.current)void persistSpatialCheckpoint(taskId,spatialSession.current,checkpoint.current).catch(()=>{});}
-      if(sample.tracking==='UNAVAILABLE'){interruptSpatial('NATIVE_FAILURE');setSpatialMode('fallback');setSpatialHint("We couldn't confirm that this is a different item. Take a wider photo showing the surrounding area.");return;}
-      setSpatialHint(spatialCaptureHint(checkpoint.current?.continuity==='BROKEN'?{...sample,continuity:'BROKEN'}:sample));
-    }).catch(()=>{if(live){interruptSpatial('NATIVE_FAILURE');setSpatialMode('fallback');}});},1000);
-    return()=>{live=false;clearInterval(timer);};
-  },[spatialMode,interruptSpatial,taskId]);
-  useEffect(()=>()=>{interruptSpatial('NAVIGATION');},[interruptSpatial]);
-  useEffect(()=>{if(!focused||queueAccount()!==scope){}},[focused,scope]);
-  async function action(work:()=>Promise<void>,label='Please wait…'){if(actionInFlight.current)return;actionInFlight.current=true;mutation.current++;setBusy(true);setBusyLabel(label);setMessage('');try{await work();}catch(error){if(mounted.current){setMessage(errorMessage(error));setMode(value=>value==='locating'?'problem':value);}}finally{actionInFlight.current=false;if(mounted.current)setBusy(false);}}
-  async function continuePhotos(){await action(async()=>{
-    if(Platform.OS==='web'||!queueAccount())throw new Error('Use a native Hygene Ops build to securely save verification photos.');
-    const permitted=permission?.granted?permission:await requestPermission();if(!permitted.granted){setMessage(permitted.canAskAgain?'Allow camera access to take task photos.':'Camera access is blocked. Open settings to allow it.');setMode('problem');return;}
-    paused.current=false;
-    if(local&&current?.sequentialChecks&&local.session.sequentialChecks!==true){setMode('scan');setMessage('Scan the room QR to start the updated photo checks. Your saved photos are kept.');}
-    else if(local&&captureAllowed({...local,paused:false},captureClock())){
-      let next={...local,paused:false};
-      if(online){const response=await resumeCapture(local.session.id,rows.filter(r=>r.state!=='FINAL').map(r=>r.id));next={...next,session:{...local.session,...response,serverTime:local.session.serverTime}};}
-      await saveSession(next);setLocal(next);setMode('capture');
-    }else if(!local&&online&&current?.sessions?.some(s=>['ACTIVE','PAUSED'].includes(s.state))){
-      const serverSession=current.sessions.find(s=>['ACTIVE','PAUSED'].includes(s.state))!;
-      const session=await resumeCapture(serverSession.id,[]);const anchor=captureClock();
-      const next={session,manifest:current,anchorBootId:anchor.bootId,anchorElapsedMs:anchor.elapsedMs,savedAt:Date.now(),paused:false};
-      await saveSession(next);setLocal(next);setMode(session.requiresRenewal?'scan':'capture');
-    }else setMode('scan');
+    if(!local||!slot||slotActive||pending||busy||mode!=='capture'||activation.current===slot.id)return;
+    activation.current=slot.id;let live=true;
+    void activatePhoto(local.session.id,slot.id).then(response=>{
+      if(!live||!valid())return;
+      setLocal(previous=>previous&&previous.session.id===local.session.id?{...previous,session:{...previous.session,...response,serverTime:previous.session.serverTime}}:previous);
+    }).catch(error=>{if(live&&valid()){setMessage(messageFor(error));setMode('progress');}}).finally(()=>{activation.current=null;});
+    return()=>{live=false;};
+  },[local?.session.id,slot?.id,slotActive,pending,busy,mode]);
+  async function action(work:()=>Promise<void>,label='Please wait…') {
+    if(inFlight.current)return;inFlight.current=true;setBusy(true);setBusyLabel(label);setMessage('');
+    try{await work();}catch(error){if(valid())setMessage(messageFor(error));}
+    finally{inFlight.current=false;if(mounted.current)setBusy(false);}
+  }
+  async function beginPhotos(){await action(async()=>{
+    if(Platform.OS==='web')throw new Error('Open the installed staff app to scan the room and take photos.');
+    if(!online)throw new Error('Internet needed to continue. Reconnect, then scan the room QR.');
+    const result=permission?.granted?permission:await requestPermission();
+    if(!result.granted)throw new Error('Allow camera access in Settings to take task photos.');
+    setMode('scan');
   });}
-  async function retryStorage(){await action(async()=>{
-    if(!user)throw new Error('Sign in with the same account to open saved photos.');
-    try {
-      await unlockQueue(user);captureClock();setStorageError(null);
-      await load();setMode('prepare');
-    }catch(error){setStorageError(errorMessage(error));}
-  });}
-  async function scanned(data:string){await action(async()=>{
-    setMode('locating');setBusyLabel('Checking your location…');
-    const targets=reworkTargets.current;
-    const session=await openCaptureSession(taskId,data,targets?undefined:local?.session.state==='REVOKED'?undefined:local?.session.id,setBusyLabel,targets);
-    if(!mounted.current||queueAccount()!==scope)return;
-    const anchor=captureClock();
-    // Persist new session authority before an optional manifest refresh can fail.
-    const previousManifest=manifest??local?.manifest;
-    const current=previousManifest?manifestForAllocatedSlots(previousManifest,session.slots):undefined;
-    if(!current)throw new Error('Reload the task before starting photos.');
-    const next={session,manifest:current,anchorElapsedMs:anchor.elapsedMs,anchorBootId:anchor.bootId,savedAt:Date.now(),paused:paused.current};
-    await saveSession(next);await removeRequest(`${targets?'rework':'session'}:${taskId}`);reworkTargets.current=undefined;setLocal(next);setManifest(current);setMessage(session.presenceStatus==='UNCERTAIN'?'Continue taking the required photos.':'');setMode(paused.current?'progress':'capture');
-  });}
-  async function capture(){await action(async()=>{
-    setBusyLabel('Saving photo…');
-    if(!local||!slot||!allowed||!slotActive||waiting||!ready.current||paused.current)throw new Error('Scan the room again to continue photos.');
-    const scope=queueAccount();
-    const clock=captureClock();
-    if(local.session.sequentialChecks&&objectSecondsRemaining(local,slot,clock)===0){setMode('scan');throw new Error('Time expired. Scan the room QR again to continue this item.');}
-    const capturedAt=Date.now();
-    const capturedScope=queueAccount();
-    const spatialPhoto=spatialMode==='active'?await spatialTracking.captureSpatialObservation():null;
-    const photo=spatialPhoto??await camera.current?.takePictureAsync({quality:.9,skipProcessing:false});
-    if(!photo)throw new Error('Camera did not save a photo. Try again.');
-    let resized:File|undefined;const temporary=new File(photo.uri);
-    try {
-      if(!mounted.current||AppState.currentState!=='active'||paused.current||scope!==queueAccount())return;
-      if(!captureAllowed(local,clock))throw new Error('Photo window ended. Scan the room to renew before retaking.');
-      const quality=await inspectStill(photo.uri);const correction=qualityInstruction(quality);if(correction){setMessage(correction);return;}
-      const result=await manipulateAsync(photo.uri,[quality.width>=quality.height?{resize:{width:1800}}:{resize:{height:1800}}],{compress:.85,format:SaveFormat.JPEG});resized=new File(result.uri);
-      const bytes=await resized.bytes();const hash=await Crypto.digest(Crypto.CryptoDigestAlgorithm.SHA256,bytes);const sha256=Array.from(new Uint8Array(hash)).map(v=>v.toString(16).padStart(2,'0')).join('');
-      if(!mounted.current||AppState.currentState!=='active'||paused.current||scope!==queueAccount())return;
-      let spatialCapture:ReturnType<typeof observationForCapture>|undefined;
-      if(local.manifest.spatialCaptureEnabled&&checkpoint.current){
-        const previous=rows.map(r=>r.metadata.spatialEvidence).filter(o=>o?.sessionId===local.session.id).at(-1);
-        spatialCapture=observationForCapture(checkpoint.current,spatialPhoto?.sample??unavailableSample(),{sessionId:local.session.id,requirementId:slot.requirementId??null,contextKey:slot.contextKey??null,elapsedMs:clock.elapsedMs-local.anchorElapsedMs+Math.max(0,Date.parse(local.session.serverTime)-Date.parse(local.session.serverTimeAnchor??local.session.serverTime)),capability:capability.current},previous);
+  async function scanned(qr:string){await action(async()=>{
+    if(!online)throw new Error('Internet needed to confirm the room. Reconnect, then scan its QR.');
+    setMode('locating');
+    const targets=manifest?.items.flatMap(i=>i.requirements).filter(r=>r.state==='CLEANING_REQUIRED').map(r=>({requirementId:r.id,expectedGeneration:r.decisionVersion}));
+    const session=await openCaptureSession(taskId,qr,local?.session.id??manifest?.sessions?.find(s=>s.state==='ACTIVE'||s.state==='PAUSED')?.id,label=>{if(valid())setBusyLabel(label);},targets?.length?targets:undefined);
+    const current=await verificationManifest(taskId),clock=captureClock();
+    if(!valid())return;
+    if(pendingRef.current){removeTemporary(pendingRef.current.uri);rememberPending(null);}
+    setLocal({session,manifest:current,anchorElapsedMs:clock.elapsedMs,anchorBootId:clock.bootId,savedAt:Date.now(),paused:false});
+    setManifest(current);setLastUpdated(Date.now());setMode('capture');
+  });if(mounted.current)setMode(previous=>previous==='locating'?'scan':previous);}
+  async function refreshAfterUpload(){
+    const current=await load(),previous=localRef.current;
+    if(previous&&valid()&&current&&!current.staffSubmittedAt&&current.task.status!=='COMPLETED'){
+      const session=await resumeCapture(previous.session.id,[]);
+      if(valid())setLocal({...previous,manifest:current??previous.manifest,session:{...previous.session,...session,serverTime:previous.session.serverTime}});
+    }
+    if(valid())setMode('progress');
+  }
+  async function sendPhoto(photo:PendingPhoto,checkFirst=false){
+    if(!scope||!valid())throw new Error('Sign in again to upload photos.');
+    if(!online)throw new Error('Upload failed. Reconnect, then tap Upload again.');
+    setBusyLabel('Uploading and checking photo…');
+    if(checkFirst){
+      const existing=await findUploadedPhoto(photo.metadata.sessionId,photo.metadata.clientCaptureId,scope);
+      if(existing&&['PASSED','REVIEW_REQUIRED','PRIVACY_HOLD','CLEANING_REQUIRED','RECAPTURE_REQUIRED'].includes(existing.state)){
+        removeTemporary(photo.uri);rememberPending(null);await refreshAfterUpload();return;
       }
-      const metadata={...(spatialCapture?{spatialEvidence:spatialCapture.evidence}:{}),taskId,sessionId:local.session.id,slotId:slot.id,nonce:slot.nonce,clientCaptureId:Crypto.randomUUID(),sha256,claimedCapturedAt:new Date(Date.parse(local.session.serverTime)+clock.elapsedMs-local.anchorElapsedMs).toISOString(),elapsedMs:clock.elapsedMs-local.anchorElapsedMs+Math.max(0,Date.parse(local.session.serverTime)-Date.parse(local.session.serverTimeAnchor??local.session.serverTime)),bootId:clock.bootId,deviceId:await installationId(),timings:{capturedAt},requirementId:slot.requirementId??null,viewKey:local.manifest.items.flatMap(item=>item.requirements).find(requirement=>requirement.id===slot.requirementId)?.viewKey,qualityResult:quality};
-      const commit=async()=>{
-        const active=latestLocal.current;
-        if(!mounted.current||AppState.currentState!=='active'||paused.current||queueAccount()!==capturedScope||active?.session.id!==local.session.id)throw new Error('Photo was not saved. Return to this room and take it again.');
-        if(!captureAllowed(active,captureClock()))throw new Error('Photo window ended. Scan the room again before taking another photo.');
-        setBusyLabel('Saving photo…');
-        await saveCapture(metadata,bytes,spatialCapture?.checkpoint);
-        if(spatialCapture)checkpoint.current=spatialCapture.checkpoint;
-        // UI advancement is permitted only after the encrypted SQLite transaction commits.
-        const pending=await queueRows(taskId);
-        if(!mounted.current||queueAccount()!==capturedScope)return;
-        setRows(pending);setMessage(slot.requirementId?'Saved. Move to the next item when its name appears.':'Saved on this phone.');
-        if(__DEV__)console.info('verification.mobile.saved',{taskId,sessionId:local.session.id,clientCaptureId:metadata.clientCaptureId,capturedAt,durableSavedAt:Date.now(),categoryOutcome:'SERVER_CLEF'});
-        void Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);void syncEvidence().catch(()=>{});
-        if(!nextSlot(local,pending)){interruptSpatial('NAVIGATION');setMode('progress');}
-      };
-      await commit();
-    }finally{if(resized?.exists)resized.delete();if(temporary.exists)temporary.delete();}
-  });}
-  async function report(reasonCode:string,requestHelp=false){
-    if(actionInFlight.current)return;
-    mutation.current++;setHelpOpen(false);
-    const discardedUncertain=false;
-    paused.current=true;interruptSpatial(reasonCode==='OCCUPIED'?'OCCUPIED':'NAVIGATION');setCameraActive(false);setMode('progress');
-    try {
-      if(local){const next={...local,paused:true};await saveSession(next);setLocal(next);}
-      await saveIssue(taskId,{reasonCode,requestHelp,...(reasonCode!=='OCCUPIED'&&slot?.requirementId?{requirementId:slot.requirementId}:{})});
-      setMessage(reasonCode==='OCCUPIED'?(discardedUncertain?'Photos paused. This photo was not saved. Take it again when the room is empty.':'Photos paused. Continue when the room is empty.'):(discardedUncertain?'Report saved. This photo was not saved. Your earlier saved photos are kept.':'Report saved. Your manager can review it when connected.'));void syncEvidence().catch(()=>{});
-    }catch(error){setMessage(errorMessage(error));}
-  }
-  async function rework(){await action(async()=>{
-    if(!local)return;
-    const failed=reworkRequirements(local);
-    const dirty=failed.filter(({requirement})=>requirement.state==='CLEANING_REQUIRED');
-    if(dirty.length){
-      reworkTargets.current=dirty.map(({requirement})=>({requirementId:requirement.id,expectedGeneration:requirement.decisionVersion}));
-      paused.current=false;interruptSpatial('SESSION_RENEWED');setMode('scan');
-      setMessage('Clean the listed items, then scan the area QR again. Passed photos are kept.');return;
+      if(existing&&['RECEIVED','QUALITY_CHECK','COVERAGE_CHECK','CLEANLINESS_CHECK'].includes(existing.state)){
+        setMessage('This photo is still being checked. Tap Check result shortly.');return;
+      }
     }
-    if(!allowed){paused.current=false;setMode('scan');return;}
-    const response=await retakeSlots(local.session.id,failed.map(({requirement})=>({requirementId:requirement.id,expectedGeneration:requirement.decisionVersion})),failedContexts.map(s=>({contextKey:s.contextKey!,expectedGeneration:s.generation})));
-    const next={...local,paused:false,manifest:manifestForAllocatedSlots(local.manifest,response.slots),session:{...local.session,slots:[...local.session.slots.filter(s=>!response.slots.some(n=>n.requirementId?n.requirementId===s.requirementId:n.contextKey===s.contextKey)),...response.slots]}};
-    await saveSession(next);paused.current=false;setLocal(next);setManifest(next.manifest);setMode('capture');
-  });}
-  const current=manifest??local?.manifest;
-  const progress=local?captureProgress(local,rows):null;
-  const failedContexts=local?(current?.sessions?.find(s=>s.id===local.session.id)?.slots??[]).filter((s,index,all)=>!!s.contextKey&&['RECAPTURE_REQUIRED','CLEANING_REQUIRED'].includes(s.state)&&!all.some(other=>other.contextKey===s.contextKey&&other.generation>s.generation)):[];
-  const heading=local&&slot?slotInstruction(local,slot):null;
-  const completion=current?.task.completionOutcome;
-  const finished=current?.task.status==='COMPLETED'||!!current?.staffSubmittedAt||completion==='VERIFIED_COMPLETE'||completion==='COMPLETED_WITH_EXCEPTIONS';
-  useEffect(()=>{
-   if(!current||!local?.session.sequentialChecks||finished||waiting||slot||busy||submitting.current||(current.pendingJobs??0)>0)return;
-   const requirements=current.items.filter(i=>i.mandatory).flatMap(i=>i.requirements.filter(r=>r.mandatory));
-   if(!requirements.length||requirements.some(r=>!['PASSED','REVIEW_REQUIRED','MANAGER_ACCEPTED','WAIVED'].includes(r.state)))return;
-   submitting.current=true;
-   void finishSubmission(taskId).then(async()=>{await queryClient.invalidateQueries({queryKey:staffQueryKeys.all});await load();}).catch(error=>setMessage(errorMessage(error))).finally(()=>{submitting.current=false;});
-  },[current,local?.session.sequentialChecks,finished,waiting,slot?.id,busy,rows.length,taskId,load]);
-  useEffect(()=>{if(local&&!slot&&mode==='capture'&&!busy)setMode('progress');},[local?.session.id,!!slot,mode,busy]);
-  const hasDirty=!!local&&reworkRequirements(local).some(({requirement})=>requirement.state==='CLEANING_REQUIRED');
-  const hasRework=!!local&&(reworkRequirements(local).length>0||failedContexts.length>0);
-  const hasPendingUpload=rows.some(row=>['SAVED','RETRY_WAIT','UPLOADING'].includes(row.state));
-  useEffect(()=>{if(local?.session.sequentialChecks&&mode==='progress'&&!waiting&&slot&&!hasRework&&!busy&&!paused.current)setMode('capture');},[local?.session.sequentialChecks,mode,waiting,slot?.id,hasRework,busy]);
-  const showProgress=!!current&&(mode==='progress'||finished||(mode==='prepare'&&!!local&&!slot));
-  useEffect(()=>{
-    if(!showProgress||queueAccount()!==scope)return;
-    const shownAttemptIds=new Set([...(current?.items.flatMap(item=>item.requirements).filter(r=>['PASSED','RECAPTURE_REQUIRED','CLEANING_REQUIRED','REVIEW_REQUIRED','PRIVACY_HOLD','SERVICE_FAILURE','MANAGER_ACCEPTED','WAIVED'].includes(r.state)).map(r=>r.currentAttempt?.id)??[]),...(current?.sessions?.flatMap(s=>s.slots).filter(s=>['PASSED','RECAPTURE_REQUIRED','CLEANING_REQUIRED','REVIEW_REQUIRED','PRIVACY_HOLD','SERVICE_FAILURE'].includes(s.state)).map(s=>s.attemptId)??[])]);
-    for(const row of rows.filter(r=>r.state==='FINAL'&&!r.metadata.timings?.resultShownAt&&!!r.attemptId&&shownAttemptIds.has(r.attemptId))){
-      const resultShownAt=Date.now();
-      void updateQueue(row.id,'FINAL',{attemptId:row.attemptId??undefined,timings:{resultShownAt}}).then(()=>{
-        if(mounted.current&&queueAccount()===scope&&__DEV__)console.info('verification.mobile.display',{taskId,sessionId:row.sessionId,clientCaptureId:row.id,attemptId:row.attemptId,resultShownAt});
-      }).catch(()=>{});
-    }
-  },[showProgress,current,rows,scope,taskId]);
-  async function refreshProgress(){
-    void retrySavedUploads(taskId).catch(error=>setMessage(errorMessage(error)));
-    await load();
+    await uploadPhoto(photo.metadata,photo.uri,scope);
+    if(!valid()){removeTemporary(photo.uri);return;}
+    removeTemporary(photo.uri);rememberPending(null);await refreshAfterUpload();
   }
-  return <View className="flex-1 bg-background">
+  async function capture(){await action(async()=>{
+    if(!local||!slot||!slotActive||!allowed||!cameraReady||!focused||!foreground||pending||!scope)throw new Error('Scan the room QR again to continue taking photos.');
+    if(!online)throw new Error('Internet needed to upload. Reconnect before taking the photo.');
+    const session=local,clock=captureClock();
+    const photo=await camera.current?.takePictureAsync({quality:.9,skipProcessing:false});
+    if(!photo)throw new Error('Camera did not save a photo. Try again.');
+    let resized:string|undefined;
+    try{
+      if(!valid())return;
+      const quality=await inspectStill(photo.uri),correction=qualityInstruction(quality);
+      if(correction)throw new Error(correction);
+      const result=await manipulateAsync(photo.uri,[quality.width>=quality.height?{resize:{width:1800}}:{resize:{height:1800}}],{compress:.85,format:SaveFormat.JPEG});resized=result.uri;
+      const bytes=await new File(resized).bytes(),hash=await Crypto.digest(Crypto.CryptoDigestAlgorithm.SHA256,bytes);
+      if(!valid()||!captureAllowed(session,captureClock()))throw new Error('Photo window ended. Scan the room QR again before taking another photo.');
+      const metadata:CaptureMetadata={taskId,sessionId:session.session.id,slotId:slot.id,nonce:slot.nonce,clientCaptureId:Crypto.randomUUID(),sha256:Array.from(new Uint8Array(hash)).map(v=>v.toString(16).padStart(2,'0')).join(''),claimedCapturedAt:new Date(Date.parse(session.session.serverTime)+clock.elapsedMs-session.anchorElapsedMs).toISOString(),elapsedMs:clock.elapsedMs-session.anchorElapsedMs+Math.max(0,Date.parse(session.session.serverTime)-Date.parse(session.session.serverTimeAnchor??session.session.serverTime)),bootId:clock.bootId,deviceId:await installationId(),requirementId:slot.requirementId,qualityResult:quality};
+      const next={metadata,uri:resized};rememberPending(next);resized=undefined;setMode('progress');
+      try{await sendPhoto(next);}catch(error){if(valid())setMessage(`${t(messageFor(error))} ${t('Upload again to continue. If you close this screen, take a new photo.')}`);}
+    }finally{removeTemporary(photo.uri);if(resized)removeTemporary(resized);}
+  },'Preparing photo…');}
+  async function checkResult(){await action(async()=>{
+    if(!pending||!scope)return;
+    const result=await findUploadedPhoto(pending.metadata.sessionId,pending.metadata.clientCaptureId,scope);
+    if(result&&['PASSED','REVIEW_REQUIRED','PRIVACY_HOLD','CLEANING_REQUIRED','RECAPTURE_REQUIRED'].includes(result.state)){
+      removeTemporary(pending.uri);rememberPending(null);await refreshAfterUpload();
+    }else setMessage(result&&result.state!=='RESERVED'?'This photo is still being checked. Check again shortly.':'The photo has not finished uploading. Tap Upload again.');
+  },'Checking photo result…');}
+  async function submit(){await action(async()=>{await finishSubmission(taskId);await load();await queryClient.invalidateQueries({queryKey:staffQueryKeys.all});},'Submitting work…');}
+  const cameraVisible=!finished&&!pending&&focused&&foreground&&permission?.granted&&['scan','capture'].includes(mode);
+  return <View style={{flex:1}} className="bg-background">
     <ScrollView contentContainerStyle={{padding:20,gap:20,paddingBottom:32}}>
-      <View className="gap-2 border-b border-border pb-4">
-        <Text className="text-xs font-semibold uppercase tracking-widest text-muted-foreground">{finished?'Task completed':'Finish cleaning'}</Text>
-        <Text className="text-2xl font-bold">{current?.task.areaNameSnapshot??'Your assigned area'}</Text>
-        {current?<Text className="text-sm text-muted-foreground">{current.task.title} · Due {formatClockTime(current.task.shiftEnd,current.task.location?.timezone)}</Text>:null}
-        <View className="mt-2 flex-row gap-4">
-          {['Confirm room','Take photos','Complete'].map((step,index)=><Text key={step} className={`text-xs font-semibold ${index===(showProgress?2:mode==='capture'?1:0)?'text-primary':'text-muted-foreground'}`}>{index+1}  {step}</Text>)}
-        </View>
-      </View>
-      {!online?<View className="rounded-xl bg-muted p-4"><Text className="text-base font-semibold">You're offline</Text><Text className="mt-1 text-sm leading-5">Saved photos stay on this phone. Uploads resume when you reconnect and open the app.</Text></View>:null}
-      {message&&!finished?<View className="rounded-xl bg-accent p-4"><Text accessibilityLiveRegion="polite" className="text-base leading-6">{message}</Text></View>:null}
-      {loadError?<View className="gap-2 rounded-xl border border-border p-4"><Text className="font-semibold">Couldn't refresh results</Text><Text className="text-sm leading-5">{loadError}</Text><Button variant="outline" loading={refreshing} onPress={()=>void load()}>Refresh results</Button></View>:null}
-      {!finished&&storageError?<View className="gap-4">
-        <Text className="text-xl font-bold">Saved photos couldn't open</Text>
-        <Text className="text-base leading-6">{storageError}</Text>
-        <Text className="text-sm text-muted-foreground">Keep the app data to preserve your photos. Retry, or ask your manager for help.</Text>
-        <Button size="lg" loading={busy} onPress={()=>void retryStorage()}>Retry photo storage</Button>
-      </View>:null}
-      {!finished&&!storageError&&!showProgress&&mode==='prepare'?<>
-        <View className="gap-3 rounded-2xl bg-accent p-5">
-          <Icon name="Camera" size={30} className="text-primary"/>
-          <Text className="text-2xl font-bold text-accent-foreground">{local?'Continue your photos':'Ready to finish?'}</Text>
-          <Text className="text-base leading-6 text-accent-foreground">Make sure the room is empty and safe, including mirror reflections.</Text>
-          <Text className="text-sm font-semibold text-accent-foreground">{current?`${current.items.length} items · ${local?.session.requiredContextKeys?.length??local?.session.slots.filter(s=>s.contextKey).length??1} room photo${(local?.session.requiredContextKeys?.length??1)>1?'s':''}`:'Loading required inventory…'}</Text>
-        </View>
-        <Text className="text-base leading-6 text-muted-foreground">{local?'Your saved photos are kept. Continue with the remaining views.':'Scan the area QR again, confirm your location, then follow the photo guide.'}</Text>
-        <Button size="lg" iconRight="ArrowRight" loading={busy} disabled={!current&&!local} onPress={()=>void continuePhotos()}>{local?'Continue photos':'Room is empty, continue'}</Button>
-        {!current?<Button variant="outline" loading={refreshing} onPress={()=>void load()}>Retry loading task</Button>:null}
-      </>:null}
-      {!finished&&!storageError&&mode==='locating'?<View className="gap-4 rounded-2xl bg-accent p-5">
-        <Icon name="MapPin" size={32} className="text-primary"/>
-        <Text className="text-xl font-bold" accessibilityLiveRegion="polite">{busyLabel}</Text>
-        <Text className="text-base leading-6 text-muted-foreground">Keep location turned on. Finding your position can take up to 20 seconds; opening the photo session may take a little longer.</Text>
-        <Button size="lg" loading>Confirming room</Button>
-      </View>:null}
-      {!finished&&!storageError&&mode==='problem'?<View className="gap-4">
-        <Text className="text-xl font-bold">Room check needs another try</Text>
-        <Text className="text-base leading-6 text-muted-foreground">Check your camera and precise location permissions. Your saved photos are kept.</Text>
-        <Button size="lg" disabled={busy} onPress={()=>{paused.current=false;setMode('scan');setMessage('');}}>Retry room and location check</Button>
-        <Button variant="outline" onPress={()=>void Linking.openSettings()}>Open settings</Button>
-      </View>:null}
-      {!finished&&!storageError&&mode==='scan'?<View className="gap-2">
-        <Text className="text-xl font-bold">Scan the area QR</Text>
-        <Text className="text-base leading-6 text-muted-foreground">Point your camera at the marker for {current?.task.areaNameSnapshot??'this room'}. It scans automatically.</Text>
-      </View>:null}
-      {!finished&&!storageError&&(mode==='capture'||mode==='scan')&&!permission?.granted?<Button size="lg" onPress={()=>void (permission?.canAskAgain?requestPermission():Linking.openSettings())}>{permission?.canAskAgain?'Allow camera':'Open camera settings'}</Button>:null}
-      {!finished&&!storageError&&mode==='capture'&&heading?<View className="gap-2">
-        <Text className="text-xs font-semibold uppercase tracking-widest text-primary">Next photo</Text>
-        <Text className="text-2xl font-bold">{heading.title}</Text>
-        <Text className="text-base leading-6">{heading.view}</Text>
-        {heading.progress?<Text className="text-sm font-semibold text-primary">{heading.progress}</Text>:null}
-        {heading.hint?<Text className="text-sm leading-5 text-muted-foreground">{heading.hint}</Text>:null}
-      </View>:null}
-      {!finished&&!storageError&&focused&&foreground&&!paused.current&&spatialMode==='active'?<View style={{height:340,borderRadius:20,overflow:'hidden'}}><SpatialCamera style={StyleSheet.absoluteFill}/><View pointerEvents="none" style={{position:'absolute',left:'45%',top:'45%',width:'10%',height:'10%',borderWidth:2,borderColor:'white'}}/></View>:null}
-      {!finished&&!storageError&&showCamera&&cameraActive?<View style={{height:320,borderRadius:20,overflow:'hidden'}}><CameraView ref={camera} key={cameraKey} style={StyleSheet.absoluteFill} facing="back" enableTorch={torch} onCameraReady={()=>{ready.current=true;}} onMountError={()=>{setMessage('Camera could not open. Tap restart camera.');ready.current=false;}} barcodeScannerSettings={mode==='scan'?scanSettings:undefined} onBarcodeScanned={mode==='scan'?({data})=>{if(mounted.current&&AppState.currentState==='active'&&focused&&foreground&&ready.current&&!paused.current&&!actionInFlight.current)void scanned(data);}:undefined}/><View pointerEvents="none" style={{position:'absolute',inset:32,borderWidth:2,borderColor:'white',borderRadius:16}}/></View>:null}
-      {!finished&&spatialMode!=='active'&&['capture','scan'].includes(mode)&&permission?.granted?<View className="flex-row gap-3"><Button className="flex-1" variant="outline" iconLeft="Flashlight" onPress={()=>setTorch(t=>!t)}>{torch?'Torch off':'Torch on'}</Button><Button className="flex-1" variant="ghost" onPress={()=>{interruptSpatial('CAMERA_RESTART');ready.current=false;setCameraKey(k=>k+1);}}>Restart camera</Button></View>:null}
-      {spatialHint&&mode==='capture'?<Text accessibilityLiveRegion="polite" className="text-sm leading-5 text-muted-foreground">{spatialHint}</Text>:null}
-      {mode==='capture'&&secondsLeft!==null&&!waiting?<Text accessibilityLiveRegion="polite" className="text-xl font-bold">Time remaining: {Math.floor(secondsLeft/60)}:{String(secondsLeft%60).padStart(2,'0')}</Text>:null}
-      {waiting&&!finished?<View className="gap-2 rounded-2xl bg-accent p-5"><Text className="text-xl font-bold">Checking photo…</Text><Text className="text-base">Keep the app open. The next item opens when this photo has been checked.</Text></View>:null}
-      {local?.session.presenceStatus==='UNCERTAIN'&&mode==='capture'?<Text className="text-sm text-muted-foreground">You can continue taking photos. Follow the photo guide for this room.</Text>:null}
-      {!finished&&current?.deadlineWarning?<Text className="text-sm text-warning">Photo window ends in {Math.ceil(current.deadlineWarning.remainingSeconds/60)} minutes. Saved photos are kept.</Text>:null}
-      {!finished&&!storageError&&mode==='capture'&&!allowed?<Button size="lg" onPress={()=>{paused.current=false;setMode('scan');}}>Scan room to renew photo window</Button>:null}
-      {showProgress&&current?<>
-        <VerificationProgress manifest={current} local={local} rows={rows} online={online} lastUpdated={lastUpdated}/>
-        {!finished?<Button size="lg" loading={refreshing} variant="outline" onPress={()=>void refreshProgress()}>{hasPendingUpload?'Retry saved uploads':'Refresh results'}</Button>:null}
-        {!finished?<Text className="text-center text-sm leading-5 text-muted-foreground">Keep the app open while the current photo uploads and is checked.</Text>:null}
-      </>:null}
-      {!finished&&mode==='capture'&&progress?<Text className="text-center text-sm text-muted-foreground">{rows.length} photos saved · Each photo is checked before the next</Text>:null}
-      {!finished&&!storageError&&mode!=='locating'?<>
-        <Button variant="ghost" disabled={busy} accessibilityState={{expanded:helpOpen}} onPress={()=>setHelpOpen(value=>!value)}>{helpOpen?'Close help':'Having trouble?'}</Button>
-        {helpOpen?<View className="gap-3 rounded-2xl border border-border p-4">
-          <Text className="text-base font-semibold">Get help with this task</Text>
-          <Text className="text-sm leading-5 text-muted-foreground">Pause if someone enters the room. Ask your manager when you cannot continue.</Text>
-          <Button variant="outline" onPress={()=>void report('OCCUPIED')}>Room occupied, pause photos</Button>
-          <Button variant="outline" onPress={()=>void report('OCCUPIED',true)}>Room occupied, ask manager</Button>
-          <Button variant="outline" onPress={()=>void report('GPS_UNCERTAIN',true)}>Location problem, ask manager</Button>
-          {mode==='capture'?<><Button variant="outline" onPress={()=>void report('DAMAGED',true)}>Item damaged</Button><Button variant="outline" onPress={()=>void report('INACCESSIBLE',true)}>Cannot access item</Button><Button variant="outline" onPress={()=>void report('IDENTITY_UNCERTAIN',true)}>Cannot find this item</Button></>:null}
-        </View>:null}
-      </>:null}
-      <Button variant={finished?'default':'ghost'} size="lg" onPress={()=>navigation.goBack()}>Back to tasks</Button>
-      {__DEV__&&mode==='prepare'?<Button variant="ghost" onPress={()=>navigation.navigate('SpatialDiagnostic')}>Open spatial diagnostic</Button>:null}
+      <LanguageChoice/>
+      <View style={{gap:8}}><Text className="text-sm font-semibold text-primary">{finished?'Work submitted':'Finish cleaning'}</Text><Text className="text-2xl font-bold">{manifest?.task.areaNameSnapshot??'Your assigned area'}</Text></View>
+      {!online?<Text accessibilityLiveRegion="polite">Internet needed to upload. Reconnect, then tap Upload again.</Text>:null}
+      {message?<View className="rounded-xl bg-accent p-4"><Text accessibilityLiveRegion="polite">{message}</Text></View>:null}
+      {!manifest?<Button loading={refreshing} onPress={()=>void action(async()=>{await load();})}>Load task photos</Button>:null}
+      {!finished&&mode==='prepare'?<View style={{gap:16}}><Text className="text-xl font-bold">Ready to finish?</Text><Text>Complete every required photo. Scan the room QR to begin.</Text><Text>Keep people out of the photos, including mirror reflections.</Text><Button size="lg" disabled={!manifest||!online} onPress={()=>void beginPhotos()}>Scan QR to take photos</Button></View>:null}
+      {mode==='locating'?<Text accessibilityLiveRegion="polite">{busyLabel}</Text>:null}
+      {mode==='scan'?<Text className="text-xl font-bold">Scan the area QR</Text>:null}
+      {mode==='capture'&&heading?<View style={{gap:8}}><PhotoStepProgress current={Math.max(1,(local?.session.slots.findIndex(s=>s.id===slot?.id)??0)+1)} total={Math.max(1,local?.session.slots.length??1)}/><Text className="text-3xl font-bold">{heading.title}</Text><PhotoGuide fixture={local?.manifest.items.find(i=>i.requirements.some(r=>r.id===slot?.requirementId))?.typeSnapshot} instruction={heading.view}/><ListenButton text={t(heading.view)}/>{heading.hint?<Text>{heading.hint}</Text>:null}</View>:null}
+      {cameraVisible?<View style={{width:'100%',height:cameraHeight,flexShrink:0,borderRadius:24,overflow:'hidden',backgroundColor:'#DDE5DE'}}><CameraView key={cameraKey} ref={camera} style={StyleSheet.absoluteFill} facing="back" enableTorch={torch} onCameraReady={()=>setCameraReady(true)} onMountError={()=>{setCameraReady(false);setMessage('Camera could not open. Tap Restart camera.');}} barcodeScannerSettings={mode==='scan'?scanSettings:undefined} onBarcodeScanned={mode==='scan'?({data})=>{if(!inFlight.current&&focused&&foreground&&online)void scanned(data);}:undefined}/><CaptureFrame/></View>:null}
+      {cameraVisible?<View style={{flexDirection:'row',gap:12}}><Button className="flex-1" variant="outline" onPress={()=>setTorch(value=>!value)}>{torch?'Torch off':'Torch on'}</Button><Button className="flex-1" variant="ghost" onPress={()=>setCameraKey(value=>value+1)}>Restart camera</Button></View>:null}
+      {!permission?.granted&&mode==='scan'?<Button onPress={()=>void (permission?.canAskAgain?requestPermission():Linking.openSettings())}>Allow camera</Button>:null}
+      {mode==='capture'&&seconds!==null?<Text className="text-xl font-bold">{t('Time remaining: {time}',{time:`${Math.floor(seconds/60)}:${String(seconds%60).padStart(2,'0')}`})}</Text>:null}
+      {pending?<View style={{gap:12}}><Text className="text-xl font-bold">{busy?'Uploading and checking photo…':'Upload this photo again'}</Text><Image source={{uri:pending.uri}} style={{height:180,width:'100%',borderRadius:16}} resizeMode="contain"/><Text>This picture is temporary. If you close this screen, take it again.</Text><Button size="lg" loading={busy} disabled={!online} onPress={()=>void action(async()=>{if(pending)await sendPhoto(pending,true);})}>Upload again</Button><Button variant="outline" disabled={busy||!online} onPress={()=>void checkResult()}>Check result</Button><Button variant="ghost" disabled={busy||!online} onPress={()=>void beginPhotos()}>Scan room and take a new photo</Button></View>:null}
+      {manifest&&mode==='progress'&&!pending?<VerificationProgress manifest={manifest} local={local} rows={[]} online={online} lastUpdated={lastUpdated}/>:null}
+      {!finished&&mode==='progress'&&!pending&&!canSubmit?<Button size="lg" disabled={!online||busy} onPress={()=>{if(slot&&allowed&&!dirty&&!retake)setMode('capture');else void beginPhotos();}}>{dirty?'Clean items, then scan QR':retake?'Scan room to retake photos':slot&&allowed?'Continue photos':'Scan room to continue photos'}</Button>:null}
+      {!finished&&mode==='capture'&&(!slot||!allowed)&&!busy?<Button size="lg" onPress={()=>void (slot?beginPhotos():action(async()=>{await load();setMode('progress');}))}>{slot?'Scan room to renew photo window':'View photo results'}</Button>:null}
+      <Button variant="outline" loading={refreshing} disabled={busy||!online} onPress={()=>void action(async()=>{await load();})}>Refresh results</Button>
+      <Button variant="ghost" disabled={busy} onPress={()=>navigation.goBack()}>Back to tasks</Button>
     </ScrollView>
-    {!finished&&!storageError&&showProgress&&(hasRework||!!slot)?<View className="border-t border-border bg-background p-4" style={{paddingBottom:16+insets.bottom}}><Button size="lg" loading={busy} iconLeft="Camera" onPress={()=>void (hasRework?rework():continuePhotos())}>{hasDirty?'Re-clean items, then scan QR':hasRework?'Retake affected views':'Continue photos'}</Button></View>:null}
-    {!finished&&!storageError&&['capture','scan'].includes(mode)?<View className="gap-2 border-t border-border bg-background p-4" style={{paddingBottom:16+insets.bottom}}>
-      
-      {mode==='capture'&&slotActive&&allowed&&slot?<Button size="lg" iconLeft="Camera" loading={busy} onPress={()=>void capture()}>{busy?busyLabel:'Take photo'}</Button>:null}
-      <Button variant="ghost" disabled={busy} onPress={()=>void report('OCCUPIED')}>Room occupied — pause</Button>
-    </View>:null}
+    {canSubmit?<View style={{padding:16,paddingBottom:16+insets.bottom,flexShrink:0}} className="border-t border-border"><Text>Your work is ready to submit. Manager review may still be needed.</Text><Button size="lg" loading={busy} disabled={!online} onPress={()=>void submit()}>Submit work</Button></View>:null}
+    {!finished&&mode==='capture'&&slot&&allowed&&!pending?<View style={{padding:16,paddingBottom:16+insets.bottom,flexShrink:0}} className="border-t border-border"><PhotoCaptureControls disabled={!cameraReady||!slotActive||!online} busy={busy} label={busy?busyLabel:'Take photo'} onCapture={()=>void capture()}/></View>:null}
   </View>;
 }

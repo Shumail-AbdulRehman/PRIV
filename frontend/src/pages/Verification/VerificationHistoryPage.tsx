@@ -74,7 +74,7 @@ function TaskPhotos({ id }: { id: number }) {
         <OperationStatus state={data.task.verificationState} label={verificationLabel(data.task)} />
       </div> : null}
     </div></header>
-    <OperationsState loading={loading} error={error} retry={() => { void task.refetch(); if (task.data?.verificationVersion === 2) void manifest.refetch(); }} />
+    <OperationsState loading={loading} layout="verification" error={error} retry={() => { void task.refetch(); if (task.data?.verificationVersion === 2) void manifest.refetch(); }} />
     {!error && data ? <PhotoWorkspace id={id} scope={scope} data={data} selectedId={params.get("view")} select={(view) => setParams(old => { const next = new URLSearchParams(old); next.set("view", view); return next; }, { replace: true })} /> : null}
     {!error && task.data && task.data.verificationVersion !== 2 ? <section className="ops-panel ops-panel-body">
       <h2>{t("Task photos")}</h2><AreaSubmissionsPanel taskInstanceId={id} />

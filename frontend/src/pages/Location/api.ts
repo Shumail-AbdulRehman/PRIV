@@ -40,9 +40,33 @@ export const deleteLocation = async (id: number) => {
   return res.data;
 };
 
-export const getLocationSchedule = async (id: string, week: string | undefined, signal?: AbortSignal) => {
-  const res = await client.get<{ data: import('./scheduleTypes').LocationSchedule }>(`/location/${id}/schedule`, {
-    params: week ? { week } : {}, signal,
+export const updateLocation = async ({
+  id,
+  data,
+}: {
+  id: number;
+  data: CreateLocationInput;
+}) => {
+  return (await client.patch(`/location/${id}`, { data })).data;
+};
+export const getLocationMapConfig = async () => {
+  return (
+    await client.get<{
+      data: { enabled: boolean; apiKey: string | null; mapId: string };
+    }>("/location/map-config")
+  ).data.data;
+};
+
+export const getLocationSchedule = async (
+  id: string,
+  week: string | undefined,
+  signal?: AbortSignal,
+) => {
+  const res = await client.get<{
+    data: import("./scheduleTypes").LocationSchedule;
+  }>(`/location/${id}/schedule`, {
+    params: week ? { week } : {},
+    signal,
   });
   return res.data.data;
 };

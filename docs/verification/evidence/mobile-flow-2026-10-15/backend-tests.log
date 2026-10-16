@@ -1,0 +1,13 @@
+
+> fyp@1.0.0 test
+> vitest run
+
+
+ RUN  v4.1.11 /home/shumail/bk-Priv/PRIV/backend
+
+
+ Test Files  52 passed (52)
+      Tests  445 passed (445)
+   Start at  00:22:52
+   Duration  12.79s (transform 6.35s, setup 0ms, import 52.33s, tests 9.32s, environment 15ms)
+

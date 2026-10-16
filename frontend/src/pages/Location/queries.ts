@@ -6,6 +6,7 @@ import {
   createLocation,
   getLocationById,
   getLocationSchedule,
+  updateLocation,
 } from "./api";
 import type { LocationStatsFilter } from "./api";
 
@@ -24,6 +25,14 @@ export const useCreateLocation = () => {
       queryClient.invalidateQueries({ queryKey: ["getLocations"] });
       void invalidateWorkspace(queryClient);
     },
+  });
+};
+
+export const useUpdateLocation = () => {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: updateLocation,
+    onSuccess: () => invalidateWorkspace(queryClient),
   });
 };
 
