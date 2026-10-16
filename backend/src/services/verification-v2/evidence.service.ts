@@ -1,3 +1,4 @@
+import { reviewableMedia } from "./evidenceBuffer.js";
 import {verificationEvent} from './latency.js';
 import {raiseIssue} from './exception.service.js';
 import type { EvidenceAsset, Prisma } from '@prisma/client';
@@ -8,6 +9,7 @@ import {requireTaskAccess,requireLocationAccess,requireOperationalRole,type Veri
 import {inspectImage,sha256} from './quality.service.js';
 import {storePrivateImage,privateImageBytes} from './media.service.js';
 import {enqueueVerificationJob} from './jobQueue.service.js';
+import {writeAuditLog} from '../auditLog.service.js';
 export type EvidenceStorage={store:typeof storePrivateImage;read:typeof privateImageBytes};
 const storage:EvidenceStorage={store:storePrivateImage,read:privateImageBytes};
 export const originalPublicId=(companyId:number,attemptId:string)=>`verification/${companyId}/attempts/${attemptId}/original`;
@@ -68,9 +70,12 @@ export async function evidenceContent(actor:VerificationActor,assetId:string,var
  if(!asset||asset.companyId!==actor.companyId)throw new ApiError(404,'Evidence not found');
  if(asset.taskInstanceId)await requireTaskAccess(actor,asset.taskInstanceId);
  else {requireOperationalRole(actor);await requireLocationAccess(actor,asset.locationId);}
- if(asset.privacyState!=='SAFE')throw new ApiError(403,'Evidence is awaiting restricted privacy review');
+ const restrictedReview=asset.privacyState==='HOLD'&&variant==='review'&&!!asset.taskInstanceId&&['ADMIN','MANAGER'].includes(actor.role);
+ if((asset.deliveryType!=='authenticated'||!reviewableMedia(asset.privacyState))&&!restrictedReview)throw new ApiError(403,'Evidence is awaiting restricted privacy review');
  const publicId=variant==='original'?asset.originalPublicId:asset.sanitizedPublicId;
  if(!publicId)throw new ApiError(409,'Review image is not ready');
  if(variant==='original'&&actor.role!=='ADMIN')throw new ApiError(403,'Original evidence requires admin access');
- return {bytes:await io.read(publicId,variant==='review'?'jpg':asset.format),format:variant==='review'?'jpeg':asset.format};
+ const bytes=await io.read(publicId,variant==='review'?'jpg':asset.format);
+ if(restrictedReview)await writeAuditLog({companyId:actor.companyId,actorType:actor.role as 'ADMIN'|'MANAGER',actorId:actor.id,entityType:'TASK_INSTANCE',entityId:asset.taskInstanceId!,action:'RESTRICTED_EVIDENCE_VIEWED',newValue:{assetId:asset.id,variant,privacyState:asset.privacyState}});
+ return {bytes,format:variant==='review'?'jpeg':asset.format};
 }

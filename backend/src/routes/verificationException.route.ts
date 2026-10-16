@@ -1,4 +1,5 @@
-import { sha256 } from '../services/verification-v2/quality.service.js';
+import { reviewableMedia } from "../services/verification-v2/evidenceBuffer.js";
+import { sha256 } from "../services/verification-v2/quality.service.js";
 import { Router } from "express";
 import { z } from "zod";
 import type { Prisma } from "@prisma/client";
@@ -10,6 +11,8 @@ import {
   requireTaskAccess,
 } from "../services/verification-v2/authorization.service.js";
 import {
+  issueSatisfied,
+  resolveCompletedConcern,
   caseAccess,
   managerDecision,
   raiseIssue,
@@ -21,90 +24,106 @@ import {
 import { lockTask } from "../services/verification-v2/captureSession.service.js";
 import { writeAuditLog } from "../services/auditLog.service.js";
 import { ApiError } from "../utils/ApiError.js";
+import { listReviews } from "../services/reviewList.service.js";
 const router = Router();
-router.use([
-  /^\/verification-exceptions(?=\/|$)/,
-  /^\/task-instance\/[^/]+\/verification-issues(?=\/|$)/,
-], verifyJwt);
+router.use(
+  [
+    /^\/verification-exceptions(?=\/|$)/,
+    /^\/task-instance\/[^/]+\/verification-issues(?=\/|$)/,
+  ],
+  verifyJwt,
+);
 const idSchema = z.coerce.number().int().positive();
 const cursorSchema = idSchema.optional();
-const issueSchema = z
-  .object({
-    reasonCode: z.enum([
-      "OCCUPIED",
-      "INACCESSIBLE",
-      "DAMAGED",
-      "IDENTITY_UNCERTAIN",
-      "GPS_UNCERTAIN",
-      "SERVICE_FAILURE",
-    ]),
-    requestId:z.uuid().optional(),
-    note: z.string().trim().max(1000).optional(),
-    requestHelp: z.boolean().default(false),
-    requirementId: z.uuid().optional(),
-  })
-  .strict();
-router.post("/task-instance/:taskId/verification-issues", async (req, res) => {
-  const body = issueSchema.parse(req.body),
-    taskId = idSchema.parse(req.params.taskId);
-  await requireTaskAccess(req.user!, taskId, { staffMutation: true });
-  const c = await prisma.$transaction(async (tx) => {
-    await lockTask(tx, taskId);
-    const task = await requireTaskAccess(
+router.post("/task-instance/:taskId/verification-issues", async (req) => {
+ await requireTaskAccess(req.user!,idSchema.parse(req.params.taskId),{staffMutation:true});
+ throw new ApiError(410,"Complete and upload all required photos. Staff exception requests are no longer available.",[{code:'REQUIRED_PHOTOS_ONLY'}]);
+});
+router.get("/verification-exceptions/:id/next", async (req, res) =>
+  res.json({
+    success: true,
+    data: await listReviews(
       req.user!,
-      taskId,
-      { staffMutation: true },
-      tx,
-    );
-    const key=body.requestId?{companyId:req.user!.companyId,actorRole:req.user!.role,actorId:req.user!.id,operation:`report-issue:${taskId}`,requestId:body.requestId}:null;
-    const bodyHash=sha256(JSON.stringify(body));
-    if(key){const prior=await tx.verificationRequest.findUnique({where:{companyId_actorRole_actorId_operation_requestId:key}});if(prior){if(prior.bodyHash!==bodyHash)throw new ApiError(409,'Report ID was used for different data');return tx.verificationException.findUnique({where:{taskInstanceId:taskId}});}}
-    if (
-      task.verificationVersion !== 2 ||
-      !["IN_PROGRESS", "NOT_COMPLETED_INTIME"].includes(task.status)
-    )
-      throw new ApiError(409, "Task is not accepting verification issues");
-    if (
-      body.requirementId &&
-      !(await tx.taskEvidenceRequirement.findFirst({
-        where: { id: body.requirementId, item: { taskInstanceId: task.id } },
-      }))
-    )
-      throw new ApiError(404, "Requirement not found");
-    if (body.reasonCode === "OCCUPIED")
-      await tx.captureSession.updateMany({
-        where: { taskInstanceId: task.id, state: "ACTIVE" },
-        data: { state: "PAUSED", rowVersion: { increment: 1 } },
-      });
-    await writeAuditLog(
-      {
-        companyId: req.user!.companyId,
-        actorType: "STAFF",
-        actorId: req.user!.id,
-        entityType: "TASK_INSTANCE",
-        entityId: task.id,
-        action: "VERIFICATION_ISSUE_REPORTED",
-        reason: body.reasonCode,
-        newValue: {
-          requirementId: body.requirementId ?? null,
-          note: body.note ?? null,
-          requestHelp: body.requestHelp,
-        },
-      },
-      tx,
-    );
-    if(key)await tx.verificationRequest.create({data:{...key,bodyHash,resultEntityId:String(taskId)}});
-    if (
-      body.reasonCode === "OCCUPIED" &&
-      !body.requestHelp &&
-      new Date() < task.shiftEnd
-    )
-      return null;
-    return raiseIssue(tx, task.id, body.reasonCode, body.requirementId ?? null);
+      req.query,
+      idSchema.parse(req.params.id),
+    ),
+  }),
+);
+router.get("/verification-exceptions/:id/follow-ups", async (req, res) => {
+  const c = await caseAccess(req.user!, idSchema.parse(req.params.id));
+  if (!c.taskInstanceId)
+    return res.json({ success: true, data: { tasks: [], nextCursor: null } });
+  const task = await requireTaskAccess(req.user!, c.taskInstanceId);
+  const issue = await prisma.verificationIssue.findFirst({
+    where: { id: idSchema.parse(req.query.issueId), exceptionId: c.id },
   });
-  res.json({ success: true, data: c });
+  if (!issue) throw new ApiError(404, "Issue not found");
+  const cursor = cursorSchema.parse(req.query.cursor),
+    q = z.string().max(120).default("").parse(req.query.q);
+  const candidates = await prisma.taskInstance.findMany({
+    where: {
+      id: { not: task.id },
+      locationId: task.locationId,
+      areaId: task.areaId ?? -1,
+      status: "COMPLETED",
+      verificationVersion: 2,
+      startedAt: { gte: issue.firstSeenAt },
+      ...(q ? { title: { contains: q, mode: "insensitive" } } : {}),
+    },
+    orderBy: { id: "asc" },
+    take: 21,
+    ...(cursor ? { cursor: { id: cursor }, skip: 1 } : {}),
+  });
+  const tasks = [];
+  for (const candidate of candidates.slice(0, 20)) {
+    try {
+      await resolveCompletedConcern(
+        prisma,
+        req.user!,
+        c,
+        {
+          requestId: crypto.randomUUID(),
+          expectedVersion: c.rowVersion,
+          issueId: issue.id,
+          action: "RESOLVE_ISSUE",
+          reasonCode: "CANNOT_ASSESS",
+          note: "Eligibility check",
+          followUpTaskInstanceId: candidate.id,
+        },
+        true,
+      );
+      tasks.push({
+        id: candidate.id,
+        title: candidate.title,
+        shiftStart: candidate.shiftStart,
+        completedAt: candidate.completedAt,
+      });
+    } catch (error) {
+      if (!(error instanceof ApiError)) throw error;
+    }
+  }
+  res.json({
+    success: true,
+    data: {
+      tasks,
+      nextCursor: candidates.length > 20 ? String(candidates[19]!.id) : null,
+    },
+  });
 });
 router.get("/verification-exceptions", async (req, res) => {
+  if (
+    req.query.page !== undefined ||
+    req.query.queue !== undefined ||
+    req.query.period !== undefined ||
+    req.query.q !== undefined
+  ) {
+    if (req.query.cursor !== undefined)
+      throw new ApiError(400, "Choose page or cursor pagination");
+    return res.json({
+      success: true,
+      data: await listReviews(req.user!, req.query),
+    });
+  }
   const actor = req.user!;
   requireOperationalRole(actor);
   await requireActiveActor(actor);
@@ -287,6 +306,10 @@ router.get("/verification-exceptions/:id", async (req, res) => {
               isActive: true,
               verificationVersion: true,
               startedAt: true,
+              staffSubmittedAt: true,
+              assignmentEpoch: true,
+              shiftStart: true,
+              areaId: true,
               policySnapshot: true,
               staff: { select: { id: true, name: true } },
             },
@@ -303,17 +326,54 @@ router.get("/verification-exceptions/:id", async (req, res) => {
         select: { id: true, name: true, timezone: true },
       }),
     ]);
-  const latestIds=issues.map(i=>i.latestAttemptId).filter((id):id is string=>!!id);
-  const latestAttempts=c.taskInstanceId?await prisma.verificationAttempt.findMany({where:{id:{in:latestIds},session:{taskInstanceId:c.taskInstanceId}},select:{id:true,requirementId:true,contextKey:true,staffId:true,state:true,createdAt:true,receivedAt:true,mediaAssetId:true,media:{select:{privacyState:true}},assignmentEpoch:true,timingEvidence:true}}):[];
-  const managers=await prisma.manager.findMany({where:{companyId:req.user!.companyId,id:{in:decisions.map(d=>d.actorManagerId)}},select:{id:true,name:true}});
-  const staff=await prisma.staff.findMany({where:{companyId:req.user!.companyId,id:{in:[...attempts,...latestAttempts].map(a=>a.staffId)}},select:{id:true,name:true}});
-  const safeAttempt=(a:(typeof latestAttempts)[number])=>({
-    ...a,
-    staff:staff.find(s=>s.id===a.staffId)??null,
-    mediaAssetId: a.media?.privacyState === "SAFE" && a.state!=='PRIVACY_HOLD' ? a.mediaAssetId : null,
+  const latestIds = issues
+    .map((i) => i.latestAttemptId)
+    .filter((id): id is string => !!id);
+  const latestAttempts = c.taskInstanceId
+    ? await prisma.verificationAttempt.findMany({
+        where: {
+          id: { in: latestIds },
+          session: { taskInstanceId: c.taskInstanceId },
+        },
+        select: {
+          id: true,
+          requirementId: true,
+          contextKey: true,
+          staffId: true,
+          state: true,
+          createdAt: true,
+          receivedAt: true,
+          mediaAssetId: true,
+          media: { select: { privacyState: true } },
+          assignmentEpoch: true,
+          timingEvidence: true,
+        },
+      })
+    : [];
+  const managers = await prisma.manager.findMany({
+    where: {
+      companyId: req.user!.companyId,
+      id: { in: decisions.map((d) => d.actorManagerId) },
+    },
+    select: { id: true, name: true },
   });
-  const page=attempts.slice(0,50).map(safeAttempt);
-  const latestPage=latestAttempts.map(safeAttempt);
+  const staff = await prisma.staff.findMany({
+    where: {
+      companyId: req.user!.companyId,
+      id: { in: [...attempts, ...latestAttempts].map((a) => a.staffId) },
+    },
+    select: { id: true, name: true },
+  });
+  const safeAttempt = (a: (typeof latestAttempts)[number]) => ({
+    ...a,
+    staff: staff.find((s) => s.id === a.staffId) ?? null,
+    privacyState: a.media?.privacyState,
+    mediaAssetId: ["SAFE", "NOT_REQUIRED", "HOLD"].includes(a.media?.privacyState ?? "")
+      ? a.mediaAssetId
+      : null,
+  });
+  const page = attempts.slice(0, 50).map(safeAttempt);
+  const latestPage = latestAttempts.map(safeAttempt);
   const policy = task ? resolvePolicy(task.policySnapshot) : null;
   const mutable =
     !!task &&
@@ -353,6 +413,126 @@ router.get("/verification-exceptions/:id", async (req, res) => {
           ...(canExtend ? ["EXTEND_WINDOW"] : []),
         ]
       : [];
+  const items = c.taskInstanceId
+    ? await prisma.taskVerificationItem.findMany({
+        where: { taskInstanceId: c.taskInstanceId },
+        orderBy: { orderSnapshot: "asc" },
+        include: { requirements: true },
+      })
+    : [];
+  const currentAttempts = await prisma.verificationAttempt.findMany({
+    where: {
+      id: {
+        in: items.flatMap((i) =>
+          i.requirements
+            .map((r) => r.currentAttemptId)
+            .filter((id): id is string => !!id),
+        ),
+      },
+      session: { taskInstanceId: c.taskInstanceId ?? -1 },
+    },
+    include: { media: { select: { privacyState: true } } },
+  });
+  const serverTime = new Date();
+  const captureAvailable =
+    mutable &&
+    !task?.staffSubmittedAt &&
+    !!task?.startedAt &&
+    +(task.verificationDeadline ?? task.shiftEnd) > +serverTime;
+  const itemActions = items.flatMap((item) =>
+    item.requirements.map((r) => ({
+      requirementId: r.id,
+      actions: mutable
+        ? [
+            "WAIVE_REQUIREMENT",
+            ...(currentAttempts.find((a) => a.id === r.currentAttemptId)
+              ?.receivedAt &&
+            reviewableMedia(currentAttempts.find((a) => a.id === r.currentAttemptId)?.media?.privacyState)
+              ? ["ACCEPT_EVIDENCE"]
+              : []),
+            ...(captureAvailable
+              ? [
+                  "REQUEST_RECAPTURE",
+                  ...(r.state === "CLEANING_REQUIRED"
+                    ? ["REQUEST_CLEANING"]
+                    : []),
+                ]
+              : []),
+          ]
+        : [],
+    })),
+  );
+  const eligibleIssues = await Promise.all(
+    issues.map(async (i) => {
+      const attempt = latestPage.find((a) => a.id === i.latestAttemptId);
+      let actions = (i.state === "RESOLVED" ? [] : allowedActions).filter(
+        (action) =>
+          action === "EXTEND_WINDOW" ||
+          action === "RESOLVE_ISSUE" ||
+          (i.requirementId
+            ? action !== "ACCEPT_CONTEXT"
+            : action === "ACCEPT_CONTEXT"),
+      );
+      if (!requiresFollowUp) {
+        actions = actions.filter(
+          (a) =>
+            a !== "REQUEST_CLEANING" || i.reasonCode === "CLEANING_REQUIRED",
+        );
+        actions = actions.filter(
+          (a) => a !== "REJECT_EVIDENCE" || !!attempt?.receivedAt,
+        );
+        actions = actions.filter(
+          (a) =>
+            ![
+              "REQUEST_RECAPTURE",
+              "REQUEST_CLEANING",
+              "REJECT_EVIDENCE",
+            ].includes(a) || captureAvailable,
+        );
+        actions = actions.filter(
+          (a) =>
+            a !== "ACCEPT_EVIDENCE" ||
+            (!!attempt?.receivedAt &&
+              reviewableMedia(attempt.privacyState) &&
+              !!attempt.mediaAssetId),
+        );
+        if (
+          task &&
+          actions.includes("RESOLVE_ISSUE") &&
+          !(await issueSatisfied(prisma, task, c.id, i))
+        )
+          actions = actions.filter((a) => a !== "RESOLVE_ISSUE");
+      }
+      return {
+        ...i,
+        recommendedAction:
+          i.reasonCode === "CLEAN"
+            ? "Review this photo before accepting the evidence."
+            : (reasonInstructions[i.reasonCode] ?? i.recommendedAction),
+        latestAttempt: attempt ?? null,
+        requiresFollowUp,
+        allowedActions: actions,
+        blockedReason:
+          !captureAvailable && mutable
+            ? "This task cannot receive another photo now. Check the photo deadline and available options."
+            : i.reasonCode === "MISSING_EVIDENCE"
+              ? "Missing requirements must be satisfied before this issue can close."
+              : null,
+      };
+    }),
+  );
+  const standards = c.areaId
+    ? await prisma.areaStandardPhoto.findMany({
+        where: { areaId: c.areaId, media: { privacyState: { in: ["SAFE", "NOT_REQUIRED"] } } },
+        select: {
+          id: true,
+          caption: true,
+          areaItemId: true,
+          mediaAssetId: true,
+        },
+        take: 30,
+      })
+    : [];
   const { policySnapshot: _policy, ...taskSummary } = task ?? {};
   res.json({
     success: true,
@@ -375,22 +555,42 @@ router.get("/verification-exceptions/:id", async (req, res) => {
           }
         : null,
       reasonInstructions,
-      issues: issues.map((i) => ({
-        ...i,
-        recommendedAction:
-          i.reasonCode==='CLEAN'?'Review this photo before accepting the evidence.':reasonInstructions[i.reasonCode] ?? i.recommendedAction,
-        latestAttempt: latestPage.find((a) => a.id === i.latestAttemptId) ?? null,
-        requiresFollowUp,
-        allowedActions: (i.state === "RESOLVED" ? [] : allowedActions).filter(
-          (action) =>
-            action === "EXTEND_WINDOW" ||
-            action === "RESOLVE_ISSUE" ||
-            (i.requirementId
-              ? action !== "ACCEPT_CONTEXT"
-              : action === "ACCEPT_CONTEXT"),
-        ),
+      issues: eligibleIssues,
+      serverTime,
+      items: items.map(({ requirements, ...item }) => ({
+        ...item,
+        requirements: requirements.map((r) => {
+          const currentAttempt = currentAttempts.find(
+            (a) => a.id === r.currentAttemptId,
+          );
+          return {
+            ...r,
+            currentAttempt: currentAttempt
+              ? {
+                  id: currentAttempt.id,
+                  state: currentAttempt.state,
+                  createdAt: currentAttempt.createdAt,
+                  receivedAt: currentAttempt.receivedAt,
+                  requirementId: currentAttempt.requirementId,
+                  contextKey: currentAttempt.contextKey,
+                  privacyState: currentAttempt.media?.privacyState,
+                  mediaAssetId: ["SAFE", "NOT_REQUIRED", "HOLD"].includes(
+                    currentAttempt.media?.privacyState ?? "",
+                  )
+                    ? currentAttempt.mediaAssetId
+                    : null,
+                }
+              : null,
+            allowedActions:
+              itemActions.find((x) => x.requirementId === r.id)?.actions ?? [],
+          };
+        }),
       })),
-      decisions: decisions.slice(0, 50).map(d=>({...d,actorManager:managers.find(m=>m.id===d.actorManagerId)??null})),
+      standards,
+      decisions: decisions.slice(0, 50).map((d) => ({
+        ...d,
+        actorManager: managers.find((m) => m.id === d.actorManagerId) ?? null,
+      })),
       events: events.slice(0, 50),
       attempts: page,
       nextCursor: events.length > 50 ? String(events[49]!.id) : null,

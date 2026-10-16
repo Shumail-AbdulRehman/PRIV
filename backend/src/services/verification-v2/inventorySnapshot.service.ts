@@ -5,7 +5,7 @@ import {ApiError} from '../../utils/ApiError.js';
 import {resolvePolicy,taskDeadlines} from './verificationPolicy.service.js';
 import {requiredViewsSchema} from './contracts.js';
 import {resolveTaskInstanceWindow} from '../../cron/taskInstanceWindow.js';
-import type {VerificationTransaction} from './jobQueue.service.js';
+import type {VerificationTransaction} from './transaction.js';
 import {writeAuditLog} from '../auditLog.service.js';
 import {getZonedDayRange} from '../../utils/dateTime.js';
 export type InventorySelectionInput={areaId:number;inventorySelection:'ALL'|'SUBSET';selectedItems:{areaItemId:number;mandatory:boolean}[];expectedInventoryVersion:number};

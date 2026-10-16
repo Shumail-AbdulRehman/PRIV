@@ -17,7 +17,6 @@ export async function finishStaffSubmission(actor:VerificationActor,taskId:numbe
   if(!requirements.length||requirements.some(r=>!r.currentAttemptId))throw new ApiError(409,'Capture all required photos before finishing.',[{code:'MISSING_EVIDENCE'}]);
   const attempts=await tx.verificationAttempt.findMany({where:{id:{in:requirements.map(r=>r.currentAttemptId!)}},include:{media:true}});
   if(attempts.length!==requirements.length||attempts.some(a=>!a.receivedAt||!a.media||!checkedAttempt(a.state)))throw new ApiError(409,'Wait for all required photos to upload and finish checking.',[{code:'PHOTOS_NOT_CHECKED'}]);
-  if(await tx.verificationJob.count({where:{attemptId:{in:attempts.map(a=>a.id)},state:{in:['PENDING','RUNNING','RETRY_WAIT']}}}))throw new ApiError(409,'Photo checks are still running.',[{code:'PHOTOS_NOT_CHECKED'}]);
   const sessionIds=[...new Set(attempts.map(a=>a.sessionId))];
   const sessions=await tx.captureSession.findMany({where:{id:{in:sessionIds}}});
   // A required room-context photo must have been received and checked, including preserved QR renewals.
@@ -26,8 +25,12 @@ export async function finishStaffSubmission(actor:VerificationActor,taskId:numbe
   const fresh=await tx.taskInstance.findUniqueOrThrow({where:{id:taskId}});
   if(fresh.status!=='COMPLETED'){
    const review=attempts.filter(a=>a.state!=='PASSED');
+   // The upload request already raises review issues for checked photos. Read them once
+   // instead of repeating authorization, case and issue queries for every view.
+   // Only a current manager-review issue covers this exact received attempt.
+   const existingReview=await tx.verificationIssue.findMany({where:{exception:{taskInstanceId:taskId},state:'MANAGER_REVIEW'},select:{requirementId:true,latestAttemptId:true}});
    if(!review.length)await raiseIssue(tx,taskId,'IDENTITY_UNCERTAIN');
-   for(const attempt of review){const reason=(attempt.coverageResult as {originality?:{status?:string};result?:{reasonCode?:string}}|null)?.originality?.status==='SCREEN_RECAPTURE'?'PHOTO_OF_SCREEN':attempt.state==='SERVICE_FAILURE'?'SERVICE_FAILURE':attempt.state==='PRIVACY_HOLD'?'PRIVACY_HOLD':(attempt.cleanlinessResult as {policyDecisionReason?:string}|null)?.policyDecisionReason??'CANNOT_ASSESS';await raiseIssue(tx,taskId,reason,attempt.requirementId,attempt.id);}
+   for(const attempt of review){if(existingReview.some(issue=>issue.requirementId===attempt.requirementId&&issue.latestAttemptId===attempt.id))continue;const reason=(attempt.coverageResult as {originality?:{status?:string};result?:{reasonCode?:string}}|null)?.originality?.status==='SCREEN_RECAPTURE'?'PHOTO_OF_SCREEN':attempt.state==='SERVICE_FAILURE'?'SERVICE_FAILURE':attempt.state==='PRIVACY_HOLD'?'PRIVACY_HOLD':(attempt.cleanlinessResult as {policyDecisionReason?:string}|null)?.policyDecisionReason??'CANNOT_ASSESS';await raiseIssue(tx,taskId,reason,attempt.requirementId,attempt.id);}
   }
   const now=new Date();await tx.taskInstance.update({where:{id:taskId},data:{staffSubmittedAt:now,rowVersion:{increment:1}}});
   await tx.captureSession.updateMany({where:{taskInstanceId:taskId,state:{in:['ACTIVE','PAUSED']}},data:{state:'CLOSED',closedAt:now,rowVersion:{increment:1}}});

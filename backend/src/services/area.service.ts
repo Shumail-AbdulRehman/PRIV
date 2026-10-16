@@ -3,7 +3,7 @@ import {ApiError} from '../utils/ApiError.js';
 import {writeAuditLog} from './auditLog.service.js';
 import {requireOperationalRole,requireAreaAccess,requireLocationAccess,type VerificationActor} from './verification-v2/authorization.service.js';
 import {expandCounts} from './verification-v2/inventoryPresets.js';
-import type {VerificationTransaction} from './verification-v2/jobQueue.service.js';
+import type {VerificationTransaction} from './verification-v2/transaction.js';
 import {areaCreateSchema,itemEditSchema,inventoryCountsSchema} from '../validations/area.validation.js';
 import type {z} from 'zod';
 export async function createArea(actor:VerificationActor,locationId:number,input:z.input<typeof areaCreateSchema>) {

@@ -11,7 +11,7 @@ beforeEach(()=>{
  vi.resetAllMocks();const now=new Date();const task={assignmentEpoch:2,assignments:[{id:3,isCurrent:true}],shiftEnd:new Date(+now+60000)};
  const session={id:sessionId,staffId:7,taskInstanceId:9,assignmentId:3,assignmentEpoch:2,qrVersion:1,deviceId:'phone',clientBootId:'boot',state:'ACTIVE',issuedAt:new Date(+now-1000),captureExpiresAt:new Date(+now+60000),uploadExpiresAt:new Date(+now+120000),task};
  m.access.mockResolvedValue(task);m.nonce.mockReturnValue('hash');
- m.tx={auditLog:{create:vi.fn()},area:{findUnique:vi.fn().mockResolvedValue({qrVersion:1}),findUniqueOrThrow:vi.fn().mockResolvedValue({qrVersion:1})},$queryRaw:vi.fn(),captureSession:{findUnique:vi.fn().mockResolvedValue(session),update:vi.fn(),updateMany:vi.fn(),findUniqueOrThrow:vi.fn().mockResolvedValue({...session,slots:[],attempts:[]})},captureSlot:{findFirst:vi.fn().mockResolvedValue({id:slotId,nonceHash:'hash',contextKey:'ENTRANCE',expiresAt:session.captureExpiresAt,generation:0}),update:vi.fn(),count:vi.fn().mockResolvedValue(2),create:vi.fn().mockImplementation(({data}:any)=>data)},verificationAttempt:{findUnique:vi.fn().mockResolvedValue(null),count:vi.fn().mockResolvedValue(0),create:vi.fn().mockImplementation(({data}:any)=>({id:'attempt',...data}))}};
+ m.tx={auditLog:{create:vi.fn()},area:{findUnique:vi.fn().mockResolvedValue({qrVersion:1}),findUniqueOrThrow:vi.fn().mockResolvedValue({qrVersion:1})},$queryRaw:vi.fn(),captureSession:{findMany:vi.fn().mockResolvedValue([]),findUnique:vi.fn().mockResolvedValue(session),update:vi.fn(),updateMany:vi.fn(),findUniqueOrThrow:vi.fn().mockResolvedValue({...session,slots:[],attempts:[]})},captureSlot:{findFirst:vi.fn().mockResolvedValue({id:slotId,nonceHash:'hash',contextKey:'ENTRANCE',expiresAt:session.captureExpiresAt,generation:0}),update:vi.fn(),count:vi.fn().mockResolvedValue(2),create:vi.fn().mockImplementation(({data}:any)=>data)},verificationAttempt:{findUnique:vi.fn().mockResolvedValue(null),count:vi.fn().mockResolvedValue(0),create:vi.fn().mockImplementation(({data}:any)=>({id:'attempt',...data}))}};
 });
 describe('capture authority',()=>{
  it('prevents a request ID from returning another task session',async()=>{m.access.mockResolvedValue({verificationVersion:2,areaId:4});m.tx.verificationRequest={findUnique:vi.fn().mockResolvedValue({resultEntityId:sessionId})};await expect(createCaptureSession(actor,10,{requestId:sessionId,areaQr:'qr',deviceId:'phone',clientBootId:'boot',location:{latitude:0,longitude:0,accuracy:5,sampledAt:new Date().toISOString()},clientTime:new Date().toISOString()})).rejects.toThrow('another task');});
@@ -23,7 +23,7 @@ describe('capture authority',()=>{
  m.tx.verificationAttempt.findMany=vi.fn().mockResolvedValue([{id:'empty-attempt'}]);m.tx.taskInstance={update:vi.fn()};
  await createCaptureSession(actor,9,{requestId:sessionId,areaQr:'qr',deviceId:'phone',clientBootId:'boot',location:{latitude:0,longitude:0,accuracy:5,sampledAt:now.toISOString()},clientTime:now.toISOString()});
  expect(m.tx.taskEvidenceRequirement.update).toHaveBeenCalledExactlyOnceWith({where:{id:'empty'},data:{state:'MISSING',currentAttemptId:null,decisionVersion:{increment:1}}});
- expect(m.tx.verificationAttempt.findMany.mock.calls[0][0].where).toMatchObject({state:{in:['RESERVED','STORING']},mediaAssetId:null});
+ expect(m.tx.verificationAttempt.findMany.mock.calls.at(-1)[0].where).toMatchObject({state:{in:['RESERVED','STORING']},mediaAssetId:null});
  });
  it('withholds nonces from revoked expired and completed session responses',async()=>{
  for(const state of ['REVOKED','EXPIRED','CLOSED']){m.tx.captureSession.findUniqueOrThrow.mockResolvedValue({id:sessionId,state,captureExpiresAt:new Date(Date.now()+60000),slots:[{id:slotId,generation:0}]});const response=await sessionResponse(m.tx,sessionId);expect(response.requiresRenewal).toBe(true);expect(response.slots[0]?.nonce).toBeUndefined();}
@@ -83,7 +83,8 @@ describe('capture authority',()=>{
  await createCaptureSession(actor,9,{requestId:sessionId,areaQr:'qr',deviceId:'phone',clientBootId:'boot',location:{latitude:0,longitude:0,accuracy:5,sampledAt:now.toISOString()},clientTime:now.toISOString()});
  expect(m.tx.taskEvidenceRequirement.findMany.mock.calls[1][0].where.state.notIn).toEqual(['PASSED','MANAGER_ACCEPTED','WAIVED','PROCESSING','CLEANING_REQUIRED','REVIEW_REQUIRED']);
  expect(m.tx.taskEvidenceRequirement.update).toHaveBeenCalledExactlyOnceWith({where:{id:'missing'},data:{decisionVersion:1}});
- expect(m.tx.captureSlot.create.mock.calls[2][0].data).toMatchObject({requirementId:'missing',generation:1});
+ expect(m.tx.captureSlot.create).toHaveBeenCalledTimes(1);
+ expect(m.tx.captureSlot.create.mock.calls[0][0].data).toMatchObject({requirementId:'missing',generation:1});
  m.tx.captureSession.findFirst.mockResolvedValueOnce(null).mockResolvedValueOnce({...old,deviceId:'other-phone'});
  await expect(createCaptureSession(actor,9,{requestId:sessionId,areaQr:'qr',deviceId:'phone',clientBootId:'boot',location:{latitude:0,longitude:0,accuracy:5,sampledAt:now.toISOString()},clientTime:now.toISOString()})).rejects.toThrow('Explicit device takeover required');
  });

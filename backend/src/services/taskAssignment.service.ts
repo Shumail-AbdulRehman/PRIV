@@ -488,53 +488,7 @@ export const reassignExpiredAssignments = async (graceMinutes: number) => {
     const hasReachedLimit = Math.max(previousAssignmentCount - 1, 0) >= reassignmentLimit;
 
     if (hasReachedLimit) {
-      await prisma.$transaction(async (tx) => {
-        await tx.$queryRaw`SELECT id FROM "TaskInstance" WHERE id=${task.id} FOR UPDATE`;
-      const stillCurrent = await tx.taskAssignment.findFirst({
-          where: {
-            id: assignment.id,
-            isCurrent: true,
-            status: "ASSIGNED",
-            taskInstance: {
-              status: "PENDING",
-            },
-          },
-        });
-
-        if (!stillCurrent) {
-          return;
-        }
-
-        await tx.taskAssignment.update({
-          where: { id: assignment.id },
-          data: {
-            status: "MISSED",
-            reason: "MAX_REASSIGNMENTS_REACHED",
-            failedAt: now,
-            isCurrent: false,
-          },
-        });
-
-        await tx.taskInstance.update({
-          where: { id: task.id },
-          data: { staffId: null },
-        });
-
-        await writeAuditLog(
-          {
-            companyId: task.location.companyId,
-            actorType: "SYSTEM",
-            entityType: "TASK_INSTANCE",
-            entityId: task.id,
-            action: "REASSIGNMENT_LIMIT_REACHED",
-            reason: "MAX_TASK_REASSIGNMENTS",
-            oldValue: { staffId: assignment.staffId, assignmentCount: previousAssignmentCount },
-            newValue: { staffId: null, maxReassignments: reassignmentLimit },
-          },
-          tx as DbClient
-        );
-      });
-
+      // Stop transferring the task, but keep it visible to its current worker.
       failedWithoutReplacement += 1;
       continue;
     }
@@ -543,6 +497,13 @@ export const reassignExpiredAssignments = async (graceMinutes: number) => {
       excludeStaffIds: [assignment.staffId],
       now,
     });
+
+    // A missed start is not a cancellation. Keep the current worker's task
+    // until a replacement can take it or the task's actual end window passes.
+    if (!replacement) {
+      failedWithoutReplacement += 1;
+      continue;
+    }
 
     await prisma.$transaction(async (tx) => {
       await tx.$queryRaw`SELECT id FROM "TaskInstance" WHERE id=${task.id} FOR UPDATE`;
@@ -564,35 +525,12 @@ export const reassignExpiredAssignments = async (graceMinutes: number) => {
       await tx.taskAssignment.update({
         where: { id: assignment.id },
         data: {
-          status: replacement ? "REASSIGNED" : "MISSED",
+          status: "REASSIGNED",
           reason: "MISSED_START_GRACE_PERIOD",
           failedAt: now,
           isCurrent: false,
         },
       });
-
-      if (!replacement) {
-        await tx.taskInstance.update({
-          where: { id: task.id },
-          data: { staffId: null },
-        });
-
-        await writeAuditLog(
-          {
-            companyId: task.location.companyId,
-            actorType: "SYSTEM",
-            entityType: "TASK_INSTANCE",
-            entityId: task.id,
-            action: "REASSIGNMENT_FAILED",
-            reason: "NO_ELIGIBLE_STAFF",
-            oldValue: { staffId: assignment.staffId },
-            newValue: { staffId: null },
-          },
-          tx as DbClient
-        );
-        failedWithoutReplacement += 1;
-        return;
-      }
 
       const newAssignment = await tx.taskAssignment.create({
         data: {

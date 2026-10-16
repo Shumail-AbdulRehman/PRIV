@@ -12,7 +12,15 @@ import {
 import { verifyJwt } from "../middlewares/auth.middleware.js";
 import authorize from "../middlewares/authorize.middleware.js";
 
+import { operationsRead } from "../controllers/managerOperations.controller.js";
 const router = Router();
+for (const kind of ["overview", "staff", "tasks"] as const)
+  router.get(
+    `/operations/${kind}`,
+    verifyJwt,
+    authorize("ADMIN", "MANAGER"),
+    operationsRead(kind),
+  );
 
 router.post("/manager-signup", signupManager);
 router.post("/manager-login", loginManager);

@@ -1,4 +1,5 @@
-import type { VerificationTransaction } from "./jobQueue.service.js";
+import { reviewableMedia } from "./evidenceBuffer.js";
+import type { VerificationTransaction } from "./transaction.js";
 import { lockTask } from "./captureSession.service.js";
 import {
   aggregateItems,
@@ -75,8 +76,8 @@ export async function finalizeTask(
     .filter((i) => i.mandatory)
     .flatMap((i) => i.requirements.filter((r) => r.mandatory));
   // No authority can finalize unresolved mandatory views. Avoid expensive evidence
-  // and decision joins after every intermediate stage; successful completion still
-  // runs all presence, privacy, assignment and outstanding-job checks below.
+  // and decision joins before mandatory evidence is ready; successful completion still
+  // runs presence, privacy and assignment checks below.
   if (required.some((r) => !["PASSED", "MANAGER_ACCEPTED", "WAIVED"].includes(r.state))) return null;
   const passed = required.filter(
     (r) => r.state === "PASSED" || r.state === "MANAGER_ACCEPTED",
@@ -109,7 +110,7 @@ export async function finalizeTask(
     passed.length !== attempts.length ||
     attempts.some(
       (a) =>
-        a.media?.privacyState !== "SAFE" ||
+        !reviewableMedia(a.media?.privacyState) ||
         !a.receivedAt ||
         a.session.taskInstanceId !== taskId ||
         !passed.some(
@@ -131,11 +132,38 @@ export async function finalizeTask(
           .filter((id): id is string => !!id),
       },
       contextKey: { not: null },
-      media: { privacyState: "SAFE" },
+      media: { privacyState: { in: ["SAFE", "NOT_REQUIRED"] } },
     },
-    select: { sessionId: true },
+    select: { id: true, sessionId: true },
   });
   const contextOverrides = new Set(contexts.map((a) => a.sessionId));
+  // A rework session can retain the same context photos. Acceptance follows
+  // those photos, but never grants the new session a presence override.
+  const preservedIds = attempts.flatMap((a) =>
+    Array.isArray(a.session.contextAttemptIds)
+      ? a.session.contextAttemptIds.filter((id): id is string => typeof id === "string")
+      : [],
+  );
+  const preservedContexts = await tx.verificationAttempt.findMany({
+    where: {
+      id: { in: preservedIds },
+      session: { taskInstanceId: taskId },
+      contextKey: { not: null },
+      media: { privacyState: { in: ["SAFE", "NOT_REQUIRED"] } },
+    },
+    select: { id: true, state: true },
+  });
+  const acceptedContextIds = new Set(contexts.map((a) => a.id));
+  const satisfiedContextIds = new Set(preservedContexts
+    .filter((a) => a.state === "PASSED" || acceptedContextIds.has(a.id))
+    .map((a) => a.id));
+  const contextPhotoOverrides = new Set(contextOverrides);
+  for (const a of attempts) {
+    const ids = a.session.contextAttemptIds;
+    if (Array.isArray(ids) && ids.length > 0 &&
+      ids.every((id) => typeof id === "string" && satisfiedContextIds.has(id)))
+      contextPhotoOverrides.add(a.sessionId);
+  }
   const acceptances = await tx.verificationDecision.findMany({
     where: { exception: { taskInstanceId: taskId }, action: "ACCEPT_EVIDENCE" },
     select: { evidenceAttemptId: true, createdAt: true },
@@ -157,10 +185,10 @@ export async function finalizeTask(
         (a.assignmentEpoch !== task.assignmentEpoch ||
           a.session.state === "REVOKED");
       return (
-        (a.session.presenceStatus !== "ACCEPTABLE" ||
-          a.session.contextStatus !== "ACCEPTABLE" ||
-          staleManual) &&
-        !contextOverrides.has(a.sessionId)
+        ((a.session.presenceStatus !== "ACCEPTABLE" || staleManual) &&
+          !contextOverrides.has(a.sessionId)) ||
+        (a.session.contextStatus !== "ACCEPTABLE" &&
+          !contextPhotoOverrides.has(a.sessionId))
       );
     })
   )
@@ -208,7 +236,7 @@ export async function finalizeTask(
       (a) => a.session.contextStatus === "ACCEPTABLE",
     ),
     blockingIssues:
-      blocking > 0 || attempts.some((a) => a.media?.privacyState !== "SAFE"),
+      blocking > 0 || attempts.some((a) => !reviewableMedia(a.media?.privacyState)),
     hasManualOverride: task.hasManualOverride,
     assignmentCurrent: true,
   });
@@ -220,36 +248,6 @@ export async function finalizeTask(
   if (
     await tx.verificationAttempt.count({
       where: { id: { in: currentIds }, media: { privacyState: "HOLD" } },
-    })
-  )
-    return null;
-  const contributingIds = attempts.map((a) => a.id);
-  const optionalIds = task.verificationItems
-    .flatMap((i) =>
-      i.requirements.filter(
-        (r) => !i.mandatory || !r.mandatory || r.state === "WAIVED",
-      ),
-    )
-    .map((r) => r.currentAttemptId)
-    .filter((id): id is string => !!id);
-  if (
-    await tx.verificationJob.count({
-      where: {
-        OR: [
-          { attemptId: { in: contributingIds } },
-          {
-            attemptId: { in: optionalIds },
-            stage: { in: ["QUALITY", "PRIVACY", "COVERAGE"] },
-          },
-          {
-            attempt: {
-              contextKey: { not: null },
-              sessionId: { in: attempts.map((a) => a.sessionId) },
-            },
-          },
-        ],
-        state: { in: ["PENDING", "RUNNING", "RETRY_WAIT"] },
-      },
     })
   )
     return null;

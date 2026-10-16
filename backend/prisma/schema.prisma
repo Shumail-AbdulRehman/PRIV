@@ -818,6 +818,9 @@ model VerificationAttempt {
   anchoredElapsedMs   BigInt
   receivedAt          DateTime?
   timingEvidence      String
+  directProcessingToken     String?
+  directProcessingStartedAt DateTime?
+  directAssessment          Json?
   qualityResult       Json?
   coverageResult      Json?
   cleanlinessResult   Json?

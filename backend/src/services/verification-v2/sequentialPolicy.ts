@@ -9,4 +9,12 @@ export function staffTaskPresentation<T extends {status:string;staffSubmittedAt?
  return {...task,...(task.staffSubmittedAt?{status:'COMPLETED'}:{}),completionOutcome:null,verificationState:task.staffSubmittedAt||task.status==='COMPLETED'?'COMPLETED':task.verificationState};
 }
 
+/** Cleaning submission and manager verification are separate dashboard states. */
+export function operationalTaskStatus<T extends {status:string;staffSubmittedAt?:Date|null}>(task:T){
+ return task.staffSubmittedAt&&['IN_PROGRESS','NOT_COMPLETED_INTIME'].includes(task.status)?'COMPLETED' as const:task.status;
+}
+export function managerTaskPresentation<T extends {status:string;staffSubmittedAt?:Date|null}>(task:T){
+ return {...task,status:operationalTaskStatus(task)};
+}
+
 export function currentPhotoSlots<T extends {id:string;requirementId?:string|null;contextKey?:string|null;generation:number}>(slots:T[]):T[]{return slots.filter(slot=>!slots.some(other=>other.id!==slot.id&&other.generation>slot.generation&&(slot.requirementId?other.requirementId===slot.requirementId:other.contextKey===slot.contextKey)));}

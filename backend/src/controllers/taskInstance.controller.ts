@@ -1,5 +1,5 @@
 import {finishStaffSubmission} from '../services/verification-v2/staffSubmission.service.js';
-import {staffTaskPresentation} from '../services/verification-v2/sequentialPolicy.js';
+import {staffTaskPresentation,managerTaskPresentation} from '../services/verification-v2/sequentialPolicy.js';
 import { requireTaskAccess, requireLocationAccess } from '../services/verification-v2/authorization.service.js';
 import { lockTask } from '../services/verification-v2/captureSession.service.js';
 import { Request, Response } from 'express';
@@ -59,7 +59,7 @@ const tasks = await prisma.taskInstance.findMany({
   }
 });
 
-  res.status(200).json(new ApiResponse(200, req.user!.role==='STAFF'?tasks.map(staffTaskPresentation):tasks, "Today's tasks fetched successfully"));
+  res.status(200).json(new ApiResponse(200, tasks.map(req.user!.role==='STAFF'?staffTaskPresentation:managerTaskPresentation), "Today's tasks fetched successfully"));
 };
 
 export const startTask = async (req: Request, res: Response) => {
@@ -171,6 +171,8 @@ export const getTaskInstanceById = async (req: Request, res: Response) => {
         where: {id: taskId, isActive:true},
         include: {
             location: { select: { id: true, name: true, timezone: true } },
+            staff: {select: {id:true,name:true}},
+            verificationException: {select:{id:true,state:true}},
             template: { select: { id: true, description: true } },
             referenceImages: {
                 orderBy: { sortOrder: "asc" },
@@ -198,7 +200,7 @@ export const getTaskInstanceById = async (req: Request, res: Response) => {
         throw new ApiError(404, "Task not found for this staff");
     }
 
-    res.status(200).json(new ApiResponse(200, req.user!.role==='STAFF'?staffTaskPresentation(task):task, "Task fetched successfully"));  
+    res.status(200).json(new ApiResponse(200, req.user!.role==='STAFF'?staffTaskPresentation(task):managerTaskPresentation(task), "Task fetched successfully"));
 
 };
 
@@ -254,7 +256,7 @@ export const getTasknstancesOfLocation = async (req: Request, res: Response) => 
         }
     });
 
-    res.status(200).json(new ApiResponse(200, tasks, "Task instances fetched successfully"));
+    res.status(200).json(new ApiResponse(200, tasks.map(managerTaskPresentation), "Task instances fetched successfully"));
 };
 
 

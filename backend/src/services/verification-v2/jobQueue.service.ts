@@ -8,7 +8,7 @@ export type VerificationTransaction=Omit<typeof prisma,'$connect'|'$disconnect'|
 export const LEASE_MS=90_000;
 export const RETRY_DELAYS_MS=[5000,30000,120000] as const;
 export async function enqueueVerificationJob(tx:VerificationTransaction,input:{companyId:number;attemptId:string;stage:string;evaluatorVersion:string;priority?:number;result?:Prisma.InputJsonValue}) {
- if(!['QUALITY','PRIVACY','COVERAGE','DUPLICATE','CLEANLINESS'].includes(input.stage)||!/^[a-zA-Z0-9._-]{1,100}$/.test(input.evaluatorVersion))throw new Error('Unsupported verification stage/version');
+ if(!['PHOTO','QUALITY','PRIVACY','COVERAGE','DUPLICATE','CLEANLINESS'].includes(input.stage)||!/^[a-zA-Z0-9._-]{1,100}$/.test(input.evaluatorVersion))throw new Error('Unsupported verification stage/version');
  await tx.$queryRaw`SELECT id FROM "VerificationAttempt" WHERE id=${input.attemptId} FOR UPDATE`;
  const existing=await tx.verificationJob.findUnique({where:{attemptId_stage_evaluatorVersion:{attemptId:input.attemptId,stage:input.stage,evaluatorVersion:input.evaluatorVersion}}});
  if(existing)return existing;
@@ -56,7 +56,8 @@ export async function failVerificationJob(job:VerificationJob,code='SERVICE_FAIL
  verificationEvent('JOB_FAILURE',{attemptId:job.attemptId,jobId:job.id,stage:job.stage},{code,claimCount:job.attempts,exhausted});
  const delay=RETRY_DELAYS_MS[Math.min(job.attempts-1,RETRY_DELAYS_MS.length-1)]!;
  return prisma.$transaction(async tx=>{
-  const changed=await tx.verificationJob.updateMany({where:{id:job.id,state:'RUNNING',leaseToken:job.leaseToken,leaseUntil:{gt:new Date()}},data:{state:exhausted?'FAILED':'RETRY_WAIT',lastErrorCode:code,result:JSON.parse(JSON.stringify({...metadata,timing:jobTiming(job.result),retryCount:Math.max(0,job.attempts-1),lastErrorCode:code})) as Prisma.InputJsonValue,availableAt:new Date(Date.now()+delay*(.9+.2*random())),finishedAt:exhausted?new Date():null,leaseUntil:null,leaseToken:null}});
+  const preserved=job.stage==='PHOTO'?(await tx.verificationJob.findUnique({where:{id:job.id},select:{result:true}}))?.result:job.result;
+  const changed=await tx.verificationJob.updateMany({where:{id:job.id,state:'RUNNING',leaseToken:job.leaseToken,leaseUntil:{gt:new Date()}},data:{state:exhausted?'FAILED':'RETRY_WAIT',lastErrorCode:code,result:JSON.parse(JSON.stringify({...(preserved as object ?? {}),...metadata,timing:jobTiming(job.result),retryCount:Math.max(0,job.attempts-1),lastErrorCode:code})) as Prisma.InputJsonValue,availableAt:new Date(Date.now()+delay*(.9+.2*random())),finishedAt:exhausted?new Date():null,leaseUntil:null,leaseToken:null}});
   if(changed.count&&exhausted){
    const initial=await tx.verificationAttempt.findUniqueOrThrow({where:{id:job.attemptId},select:{session:{select:{taskInstanceId:true}}}});
    await tx.$queryRaw`SELECT id FROM "TaskInstance" WHERE id=${initial.session.taskInstanceId} FOR UPDATE`;

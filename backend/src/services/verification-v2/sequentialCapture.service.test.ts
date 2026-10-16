@@ -15,4 +15,14 @@ it.each(['PROCESSING','RECEIVED','QUALITY_CHECK','CLEANING_REQUIRED','RECAPTURE_
 it('a storage failure without received media cannot unlock the next object',async()=>{const slots=await m.slots();slots[0].attempt={state:'SERVICE_FAILURE',receivedAt:null,mediaAssetId:null};await expect(activate()).rejects.toMatchObject({statusCode:409});});
 it('reopening a step cannot reset its deadline; expiry requires QR renewal',async()=>{const slots=await m.slots();slots[1].activatedAt=new Date(+now-10000);slots[1].expiresAt=new Date(+now+80000);await activate();expect(m.update).not.toHaveBeenCalled();vi.setSystemTime(new Date(+now+80001));await expect(activate()).rejects.toMatchObject({statusCode:410,errors:[{code:'QR_RENEWAL_REQUIRED'}]});});
 
-it('a review-only upload still waits for its pending checks',async()=>{m.jobs.mockResolvedValue(1);await expect(activate()).rejects.toMatchObject({statusCode:409});expect(m.update).not.toHaveBeenCalled();});
+it('a terminal review photo advances without consulting the removed queue',async()=>{m.jobs.mockResolvedValue(1);await expect(activate()).resolves.toBeDefined();expect(m.jobs).not.toHaveBeenCalled();expect(m.update).toHaveBeenCalled();});
+it('caps an item deadline at the overall authorized photo-session deadline',async()=>{
+ const s=await m.authorized();s.captureExpiresAt=new Date(+now+15000);
+ await activate();
+ expect(m.update).toHaveBeenCalledWith({where:{id:second},data:{activatedAt:now,expiresAt:new Date(+now+15000)}});
+});
+it('retired entrance slots cannot block activation of timed item photos',async()=>{
+ const s=await m.authorized();s.locationCheck.captureContextPolicy={version:2,requiredKeys:[]};
+ const slots=await m.slots();slots.unshift({id:'old-context',contextKey:'ENTRANCE',generation:0,sequence:-1});
+ await activate();expect(m.update).toHaveBeenCalled();
+});
