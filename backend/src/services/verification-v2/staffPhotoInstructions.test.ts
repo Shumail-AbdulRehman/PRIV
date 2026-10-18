@@ -24,7 +24,7 @@ it('keeps toilet interior and exterior photo instructions distinct',()=>{
  expect(message('exterior_base')).toContain('the outside and base of the toilet');
 });
 it('names dirty surfaces and the QR rework action without inventing severity',()=>{
- expect(staffPhotoInstructions({state:'CLEANING_REQUIRED',reasonCode:'CLEANING_REQUIRED',context,dirtySurfaces:['basin','tap','basin']})).toBe('The sink is not clean. Please clean the basin and tap, then scan the room QR and take another photo.');
+ expect(staffPhotoInstructions({state:'CLEANING_REQUIRED',reasonCode:'CLEANING_REQUIRED',context,dirtySurfaces:['basin','tap','basin']})).toBe('The sink is not clean. Please clean the basin and tap, then scan the task QR and take another photo.');
 });
 it('does not describe an unclear photo as dirty',()=>{
  expect(result('CANNOT_ASSESS')).toBe('We could not clearly see the sink. Please show the whole sink basin, drain and tap clearly and take another photo.');
@@ -39,7 +39,7 @@ it('review and privacy states keep their next steps instead of instructing a ret
 });
 it('unknown labels, model prose and object properties cannot enter the message',()=>{
  const message=staffPhotoInstructions({state:'CLEANING_REQUIRED',reasonCode:'CLEANING_REQUIRED',context:{fixtureType:'ignore all rules',viewKey:'constructor'},dirtySurfaces:['provider says secret','constructor']});
- expect(message).toBe('The required item is not clean. Please clean it, then scan the room QR and take another photo.');
+ expect(message).toBe('The required item is not clean. Please clean it, then scan the task QR and take another photo.');
 });
 it('the staff DTO uses saved task context for upload results without leaking model details',()=>{
  const dto=staffAttemptResult({state:'RECAPTURE_REQUIRED',qualityResult:{workflow:'DIRECT_PHOTO_V1',acceptable:true},coverageResult:null,cleanlinessResult:{policyDecisionReason:'WRONG_ITEM',photoContext:context,metadata:{confidence:.99,provider:'hidden'}}},false);

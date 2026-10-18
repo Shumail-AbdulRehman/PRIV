@@ -96,3 +96,4 @@ frontend-mobile/google-services.json
 **/fcm-service-account*.json
 !docs/STAFF_NOTIFICATIONS.md
 !docs/MOBILE_QUERY_OPTIMIZATION.md
+!docs/verification/TASK_QR_AREA_TEMPLATE_2026-10-18.md

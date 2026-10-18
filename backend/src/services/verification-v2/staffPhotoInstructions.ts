@@ -47,7 +47,7 @@ export function staffPhotoInstructions(input: {
   }
   if (input.state === 'CLEANING_REQUIRED') {
     const dirty = [...new Set((input.dirtySurfaces ?? []).map(key => catalog(surfaces,key)).filter((value): value is string => !!value))];
-    return `The ${object ?? 'required item'} is not clean. Please clean ${dirty.length ? `the ${list(dirty)}` : 'it'}, then scan the room QR and take another photo.`;
+    return `The ${object ?? 'required item'} is not clean. Please clean ${dirty.length ? `the ${list(dirty)}` : 'it'}, then scan the task QR and take another photo.`;
   }
   if (input.state !== 'RECAPTURE_REQUIRED') return null;
   switch (input.reasonCode) {

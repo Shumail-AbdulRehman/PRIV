@@ -243,7 +243,7 @@ const captureActor={id:captureStaff.id,companyId:company,role:'STAFF' as const};
 // Steps 9–14: real transaction tests, external storage/provider calls are injected.
 process.env.VERIFICATION_QR_SECRET='q'.repeat(64);process.env.VERIFICATION_SLOT_SECRET='s'.repeat(64);
 const {createCaptureSession,createReworkCaptureSession,reserveAttempt,retakeSlots,resumeSession,staffAttemptResult}=await import('../src/services/verification-v2/captureSession.service.js');
-const {signAreaQr}=await import('../src/services/verification-v2/qr.service.js');
+const {signAreaQr,signTaskQr}=await import('../src/services/verification-v2/qr.service.js');
 const {finalizeTask}=await import('../src/services/verification-v2/completion.service.js');
 const {managerDecision,raiseIssue}=await import('../src/services/verification-v2/exception.service.js');
 const {assessCleanliness}=await import('../src/services/verification-v2/cleanliness.service.js');
@@ -257,7 +257,7 @@ const captureTemplate=await prisma.taskTemplate.create({data:{title:'Capture tes
 const capturedTask=await createTaskInstanceWithSnapshot({templateId:captureTemplate.id,title:'Capture test',locationId:location,date:new Date(),shiftStart:start,shiftEnd:end});assert.ok(capturedTask);
 await prisma.taskInstance.update({where:{id:capturedTask.id},data:{status:'IN_PROGRESS',startedAt:start}});
 await prisma.taskAssignment.updateMany({where:{taskInstanceId:capturedTask.id},data:{status:'STARTED',startedAt:start}});
-const sessionBody={requestId:randomUUID(),areaQr:signAreaQr(captureArea),deviceId:'device-a',clientBootId:'boot-a',location:{latitude:0,longitude:0,accuracy:1,sampledAt:new Date().toISOString()},clientTime:new Date().toISOString()};
+const sessionBody={requestId:randomUUID(),areaQr:signTaskQr(capturedTask,captureArea),deviceId:'device-a',clientBootId:'boot-a',location:{latitude:0,longitude:0,accuracy:1,sampledAt:new Date().toISOString()},clientTime:new Date().toISOString()};
 await client.query(`CREATE FUNCTION slow_capture_session_regression() RETURNS trigger LANGUAGE plpgsql AS $$
  BEGIN IF NEW."taskInstanceId" = ${capturedTask.id} THEN PERFORM pg_sleep(6); END IF; RETURN NEW; END $$;
  CREATE TRIGGER slow_capture_session_regression BEFORE INSERT ON "CaptureSession" FOR EACH ROW EXECUTE FUNCTION slow_capture_session_regression();`);
@@ -292,7 +292,7 @@ for(const stage of ['QUALITY','PRIVACY','COVERAGE','CLEANLINESS'])await executeS
 assert.equal((await prisma.taskEvidenceRequirement.findUniqueOrThrow({where:{id:slot.requirementId!}})).state,'CLEANING_REQUIRED');
 assert.equal(await prisma.verificationException.count({where:{taskInstanceId:capturedTask.id}}),0,'first dirty failure stays with staff');
 const failedRequirement=await prisma.taskEvidenceRequirement.findUniqueOrThrow({where:{id:slot.requirementId!}});
-await assert.rejects(()=>retakeSlots(captureActor,activeSession.id,{deviceId:'device-a',requirements:[{requirementId:failedRequirement.id,expectedGeneration:failedRequirement.decisionVersion}]}),/scan the area QR again/,'DIRTY retake cannot reuse original finish authority');
+await assert.rejects(()=>retakeSlots(captureActor,activeSession.id,{deviceId:'device-a',requirements:[{requirementId:failedRequirement.id,expectedGeneration:failedRequirement.decisionVersion}]}),/scan the task QR again/,'DIRTY retake cannot reuse original finish authority');
 const reworkBody={...sessionBody,requestId:randomUUID(),location:{...sessionBody.location,sampledAt:new Date().toISOString()},requirements:[{requirementId:failedRequirement.id,expectedGeneration:failedRequirement.decisionVersion}]};
 await assert.rejects(()=>createReworkCaptureSession(captureActor,capturedTask.id,{...reworkBody,areaQr:undefined}),'rework independently requires QR');
 await assert.rejects(()=>createReworkCaptureSession(captureActor,capturedTask.id,{...reworkBody,areaQr:signAreaQr(inventory)}),'wrong area QR rejected');
@@ -324,7 +324,7 @@ assert.equal((await prisma.taskAssignment.findFirstOrThrow({where:{taskInstanceI
 console.log('PASS: concurrent sessions/manifests/uploads, replay and changed bytes, separate provider stages, no first-failure spam, targeted retake, handover revocation, preserved evidence, waiver outcome and exactly-once completion');
 
 // Independent final results serialize on the task lock and produce one completion.
-async function freshCaptureTask(label:string,templateId=captureTemplate.id,evidenceActor=captureActor,areaId=captureArea.id){const t=await createTaskInstanceWithSnapshot({templateId,title:label,locationId:location,date:new Date(Date.now()+Math.floor(Math.random()*1000000)),shiftStart:start,shiftEnd:end});assert.ok(t);await prisma.taskInstance.update({where:{id:t.id},data:{status:'IN_PROGRESS',startedAt:start}});await prisma.taskAssignment.updateMany({where:{taskInstanceId:t.id},data:{status:'STARTED',startedAt:start}});const ar=await prisma.area.findUniqueOrThrow({where:{id:areaId}});const s=await createCaptureSession(evidenceActor,t.id,{...sessionBody,requestId:randomUUID(),areaQr:signAreaQr(ar),location:{...sessionBody.location,sampledAt:new Date().toISOString()}});return {task:t,session:s};}
+async function freshCaptureTask(label:string,templateId=captureTemplate.id,evidenceActor=captureActor,areaId=captureArea.id){const t=await createTaskInstanceWithSnapshot({templateId,title:label,locationId:location,date:new Date(Date.now()+Math.floor(Math.random()*1000000)),shiftStart:start,shiftEnd:end});assert.ok(t);await prisma.taskInstance.update({where:{id:t.id},data:{status:'IN_PROGRESS',startedAt:start}});await prisma.taskAssignment.updateMany({where:{taskInstanceId:t.id},data:{status:'STARTED',startedAt:start}});const ar=await prisma.area.findUniqueOrThrow({where:{id:areaId}});const s=await createCaptureSession(evidenceActor,t.id,{...sessionBody,requestId:randomUUID(),areaQr:signTaskQr(t,ar),location:{...sessionBody.location,sampledAt:new Date().toISOString()}});return {task:t,session:s};}
 async function photoFor(seed:number){const pixels=Buffer.alloc(640*640*3);for(let i=0;i<pixels.length;i++)pixels[i]=(i*(seed*2+13)+(i>>7)*(seed+29))%256;return sharp(pixels,{raw:{width:640,height:640,channels:3}}).jpeg().toBuffer();}
 async function ingestFixture(s:typeof activeSession,slotId:string,seed:number,evidenceActor=captureActor,photo?:Buffer){const sl=s.slots.find(x=>x.id===slotId)!;const bytes=photo??await photoFor(seed);const m={...metadata,clientCaptureId:randomUUID(),slotId:sl.id,nonce:sl.nonce,sha256:sha256(bytes),claimedCapturedAt:s.issuedAt.toISOString(),elapsedMs:0};const a=await reserveAttempt(evidenceActor,s.id,m,true);await storeReservedEvidence(evidenceActor,a.id,bytes,captureIo);return a;}
 const contextReworkStaff=await prisma.staff.create({data:{name:'Context rework worker',email:`${randomUUID()}@test.invalid`,password:'test-only',companyId:company,locationId:location}});
@@ -361,7 +361,7 @@ assert.deepEqual(acceptedContext.contextAttemptIds,[reworkEntrance.id]);
 await assert.rejects(()=>reserveAttempt(contextReworkActor,preserved.session.id,{...metadata,clientCaptureId:randomUUID(),slotId:preservedSlots[1]!.id,nonce:preservedSlots[1]!.nonce,claimedCapturedAt:preserved.session.issuedAt.toISOString(),elapsedMs:0},true),/Capture authority expired/);
 const legacyContextFixture=await freshCaptureTask('Legacy context renewal',contextReworkTemplate.id,contextReworkActor);
 await prisma.captureSession.update({where:{id:legacyContextFixture.session.id},data:{locationCheck:{},state:'EXPIRED'}});
-const legacyRenew=await createCaptureSession(contextReworkActor,legacyContextFixture.task.id,{...sessionBody,requestId:randomUUID(),location:{...sessionBody.location,sampledAt:new Date().toISOString()}},legacyContextFixture.session.id);
+const legacyRenew=await createCaptureSession(contextReworkActor,legacyContextFixture.task.id,{...sessionBody,requestId:randomUUID(),areaQr:signTaskQr(legacyContextFixture.task,await prisma.area.findUniqueOrThrow({where:{id:captureArea.id}})),location:{...sessionBody.location,sampledAt:new Date().toISOString()}},legacyContextFixture.session.id);
 assert.deepEqual(legacyRenew.requiredContextKeys,['ENTRANCE','LAYOUT']);
 assert.deepEqual(legacyRenew.slots.filter(s=>s.contextKey).map(s=>s.contextKey),['ENTRANCE','LAYOUT'],'old context obligations remain resumable');
 await verifyEntranceOnly(legacyRenew,contextReworkActor,905);assert.equal((await prisma.captureSession.findUniqueOrThrow({where:{id:legacyRenew.id}})).contextStatus,'PENDING','legacy session retains its unmet layout obligation');
@@ -384,7 +384,7 @@ for(const stage of ['QUALITY','PRIVACY'])await executeStage(mixedRecaptureAttemp
 const mixedDirty=await prisma.taskEvidenceRequirement.findUniqueOrThrow({where:{id:mixedDirtyAttempt.requirementId!}});
 const mixedRecapture=await prisma.taskEvidenceRequirement.findUniqueOrThrow({where:{id:mixedRecaptureAttempt.requirementId!}});
 assert.equal(mixedDirty.state,'CLEANING_REQUIRED');assert.equal(mixedRecapture.state,'RECAPTURE_REQUIRED');
-const mixedRework=await createReworkCaptureSession(contextReworkActor,mixed.task.id,{...sessionBody,requestId:randomUUID(),areaQr:signAreaQr(mixedArea),location:{...sessionBody.location,sampledAt:new Date().toISOString()},requirements:[{requirementId:mixedDirty.id,expectedGeneration:mixedDirty.decisionVersion}]});
+const mixedRework=await createReworkCaptureSession(contextReworkActor,mixed.task.id,{...sessionBody,requestId:randomUUID(),areaQr:signTaskQr(mixed.task,mixedArea),location:{...sessionBody.location,sampledAt:new Date().toISOString()},requirements:[{requirementId:mixedDirty.id,expectedGeneration:mixedDirty.decisionVersion}]});
 assert.deepEqual(mixedRework.slots.filter(slot=>slot.requirementId).map(slot=>slot.requirementId),[mixedDirty.id]);
 assert.deepEqual(mixedRework.slots.filter(slot=>slot.contextKey).map(slot=>slot.contextKey),['ENTRANCE']);
 const mixedRetakeBody={deviceId:'device-a',requirements:[{requirementId:mixedRecapture.id,expectedGeneration:mixedRecapture.decisionVersion}]};
@@ -412,7 +412,7 @@ const spatialTemplate=await prisma.taskTemplate.create({data:{title:'Spatial bin
 const spatialTask=await createTaskInstanceWithSnapshot({templateId:spatialTemplate.id,title:'Spatial binding validation',locationId:location,date:new Date(),shiftStart:start,shiftEnd:end});assert.ok(spatialTask);
 await prisma.taskInstance.update({where:{id:spatialTask.id},data:{status:'IN_PROGRESS',startedAt:start}});await prisma.taskAssignment.updateMany({where:{taskInstanceId:spatialTask.id},data:{status:'STARTED',startedAt:start}});
 const spatialArea=await prisma.area.findUniqueOrThrow({where:{id:captureArea.id}});
-const spatialFixture={task:spatialTask,session:await createCaptureSession(spatialActor,spatialTask.id,{...sessionBody,requestId:randomUUID(),areaQr:signAreaQr(spatialArea),location:{...sessionBody.location,sampledAt:new Date().toISOString()}})};
+const spatialFixture={task:spatialTask,session:await createCaptureSession(spatialActor,spatialTask.id,{...sessionBody,requestId:randomUUID(),areaQr:signTaskQr(spatialTask,spatialArea),location:{...sessionBody.location,sampledAt:new Date().toISOString()}})};
 const spatialSlots=spatialFixture.session.slots.filter(s=>s.requirementId).slice(0,2);
 assert.equal(spatialSlots.length,2);
 const spatialWorld=randomUUID();
@@ -507,7 +507,7 @@ try{
  CREATE TRIGGER slow_task_start_regression BEFORE UPDATE ON "TaskInstance" FOR EACH ROW EXECUTE FUNCTION slow_task_start_regression();`);
  const startRequestAt=Date.now();
  const startArea=await prisma.area.findUniqueOrThrow({where:{id:captureArea.id}});
- const startBody={areaQr:signAreaQr(startArea)};
+ const startBody={areaQr:signTaskQr(pendingStart,startArea)};
  assert.equal((await call(`/task-instance/${pendingStart.id}/start`,startJwt,'POST')).status,400,'start requires a fresh submitted area QR');
  for(const areaQr of [signAreaQr(inventory),signAreaQr({...startArea,qrVersion:startArea.qrVersion-1}),startBody.areaQr+'tamper']){
   const rejected=await call(`/task-instance/${pendingStart.id}/start`,startJwt,'POST',{areaQr});
@@ -630,7 +630,7 @@ for(let failure=1;failure<=3;failure++){
  const fullSession={...escalation.session,slots:[{...sl,nonce:(await import('../src/services/verification-v2/qr.service.js')).slotNonce(currentSession.id,sl.id,sl.generation)}]};
  const a=await ingestFixture(fullSession,sl.id,650+failure,contextReworkActor);for(const stage of ['QUALITY','PRIVACY','COVERAGE','CLEANLINESS'])await executeStage(a.id,stage);
  assert.equal(await prisma.verificationException.count({where:{taskInstanceId:escalation.task.id}}),failure===3?1:0,'only third cleaning failure escalates');
- if(failure<3){const r=await prisma.taskEvidenceRequirement.findUniqueOrThrow({where:{id:sl.requirementId!}});const ar=await prisma.area.findUniqueOrThrow({where:{id:captureArea.id}});escalation.session=await createReworkCaptureSession(contextReworkActor,escalation.task.id,{...sessionBody,requestId:randomUUID(),areaQr:signAreaQr(ar),location:{...sessionBody.location,sampledAt:new Date().toISOString()},requirements:[{requirementId:r.id,expectedGeneration:r.decisionVersion}]});escalationSlot=escalation.session.slots.find(s=>s.requirementId===r.id)!;}
+ if(failure<3){const r=await prisma.taskEvidenceRequirement.findUniqueOrThrow({where:{id:sl.requirementId!}});const ar=await prisma.area.findUniqueOrThrow({where:{id:captureArea.id}});escalation.session=await createReworkCaptureSession(contextReworkActor,escalation.task.id,{...sessionBody,requestId:randomUUID(),areaQr:signTaskQr(escalation.task,ar),location:{...sessionBody.location,sampledAt:new Date().toISOString()},requirements:[{requirementId:r.id,expectedGeneration:r.decisionVersion}]});escalationSlot=escalation.session.slots.find(s=>s.requirementId===r.id)!;}
 }
 assert.equal(await prisma.verificationIssue.count({where:{exception:{taskInstanceId:escalation.task.id}}}),1);
 const cannotAssess=await freshCaptureTask('Cannot assess');const cannotSlot=cannotAssess.session.slots.find(s=>s.requirementId)!;const cannotAttempt=await ingestFixture(cannotAssess.session,cannotSlot.id,762);for(const stage of ['QUALITY','PRIVACY','COVERAGE'])await executeStage(cannotAttempt.id,stage);
@@ -647,7 +647,7 @@ const clefTemplate=await prisma.taskTemplate.create({data:{title:'Clef test',loc
 async function clefCaptureTask(label:string){
  const t=await createTaskInstanceWithSnapshot({templateId:clefTemplate.id,title:label,locationId:location,date:new Date(Date.now()+Math.floor(Math.random()*1000000)),shiftStart:start,shiftEnd:end});assert.ok(t);
  await prisma.taskInstance.update({where:{id:t.id},data:{status:'IN_PROGRESS',startedAt:start}});await prisma.taskAssignment.updateMany({where:{taskInstanceId:t.id},data:{status:'STARTED',startedAt:start}});
- const ar=await prisma.area.findUniqueOrThrow({where:{id:captureArea.id}});return {task:t,session:await createCaptureSession(clefActor,t.id,{...sessionBody,requestId:randomUUID(),areaQr:signAreaQr(ar),location:{...sessionBody.location,sampledAt:new Date().toISOString()}})};
+ const ar=await prisma.area.findUniqueOrThrow({where:{id:captureArea.id}});return {task:t,session:await createCaptureSession(clefActor,t.id,{...sessionBody,requestId:randomUUID(),areaQr:signTaskQr(t,ar),location:{...sessionBody.location,sampledAt:new Date().toISOString()}})};
 }
 // Synthetic records below exercise the release validator only. They are never
 // development evidence, reviewed washroom measurements, or deployment approvals.

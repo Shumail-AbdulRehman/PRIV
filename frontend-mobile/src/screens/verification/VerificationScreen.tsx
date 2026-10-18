@@ -92,14 +92,14 @@ export function VerificationScreen({route,navigation}:Props) {
     finally{inFlight.current=false;if(mounted.current)setBusy(false);}
   }
   async function beginPhotos(){await action(async()=>{
-    if(Platform.OS==='web')throw new Error('Open the installed staff app to scan the room and take photos.');
-    if(!online)throw new Error('Internet needed to continue. Reconnect, then scan the room QR.');
+    if(Platform.OS==='web')throw new Error('Open the installed staff app to scan the task QR and take photos.');
+    if(!online)throw new Error('Internet needed to continue. Reconnect, then scan this task’s QR code.');
     const result=permission?.granted?permission:await requestPermission();
     if(!result.granted)throw new Error('Allow camera access in Settings to take task photos.');
     setMode('scan');
   });}
   async function scanned(qr:string){await action(async()=>{
-    if(!online)throw new Error('Internet needed to confirm the room. Reconnect, then scan its QR.');
+    if(!online)throw new Error('Internet needed to confirm the room. Reconnect, then scan this task’s QR code.');
     setMode('locating');
     const targets=manifest?.items.flatMap(i=>i.requirements).filter(r=>r.state==='CLEANING_REQUIRED').map(r=>({requirementId:r.id,expectedGeneration:r.decisionVersion}));
     const session=await openCaptureSession(taskId,qr,local?.session.id??manifest?.sessions?.find(s=>s.state==='ACTIVE'||s.state==='PAUSED')?.id,label=>{if(valid())setBusyLabel(label);},targets?.length?targets:undefined);
@@ -133,7 +133,7 @@ export function VerificationScreen({route,navigation}:Props) {
     removeTemporary(photo.uri);rememberPending(null);await refreshAfterUpload();
   }
   async function capture(){await action(async()=>{
-    if(!local||!slot||!slotActive||!allowed||!cameraReady||!focused||!foreground||pending||!scope)throw new Error('Scan the room QR again to continue taking photos.');
+    if(!local||!slot||!slotActive||!allowed||!cameraReady||!focused||!foreground||pending||!scope)throw new Error('Scan this task’s QR code again to continue taking photos.');
     if(!online)throw new Error('Internet needed to upload. Reconnect before taking the photo.');
     const session=local,clock=captureClock();
     const photo=await camera.current?.takePictureAsync({quality:.9,skipProcessing:false});
@@ -145,7 +145,7 @@ export function VerificationScreen({route,navigation}:Props) {
       if(correction)throw new Error(correction);
       const result=await manipulateAsync(photo.uri,[quality.width>=quality.height?{resize:{width:1800}}:{resize:{height:1800}}],{compress:.85,format:SaveFormat.JPEG});resized=result.uri;
       const bytes=await new File(resized).bytes(),hash=await Crypto.digest(Crypto.CryptoDigestAlgorithm.SHA256,bytes);
-      if(!valid()||!captureAllowed(session,captureClock()))throw new Error('Photo window ended. Scan the room QR again before taking another photo.');
+      if(!valid()||!captureAllowed(session,captureClock()))throw new Error('Photo window ended. Scan this task’s QR code again before taking another photo.');
       const metadata:CaptureMetadata={taskId,sessionId:session.session.id,slotId:slot.id,nonce:slot.nonce,clientCaptureId:Crypto.randomUUID(),sha256:Array.from(new Uint8Array(hash)).map(v=>v.toString(16).padStart(2,'0')).join(''),claimedCapturedAt:new Date(Date.parse(session.session.serverTime)+clock.elapsedMs-session.anchorElapsedMs).toISOString(),elapsedMs:clock.elapsedMs-session.anchorElapsedMs+Math.max(0,Date.parse(session.session.serverTime)-Date.parse(session.session.serverTimeAnchor??session.session.serverTime)),bootId:clock.bootId,deviceId:await installationId(),requirementId:slot.requirementId,qualityResult:quality};
       const next={metadata,uri:resized};rememberPending(next);resized=undefined;setMode('progress');
       try{await sendPhoto(next);}catch(error){if(valid())setMessage(`${t(messageFor(error))} ${t('Upload again to continue. If you close this screen, take a new photo.')}`);}
@@ -167,18 +167,18 @@ export function VerificationScreen({route,navigation}:Props) {
       {!online?<Text accessibilityLiveRegion="polite">Internet needed to upload. Reconnect, then tap Upload again.</Text>:null}
       {message?<View className="rounded-xl bg-accent p-4"><Text accessibilityLiveRegion="polite">{message}</Text></View>:null}
       {!manifest?<Button loading={refreshing} onPress={()=>void action(async()=>{await load();})}>Load task photos</Button>:null}
-      {!finished&&mode==='prepare'?<View style={{gap:16}}><Text className="text-xl font-bold">Ready to finish?</Text><Text>Complete every required photo. Scan the room QR to begin.</Text><Text>Keep people out of the photos, including mirror reflections.</Text><Button size="lg" disabled={!manifest||!online} onPress={()=>void beginPhotos()}>Scan QR to take photos</Button></View>:null}
+      {!finished&&mode==='prepare'?<View style={{gap:16}}><Text className="text-xl font-bold">Ready to finish?</Text><Text>Complete every required photo. Scan the task QR to begin.</Text><Text>Keep people out of the photos, including mirror reflections.</Text><Button size="lg" disabled={!manifest||!online} onPress={()=>void beginPhotos()}>Scan QR to take photos</Button></View>:null}
       {mode==='locating'?<Text accessibilityLiveRegion="polite">{busyLabel}</Text>:null}
-      {mode==='scan'?<Text className="text-xl font-bold">Scan the area QR</Text>:null}
+      {mode==='scan'?<Text className="text-xl font-bold">Scan the task QR</Text>:null}
       {mode==='capture'&&heading?<View style={{gap:8}}><PhotoStepProgress current={Math.max(1,(local?.session.slots.findIndex(s=>s.id===slot?.id)??0)+1)} total={Math.max(1,local?.session.slots.length??1)}/><Text className="text-3xl font-bold">{heading.title}</Text><PhotoGuide fixture={local?.manifest.items.find(i=>i.requirements.some(r=>r.id===slot?.requirementId))?.typeSnapshot} instruction={heading.view}/>{heading.hint?<Text>{heading.hint}</Text>:null}</View>:null}
       {cameraVisible?<View style={{width:'100%',height:cameraHeight,flexShrink:0,borderRadius:24,overflow:'hidden',backgroundColor:'#DDE5DE'}}><CameraView key={cameraKey} ref={camera} style={StyleSheet.absoluteFill} facing="back" enableTorch={torch} onCameraReady={()=>setCameraReady(true)} onMountError={()=>{setCameraReady(false);setMessage('Camera could not open. Tap Restart camera.');}} barcodeScannerSettings={mode==='scan'?scanSettings:undefined} onBarcodeScanned={mode==='scan'?({data})=>{if(!inFlight.current&&focused&&foreground&&online)void scanned(data);}:undefined}/><CaptureFrame/></View>:null}
       {cameraVisible?<View style={{flexDirection:'row',gap:12}}><Button className="flex-1" variant="outline" onPress={()=>setTorch(value=>!value)}>{torch?'Torch off':'Torch on'}</Button><Button className="flex-1" variant="ghost" onPress={()=>setCameraKey(value=>value+1)}>Restart camera</Button></View>:null}
       {!permission?.granted&&mode==='scan'?<Button onPress={()=>void (permission?.canAskAgain?requestPermission():Linking.openSettings())}>Allow camera</Button>:null}
       {mode==='capture'&&seconds!==null?<Text className="text-xl font-bold">{t('Time remaining: {time}',{time:`${Math.floor(seconds/60)}:${String(seconds%60).padStart(2,'0')}`})}</Text>:null}
-      {pending?<View style={{gap:12}}><Text className="text-xl font-bold">{busy?'Uploading and checking photo…':'Upload this photo again'}</Text><Image source={{uri:pending.uri}} style={{height:180,width:'100%',borderRadius:16}} resizeMode="contain"/><Text>This picture is temporary. If you close this screen, take it again.</Text><Button size="lg" loading={busy} disabled={!online} onPress={()=>void action(async()=>{if(pending)await sendPhoto(pending,true);})}>Upload again</Button><Button variant="outline" disabled={busy||!online} onPress={()=>void checkResult()}>Check result</Button><Button variant="ghost" disabled={busy||!online} onPress={()=>void beginPhotos()}>Scan room and take a new photo</Button></View>:null}
+      {pending?<View style={{gap:12}}><Text className="text-xl font-bold">{busy?'Uploading and checking photo…':'Upload this photo again'}</Text><Image source={{uri:pending.uri}} style={{height:180,width:'100%',borderRadius:16}} resizeMode="contain"/><Text>This picture is temporary. If you close this screen, take it again.</Text><Button size="lg" loading={busy} disabled={!online} onPress={()=>void action(async()=>{if(pending)await sendPhoto(pending,true);})}>Upload again</Button><Button variant="outline" disabled={busy||!online} onPress={()=>void checkResult()}>Check result</Button><Button variant="ghost" disabled={busy||!online} onPress={()=>void beginPhotos()}>Scan task QR and take a new photo</Button></View>:null}
       {manifest&&mode==='progress'&&!pending?<VerificationProgress manifest={manifest} local={local} rows={[]} online={online} lastUpdated={lastUpdated}/>:null}
-      {!finished&&mode==='progress'&&!pending&&!canSubmit?<Button size="lg" disabled={!online||busy} onPress={()=>{if(slot&&allowed&&!dirty&&!retake)setMode('capture');else void beginPhotos();}}>{dirty?'Clean items, then scan QR':retake?'Scan room to retake photos':slot&&allowed?'Continue photos':'Scan room to continue photos'}</Button>:null}
-      {!finished&&mode==='capture'&&(!slot||!allowed)&&!busy?<Button size="lg" onPress={()=>void (slot?beginPhotos():action(async()=>{await load();setMode('progress');}))}>{slot?'Scan room to renew photo window':'View photo results'}</Button>:null}
+      {!finished&&mode==='progress'&&!pending&&!canSubmit?<Button size="lg" disabled={!online||busy} onPress={()=>{if(slot&&allowed&&!dirty&&!retake)setMode('capture');else void beginPhotos();}}>{dirty?'Clean items, then scan QR':retake?'Scan task QR to retake photos':slot&&allowed?'Continue photos':'Scan task QR to continue photos'}</Button>:null}
+      {!finished&&mode==='capture'&&(!slot||!allowed)&&!busy?<Button size="lg" onPress={()=>void (slot?beginPhotos():action(async()=>{await load();setMode('progress');}))}>{slot?'Scan task QR to renew photo window':'View photo results'}</Button>:null}
       <Button variant="outline" loading={refreshing} disabled={busy||!online} onPress={()=>void action(async()=>{await load();})}>Refresh results</Button>
       <Button variant="ghost" disabled={busy} onPress={()=>navigation.goBack()}>Back to tasks</Button>
     </ScrollView>

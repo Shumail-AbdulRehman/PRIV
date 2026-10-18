@@ -29,6 +29,7 @@ const workspaceKeys = new Set([
   "areas",
   "area",
   "area-qr",
+  "task-qr",
   "area-labels",
   "area-standards",
   "verification",

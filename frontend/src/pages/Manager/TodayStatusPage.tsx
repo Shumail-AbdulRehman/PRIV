@@ -1,3 +1,4 @@
+import TaskQr from '../Task/components/TaskQr';
 import { useDebouncedValue } from "@/hooks/useDebouncedValue";
 import { useSelector } from "react-redux";
 import type { RootState } from "@/store/store";
@@ -104,6 +105,7 @@ function TaskPanel({ id, close }: { id: number; close: () => void }) {
             <p>
               {t("Review status")}: {t(verificationLabel(task))}
             </p>
+            {task.verificationVersion === 2 && !task.staffSubmittedAt && !['COMPLETED','CANCELLED'].includes(task.status) && <TaskQr taskId={task.id} />}
             {task.verificationException ? (
               <Button asChild>
                 <Link to={`/exceptions/${task.verificationException.id}`}>

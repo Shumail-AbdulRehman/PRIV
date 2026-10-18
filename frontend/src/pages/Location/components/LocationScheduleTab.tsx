@@ -1,3 +1,4 @@
+import TaskQr from '@/pages/Task/components/TaskQr';
 import { Link } from 'react-router-dom';
 import PageLoadingSkeleton from '@/components/common/PageLoadingSkeleton';
 import { verificationLabel } from '@/pages/Verification/presentation';
@@ -65,7 +66,7 @@ export default function LocationScheduleTab({ locationId }: { locationId: string
     <Dialog open={!!selected} onOpenChange={(open) => { if (!open) setSelected(null); }}><DialogContent>
       <DialogTitle>{selectedItem?.title ?? 'Task no longer available'}</DialogTitle>
       <DialogDescription>{selectedItem?.kind === 'planned' ? 'Template preview. The scheduler creates the actual task when it is due.' : 'Read-only schedule details.'}</DialogDescription>
-      {selectedItem && data ? <div className="space-y-3 text-sm text-slate-700"><p className="capitalize">{statusLabel(selectedItem)}</p><p>{staffLabel(selectedItem)}</p>{selectedItem.instanceId?<Link className="text-primary" to={`/verification/${selectedItem.instanceId}`}>Verification history</Link>:null}<p>{formatInTimeZone(selectedItem.startsAt, data.location.timezone, 'EEE d MMM yyyy, HH:mm')} – {formatInTimeZone(selectedItem.endsAt, data.location.timezone, 'EEE d MMM yyyy, HH:mm')}</p><p className="text-slate-500">{data.location.name} · {data.location.timezone}</p></div> : <p className="text-sm text-slate-600">The schedule has changed. Close this panel and refresh the week.</p>}
+      {selectedItem && data ? <div className="space-y-3 text-sm text-slate-700"><p className="capitalize">{statusLabel(selectedItem)}</p><p>{staffLabel(selectedItem)}</p>{selectedItem.instanceId?<Link className="text-primary" to={`/verification/${selectedItem.instanceId}`}>Verification history</Link>:null}<p>{formatInTimeZone(selectedItem.startsAt, data.location.timezone, 'EEE d MMM yyyy, HH:mm')} – {formatInTimeZone(selectedItem.endsAt, data.location.timezone, 'EEE d MMM yyyy, HH:mm')}</p><p className="text-slate-500">{data.location.name} · {data.location.timezone}</p>{selectedItem.instanceId && selectedItem.verificationVersion === 2 && !['COMPLETED','CANCELLED'].includes(selectedItem.status ?? '') ? <TaskQr taskId={selectedItem.instanceId} /> : null}</div> : <p className="text-sm text-slate-600">The schedule has changed. Close this panel and refresh the week.</p>}
     </DialogContent></Dialog>
   </section>;
 }

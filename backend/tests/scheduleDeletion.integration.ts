@@ -43,7 +43,7 @@ const {applyDecision}=await import('../src/services/verification-v2/photoDecisio
 const {lockTask}=await import('../src/services/verification-v2/captureSession.service.js');
 const {staffMobileTasks}=await import('../src/services/mobile/staffMobile.service.js');
 const {getZonedDayRange}=await import('../src/utils/dateTime.js');
-const {signAreaQr}=await import('../src/services/verification-v2/qr.service.js');
+const {signTaskQr,signAreaQr}=await import('../src/services/verification-v2/qr.service.js');
 const {createTaskInstanceWithSnapshot}=await import('../src/services/verification-v2/inventorySnapshot.service.js');
 const {createArea}=await import('../src/services/area.service.js');
 const {BufferedClefProvider}=await import('../src/services/verification-v2/bufferedPhoto.provider.js');
@@ -90,9 +90,9 @@ async function request(path:string,body?:unknown,expected=200,auth=staffToken){
 async function newTask(label:string,targetArea=area){
  const template=await prisma.taskTemplate.create({data:{locationId:location.id,areaId:targetArea.id,staffId:staff.id,title:label,verificationVersion:2,inventorySelection:'ALL',setupStatus:'READY',shiftStart:new Date(+now-120000),shiftEnd:end,effectiveDate:now}});
  const task=await createTaskInstanceWithSnapshot({templateId:template.id,title:label,locationId:location.id,date:new Date(),shiftStart:new Date(+now-120000),shiftEnd:end});assert.ok(task);
- await request(`/task-instance/${task.id}/start`,{areaQr:signAreaQr(targetArea)});
+ await request(`/task-instance/${task.id}/start`,{areaQr:signTaskQr(task,targetArea)});
  await request(`/task-instance/${task.id}/complete`,{},409);
- const s=await request(`/task-instance/${task.id}/capture-sessions`,{requestId:randomUUID(),areaQr:signAreaQr(targetArea),deviceId:'http-test-device',clientBootId:'http-test-boot',clientTime:new Date().toISOString(),location:{latitude:24.8607,longitude:67.0011,accuracy:3,sampledAt:new Date().toISOString()}},201);
+ const s=await request(`/task-instance/${task.id}/capture-sessions`,{requestId:randomUUID(),areaQr:signTaskQr(task,targetArea),deviceId:'http-test-device',clientBootId:'http-test-boot',clientTime:new Date().toISOString(),location:{latitude:24.8607,longitude:67.0011,accuracy:3,sampledAt:new Date().toISOString()}},201);
  return {task,s};
 }
 async function photo(s:any){

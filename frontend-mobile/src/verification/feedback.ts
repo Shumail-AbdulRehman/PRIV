@@ -47,7 +47,7 @@ export function photoFeedback(state: string): {
     case "CLEANING_REQUIRED":
       return {
         label: "Needs cleaning",
-        detail: "Clean the affected surface, scan the room QR again, then take a new photo.",
+        detail: "Clean the affected surface, scan this task’s QR code again, then take a new photo.",
         kind: "action",
       };
     case "REVIEW_REQUIRED":
@@ -72,7 +72,7 @@ export function photoFeedback(state: string): {
     case "BLOCKED":
       return {
         label: "Upload this photo again",
-        detail: "Scan the room QR and take the required photo.",
+        detail: "Scan this task’s QR code and take the required photo.",
         kind: "review",
       };
     default:

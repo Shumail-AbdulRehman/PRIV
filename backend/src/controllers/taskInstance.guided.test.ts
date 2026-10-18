@@ -6,11 +6,11 @@ vi.mock('../services/verification-v2/authorization.service.js',()=>({requireTask
 vi.mock('../services/verification-v2/captureSession.service.js',()=>({lockTask:mocks.lock}));
 vi.mock('../services/taskAssignment.service.js',()=>({markCurrentAssignmentStarted:mocks.start}));
 vi.mock('../services/auditLog.service.js',()=>({writeAuditLog:mocks.audit}));
-import {signAreaQr,signFixtureQr} from '../services/verification-v2/qr.service.js';
+import {signTaskQr,signAreaQr,signFixtureQr} from '../services/verification-v2/qr.service.js';
 process.env.VERIFICATION_QR_SECRET='test-start-qr-key-at-least-thirty-two-characters';
 const area={id:10,locationId:2,qrVersion:1,qrNonce:'start-room'};
 import {startTask,completeTask,retiredEvidenceEndpoint} from './taskInstance.controller.js';
-const request=()=>({params:{taskId:'1'},query:{},body:{areaQr:signAreaQr(area)},user:{id:7,companyId:1,role:'STAFF'}} as unknown as Request);
+const request=()=>({params:{taskId:'1'},query:{},body:{areaQr:signTaskQr({id:1,areaId:area.id},area)},user:{id:7,companyId:1,role:'STAFF'}} as unknown as Request);
 const response=()=>({json:vi.fn()} as unknown as Response);
 let task:Record<string,unknown>;
 afterEach(()=>vi.useRealTimers());

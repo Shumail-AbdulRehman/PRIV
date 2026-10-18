@@ -1799,3 +1799,27 @@ th[aria-sort="descending"] .table-sort svg {
  .overview-wide-tasks .ops-task-preview > span { grid-column: 2; grid-row: 1 / 3; }
  .overview-wide-tasks .overview-task-location { grid-column: 1; }
 }
+
+/* Area templates stay in the location workspace, with inline editing. */
+.workspace .area-template-editor { scroll-margin-block-start: 24px; }
+.workspace .area-template-editor label { display: grid; gap: 8px; font-size: .875rem; }
+.workspace .area-template-editor select { min-height: 44px; width: 100%; padding: 8px 12px; border: 1px solid var(--border); border-radius: 5px; background: var(--background); }
+.workspace .area-template-counts { display: grid; grid-template-columns: repeat(3,minmax(0,1fr)); gap: 16px; }
+.workspace .area-template-fixture { display: flex; align-items: center; gap: 16px; padding-block: 16px; border-block-end: 1px solid var(--border); }
+.workspace .area-template-fixture > div:first-child { flex: 1; min-width: 0; }
+.workspace .area-template-fixture strong { overflow-wrap: anywhere; }
+.workspace .area-template-fixture p { margin-block-start: 4px; font-size: .875rem; color: var(--muted-foreground); }
+.workspace .area-template-fixture-edit { display: grid; grid-template-columns: minmax(0,1fr) minmax(160px,.6fr) auto; width: 100%; align-items: end; gap: 16px; }
+.workspace .area-template-add { display: grid; grid-template-columns: minmax(0,1fr) 100px auto auto; align-items: end; gap: 12px; }
+@media (max-width: 640px) {
+  .workspace .area-template-counts { grid-template-columns: repeat(2,minmax(0,1fr)); }
+  .workspace .area-template-fixture { flex-wrap: wrap; gap: 12px; }
+  .workspace .area-template-fixture > div:first-child { flex-basis: 100%; }
+  .workspace .area-template-fixture-edit, .workspace .area-template-add { grid-template-columns: 1fr; }
+}
+@media print {
+  body:has(.task-qr-print) * { visibility: hidden !important; }
+  body:has(.task-qr-print) .task-qr-print, body:has(.task-qr-print) .task-qr-print * { visibility: visible !important; }
+  body:has(.task-qr-print) .task-qr-print { position: absolute; inset: 24px auto auto 24px; width: calc(100% - 48px); border: 0; }
+  body:has(.task-qr-print) .task-qr-print button { display: none !important; }
+}

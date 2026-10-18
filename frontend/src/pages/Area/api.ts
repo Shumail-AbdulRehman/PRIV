@@ -7,9 +7,6 @@ export const editArea = async (id: number, input: {expectedInventoryVersion: num
 export const addItems = async (id: number, counts: InventoryCount[], expectedInventoryVersion: number) => (await client.post(`/area/${id}/items/bulk`, {counts, expectedInventoryVersion})).data.data;
 export const editItem = async (areaId: number, itemId: number, input: Partial<AreaItem> & {expectedInventoryVersion: number}) => (await client.patch(`/area/${areaId}/items/${itemId}`, input)).data.data;
 export const archiveArea = async (id: number, expectedInventoryVersion: number) => (await client.post(`/area/${id}/archive`, {expectedInventoryVersion})).data.data;
-export const getAreaQr = async (id: number) => (await client.get<{data: {payload: string; version: number; activeSessionCount: number}}>(`/area/${id}/qr`)).data.data;
-export const rotateAreaQr = async (id: number, expectedInventoryVersion: number, expectedQrVersion: number) => (await client.post(`/area/${id}/qr/rotate`, {expectedInventoryVersion, expectedQrVersion})).data.data;
-export const getFixtureLabels = async (id: number) => (await client.get<{data: Array<{itemId: number; displayName: string; payload: string}>}>(`/area/${id}/fixture-labels`)).data.data;
 export const getStandards = async (id: number) => (await client.get<{data: StandardPhoto[]}>(`/area/${id}/standards`)).data.data;
 export const retryStandardPrivacy = async (id: number, standardId: number) => (await client.post<{data: StandardPhoto}>(`/area/${id}/standards`, {standardId})).data.data;
 export const uploadStandard = async (id: number, photo: File, caption: string, areaItemId?: number) => {

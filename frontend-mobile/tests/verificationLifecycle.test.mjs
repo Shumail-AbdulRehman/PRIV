@@ -92,7 +92,7 @@ test('a checked first photo advances to the next slot without a resume request',
   assert.ok(r.root.findByType('CameraView'));assert.ok(activations.includes('second-slot'));
  }finally{if(r)await flush(()=>r.unmount());}
 });
-for(const [state,label] of [['CLEANING_REQUIRED','Clean items, then scan QR'],['RECAPTURE_REQUIRED','Scan room to retake photos']])test(`${state} retains its QR correction action without resuming`,async()=>{
+for(const [state,label] of [['CLEANING_REQUIRED','Clean items, then scan QR'],['RECAPTURE_REQUIRED','Scan task QR to retake photos']])test(`${state} retains its QR correction action without resuming`,async()=>{
  reset();failUpload=false;let r;const original=globalThis.directUiMocks.api.uploadPhoto;
  globalThis.directUiMocks.api.uploadPhoto=async(...args)=>{const result=await original(...args);const requirement=manifest.items[0].requirements[0];requirement.state=state;requirement.currentAttempt.state=state;return{...result,state};};
  try{

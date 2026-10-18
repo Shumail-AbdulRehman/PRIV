@@ -23,7 +23,7 @@ Use existing Button, Input, Text, ScreenHeader, PageHeader, SurfaceCard, StatusB
 
 Web: Overview / Today / Review photos / Locations / Team / Attendance; administrative tools stay quieter. Overview and Today share the daily implementation. Managers see server-scoped assigned locations. Owners can compare locations and expand a defined seven-day submission comparison.
 
-Staff: My day / Tasks / Help & account. Home shows location, shift, attendance and next task. Use the existing sequence: check in, select task, scan the assigned area, clean, follow required photo steps, submit. Starting cleaning and submitting evidence are different actions.
+Staff: My day / Tasks / Help & account. Home shows location, shift, attendance and next task. Use the existing sequence: check in, select task, scan the task QR, clean, follow required photo steps, submit. Starting cleaning and submitting evidence are different actions.
 
 ## Language and listening
 
@@ -71,3 +71,20 @@ Use a solid deep teal sidebar, a mint leaf mark, light neutral canvas, Inter bod
 Owner and manager overviews have role-specific composition. Summary lists show three or four records and link to full lists. On narrow screens, attention precedes location comparisons. Owner trends use available seven-day aggregates rather than fabricating a daily series. Full local lists sort before pagination; server-paginated views keep backend-owned totals and filters. Preserve schedule anchors, scoped reads, immutable task instructions, explicit manager decisions and protected evidence access.
 
 Reuse `OperationalSummary`, `AttentionList`, `WorkProgress`, `PageHeader`, `SurfaceCard`, `StatCard`, `OperationStatus` and `DataTable`. Tables use mobile summaries with visible actions, and desktop scroll regions remain keyboard reachable. Loading skeletons retain the shell, errors offer retry, and form success/failure remains visible. Reference implementation, screenshots and validation boundaries: `docs/web-dashboard-redesign/README.md`.
+
+
+## Area templates and task QR codes, 2026-10-18
+
+The location's **Area template** tab owns inline area creation, renaming, fixture
+editing and archiving. Area bookmarks redirect into this workspace. Do not restore
+separate area configuration pages, fixture QR labels or manual QR replacement
+controls. Area template IDs and immutable task photo snapshots remain unchanged.
+
+Each generated task instance has an automatically signed QR bound to its task ID
+and assigned area. The same instance keeps the same code; other instances, even
+from the same schedule/template, get different codes. Owners and scoped managers
+can display/print **Task QR** from task history, Today task details and actual
+weekly-schedule items. Planned schedule previews have no task code until the
+instance exists. Staff scan that task code at start and again for capture/rework.
+Old shared-area and fixture codes cannot authorize a task scan. Keep QR payloads
+out of staff task responses, logs and persistent browser storage.

@@ -32,6 +32,7 @@ export default function MigrationSetup({ locationId }: { locationId: number }) {
       }
     } finally { setBusy(false); }
   }
+  if (templates.isPending || templates.data?.length === 0) return null;
   return <section className="space-y-4">
     <h2 className="text-lg font-semibold">Set up existing schedules</h2>
     <p className="text-sm text-muted-foreground">Confirm one room for each schedule. If a schedule covers several rooms, create separate schedules and review staffing conflicts first. Current tasks keep their original requirements.</p>

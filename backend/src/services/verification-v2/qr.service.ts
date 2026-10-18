@@ -16,3 +16,18 @@ export function verifyAreaQr(payload:string,area:QrArea) {
 }
 export const slotNonce=(sessionId:string,slotId:string,generation:number)=>mac(`${sessionId}:${slotId}:${generation}`,'slot');
 export const hashNonce=(nonce:string)=>createHash('sha256').update(nonce).digest('hex');
+
+// A template can be reused by many tasks. Only a code signed for this exact
+// task instance grants scan authority; area and fixture codes cannot substitute.
+type QrTask = {id:number;areaId:number|null};
+export function signTaskQr(task:QrTask,area:QrArea) {
+ if(task.areaId!==area.id)throw new ApiError(409,'Task area does not match its template');
+ const body=Buffer.from(JSON.stringify({namespace:'hygeneops.task.v1',kid:keyId(),taskId:task.id,areaId:area.id,version:area.qrVersion,nonce:area.qrNonce})).toString('base64url');
+ return `${body}.${mac(body,'qr')}`;
+}
+export function verifyTaskQr(payload:string,task:QrTask,area:QrArea) {
+ const expected=signTaskQr(task,area);
+ if(Buffer.byteLength(payload)!==Buffer.byteLength(expected)||!timingSafeEqual(Buffer.from(payload),Buffer.from(expected)))
+  throw new ApiError(422,'Scan the QR code generated for this task');
+ return {taskId:task.id,areaId:area.id};
+}

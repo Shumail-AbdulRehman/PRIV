@@ -8,7 +8,7 @@ import { ApiResponse } from '../utils/ApiResponse.js';
 import { ApiError } from '../utils/ApiError.js';
 import { getUtcDayRange, getZonedDayRange } from '../utils/dateTime.js';
 import { markCurrentAssignmentStarted } from '../services/taskAssignment.service.js';
-import { verifyAreaQr } from '../services/verification-v2/qr.service.js';
+import { signTaskQr, verifyTaskQr } from '../services/verification-v2/qr.service.js';
 import { writeAuditLog } from '../services/auditLog.service.js';
 import { mobileTaskSummary } from '../services/mobile/staffMobile.service.js';
 
@@ -76,13 +76,13 @@ export const startTask = async (req: Request, res: Response) => {
     if (task.areaId !== initial?.areaId) throw new ApiError(409, 'Task area changed. Refresh the task and scan again.');
     const areaQr = req.body?.areaQr;
     if (typeof areaQr !== 'string' || !areaQr.trim() || areaQr.length > 4096)
-      throw new ApiError(400, 'Scan the assigned area QR to start cleaning.', [{ code: 'AREA_QR_REQUIRED' }]);
+      throw new ApiError(400, 'Scan this task’s QR code to start cleaning.', [{ code: 'AREA_QR_REQUIRED' }]);
     const area = await tx.area.findUnique({ where: { id: task.areaId } });
     if (!area || area.locationId !== task.locationId) throw inventorySetupRequired();
-    try { verifyAreaQr(areaQr, area); }
+    try { verifyTaskQr(areaQr, task, area); }
     catch (error) {
       if (error instanceof ApiError && error.statusCode === 422)
-        throw new ApiError(422, 'This QR is not the current code for your assigned area. Scan the area QR for this task.', [{ code: 'AREA_QR_MISMATCH' }]);
+        throw new ApiError(422, 'This QR code belongs to another task or is no longer valid. Scan the QR code generated for this task.', [{ code: 'AREA_QR_MISMATCH' }]);
       throw error;
     }
     const now = new Date();
@@ -127,7 +127,7 @@ function inventorySetupRequired() {
 /** Old clients get an actionable response before any file parsing or storage. */
 export const retiredEvidenceEndpoint = async (req: Request, _res: Response) => {
   await requireTaskAccess(req.user!, Number(req.params.taskId), { staffMutation: true });
-  throw new ApiError(410, 'Use Finish task in the updated app to scan the room QR and capture guided photos.', [{ code: 'GUIDED_VERIFICATION_REQUIRED' }]);
+  throw new ApiError(410, 'Use Finish task in the updated app to scan the task QR and capture guided photos.', [{ code: 'GUIDED_VERIFICATION_REQUIRED' }]);
 };
 
 export const getAreaSubmissions = async (req: Request, res: Response) => {
@@ -266,3 +266,21 @@ export const getTasknstancesOfLocation = async (req: Request, res: Response) => 
 
 
   
+
+/** QR credentials are available only to the scoped owner/manager, never staff. */
+export const getTaskQr = async (req: Request, res: Response) => {
+  if (!['ADMIN','MANAGER'].includes(req.user!.role)) throw new ApiError(403, 'Manager or admin account required');
+  const taskId = Number(req.params.taskId);
+  if (!Number.isSafeInteger(taskId) || taskId < 1) throw new ApiError(400, 'Invalid task id');
+  const task = await requireTaskAccess(req.user!, taskId);
+  if (!task.isActive || task.status === 'CANCELLED' || task.status === 'COMPLETED' || task.staffSubmittedAt)
+    throw new ApiError(409, 'This task no longer needs a QR code.');
+  if (!task.location.isActive || task.verificationVersion !== 2 || !task.areaId) throw inventorySetupRequired();
+  const area = await prisma.area.findUnique({where: {id: task.areaId}});
+  if (!area || area.locationId !== task.locationId) throw inventorySetupRequired();
+  res.setHeader('Cache-Control', 'no-store');
+  res.json(new ApiResponse(200, {taskId: task.id, title: task.title,
+    areaName: task.areaNameSnapshot ?? area.name, shiftStart: task.shiftStart,
+    shiftEnd: task.shiftEnd, timezone: task.location.timezone,
+    payload: signTaskQr(task, area)}, 'Task QR generated'));
+};

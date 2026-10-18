@@ -42,7 +42,7 @@ const {default:jwt}=await import('jsonwebtoken');
 const {default:taskRouter}=await import('../src/routes/taskInstance.route.js');
 const {default:verificationRouter}=await import('../src/routes/verification.route.js');
 const {default:caseRouter}=await import('../src/routes/verificationException.route.js');
-const {signAreaQr}=await import('../src/services/verification-v2/qr.service.js');
+const {signTaskQr}=await import('../src/services/verification-v2/qr.service.js');
 const {createTaskInstanceWithSnapshot}=await import('../src/services/verification-v2/inventorySnapshot.service.js');
 const {readBufferedPhoto,removeBufferedPhoto}=await import('../src/services/verification-v2/evidenceBuffer.js');
 const {finalizeTask}=await import('../src/services/verification-v2/completion.service.js');
@@ -121,14 +121,14 @@ async function capture(session:any,slot:any,image:Buffer,label:string){
  console.log(`${live?'LIVE':'CONTROLLED'} ${label}: ${durationMs}ms, ${result.state}, ${result.storage}, ${result.reasonCode??''}`);
  return result;
 }
-async function session(taskId:number,rework?:unknown){return request(`/task-instance/${taskId}/capture-sessions${rework?'/rework':''}`,{requestId:randomUUID(),areaQr:signAreaQr(area),deviceId:'http-test-device',clientBootId:'http-test-boot',clientTime:new Date().toISOString(),location:{latitude:24.8607,longitude:67.0011,accuracy:3,sampledAt:new Date().toISOString()},...(rework?{requirements:rework}: {})},staffToken,201);}
+async function session(taskId:number,rework?:unknown){return request(`/task-instance/${taskId}/capture-sessions${rework?'/rework':''}`,{requestId:randomUUID(),areaQr:signTaskQr({id:taskId,areaId:area.id},area),deviceId:'http-test-device',clientBootId:'http-test-boot',clientTime:new Date().toISOString(),location:{latitude:24.8607,longitude:67.0011,accuracy:3,sampledAt:new Date().toISOString()},...(rework?{requirements:rework}: {})},staffToken,201);}
 try{
  for(const scenario of live?['clean','dirty']:['clean','dirty','screen','origin','origin-dirty']){
   activeScenario=scenario;
   const template=await prisma.taskTemplate.create({data:{locationId:location.id,areaId:area.id,staffId:staff.id,title:`PHOTO TEST ${scenario}`,verificationVersion:2,inventorySelection:'ALL',setupStatus:'READY',shiftStart:new Date(+now-120000),shiftEnd:end,effectiveDate:now}});
   const task=await createTaskInstanceWithSnapshot({templateId:template.id,title:template.title,locationId:location.id,date:new Date(),shiftStart:new Date(+now-120000),shiftEnd:end});assert.ok(task?.id);
   await request(`/task-instance/${task.id}/start`,{areaQr:'wrong-qr'},staffToken,422);
-  await request(`/task-instance/${task.id}/start`,{areaQr:signAreaQr(area)});
+  await request(`/task-instance/${task.id}/start`,{areaQr:signTaskQr(task,area)});
   await request(`/task-instance/${task.id}/complete`,{},staffToken,409);
   let s=await session(task.id);
   assert.deepEqual(s.requiredContextKeys,[], 'New sessions need only manager-configured item photos');

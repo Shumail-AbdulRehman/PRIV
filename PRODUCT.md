@@ -28,6 +28,6 @@ Avoid decorative billing pages, generic marketing-style pricing cards inside aut
 
 Target WCAG AA. Preserve keyboard navigation, visible focus states, semantic status messaging, sufficient contrast, and reduced-motion preferences. Do not rely on color alone to communicate plan access or limit states.
 
-Core staff flow: check in → choose task → scan the assigned area QR → start cleaning → follow guided required photos → submit. Submission remains separate from final verification. Staff upload photos directly and retry failed uploads explicitly. Temporary pictures are not restored after leaving the screen. Keep upload receipt, checks and manager review distinct.
+Core staff flow: check in → choose task → scan the task QR → start cleaning → follow guided required photos → submit. Submission remains separate from final verification. Staff upload photos directly and retry failed uploads explicitly. Temporary pictures are not restored after leaving the screen. Keep upload receipt, checks and manager review distinct.
 
 Design system: `DESIGN.md`. Current implementation and usability validation plan: `docs/UX_REDESIGN.md`.

@@ -2,7 +2,7 @@ import {beforeEach,describe,expect,it,vi} from 'vitest';
 const m=vi.hoisted(()=>({tx:{} as any,access:vi.fn(),nonce:vi.fn()}));
 vi.mock('../../prisma/prisma.js',()=>({prisma:{$transaction:(fn:any)=>fn(m.tx)}}));
 vi.mock('./authorization.service.js',()=>({requireTaskAccess:m.access}));
-vi.mock('./qr.service.js',()=>({verifyAreaQr:vi.fn(),slotNonce:()=> 'a'.repeat(40),hashNonce:m.nonce}));
+vi.mock('./qr.service.js',()=>({verifyTaskQr:vi.fn(),slotNonce:()=> 'a'.repeat(40),hashNonce:m.nonce}));
 import {createCaptureSession,createReworkCaptureSession,reserveAttempt,resumeSession,retakeSlots,sessionResponse,staffAttemptResult,lockAuthorizedSession} from './captureSession.service.js';
 const actor={role:'STAFF' as const,id:7,companyId:1};
 const sessionId='11111111-1111-4111-8111-111111111111',slotId='22222222-2222-4222-8222-222222222222';
@@ -125,14 +125,14 @@ describe('capture authority',()=>{
  });
  it('refuses DIRTY retakes under existing session authority',async()=>{
   m.tx.taskEvidenceRequirement={findFirst:vi.fn().mockResolvedValue({id:slotId,state:'CLEANING_REQUIRED',decisionVersion:1}),update:vi.fn()};
-  await expect(retakeSlots(actor,sessionId,{deviceId:'phone',requirements:[{requirementId:slotId,expectedGeneration:1}]})).rejects.toThrow('scan the area QR again');
+  await expect(retakeSlots(actor,sessionId,{deviceId:'phone',requirements:[{requirementId:slotId,expectedGeneration:1}]})).rejects.toThrow('scan the task QR again');
   expect(m.tx.taskEvidenceRequirement.update).not.toHaveBeenCalled();expect(m.tx.captureSlot.create).not.toHaveBeenCalled();
  });
  it('refuses new captures against DIRTY views even through offline upload',async()=>{
   m.tx.captureSlot.findFirst.mockResolvedValue({id:slotId,requirementId:'requirement',nonceHash:'hash',generation:0,expiresAt:new Date(Date.now()+60000)});
   m.tx.taskEvidenceRequirement={findUniqueOrThrow:vi.fn().mockResolvedValue({id:'requirement',taskVerificationItemId:5,state:'CLEANING_REQUIRED',decisionVersion:1}),update:vi.fn()};
   m.tx.taskVerificationItem={findFirst:vi.fn().mockResolvedValue({id:5})};
-  await expect(reserveAttempt(actor,sessionId,input(),false)).rejects.toThrow('scan the area QR again');
+  await expect(reserveAttempt(actor,sessionId,input(),false)).rejects.toThrow('scan the task QR again');
   expect(m.tx.verificationAttempt.create).not.toHaveBeenCalled();expect(m.tx.taskEvidenceRequirement.update).not.toHaveBeenCalled();
  });
  it('allocates failed context retakes',async()=>{m.tx.captureSlot.findFirst.mockResolvedValue({generation:0,attemptId:'old'});m.tx.verificationAttempt.findUnique.mockResolvedValue({state:'RECAPTURE_REQUIRED'});expect((await retakeSlots(actor,sessionId,{deviceId:'phone',contexts:[{contextKey:'ENTRANCE',expectedGeneration:0}]}))[0]).toMatchObject({contextKey:'ENTRANCE',generation:1});});

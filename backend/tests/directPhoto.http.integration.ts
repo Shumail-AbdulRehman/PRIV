@@ -36,7 +36,7 @@ const {default:jwt}=await import('jsonwebtoken');
 const {default:taskRouter}=await import('../src/routes/taskInstance.route.js');
 const {default:verificationRouter}=await import('../src/routes/verification.route.js');
 const {default:caseRouter}=await import('../src/routes/verificationException.route.js');
-const {signAreaQr}=await import('../src/services/verification-v2/qr.service.js');
+const {signTaskQr,signAreaQr}=await import('../src/services/verification-v2/qr.service.js');
 const {createTaskInstanceWithSnapshot}=await import('../src/services/verification-v2/inventorySnapshot.service.js');
 const {createArea}=await import('../src/services/area.service.js');
 const {BufferedClefProvider}=await import('../src/services/verification-v2/bufferedPhoto.provider.js');
@@ -84,9 +84,11 @@ async function request(path:string,body?:unknown,expected=200,auth=staffToken){
 async function newTask(label:string,targetArea=area){
  const template=await prisma.taskTemplate.create({data:{locationId:location.id,areaId:targetArea.id,staffId:staff.id,title:label,verificationVersion:2,inventorySelection:'ALL',setupStatus:'READY',shiftStart:new Date(+now-120000),shiftEnd:end,effectiveDate:now}});
  const task=await createTaskInstanceWithSnapshot({templateId:template.id,title:label,locationId:location.id,date:new Date(),shiftStart:new Date(+now-120000),shiftEnd:end});assert.ok(task);
- await request(`/task-instance/${task.id}/start`,{areaQr:signAreaQr(targetArea)});
+ const taskQr=await request(`/task-instance/${task.id}/qr`,undefined,200,managerToken);
+ assert.equal(taskQr.taskId,task.id);
+ await request(`/task-instance/${task.id}/start`,{areaQr:taskQr.payload});
  await request(`/task-instance/${task.id}/complete`,{},409);
- const s=await request(`/task-instance/${task.id}/capture-sessions`,{requestId:randomUUID(),areaQr:signAreaQr(targetArea),deviceId:'http-test-device',clientBootId:'http-test-boot',clientTime:new Date().toISOString(),location:{latitude:24.8607,longitude:67.0011,accuracy:3,sampledAt:new Date().toISOString()}},201);
+ const s=await request(`/task-instance/${task.id}/capture-sessions`,{requestId:randomUUID(),areaQr:taskQr.payload,deviceId:'http-test-device',clientBootId:'http-test-boot',clientTime:new Date().toISOString(),location:{latitude:24.8607,longitude:67.0011,accuracy:3,sampledAt:new Date().toISOString()}},201);
  return {task,s};
 }
 async function photo(s:any){
@@ -102,6 +104,30 @@ async function photo(s:any){
  return {upload,metadata};
 }
 try{
+ // Two tasks generated from the same template must never share scan authority.
+ {
+  const {task:first}=await newTask('Task QR authority');
+  const firstQr=await request(`/task-instance/${first.id}/qr`,undefined,200,managerToken);
+  assert.equal((await request(`/task-instance/${first.id}/qr`,undefined,200,managerToken)).payload,firstQr.payload,'reading a task QR never rotates it');
+  await request(`/task-instance/${first.id}/qr`,undefined,403);
+  const second=await createTaskInstanceWithSnapshot({templateId:first.templateId!,title:'Same template, separate task',locationId:location.id,date:new Date(+now+60000),shiftStart:new Date(+now-120000),shiftEnd:end});assert.ok(second);
+  const secondQr=await request(`/task-instance/${second.id}/qr`,undefined,200,managerToken);
+  assert.notEqual(firstQr.payload,secondQr.payload,'same area and template still yield unique task QRs');
+  await request(`/task-instance/${second.id}/start`,{areaQr:firstQr.payload},422);
+  await request(`/task-instance/${second.id}/start`,{areaQr:signAreaQr(area)},422);
+  await request(`/task-instance/${second.id}/start`,{areaQr:secondQr.payload});
+  const body={requestId:randomUUID(),areaQr:firstQr.payload,deviceId:'http-test-device',clientBootId:'http-test-boot',clientTime:new Date().toISOString(),location:{latitude:24.8607,longitude:67.0011,accuracy:3,sampledAt:new Date().toISOString()}};
+  await request(`/task-instance/${second.id}/capture-sessions`,body,422);
+  await request(`/task-instance/${second.id}/capture-sessions`,{...body,requestId:randomUUID(),areaQr:secondQr.payload},201);
+  const scoped=await prisma.manager.create({data:{companyId:company.id,name:'Scoped manager',role:'MANAGER',email:randomUUID()+'@test.invalid',password:'isolated-test-password'}});
+  const scopedToken=token(scoped.id,'MANAGER');
+  await request(`/task-instance/${first.id}/qr`,undefined,403,scopedToken);
+  await prisma.managerLocation.create({data:{managerId:scoped.id,locationId:location.id}});
+  assert.equal((await request(`/task-instance/${first.id}/qr`,undefined,200,scopedToken)).payload,firstQr.payload);
+  const foreignCompany=await prisma.company.create({data:{name:'Foreign QR company',subscriptionStatus:'ACTIVE'}});
+  const foreignManager=await prisma.manager.create({data:{companyId:foreignCompany.id,name:'Foreign owner',role:'ADMIN',email:randomUUID()+'@test.invalid',password:'isolated-test-password'}});
+  await request(`/task-instance/${first.id}/qr`,undefined,404,token(foreignManager.id,'ADMIN'));
+ }
  for(const kind of ['clean','dirty','screen','wrong-object','missing-view','object-uncertain','view-uncertain','cleanliness-uncertain','failure','storage-failure','interrupted','renew'] as const){
   // Independent actors keep rapid fixtures within the per-worker session limit.
   if(kind!=='clean'){
@@ -115,7 +141,7 @@ try{
   if(kind==='failure'||kind==='renew'){
    scenario='failure';await p.upload(503);await request(`/task-instance/${task.id}/complete`,{},409);
    if(kind==='renew'){
-    const renewed=await request(`/capture-session/${s.id}/renew`,{requestId:randomUUID(),areaQr:signAreaQr(area),deviceId:'http-test-device',clientBootId:'http-test-boot',clientTime:new Date().toISOString(),location:{latitude:24.8607,longitude:67.0011,accuracy:3,sampledAt:new Date().toISOString()}},201);
+    const renewed=await request(`/capture-session/${s.id}/renew`,{requestId:randomUUID(),areaQr:signTaskQr(task,area),deviceId:'http-test-device',clientBootId:'http-test-boot',clientTime:new Date().toISOString(),location:{latitude:24.8607,longitude:67.0011,accuracy:3,sampledAt:new Date().toISOString()}},201);
     assert.ok(renewed.slots.some((slot:any)=>slot.requirementId&&slot.id!==s.slots[0].id));continue;
    }
    scenario='clean';await p.upload();assert.equal(aiCalls,beforeAi+2);
@@ -156,7 +182,7 @@ try{
     assert.equal(polled.instructions,result.instructions,'polling preserves the specific correction');
     if(kind==='wrong-object'){
      for(let repeat=0;repeat<3;repeat++){
-      retakeSession=await request(`/capture-session/${retakeSession.id}/renew`,{requestId:randomUUID(),areaQr:signAreaQr(area),deviceId:'http-test-device',clientBootId:'http-test-boot',clientTime:new Date().toISOString(),location:{latitude:24.8607,longitude:67.0011,accuracy:3,sampledAt:new Date().toISOString()}},201);
+      retakeSession=await request(`/capture-session/${retakeSession.id}/renew`,{requestId:randomUUID(),areaQr:signTaskQr(task,area),deviceId:'http-test-device',clientBootId:'http-test-boot',clientTime:new Date().toISOString(),location:{latitude:24.8607,longitude:67.0011,accuracy:3,sampledAt:new Date().toISOString()}},201);
       const rejected=await(await photo(retakeSession)).upload();
       assert.equal(rejected.state,'RECAPTURE_REQUIRED');assert.equal(rejected.reasonCode,'WRONG_ITEM');assert.equal(rejected.storage,'discarded');
       assert.match(rejected.instructions,/take another photo/);
@@ -166,7 +192,7 @@ try{
      assert.equal(cloudCalls,beforeCloud,'wrong objects must never be uploaded to cloud storage');
     }
     const path=kind==='dirty'?`/task-instance/${task.id}/capture-sessions/rework`:`/capture-session/${retakeSession.id}/renew`;
-    const retrySession=await request(path,{requestId:randomUUID(),areaQr:signAreaQr(area),deviceId:'http-test-device',clientBootId:'http-test-boot',clientTime:new Date().toISOString(),location:{latitude:24.8607,longitude:67.0011,accuracy:3,sampledAt:new Date().toISOString()},...(kind==='dirty'?{requirements:[{requirementId:r.id,expectedGeneration:r.decisionVersion}]}:{})},201);
+    const retrySession=await request(path,{requestId:randomUUID(),areaQr:signTaskQr(task,area),deviceId:'http-test-device',clientBootId:'http-test-boot',clientTime:new Date().toISOString(),location:{latitude:24.8607,longitude:67.0011,accuracy:3,sampledAt:new Date().toISOString()},...(kind==='dirty'?{requirements:[{requirementId:r.id,expectedGeneration:r.decisionVersion}]}:{})},201);
     scenario='clean';await(await photo(retrySession)).upload();await request(`/task-instance/${task.id}/complete`,{});
    }
    if(kind==='clean'){
@@ -253,7 +279,7 @@ try{
    await request(`/task-instance/${task.id}/complete`,{},409);
    const manifest=await request(`/task-instance/${task.id}/verification`);
    assert.equal(manifest.items[0].requirements[0].state,'RECAPTURE_REQUIRED');
-   current=await request(`/capture-session/${current.id}/renew`,{requestId:randomUUID(),areaQr:signAreaQr(configured),deviceId:'http-test-device',clientBootId:'http-test-boot',clientTime:new Date().toISOString(),location:{latitude:24.8607,longitude:67.0011,accuracy:3,sampledAt:new Date().toISOString()}},201);
+   current=await request(`/capture-session/${current.id}/renew`,{requestId:randomUUID(),areaQr:signTaskQr(task,configured),deviceId:'http-test-device',clientBootId:'http-test-boot',clientTime:new Date().toISOString(),location:{latitude:24.8607,longitude:67.0011,accuracy:3,sampledAt:new Date().toISOString()}},201);
   }
   assert.equal(cloudCalls,beforeCloud);assert.equal(replayedCalls,4);
   wrongObject=false;const corrected=await(await photo(current)).upload();
@@ -285,7 +311,7 @@ try{
   for(const[key,value]of Object.entries({CLOUDFLARE_ACCOUNT_ID:originalEnvironment.account,CLOUDFLARE_API_TOKEN:originalEnvironment.token,CLEF_MODEL:originalEnvironment.model,CLEF_SCREENING_CONFIDENCE_THRESHOLD:originalEnvironment.screening}))if(value===undefined)delete process.env[key];else process.env[key]=value;
  }
  assert.equal(await prisma.verificationWorkerHeartbeat.count(),0);
- console.log('PASS direct HTTP: model categories CLEAN/DIRTY/NEEDS_ATTENTION and NOT_SURE persist and route correctly at diagnostic confidence .1; recorded below-threshold WRONG_ITEM responses are rejected by the real adapter without cloud storage, manager review or submission; four consecutive wrong-object retakes produce no manager case, no issue and no cloud upload; separate Indian and Western inventory creates correct task snapshots and one/two photo steps; legacy toilet tasks preserved; object/view/cleanliness gates, upload/refresh/polling corrections, AI/storage retry, access control and task submission.');
+ console.log('PASS direct HTTP: per-task QR uniqueness, stability, start and finish isolation, shared-code rejection and scoped owner/manager access; model categories CLEAN/DIRTY/NEEDS_ATTENTION and NOT_SURE persist and route correctly at diagnostic confidence .1; recorded below-threshold WRONG_ITEM responses are rejected by the real adapter without cloud storage, manager review or submission; four consecutive wrong-object retakes produce no manager case, no issue and no cloud upload; separate Indian and Western inventory creates correct task snapshots and one/two photo steps; legacy toilet tasks preserved; object/view/cleanliness gates, upload/refresh/polling corrections, AI/storage retry, access control and task submission.');
 }finally{
  await new Promise<void>((resolve,reject)=>server.close(e=>e?reject(e):resolve()));await prisma.$disconnect();
  const cleanup=new pg.Client({connectionString:source});await cleanup.connect();await cleanup.query(`DROP DATABASE "${database}" WITH (FORCE)`);await cleanup.end();

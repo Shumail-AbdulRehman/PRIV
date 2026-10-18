@@ -95,7 +95,7 @@ export default function LocationOverview({
                   header: "Action",
                   render: (a) => (
                     <Button asChild variant="outline">
-                      <Link to={"/areas/" + a.id}>
+                      <Link to={"/locations/" + locationId + "?tab=areas&area=" + a.id}>
                         {t("Open")}
                         <ArrowRight size={14} />
                       </Link>
@@ -107,9 +107,9 @@ export default function LocationOverview({
           ) : null}
           <div className="panel-footer">
             <Button asChild variant="ghost">
-              <Link to={"/locations/" + locationId + "/areas/new"}>
+              <Link to={"/locations/" + locationId + "?tab=areas&newArea=1"}>
                 <Plus size={14} />
-                {t("Add area")}
+                {t("Add area template")}
               </Link>
             </Button>
             <button onClick={() => onTab("areas")}>

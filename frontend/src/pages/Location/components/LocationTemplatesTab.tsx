@@ -1,5 +1,4 @@
 import DataTable from "@/components/common/DataTable";
-import { QrCode } from "lucide-react";
 import { useLanguage } from "@/i18n/context";
 import TemplateInventoryEditor from "@/pages/Area/TemplateInventoryEditor";
 import { useAreas } from "@/pages/Area/queries";
@@ -20,7 +19,6 @@ import type { EditTaskTemplateInput } from "@/pages/Task/api";
 import type { LocationStaff, TaskTemplate } from "../types";
 import { toDateStr, buildDateTimeIso } from "@/pages/Task/taskScheduleForm";
 import TaskScheduleWizard from "@/pages/Task/components/TaskScheduleWizard";
-import TaskTemplateQr from "./TaskTemplateQr";
 
 const fmtTimeWithTz = (d: string | null, timeZone = "UTC") => {
   if (!d) return "—";
@@ -64,7 +62,6 @@ export default function LocationTemplatesTab({
   const deleteTemplate = useDeleteTaskTemplate();
   const editTemplate = useEditTaskTemplate();
   const assignStaff = useAssignStaffToTemplate();
-  const [expandedQr, setExpandedQr] = useState<number | null>(null);
   const [editingTemplate, setEditingTemplate] = useState<TaskTemplate | null>(
     null,
   );
@@ -240,9 +237,6 @@ export default function LocationTemplatesTab({
         data={templates}
         rowKey={(row) => row.id}
         emptyMessage="No cleaning schedules for this location."
-        expandedRow={(row) =>
-          expandedQr === row.id ? <TaskTemplateQr template={row} /> : null
-        }
         columns={[
           {
             key: "schedule",
@@ -341,16 +335,6 @@ export default function LocationTemplatesTab({
                 <Button variant="outline" onClick={() => handleEditOpen(row)}>
                   <Pencil size={14} />
                   {translate("Edit schedule")}
-                </Button>
-                <Button
-                  variant="ghost"
-                  aria-expanded={expandedQr === row.id}
-                  onClick={() =>
-                    setExpandedQr(expandedQr === row.id ? null : row.id)
-                  }
-                >
-                  <QrCode size={14} />
-                  {translate("QR")}
                 </Button>
                 <DeleteButton
                   name={row.title}

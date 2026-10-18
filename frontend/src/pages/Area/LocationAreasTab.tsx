@@ -1,8 +1,9 @@
 import { useState } from "react";
 import { nonRetiredFixtureCount } from "./types";
 import MigrationSetup from "./MigrationSetup";
-import { Link } from "react-router-dom";
-import { Layers, Plus, Search, ArrowRight } from "lucide-react";
+import { useSearchParams } from "react-router-dom";
+import AreaTemplateForm from "./AreaTemplateForm";
+import { Layers, Plus, Search, Pencil } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import StatusBadge from "@/components/common/StatusBadge";
@@ -18,6 +19,17 @@ export default function LocationAreasTab({
 }) {
   const { t } = useLanguage();
   const query = useAreas(locationId);
+  const [params, setParams] = useSearchParams();
+  const selectedId = Number(params.get('area'));
+  const creating = params.get('newArea') === '1';
+  const editing = Number.isSafeInteger(selectedId) && selectedId > 0;
+  const edit = (id?: number) => setParams(old => {
+    const next = new URLSearchParams(old); next.set('tab', 'areas');
+    next.delete('area'); next.delete('newArea');
+    if (id) next.set('area', String(id)); else next.set('newArea', '1');
+    return next;
+  });
+  const close = () => setParams(old => { const next = new URLSearchParams(old); next.delete('area'); next.delete('newArea'); return next; });
   const [search, setSearch] = useState("");
   const [status, setStatus] = useState("current");
   const areas = (query.data ?? []).filter(
@@ -31,18 +43,14 @@ export default function LocationAreasTab({
     <section className="space-y-5">
       <div className="ops-section-heading flex items-start justify-between gap-3">
         <div>
-          <h2>{t("Areas and inventory")}</h2>
+          <h2>{t("Area template")}</h2>
           <p className="text-sm text-muted-foreground">
-            {t("Reusable rooms, fixtures and area QR codes.")}
+            {t("Add an area once, then reuse it in cleaning schedules.")}
           </p>
         </div>
-        <Button asChild>
-          <Link to={"/locations/" + locationId + "/areas/new"}>
-            <Plus size={16} />
-            {t("Add area")}
-          </Link>
-        </Button>
+        <Button onClick={() => edit()}><Plus size={16} />{t("Add area template")}</Button>
       </div>
+      {(creating || editing) && <AreaTemplateForm key={creating ? 'new' : selectedId} locationId={locationId} areaId={creating ? undefined : selectedId} close={close} created={edit} />}
       <div className="ops-toolbar">
         <label className="ops-search">
           <span className="flex items-center gap-2">
@@ -100,18 +108,6 @@ export default function LocationAreasTab({
               render: nonRetiredFixtureCount,
             },
             {
-              key: "schedules",
-              header: "Active schedules",
-              sortValue: (a) => a.activeScheduleCount ?? 0,
-              render: (a) => a.activeScheduleCount ?? "—",
-            },
-            {
-              key: "reviews",
-              header: "Open issues",
-              sortValue: (a) => a.exceptionCount ?? a._count?.exceptions ?? 0,
-              render: (a) => a.exceptionCount ?? a._count?.exceptions ?? "—",
-            },
-            {
               key: "status",
               header: "Status",
               sortValue: (a) => a.status,
@@ -121,12 +117,7 @@ export default function LocationAreasTab({
               key: "action",
               header: "Action",
               render: (a) => (
-                <Button asChild variant="outline">
-                  <Link to={"/areas/" + a.id}>
-                    {t("Open area")}
-                    <ArrowRight size={14} />
-                  </Link>
-                </Button>
+                <Button variant="outline" onClick={() => edit(a.id)} aria-label={t('Edit {name}', {name: a.name})}><Pencil size={14} />{t("Edit area")}</Button>
               ),
             },
           ]}

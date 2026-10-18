@@ -133,20 +133,20 @@ export function StartTaskScreen({ route, navigation }: Props) {
         <Icon name="CircleCheck" size={28} className="text-accent-foreground" />
         <Text className="text-xl font-bold text-accent-foreground">2 · Clean, then take photos</Text>
         {task.startedAt ? <Text className="text-sm font-semibold text-accent-foreground">Started {formatClockTime(task.startedAt, timeZone)}</Text> : null}
-        <Text className="text-base leading-6 text-accent-foreground">Clean the area. When you’re done, scan the room QR again to take task photos.</Text>
+        <Text className="text-base leading-6 text-accent-foreground">Clean the area. When you’re done, scan this task’s QR code again to take task photos.</Text>
       </View>
       <Button size="lg" iconRight="ArrowRight" onPress={() => navigation.replace('Verification', { taskId, requirePhotoQr: true })}>Take task photos</Button>
     </> : null}
     {canStart ? <>
 
       <View className="gap-1">
-        <Text className="text-xl font-bold">1 · Scan room QR</Text>
-        <Text className="text-base leading-6 text-muted-foreground">Use the room marker for {task.areaNameSnapshot ?? 'your assigned area'}. Your task starts after the area is confirmed.</Text>
+        <Text className="text-xl font-bold">1 · Scan task QR</Text>
+        <Text className="text-base leading-6 text-muted-foreground">{t('Use the task QR code for {area}. Your task starts after the QR is confirmed.', {area: task.areaNameSnapshot ?? t('your assigned area')})}</Text>
       </View>
-      {Platform.OS === 'web' ? <Text>Open the installed Hygene Ops Staff app to scan the area QR.</Text> : <>
+      {Platform.OS === 'web' ? <Text>Open the installed Hygene Ops Staff app to scan the task QR.</Text> : <>
         {!permission?.granted ? <View className="gap-4 rounded-xl bg-muted p-5">
           <Icon name="Camera" size={28} className="text-primary" />
-          <Text className="text-base leading-6">Allow camera access to scan the room marker.</Text>
+          <Text className="text-base leading-6">Allow camera access to scan the task QR code.</Text>
           <Button size="lg" onPress={() => {
           if (permission?.canAskAgain) void requestPermission().catch(() => setError('Camera permission could not be requested. Try again.'));
           else void Linking.openSettings();

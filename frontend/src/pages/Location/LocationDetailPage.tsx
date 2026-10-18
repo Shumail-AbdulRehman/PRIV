@@ -1,3 +1,4 @@
+import TaskQr from '../Task/components/TaskQr';
 import OperationStatus from "@/components/common/OperationStatus";
 import { verificationLabel } from "../Verification/presentation";
 import LocationOverview from "./LocationOverview";
@@ -93,7 +94,7 @@ type Tab =
   "overview" | "areas" | "staff" | "templates" | "instances" | "schedule";
 const TABS: { key: Tab; label: string; icon: React.ElementType }[] = [
   { key: "overview", label: "Overview", icon: LayoutDashboard },
-  { key: "areas", label: "Areas and inventory", icon: ClipboardList },
+  { key: "areas", label: "Area template", icon: ClipboardList },
   { key: "staff", label: "Staff and shifts", icon: Users },
   { key: "templates", label: "Cleaning schedule", icon: ClipboardList },
   { key: "schedule", label: "Weekly schedule", icon: Calendar },
@@ -287,6 +288,7 @@ const LocationDetailPage: React.FC = () => {
       next.set("tab", tab);
       return next;
     });
+  const [qrTaskId, setQrTaskId] = useState<number | null>(null);
   const [expandedInstanceId, setExpandedInstanceId] = useState<number | null>(
     null,
   );
@@ -378,9 +380,9 @@ const LocationDetailPage: React.FC = () => {
             />
             {locationInfo.isActive ? (
               <Button asChild>
-                <Link to={"/locations/" + locationInfo.id + "/areas/new"}>
+                <Link to={"/locations/" + locationInfo.id + "?tab=areas&newArea=1"}>
                   <Plus size={16} />
-                  {t("Add area")}
+                  {t("Add area template")}
                 </Link>
               </Button>
             ) : null}
@@ -673,6 +675,7 @@ const LocationDetailPage: React.FC = () => {
               </Button>
             </div>
           ) : null}
+          {qrTaskId && <TaskQr key={qrTaskId} taskId={qrTaskId} initialOpen />}
           <DataTable
             key={selectedTaskId ?? "all"}
             data={(locationInfo.taskInstances ?? []).filter(
@@ -685,11 +688,7 @@ const LocationDetailPage: React.FC = () => {
                 ? "This task is not available for this location and period."
                 : "No task instances for this period."
             }
-            expandedRow={(ti) =>
-              expandedInstanceId === ti.id ? (
-                <AreaSubmissionsPanel taskInstanceId={ti.id} />
-              ) : null
-            }
+            expandedRow={(ti) => expandedInstanceId === ti.id ? <AreaSubmissionsPanel taskInstanceId={ti.id} /> : null}
             columns={[
               {
                 key: "title",
@@ -801,6 +800,7 @@ const LocationDetailPage: React.FC = () => {
                 header: "Actions",
                 render: (ti) => (
                   <div className="flex flex-wrap gap-2">
+                    {ti.verificationVersion === 2 && !ti.staffSubmittedAt && !['COMPLETED','CANCELLED'].includes(ti.status) && <Button variant="outline" aria-expanded={qrTaskId === ti.id} onClick={() => setQrTaskId(qrTaskId === ti.id ? null : ti.id)}>{t('Task QR')}</Button>}
                     {ti.verificationVersion === 2 ? (
                       <Button asChild variant="outline">
                         <Link

@@ -29,7 +29,7 @@ const {prisma}=await import('../src/prisma/prisma.js');
 const {createArea}=await import('../src/services/area.service.js');
 const {createTaskInstanceWithSnapshot}=await import('../src/services/verification-v2/inventorySnapshot.service.js');
 const {createCaptureSession,reserveAttempt}=await import('../src/services/verification-v2/captureSession.service.js');
-const {signAreaQr}=await import('../src/services/verification-v2/qr.service.js');
+const {signTaskQr,signAreaQr}=await import('../src/services/verification-v2/qr.service.js');
 const {storeReservedEvidence}=await import('../src/services/verification-v2/evidence.service.js');
 const {sha256}=await import('../src/services/verification-v2/quality.service.js');
 const {claimVerificationJob}=await import('../src/services/verification-v2/jobQueue.service.js');
@@ -61,7 +61,7 @@ try{
    const task=await createTaskInstanceWithSnapshot({templateId:template.id,title:template.title,locationId:location.id,date:new Date(Date.now()+samples.length*1000),shiftStart:start,shiftEnd:end});assert.ok(task);
    await prisma.taskInstance.update({where:{id:task.id},data:{status:'IN_PROGRESS',startedAt:start}});
    await prisma.taskAssignment.updateMany({where:{taskInstanceId:task.id},data:{status:'STARTED',startedAt:start}});
-   const session=await createCaptureSession(actor,task.id,{requestId:randomUUID(),areaQr:signAreaQr(area),deviceId:'controlled',clientBootId:'controlled',location:{latitude:0,longitude:0,accuracy:1,sampledAt:new Date().toISOString()},clientTime:new Date().toISOString()});
+   const session=await createCaptureSession(actor,task.id,{requestId:randomUUID(),areaQr:signTaskQr(task,area),deviceId:'controlled',clientBootId:'controlled',location:{latitude:0,longitude:0,accuracy:1,sampledAt:new Date().toISOString()},clientTime:new Date().toISOString()});
    const slot=session.slots.find(s=>s.requirementId)!;
    const pixels=Buffer.alloc(640*640*3);let seed=samples.length+71;
    for(let i=0;i<pixels.length;i++){seed^=seed<<13;seed^=seed>>>17;seed^=seed<<5;pixels[i]=seed&255;}
