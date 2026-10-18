@@ -29,7 +29,8 @@
     "test:verification:photo-http": "tsx tests/directPhoto.http.integration.ts",
     "test:verification:latency": "tsx tests/directPhoto.latency.integration.ts",
     "test:staff-notifications:integration": "tsx tests/staffNotifications.integration.ts",
-    "test:mobile:integration": "tsx tests/staffMobile.integration.ts"
+    "test:mobile:integration": "tsx tests/staffMobile.integration.ts",
+    "test:review-closure": "tsx tests/reviewClosure.integration.ts"
   },
   "keywords": [],
   "author": "",

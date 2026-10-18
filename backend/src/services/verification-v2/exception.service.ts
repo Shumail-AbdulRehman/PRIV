@@ -85,6 +85,11 @@ export async function raiseIssue(
     }))
   )
     throw new ApiError(404, "Attempt not found");
+  // A manager's case-level disposition is final for the same missing-photo
+  // condition. Deadline polling must not put an already handled task back in queue.
+  if (['MISSING_EVIDENCE','OCCUPIED'].includes(reasonCode) && !attemptId && await tx.verificationDecision.findFirst({
+    where: {exception: {taskInstanceId: taskId, state: 'RESOLVED'}, action: {in: ['RESOLVE_REVIEW','RECORD_PERFORMANCE_ISSUE']}}, select: {id: true},
+  })) return null;
   const ordinary =
     [
       "CLEANING_REQUIRED",
@@ -451,6 +456,8 @@ export async function managerDecision(
       await lockTask(tx, taskId);
     await tx.$queryRaw`SELECT id FROM "VerificationException" WHERE id=${id} FOR UPDATE`;
     c = await caseAccess(actor, id, tx);
+    if (['REQUEST_RECAPTURE','REQUEST_CLEANING','REJECT_EVIDENCE','EXTEND_WINDOW'].includes(input.action))
+      throw new ApiError(410, 'Photo requests are no longer available. Resolve the review or record a staff performance issue.');
     const key = {
         companyId: actor.companyId,
         actorRole: actor.role,

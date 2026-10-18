@@ -1,3 +1,5 @@
+import {closeReview, reviewClosureActions} from '../services/verification-v2/reviewClosure.service.js';
+import { reviewEvidenceSummary } from '../services/verification-v2/reviewEvidenceSummary.js';
 import { reviewableMedia } from "../services/verification-v2/evidenceBuffer.js";
 import { sha256 } from "../services/verification-v2/quality.service.js";
 import { Router } from "express";
@@ -41,6 +43,9 @@ router.get("/verification-exceptions/count", async (req, res) =>
 router.post("/task-instance/:taskId/verification-issues", async (req) => {
  await requireTaskAccess(req.user!,idSchema.parse(req.params.taskId),{staffMutation:true});
  throw new ApiError(410,"Complete and upload all required photos. Staff exception requests are no longer available.",[{code:'REQUIRED_PHOTOS_ONLY'}]);
+});
+router.post('/verification-exceptions/:id/close', async(req,res) => {
+  res.json({success:true,data:await closeReview(req.user!,idSchema.parse(req.params.id),req.body)});
 });
 router.get("/verification-exceptions/:id/next", async (req, res) =>
   res.json({
@@ -290,6 +295,7 @@ router.get("/verification-exceptions/:id", async (req, res) => {
               media: { select: { privacyState: true } },
               assignmentEpoch: true,
               timingEvidence: true,
+              cleanlinessResult: true,
             },
           })
         : Promise.resolve([]),
@@ -350,6 +356,7 @@ router.get("/verification-exceptions/:id", async (req, res) => {
           media: { select: { privacyState: true } },
           assignmentEpoch: true,
           timingEvidence: true,
+          cleanlinessResult: true,
         },
       })
     : [];
@@ -367,14 +374,18 @@ router.get("/verification-exceptions/:id", async (req, res) => {
     },
     select: { id: true, name: true },
   });
-  const safeAttempt = (a: (typeof latestAttempts)[number]) => ({
-    ...a,
-    staff: staff.find((s) => s.id === a.staffId) ?? null,
-    privacyState: a.media?.privacyState,
-    mediaAssetId: ["SAFE", "NOT_REQUIRED", "HOLD"].includes(a.media?.privacyState ?? "")
-      ? a.mediaAssetId
-      : null,
-  });
+  const safeAttempt = (a: (typeof latestAttempts)[number]) => {
+    const { cleanlinessResult, ...safe } = a;
+    return {
+      ...safe,
+      reviewSummary: reviewEvidenceSummary(cleanlinessResult),
+      staff: staff.find((s) => s.id === a.staffId) ?? null,
+      privacyState: a.media?.privacyState,
+      mediaAssetId: ["SAFE", "NOT_REQUIRED", "HOLD"].includes(a.media?.privacyState ?? "")
+        ? a.mediaAssetId
+        : null,
+    };
+  };
   const page = attempts.slice(0, 50).map(safeAttempt);
   const latestPage = latestAttempts.map(safeAttempt);
   const policy = task ? resolvePolicy(task.policySnapshot) : null;
@@ -407,13 +418,10 @@ router.get("/verification-exceptions/:id", async (req, res) => {
       ? [
           "ACCEPT_EVIDENCE",
           "ACCEPT_CONTEXT",
-          "REJECT_EVIDENCE",
-          "REQUEST_RECAPTURE",
-          "REQUEST_CLEANING",
           "MARK_MAINTENANCE",
           "WAIVE_REQUIREMENT",
           "RESOLVE_ISSUE",
-          ...(canExtend ? ["EXTEND_WINDOW"] : []),
+
         ]
       : [];
   const items = c.taskInstanceId
@@ -452,14 +460,6 @@ router.get("/verification-exceptions/:id", async (req, res) => {
               ?.receivedAt &&
             reviewableMedia(currentAttempts.find((a) => a.id === r.currentAttemptId)?.media?.privacyState)
               ? ["ACCEPT_EVIDENCE"]
-              : []),
-            ...(captureAvailable
-              ? [
-                  "REQUEST_RECAPTURE",
-                  ...(r.state === "CLEANING_REQUIRED"
-                    ? ["REQUEST_CLEANING"]
-                    : []),
-                ]
               : []),
           ]
         : [],
@@ -536,6 +536,11 @@ router.get("/verification-exceptions/:id", async (req, res) => {
         take: 30,
       })
     : [];
+  const assignees = task ? await prisma.taskAssignment.findMany({where:{taskInstanceId:task.id},select:{staff:{select:{id:true,name:true}}}}) : [];
+  const performanceStaffOptions = [...new Map([task?.staff, ...assignees.map(row=>row.staff)].filter((staff):staff is {id:number;name:string} => !!staff).map(staff=>[staff.id,staff])).values()];
+  const performanceReport = await prisma.exceptionEvent.findUnique({where:{dedupeKey:`performance-review:${c.id}`},select:{id:true}});
+  const closureActions = c.kind === 'TASK' && !!task && c.state !== 'RESOLVED'
+    ? reviewClosureActions.filter(action=>action!=='RECORD_PERFORMANCE_ISSUE'||(performanceStaffOptions.length>0&&!performanceReport)) : [];
   const { policySnapshot: _policy, ...taskSummary } = task ?? {};
   res.json({
     success: true,
@@ -546,6 +551,9 @@ router.get("/verification-exceptions/:id", async (req, res) => {
       location,
       allowedActions,
       requiresFollowUp,
+      closureActions,
+      performanceStaffOptions,
+      performanceIssueRecorded: !!performanceReport,
       policyBounds: policy
         ? {
             maxExtensionMinutes: policy.maxExtensionMinutes,
@@ -560,6 +568,15 @@ router.get("/verification-exceptions/:id", async (req, res) => {
       reasonInstructions,
       issues: eligibleIssues,
       serverTime,
+      captureStatus: {
+        available: captureAvailable,
+        canExtend,
+        deadline: task?.verificationDeadline ?? task?.shiftEnd ?? null,
+        reason: !task ? 'UNAVAILABLE' : !task.isActive ? 'INACTIVE'
+          : task.status === 'COMPLETED' ? 'COMPLETED' : task.status === 'CANCELLED' ? 'CANCELLED'
+          : task.staffSubmittedAt ? 'SUBMITTED' : !task.startedAt ? 'NOT_STARTED'
+          : captureAvailable ? 'AVAILABLE' : +(task.verificationDeadline ?? task.shiftEnd) <= +serverTime ? 'DEADLINE_PASSED' : 'UNAVAILABLE',
+      },
       items: items.map(({ requirements, ...item }) => ({
         ...item,
         requirements: requirements.map((r) => {
@@ -576,6 +593,7 @@ router.get("/verification-exceptions/:id", async (req, res) => {
                   receivedAt: currentAttempt.receivedAt,
                   requirementId: currentAttempt.requirementId,
                   contextKey: currentAttempt.contextKey,
+                  reviewSummary: reviewEvidenceSummary(currentAttempt.cleanlinessResult),
                   privacyState: currentAttempt.media?.privacyState,
                   mediaAssetId: ["SAFE", "NOT_REQUIRED", "HOLD"].includes(
                     currentAttempt.media?.privacyState ?? "",

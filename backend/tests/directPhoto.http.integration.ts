@@ -240,6 +240,33 @@ try{
   }
   await request(`/task-instance/${task.id}/complete`,{});
  }
+ // A review must explain a rejected photo independently of missing photos.
+ {
+  staff=await prisma.staff.create({data:{companyId:company.id,locationId:location.id,name:'Review explanation staff',email:randomUUID()+'@test.invalid',password:'isolated-test-password'}});
+  staffToken=token(staff.id,'STAFF');
+  await prisma.attendance.create({data:{staffId:staff.id,locationId:location.id,date:now,expectedStart:now,expectedEnd:end,checkInTime:now,status:'CHECKED_IN'}});
+  const configured=await createArea({id:manager.id,companyId:company.id,role:'ADMIN'},location.id,{name:'Review explanation room',roomType:'WASHROOM',counts:[{fixtureType:'INDIAN_TOILET',count:1},{fixtureType:'SINK',count:1},{fixtureType:'MIRROR',count:1},{fixtureType:'FLOOR',count:1}]});
+  scenario='dirty';const {task,s}=await newTask('Explain incomplete cleaning',configured);
+  await(await photo(s)).upload();
+  const {raiseIssue}=await import('../src/services/verification-v2/exception.service.js');
+  await prisma.$transaction(tx=>raiseIssue(tx as any,task.id,'MISSING_EVIDENCE',null));
+  const review=await prisma.verificationException.findFirstOrThrow({where:{taskInstanceId:task.id}});
+  const live=await request(`/verification-exceptions/${review.id}`,undefined,200,managerToken);
+  assert.equal(live.captureStatus.available,true);assert.equal(live.captureStatus.reason,'AVAILABLE');
+  const pan=live.items.flatMap((item:any)=>item.requirements).find((r:any)=>r.state==='CLEANING_REQUIRED');
+  assert.ok(pan);assert.equal(pan.currentAttempt.mediaAssetId,null);assert.equal(pan.currentAttempt.privacyState,'DISCARDED');
+  assert.equal(pan.currentAttempt.reviewSummary.reasonCode,'CLEANING_REQUIRED');
+  assert.deepEqual(pan.currentAttempt.reviewSummary.dirtySurfaces,['pan']);
+  assert.equal(live.items.flatMap((item:any)=>item.requirements).filter((r:any)=>r.state==='MISSING').length,3);
+  assert.ok(!JSON.stringify(pan.currentAttempt).includes('screeningAnswers'));
+  assert.ok(!JSON.stringify(pan.currentAttempt).includes('confidence'));
+  const {mock}=await import('node:test');
+  mock.timers.enable({apis:['Date'],now:new Date(Date.now()+14400000)});
+  try {
+   const expired=await request(`/verification-exceptions/${review.id}`,undefined,200,token(manager.id,'ADMIN'));
+   assert.deepEqual({available:expired.captureStatus.available,reason:expired.captureStatus.reason,canExtend:expired.captureStatus.canExtend},{available:false,reason:'DEADLINE_PASSED',canExtend:false});
+  } finally {mock.timers.reset();}
+ }
  // Replay the actual low-confidence WRONG_ITEM response through the real
  // Clef adapter, HTTP endpoint, persistence and submission guards.
  const httpFetch=globalThis.fetch;

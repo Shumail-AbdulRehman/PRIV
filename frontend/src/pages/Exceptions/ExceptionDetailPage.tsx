@@ -1,3 +1,5 @@
+import ReviewSummary from './ReviewSummary';
+import {reviewDiagnosis, issueDiagnosis, reviewViewLabel} from './reviewDiagnosis';
 import OperationStatus from "@/components/common/OperationStatus";
 import { useSelector } from "react-redux";
 import type { RootState } from "@/store/store";
@@ -33,12 +35,10 @@ import { localTime } from "../Manager/operations";
 import OperationsState from "../Manager/OperationsState";
 import DecisionForm from "./DecisionForm";
 import { useException } from "./queries";
-import { getException, readException } from "./api";
-import { reviewGuidance, reviewActionLabels } from "./reviewPresentation";
+import { readException } from "./api";
+import { reviewGuidance } from "./reviewPresentation";
 import type {
-  ExceptionDetail,
   VerificationIssue,
-  ExceptionAction,
 } from "./types";
 function safeReviewReturn(value: string | null) {
   return value && /^\/(exceptions|dashboard|today-status|staff\/\d+|locations\/\d+)(\?|$)/.test(value)
@@ -61,9 +61,6 @@ function Workspace({ id }: { id: number }) {
   const cache = useQueryClient();
   const detail = query.data;
   const [notice, setNotice] = useState("");
-  const [history, setHistory] = useState<ExceptionDetail | null>(null);
-  const [historyError, setHistoryError] = useState("");
-  const [loadingHistory, setLoadingHistory] = useState(false);
   const returnTo = safeReviewReturn(
     params.get("returnTo") ??
       (location.state as { returnTo?: string } | null)?.returnTo ??
@@ -131,44 +128,6 @@ function Workspace({ id }: { id: number }) {
         );
     }
   }
-  async function loadOlder() {
-    if (!detail) return;
-    setLoadingHistory(true);
-    try {
-      const cursors = {
-        attemptCursor:
-          (history ? history.nextAttemptCursor : detail.nextAttemptCursor) ??
-          undefined,
-        decisionCursor:
-          (history ? history.nextDecisionCursor : detail.nextDecisionCursor) ??
-          undefined,
-        eventCursor:
-          (history ? history.nextEventCursor : detail.nextEventCursor) ??
-          undefined,
-      };
-      const page = await getException(id, cursors);
-      setHistory((old) => ({
-        ...page,
-        attempts: [
-          ...(old?.attempts ?? []),
-          ...(cursors.attemptCursor ? (page.attempts ?? []) : []),
-        ],
-        decisions: [
-          ...(old?.decisions ?? []),
-          ...(cursors.decisionCursor ? page.decisions : []),
-        ],
-        events: [
-          ...(old?.events ?? []),
-          ...(cursors.eventCursor ? page.events : []),
-        ],
-      }));
-      setHistoryError("");
-    } catch {
-      setHistoryError("Older history could not load. Try again.");
-    } finally {
-      setLoadingHistory(false);
-    }
-  }
   if (query.isPending || !detail)
     return (
       <div className="ops-page">
@@ -183,21 +142,23 @@ function Workspace({ id }: { id: number }) {
         />
       </div>
     );
-  const selectedRequirement = detail.items
-    ?.flatMap((i) => i.requirements.map((r) => ({ ...r, item: i })))
-    .find((r) => r.id === params.get("requirementId"));
+  const requirements = detail.items?.flatMap((item) => item.requirements.map((r) => ({...r,item}))) ?? [];
+  const requestedIssue = detail.issues.find((i) => i.id === Number(params.get('issueId')));
+  const defaultRequirement = detail.state !== 'RESOLVED' && !params.has('requirementId') && !requestedIssue?.requirementId && !params.has('issueId')
+    ? requirements.find(r => ['CLEANING_REQUIRED','RECAPTURE_REQUIRED','REVIEW_REQUIRED'].includes(r.state))
+      ?? requirements.find(r => r.mandatory && r.item.mandatory !== false && r.state === 'MISSING') : undefined;
+  const selectedRequirement = requirements.find((r) => r.id === params.get('requirementId')) ?? defaultRequirement;
+  const linkedIssue = detail.issues.find(i => i.requirementId === selectedRequirement?.id && i.state !== 'RESOLVED');
   const open = detail.issues.filter((i) => i.state !== "RESOLVED");
   const chosen =
     detail.issues.find((i) => i.id === Number(params.get("issueId"))) ??
     open[0] ??
     detail.issues[0];
   const requirementIssue: VerificationIssue | undefined = selectedRequirement
-    ? {
+    ? linkedIssue ?? {
         id: -1,
-        reasonCode:
-          selectedRequirement.state === "MISSING"
-            ? "MISSING_EVIDENCE"
-            : selectedRequirement.state,
+        reasonCode: selectedRequirement.currentAttempt?.reviewSummary?.reasonCode ??
+          (selectedRequirement.state === 'MISSING' ? 'MISSING_EVIDENCE' : selectedRequirement.state),
         requirementId: selectedRequirement.id,
         requirement: selectedRequirement,
         state: selectedRequirement.state,
@@ -210,7 +171,9 @@ function Workspace({ id }: { id: number }) {
       }
     : undefined;
   const issue = requirementIssue ?? chosen;
-  const photo = issue?.latestAttempt;
+  const diagnosis = reviewDiagnosis(detail, t);
+  const selectedDiagnosis = issue ? issueDiagnosis(detail, issue, t) : null;
+  const photo = selectedDiagnosis ? selectedDiagnosis.attempt : issue?.latestAttempt;
   const item =
     selectedRequirement?.item ??
     detail.items?.find((i) =>
@@ -232,27 +195,19 @@ function Workspace({ id }: { id: number }) {
   function selectRequirement(requirementId: string) {
     setParams((old) => {
       const n = new URLSearchParams(old);
-      n.set("requirementId", requirementId);
+      n.set('requirementId', requirementId);
+      n.delete('issueId');
       return n;
     });
   }
-  const decisions = [
-    ...new Map(
-      [...detail.decisions, ...(history?.decisions ?? [])].map((d) => [
-        d.id,
-        d,
-      ]),
-    ).values(),
-  ];
-  const attempts = [
-    ...new Map(
-      [...(detail.attempts ?? []), ...(history?.attempts ?? [])].map((a) => [
-        a.id,
-        a,
-      ]),
-    ).values(),
-  ];
-  const older = history ?? detail;
+  function inspectRequirement(requirementId: string) {
+    selectRequirement(requirementId);
+    requestAnimationFrame(() => {
+      const panel = document.getElementById('review-finding');
+      panel?.scrollIntoView({block:'start',behavior:'instant'});
+      panel?.focus({preventScroll:true});
+    });
+  }
   return (
     <div className="ops-page ops-review-workspace">
       <div className="ops-review-navigation">
@@ -336,7 +291,8 @@ function Workspace({ id }: { id: number }) {
           </div>
         </div>
       ) : null}
-      {open.length ? (
+      {detail.kind !== 'SETUP' && <ReviewSummary detail={detail} onSelect={inspectRequirement} />}
+      {open.length > 1 ? (
         <div className="ops-issue-tabs" aria-label={t("Issues in this review")}>
           {open.map((i) => (
             <button
@@ -378,15 +334,13 @@ function Workspace({ id }: { id: number }) {
                 </h2>
                 <p>
                   {requirement
-                    ? t(plainReason(requirement.viewKey))
+                    ? reviewViewLabel(requirement.viewKey,t)
                     : t("Room and fixture evidence")}
                 </p>
               </div>
               <OperationStatus
-                state={photo?.state ?? requirement?.state ?? "MISSING"}
-                label={plainReason(
-                  photo?.state ?? requirement?.state ?? "MISSING",
-                )}
+                state={selectedDiagnosis?.category === 'review' ? 'REVIEW_REQUIRED' : photo?.state ?? requirement?.state ?? "MISSING"}
+                label={selectedDiagnosis?.title ?? plainReason(photo?.state ?? requirement?.state ?? 'MISSING')}
               />
             </div>
             <div className="ops-panel-body">
@@ -400,18 +354,8 @@ function Workspace({ id }: { id: number }) {
               ) : (
                 <div className="ops-evidence-placeholder">
                   <Camera size={30} />
-                  <strong>
-                    {t(
-                      photo
-                        ? "This photo is not available for review yet."
-                        : "No photo received for this view",
-                    )}
-                  </strong>
-                  <p>
-                    {t(
-                      "Photos saved only on the worker’s phone appear after uploading.",
-                    )}
-                  </p>
+                  <strong>{t(photo?.privacyState === 'DISCARDED' ? 'Rejected photo was not kept' : photo ? 'Photo is unavailable to view' : selectedDiagnosis?.category === 'missing' ? 'This required photo is missing' : 'No photo linked to this issue')}</strong>
+                  <p>{t(photo?.privacyState === 'DISCARDED' ? 'The photo was rejected and was not retained for manager review. Its recorded check result is explained in this review.' : photo ? 'Use the recorded explanation in this review. A preview is not available for this attempt.' : selectedDiagnosis?.description ?? 'The review summary above lists the affected fixtures and missing photos.')}</p>
                 </div>
               )}
               {photo?.receivedAt ? (
@@ -437,19 +381,17 @@ function Workspace({ id }: { id: number }) {
                         <button
                           className="ops-requirement"
                           key={r.id}
-                          onClick={() => selectRequirement(r.id)}
+                          onClick={() => inspectRequirement(r.id)}
                           aria-pressed={requirement?.id === r.id}
                         >
                           <span>
                             <strong>{i.nameSnapshot}</strong>
                             <small>
-                              {t(plainReason(r.viewKey))}
+                              {reviewViewLabel(r.viewKey,t)}
                               {!r.mandatory ? ` · ${t("Optional")}` : ""}
                             </small>
                           </span>
-                          <span className="ops-status">
-                            {t(plainReason(r.state))}
-                          </span>
+                          <OperationStatus state={r.state} label={diagnosis.rows.find(row => row.id === r.id)?.title ?? plainReason(r.state)} />
                         </button>
                       ))}
                     </div>
@@ -511,115 +453,22 @@ function Workspace({ id }: { id: number }) {
               ) : null}
             </div>
           </section>
-          <section className="ops-panel ops-action-column">
+          <section className="ops-panel ops-action-column" id="review-finding" tabIndex={-1}>
             <div className="ops-panel-body">
               <h2>
-                {t(issue ? plainReason(issue.reasonCode) : "Issue closed")}
+                {detail.state === 'RESOLVED' ? t('Review resolved') : selectedDiagnosis?.title ?? t(issue ? plainReason(issue.reasonCode) : 'Issue closed')}
               </h2>
               <p className="ops-guidance">
-                {issue
+                {detail.state === 'RESOLVED' ? t('This review has been handled. Existing photos and task completion records stay as recorded.') : selectedDiagnosis ? selectedDiagnosis.description : issue
                   ? t(reviewGuidance(issue))
                   : t("This case has no unresolved issues.")}
               </p>
-              {issue?.blockedReason ? (
-                <p className="ops-blocked">{t(issue.blockedReason)}</p>
-              ) : null}
-              {detail.requiresFollowUp ? (
-                <p className="ops-blocked">
-                  {t(
-                    "This task is already complete. Use a completed follow-up task with fresh accepted photos to address new concerns. The original completion stays unchanged.",
-                  )}
-                </p>
-              ) : null}
-              {issue && issue.state !== "RESOLVED" ? (
-                <DecisionForm
-                  key={issue.requirementId ?? issue.id}
-                  detail={detail}
-                  issue={issue}
-                  onDone={done}
-                />
-              ) : (
-                <p className="ops-save-result">{t("Issue closed")}</p>
-              )}
-              {!issue?.allowedActions?.some((a) =>
-                ["REQUEST_RECAPTURE", "REQUEST_CLEANING"].includes(a),
-              ) && detail.taskInstanceId ? (
-                <div className="ops-followup-link">
-                  <Button asChild variant="outline">
-                    <Link to={`/locations/${detail.locationId}?tab=templates`}>
-                      {t("Open cleaning schedule")}
-                    </Link>
-                  </Button>
-                  <p>
-                    {t(
-                      "If no photo window is available, arrange follow-up work in this room.",
-                    )}
-                  </p>
-                </div>
-              ) : null}
+              {diagnosis.capture.reason === 'DEADLINE_PASSED' && issue?.state !== 'RESOLVED' ? <div className="ops-blocked"><strong>{t('Photo uploads are closed')}</strong><p>{t('The photo deadline has passed. Choose how to close this review below.')}</p></div> : null}
+              <DecisionForm detail={detail} onDone={done} />
             </div>
           </section>
         </div>
       )}
-      <details className="ops-panel ops-history">
-        <summary>{t("Previous decisions and earlier photos")}</summary>
-        {decisions.length ? (
-          decisions.map((d) => (
-            <article key={d.id}>
-              <strong>
-                {t(
-                  reviewActionLabels[d.action as ExceptionAction] ??
-                    plainReason(d.action),
-                )}{" "}
-                · {d.actorManager?.name ?? t("Manager")}
-              </strong>
-              <p>
-                {t(plainReason(d.reasonCode))} · {d.note}
-              </p>
-              <time>{localTime(d.createdAt, timezone, language, true)}</time>
-            </article>
-          ))
-        ) : (
-          <p>{t("No review decisions yet.")}</p>
-        )}
-        {attempts.map((a) => (
-          <details key={a.id}>
-            <summary>
-              {t(plainReason(a.state))} ·{" "}
-              {localTime(a.createdAt, timezone, language, true)}
-            </summary>
-            {a.mediaAssetId ? (
-              <ProtectedEvidence
-                assetId={a.mediaAssetId}
-                privacyState={a.privacyState}
-                allowRestrictedReview
-              />
-            ) : (
-              <p>{t("This photo is not available for review yet.")}</p>
-            )}
-          </details>
-        ))}
-        {[...detail.events, ...(history?.events ?? [])]
-          .filter((e, i, a) => a.findIndex((x) => x.id === e.id) === i)
-          .map((e) => (
-            <p key={e.id}>
-              {t(plainReason(e.type))} ·{" "}
-              {localTime(e.createdAt, timezone, language, true)}
-            </p>
-          ))}
-        {historyError ? <p role="alert">{t(historyError)}</p> : null}
-        {older.nextAttemptCursor ||
-        older.nextDecisionCursor ||
-        older.nextEventCursor ? (
-          <Button
-            variant="outline"
-            disabled={loadingHistory}
-            onClick={() => void loadOlder()}
-          >
-            {t(loadingHistory ? "Loading…" : "Load older history")}
-          </Button>
-        ) : null}
-      </details>
     </div>
   );
 }

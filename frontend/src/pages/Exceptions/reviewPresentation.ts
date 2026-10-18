@@ -31,13 +31,10 @@ export function reviewHeading(issue: VerificationIssue): string {
 }
 export function reviewGuidance(issue: VerificationIssue): string {
   if (issue.reasonCode === "MISSING_EVIDENCE")
-    return "Check the required photos on this page to see which views are missing. This issue can be closed only after the requirements are satisfied.";
+    return "The required photos listed in the summary have not been received. Resolve the review with a note, or record a staff performance issue.";
   if (issue.reasonCode === "SERVICE_FAILURE")
     return "A checking service could not complete its review. This does not mean the area is dirty.";
   if (issue.reasonCode === "PRIVACY_HOLD")
-    return "Review carefully before deciding. Ask for a safer photo if personal information or people are visible.";
-  return (
-    issue.recommendedAction ||
-    "Check the photo, then choose what should happen next."
-  );
+    return "This photo is restricted for privacy review. Check the circumstances before resolving the task review.";
+  return "Review the recorded finding, then resolve the review or record a staff performance issue.";
 }

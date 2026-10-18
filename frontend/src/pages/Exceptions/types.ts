@@ -1,3 +1,5 @@
+export type ReviewClosureAction = 'RESOLVE_REVIEW' | 'RECORD_PERFORMANCE_ISSUE';
+export type PerformanceCategory = 'CLEANING_QUALITY'|'MISSING_PHOTOS'|'WRONG_PHOTO'|'INCOMPLETE_WORK'|'OTHER';
 import type {
   EvidenceAttempt,
   EvidenceRequirement,
@@ -66,10 +68,15 @@ export type VerificationException = {
 };
 export type ExceptionDetail = VerificationException & {
   serverTime?: string;
+  closureActions?: ReviewClosureAction[];
+  performanceStaffOptions?: Array<{id:number;name:string}>;
+  performanceIssueRecorded?: boolean;
+  captureStatus?: {available:boolean;canExtend:boolean;deadline:string|null;reason:'AVAILABLE'|'DEADLINE_PASSED'|'COMPLETED'|'CANCELLED'|'INACTIVE'|'SUBMITTED'|'NOT_STARTED'|'UNAVAILABLE'};
   items?: Array<{
     id: number;
     nameSnapshot: string;
     sourceAreaItemId: number;
+    mandatory?: boolean;
     requirements: Array<
       EvidenceRequirement & { allowedActions?: ExceptionAction[] }
     >;

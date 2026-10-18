@@ -1,3 +1,4 @@
+import {staffPerformanceReports} from '../services/verification-v2/reviewClosure.service.js';
 import { Request, Response } from "express";
 import {
   managerTaskPresentation,
@@ -640,6 +641,8 @@ export const getStaffDetails = async (req: Request, res: Response) => {
     attendanceStatusGroups.map((group) => [group.status, group._count.status]),
   );
 
+  const performanceIssues = await staffPerformanceReports(req.user!, staffId, dateFilter);
+
   const taskStats = {
     totalTemplates: totalTaskTemplates,
     totalInstances: totalTaskInstances,
@@ -670,6 +673,7 @@ export const getStaffDetails = async (req: Request, res: Response) => {
         attendances,
         taskStats,
         attendanceStats,
+        performanceIssues,
         periodLabel,
       },
       "Staff details fetched successfully",

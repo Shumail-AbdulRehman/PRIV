@@ -14,7 +14,7 @@ test("missing evidence directs managers to requirements without implying resolut
   assert.equal(reviewHeading(issue), "Required photos are missing");
   assert.match(
     reviewGuidance(issue),
-    /only after the requirements are satisfied/,
+    /Resolve the review with a note/,
   );
   assert.deepEqual(
     issueActions({ allowedActions: [] }, issue).filter((a) =>

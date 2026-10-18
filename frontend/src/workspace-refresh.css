@@ -1823,3 +1823,59 @@ th[aria-sort="descending"] .table-sort svg {
   body:has(.task-qr-print) .task-qr-print { position: absolute; inset: 24px auto auto 24px; width: calc(100% - 48px); border: 0; }
   body:has(.task-qr-print) .task-qr-print button { display: none !important; }
 }
+
+/* Explain the whole review before asking a manager to inspect individual views. */
+.workspace .ops-review-summary { border: 1px solid var(--border); border-radius: 8px; background: var(--card); padding: 24px; }
+.workspace .ops-review-summary-heading { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 16px; }
+.workspace .ops-review-eyebrow { margin-block-end: 6px; color: var(--muted-foreground); font-size: .875rem; font-weight: 500; }
+.workspace .ops-review-summary h2 { font-size: 1.5rem; font-weight: 650; line-height: 1.3; }
+.workspace .ops-review-progress { display: inline-flex; align-items: center; gap: 8px; color: var(--muted-foreground); font-size: .875rem; }
+.workspace .ops-review-findings { display: grid; grid-template-columns: repeat(auto-fit,minmax(min(100%,300px),1fr)); gap: 24px; margin-block: 24px; }
+.workspace .ops-review-finding { min-width: 0; }
+.workspace .ops-review-finding-title { display: flex; align-items: center; gap: 8px; margin-block-end: 10px; }
+.workspace .ops-review-finding-title h3 { font-size: 1rem; font-weight: 600; }
+.workspace .ops-review-finding-title > span { margin-inline-start: auto; min-width: 26px; text-align: center; padding: 2px 8px; border-radius: 4px; font-size: .875rem; background: var(--muted); }
+.workspace .ops-review-finding[data-kind="cleaning"] .ops-review-finding-title,
+.workspace .ops-review-finding[data-kind="retake"] .ops-review-finding-title { color: var(--attention-ink,oklch(0.48 0.1 65)); }
+.workspace .ops-review-affected { display: flex; flex-wrap: wrap; gap: 4px 12px; margin-block-end: 8px; }
+.workspace .ops-review-affected button { min-height: 36px; color: var(--primary); text-decoration: underline; text-underline-offset: 3px; font-weight: 550; text-align: start; overflow-wrap: anywhere; }
+.workspace .ops-review-finding > p { max-width: 65ch; color: var(--muted-foreground); font-size: .9375rem; line-height: 1.6; }
+.workspace .ops-review-next { display: flex; flex-wrap: wrap; gap: 20px 32px; align-items: start; border-block-start: 1px solid var(--border); padding-block-start: 20px; }
+.workspace .ops-review-next > div:first-child { flex: 1 1 320px; min-width: 0; }
+.workspace .ops-review-next p { max-width: 70ch; margin-block-start: 6px; line-height: 1.6; }
+.workspace .ops-review-deadline { display: flex; align-items: start; gap: 8px; padding-block-start: 2px; max-width: 100%; }
+.workspace .ops-review-deadline time { display: block; margin-block-start: 4px; color: var(--muted-foreground); font-size: .875rem; overflow-wrap: anywhere; }
+.workspace .ops-review-deadline[data-closed="true"] > svg { color: var(--attention-ink,oklch(0.48 0.1 65)); }
+.workspace .ops-recorded-finding { padding-block-end: 20px; }
+.workspace .ops-recorded-finding h3 { margin-block-end: 8px; }
+.workspace .ops-recorded-finding p { max-width: 65ch; line-height: 1.6; }
+.workspace .ops-review-workspace .ops-evidence-placeholder { min-height: 140px; padding: 24px; gap: 10px; }
+.workspace .ops-review-workspace .ops-requirement { gap: 16px; text-align: start; }
+.workspace #review-finding { scroll-margin-block-start: 24px; }
+.workspace .ops-review-workspace .ops-action-column { padding: 0; }
+.workspace .ops-blocked > p { margin-block-start: 6px; }
+@media (max-width:640px) {
+  .workspace .ops-review-summary { padding: 20px; }
+  .workspace .ops-review-findings { gap: 20px; }
+  .workspace .ops-review-workspace .ops-requirement { align-items: start; }
+}
+
+@media (max-width:1100px) {
+  .workspace .ops-review-workspace .ops-action-column { grid-row: 1; }
+}
+
+.workspace .ops-review-closure > h3 { margin-block-end: 8px; }
+.workspace .ops-review-outcomes { display: grid; gap: 12px; margin-block: 20px; }
+.workspace .ops-review-outcome { display: flex; align-items: start; gap: 12px; width: 100%; min-height: 76px; text-align: start; border: 1px solid var(--border); border-radius: 6px; padding: 16px; background: var(--card); }
+.workspace .ops-review-outcome > svg { flex-shrink: 0; margin-block-start: 2px; }
+.workspace .ops-review-outcome strong, .workspace .ops-review-outcome small { display: block; }
+.workspace .ops-review-outcome small { margin-block-start: 5px; color: var(--muted-foreground); font-size: .875rem; line-height: 1.5; }
+.workspace .ops-review-outcome[aria-pressed="true"] { border-color: var(--primary); background: var(--accent); }
+.workspace .ops-review-closure-form { padding-block-start: 20px; border-block-start: 1px solid var(--border); }
+.workspace .ops-performance-total { margin-block-end: 16px; color: var(--muted-foreground); }
+.workspace .ops-performance-total strong { color: var(--foreground); font-size: 1.5rem; margin-inline-end: 6px; }
+.workspace .ops-performance-reports { display: grid; gap: 16px; }
+.workspace .ops-performance-reports > li { padding-block: 16px; border-block-start: 1px solid var(--border); }
+.workspace .ops-performance-reports p { margin-block: 10px; overflow-wrap: anywhere; }
+.workspace .ops-performance-reports time { color: var(--muted-foreground); font-size: .875rem; }
+.workspace .ops-performance-reports a { color: var(--primary); text-decoration: underline; text-underline-offset: 3px; }

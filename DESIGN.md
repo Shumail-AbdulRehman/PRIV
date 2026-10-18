@@ -88,3 +88,20 @@ weekly-schedule items. Planned schedule previews have no task code until the
 instance exists. Staff scan that task code at start and again for capture/rework.
 Old shared-area and fixture codes cannot authorize a task scan. Keep QR payloads
 out of staff task responses, logs and persistent browser storage.
+
+## Review explanations, 2026-10-18
+
+Task review detail leads with **What went wrong**: grouped cleaning findings,
+named missing views, required-photo progress, the server's photo deadline and a
+specific next step. Fixture links focus the recorded explanation and available
+manager actions. Missing, rejected/discarded, restricted and unavailable photos
+must have distinct copy. Clean results awaiting manual approval and checking
+failures must not be described as dirty findings. Use saved categorical findings
+and named surfaces, without another model call or invented visual explanations.
+Only server-authorized actions are displayed. Managers choose one whole-review
+outcome: resolve with a note, or record a categorized issue against assigned
+staff performance KPIs and close. Until saved, the task remains in exceptions.
+Closure is audited and leaves task completion and photo requirements as recorded.
+Do not offer photo retakes, cleaning requests, deadline extensions, or the
+previous-decisions/earlier-photos section. Staff detail shows manager-recorded
+performance issues for the selected reporting period.

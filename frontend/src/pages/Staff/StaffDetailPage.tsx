@@ -1,3 +1,4 @@
+import StaffPerformanceIssues from './StaffPerformanceIssues';
 import OperationsState from "../Manager/OperationsState";
 import { Link } from "react-router-dom";
 import {
@@ -825,6 +826,8 @@ const StaffDetailPage: React.FC = () => {
               </div>
             )}
           </SurfaceCard>
+
+          <StaffPerformanceIssues data={staff.performanceIssues} periodLabel={periodLabel} staffId={staff.id} />
 
           <SurfaceCard
             title="Attendance summary"

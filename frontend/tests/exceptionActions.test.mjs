@@ -18,3 +18,9 @@ test('completed case exposes only follow-up resolution allowed by server',()=>{
 test('service, review, rework, verified and manual outcomes stay distinct',()=>{
  assert.equal(verificationLabel({verificationState:'PROCESSING'}),'Waiting for checks');assert.equal(verificationLabel({verificationState:'NEEDS_REVIEW'}),'Needs manager');assert.equal(verificationLabel({verificationState:'REWORK_REQUIRED'}),'Staff fixing');assert.notEqual(verificationLabel({completionOutcome:'VERIFIED_COMPLETE'}),verificationLabel({completionOutcome:'COMPLETED_WITH_EXCEPTIONS'}));
 });
+
+test('direct-photo evidence without a required privacy check can use server-authorized acceptance',()=>{
+ const detail={allowedActions:['ACCEPT_EVIDENCE'],attempts:[]};
+ assert.deepEqual(issueActions(detail,{latestAttempt:{id:'direct',mediaAssetId:'protected-id',privacyState:'NOT_REQUIRED'}}),['ACCEPT_EVIDENCE']);
+ assert.deepEqual(issueActions({...detail,allowedActions:[]},{latestAttempt:{id:'direct',mediaAssetId:'protected-id',privacyState:'NOT_REQUIRED'}}),[]);
+});
