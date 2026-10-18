@@ -38,18 +38,20 @@ const {default:verificationRouter}=await import('../src/routes/verification.rout
 const {default:caseRouter}=await import('../src/routes/verificationException.route.js');
 const {signAreaQr}=await import('../src/services/verification-v2/qr.service.js');
 const {createTaskInstanceWithSnapshot}=await import('../src/services/verification-v2/inventorySnapshot.service.js');
+const {createArea}=await import('../src/services/area.service.js');
 const {BufferedClefProvider}=await import('../src/services/verification-v2/bufferedPhoto.provider.js');
 const {default:cloudinary}=await import('../src/utils/cloudinary.js');
 const {default:sharp}=await import('sharp');
 const {createHash}=await import('node:crypto');
 const {Writable}=await import('node:stream');
+const evaluateWithClef=BufferedClefProvider.prototype.evaluate;
 let scenario='clean',aiCalls=0,cloudCalls=0,storageFail=false;
-BufferedClefProvider.prototype.evaluate=async(_image,_rubric,view)=>{
+BufferedClefProvider.prototype.evaluate=async(_image,rubric,view,fixtureType)=>{
  aiCalls++;if(scenario==='failure')throw new Error('Controlled AI failure');
  await new Promise(r=>setTimeout(r,30));
  const verdict=scenario==='dirty'?'DIRTY':scenario==='cleanliness-uncertain'?'CANNOT_ASSESS':'CLEAN';
- const toiletStyle=scenario==='squat'?'SQUAT' as const:scenario==='western'?'WESTERN' as const:undefined;
- const checkedSurfaces=toiletStyle==='SQUAT'?(view==='exterior_base'?['pan_edges','surrounding_floor']:['pan','drain','footrests']):toiletStyle==='WESTERN'?(view==='exterior_base'?['exterior','base']:['bowl','seat']):['basin'];
+ const toiletStyle=scenario==='squat'||fixtureType==='INDIAN_TOILET'?'SQUAT' as const:scenario==='western'||fixtureType==='WESTERN_TOILET'?'WESTERN' as const:undefined;
+ const checkedSurfaces=fixtureType==='INDIAN_TOILET'||fixtureType==='WESTERN_TOILET'?(rubric as any).surfacesByView[view!]:toiletStyle==='SQUAT'?(view==='exterior_base'?['pan_edges','surrounding_floor']:['pan','drain','footrests']):toiletStyle==='WESTERN'?(view==='exterior_base'?['exterior','base']:['bowl','seat']):['basin'];
  return {toiletStyle,viewMatch:scenario==='missing-view'?'MISSING_SURFACE':scenario==='view-uncertain'?'UNCERTAIN':'MATCH',missingSurfaces:scenario==='missing-view'?['tap']:[],objectMatch:scenario==='wrong-object'?'WRONG_ITEM':scenario==='object-uncertain'?'UNCERTAIN':'MATCH',originality:scenario==='screen'?'SCREEN_RECAPTURE':'DIRECT',cleanliness:{verdict,surfaces:checkedSurfaces.map(surface=>({surface,verdict})),confidence:.99,reasonCode:verdict==='DIRTY'?'CLEANING_REQUIRED':verdict==='CANNOT_ASSESS'?'CANNOT_ASSESS':'CLEAN'},metadata:{} as any};
 };
 const assets=new Map<string,any>();
@@ -141,6 +143,7 @@ try{
    }
    assert.equal(result.storage,['dirty','screen','wrong-object','missing-view'].includes(kind)?'discarded':'cloud');
    if(['dirty','screen','wrong-object','missing-view'].includes(kind)){
+    let retakeSession=s;
     assert.equal(result.state,kind==='dirty'?'CLEANING_REQUIRED':'RECAPTURE_REQUIRED');
     if(kind==='wrong-object'){assert.equal(result.reasonCode,'WRONG_ITEM');assert.match(result.instructions,/This photo does not show the sink/);}
     if(kind==='missing-view'){assert.equal(result.reasonCode,'MISSING_SURFACE');assert.match(result.instructions,/does not show the tap/);assert.match(result.instructions,/whole sink basin, drain and tap/);}
@@ -151,7 +154,18 @@ try{
     assert.equal(r.currentAttempt.instructions,result.instructions,'refresh preserves the specific correction');
     const polled=await request(`/verification-attempt/${result.attemptId}`);
     assert.equal(polled.instructions,result.instructions,'polling preserves the specific correction');
-    const path=kind==='dirty'?`/task-instance/${task.id}/capture-sessions/rework`:`/capture-session/${s.id}/renew`;
+    if(kind==='wrong-object'){
+     for(let repeat=0;repeat<3;repeat++){
+      retakeSession=await request(`/capture-session/${retakeSession.id}/renew`,{requestId:randomUUID(),areaQr:signAreaQr(area),deviceId:'http-test-device',clientBootId:'http-test-boot',clientTime:new Date().toISOString(),location:{latitude:24.8607,longitude:67.0011,accuracy:3,sampledAt:new Date().toISOString()}},201);
+      const rejected=await(await photo(retakeSession)).upload();
+      assert.equal(rejected.state,'RECAPTURE_REQUIRED');assert.equal(rejected.reasonCode,'WRONG_ITEM');assert.equal(rejected.storage,'discarded');
+      assert.match(rejected.instructions,/take another photo/);
+     }
+     assert.equal(await prisma.verificationException.count({where:{taskInstanceId:task.id}}),0,'repeated wrong objects must never create a manager case');
+     assert.equal(await prisma.verificationIssue.count({where:{exception:{taskInstanceId:task.id}}}),0);
+     assert.equal(cloudCalls,beforeCloud,'wrong objects must never be uploaded to cloud storage');
+    }
+    const path=kind==='dirty'?`/task-instance/${task.id}/capture-sessions/rework`:`/capture-session/${retakeSession.id}/renew`;
     const retrySession=await request(path,{requestId:randomUUID(),areaQr:signAreaQr(area),deviceId:'http-test-device',clientBootId:'http-test-boot',clientTime:new Date().toISOString(),location:{latitude:24.8607,longitude:67.0011,accuracy:3,sampledAt:new Date().toISOString()},...(kind==='dirty'?{requirements:[{requirementId:r.id,expectedGeneration:r.decisionVersion}]}:{})},201);
     scenario='clean';await(await photo(retrySession)).upload();await request(`/task-instance/${task.id}/complete`,{});
    }
@@ -181,8 +195,97 @@ try{
   assert.equal(attempts.length,2);
   assert.ok(attempts.every(a=>(a.cleanlinessResult as any).photoContext.toiletStyle===(style==='squat'?'SQUAT':'WESTERN')));
  }
+ for(const fixtureType of ['INDIAN_TOILET','WESTERN_TOILET'] as const){
+  scenario='clean';
+  const configured=await createArea({id:manager.id,companyId:company.id,role:'ADMIN'},location.id,{name:fixtureType,roomType:'WASHROOM',counts:[{fixtureType,count:1}]});
+  const {task,s}=await newTask(fixtureType,configured);
+  const manifest=await request(`/task-instance/${task.id}/verification`);
+  assert.match(manifest.items[0].name,fixtureType==='INDIAN_TOILET'?/Indian toilet/:/Western toilet/);
+  assert.equal(s.slots.length,fixtureType==='INDIAN_TOILET'?1:2);
+  const snapshot=await prisma.taskVerificationItem.findFirstOrThrow({where:{taskInstanceId:task.id}});
+  assert.equal(snapshot.typeSnapshot,fixtureType);
+  if(fixtureType==='INDIAN_TOILET'){
+   assert.deepEqual((snapshot.rubricSnapshot as any).surfacesByView,{squat_pan:['pan']});
+   assert.equal(manifest.items[0].requirements[0].instructions,'Show the whole Indian toilet pan clearly.');
+  }
+  for(const slot of s.slots){
+   const result=await(await photo({...s,slots:[slot]})).upload();
+   assert.equal(result.state,'REVIEW_REQUIRED','valid photos keep the existing cleanliness review policy');
+  }
+  await request(`/task-instance/${task.id}/complete`,{});
+ }
+ // Replay the actual low-confidence WRONG_ITEM response through the real
+ // Clef adapter, HTTP endpoint, persistence and submission guards.
+ const httpFetch=globalThis.fetch;
+ const priorEvaluate=BufferedClefProvider.prototype.evaluate;
+ const originalEnvironment={account:process.env.CLOUDFLARE_ACCOUNT_ID,token:process.env.CLOUDFLARE_API_TOKEN,model:process.env.CLEF_MODEL,screening:process.env.CLEF_SCREENING_CONFIDENCE_THRESHOLD};
+ Object.assign(process.env,{CLOUDFLARE_ACCOUNT_ID:'a'.repeat(32),CLOUDFLARE_API_TOKEN:'isolated-wrong-object-replay',CLEF_MODEL:'clef',CLEF_SCREENING_CONFIDENCE_THRESHOLD:'.9'});
+ let wrongObject=true,confidence=.8758,replayedCalls=0;
+ let cleanlinessCategory='CLEAN', objectCategory='MATCH';
+ BufferedClefProvider.prototype.evaluate=evaluateWithClef;
+ globalThis.fetch=(async(input:any,options:any)=>{
+  if(!String(input).startsWith('https://api.cloudflare.com/'))return httpFetch(input,options);
+  replayedCalls++;
+  const body=JSON.parse(options.body);
+  const answers=Object.fromEntries(Object.entries(body.questions).map(([key,value]:[string,any])=>{
+   const choice=key==='object_match'?(wrongObject?'NOT_MATCH':objectCategory):key==='originality'?'DIRECT':key.startsWith('visible_')?(wrongObject?'MISSING':'VISIBLE'):(wrongObject?'NEEDS_ATTENTION':cleanlinessCategory);
+   const keys=Object.keys(value.criteria);
+   let answer:any={type:'choice',choice,confidence:wrongObject?.98:.1,probabilities:Object.fromEntries(keys.map(k=>[k,k===choice ? .98 : .02/(keys.length-1)]))};
+   if(wrongObject&&key==='object_match')answer={type:'choice',choice:'NOT_MATCH',confidence,probabilities:{MATCH:.014,NOT_SURE:.0288,NOT_MATCH:.9572}};
+   if(wrongObject&&key==='originality')answer={type:'choice',choice:'DIRECT',confidence:.6446,probabilities:{DIRECT:.8686,UNCERTAIN:.0635,SCREEN_RECAPTURE:.0679}};
+   return[key,answer];
+  }));
+  return new Response(JSON.stringify({success:true,result:{model:'clef',answers}}));
+ }) as typeof fetch;
+ try{
+  staff=await prisma.staff.create({data:{companyId:company.id,locationId:location.id,name:'Wrong-object replay staff',email:randomUUID()+'@test.invalid',password:'isolated-test-password'}});
+  staffToken=token(staff.id,'STAFF');
+  await prisma.attendance.create({data:{staffId:staff.id,locationId:location.id,date:now,expectedStart:now,expectedEnd:end,checkInTime:now,status:'CHECKED_IN'}});
+  const configured=await createArea({id:manager.id,companyId:company.id,role:'ADMIN'},location.id,{name:'Recorded wrong-object regression',roomType:'WASHROOM',counts:[{fixtureType:'INDIAN_TOILET',count:1}]});
+  const {task,s}=await newTask('Recorded wrong-object regression',configured);
+  let current=s;const beforeCloud=cloudCalls;
+  for(const value of [.8758,.4,.1,.8999]){
+   confidence=value;const result=await(await photo(current)).upload();
+   assert.equal(result.state,'RECAPTURE_REQUIRED');assert.equal(result.reasonCode,'WRONG_ITEM');assert.equal(result.storage,'discarded');
+   assert.match(result.instructions,/does not show the Indian toilet/);assert.match(result.instructions,/take another photo/);
+   assert.equal(await prisma.verificationException.count({where:{taskInstanceId:task.id}}),0);
+   assert.equal(await prisma.verificationIssue.count({where:{exception:{taskInstanceId:task.id}}}),0);
+   await request(`/task-instance/${task.id}/complete`,{},409);
+   const manifest=await request(`/task-instance/${task.id}/verification`);
+   assert.equal(manifest.items[0].requirements[0].state,'RECAPTURE_REQUIRED');
+   current=await request(`/capture-session/${current.id}/renew`,{requestId:randomUUID(),areaQr:signAreaQr(configured),deviceId:'http-test-device',clientBootId:'http-test-boot',clientTime:new Date().toISOString(),location:{latitude:24.8607,longitude:67.0011,accuracy:3,sampledAt:new Date().toISOString()}},201);
+  }
+  assert.equal(cloudCalls,beforeCloud);assert.equal(replayedCalls,4);
+  wrongObject=false;const corrected=await(await photo(current)).upload();
+  assert.equal(corrected.state,'REVIEW_REQUIRED','valid objects retain the separate cleanliness release gate');
+  assert.equal(corrected.reasonCode,'AUTO_PASS_NOT_VALIDATED');assert.equal(corrected.storage,'cloud');
+  await request(`/task-instance/${task.id}/complete`,{});
+  for (const [category, object, state, reason] of [
+   ['DIRTY','MATCH','CLEANING_REQUIRED','CLEANING_REQUIRED'],
+   ['NEEDS_ATTENTION','MATCH','REVIEW_REQUIRED','CANNOT_ASSESS'],
+   ['CLEAN','NOT_SURE','REVIEW_REQUIRED','OBJECT_UNCERTAIN'],
+  ]) {
+   cleanlinessCategory=category!;objectCategory=object!;
+   staff=await prisma.staff.create({data:{companyId:company.id,locationId:location.id,name:'Category replay staff',email:randomUUID()+'@test.invalid',password:'isolated-test-password'}});
+   staffToken=token(staff.id,'STAFF');
+   await prisma.attendance.create({data:{staffId:staff.id,locationId:location.id,date:now,expectedStart:now,expectedEnd:end,checkInTime:now,status:'CHECKED_IN'}});
+   const {s:categorySession}=await newTask('Model category '+category+' '+object,configured);
+   const callsBefore=replayedCalls;
+   const result=await(await photo(categorySession)).upload();
+   assert.equal(result.state,state);assert.equal(result.reasonCode,reason);
+   assert.equal(replayedCalls,callsBefore+1,'all checks use one provider request');
+   const attempt=await prisma.verificationAttempt.findFirstOrThrow({where:{sessionId:categorySession.id}});
+   const metadata=(attempt.cleanlinessResult as any).metadata;
+   assert.equal(metadata.decisionMode,'MODEL_CATEGORIES_V1');
+   assert.equal(metadata.screeningAnswers.cleanliness.surface_0.choice,category);
+   assert.equal(metadata.screeningAnswers.objectMatch.choice,object);
+  }
+ }finally{
+  globalThis.fetch=httpFetch;BufferedClefProvider.prototype.evaluate=priorEvaluate;
+  for(const[key,value]of Object.entries({CLOUDFLARE_ACCOUNT_ID:originalEnvironment.account,CLOUDFLARE_API_TOKEN:originalEnvironment.token,CLEF_MODEL:originalEnvironment.model,CLEF_SCREENING_CONFIDENCE_THRESHOLD:originalEnvironment.screening}))if(value===undefined)delete process.env[key];else process.env[key]=value;
+ }
  assert.equal(await prisma.verificationWorkerHeartbeat.count(),0);
- console.log('PASS direct HTTP: independent object/view/cleanliness gates, uncertain cases retained for manager review with no retake instruction, confirmed missing parts named; Indian/squat and Western toilet photos, preserved two mandatory views and legacy snapshot guidance; simple object/view/cleaning corrections across upload, refresh and polling; mismatch rejection and QR retakes, synchronous AI/storage, no queue/worker, invalid hash and staff denial, mandatory submission, manual AI/storage retry, cached replay, lost-response lookup, interrupted request and QR renewal.');
+ console.log('PASS direct HTTP: model categories CLEAN/DIRTY/NEEDS_ATTENTION and NOT_SURE persist and route correctly at diagnostic confidence .1; recorded below-threshold WRONG_ITEM responses are rejected by the real adapter without cloud storage, manager review or submission; four consecutive wrong-object retakes produce no manager case, no issue and no cloud upload; separate Indian and Western inventory creates correct task snapshots and one/two photo steps; legacy toilet tasks preserved; object/view/cleanliness gates, upload/refresh/polling corrections, AI/storage retry, access control and task submission.');
 }finally{
  await new Promise<void>((resolve,reject)=>server.close(e=>e?reject(e):resolve()));await prisma.$disconnect();
  const cleanup=new pg.Client({connectionString:source});await cleanup.connect();await cleanup.query(`DROP DATABASE "${database}" WITH (FORCE)`);await cleanup.end();

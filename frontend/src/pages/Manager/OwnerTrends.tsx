@@ -1,11 +1,11 @@
 import PageLoadingSkeleton from "@/components/common/PageLoadingSkeleton";
 import { useState } from "react";
-import { useQueries } from "@tanstack/react-query";
+import { useQuery } from "@tanstack/react-query";
 import { formatInTimeZone } from "date-fns-tz";
 import { useSelector } from "react-redux";
 import type { RootState } from "@/store/store";
 import { useLanguage } from "@/i18n/context";
-import { getLocationById } from "../Location/api";
+import { client } from "@/api/client";
 import { Button } from "@/components/ui/button";
 import { ChevronDown, Info } from "lucide-react";
 
@@ -14,20 +14,8 @@ function moveDay(day: string, offset: number) {
   d.setUTCDate(d.getUTCDate() + offset);
   return d.toISOString().slice(0, 10);
 }
-type Counts = { submitted: number; scheduled: number };
-function counts(
-  stats: Array<{ status: string; _count: { status: number } }>,
-): Counts {
-  return stats.reduce(
-    (out, row) => ({
-      submitted:
-        out.submitted + (row.status === "COMPLETED" ? row._count.status : 0),
-      scheduled:
-        out.scheduled + (row.status === "CANCELLED" ? 0 : row._count.status),
-    }),
-    { submitted: 0, scheduled: 0 },
-  );
-}
+type TrendPeriod = { dateFrom: string; dateTo: string; submitted: number; scheduled: number };
+type TrendResponse = { rows: Array<{ locationId: number; current: TrendPeriod; previous: TrendPeriod }> };
 export default function OwnerTrends({
   locations,
   asOf,
@@ -39,7 +27,7 @@ export default function OwnerTrends({
 }) {
   const { t } = useLanguage();
   const scope = useSelector(
-    (s: RootState) => s.auth.user?.companyId + ":" + s.auth.user?.id,
+    (s: RootState) => `${s.auth.user?.companyId}:${s.auth.user?.role}:${s.auth.user?.id}`,
   );
   const [expanded, setExpanded] = useState(
     locations.length > 0 &&
@@ -66,28 +54,24 @@ export default function OwnerTrends({
       },
     };
   });
-  const queries = useQueries({
-    queries: ranges.flatMap((range) =>
-      [range.current, range.previous].map((period) => ({
-        queryKey: ["owner-trends", scope, range.location.id, period],
-        queryFn: () =>
-          getLocationById(String(range.location.id), {
-            type: "range",
-            ...period,
-          }),
-        enabled: expanded && !!period.dateTo,
-        staleTime: 60000,
-      })),
-    ),
+  const query = useQuery({
+    // Calendar days keep the cache reusable as overview's asOf advances.
+    queryKey: ["owner-trends", scope, ranges.map((r) => [r.location.id, r.current.dateTo])],
+    queryFn: async ({ signal }) => (
+      await client.get<{ data: TrendResponse }>("/manager/operations/trends", {
+        params: { date, asOf, locationId: locations.length === 1 ? locations[0].id : undefined },
+        signal,
+      })
+    ).data.data,
+    enabled: expanded && ranges.length > 0 && ranges.every((r) => !!r.current.dateTo),
+    staleTime: 60000,
+    refetchIntervalInBackground: false,
   });
-  const rows = ranges.map((range, i) => ({
+  const countsByLocation = new Map(query.data?.rows.map((r) => [r.locationId, r]));
+  const rows = ranges.map((range) => ({
     ...range,
-    currentCounts: queries[i * 2]?.data
-      ? counts(queries[i * 2].data.data.taskStats)
-      : null,
-    previousCounts: queries[i * 2 + 1]?.data
-      ? counts(queries[i * 2 + 1].data.data.taskStats)
-      : null,
+    currentCounts: countsByLocation.get(range.location.id)?.current ?? null,
+    previousCounts: countsByLocation.get(range.location.id)?.previous ?? null,
   }));
   const max = Math.max(
     1,
@@ -121,15 +105,15 @@ export default function OwnerTrends({
               {t("Previous 7 days")}
             </span>
           </div>
-          {queries.some((q) => q.isPending) ? (
+          {query.isPending && ranges.length > 0 ? (
             <PageLoadingSkeleton layout="trends" section />
           ) : null}
-          {queries.some((q) => q.isError) ? (
+          {query.isError ? (
             <div role="alert" className="operations-notice">
               <p>{t("Trends could not load. Try again.")}</p>
               <Button
                 variant="outline"
-                onClick={() => queries.forEach((q) => void q.refetch())}
+                onClick={() => void query.refetch()}
               >
                 {t("Try again")}
               </Button>

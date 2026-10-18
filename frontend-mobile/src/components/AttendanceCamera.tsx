@@ -1,4 +1,3 @@
-import { ListenButton } from "./ListenButton";
 import { useLanguage } from "../i18n/LanguageProvider";
 import { useEffect, useRef, useState } from 'react';
 import { BackHandler, View } from 'react-native';
@@ -45,7 +44,7 @@ export function AttendanceCamera({ mode, onCapture, onCancel }: {
     <View className="gap-2 px-5 py-4">
       <Text className="text-2xl font-bold">{mode === 'check-in' ? 'Check-in selfie' : 'Check-out selfie'}</Text>
       <Text className="text-base text-muted-foreground">Keep your face inside the frame, then take your selfie.</Text>
-      <ListenButton text={t("Keep your face inside the frame, then take your selfie.")}/>
+
     </View>
     <View className="flex-1 overflow-hidden">
       {focused ? <CameraView ref={camera} style={{ flex: 1 }} facing="front" mode="picture"

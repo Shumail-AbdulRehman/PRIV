@@ -9,11 +9,13 @@ import {
 import { Platform } from "react-native";
 import * as SecureStore from "expo-secure-store";
 import { setCaptureAccount } from "../verification/captureAccount";
+import { clearPhoneAlerts } from '../notifications/native';
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import { useQueryClient } from "@tanstack/react-query";
 import { client, configureApiAuth } from "../api/client";
 import { STORAGE_KEY } from "../config";
-import { loadServerAddress } from '../api/serverAddress';
+import { loadServerAddress,getServerAddress } from '../api/serverAddress';
+import { staffLogoutQueue } from './pendingLogout';
 import { createSessionStorage } from './sessionStorage';
 import type { ApiEnvelope, AuthSession, AuthTokens, StaffUser } from "../types";
 
@@ -63,6 +65,7 @@ export function AuthProvider({ children }: PropsWithChildren) {
 
   const clearSession = async () => {
     setCaptureAccount(null);
+    await clearPhoneAlerts();
     await applySession(emptySession);
     queryClient.clear();
   };
@@ -98,6 +101,7 @@ export function AuthProvider({ children }: PropsWithChildren) {
     void (async () => {
       try {
         await loadServerAddress();
+        void staffLogoutQueue.flush().catch(() => {});
         const storedSession = await sessionStorage.read();
 
         if (!storedSession) {
@@ -125,6 +129,7 @@ export function AuthProvider({ children }: PropsWithChildren) {
   }, []);
 
   const login = async (email: string, password: string) => {
+    await staffLogoutQueue.flush().catch(() => {});
     const response = await client.post<
       ApiEnvelope<
         StaffUser & {
@@ -153,8 +158,9 @@ export function AuthProvider({ children }: PropsWithChildren) {
   const logout = async () => {
     setCaptureAccount(null);
     try {
-      if (sessionRef.current.accessToken) {
-        await client.post("/common/logout");
+      if (sessionRef.current.refreshToken) {
+        await staffLogoutQueue.enqueue({server:getServerAddress(),refreshToken:sessionRef.current.refreshToken});
+        await staffLogoutQueue.flush();
       }
     } finally {
       await clearSession();

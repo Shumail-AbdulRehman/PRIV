@@ -1,3 +1,4 @@
+import type { NavigatorScreenParams } from '@react-navigation/native';
 export type StaffTabsParamList = {
   Shift: undefined;
   Tasks: undefined;
@@ -6,7 +7,7 @@ export type StaffTabsParamList = {
 
 export type RootStackParamList = {
   Login: undefined;
-  StaffTabs: undefined;
+  StaffTabs: NavigatorScreenParams<StaffTabsParamList> | undefined;
   Verification: { taskId: number; requirePhotoQr?: boolean };
   StartTask: { taskId: number };
   SpatialDiagnostic: undefined;
@@ -54,8 +55,8 @@ export type AttendanceRecord = {
   expectedEnd: string;
   checkInTime: string | null;
   checkOutTime: string | null;
-  checkInImage: string | null;
-  checkOutImage: string | null;
+  checkInImage?: string | null;
+  checkOutImage?: string | null;
   location?: {
     id: number;
     name: string;

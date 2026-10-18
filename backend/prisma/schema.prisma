@@ -141,6 +141,8 @@ model Staff {
   attendances        Attendance[]
   completionAttempts TaskCompletionAttempt[]
   areaSubmissions    TaskAreaSubmission[]
+  notifications      StaffNotification[]
+  pushDevices        StaffPushDevice[]
   createdAt          DateTime                @default(now())
   updatedAt          DateTime                @updatedAt
 
@@ -969,4 +971,64 @@ model VerificationWorkerHeartbeat {
   lastSeenAt DateTime @default(now())
   activeJobs Int @default(0)
   startedAt DateTime @default(now())
+}
+
+// Durable staff inbox and push outbox. Task events are inserted by database
+// triggers in the same transaction as the task change (including bulk writes).
+model StaffNotification {
+  id           Int      @id @default(autoincrement())
+  staffId      Int
+  companyId    Int
+  staff        Staff    @relation(fields: [staffId], references: [id], onDelete: Cascade)
+  kind         String
+  eventKey     String   @unique
+  taskId       Int?
+  attendanceId Int?
+  data         Json     @default("{}")
+  createdAt    DateTime @default(dbgenerated("(CURRENT_TIMESTAMP AT TIME ZONE 'UTC')"))
+  expiresAt    DateTime
+  readAt       DateTime?
+  deliveries   StaffPushDelivery[]
+
+  @@index([staffId, companyId, id])
+  @@index([staffId, readAt])
+  @@index([expiresAt])
+}
+
+model StaffPushDevice {
+  alertChannelVersion Int @default(1)
+  id               String   @id
+  staffId          Int
+  companyId        Int
+  staff            Staff    @relation(fields: [staffId], references: [id], onDelete: Cascade)
+  token            String   @unique
+  platform         String
+  language         String   @default("en")
+  sessionHash      String
+  sessionExpiresAt DateTime
+  enabled          Boolean  @default(true)
+  boundAt          DateTime @default(dbgenerated("(CURRENT_TIMESTAMP AT TIME ZONE 'UTC')"))
+  updatedAt        DateTime @updatedAt
+  deliveries       StaffPushDelivery[]
+
+  @@index([staffId, enabled])
+}
+
+model StaffPushDelivery {
+  id             Int      @id @default(autoincrement())
+  notificationId Int
+  deviceId       String
+  notification   StaffNotification @relation(fields: [notificationId], references: [id], onDelete: Cascade)
+  device         StaffPushDevice @relation(fields: [deviceId], references: [id], onDelete: Cascade)
+  status         String   @default("PENDING")
+  attempts       Int      @default(0)
+  availableAt    DateTime @default(dbgenerated("(CURRENT_TIMESTAMP AT TIME ZONE 'UTC')"))
+  lockedUntil    DateTime?
+  ticketId       String?
+  sentToken      String?
+  lastError      String?
+  createdAt      DateTime @default(dbgenerated("(CURRENT_TIMESTAMP AT TIME ZONE 'UTC')"))
+
+  @@unique([notificationId, deviceId])
+  @@index([status, availableAt])
 }

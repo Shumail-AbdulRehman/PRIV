@@ -31,7 +31,7 @@ Keep English / اردو visible. Persist the preference without altering authent
 
 Vocabulary lives in each app's `src/i18n/translations.ts`. A parity test enforces equivalent web/native dictionaries. Built-in instructions are translated; arbitrary configured instructions retain their original text. Do not silently rewrite a task's snapshotted requirement.
 
-Listen is optional: browser SpeechSynthesis and Expo Speech. Select an installed voice for the chosen language; never silently substitute English for Urdu. If unavailable, show a persistent explanation and ask for manager assistance. A compatible Urdu voice must be installed; native dependency changes require rebuilding the app. Do not claim offline speech availability for every installed voice.
+Listen is available in the staff mobile app through Expo Speech. The manager web dashboard displays written instructions without speech controls. In the staff app, select an installed voice for the chosen language; never silently substitute English for Urdu. If unavailable, show a persistent explanation and ask for manager assistance. A compatible Urdu voice must be installed; native dependency changes require rebuilding the app. Do not claim offline speech availability for every installed voice.
 
 ## Status and feedback contracts
 

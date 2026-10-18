@@ -60,6 +60,8 @@ export async function raiseIssue(
   requirementId: string | null = null,
   attemptId: string | null = null,
 ) {
+  // Wrong objects are discarded and corrected by staff, including repeated retakes.
+  if (reasonCode === 'WRONG_ITEM') return null;
   await lockTask(tx, taskId);
   const task = await tx.taskInstance.findUniqueOrThrow({
     where: { id: taskId },
@@ -87,7 +89,6 @@ export async function raiseIssue(
     [
       "CLEANING_REQUIRED",
       "CANNOT_ASSESS",
-      "WRONG_ITEM",
       "MISSING_SURFACE",
       "PHOTO_TOO_DARK",
       "PHOTO_BLURRY",

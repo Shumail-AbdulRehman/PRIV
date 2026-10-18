@@ -1,0 +1,12 @@
+import { Router } from 'express';
+import { z } from 'zod';
+import { verifyJwt } from '../middlewares/auth.middleware.js';
+import authorize from '../middlewares/authorize.middleware.js';
+import { ApiError } from '../utils/ApiError.js';
+import { staffMobileTasks, staffMobileAttendance } from '../services/mobile/staffMobile.service.js';
+const router = Router();
+router.use(verifyJwt, authorize('STAFF'));
+router.get('/tasks', async (req, res) => res.json({ success: true, data: await staffMobileTasks(req.user!, req.query) }));
+router.get('/attendance', async (req, res) => res.json({ success: true, data: await staffMobileAttendance(req.user!) }));
+router.use((error: unknown, _req: any, _res: any, next: any) => next(error instanceof z.ZodError ? new ApiError(400, 'Invalid mobile query', error.issues) : error));
+export default router;

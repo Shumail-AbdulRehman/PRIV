@@ -10,6 +10,7 @@ import { getUtcDayRange, getZonedDayRange } from '../utils/dateTime.js';
 import { markCurrentAssignmentStarted } from '../services/taskAssignment.service.js';
 import { verifyAreaQr } from '../services/verification-v2/qr.service.js';
 import { writeAuditLog } from '../services/auditLog.service.js';
+import { mobileTaskSummary } from '../services/mobile/staffMobile.service.js';
 
 export const getTodaysTasksForStaff = async (req: Request, res: Response) => {
   const staffId = Number(req.params.staffId);
@@ -165,7 +166,11 @@ export const getTaskInstanceById = async (req: Request, res: Response) => {
         throw new ApiError(400, "Invalid task id");
     }
 
-    await requireTaskAccess(req.user!, taskId);
+    const authorizedTask = await requireTaskAccess(req.user!, taskId);
+    if (req.user!.role === 'STAFF' && req.query.view === 'mobile') {
+        res.json(new ApiResponse(200, mobileTaskSummary(authorizedTask), "Task fetched successfully"));
+        return;
+    }
 
     const task= await prisma.taskInstance.findUnique({
         where: {id: taskId, isActive:true},

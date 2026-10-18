@@ -7,7 +7,6 @@ import type { RootState } from "@/store/store";
 import { useLanguage } from "@/i18n/context";
 import { Button } from "@/components/ui/button";
 import OperationStatus from "@/components/common/OperationStatus";
-import ListenButton from "@/components/common/ListenButton";
 import OperationsState from "../Manager/OperationsState";
 import { localTime } from "../Manager/operations";
 import { getVerification, getVerificationHistory } from "./api";
@@ -125,7 +124,7 @@ function PhotoWorkspace({ id, scope, data, selectedId, select }: {
             <Camera size={32} /><strong>{t(photo ? "This photo is not available for review yet." : "No photo received for this view")}</strong>
             <p>{t("Photos saved only on the worker’s phone appear after uploading.")}</p>
           </div>}
-          {selected ? <div className="ops-instructions"><h3>{t("What this photo must show")}</h3><p>{selected.requirement.instructionsSnapshot}</p><ListenButton text={selected.requirement.instructionsSnapshot} /></div> : null}
+          {selected ? <div className="ops-instructions"><h3>{t("What this photo must show")}</h3><p>{selected.requirement.instructionsSnapshot}</p></div> : null}
           {photo ? <OperationStatus state={photo.manualOutcome ?? photo.state} label={plainReason(photo.manualOutcome ?? photo.state)} /> : null}
         </div>
       </section>

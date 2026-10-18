@@ -1,23 +1,38 @@
 import bcrypt from "bcrypt";
 import jwt, { SignOptions } from "jsonwebtoken";
+import { randomUUID } from "node:crypto";
 
-
-export async function isPasswordCorrect(plainPassword: string, hashedPassword: string) {
-    return bcrypt.compare(plainPassword, hashedPassword);
+export async function isPasswordCorrect(
+  plainPassword: string,
+  hashedPassword: string,
+) {
+  return bcrypt.compare(plainPassword, hashedPassword);
 }
 
-export function generateAccessToken(user: { id: number; email: string; name: string }, role: "ADMIN" | "MANAGER" | "STAFF") {
-    return jwt.sign(
-        { id: user.id, email: user.email, name: user.name, role },
-        process.env.ACCESS_TOKEN_SECRET as string,
-        { expiresIn: process.env.ACCESS_TOKEN_EXPIRY } as SignOptions
-    );
+export function generateAccessToken(
+  user: { id: number; email: string; name: string },
+  role: "ADMIN" | "MANAGER" | "STAFF",
+) {
+  return jwt.sign(
+    { id: user.id, email: user.email, name: user.name, role },
+    process.env.ACCESS_TOKEN_SECRET as string,
+    { expiresIn: process.env.ACCESS_TOKEN_EXPIRY } as SignOptions,
+  );
 }
 
-export function generateRefreshToken(user: { id: number},role: "ADMIN" | "MANAGER" | "STAFF") {
-    return jwt.sign(
-        { id: user.id , role},
-        process.env.REFRESH_TOKEN_SECRET as string,
-        { expiresIn: process.env.REFRESH_TOKEN_EXPIRY } as SignOptions
-    );
+export function generateRefreshToken(
+  user: { id: number },
+  role: "ADMIN" | "MANAGER" | "STAFF",
+) {
+  return jwt.sign(
+    { id: user.id, role },
+    process.env.REFRESH_TOKEN_SECRET as string,
+    {
+      expiresIn:
+        role === "STAFF"
+          ? process.env.STAFF_REFRESH_TOKEN_EXPIRY || "30d"
+          : process.env.REFRESH_TOKEN_EXPIRY,
+      ...(role === "STAFF" ? { jwtid: randomUUID() } : {}),
+    } as SignOptions,
+  );
 }

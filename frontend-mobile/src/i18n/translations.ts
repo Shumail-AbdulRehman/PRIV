@@ -169,10 +169,8 @@ export const urdu: Record<string, string> = {
   "Open navigation": "مینو کھولیں",
   Close: "بند کریں",
   Language: "زبان",
-  Listen: "سنیں",
-  "Stop listening": "سننا بند کریں",
-  "Voice is not available. Ask your manager to read this instruction.":
-    "آواز دستیاب نہیں۔ منیجر سے یہ ہدایت پڑھنے کو کہیں۔",
+  "Load more tasks": "مزید کام دکھائیں",
+  "Loading tasks…": "کام کھل رہے ہیں…",
   "Try again": "دوبارہ کوشش کریں",
   Retry: "دوبارہ کوشش کریں",
   Refresh: "تازہ کریں",
@@ -435,6 +433,13 @@ export const urdu: Record<string, string> = {
   "Due {time}": "وقت {time}",
   "Time remaining: {time}": "باقی وقت: {time}",
   Toilet: "ٹوائلٹ",
+  "Indian toilet": "انڈین ٹوائلٹ",
+  "Western toilet": "ویسٹرن ٹوائلٹ",
+  "Show the whole Indian toilet pan clearly.": "انڈین ٹوائلٹ کا پورا پین واضح طور پر دکھائیں۔",
+  "Show the whole toilet bowl and seat.": "ٹوائلٹ کا پورا پیالہ اور سیٹ دکھائیں۔",
+  "Show the outside and base of the toilet.": "ٹوائلٹ کا باہر والا اور نچلا حصہ دکھائیں۔",
+  "This photo does not show the Indian toilet. Please show the whole Indian toilet pan clearly and take another photo.": "اس تصویر میں انڈین ٹوائلٹ نہیں ہے۔ انڈین ٹوائلٹ کا پورا پین واضح دکھائیں اور نئی تصویر لیں۔",
+  "The Indian toilet is not clean. Please clean the toilet pan, then scan the room QR and take another photo.": "انڈین ٹوائلٹ صاف نہیں ہے۔ ٹوائلٹ کا پین صاف کریں، پھر کمرے کا کیو آر اسکین کر کے نئی تصویر لیں۔",
   Sink: "بیسن",
   Mirror: "آئینہ",
   Bin: "کوڑے دان",
@@ -578,20 +583,7 @@ export function translateText(text: string, language: Language): string {
   if (urdu[text]) return urdu[text];
   // Only recognizable fixture labels are translated; names entered by users remain intact.
   return text.replace(
-    /\b(Toilet|Sink|Mirror|Bin|Floor zone)\b/g,
+    /\b(Indian toilet|Western toilet|Toilet|Sink|Mirror|Bin|Floor zone)\b/g,
     (word) => urdu[word] ?? word,
-  );
-}
-export const speechLocale = (language: Language) =>
-  language === "ur" ? "ur-PK" : "en-PK";
-export function selectVoice<T extends { language: string }>(
-  voices: T[],
-  language: Language,
-): T | undefined {
-  return (
-    voices.find(
-      (v) => v.language.toLowerCase() === speechLocale(language).toLowerCase(),
-    ) ??
-    voices.find((v) => v.language.toLowerCase().split(/[-_]/)[0] === language)
   );
 }

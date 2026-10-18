@@ -3,6 +3,7 @@ import type { Prisma } from "@prisma/client";
 import { prisma } from "../prisma/prisma.js";
 import { ApiError } from "../utils/ApiError.js";
 import { assertLocationAccess } from "../utils/scope.js";
+import { deleteCleaningSchedule } from "./scheduleDeletion.service.js";
 
 type Actor = {
   id: number;
@@ -108,6 +109,8 @@ export async function permanentlyDelete(
     throw new ApiError(403, "You do not have permission to delete this record");
   }
 
+  if (entity === "taskTemplate") return deleteCleaningSchedule(id, actor);
+
   await prisma.$transaction(
     async (tx) => {
       const companyId = actor.companyId;
@@ -135,17 +138,6 @@ export async function permanentlyDelete(
         });
         // ManagerLocation cascades; the manager and staff accounts are independent.
         await tx.location.delete({ where: { id, companyId } });
-      } else if (entity === "taskTemplate") {
-        const template = await tx.taskTemplate.findFirst({
-          where: { id, location: { companyId } },
-        });
-        if (!template)
-          throw new ApiError(404, "Task schedule not found in your company");
-        assertLocationAccess(actor, template.locationId);
-        await assertDeletionAllowed(tx, entity, id);
-        await deleteTasks(tx, { templateId: id }, companyId);
-        await queueTemplateMedia(tx, { id });
-        await tx.taskTemplate.delete({ where: { id } });
       } else if (entity === "staff") {
         const staff = await tx.staff.findFirst({ where: { id, companyId } });
         if (!staff) throw new ApiError(404, "Staff not found in your company");

@@ -1,14 +1,13 @@
 import NetInfo from "@react-native-community/netinfo";
 import { useLanguage } from "../i18n/LanguageProvider";
 import { StaffBrand } from "../components/StaffBrand";
-import { ListenButton } from "../components/ListenButton";
 import { TaskCard } from "../components/TaskCard";
 import { useEffect, useState } from "react";
 import { Alert, Linking, RefreshControl, ScrollView, View } from "react-native";
 import { useCameraPermissions } from "expo-camera";
 import * as Location from "expo-location";
 import * as Haptics from "expo-haptics";
-import { useNavigation } from "@react-navigation/native";
+import { useNavigation, useIsFocused } from "@react-navigation/native";
 import type { BottomTabNavigationProp } from "@react-navigation/bottom-tabs";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { useQueryClient } from "@tanstack/react-query";
@@ -310,8 +309,9 @@ export function HomeScreen() {
     coords: Awaited<ReturnType<typeof currentLocation>>;
   } | null>(null);
   const staffId = user?.id;
-  const attendanceQuery = useMyAttendanceQuery(staffId);
-  const tasksQuery = useTodaysTasksQuery(staffId);
+  const focused = useIsFocused();
+  const attendanceQuery = useMyAttendanceQuery(staffId, focused);
+  const tasksQuery = useTodaysTasksQuery(staffId, focused);
   const attendanceRecords = attendanceQuery.data ?? [];
   const tasks = tasksQuery.data ?? [];
   const isInitialLoading =
@@ -460,7 +460,7 @@ export function HomeScreen() {
     hasAssignedLocation: Boolean(user?.locationId),
     now,
   });
-  const completedCount = tasks.filter(
+  const completedCount = tasksQuery.counts?.submitted ?? tasks.filter(
     (task) => task.status === "COMPLETED",
   ).length;
   const attendanceAction = attendanceView.action;
@@ -504,13 +504,6 @@ export function HomeScreen() {
 
   const checkedIn = !!activeAttendance && hasOpenCheckout(activeAttendance);
   const onShiftWaiting = checkedIn && !!attendanceAction?.disabled;
-  const instruction = t(
-    attendanceAction?.disabled
-      ? "If you were on shift and this is wrong, contact your manager."
-      : attendanceAction
-        ? "Take a fresh selfie. Keep location turned on."
-        : attendanceView.title,
-  );
   return (
     <ScrollView
       className="flex-1 bg-background"
@@ -625,7 +618,7 @@ export function HomeScreen() {
                 : attendanceView.message}
           </Text>:null}
           <Button variant="ghost" iconRight={shiftDetails ? "ChevronUp" : "ChevronDown"} aria-expanded={shiftDetails} accessibilityState={{expanded:shiftDetails}} onPress={()=>setShiftDetails(value=>!value)}>{t("Shift details")}</Button>
-          {shiftDetails ? <View className="gap-3 border-t border-border pt-4">{attendanceView.facts.map(fact=><View key={fact.label} style={{flexDirection:isRTL?'row-reverse':'row',justifyContent:'space-between',gap:12,flexWrap:'wrap'}}><Text className="text-base text-muted-foreground">{t(fact.label)}</Text><Text className="text-base font-semibold">{fact.value}</Text></View>)}<ListenButton text={instruction}/></View> : null}
+          {shiftDetails ? <View className="gap-3 border-t border-border pt-4">{attendanceView.facts.map(fact=><View key={fact.label} style={{flexDirection:isRTL?'row-reverse':'row',justifyContent:'space-between',gap:12,flexWrap:'wrap'}}><Text className="text-base text-muted-foreground">{t(fact.label)}</Text><Text className="text-base font-semibold">{fact.value}</Text></View>)}</View> : null}
           {onShiftWaiting && activeAttendance ? (
             <Text className="text-base text-muted-foreground">
               {t("Check-out opens at {time}", {
@@ -698,7 +691,7 @@ export function HomeScreen() {
           <Text className="text-base text-muted-foreground">
             {t("{count} of {total} submitted", {
               count: completedCount,
-              total: tasks.length,
+              total: tasksQuery.counts?.total ?? tasks.length,
             })}
           </Text>
         </View>

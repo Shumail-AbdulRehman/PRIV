@@ -1,5 +1,19 @@
 // Manager-only wording. Shared staff vocabulary remains in translations.ts.
 export const managerUrdu: Record<string, string> = {
+  "Add staff": "عملہ شامل کریں",
+  "Add team member": "ٹیم کا رکن شامل کریں",
+  "Assigned staff and their shifts at this location":
+    "اس مقام پر مقرر عملہ اور ان کی شفٹیں",
+  "Team member added.": "ٹیم کا رکن شامل ہو گیا۔",
+  "Task history period": "کام کی تاریخ کا دورانیہ",
+  "Full Name": "پورا نام",
+  "Phone Number": "فون نمبر",
+  "Location (optional)": "مقام (اختیاری)",
+  "No location": "کوئی مقام نہیں",
+  "Shift Start": "شفٹ کا آغاز",
+  "Shift End": "شفٹ کا اختتام",
+  "Create staff": "عملہ شامل کریں",
+  "Creating...": "شامل ہو رہا ہے...",
   "Edit location": "مقام میں ترمیم",
   "Find your site and set where your team can check in.":
     "اپنا مقام تلاش کریں اور عملے کی حاضری کی حدود مقرر کریں۔",

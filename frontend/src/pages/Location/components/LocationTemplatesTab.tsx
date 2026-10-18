@@ -354,7 +354,8 @@ export default function LocationTemplatesTab({
                 </Button>
                 <DeleteButton
                   name={row.title}
-                  description="This schedule and all its task history, assignments, and evidence records will be removed."
+                  preserveHistory
+                  description="This removes the schedule and today's and future tasks from active work. Past task history and recorded evidence are kept."
                   onDelete={() => deleteTemplate.mutateAsync(row.id)}
                 />
               </div>

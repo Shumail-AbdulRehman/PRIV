@@ -12,8 +12,9 @@ import {
 import { verifyJwt } from "../middlewares/auth.middleware.js";
 import authorize from "../middlewares/authorize.middleware.js";
 
-import { operationsRead } from "../controllers/managerOperations.controller.js";
+import { operationsRead, readDashboardTrends } from "../controllers/managerOperations.controller.js";
 const router = Router();
+router.get("/operations/trends", verifyJwt, authorize("ADMIN", "MANAGER"), readDashboardTrends);
 for (const kind of ["overview", "staff", "tasks"] as const)
   router.get(
     `/operations/${kind}`,

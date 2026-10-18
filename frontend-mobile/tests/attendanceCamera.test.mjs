@@ -16,7 +16,6 @@ const mocks = {
   'expo-camera': '{CameraView:"CameraView"}',
   '@react-navigation/native': '{useIsFocused:()=>true}',
   'react-native-safe-area-context': '{useSafeAreaInsets:()=>({top:0,bottom:0})}',
-  './ListenButton': '{ListenButton:()=>null}',
   './ui/button': '{Button:"Button"}', './ui/text': '{Text:"Text"}',
 };
 const urls = Object.fromEntries(Object.entries(mocks).map(([name, value], i) => {

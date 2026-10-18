@@ -13,13 +13,12 @@ import { captureClock, inspectStill } from '../../../modules/capture-quality';
 import { useAuth } from '../../auth/AuthContext';
 import { useLanguage } from '../../i18n/LanguageProvider';
 import { LanguageChoice } from '../../components/LanguageChoice';
-import { ListenButton } from '../../components/ListenButton';
 import { PhotoGuide } from '../../components/PhotoGuide';
 import { CaptureFrame, PhotoCaptureControls, PhotoStepProgress } from '../../components/PhotoCaptureControls';
 import { Button } from '../../components/ui/button';
 import { Text } from '../../components/ui/text';
 import { captureAccount } from '../../verification/captureAccount';
-import { activatePhoto, finishSubmission, findUploadedPhoto, installationId, openCaptureSession, resumeCapture, uploadPhoto, verificationManifest } from '../../verification/api';
+import { activatePhoto, finishSubmission, findUploadedPhoto, installationId, openCaptureSession, uploadPhoto, verificationManifest } from '../../verification/api';
 import { captureAllowed, checkedPhotoState, mergeManifest, nextSlot, objectSecondsRemaining } from '../../verification/policy';
 import { qualityInstruction, reworkRequirements, slotInstruction } from '../../verification/capturePolicy';
 import { requiredPhotoIds } from '../../verification/feedback';
@@ -42,7 +41,7 @@ export function VerificationScreen({route,navigation}:Props) {
   const [permission,requestPermission]=useCameraPermissions();
   const [manifest,setManifest]=useState<Manifest|null>(null),[local,setLocal]=useState<LocalSession|null>(null);
   const [mode,setMode]=useState<Mode>('prepare'),[pending,setPending]=useState<PendingPhoto|null>(null);
-  const pendingRef=useRef<PendingPhoto|null>(null),localRef=useRef(local);localRef.current=local;
+  const pendingRef=useRef<PendingPhoto|null>(null);
   const [busy,setBusy]=useState(false),[busyLabel,setBusyLabel]=useState('Please wait…');
   const [message,setMessage]=useState(''),[refreshing,setRefreshing]=useState(false);
   const [online,setOnline]=useState(true),[foreground,setForeground]=useState(AppState.currentState==='active');
@@ -111,11 +110,9 @@ export function VerificationScreen({route,navigation}:Props) {
     setManifest(current);setLastUpdated(Date.now());setMode('capture');
   });if(mounted.current)setMode(previous=>previous==='locating'?'scan':previous);}
   async function refreshAfterUpload(){
-    const current=await load(),previous=localRef.current;
-    if(previous&&valid()&&current&&!current.staffSubmittedAt&&current.task.status!=='COMPLETED'){
-      const session=await resumeCapture(previous.session.id,[]);
-      if(valid())setLocal({...previous,manifest:current??previous.manifest,session:{...previous.session,...session,serverTime:previous.session.serverTime}});
-    }
+    // The manifest supplies current results and session state. Uploading does
+    // not pause the session; the next activation returns fresh slot authority.
+    await load();
     if(valid())setMode('progress');
   }
   async function sendPhoto(photo:PendingPhoto,checkFirst=false){
@@ -173,7 +170,7 @@ export function VerificationScreen({route,navigation}:Props) {
       {!finished&&mode==='prepare'?<View style={{gap:16}}><Text className="text-xl font-bold">Ready to finish?</Text><Text>Complete every required photo. Scan the room QR to begin.</Text><Text>Keep people out of the photos, including mirror reflections.</Text><Button size="lg" disabled={!manifest||!online} onPress={()=>void beginPhotos()}>Scan QR to take photos</Button></View>:null}
       {mode==='locating'?<Text accessibilityLiveRegion="polite">{busyLabel}</Text>:null}
       {mode==='scan'?<Text className="text-xl font-bold">Scan the area QR</Text>:null}
-      {mode==='capture'&&heading?<View style={{gap:8}}><PhotoStepProgress current={Math.max(1,(local?.session.slots.findIndex(s=>s.id===slot?.id)??0)+1)} total={Math.max(1,local?.session.slots.length??1)}/><Text className="text-3xl font-bold">{heading.title}</Text><PhotoGuide fixture={local?.manifest.items.find(i=>i.requirements.some(r=>r.id===slot?.requirementId))?.typeSnapshot} instruction={heading.view}/><ListenButton text={t(heading.view)}/>{heading.hint?<Text>{heading.hint}</Text>:null}</View>:null}
+      {mode==='capture'&&heading?<View style={{gap:8}}><PhotoStepProgress current={Math.max(1,(local?.session.slots.findIndex(s=>s.id===slot?.id)??0)+1)} total={Math.max(1,local?.session.slots.length??1)}/><Text className="text-3xl font-bold">{heading.title}</Text><PhotoGuide fixture={local?.manifest.items.find(i=>i.requirements.some(r=>r.id===slot?.requirementId))?.typeSnapshot} instruction={heading.view}/>{heading.hint?<Text>{heading.hint}</Text>:null}</View>:null}
       {cameraVisible?<View style={{width:'100%',height:cameraHeight,flexShrink:0,borderRadius:24,overflow:'hidden',backgroundColor:'#DDE5DE'}}><CameraView key={cameraKey} ref={camera} style={StyleSheet.absoluteFill} facing="back" enableTorch={torch} onCameraReady={()=>setCameraReady(true)} onMountError={()=>{setCameraReady(false);setMessage('Camera could not open. Tap Restart camera.');}} barcodeScannerSettings={mode==='scan'?scanSettings:undefined} onBarcodeScanned={mode==='scan'?({data})=>{if(!inFlight.current&&focused&&foreground&&online)void scanned(data);}:undefined}/><CaptureFrame/></View>:null}
       {cameraVisible?<View style={{flexDirection:'row',gap:12}}><Button className="flex-1" variant="outline" onPress={()=>setTorch(value=>!value)}>{torch?'Torch off':'Torch on'}</Button><Button className="flex-1" variant="ghost" onPress={()=>setCameraKey(value=>value+1)}>Restart camera</Button></View>:null}
       {!permission?.granted&&mode==='scan'?<Button onPress={()=>void (permission?.canAskAgain?requestPermission():Linking.openSettings())}>Allow camera</Button>:null}

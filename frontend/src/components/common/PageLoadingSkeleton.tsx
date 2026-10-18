@@ -342,7 +342,6 @@ function LocationBody({ tab }: { tab: string }) {
   if (tab === "overview")
     return (
       <>
-        <Metrics />
         <div className="location-overview-columns sk-location-columns">
           <Panel>
             <Table columns={3} rows={3} avatars={false} />
@@ -370,6 +369,19 @@ function LocationBody({ tab }: { tab: string }) {
         <Filters count={2} />
         <Table columns={6} avatars={false} />
       </>
+    );
+  if (tab === "staff")
+    return (
+      <Panel title="Staff and shifts">
+        <Table columns={5} />
+      </Panel>
+    );
+  if (tab === "instances")
+    return (
+      <Panel title="Task history">
+        <Tabs count={4} />
+        <Table columns={8} />
+      </Panel>
     );
   return <Table columns={tab === "staff" ? 5 : 8} />;
 }
@@ -483,13 +495,8 @@ export default function PageLoadingSkeleton({
       content = (
         <>
           <Header back actions={3} />
-          {tab !== "overview" ? (
-            <>
-              <Tabs count={4} />
-              <Metrics compact />
-            </>
-          ) : null}
           <Tabs count={6} />
+          <Metrics />
           <LocationBody tab={tab} />
         </>
       );

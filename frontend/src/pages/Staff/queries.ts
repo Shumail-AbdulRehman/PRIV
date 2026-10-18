@@ -5,11 +5,9 @@ import {
   getStaffDetails,
   createStaff,
   deleteStaff,
-  assignShift,
   editStaff,
   type StaffDetailsFilters,
   type CreateStaffInput,
-  type AssignShiftInput,
   type EditStaffInput,
 } from "./api";
 
@@ -42,10 +40,13 @@ export const useCreateStaff = () => {
   const qc = useQueryClient();
   return useMutation({
     mutationFn: (data: CreateStaffInput) => createStaff(data),
-    onSuccess: () => Promise.all([
-      qc.invalidateQueries({ queryKey: ["staff"] }),
-      qc.invalidateQueries({ queryKey: ["operations"] }),
-    ]),
+    onSuccess: () =>
+      Promise.all([
+        qc.invalidateQueries({ queryKey: ["staff"] }),
+        qc.invalidateQueries({ queryKey: ["operations"] }),
+        qc.invalidateQueries({ queryKey: ["location"] }),
+        qc.invalidateQueries({ queryKey: ["getLocations"] }),
+      ]),
   });
 };
 
@@ -54,18 +55,6 @@ export const useDeleteStaff = () => {
   return useMutation({
     mutationFn: (id: number) => deleteStaff(id),
     onSuccess: () => invalidateWorkspace(qc),
-  });
-};
-
-export const useAssignShift = () => {
-  const qc = useQueryClient();
-  return useMutation({
-    mutationFn: ({ id, data }: { id: number; data: AssignShiftInput }) =>
-      assignShift(id, data),
-    onSuccess: () => Promise.all([
-      qc.invalidateQueries({ queryKey: ["staff"] }),
-      qc.invalidateQueries({ queryKey: ["operations"] }),
-    ]),
   });
 };
 

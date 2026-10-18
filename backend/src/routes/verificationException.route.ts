@@ -24,7 +24,7 @@ import {
 import { lockTask } from "../services/verification-v2/captureSession.service.js";
 import { writeAuditLog } from "../services/auditLog.service.js";
 import { ApiError } from "../utils/ApiError.js";
-import { listReviews } from "../services/reviewList.service.js";
+import { countReviews, listReviews } from "../services/reviewList.service.js";
 const router = Router();
 router.use(
   [
@@ -35,6 +35,9 @@ router.use(
 );
 const idSchema = z.coerce.number().int().positive();
 const cursorSchema = idSchema.optional();
+router.get("/verification-exceptions/count", async (req, res) =>
+  res.json({ success: true, data: await countReviews(req.user!, req.query) }),
+);
 router.post("/task-instance/:taskId/verification-issues", async (req) => {
  await requireTaskAccess(req.user!,idSchema.parse(req.params.taskId),{staffMutation:true});
  throw new ApiError(410,"Complete and upload all required photos. Staff exception requests are no longer available.",[{code:'REQUIRED_PHOTOS_ONLY'}]);

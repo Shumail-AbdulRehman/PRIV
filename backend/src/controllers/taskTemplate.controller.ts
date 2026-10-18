@@ -372,8 +372,8 @@ export const editTaskTemplate = async (req: Request, res: Response) => {
 };
 
 export const deleteTaskTemplate = async (req: Request, res: Response) => {
-  await permanentlyDelete("taskTemplate", Number(req.params.id), req.user!);
-  res.status(200).json(new ApiResponse(200, {}, "Deleted permanently"));
+  const result = await permanentlyDelete("taskTemplate", Number(req.params.id), req.user!);
+  res.status(200).json(new ApiResponse(200, result, "Schedule and current/future tasks removed. Past task history is preserved."));
 };
 
 export const getTaskTemplate=async (req:Request, res: Response)=>

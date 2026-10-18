@@ -1,0 +1,329 @@
+{
+  "date": "2026-10-18",
+  "configuredDatabaseReadOnlyProbe": {
+    "connectionMs": 1850,
+    "selectOneMs": [
+      403,
+      296,
+      308,
+      286,
+      432
+    ],
+    "serverExecutionMs": {
+      "selectOne": 0.026,
+      "recentAttempts": 0.769,
+      "companyAttemptCountWithNoMatchingCompany": 0.089
+    }
+  },
+  "liveServiceProbe": {
+    "input": "repository area-sink.webp illustration; no customer photo",
+    "databaseWrites": false,
+    "imageMs": 58,
+    "uploadBytes": 21352,
+    "aiMs": 1090,
+    "model": "clef",
+    "objectMatch": "UNCERTAIN",
+    "viewMatch": "UNCERTAIN",
+    "cleanliness": "CANNOT_ASSESS",
+    "cloudLookupStatus": 404,
+    "cloudLookupMs": 913
+  },
+  "controlledBefore": {
+    "injectedSqlDelayMs": 100,
+    "aiDelayMs": 30,
+    "cases": [
+      {
+        "kind": "clean",
+        "totalMs": 14110,
+        "sqlCalls": 158,
+        "requests": [
+          {
+            "method": "POST",
+            "operation": "upload",
+            "durationMs": 10835,
+            "sqlCalls": 117,
+            "stages": []
+          },
+          {
+            "method": "GET",
+            "operation": "manifest",
+            "durationMs": 1134,
+            "sqlCalls": 17,
+            "stages": []
+          },
+          {
+            "method": "POST",
+            "operation": "resume",
+            "durationMs": 2141,
+            "sqlCalls": 24,
+            "stages": []
+          }
+        ]
+      },
+      {
+        "kind": "dirty",
+        "totalMs": 12725,
+        "sqlCalls": 144,
+        "requests": [
+          {
+            "method": "POST",
+            "operation": "upload",
+            "durationMs": 9565,
+            "sqlCalls": 105,
+            "stages": []
+          },
+          {
+            "method": "GET",
+            "operation": "manifest",
+            "durationMs": 1021,
+            "sqlCalls": 15,
+            "stages": []
+          },
+          {
+            "method": "POST",
+            "operation": "resume",
+            "durationMs": 2139,
+            "sqlCalls": 24,
+            "stages": []
+          }
+        ]
+      }
+    ]
+  },
+  "controlledAfterFirstRun": {
+    "injectedSqlDelayMs": 100,
+    "aiDelayMs": 30,
+    "cases": [
+      {
+        "kind": "clean",
+        "totalMs": 11524,
+        "sqlCalls": 117,
+        "requests": [
+          {
+            "method": "POST",
+            "operation": "upload",
+            "durationMs": 10247,
+            "sqlCalls": 100,
+            "stages": [
+              {
+                "stage": "access",
+                "durationMs": 561
+              },
+              {
+                "stage": "image",
+                "durationMs": 209
+              },
+              {
+                "stage": "claim",
+                "durationMs": 899
+              },
+              {
+                "stage": "ai",
+                "durationMs": 32
+              },
+              {
+                "stage": "assessment_save",
+                "durationMs": 359
+              },
+              {
+                "stage": "storage",
+                "durationMs": 2
+              },
+              {
+                "stage": "publish",
+                "durationMs": 4279
+              },
+              {
+                "stage": "response",
+                "durationMs": 705
+              }
+            ]
+          },
+          {
+            "method": "GET",
+            "operation": "manifest",
+            "durationMs": 1277,
+            "sqlCalls": 17,
+            "stages": []
+          }
+        ]
+      },
+      {
+        "kind": "dirty",
+        "totalMs": 8949,
+        "sqlCalls": 103,
+        "requests": [
+          {
+            "method": "POST",
+            "operation": "upload",
+            "durationMs": 7827,
+            "sqlCalls": 87,
+            "stages": [
+              {
+                "stage": "access",
+                "durationMs": 508
+              },
+              {
+                "stage": "image",
+                "durationMs": 43
+              },
+              {
+                "stage": "claim",
+                "durationMs": 713
+              },
+              {
+                "stage": "ai",
+                "durationMs": 31
+              },
+              {
+                "stage": "assessment_save",
+                "durationMs": 305
+              },
+              {
+                "stage": "publish",
+                "durationMs": 2654
+              },
+              {
+                "stage": "response",
+                "durationMs": 617
+              }
+            ]
+          },
+          {
+            "method": "GET",
+            "operation": "manifest",
+            "durationMs": 1122,
+            "sqlCalls": 16,
+            "stages": []
+          }
+        ]
+      }
+    ]
+  },
+  "controlledAfterFinalRun": {
+    "injectedSqlDelayMs": 100,
+    "aiDelayMs": 30,
+    "cases": [
+      {
+        "kind": "clean",
+        "totalMs": 10225,
+        "sqlCalls": 116,
+        "requests": [
+          {
+            "method": "POST",
+            "operation": "upload",
+            "durationMs": 9198,
+            "sqlCalls": 100,
+            "stages": [
+              {
+                "stage": "access",
+                "durationMs": 507
+              },
+              {
+                "stage": "image",
+                "durationMs": 46
+              },
+              {
+                "stage": "claim",
+                "durationMs": 714
+              },
+              {
+                "stage": "ai",
+                "durationMs": 31
+              },
+              {
+                "stage": "assessment_save",
+                "durationMs": 306
+              },
+              {
+                "stage": "storage",
+                "durationMs": 1
+              },
+              {
+                "stage": "publish",
+                "durationMs": 3992
+              },
+              {
+                "stage": "response",
+                "durationMs": 620
+              }
+            ]
+          },
+          {
+            "method": "GET",
+            "operation": "manifest",
+            "durationMs": 1027,
+            "sqlCalls": 16,
+            "stages": []
+          }
+        ]
+      },
+      {
+        "kind": "dirty",
+        "totalMs": 8954,
+        "sqlCalls": 103,
+        "requests": [
+          {
+            "method": "POST",
+            "operation": "upload",
+            "durationMs": 7824,
+            "sqlCalls": 87,
+            "stages": [
+              {
+                "stage": "access",
+                "durationMs": 506
+              },
+              {
+                "stage": "image",
+                "durationMs": 44
+              },
+              {
+                "stage": "claim",
+                "durationMs": 714
+              },
+              {
+                "stage": "ai",
+                "durationMs": 31
+              },
+              {
+                "stage": "assessment_save",
+                "durationMs": 306
+              },
+              {
+                "stage": "publish",
+                "durationMs": 2655
+              },
+              {
+                "stage": "response",
+                "durationMs": 617
+              }
+            ]
+          },
+          {
+            "method": "GET",
+            "operation": "manifest",
+            "durationMs": 1130,
+            "sqlCalls": 16,
+            "stages": []
+          }
+        ]
+      }
+    ]
+  },
+  "validation": {
+    "backendUnitTests": 557,
+    "mobileTests": 72,
+    "backendTypecheck": "passed",
+    "mobileTypecheck": "passed",
+    "directHttpIntegration": "passed",
+    "lifecycleIntegration": "passed"
+  },
+  "limits": [
+    "Controlled HTTP tests use real isolated PostgreSQL and synthetic photos, with mocked AI and storage.",
+    "Only the separate service probe calls live AI; Cloudinary probe is a read-only missing-asset lookup.",
+    "The baseline and after runs are individual observations, not p50/p95 statistics.",
+    "The first after run overlapped other checks; wall-clock variability is preserved in this report.",
+    "Readiness-cache expiry can add one metadata SQL call.",
+    "No physical-phone timing, production deployment, operational database mutation, or APK build."
+  ]
+}

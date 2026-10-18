@@ -16,10 +16,12 @@ export default function DeleteButton({
   name,
   description,
   onDelete,
+  preserveHistory = false,
 }: {
   name: string;
   description: string;
   onDelete: () => Promise<unknown>;
+  preserveHistory?: boolean;
 }) {
   const queryClient = useQueryClient();
   const [archivePath, setArchivePath] = useState("");
@@ -84,7 +86,7 @@ export default function DeleteButton({
         >
           <DialogTitle>{archivePath ? "Archive" : "Delete"} {name}?</DialogTitle>
           <DialogDescription>
-            {archivePath ? "Archiving keeps verification history and evidence. This record will become inactive." : `${description} This permanently deletes the records and cannot be undone.`}
+            {archivePath ? "Archiving keeps verification history and evidence. This record will become inactive." : preserveHistory ? description : `${description} This permanently deletes the records and cannot be undone.`}
           </DialogDescription>
           {error && (
             <p role="alert" className="text-sm text-destructive">
@@ -101,7 +103,7 @@ export default function DeleteButton({
               Cancel
             </Button>
             <Button variant="destructive" disabled={pending} onClick={remove}>
-              {pending ? (archivePath ? "Archiving…" : "Deleting…") : (archivePath ? "Archive and preserve history" : "Delete permanently")}
+              {pending ? (archivePath ? "Archiving…" : "Deleting…") : (archivePath ? "Archive and preserve history" : preserveHistory ? "Delete schedule" : "Delete permanently")}
             </Button>
           </DialogFooter>
         </DialogContent>

@@ -12,6 +12,7 @@ import "./cron/taskStatusCron.js";
 import "./cron/taskReassignmentCron.js";
 import "./cron/attendanceCron.js";
 import "./cron/attendanceStatusCron.js";
+import "./cron/staffNotificationCron.js";
 import { runStartupCron } from "./cron/startupCron.js";
 import { handlePaddleWebhook } from "./controllers/paddleWebhook.controller.js";
 
@@ -87,6 +88,8 @@ app.use(cookieParser());
 
 import managerRouter from "./routes/manager.route.js";
 import staffRouter from "./routes/staff.route.js";
+import staffNotificationRouter from "./routes/staffNotification.route.js";
+import staffMobileRouter from "./routes/staffMobile.route.js";
 import locationRouter from "./routes/location.route.js";
 import taskTemplateRouter from "./routes/taskTemplate.route.js";
 import assignmentRouter from "./routes/assignment.route.js";
@@ -112,7 +115,9 @@ for (const [path, entity] of [['location','location'],['staff','staff'],['manage
  });
 }
 app.use("/api/manager", managerRouter);
+app.use("/api/staff/mobile", staffMobileRouter);
 app.use("/api/staff", staffRouter);
+app.use("/api/staff-notifications", staffNotificationRouter);
 app.use("/api/location", areaLocationRouter);
 app.use("/api/area", areaRouter);
 app.use("/api/location", locationRouter);

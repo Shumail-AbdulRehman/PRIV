@@ -1,4 +1,4 @@
-export type FixtureType = 'TOILET' | 'SINK' | 'MIRROR' | 'BIN' | 'FLOOR' | 'CUSTOM';
+export type FixtureType = 'TOILET' | 'INDIAN_TOILET' | 'WESTERN_TOILET' | 'SINK' | 'MIRROR' | 'BIN' | 'FLOOR' | 'CUSTOM';
 export type AreaItem = {
   id: number; areaId: number; stableCode: string; displayName: string; fixtureType: FixtureType;
   positionHint: string | null; sequence: number; identificationMode: 'PRINTED_LABEL' | 'EXISTING_NUMBER' | 'ORDERED_CONTEXT';
@@ -15,7 +15,7 @@ export type Area = {
 export type InventoryCount = { fixtureType: FixtureType; count: number };
 export type InventorySelection = { areaItemId: number; mandatory: boolean };
 export type StandardPhoto = { privacyState?: string; id: number; mediaAssetId: string; caption: string | null; areaItemId: number | null };
-export const fixtureNames: Record<FixtureType, string> = { TOILET: 'Toilet', SINK: 'Sink', MIRROR: 'Mirror', BIN: 'Bin', FLOOR: 'Floor zone', CUSTOM: 'Fixture' };
+export const fixtureNames: Record<FixtureType, string> = { TOILET: 'Toilet', INDIAN_TOILET: 'Indian toilet', WESTERN_TOILET: 'Western toilet', SINK: 'Sink', MIRROR: 'Mirror', BIN: 'Bin', FLOOR: 'Floor zone', CUSTOM: 'Fixture' };
 export function validateInventorySelection(area: Pick<Area, 'id' | 'items'>, mode: 'ALL' | 'SUBSET', selected: InventorySelection[]): string | null {
   const active = area.items.filter(item => item.status === 'ACTIVE');
   if (selected.some(row => !active.some(item => item.id === row.areaItemId && item.areaId === area.id))) return 'Choose active items from this area only.';
@@ -38,12 +38,12 @@ export function inventorySummary(area: Pick<Area, 'items'>, mode: 'ALL' | 'SUBSE
   return { total: items.length, mandatory: mandatory.length, optional: items.length - mandatory.length,
     requiredViews: mandatory.reduce((sum, item) => sum + item.requiredViews.filter(view => view.mandatory !== false).length, 0) };
 }
-export const setupFixtureTypes: FixtureType[] = ['TOILET', 'SINK', 'MIRROR', 'BIN', 'FLOOR'];
+export const setupFixtureTypes: FixtureType[] = ['INDIAN_TOILET', 'WESTERN_TOILET', 'SINK', 'MIRROR', 'BIN', 'FLOOR'];
 export function previewInventoryCounts(counts: InventoryCount[], existing: Pick<AreaItem, 'stableCode' | 'sequence'>[] = []) {
   let sequence = Math.max(0, ...existing.map(item => item.sequence));
   const result: Array<{stableCode: string; displayName: string; sequence: number}> = [];
   for (const group of counts) {
-    if (!setupFixtureTypes.includes(group.fixtureType) || !Number.isSafeInteger(group.count) || group.count < 0 || group.count > 200) throw new Error('Enter whole fixture counts between 0 and 200.');
+    if (!(setupFixtureTypes.includes(group.fixtureType) || group.fixtureType === 'TOILET') || !Number.isSafeInteger(group.count) || group.count < 0 || group.count > 200) throw new Error('Enter whole fixture counts between 0 and 200.');
     let number = Math.max(0, ...[...existing, ...result].filter(item => item.stableCode.startsWith(`${group.fixtureType}-`)).map(item => Number(item.stableCode.split('-')[1]) || 0));
     for (let index = 0; index < group.count; index++) {
       const suffix = String(++number).padStart(2, '0');
@@ -59,8 +59,8 @@ export function nonRetiredFixtureCount(area: Pick<Area, 'items'>) {
 }
 // Presets choose fixture categories, not an assumed room size. Managers enter actual counts.
 export const roomPresets = {
-  WASHROOM: { fixtureTypes: ['TOILET', 'SINK', 'MIRROR', 'BIN', 'FLOOR'] as FixtureType[], defaults: {TOILET:0,SINK:0,MIRROR:0,BIN:0,FLOOR:1,CUSTOM:0} },
-  GENERAL: { fixtureTypes: ['BIN', 'FLOOR'] as FixtureType[], defaults: {TOILET:0,SINK:0,MIRROR:0,BIN:0,FLOOR:1,CUSTOM:0} },
+  WASHROOM: { fixtureTypes: ['INDIAN_TOILET', 'WESTERN_TOILET', 'SINK', 'MIRROR', 'BIN', 'FLOOR'] as FixtureType[], defaults: {TOILET:0,INDIAN_TOILET:0,WESTERN_TOILET:0,SINK:0,MIRROR:0,BIN:0,FLOOR:1,CUSTOM:0} },
+  GENERAL: { fixtureTypes: ['BIN', 'FLOOR'] as FixtureType[], defaults: {TOILET:0,INDIAN_TOILET:0,WESTERN_TOILET:0,SINK:0,MIRROR:0,BIN:0,FLOOR:1,CUSTOM:0} },
 };
 
 export function standardPhotoMessage(privacyState?: string): string | null {

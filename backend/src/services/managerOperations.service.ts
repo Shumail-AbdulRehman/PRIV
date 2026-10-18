@@ -238,7 +238,7 @@ export async function managerOperations(
       });
       const lateTasks = hydrate(lateIds), unassigned = hydrate(unassignedIds), tasks = hydrate(taskIds);
       const countsByLocation = new Map(aggregates.map(row => [row.locationId, row]));
-      const comparison = scope.selected.map(location => {
+      const comparison = scope.selected.slice(0, 4).map(location => {
         const counts = countsByLocation.get(location.id);
         return {
           location,

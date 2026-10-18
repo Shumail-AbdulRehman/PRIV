@@ -5,21 +5,9 @@ const useScope = () =>
     (s: RootState) =>
       `${s.auth.user?.companyId}:${s.auth.user?.role}:${s.auth.user?.id}`,
   );
-import { useInfiniteQuery, useQuery } from "@tanstack/react-query";
+import { useQuery } from "@tanstack/react-query";
 import { client } from "@/api/client";
-import { getException, getExceptions } from "./api";
-import type { ExceptionFilters } from "./types";
-export const useExceptions = (filters: ExceptionFilters = {}) => {
-  const scope = useScope();
-  return useInfiniteQuery({
-    queryKey: ["exceptions", scope, filters],
-    queryFn: ({ pageParam }) => getExceptions(filters, pageParam),
-    initialPageParam: undefined as string | undefined,
-    getNextPageParam: (page) => page.nextCursor ?? undefined,
-    refetchInterval: 30000,
-    refetchIntervalInBackground: false,
-  });
-};
+import { getException } from "./api";
 export const useException = (id: number) => {
   const scope = useScope();
   return useQuery({
@@ -39,11 +27,11 @@ export const useExceptionCount = (enabled = true) => {
   const scope = useScope();
   return useQuery({
     queryKey: ["exception-count", scope],
-    queryFn: async () =>
+    queryFn: async ({ signal }) =>
       (
-        await client.get<{ data: { total: number; unreadCount?: number } }>(
-          "/verification-exceptions",
-          { params: { queue: "needs-me", page: 1, pageSize: 1 } },
+        await client.get<{ data: { total: number } }>(
+          "/verification-exceptions/count",
+          { params: { queue: "needs-me" }, signal },
         )
       ).data.data,
     enabled,

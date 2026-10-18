@@ -31,7 +31,8 @@ const { managerOperations } =
   await import("../src/services/managerOperations.service.js");
 const { operationsQuery } =
   await import("../src/services/operationsScope.service.js");
-const { listReviews } = await import("../src/services/reviewList.service.js");
+const { countReviews, listReviews } = await import("../src/services/reviewList.service.js");
+const { dashboardTrends } = await import("../src/services/dashboardTrends.service.js");
 const { issueSatisfied } =
   await import("../src/services/verification-v2/exception.service.js");
 const now = new Date("2026-10-11T19:15:00Z");
@@ -377,12 +378,16 @@ const { default: express } = await import("express");
 const { default: jwt } = await import("jsonwebtoken");
 const { default: router } =
   await import("../src/routes/verificationException.route.js");
+const { default: managerRouter } = await import("../src/routes/manager.route.js");
+const { default: locationRouter } = await import("../src/routes/location.route.js");
 const app = express();
 app.use(express.json());
 app.use((req, _res, next) => {
   req.cookies = {};
   next();
 });
+app.use("/api/manager", managerRouter);
+app.use("/api/location", locationRouter);
 app.use("/api", router);
 app.use((error: any, _req: any, res: any, _next: any) =>
   res.status(error.statusCode ?? 500).json({ message: error.message }),
@@ -399,6 +404,46 @@ const headers = {
   Authorization: `Bearer ${token}`,
   "Content-Type": "application/json",
 };
+const badgeResponse = await fetch(`${base}/verification-exceptions/count?queue=needs-me`, { headers });
+assert.equal(badgeResponse.status, 200);
+assert.deepEqual(((await badgeResponse.json()) as any).data, await countReviews(actor, {}));
+const trendsResponse = await fetch(`${base}/manager/operations/trends?date=2026-10-12&asOf=${now.toISOString()}`, { headers });
+assert.equal(trendsResponse.status, 200);
+const httpTrends = ((await trendsResponse.json()) as any).data;
+assert.equal(httpTrends.rows.length, 1);
+await prisma.staff.update({ where: { id: staff.id }, data: { refreshToken: "test-token-must-not-leak" } });
+await prisma.taskTemplate.create({ data: {
+  title: "Assigned cleaning", locationId: location.id, staffId: staff.id,
+  shiftStart: now, shiftEnd: new Date(+now + 3600000), effectiveDate: now,
+} });
+for (const period of ["current", "previous"] as const) {
+  const expected = httpTrends.rows[0][period];
+  const statsResponse = await fetch(`${base}/location/${location.id}/stats?dateFrom=${expected.dateFrom}&dateTo=${expected.dateTo}`, { headers });
+  assert.equal(statsResponse.status, 200);
+  const stats = ((await statsResponse.json()) as any).data;
+  let scheduled = 0, submitted = 0;
+  for (const row of stats.taskStats) {
+    if (row.status !== "CANCELLED") scheduled += row._count.status;
+    if (row.status === "COMPLETED") submitted += row._count.status;
+  }
+  assert.deepEqual({ submitted: expected.submitted, scheduled: expected.scheduled }, { submitted, scheduled });
+  assert.equal(stats.locationInfo.staff[0].email, staff.email);
+  assert.equal(stats.locationInfo.taskTemplates[0].staff.name, staff.name);
+  const assertSafe = (value: any) => {
+    if (!value || typeof value !== "object") return;
+    for (const [key, child] of Object.entries(value)) {
+      assert.ok(!["password", "refreshToken"].includes(key), `sensitive field ${key} must not be returned`);
+      assertSafe(child);
+    }
+  };
+  assertSafe(stats);
+}
+for (const path of [
+  `/manager/operations/trends?locationId=${other.id}`,
+  `/verification-exceptions/count?locationId=${other.id}`,
+]) assert.equal((await fetch(base + path, { headers })).status, 403);
+assert.equal((await fetch(`${base}/manager/operations/trends?date=2026-02-30`, { headers })).status, 400);
+assert.equal((await fetch(`${base}/verification-exceptions/count?queue=invalid`, { headers })).status, 400);
 const workspaceResponse = await fetch(
   `${base}/verification-exceptions/${c.id}`,
   { headers },
@@ -482,6 +527,56 @@ assert.equal(mixed.metrics.verified, 1);
 assert.equal(mixed.metrics.accepted, 1);
 assert.equal(mixed.comparison.find((r: any) => r.location.id === ny.id).tasks, 1);
 assert.deepEqual(mixed.days.map((d: any) => d.localDate).sort(), ["2026-10-11", "2026-10-12"]);
+assert.equal(mixed.tasks.length, 4);
+
+// Two-week trends must match the previous statistics semantics, even with
+// different timezones, boundaries, cancellation, inactive tasks and submissions.
+await task("Previous week submitted", "2026-10-01T19:00:00Z", "2026-10-01T20:00:00Z", {
+  status: "NOT_COMPLETED_INTIME", staffSubmittedAt: new Date("2026-10-01T21:00:00Z"),
+});
+await task("Before both weeks", "2026-09-20T19:00:00Z", "2026-09-20T20:00:00Z", { status: "COMPLETED" });
+const trends = await dashboardTrends(actor, {}, now);
+assert.equal(trends.rows.length, 2);
+assert.deepEqual(trends.rows.map((r) => r.current.dateTo).sort(), ["2026-10-11", "2026-10-12"]);
+for (const row of trends.rows) {
+  for (const period of [row.current, row.previous]) {
+    const { locationDay } = await import("../src/services/operationsScope.service.js");
+    const loc = mixedScope.selected.find((l) => l.id === row.locationId)!;
+    const records = await prisma.taskInstance.findMany({ where: {
+      locationId: row.locationId, isActive: true,
+      date: { gte: locationDay(loc, period.dateFrom).start, lt: locationDay(loc, period.dateTo).end },
+    }, select: { status: true, staffSubmittedAt: true } });
+    const { operationalTaskStatus } = await import("../src/services/verification-v2/sequentialPolicy.js");
+    assert.equal(period.scheduled, records.filter((t) => t.status !== "CANCELLED").length);
+    assert.equal(period.submitted, records.filter((t) => operationalTaskStatus(t) === "COMPLETED").length);
+  }
+}
+await assert.rejects(() => dashboardTrends(adminActor, { locationId: location.id }, now), /access/);
+assert.deepEqual(await dashboardTrends(adminActor, {}, now), { rows: [] });
+
+// Badge totals remain all-dates and include inactive assigned locations, while
+// excluding other queues, unassigned sites and foreign tenants.
+const inactiveLocation = await prisma.location.create({ data: {
+  name: "Inactive assigned", address: "Test", companyId: company.id,
+  timezone: "Asia/Karachi", latitude: "0", longitude: "0", isActive: false,
+  managerAssignments: { create: { managerId: manager.id } },
+} });
+for (const [site, state] of [[inactiveLocation, "OPEN"], [location, "STAFF_ACTION_REQUIRED"], [other, "MANAGER_REVIEW"]] as const)
+  await prisma.verificationException.create({ data: {
+    companyId: company.id, locationId: site.id, kind: "SETUP", state, dedupeKey: randomUUID(),
+    firstRaisedAt: new Date("2026-09-01T00:00:00Z"),
+  } });
+assert.equal((await countReviews(actor, {})).total, (await listReviews(actor, { page: 1 }) as any).total);
+assert.equal((await countReviews(actor, { locationId: inactiveLocation.id })).total, 1);
+await assert.rejects(() => countReviews(adminActor, { locationId: location.id }), /access/);
+for (let i = 0; i < 5; i++) await prisma.location.create({ data: {
+  name: `Extra ${i}`, address: "Test", companyId: company.id, timezone: "UTC", latitude: "0", longitude: "0",
+  managerAssignments: { create: { managerId: manager.id } },
+} });
+const boundedOverview = await managerOperations(actor, operationsQuery.parse({}), "overview", now) as any;
+assert.equal(boundedOverview.comparison.length, 4);
+assert.equal(boundedOverview.selected.length, 7);
+assert.equal(boundedOverview.metrics.totalTasks, mixed.metrics.totalTasks);
 const empty = (await managerOperations(adminActor, operationsQuery.parse({}), "overview", now)) as any;
 assert.equal(empty.metrics.totalTasks, 0);
 assert.deepEqual(empty.tasks, []);

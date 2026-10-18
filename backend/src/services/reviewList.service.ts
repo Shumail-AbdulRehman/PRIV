@@ -3,7 +3,6 @@ import type { Prisma } from "@prisma/client";
 import { prisma } from "../prisma/prisma.js";
 import {
   operationsScope,
-  locationDay,
   taskDayWhere,
   pageBounds,
 } from "./operationsScope.service.js";
@@ -26,12 +25,7 @@ const queues = {
   service: ["WAITING_SERVICE"],
   resolved: ["RESOLVED"],
 } as const;
-export async function listReviews(
-  actor: VerificationActor,
-  raw: unknown,
-  nextAfterId?: number,
-) {
-  const q = reviewQuery.parse(raw);
+async function reviewScope(actor: VerificationActor, q: z.infer<typeof reviewQuery>) {
   const scope = await operationsScope(
     actor,
     q.locationId,
@@ -39,20 +33,8 @@ export async function listReviews(
     new Date(),
     true,
   );
-  const locations = await prisma.location.findMany({
-    where: {
-      companyId: actor.companyId,
-      ...(actor.role === "MANAGER"
-        ? { managerAssignments: { some: { managerId: actor.id } } }
-        : {}),
-      ...(q.locationId ? { id: q.locationId } : {}),
-    },
-    select: { id: true, name: true, timezone: true },
-    orderBy: { name: "asc" },
-  });
-  const days = locations.map((l) =>
-    locationDay(l, q.period === "date" ? q.date : "today", scope.asOf),
-  );
+  const locations = scope.selected;
+  const days = scope.days;
   // AND keeps period and search predicates independent (both can use OR/task).
   const search: Prisma.VerificationExceptionWhereInput = q.q
     ? {
@@ -88,9 +70,25 @@ export async function listReviews(
       period,
     ],
   };
-  let where: Prisma.VerificationExceptionWhereInput = {
+  const where: Prisma.VerificationExceptionWhereInput = {
     AND: [common, { state: { in: [...queues[q.queue]] } }],
   };
+  return { scope, locations, common, where };
+}
+
+export async function countReviews(actor: VerificationActor, raw: unknown) {
+  const { where } = await reviewScope(actor, reviewQuery.parse(raw));
+  return { total: await prisma.verificationException.count({ where }) };
+}
+
+export async function listReviews(
+  actor: VerificationActor,
+  raw: unknown,
+  nextAfterId?: number,
+) {
+  const q = reviewQuery.parse(raw);
+  const { scope, locations, common, where: baseWhere } = await reviewScope(actor, q);
+  let where = baseWhere;
   if (nextAfterId) {
     const current = await prisma.verificationException.findFirst({
       where: {

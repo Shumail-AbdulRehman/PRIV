@@ -5,7 +5,6 @@ import { useLanguage } from "../i18n/LanguageProvider";
 import { Text } from "../components/ui/text";
 import { Button } from "../components/ui/button";
 import { LanguageChoice } from "../components/LanguageChoice";
-import { ListenButton } from "../components/ListenButton";
 import { ScreenHeader } from "../components/ScreenHeader";
 export function HelpScreen() {
   const { user, logout } = useAuth();
@@ -37,7 +36,7 @@ export function HelpScreen() {
       <View className="gap-3 rounded-2xl border border-border bg-card p-5">
         <Text className="text-xl font-bold">{t("Your workflow")}</Text>
         <Text className="text-base leading-7">{help}</Text>
-        <ListenButton text={help} />
+
       </View>
       <View className="gap-3">
         <Text className="text-base font-semibold">{t("Your account")}</Text>

@@ -1,6 +1,9 @@
 import OperationStatus from "@/components/common/OperationStatus";
 import { verificationLabel } from "../Verification/presentation";
 import LocationOverview from "./LocationOverview";
+import StaffCreateDialog from "../Staff/StaffCreateDialog";
+import OperationalSummary from "@/components/common/OperationalSummary";
+import { useOperations, type OperationOverview } from "../Manager/operations";
 import LocationFormDialog from "./LocationFormDialog";
 import PageHeader from "@/components/common/PageHeader";
 import { Button } from "@/components/ui/button";
@@ -37,8 +40,6 @@ import {
   Navigation,
   Radius,
   XCircle,
-  Activity,
-  CalendarCheck,
   Calendar,
   RefreshCw,
   ChevronDown,
@@ -87,40 +88,6 @@ const FILTERS: {
   },
   { key: "all", label: "All Time", toFilter: () => undefined },
 ];
-
-function StatCard({
-  label,
-  value,
-  icon: Icon,
-  color,
-}: {
-  label: string;
-  value: string | number;
-  icon: React.ElementType;
-  color: string;
-}) {
-  const colors: Record<string, string> = {
-    indigo: "bg-blue-100 text-blue-600",
-    cyan: "bg-sky-100 text-sky-600",
-    purple: "bg-violet-100 text-violet-600",
-    emerald: "bg-emerald-100 text-emerald-600",
-  };
-  return (
-    <div className="rounded-xl border border-gray-200 bg-white p-4 shadow-sm">
-      <div className="flex items-center justify-between">
-        <div>
-          <p className="text-xs text-gray-500">{label}</p>
-          <p className="mt-1 text-2xl font-bold text-gray-900">{value}</p>
-        </div>
-        <div
-          className={`flex h-10 w-10 items-center justify-center rounded-xl ${colors[color] ?? colors.indigo}`}
-        >
-          <Icon className="h-4 w-4" />
-        </div>
-      </div>
-    </div>
-  );
-}
 
 type Tab =
   "overview" | "areas" | "staff" | "templates" | "instances" | "schedule";
@@ -297,6 +264,8 @@ const VerificationCell = ({ attempts }: { attempts: CompletionAttempt[] }) => {
 const LocationDetailPage: React.FC = () => {
   const { t } = useLanguage();
   const [settingsOpen, setSettingsOpen] = useState(false);
+  const [staffDialogOpen, setStaffDialogOpen] = useState(false);
+  const [staffAdded, setStaffAdded] = useState(false);
   const [editOpen, setEditOpen] = useState(false);
   const [saved, setSaved] = useState(false);
   const user = useSelector((state: RootState) => state.auth.user);
@@ -325,6 +294,12 @@ const LocationDetailPage: React.FC = () => {
   const currentFilter = FILTERS.find((f) => f.key === activeFilter)!;
   const filter = currentFilter.toFilter();
 
+  const overviewParams = { locationId: id ?? "", date: "today" };
+  const overview = useOperations<OperationOverview>(
+    "overview",
+    overviewParams,
+    !!id,
+  );
   const detailQuery = useGetLocationById(id!, filter);
   const { data, isLoading, isFetching } = detailQuery;
   const locationInfo = data?.data?.locationInfo as LocationInfo | undefined;
@@ -347,11 +322,6 @@ const LocationDetailPage: React.FC = () => {
     return () => cancelAnimationFrame(frame);
   }, [activeTab, selectedTaskId, isLoading, detailQuery.isError]);
 
-  const staffCount = locationInfo?.staff?.length ?? 0;
-  const templateCount = locationInfo?.taskTemplates?.length ?? 0;
-  const instanceCount = locationInfo?.taskInstances?.length ?? 0;
-  const completedCount =
-    taskStats.find((t) => t.status === "COMPLETED")?._count?.status ?? 0;
   const locationTz = locationInfo?.timezone ?? "UTC";
 
   if (isLoading) return <LoadingSpinner fullScreen />;
@@ -386,7 +356,7 @@ const LocationDetailPage: React.FC = () => {
   }
 
   return (
-    <div className="space-y-6 max-w-6xl">
+    <div className="location-detail-page space-y-6 max-w-6xl">
       <div className="flex items-center gap-2 text-sm">
         <Link
           to="/locations"
@@ -484,72 +454,6 @@ const LocationDetailPage: React.FC = () => {
           ) : null}
         </section>
       ) : null}
-      {activeTab !== "overview" ? (
-        <>
-          <div className="flex items-center justify-between flex-wrap gap-3">
-            <div className="flex flex-wrap items-center gap-1.5 rounded-lg border border-gray-200 bg-white p-1">
-              <Calendar className="ml-2 h-4 w-4 text-gray-400 shrink-0" />
-              {FILTERS.map((f) => (
-                <button
-                  key={f.key}
-                  aria-pressed={activeFilter === f.key}
-                  onClick={() => setActiveFilter(f.key)}
-                  className={`inline-flex items-center gap-1.5 rounded-md px-3 py-1.5 text-sm font-medium transition-all ${
-                    f.key === activeFilter
-                      ? "bg-primary text-white shadow-sm"
-                      : "text-gray-500 hover:bg-gray-100 hover:text-gray-900"
-                  }`}
-                >
-                  {f.key === activeFilter && isFetching && (
-                    <RefreshCw className="h-3 w-3 animate-spin" />
-                  )}
-                  {f.label}
-                </button>
-              ))}
-            </div>
-          </div>
-
-          <div className="grid grid-cols-2 gap-4 lg:grid-cols-4">
-            <StatCard
-              label="Active Staff"
-              value={staffCount}
-              icon={Users}
-              color="indigo"
-            />
-            <StatCard
-              label="Scheduled tasks"
-              value={templateCount}
-              icon={ClipboardList}
-              color="purple"
-            />
-            <StatCard
-              label="Tasks in period"
-              value={instanceCount}
-              icon={Activity}
-              color="cyan"
-            />
-            <StatCard
-              label="Work submitted"
-              value={completedCount}
-              icon={CalendarCheck}
-              color="emerald"
-            />
-          </div>
-
-          {taskStats.length > 0 && (
-            <div className="flex flex-wrap gap-3">
-              {taskStats.map((entry) => (
-                <div key={entry.status} className="flex items-center gap-2">
-                  <StatusBadge status={entry.status} />
-                  <span className="text-sm font-semibold text-gray-900">
-                    {entry._count.status}
-                  </span>
-                </div>
-              ))}
-            </div>
-          )}
-        </>
-      ) : null}
       <div className="ops-tabs" aria-label={t("Location sections")}>
         <div className="detail-tab-list">
           {TABS.map(({ key, label, icon: Icon }) => (
@@ -566,66 +470,118 @@ const LocationDetailPage: React.FC = () => {
         </div>
       </div>
 
+      <OperationsState
+        loading={overview.isPending}
+        skeleton="metrics"
+        error={overview.error}
+        retry={() => void overview.refetch()}
+      />
+      {overview.data && !overview.isError ? (
+        <OperationalSummary
+          data={overview.data}
+          params={new URLSearchParams(overviewParams)}
+        />
+      ) : null}
+
       {activeTab === "overview" && (
-        <LocationOverview locationId={locationInfo.id} onTab={setActiveTab} />
+        <LocationOverview
+          locationId={locationInfo.id}
+          onTab={setActiveTab}
+          overview={overview}
+        />
       )}
       {activeTab === "staff" && (
-        <DataTable
-          data={locationInfo.staff ?? []}
-          pageSize={20}
-          rowKey={(s) => s.id}
-          emptyMessage="No staff assigned to this location."
-          columns={[
-            {
-              key: "name",
-              header: "Name",
-              sortValue: (s) => s.name,
-              render: (s) => (
-                <div className="table-identity">
-                  <span className="workspace-avatar">
-                    {s.name
-                      .split(" ")
-                      .map((w) => w[0])
-                      .join("")
-                      .slice(0, 2)}
-                  </span>
-                  <strong>{s.name}</strong>
-                </div>
-              ),
-            },
-            {
-              key: "email",
-              header: "Email",
-              sortValue: (s) => s.email,
-              render: (s) => s.email,
-            },
-            {
-              key: "shift",
-              header: "Shift",
-              render: (s) =>
-                fmtTime(s.shiftStart, locationTz) +
-                " – " +
-                fmtTime(s.shiftEnd, locationTz),
-            },
-            {
-              key: "status",
-              header: "Status",
-              sortValue: (s) => (s.isActive ? 1 : 0),
-              render: (s) => (
-                <StatusBadge status={s.isActive ? "ACTIVE" : "INACTIVE"} />
-              ),
-            },
-            {
-              key: "action",
-              header: "Action",
-              render: (s) => (
-                <Button asChild variant="outline">
-                  <Link to={"/staff/" + s.id}>{t("View worker")}</Link>
-                </Button>
-              ),
-            },
-          ]}
-        />
+        <section
+          className="ops-panel location-staff-panel"
+          aria-label={t("Staff and shifts")}
+        >
+          <div className="ops-panel-heading">
+            <div>
+              <h2>{t("Staff and shifts")}</h2>
+              <p>{t("Assigned staff and their shifts at this location")}</p>
+            </div>
+            {locationInfo.isActive ? (
+              <Button
+                onClick={() => {
+                  setStaffAdded(false);
+                  setStaffDialogOpen(true);
+                }}
+              >
+                <Plus size={16} />
+                {t("Add staff")}
+              </Button>
+            ) : null}
+          </div>
+          {staffAdded ? (
+            <p className="ops-save-result location-staff-result" role="status">
+              {t("Team member added.")}
+            </p>
+          ) : null}
+          {staffDialogOpen ? (
+            <StaffCreateDialog
+              open={staffDialogOpen}
+              onOpenChange={setStaffDialogOpen}
+              location={locationInfo}
+              onSaved={() => setStaffAdded(true)}
+            />
+          ) : null}
+          <DataTable
+            data={locationInfo.staff ?? []}
+            pageSize={20}
+            rowKey={(s) => s.id}
+            emptyMessage="No staff assigned to this location."
+            columns={[
+              {
+                key: "name",
+                header: "Name",
+                sortValue: (s) => s.name,
+                render: (s) => (
+                  <div className="table-identity">
+                    <span className="workspace-avatar">
+                      {s.name
+                        .split(" ")
+                        .map((w) => w[0])
+                        .join("")
+                        .slice(0, 2)}
+                    </span>
+                    <strong>{s.name}</strong>
+                  </div>
+                ),
+              },
+              {
+                key: "email",
+                header: "Email",
+                sortValue: (s) => s.email,
+                render: (s) => s.email,
+              },
+              {
+                key: "shift",
+                header: "Shift",
+                render: (s) =>
+                  fmtTime(s.shiftStart, locationTz) +
+                  " – " +
+                  fmtTime(s.shiftEnd, locationTz),
+              },
+              {
+                key: "status",
+                header: "Status",
+                sortValue: (s) => (s.isActive ? 1 : 0),
+                render: (s) => (
+                  <StatusBadge status={s.isActive ? "ACTIVE" : "INACTIVE"} />
+                ),
+              },
+              {
+                key: "action",
+                header: "Action",
+                render: (s) => (
+                  <Button asChild variant="outline">
+                    <Link to={"/staff/" + s.id}>{t("View worker")}</Link>
+                  </Button>
+                ),
+              },
+            ]}
+          />
+        </section>
       )}
 
       {activeTab === "areas" && id && (
@@ -653,8 +609,53 @@ const LocationDetailPage: React.FC = () => {
           tabIndex={-1}
           aria-label={t("Task history")}
           data-task-id={selectedTaskId ?? undefined}
-          className={selectedTaskId ? "task-history-selection" : undefined}
+          className={
+            "ops-panel " + (selectedTaskId ? "task-history-selection" : "")
+          }
         >
+          <div className="ops-panel-heading location-history-heading">
+            <div>
+              <h2>{t("Task history")}</h2>
+              <p>
+                {t("Tasks in period")} · {t(currentFilter.label)}
+              </p>
+            </div>
+            <div
+              className="location-history-filters"
+              aria-label={t("Task history period")}
+            >
+              <div className="flex flex-wrap items-center gap-1.5 rounded-lg border border-gray-200 bg-white p-1">
+                <Calendar className="ml-2 h-4 w-4 text-gray-400 shrink-0" />
+                {FILTERS.map((f) => (
+                  <button
+                    key={f.key}
+                    aria-pressed={activeFilter === f.key}
+                    onClick={() => setActiveFilter(f.key)}
+                    className={`inline-flex items-center gap-1.5 rounded-md px-3 py-1.5 text-sm font-medium transition-all ${
+                      f.key === activeFilter
+                        ? "bg-primary text-white shadow-sm"
+                        : "text-gray-500 hover:bg-gray-100 hover:text-gray-900"
+                    }`}
+                  >
+                    {f.key === activeFilter && isFetching && (
+                      <RefreshCw className="h-3 w-3 animate-spin" />
+                    )}
+                    {t(f.label)}
+                  </button>
+                ))}
+              </div>
+            </div>
+          </div>
+          {taskStats.length > 0 ? (
+            <div className="location-history-statuses">
+              {taskStats.map((entry) => (
+                <span key={entry.status}>
+                  <StatusBadge status={entry.status} />
+                  <strong>{entry._count.status}</strong>
+                </span>
+              ))}
+            </div>
+          ) : null}
           {selectedTaskId ? (
             <div className="ops-panel-heading">
               <h2>{t("Selected task")}</h2>

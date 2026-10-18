@@ -7,6 +7,7 @@ import { prisma } from "../prisma/prisma.js";
 import jwt from "jsonwebtoken";
 import { generateAccessToken,generateRefreshToken } from "../utils/auth.js";
 import { getCookieOptions } from "../utils/cookies.js";
+import { renewStaffPushSession } from "../services/staff-notifications/session.js";
 
 export const getCurrentUser = async (req: Request, res: Response) => {
     const user = req?.user;
@@ -97,11 +98,15 @@ export const refreshToken = async (req: Request, res: Response) => {
   if (role === "STAFF") {
     user = await prisma.staff.findUnique({
       where: { id },
+      include: { company: { select: { isActive: true } } },
     });
 
     if (!user) {
       throw new ApiError(401, "Unauthorized");
     }
+
+    if (!user.isActive || !user.company.isActive)
+      throw new ApiError(403, "Account is deactivated");
 
     if (user.refreshToken !== incomingRefreshToken) {
       await prisma.staff.update({
@@ -114,9 +119,14 @@ export const refreshToken = async (req: Request, res: Response) => {
     const accessToken = generateAccessToken(user, role);
     const newRefreshToken = generateRefreshToken(user, role);
 
-    await prisma.staff.update({
-      where: { id: user.id },
-      data: { refreshToken: newRefreshToken },
+    const staffUserId = user.id;
+    await prisma.$transaction(async (tx) => {
+      const rotated = await tx.staff.updateMany({
+        where: { id: staffUserId, refreshToken: incomingRefreshToken, isActive: true, company: { isActive: true } },
+        data: { refreshToken: newRefreshToken },
+      });
+      if (!rotated.count) throw new ApiError(401, "Session changed; sign in again");
+      await renewStaffPushSession(tx, staffUserId, incomingRefreshToken, newRefreshToken);
     });
 
     const cookieOptions = getCookieOptions(true);
@@ -185,7 +195,7 @@ export const logOut = async (req: Request, res: Response) => {
     }
   }
 
-  const tokenPayload = decodedAccessToken ?? decodedRefreshToken;
+  const tokenPayload = decodedRefreshToken ?? decodedAccessToken;
 
   if (tokenPayload?.role === "MANAGER" || tokenPayload?.role === "ADMIN") {
     await prisma.manager
@@ -195,12 +205,14 @@ export const logOut = async (req: Request, res: Response) => {
       })
       .catch(() => null);
   } else if (tokenPayload?.role === "STAFF") {
-    await prisma.staff
-      .update({
-        where: { id: tokenPayload.id },
+    const staffId = tokenPayload.id;
+    await prisma.$transaction(async tx => {
+      const revoked = await tx.staff.updateMany({
+        where: { id: staffId, ...(decodedRefreshToken ? { refreshToken: refreshTokenCookie } : {}) },
         data: { refreshToken: null },
-      })
-      .catch(() => null);
+      });
+      if (revoked.count) await tx.staffPushDevice.updateMany({where:{staffId},data:{enabled:false}});
+    });
   }
 
   return res

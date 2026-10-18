@@ -3,7 +3,7 @@ const m=vi.hoisted(()=>({tx:{} as any,access:vi.fn(),nonce:vi.fn()}));
 vi.mock('../../prisma/prisma.js',()=>({prisma:{$transaction:(fn:any)=>fn(m.tx)}}));
 vi.mock('./authorization.service.js',()=>({requireTaskAccess:m.access}));
 vi.mock('./qr.service.js',()=>({verifyAreaQr:vi.fn(),slotNonce:()=> 'a'.repeat(40),hashNonce:m.nonce}));
-import {createCaptureSession,createReworkCaptureSession,reserveAttempt,resumeSession,retakeSlots,sessionResponse,staffAttemptResult} from './captureSession.service.js';
+import {createCaptureSession,createReworkCaptureSession,reserveAttempt,resumeSession,retakeSlots,sessionResponse,staffAttemptResult,lockAuthorizedSession} from './captureSession.service.js';
 const actor={role:'STAFF' as const,id:7,companyId:1};
 const sessionId='11111111-1111-4111-8111-111111111111',slotId='22222222-2222-4222-8222-222222222222';
 const input=()=>({deviceId:'phone',clientCaptureId:'33333333-3333-4333-8333-333333333333',slotId,nonce:'a'.repeat(40),sha256:'b'.repeat(64),claimedCapturedAt:new Date().toISOString(),elapsedMs:1000,bootId:'boot'});
@@ -137,4 +137,27 @@ describe('capture authority',()=>{
  });
  it('allocates failed context retakes',async()=>{m.tx.captureSlot.findFirst.mockResolvedValue({generation:0,attemptId:'old'});m.tx.verificationAttempt.findUnique.mockResolvedValue({state:'RECAPTURE_REQUIRED'});expect((await retakeSlots(actor,sessionId,{deviceId:'phone',contexts:[{contextKey:'ENTRANCE',expectedGeneration:0}]}))[0]).toMatchObject({contextKey:'ENTRANCE',generation:1});});
  it('preserves passed context',async()=>{m.tx.captureSlot.findFirst.mockResolvedValue({generation:0,attemptId:'old'});m.tx.verificationAttempt.findUnique.mockResolvedValue({state:'PASSED'});await expect(retakeSlots(actor,sessionId,{deviceId:'phone',contexts:[{contextKey:'ENTRANCE',expectedGeneration:0}]})).rejects.toThrow('not available');});
+});
+
+// A task may be reassigned while this transaction waits for its lock.
+it('checks current authority after acquiring the task lock',async()=>{
+ m.tx.$queryRaw.mockImplementation(async()=>{m.access.mockRejectedValue(new Error('Assignment changed'));});
+ await expect(lockAuthorizedSession(actor,sessionId,m.tx,'phone')).rejects.toThrow('Assignment changed');
+ expect(m.access).toHaveBeenCalledOnce();
+ expect(m.tx.captureSession.findUnique.mock.calls[0][0]).toMatchObject({select:{staffId:true,taskInstanceId:true}});
+ expect(m.tx.verificationAttempt.create).not.toHaveBeenCalled();
+});
+it('does not lock another workers task when locating a session',async()=>{
+ m.tx.captureSession.findUnique.mockResolvedValue({staffId:99,taskInstanceId:9});
+ await expect(lockAuthorizedSession(actor,sessionId,m.tx,'phone')).rejects.toThrow('Session not found');
+ expect(m.tx.$queryRaw).not.toHaveBeenCalled();expect(m.access).not.toHaveBeenCalled();
+});
+
+it('does not lock a staff session for a manager with the same numeric ID',async()=>{
+ await expect(lockAuthorizedSession({...actor,role:'MANAGER'},sessionId,m.tx,'phone')).rejects.toThrow('Staff account required');
+ expect(m.tx.$queryRaw).not.toHaveBeenCalled();
+});
+it('rejects a session remapped while waiting for the original task lock',async()=>{
+ m.tx.$queryRaw.mockImplementation(async()=>{const session=await m.tx.captureSession.findUnique();m.tx.captureSession.findUnique.mockResolvedValue({...session,taskInstanceId:99});});
+ await expect(lockAuthorizedSession(actor,sessionId,m.tx,'phone')).rejects.toThrow('Session task changed');
 });

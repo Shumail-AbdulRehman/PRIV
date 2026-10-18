@@ -178,14 +178,14 @@ try {
   const schedule = await fixture();
   await permanentlyDelete("taskTemplate", schedule.template.id, schedule.actor);
   assert.equal(
-    await prisma.taskInstance.count({ where: { id: schedule.task.id } }),
+    await prisma.taskInstance.count({ where: { id: schedule.task.id, isActive: true } }),
     0,
   );
   assert.equal(
     await prisma.taskTemplateReferenceImage.count({
       where: { templateId: schedule.template.id },
     }),
-    0,
+    1,
   );
   assert.equal(
     await prisma.location.count({ where: { id: schedule.location.id } }),

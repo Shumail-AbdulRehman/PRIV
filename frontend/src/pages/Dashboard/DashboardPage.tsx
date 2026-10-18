@@ -48,7 +48,7 @@ export default function DashboardPage() {
         </Link>
       </div>
       <DataTable
-        data={data.comparison.slice(0, 4)}
+        data={data.comparison}
         rowKey={(r) => r.location.id}
         emptyMessage="No locations assigned to this workspace."
         columns={[
@@ -128,7 +128,7 @@ export default function DashboardPage() {
           },
         ]}
       />
-      {data.comparison.length > 4 ? (
+      {data.selected.length > 4 ? (
         <div className="panel-footer">
           <span>{t("Showing {count} locations", { count: 4 })}</span>
           <Link to="/locations">

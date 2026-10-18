@@ -10,7 +10,7 @@ import {
   type OperationStaff,
 } from "../Manager/operations";
 import OperationsState from "../Manager/OperationsState";
-import OperationalSummary from "@/components/common/OperationalSummary";
+import type { UseQueryResult } from "@tanstack/react-query";
 import AttentionList from "@/components/common/AttentionList";
 import DataTable from "@/components/common/DataTable";
 import StatusBadge from "@/components/common/StatusBadge";
@@ -20,16 +20,14 @@ import { Button } from "@/components/ui/button";
 export default function LocationOverview({
   locationId,
   onTab,
+  overview,
 }: {
   locationId: number;
   onTab: (tab: "areas" | "staff") => void;
+  overview: UseQueryResult<OperationOverview, Error>;
 }) {
   const { t } = useLanguage();
   const params = new URLSearchParams({
-    locationId: String(locationId),
-    date: "today",
-  });
-  const overview = useOperations<OperationOverview>("overview", {
     locationId: String(locationId),
     date: "today",
   });
@@ -41,15 +39,6 @@ export default function LocationOverview({
   const areas = useAreas(locationId);
   return (
     <div className="detail-overview">
-      <OperationsState
-        loading={overview.isPending}
-        skeleton="metrics"
-        error={overview.error}
-        retry={() => void overview.refetch()}
-      />
-      {overview.data && !overview.isError ? (
-        <OperationalSummary data={overview.data} params={params} />
-      ) : null}
       <div className="location-overview-columns">
         <section className="ops-panel">
           <div className="ops-panel-heading">

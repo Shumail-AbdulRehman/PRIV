@@ -9,7 +9,7 @@ import { Text } from "../components/ui/text";
 import { Button } from "../components/ui/button";
 import { useEffect, useState } from "react";
 import { Alert, RefreshControl, ScrollView, View } from "react-native";
-import { useNavigation } from "@react-navigation/native";
+import { useNavigation, useIsFocused } from "@react-navigation/native";
 import type { CompositeNavigationProp } from "@react-navigation/native";
 import type { BottomTabNavigationProp } from "@react-navigation/bottom-tabs";
 import type { NativeStackNavigationProp } from "@react-navigation/native-stack";
@@ -44,7 +44,8 @@ export function TasksScreen() {
       ),
     [],
   );
-  const attendanceQuery = useMyAttendanceQuery(user?.id);
+  const focused = useIsFocused();
+  const attendanceQuery = useMyAttendanceQuery(user?.id, focused);
   const record = getRelevantAttendanceRecord(
     attendanceQuery.data ?? [],
     new Date(),
@@ -52,7 +53,7 @@ export function TasksScreen() {
   const checkedIn = !!record && hasOpenCheckout(record);
   const navigation = useNavigation<TasksScreenNavigationProp>();
   const insets = useSafeAreaInsets();
-  const tasksQuery = useTodaysTasksQuery(user?.id);
+  const tasksQuery = useTodaysTasksQuery(user?.id, focused);
   const tasks = [...(tasksQuery.data ?? [])].sort((a, b) =>
     a.status === "COMPLETED"
       ? 1
@@ -63,8 +64,8 @@ export function TasksScreen() {
   const isInitialLoading = tasksQuery.isPending && !tasksQuery.data;
   const refreshing = tasksQuery.isRefetching;
 
-  const pendingCount = tasks.filter((task) => task.status === "PENDING").length;
-  const inProgressCount = tasks.filter(
+  const pendingCount = tasksQuery.counts?.pending ?? tasks.filter((task) => task.status === "PENDING").length;
+  const inProgressCount = tasksQuery.counts?.inProgress ?? tasks.filter(
     (task) => task.status === "IN_PROGRESS",
   ).length;
 
@@ -175,6 +176,12 @@ export function TasksScreen() {
           title="No tasks for today"
           message="Your manager has not assigned work for today."
         />
+      ) : null}
+      {tasksQuery.hasNextPage ? (
+        <Button variant="outline" disabled={tasksQuery.isFetching || !online}
+          onPress={() => void tasksQuery.fetchNextPage()}>
+          {t(tasksQuery.isFetchingNextPage ? "Loading tasks…" : "Load more tasks")}
+        </Button>
       ) : null}
     </ScrollView>
   );

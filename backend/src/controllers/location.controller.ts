@@ -1,5 +1,5 @@
 import { Request, Response } from "express";
-import { managerTaskPresentation, operationalTaskStatus } from "../services/verification-v2/sequentialPolicy.js";
+import { managerTaskPresentation } from "../services/verification-v2/sequentialPolicy.js";
 import tzLookup from "tz-lookup";
 import { createLocationSchema, editLocationSchema } from "../validations/location.validation.js";
 import { prisma } from "../prisma/prisma.js";
@@ -216,20 +216,23 @@ export const getLocationStatsById = async (req: Request, res: Response) => {
       staff: {
         where:{
           isActive:true
-        }
+        },
+        select: {
+          id: true, name: true, email: true, shiftStart: true, shiftEnd: true, isActive: true,
+        },
       },
       taskTemplates: {where:{
         isActive:true
       },
       include:{
-        staff:true
+        staff: { select: { id: true, name: true } },
       }
     },
     },
   }),
 
   prisma.taskInstance.groupBy({
-    by: ["status", "staffSubmittedAt"],
+    by: ["status"],
     where: {
       locationId,
       isActive: true,
@@ -237,6 +240,7 @@ export const getLocationStatsById = async (req: Request, res: Response) => {
     },
     _count: {
       status: true,
+      staffSubmittedAt: true,
     },
   }),
 ]);
@@ -246,8 +250,12 @@ export const getLocationStatsById = async (req: Request, res: Response) => {
 
   const counts = new Map<string, number>();
   for (const group of taskStats) {
-    const status = operationalTaskStatus(group);
-    counts.set(status, (counts.get(status) ?? 0) + group._count.status);
+    // Count non-null submission timestamps instead of grouping by each instant.
+    const submitted = ["IN_PROGRESS", "NOT_COMPLETED_INTIME"].includes(group.status)
+      ? group._count.staffSubmittedAt : 0;
+    const remaining = group._count.status - submitted;
+    if (remaining) counts.set(group.status, (counts.get(group.status) ?? 0) + remaining);
+    if (submitted) counts.set("COMPLETED", (counts.get("COMPLETED") ?? 0) + submitted);
   }
   const presentedLocation = locationInfo ? {...locationInfo, taskInstances: locationInfo.taskInstances.map(managerTaskPresentation)} : null;
   const presentedStats = [...counts].map(([status, count]) => ({status, _count: {status: count}}));

@@ -2,12 +2,12 @@ import {toiletViewDescription,type ToiletStyle} from './toiletViews.js';
 export type PhotoFeedbackContext = { fixtureType?: string; viewKey?: string; toiletStyle?:ToiletStyle; missingSurfaces?:string[] };
 
 const objects: Record<string, string> = {
-  TOILET: 'toilet', SINK: 'sink', MIRROR: 'mirror', BIN: 'bin', FLOOR: 'floor area',
+  TOILET: 'toilet', INDIAN_TOILET: 'Indian toilet', WESTERN_TOILET: 'Western toilet', SINK: 'sink', MIRROR: 'mirror', BIN: 'bin', FLOOR: 'floor area',
 };
 const views: Record<string, string> = {
   bowl_seat: 'the whole toilet bowl and seat',
   exterior_base: 'the outside and base of the toilet',
-  squat_pan: 'the whole toilet pan, drain and footrests',
+  squat_pan: 'the whole Indian toilet pan',
   basin_tap: 'the whole sink basin, drain and tap',
   reflective_surface: 'the whole mirror',
   opening_interior: 'the bin opening and inside',
@@ -32,7 +32,8 @@ export function staffPhotoInstructions(input: {
 }): string | null {
   const object = catalog(objects, input.context?.fixtureType?.toUpperCase() ?? '');
   const subject = object ? `the ${object}` : 'the required item';
-  const view = (object==='toilet'?toiletViewDescription(input.context?.viewKey,input.context?.toiletStyle):null) ?? catalog(views, input.context?.viewKey ?? '') ?? (object ? `the whole ${object}` : 'the whole required item');
+  const style=input.context?.fixtureType==='WESTERN_TOILET'?'WESTERN':input.context?.toiletStyle;
+  const view = (object==='toilet'||object==='Western toilet'?toiletViewDescription(input.context?.viewKey,style):null) ?? catalog(views, input.context?.viewKey ?? '') ?? (object ? `the whole ${object}` : 'the whole required item');
   const show = `Please show ${view} clearly and take another photo.`;
 
   // A review or privacy hold must not instruct staff to bypass the decision.

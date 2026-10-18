@@ -32,7 +32,7 @@ it('escalates serious context immediately and ordinary recapture only at policy 
 });
 
 function completedTransaction(){return {
- verificationAttempt:{findUniqueOrThrow:vi.fn().mockResolvedValue({session:{taskInstanceId:9},requirementId:'optional',slot:{generation:0}}),update:vi.fn().mockResolvedValue({})},
+ verificationAttempt:{findUniqueOrThrow:vi.fn().mockResolvedValue({id:'attempt',session:{taskInstanceId:9},requirementId:'optional',slot:{generation:0}}),update:vi.fn().mockResolvedValue({})},
  taskInstance:{findUniqueOrThrow:vi.fn().mockResolvedValue({id:9,status:'COMPLETED'}),update:vi.fn()},
  taskEvidenceRequirement:{findUniqueOrThrow:vi.fn(),update:vi.fn()},
  captureSession:{update:vi.fn()},

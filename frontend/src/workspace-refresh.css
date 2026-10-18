@@ -1221,6 +1221,34 @@ th[aria-sort="descending"] .table-sort svg {
   gap: 24px;
   min-width: max-content;
 }
+.location-detail-page > .ops-tabs {
+  margin-block-end: 0;
+}
+.location-staff-result {
+  margin: 16px 22px;
+}
+.location-history-heading {
+  flex-wrap: wrap;
+}
+.location-history-filters {
+  min-width: 0;
+  max-width: 100%;
+}
+.location-history-filters > div {
+  max-width: 100%;
+}
+.location-history-statuses {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px;
+  padding: 16px 22px;
+  border-bottom: 1px solid var(--border);
+}
+.location-history-statuses > span {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+}
 .detail-tab-list > button {
   display: flex;
   align-items: center;

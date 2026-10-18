@@ -17,13 +17,6 @@ export type LocationFormValues = {
   radiusMeters: number;
 };
 
-export type AssignShiftInput = {
-  shiftStart: Date;
-  shiftEnd: Date;
-};
-
-
-
 export type LocationWithCounts = {
   id: number;
   name: string;
@@ -40,19 +33,6 @@ export type LocationWithCounts = {
   };
 };
 
-
-export interface LocationCardProps {
-  name?: string;
-  address?: string;
-  staff?: number;
-  taskTemplate?: number;
-  lat?: string;
-  lng?: string;
-  geofence?: string;
-  timezone?: string;
-  status?: string;
-  id: number; 
-}
 
 export interface LocationStaff {
   id: number;

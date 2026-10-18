@@ -10,11 +10,6 @@ export interface CreateStaffInput {
   shiftEnd?: string;
 }
 
-export interface AssignShiftInput {
-  shiftStart: string;
-  shiftEnd: string;
-}
-
 export interface EditStaffInput {
   name?: string;
   email?: string;
@@ -25,11 +20,6 @@ export interface EditStaffInput {
 
 export const getStaff = async () => {
   const res = await client.get("/staff/");
-  return res.data;
-};
-
-export const getStaffById = async (id: number) => {
-  const res = await client.get(`/staff/${id}`);
   return res.data;
 };
 
@@ -53,11 +43,6 @@ export const getStaffDetails = async (
   return res.data;
 };
 
-export const getStaffByLocation = async (locationId: number) => {
-  const res = await client.get(`/staff/location/${locationId}`);
-  return res.data;
-};
-
 export const createStaff = async (data: CreateStaffInput) => {
   const res = await client.post("/staff/create-staff", data);
   return res.data;
@@ -65,11 +50,6 @@ export const createStaff = async (data: CreateStaffInput) => {
 
 export const deleteStaff = async (id: number) => {
   const res = await client.delete(`/staff/${id}`);
-  return res.data;
-};
-
-export const assignShift = async (id: number, data: AssignShiftInput) => {
-  const res = await client.patch(`/attendance/staff/${id}/shift`, data);
   return res.data;
 };
 

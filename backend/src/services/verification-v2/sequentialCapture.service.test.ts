@@ -1,7 +1,7 @@
 import {afterEach,beforeEach,expect,it,vi} from 'vitest';
 const m=vi.hoisted(()=>({authorized:vi.fn(),lock:vi.fn(),response:vi.fn(),slots:vi.fn(),update:vi.fn(),jobs:vi.fn()}));
 vi.mock('../../prisma/prisma.js',()=>({prisma:{$transaction:async(fn:any)=>fn({captureSlot:{findMany:m.slots,update:m.update},verificationJob:{count:m.jobs}})}}));
-vi.mock('./captureSession.service.js',()=>({authorizedSession:m.authorized,lockTask:m.lock,sessionResponse:m.response}));
+vi.mock('./captureSession.service.js',()=>({lockAuthorizedSession:m.authorized,sessionResponse:m.response}));
 import {activatePhotoSlot} from './sequentialCapture.service.js';
 import {SEQUENTIAL_WORKFLOW} from './sequentialPolicy.js';
 const actor={id:70,role:'STAFF',companyId:1} as const;

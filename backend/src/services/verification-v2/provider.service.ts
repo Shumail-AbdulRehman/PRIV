@@ -4,7 +4,7 @@ import {z} from 'zod';
 
 // Historical metadata remains readable; live adapters only call Clef.
 export const providerMetadataSchema=z.object({provider:z.enum(['openai','gemini','cloudflare']),model:z.string().min(1).max(200),requestedModel:z.string().min(1).max(200),providerVersion:z.string().min(1),promptVersion:z.string().min(1),requestId:z.string().max(200).nullable(),latencyMs:z.number().nonnegative(),usage:z.object({inputTokens:z.number().int().nonnegative().nullable(),outputTokens:z.number().int().nonnegative().nullable(),totalTokens:z.number().int().nonnegative().nullable()}).strict(),costUsd:z.number().nonnegative().nullable()}).strict();
-export type ProviderMetadata={provider:string;model:string;requestedModel?:string;providerVersion:string;promptVersion:string;requestId:string|null;latencyMs:number;usage:unknown;costUsd:number|null;status?:string;threshold?:number|null;thresholdVersion?:string;thresholdValidated?:boolean;screeningAnswers?:unknown};
+export type ProviderMetadata={provider:string;model:string;requestedModel?:string;providerVersion:string;promptVersion:string;requestId:string|null;latencyMs:number;usage:unknown;costUsd:number|null;status?:string;threshold?:number|null;thresholdVersion?:string;thresholdValidated?:boolean;decisionMode?:'MODEL_CATEGORIES_V1';screeningAnswers?:unknown};
 export type Assessment<T>={result:T;metadata:ProviderMetadata};
 export type ImageAssessmentContext={expected:unknown;contextImages:number;candidateImages:number};
 export interface ImageAssessmentProvider{assess<T>(stage:string,prompt:string,images:Buffer[],schema:z.ZodType<T>,context?:ImageAssessmentContext):Promise<Assessment<T>>;}

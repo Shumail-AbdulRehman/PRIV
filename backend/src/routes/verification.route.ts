@@ -19,6 +19,15 @@ import {verificationManifestSchema} from '../services/verification-v2/contracts.
 import {resolvePolicy,taskDeadlines} from '../services/verification-v2/verificationPolicy.service.js';
 import {requiredContextKeys,CURRENT_CONTEXT_KEYS} from '../services/verification-v2/contextPolicy.js';
 const router=Router();
+// Includes authentication, upload transfer, reservation, processing and response
+// reads. Stage timings deliberately contain no photo bytes or credentials.
+router.use((req,res,next)=>{
+ if(req.method==='POST'&&/^\/capture-session\/[^/]+\/attempts$/.test(req.path)){
+  const start=Date.now(),sessionId=req.path.split('/')[2];
+  res.once('finish',()=>verificationEvent('PHOTO_HTTP_FINISHED',{sessionId},{durationMs:Date.now()-start,status:res.statusCode}));
+ }
+ next();
+});
 // Mounted at /api: unmatched requests must reach their own router without
 // paying for another authentication/database round trip.
 router.use([

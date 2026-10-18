@@ -1,7 +1,7 @@
 import { requiredContextKeys } from "./contextPolicy.js";
 import {prisma} from '../../prisma/prisma.js';
 import {ApiError} from '../../utils/ApiError.js';
-import {authorizedSession,lockTask,sessionResponse} from './captureSession.service.js';
+import {lockAuthorizedSession,sessionResponse} from './captureSession.service.js';
 import type {VerificationActor} from './authorization.service.js';
 import {checkedAttempt,objectCaptureDeadline,sequentialCapture,currentPhotoSlots} from './sequentialPolicy.js';
 import {resolvePolicy} from './verificationPolicy.service.js';
@@ -10,8 +10,7 @@ const fail=(status:number,code:string,message:string)=>new ApiError(status,messa
 export async function activatePhotoSlot(actor:VerificationActor,id:string,raw:unknown){
  const input=z.object({slotId:z.uuid(),deviceId:z.string().min(1).max(200)}).strict().parse(raw);
  return prisma.$transaction(async tx=>{
-  const initial=await authorizedSession(actor,id,tx,input.deviceId);await lockTask(tx,initial.taskInstanceId);
-  const s=await authorizedSession(actor,id,tx,input.deviceId);const now=new Date();
+  const s=await lockAuthorizedSession(actor,id,tx,input.deviceId);const now=new Date();
   if(!sequentialCapture(s.locationCheck))return sessionResponse(tx,id);
   if(s.state!=='ACTIVE'||s.captureExpiresAt<=now)throw fail(410,'QR_RENEWAL_REQUIRED','Scan the room QR again to continue.');
   const slots=await tx.captureSlot.findMany({where:{sessionId:id},include:{attempt:true,requirement:true},orderBy:{sequence:'asc'}});

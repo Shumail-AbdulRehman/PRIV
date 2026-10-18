@@ -4,6 +4,11 @@ import {staffPhotoInstructions} from './staffPhotoInstructions.js';
 import {staffAttemptResult} from './captureSession.service.js';
 
 const context={fixtureType:'SINK',viewKey:'basin_tap'};
+it('asks for an Indian toilet pan retake without seat, pedestal or footrest requirements',()=>{
+ const message=staffPhotoInstructions({state:'RECAPTURE_REQUIRED',reasonCode:'WRONG_ITEM',context:{fixtureType:'INDIAN_TOILET',viewKey:'squat_pan'}});
+ expect(message).toBe('This photo does not show the Indian toilet. Please show the whole Indian toilet pan clearly and take another photo.');
+ expect(message).not.toMatch(/seat|pedestal|footrest|manager/);
+});
 const result=(reasonCode:string,state='RECAPTURE_REQUIRED')=>staffPhotoInstructions({state,reasonCode,context});
 
 it.each([['SINK','sink'],['TOILET','toilet'],['MIRROR','mirror'],['BIN','bin'],['FLOOR','floor area']])('names the required %s when another object is photographed',(fixtureType,name)=>{

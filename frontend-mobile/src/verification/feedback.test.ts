@@ -1,7 +1,7 @@
 import assert from "node:assert/strict";
 import test from "node:test";
 import { photoFeedback, requiredPhotoIds, photoCorrection } from "./feedback";
-import { translate, selectVoice } from "../i18n/translations";
+import { translate } from "../i18n/translations";
 import type { Manifest } from "./types";
 
 test("delivery, checks, cleaning and review have distinct staff guidance", () => {
@@ -45,7 +45,7 @@ test("required progress excludes optional fixtures and views", () => {
   assert.deepEqual([...requiredPhotoIds(manifest)], ["needed"]);
 });
 
-test("Urdu instructions interpolate user names and speech never selects an English voice for Urdu", () => {
+test("Urdu instructions interpolate user names and preserve custom text", () => {
   assert.equal(
     translate("Hello, {name}", "ur", { name: "Ayesha" }).includes("Ayesha"),
     true,
@@ -54,14 +54,7 @@ test("Urdu instructions interpolate user names and speech never selects an Engli
     translate("Untranslated custom text", "ur"),
     "Untranslated custom text",
   );
-  const voices = [
-    { language: "en-US" },
-    { language: "ur-IN" },
-    { language: "ur-PK" },
-  ];
-  assert.equal(selectVoice(voices, "ur")?.language, "ur-PK");
-  assert.equal(selectVoice(voices.slice(0, 2), "ur")?.language, "ur-IN");
-  assert.equal(selectVoice(voices.slice(0, 1), "ur"), undefined);
+
 });
 
 test("specific cleaning corrections retain named surfaces in Urdu without technical error codes", () => {

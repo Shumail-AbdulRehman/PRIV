@@ -11,6 +11,7 @@
     "start": "node dist/app.js",
     "seed:demo": "tsx prisma/seed-demo.ts",
     "test:deletion": "tsx tests/deletion.integration.ts",
+    "test:schedule-deletion": "tsx tests/scheduleDeletion.integration.ts",
     "verification:doctor": "tsx scripts/verificationDoctor.ts",
     "verification:report": "tsx scripts/verificationMigrationReport.ts",
     "test:verification:integration": "tsx tests/verification.integration.ts",
@@ -25,7 +26,10 @@
     "verification:clef-release": "tsx scripts/clefRelease.ts",
     "test:manager:integration": "tsx tests/managerOperations.integration.ts",
     "test:verification:buffered": "tsx tests/bufferedPhoto.integration.ts",
-    "test:verification:photo-http": "tsx tests/directPhoto.http.integration.ts"
+    "test:verification:photo-http": "tsx tests/directPhoto.http.integration.ts",
+    "test:verification:latency": "tsx tests/directPhoto.latency.integration.ts",
+    "test:staff-notifications:integration": "tsx tests/staffNotifications.integration.ts",
+    "test:mobile:integration": "tsx tests/staffMobile.integration.ts"
   },
   "keywords": [],
   "author": "",

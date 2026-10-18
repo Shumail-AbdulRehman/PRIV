@@ -108,7 +108,7 @@ export function overviewAggregateSql(
         ARRAY(SELECT id FROM classified WHERE overdue ORDER BY "shiftEnd", id LIMIT 3) AS late,
         ARRAY(SELECT id FROM classified WHERE "staffId" IS NULL AND NOT submitted
           AND NOT overdue AND status = 'PENDING' ORDER BY "shiftStart", id LIMIT 2) AS unassigned,
-        ARRAY(SELECT id FROM scoped_tasks ORDER BY "shiftStart", id LIMIT 5) AS tasks
+        ARRAY(SELECT id FROM scoped_tasks ORDER BY "shiftStart", id LIMIT 4) AS tasks
     ), review_preview AS MATERIALIZED (
       SELECT e.id, e."taskInstanceId",
         COALESCE((SELECT i."reasonCode" FROM "VerificationIssue" i

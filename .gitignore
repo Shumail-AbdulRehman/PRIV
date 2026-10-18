@@ -89,3 +89,10 @@ FYP_ML_DISCUSSION.md
 !docs/verification/MOBILE_LOCAL_AI_REMOVAL.md
 
 !docs/verification/MOBILE_CAMERA_KEYBOARD_FIX.md
+
+# Firebase service accounts are server credentials. Device configuration is local/EAS-managed.
+frontend-mobile/google-services.json
+**/*firebase-adminsdk*.json
+**/fcm-service-account*.json
+!docs/STAFF_NOTIFICATIONS.md
+!docs/MOBILE_QUERY_OPTIMIZATION.md

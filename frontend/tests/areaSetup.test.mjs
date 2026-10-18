@@ -11,6 +11,14 @@ test('count preview matches stable numbered identities and does not reuse retire
   assert.throws(() => previewInventoryCounts([{fixtureType:'SINK',count:1.5}]));
   assert.throws(() => previewInventoryCounts([{fixtureType:'SINK',count:200},{fixtureType:'BIN',count:1}]));
 });
+test('Indian and Western toilet counts create separate names and stable identities',()=>{
+ assert.deepEqual(previewInventoryCounts([{fixtureType:'INDIAN_TOILET',count:1},{fixtureType:'WESTERN_TOILET',count:1}]),[
+  {stableCode:'INDIAN_TOILET-01',displayName:'Indian toilet 01',sequence:1},
+  {stableCode:'WESTERN_TOILET-01',displayName:'Western toilet 01',sequence:2},
+ ]);
+ assert.equal(roomPresets.WASHROOM.defaults.INDIAN_TOILET,0);
+ assert.equal(roomPresets.WASHROOM.defaults.WESTERN_TOILET,0);
+});
 const area = {id:7,items:[{id:1,areaId:7,status:'ACTIVE',requiredViews:[{key:'a'},{key:'b'}]}, {id:2,areaId:7,status:'ACTIVE',requiredViews:[{key:'a'}]}, {id:3,areaId:7,status:'MAINTENANCE',requiredViews:[{key:'a'}]}]};
 test('ALL optional overrides include future fixtures; SUBSET preserves saved selection', () => {
   const optional = [{areaItemId:2,mandatory:false}];
@@ -39,7 +47,7 @@ test('area list excludes retired fixtures even when total row count includes the
   assert.equal(nonRetiredFixtureCount({items:[{status:'ACTIVE'},{status:'MAINTENANCE'},{status:'RETIRED'}],_count:{items:3}}),2);
 });
 test('room presets provide categories and editable defaults without assuming fixture counts', () => {
-  assert.deepEqual(roomPresets.WASHROOM.fixtureTypes,['TOILET','SINK','MIRROR','BIN','FLOOR']);
+  assert.deepEqual(roomPresets.WASHROOM.fixtureTypes,['INDIAN_TOILET','WESTERN_TOILET','SINK','MIRROR','BIN','FLOOR']);
   assert.deepEqual(roomPresets.GENERAL.fixtureTypes,['BIN','FLOOR']);
   assert.equal(roomPresets.WASHROOM.defaults.TOILET,0);
   assert.equal(roomPresets.WASHROOM.defaults.FLOOR,1);

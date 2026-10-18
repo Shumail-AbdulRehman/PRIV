@@ -13,6 +13,8 @@ export function PhotoGuide({
   const { t, isRTL } = useLanguage();
   const icons: Record<string, LucideIconName> = {
     TOILET: "Toilet",
+    INDIAN_TOILET: "Toilet",
+    WESTERN_TOILET: "Toilet",
     SINK: "Bath",
     MIRROR: "RectangleVertical",
     BIN: "Trash2",

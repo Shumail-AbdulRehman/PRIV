@@ -1,6 +1,8 @@
 import {toiletPhotoInstruction} from './toiletViews.js';
 export const fixturePresets:Record<string,{name:string;views:{key:string;instructions:string}[]}>= {
  TOILET:{name:'Toilet',views:[{key:'bowl_seat',instructions:toiletPhotoInstruction('bowl_seat')!},{key:'exterior_base',instructions:toiletPhotoInstruction('exterior_base')!}]},
+ INDIAN_TOILET:{name:'Indian toilet',views:[{key:'squat_pan',instructions:'Show the whole Indian toilet pan clearly.'}]},
+ WESTERN_TOILET:{name:'Western toilet',views:[{key:'bowl_seat',instructions:'Show the whole toilet bowl and seat.'},{key:'exterior_base',instructions:'Show the outside and base of the toilet.'}]},
  SINK:{name:'Sink',views:[{key:'basin_tap',instructions:'Show the entire basin, drain and tap.'}]},
  MIRROR:{name:'Mirror',views:[{key:'reflective_surface',instructions:'Show the entire mirror. Keep people out of reflections.'}]},
  BIN:{name:'Bin',views:[{key:'opening_interior',instructions:'Show the bin opening and interior.'},{key:'exterior',instructions:'Show the exterior and surrounding floor.'}]},

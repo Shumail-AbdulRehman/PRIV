@@ -1,10 +1,11 @@
 import type { BufferedAssessment } from './bufferedPhoto.provider.js';
 export type Decision = { state: 'PASSED' | 'REVIEW_REQUIRED' | 'RECAPTURE_REQUIRED' | 'CLEANING_REQUIRED'; reason: string; keep: boolean };
 export function bufferedDecision(assessment: BufferedAssessment, automaticAcceptance: boolean, requiresObjectMatch = assessment.objectMatch !== null || assessment.cleanliness !== null): Decision {
+  if (requiresObjectMatch && assessment.objectMatch === 'WRONG_ITEM') return {state:'RECAPTURE_REQUIRED',reason:'WRONG_ITEM',keep:false};
   if (assessment.originality === 'SCREEN_RECAPTURE') return { state: 'RECAPTURE_REQUIRED', reason: 'PHOTO_OF_SCREEN', keep: false };
-  if (requiresObjectMatch && ['WRONG_ITEM','MISSING_SURFACE'].includes(assessment.objectMatch??'')) return {
+  if (requiresObjectMatch && assessment.objectMatch === 'MISSING_SURFACE') return {
     state: 'RECAPTURE_REQUIRED',
-    reason: assessment.objectMatch === 'WRONG_ITEM' ? 'WRONG_ITEM' : 'MISSING_SURFACE',
+    reason: 'MISSING_SURFACE',
     keep: false,
   };
   if (requiresObjectMatch && assessment.objectMatch !== 'MATCH') return {state:'REVIEW_REQUIRED',reason:'OBJECT_UNCERTAIN',keep:true};

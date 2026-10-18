@@ -17,7 +17,6 @@ export function LanguageProvider({ children }: { children: ReactNode }) {
     } catch {
       /* Session choice still works. */
     }
-    window.speechSynthesis?.cancel();
   }, [language]);
   const t = useCallback(
     (text: string, values?: Record<string, string | number>) =>

@@ -9,6 +9,9 @@ import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { SafeAreaProvider } from "react-native-safe-area-context";
 import { AuthProvider } from "./src/auth/AuthContext";
 import { AppNavigator } from "./src/navigation/AppNavigator";
+import { useState } from 'react';
+import { NotificationProvider } from './src/notifications/NotificationProvider';
+import { NotificationNavigation,staffNavigation } from './src/notifications/NotificationNavigation';
 
 const navTheme = {
   ...DefaultTheme,
@@ -36,9 +39,11 @@ const queryClient = new QueryClient({
 
 function LocalizedNavigation() {
   const { isRTL } = useLanguage();
+  const [ready,setReady]=useState(false);
   return (
-    <NavigationContainer theme={navTheme} direction={isRTL ? "rtl" : "ltr"}>
+    <NavigationContainer ref={staffNavigation} onReady={()=>setReady(true)} theme={navTheme} direction={isRTL ? "rtl" : "ltr"}>
       <StatusBar style="dark" />
+      <NotificationNavigation ready={ready}/>
       <AppNavigator />
     </NavigationContainer>
   );
@@ -50,7 +55,7 @@ export default function App() {
       <QueryClientProvider client={queryClient}>
         <LanguageProvider>
           <AuthProvider>
-            <LocalizedNavigation />
+            <NotificationProvider><LocalizedNavigation /></NotificationProvider>
           </AuthProvider>
         </LanguageProvider>
       </QueryClientProvider>

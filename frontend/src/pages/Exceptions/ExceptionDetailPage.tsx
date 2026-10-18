@@ -23,7 +23,6 @@ import { useOnline } from "@/hooks/useOnline";
 import { Button } from "@/components/ui/button";
 import { client } from "@/api/client";
 import { invalidateWorkspace } from "@/lib/invalidateWorkspace";
-import ListenButton from "@/components/common/ListenButton";
 import ProtectedEvidence from "../Verification/ProtectedEvidence";
 import {
   exceptionStateLabel,
@@ -522,7 +521,6 @@ function Workspace({ id }: { id: number }) {
                   ? t(reviewGuidance(issue))
                   : t("This case has no unresolved issues.")}
               </p>
-              {issue ? <ListenButton text={t(reviewGuidance(issue))} /> : null}
               {issue?.blockedReason ? (
                 <p className="ops-blocked">{t(issue.blockedReason)}</p>
               ) : null}

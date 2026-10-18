@@ -99,11 +99,3 @@ export type ExceptionDetail = VerificationException & {
   nextCursor?: string | null;
   eventsNextCursor?: string | null;
 };
-export type ExceptionFilters = {
-  locationId?: string;
-  areaId?: string;
-  workerId?: string;
-  reasonCode?: string;
-  priority?: string;
-  state?: string;
-};

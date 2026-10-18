@@ -1,5 +1,4 @@
 import { LanguageChoice } from "../components/LanguageChoice";
-import { ListenButton } from "../components/ListenButton";
 import { useLanguage } from "../i18n/LanguageProvider";
 import { useEffect, useRef, useState } from 'react';
 import { AppState, Linking, Platform, ScrollView, StyleSheet, View } from 'react-native';
@@ -31,8 +30,10 @@ export function StartTaskScreen({ route, navigation }: Props) {
   const taskKey = ['staff', user?.id, 'task', taskId];
   const taskQuery = useQuery({
     queryKey: taskKey,
-    queryFn: async () => (await client.get<ApiEnvelope<TaskInstance>>(`/task-instance/${taskId}`)).data.data,
-    enabled: !!user,
+    queryFn: async ({ signal }) => (await client.get<ApiEnvelope<TaskInstance>>(`/task-instance/${taskId}`, { params: { view: 'mobile' }, signal })).data.data,
+    enabled: !!user && focused,
+    staleTime: 30000,
+    refetchOnMount: true,
     retry: false,
   });
   const [confirmed, setConfirmed] = useState<TaskInstance | null>(null);
@@ -137,7 +138,7 @@ export function StartTaskScreen({ route, navigation }: Props) {
       <Button size="lg" iconRight="ArrowRight" onPress={() => navigation.replace('Verification', { taskId, requirePhotoQr: true })}>Take task photos</Button>
     </> : null}
     {canStart ? <>
-      <ListenButton text={t("Scan the assigned room QR to start cleaning.")}/>
+
       <View className="gap-1">
         <Text className="text-xl font-bold">1 · Scan room QR</Text>
         <Text className="text-base leading-6 text-muted-foreground">Use the room marker for {task.areaNameSnapshot ?? 'your assigned area'}. Your task starts after the area is confirmed.</Text>

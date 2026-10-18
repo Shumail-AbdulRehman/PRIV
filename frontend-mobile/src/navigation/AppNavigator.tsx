@@ -50,6 +50,7 @@ export function AppNavigator() {
             component={StaffTabs}
             options={{ headerShown: false }}
           />
+
           {__DEV__ ? (
             <Stack.Screen
               name="SpatialDiagnostic"

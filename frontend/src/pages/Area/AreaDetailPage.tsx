@@ -42,6 +42,7 @@ import {
 } from "./api";
 import {
   fixtureNames,
+  setupFixtureTypes,
   itemEditPayload,
   type AreaItem,
   type FixtureType,
@@ -79,7 +80,7 @@ export default function AreaDetailPage() {
     "retire" | "rotate" | "archive" | null
   >(null);
   const [count, setCount] = useState(1);
-  const [type, setType] = useState<FixtureType>("TOILET");
+  const [type, setType] = useState<FixtureType>("INDIAN_TOILET");
   const [photo, setPhoto] = useState<File | null>(null);
   const [caption, setCaption] = useState("");
   const [standardItem, setStandardItem] = useState("");
@@ -145,6 +146,8 @@ export default function AreaDetailPage() {
   const FixtureIcon = (kind: string) =>
     ({
       TOILET: Bath,
+      INDIAN_TOILET: Bath,
+      WESTERN_TOILET: Bath,
       SINK: Droplets,
       MIRROR: RectangleHorizontal,
       BIN: Trash2,
@@ -339,13 +342,11 @@ export default function AreaDetailPage() {
                         }
                         className="block w-full px-3"
                       >
-                        {Object.entries(fixtureNames)
-                          .filter(([key]) => key !== "CUSTOM")
-                          .map(([key, value]) => (
-                            <option key={key} value={key}>
-                              {t(value)}
-                            </option>
-                          ))}
+                        {setupFixtureTypes.map((key) => (
+                          <option key={key} value={key}>
+                            {t(fixtureNames[key])}
+                          </option>
+                        ))}
                       </select>
                     </label>
                     <label>

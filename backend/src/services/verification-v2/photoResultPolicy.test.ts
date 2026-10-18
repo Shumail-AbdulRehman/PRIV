@@ -3,6 +3,9 @@ import {bufferedDecision} from './photoResultPolicy.js';
 import type {BufferedAssessment} from './bufferedPhoto.provider.js';
 
 const base:BufferedAssessment={originality:'DIRECT',objectMatch:'MATCH',viewMatch:'MATCH',cleanliness:{verdict:'CLEAN',surfaces:[{surface:'bowl',verdict:'CLEAN'}],confidence:.99,reasonCode:'CLEAN'},metadata:{} as any};
+it('keeps wrong-object correction even when the unrelated photo is also a screen picture',()=>{
+ expect(bufferedDecision({...base,objectMatch:'WRONG_ITEM',originality:'SCREEN_RECAPTURE'},false)).toEqual({state:'RECAPTURE_REQUIRED',reason:'WRONG_ITEM',keep:false});
+});
 
 it.each(['WRONG_ITEM','MISSING_SURFACE'] as const)('a confirmed %s cannot be passed or sent to review even with clean surfaces',objectMatch=>{
  expect(bufferedDecision({...base,objectMatch,originality:'UNCERTAIN'},false)).toEqual({state:'RECAPTURE_REQUIRED',reason:objectMatch,keep:false});

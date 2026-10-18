@@ -1,12 +1,11 @@
+import StaffCreateDialog from "./StaffCreateDialog";
 import OperationsState from "../Manager/OperationsState";
 import DeleteButton from "@/components/common/DeleteButton";
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
-import { useForm } from "react-hook-form";
 import { formatInTimeZone, fromZonedTime } from "date-fns-tz";
 import {
   useGetStaff,
-  useCreateStaff,
   useDeleteStaff,
   useEditStaff,
   getStaffDetailsQueryOptions,
@@ -19,13 +18,7 @@ import DataTable from "@/components/common/DataTable";
 import StatusBadge from "@/components/common/StatusBadge";
 import LoadingSpinner from "@/components/common/LoadingSpinner";
 import type { Column } from "@/components/common/DataTable";
-import {
-  Dialog,
-  DialogContent,
-  DialogHeader,
-  DialogTitle,
-  DialogTrigger,
-} from "@/components/ui/dialog";
+import { Dialog, DialogContent, DialogTitle } from "@/components/ui/dialog";
 import { Users, Plus, Search, Pencil, MapPin } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -62,16 +55,6 @@ interface ApiError {
   message?: string;
 }
 
-interface CreateStaffForm {
-  name: string;
-  email: string;
-  phone: string;
-  password: string;
-  locationId?: string;
-  shiftStart: string;
-  shiftEnd: string;
-}
-
 const fmtTimeWithTz = (d: string | null, timeZone = "UTC") => {
   if (!d) return "—";
   return formatInTimeZone(new Date(d), timeZone, "HH:mm (zzz)");
@@ -103,7 +86,6 @@ export default function StaffPage() {
   const { data, isLoading } = staffQuery;
   const [success, setSuccess] = useState("");
   const locationsQuery = useGetLocations();
-  const createStaff = useCreateStaff();
   const deleteStaff = useDeleteStaff();
   const editStaffMutation = useEditStaff();
   const assignLocation = useAssignStaffToLocation();
@@ -124,13 +106,6 @@ export default function StaffPage() {
     shiftEnd: "",
     locationId: "" as string,
   });
-
-  const {
-    register,
-    handleSubmit,
-    reset,
-    formState: { errors },
-  } = useForm<CreateStaffForm>();
 
   if (isLoading) return <LoadingSpinner fullScreen />;
   if (staffQuery.isError)
@@ -335,238 +310,29 @@ export default function StaffPage() {
     },
   ];
 
-  const onCreateSubmit = (formData: CreateStaffForm) => {
-    const tz = tzForLocation(
-      formData.locationId ? Number(formData.locationId) : null,
-    );
-    createStaff.mutate(
-      {
-        name: formData.name,
-        email: formData.email,
-        phone: formData.phone,
-        password: formData.password,
-        locationId: formData.locationId
-          ? Number(formData.locationId)
-          : undefined,
-        shiftStart: formData.shiftStart
-          ? fromZonedTime(
-              `1970-01-01T${formData.shiftStart}:00`,
-              tz,
-            ).toISOString()
-          : undefined,
-        shiftEnd: formData.shiftEnd
-          ? fromZonedTime(
-              `1970-01-01T${formData.shiftEnd}:00`,
-              tz,
-            ).toISOString()
-          : undefined,
-      },
-      {
-        onSuccess: () => {
-          reset();
-          setDialogOpen(false);
-          setSuccess("Team member added.");
-        },
-      },
-    );
-  };
-
   return (
     <div className="space-y-6">
       <PageHeader
         title="Team"
         subtitle={`${staff.length} team members`}
         action={
-          <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
-            <DialogTrigger asChild>
-              <Button className="rounded-lg px-4">
-                <Plus className="h-4 w-4" /> Add staff
-              </Button>
-            </DialogTrigger>
-            <DialogContent className="border-border/70 bg-card text-card-foreground sm:max-w-xl">
-              <DialogHeader>
-                <DialogTitle>Add team member</DialogTitle>
-              </DialogHeader>
-              <form
-                onSubmit={handleSubmit(onCreateSubmit)}
-                className="space-y-4 pt-2"
-              >
-                <div>
-                  <label
-                    htmlFor="staff-create-name"
-                    className="mb-1.5 block text-sm font-medium text-foreground"
-                  >
-                    Full Name
-                  </label>
-                  <Input
-                    id="staff-create-name"
-                    {...register("name", { required: "Name is required" })}
-                    placeholder="Ali Raza"
-                  />
-                  {errors.name && (
-                    <p className="mt-1 text-xs text-red-500">
-                      {errors.name.message}
-                    </p>
-                  )}
-                </div>
-                <div>
-                  <label
-                    htmlFor="staff-create-email"
-                    className="mb-1.5 block text-sm font-medium text-foreground"
-                  >
-                    Email
-                  </label>
-                  <Input
-                    type="email"
-                    id="staff-create-email"
-                    {...register("email", { required: "Email is required" })}
-                    placeholder="ali@company.com"
-                  />
-                  {errors.email && (
-                    <p className="mt-1 text-xs text-red-500">
-                      {errors.email.message}
-                    </p>
-                  )}
-                </div>
-                <div>
-                  <label
-                    htmlFor="staff-create-phone"
-                    className="mb-1.5 block text-sm font-medium text-foreground"
-                  >
-                    Phone Number
-                  </label>
-                  <Input
-                    type="tel"
-                    id="staff-create-phone"
-                    {...register("phone", {
-                      required: "Phone number is required",
-                      minLength: {
-                        value: 7,
-                        message: "Phone number must be at least 7 characters",
-                      },
-                      maxLength: {
-                        value: 20,
-                        message: "Phone number must be at most 20 characters",
-                      },
-                    })}
-                    placeholder="+92 300 1234567"
-                  />
-                  {errors.phone && (
-                    <p className="mt-1 text-xs text-red-500">
-                      {errors.phone.message}
-                    </p>
-                  )}
-                </div>
-                <div>
-                  <label
-                    htmlFor="staff-create-password"
-                    className="mb-1.5 block text-sm font-medium text-foreground"
-                  >
-                    Password
-                  </label>
-                  <Input
-                    type="password"
-                    id="staff-create-password"
-                    {...register("password", {
-                      required: "Password is required",
-                    })}
-                    placeholder="••••••••"
-                  />
-                  {errors.password && (
-                    <p className="mt-1 text-xs text-red-500">
-                      {errors.password.message}
-                    </p>
-                  )}
-                </div>
-                <div>
-                  <label className="mb-1.5 block text-sm font-medium text-foreground">
-                    Location (optional)
-                  </label>
-                  <select
-                    id="staff-create-locationId"
-                    {...register("locationId")}
-                    className={inputCls}
-                  >
-                    <option value="">No location</option>
-                    {locations.map((l) => (
-                      <option key={l.id} value={l.id}>
-                        {l.name}
-                      </option>
-                    ))}
-                  </select>
-                </div>
-                <div className="grid grid-cols-2 gap-4">
-                  <div>
-                    <label
-                      htmlFor="staff-create-shiftStart"
-                      className="mb-1.5 block text-sm font-medium text-foreground"
-                    >
-                      Shift Start
-                    </label>
-                    <Input
-                      type="time"
-                      id="staff-create-shiftStart"
-                      {...register("shiftStart", {
-                        required: "Shift start is required",
-                      })}
-                    />
-                    {errors.shiftStart && (
-                      <p className="mt-1 text-xs text-red-500">
-                        {errors.shiftStart.message}
-                      </p>
-                    )}
-                  </div>
-                  <div>
-                    <label
-                      htmlFor="staff-create-shiftEnd"
-                      className="mb-1.5 block text-sm font-medium text-foreground"
-                    >
-                      Shift End
-                    </label>
-                    <Input
-                      type="time"
-                      id="staff-create-shiftEnd"
-                      {...register("shiftEnd", {
-                        required: "Shift end is required",
-                      })}
-                    />
-                    {errors.shiftEnd && (
-                      <p className="mt-1 text-xs text-red-500">
-                        {errors.shiftEnd.message}
-                      </p>
-                    )}
-                  </div>
-                </div>
-                {createStaff.isError ? (
-                  <p role="alert" className="operations-notice">
-                    {extractError(createStaff.error)}
-                  </p>
-                ) : null}
-                <div className="flex gap-3 pt-2">
-                  <Button
-                    type="button"
-                    variant="outline"
-                    className="flex-1 rounded-lg"
-                    onClick={() => {
-                      reset();
-                      setDialogOpen(false);
-                    }}
-                  >
-                    Cancel
-                  </Button>
-                  <Button
-                    type="submit"
-                    disabled={createStaff.isPending}
-                    className="flex-1 rounded-lg"
-                  >
-                    {createStaff.isPending ? "Creating..." : "Create staff"}
-                  </Button>
-                </div>
-              </form>
-            </DialogContent>
-          </Dialog>
+          <Button
+            className="rounded-lg px-4"
+            onClick={() => setDialogOpen(true)}
+          >
+            <Plus className="h-4 w-4" /> Add staff
+          </Button>
         }
       />
+
+      {dialogOpen ? (
+        <StaffCreateDialog
+          open={dialogOpen}
+          onOpenChange={setDialogOpen}
+          locations={locations}
+          onSaved={() => setSuccess("Team member added.")}
+        />
+      ) : null}
 
       {success ? (
         <p role="status" className="ops-save-result">

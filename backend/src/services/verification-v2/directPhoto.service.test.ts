@@ -1,14 +1,14 @@
 import {beforeEach,expect,it,vi} from 'vitest';
 const m=vi.hoisted(()=>({attempt:null as any,store:vi.fn(),access:vi.fn(),decision:vi.fn(),finalize:vi.fn()}));
 vi.mock('../../prisma/prisma.js',()=>({prisma:{
- verificationAttempt:{findUniqueOrThrow:vi.fn(async()=>m.attempt),update:vi.fn(async({data}:any)=>{Object.assign(m.attempt,data);return m.attempt;})},
+ verificationAttempt:{updateMany:vi.fn(async({where,data}:any)=>{if(m.attempt.directProcessingToken!==where.directProcessingToken)return {count:0};Object.assign(m.attempt,data);return {count:1};}),findUniqueOrThrow:vi.fn(async()=>m.attempt),update:vi.fn(async({data}:any)=>{Object.assign(m.attempt,data);return m.attempt;})},
  $transaction:vi.fn(async(fn:any)=>fn({verificationAttempt:{findUniqueOrThrow:async()=>m.attempt,update:async({data}:any)=>{Object.assign(m.attempt,data);return m.attempt;}},evidenceAsset:{upsert:async({create}:any)=>{m.attempt.media={id:'asset',...create};return m.attempt.media;}}}))
 }}));
 vi.mock('./authorization.service.js',()=>({requireTaskAccess:m.access}));
 vi.mock('./captureSession.service.js',()=>({lockTask:vi.fn(),staffAttemptResult:()=>({})}));
 vi.mock('./quality.service.js',()=>({sha256:()=> 'hash',inspectImage:async()=>({sha256:'hash',normalizedHash:'n',perceptualHash:'p',format:'jpeg',bytes:5,width:1800,height:1200,sanitized:Buffer.from('sanitized'),quality:{acceptable:true}})}));
 vi.mock('./evidence.service.js',()=>({originalPublicId:()=> 'verification/1/attempts/a/original'}));
-vi.mock('./photoDecision.service.js',()=>({applyDecision:m.decision}));
+vi.mock('./photoDecision.service.js',()=>({applyLockedDecision:m.decision}));
 vi.mock('./completion.service.js',()=>({finalizeTask:m.finalize}));
 vi.mock('./cleanliness.service.js',()=>({autoPassAllowed:()=>false}));
 vi.mock('./bufferedPhoto.provider.js',()=>({BufferedClefProvider:class{},bufferedEvaluatorVersion:()=>"test-v1"}));
@@ -22,7 +22,7 @@ it('finishes AI then protected cloud storage before returning, with no job queue
  expect(provider.evaluate).toHaveBeenCalledOnce();expect(m.store).toHaveBeenCalledTimes(2);
  expect(provider.evaluate.mock.invocationCallOrder[0]).toBeLessThan(m.store.mock.invocationCallOrder[0]);
  expect(result).toMatchObject({attemptId:'a',state:'REVIEW_REQUIRED',storage:'cloud'});
- expect(m.decision).toHaveBeenCalledWith(expect.anything(),'a','REVIEW_REQUIRED','AUTO_PASS_NOT_VALIDATED',expect.anything());
+ expect(m.decision).toHaveBeenCalledWith(expect.anything(),expect.objectContaining({id:'a'}),'REVIEW_REQUIRED','AUTO_PASS_NOT_VALIDATED',expect.anything());
 });
 it.each(['DIRTY','SCREEN'] as const)('rejects %s without uploading to cloud',async kind=>{
  const assessment=kind==='DIRTY'?{...clean,cleanliness:{...clean.cleanliness,verdict:'DIRTY' as const,surfaces:[{surface:'basin',verdict:'DIRTY' as const}],reasonCode:'CLEANING_REQUIRED' as const}}:{...clean,originality:'SCREEN_RECAPTURE' as const};
@@ -72,7 +72,7 @@ it.each(['WRONG_ITEM','MISSING_SURFACE'] as const)('rejects confirmed %s before 
  expect(evaluate).toHaveBeenCalledWith(expect.any(Buffer),{version:1},'basin','SINK');
  expect(m.store).not.toHaveBeenCalled();
  expect(result).toMatchObject({state:'RECAPTURE_REQUIRED',storage:'discarded'});
- expect(m.decision).toHaveBeenCalledWith(expect.anything(),'a','RECAPTURE_REQUIRED',objectMatch,expect.anything());
+ expect(m.decision).toHaveBeenCalledWith(expect.anything(),expect.objectContaining({id:'a'}),'RECAPTURE_REQUIRED',objectMatch,expect.anything());
 });
 
 it.each(['OBJECT','VIEW'] as const)('keeps %s uncertainty for manager review instead of asking for another photo',async gate=>{
@@ -80,7 +80,7 @@ it.each(['OBJECT','VIEW'] as const)('keeps %s uncertainty for manager review ins
  const result=await processDirectPhoto(actor,'a',Buffer.from('photo'),{evaluate},m.store);
  expect(result).toMatchObject({state:'REVIEW_REQUIRED',storage:'cloud'});
  expect(m.store).toHaveBeenCalledTimes(2);
- expect(m.decision).toHaveBeenCalledWith(expect.anything(),'a','REVIEW_REQUIRED',`${gate}_UNCERTAIN`,expect.anything());
+ expect(m.decision).toHaveBeenCalledWith(expect.anything(),expect.objectContaining({id:'a'}),'REVIEW_REQUIRED',`${gate}_UNCERTAIN`,expect.anything());
 });
 
 it('does not reuse an assessment cached before the object check was introduced',async()=>{
@@ -88,4 +88,11 @@ it('does not reuse an assessment cached before the object check was introduced',
  const evaluate=vi.fn(async()=>({...clean,objectMatch:'WRONG_ITEM' as const}));
  await processDirectPhoto(actor,'a',Buffer.from('photo'),{evaluate},m.store);
  expect(evaluate).toHaveBeenCalledOnce();expect(m.store).not.toHaveBeenCalled();
+});
+
+it('cannot publish or overwrite a cached assessment after losing request ownership',async()=>{
+ const provider={evaluate:vi.fn(async()=>{m.attempt.directProcessingToken='replacement-request';return clean;})};
+ await expect(processDirectPhoto(actor,'a',Buffer.from('photo'),provider,m.store)).rejects.toMatchObject({statusCode:409});
+ expect(m.attempt.directAssessment).toBeUndefined();expect(m.store).not.toHaveBeenCalled();expect(m.decision).not.toHaveBeenCalled();
+ expect(m.attempt.directProcessingToken).toBe('replacement-request');
 });

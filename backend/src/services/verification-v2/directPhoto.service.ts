@@ -10,7 +10,7 @@ import { originalPublicId } from './evidence.service.js';
 import { BufferedClefProvider, bufferedEvaluatorVersion, type BufferedAssessment, type BufferedPhotoProvider } from './bufferedPhoto.provider.js';
 import { bufferedDecision } from './photoResultPolicy.js';
 import { autoPassAllowed } from './cleanliness.service.js';
-import { applyDecision } from './photoDecision.service.js';
+import { applyLockedDecision } from './photoDecision.service.js';
 import { finalizeTask } from './completion.service.js';
 import { reviewableMedia, photoStorageState } from './evidenceBuffer.js';
 import { verificationEvent } from './latency.js';
@@ -32,13 +32,21 @@ export async function directPhotoStatus(actor: VerificationActor, id: string) {
 /** AI and conditional cloud storage finish in the upload request. No queue or disk buffer. */
 export async function processDirectPhoto(actor: VerificationActor, attemptId: string, bytes: Buffer,
   provider: BufferedPhotoProvider = new BufferedClefProvider(), store = storePrivateImage) {
+  const timed=async<T>(stage:string,work:()=>Promise<T>)=>{
+    const start=Date.now();
+    try{return await work();}
+    finally{verificationEvent('DIRECT_PHOTO_STAGE',{attemptId},{stage,durationMs:Date.now()-start});}
+  };
   if(actor.role!=='STAFF')throw new ApiError(403,'Staff account required');
-  const initial=await prisma.verificationAttempt.findUniqueOrThrow({where:{id:attemptId},include:{session:true}});
-  if(initial.staffId!==actor.id)throw new ApiError(404,'Capture not found');
-  await requireTaskAccess(actor,initial.session.taskInstanceId,{staffMutation:true});
+  const initial=await timed('access',async()=>{
+    const a=await prisma.verificationAttempt.findUniqueOrThrow({where:{id:attemptId},include:{session:true}});
+    if(a.staffId!==actor.id)throw new ApiError(404,'Capture not found');
+    await requireTaskAccess(actor,a.session.taskInstanceId,{staffMutation:true});
+    return a;
+  });
   if(sha256(bytes)!==initial.committedHash)throw new ApiError(409,'This photo changed before it finished uploading. Please take a new photo.');
-  const info=await inspectImage(bytes), token=randomUUID(), started=Date.now();
-  const claim=await prisma.$transaction(async tx=>{
+  const info=await timed('image',()=>inspectImage(bytes)), token=randomUUID(), started=Date.now();
+  const claim=await timed('claim',()=>prisma.$transaction(async tx=>{
     await lockTask(tx,initial.session.taskInstanceId);
     const a=await tx.verificationAttempt.findUniqueOrThrow({where:{id:attemptId},include:{media:true,session:true,requirement:{include:{item:true}}}});
     if(a.media&&['PASSED','REVIEW_REQUIRED','PRIVACY_HOLD','RECAPTURE_REQUIRED','CLEANING_REQUIRED'].includes(a.state))return {finished:true as const,attempt:a};
@@ -48,7 +56,7 @@ export async function processDirectPhoto(actor: VerificationActor, attemptId: st
     const quality={...info.quality,workflow:WORKFLOW};
     await tx.verificationAttempt.update({where:{id:attemptId},data:{state:'CLEANLINESS_CHECK',receivedAt:a.receivedAt??new Date(started),directProcessingToken:token,directProcessingStartedAt:new Date(started),...(a.qualityResult===null?{qualityResult:json(quality)}:{})}});
     return {finished:false as const,attempt:a,quality};
-  });
+  }));
   if(claim.finished)return directPhotoStatus(actor,attemptId);
   try {
     const cached=claim.attempt.directAssessment as {assessment?:BufferedAssessment;evaluatorVersion?:string}|null;
@@ -57,25 +65,24 @@ export async function processDirectPhoto(actor: VerificationActor, attemptId: st
     let decision:ReturnType<typeof bufferedDecision>;
     if(!info.quality.acceptable)decision={state:'RECAPTURE_REQUIRED',reason:info.quality.reasons?.[0]??'CANNOT_ASSESS',keep:false};
     else {
-      assessment??=await provider.evaluate(info.sanitized,claim.attempt.requirement?.item.rubricSnapshot,claim.attempt.requirement?.viewKey,claim.attempt.requirement?.item.typeSnapshot);
+      assessment??=await timed('ai',()=>provider.evaluate(info.sanitized,claim.attempt.requirement?.item.rubricSnapshot,claim.attempt.requirement?.viewKey,claim.attempt.requirement?.item.typeSnapshot));
       decision=bufferedDecision(assessment,!claim.attempt.requirement||autoPassAllowed(claim.attempt.requirement.item.typeSnapshot,
         (claim.attempt.requirement.item.rubricSnapshot as {version:number}).version),!!claim.attempt.requirement);
-      await prisma.$transaction(async tx=>{
-        await lockTask(tx,initial.session.taskInstanceId);
-        const fresh=await tx.verificationAttempt.findUniqueOrThrow({where:{id:attemptId}});
-        if(fresh.directProcessingToken!==token)throw new ApiError(409,'Photo processing changed. Refresh its result.',[{code:'PHOTO_PROCESSING'}]);
-        await tx.verificationAttempt.update({where:{id:attemptId},data:{directAssessment:json({assessment,evaluatorVersion})}});
-      });
+      // The token is an atomic ownership check. This cache write does not mutate
+      // task state and needs no second task lock, read, or interactive transaction.
+      const saved=await timed('assessment_save',()=>prisma.verificationAttempt.updateMany({where:{id:attemptId,directProcessingToken:token},
+        data:{directAssessment:json({assessment,evaluatorVersion})}}));
+      if(!saved.count)throw new ApiError(409,'Photo processing changed. Refresh its result.',[{code:'PHOTO_PROCESSING'}]);
     }
     const publicId=originalPublicId(actor.companyId,attemptId),reviewId=publicId.replace(/\/original$/,'/review');
     let cloudId:string|undefined;
     if(decision.keep){
-      const uploaded=await Promise.all([store(bytes,publicId,info.sha256),store(info.sanitized,reviewId,sha256(info.sanitized))]);
+      const uploaded=await timed('storage',()=>Promise.all([store(bytes,publicId,info.sha256),store(info.sanitized,reviewId,sha256(info.sanitized))]));
       cloudId=uploaded[0]!.asset_id;
     }
-    await prisma.$transaction(async tx=>{
+    await timed('publish',()=>prisma.$transaction(async tx=>{
       await lockTask(tx,initial.session.taskInstanceId);
-      const fresh=await tx.verificationAttempt.findUniqueOrThrow({where:{id:attemptId},include:{session:{include:{task:true}}}});
+      const fresh=await tx.verificationAttempt.findUniqueOrThrow({where:{id:attemptId},include:{session:{include:{task:true}},slot:true}});
       if(fresh.directProcessingToken!==token)throw new ApiError(409,'Photo processing changed. Refresh its result.',[{code:'PHOTO_PROCESSING'}]);
       const media=await tx.evidenceAsset.upsert({where:{originalPublicId:publicId},create:{
         companyId:actor.companyId,locationId:fresh.session.task.locationId,taskInstanceId:fresh.session.taskInstanceId,
@@ -85,13 +92,13 @@ export async function processDirectPhoto(actor: VerificationActor, attemptId: st
       },update:{}});
       await tx.verificationAttempt.update({where:{id:attemptId},data:{mediaAssetId:media.id,
         directProcessingToken:null,directProcessingStartedAt:null}});
-      await applyDecision(tx,attemptId,decision.state,decision.reason,json({workflow:WORKFLOW,
+      await applyLockedDecision(tx,fresh,decision.state,decision.reason,json({workflow:WORKFLOW,
         ...(claim.attempt.requirement?{photoContext:{fixtureType:claim.attempt.requirement.item.typeSnapshot,viewKey:claim.attempt.requirement.viewKey,...(assessment?.toiletStyle?{toiletStyle:assessment.toiletStyle}:{}),...(assessment?.missingSurfaces?.length?{missingSurfaces:assessment.missingSurfaces}:{})}}:{}),
         ...(assessment?.cleanliness?{result:assessment.cleanliness,metadata:assessment.metadata}:{})}));
       await finalizeTask(tx,initial.session.taskInstanceId);
-    });
+    }));
     verificationEvent('DIRECT_PHOTO_FINISHED',{attemptId,taskId:initial.session.taskInstanceId},{durationMs:Date.now()-started,state:decision.state});
-    return directPhotoStatus(actor,attemptId);
+    return timed('response',()=>directPhotoStatus(actor,attemptId));
   } catch(error) {
     // Leave no accepted evidence on failure. Staff must explicitly upload again.
     await prisma.$transaction(async tx=>{
