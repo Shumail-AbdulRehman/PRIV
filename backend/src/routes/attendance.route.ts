@@ -1,5 +1,6 @@
+import { getStaffSelfAttendance } from "../controllers/attendanceSelf.controller.js";
 import { Router } from "express";
-import { checkIn, checkOut, getMyAttendance, getStaffAttendance, assignShiftToStaff } from "../controllers/attendance.controller.js";
+import { checkIn, checkOut, getStaffAttendance, assignShiftToStaff } from "../controllers/attendance.controller.js";
 import { verifyJwt } from "../middlewares/auth.middleware.js";
 import authorize from "../middlewares/authorize.middleware.js";
 import upload from "../middlewares/upload.middleware.js";
@@ -10,7 +11,7 @@ const router = Router();
 router.patch("/staff/:id/shift", verifyJwt, authorize("ADMIN", "MANAGER"), assignShiftToStaff);
 router.post("/check-in", (req, _res, next) => { console.log("[DEBUG] POST /check-in hit, content-type:", req.headers["content-type"]); next(); }, verifyJwt, upload.single("image"), checkIn);
 router.post("/check-out" ,verifyJwt,upload.single("image"), checkOut);
-router.get("/my", verifyJwt, getMyAttendance);
+router.get("/my", verifyJwt, authorize("STAFF"), getStaffSelfAttendance);
 router.get("/", verifyJwt, authorize("ADMIN", "MANAGER"), getStaffAttendance);
 
 export default router;

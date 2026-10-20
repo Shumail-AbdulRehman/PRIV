@@ -1,0 +1,76 @@
+# Hygene Ops implementation index
+
+Approved scope: docs/product-discovery/PRODUCT_SCOPE_PROPOSAL.md. Approved design: design/v5 (2026-10-20). Technical evidence: docs/audit. Decisions: docs/implementation/DECISIONS.md. This is continuation Phase E; user authorizes execution after validator, overriding historical planning-only stops. Research/planning saved under docs/implementation to preserve existing docs.
+
+| # | Spec | Wave | What it covers |
+|---|---|---|---|
+| 00 | [Launch decisions](00-launch-decisions.md) | 0 | Existing stack and D01–D12 |
+| 01 | [P0 actor-safe self endpoints](01-actor-self-authorization.md) | 1 | P0 actor-safe self endpoints |
+| 02 | [P0 historical worker site authorization](02-historical-site-scope.md) | 2 | P0 historical worker site authorization |
+| 03 | [P0 fail-closed production runtime](03-production-runtime.md) | 1 | P0 fail-closed production runtime |
+| 04 | [P0 atomic role-safe refresh sessions](04-refresh-session-safety.md) | 1 | P0 atomic role-safe refresh sessions |
+| 05 | [P0 private attendance media boundary](05-attendance-private-media.md) | 3 | P0 private attendance media boundary |
+| 06 | [Web component test harness](06-web-unit-harness.md) | 1 | Web component test harness |
+| 07 | [Legacy attendance asset transition tooling](07-legacy-media-transition.md) | 4 | Legacy attendance asset transition tooling |
+| 08 | [Protected attendance image presentation](08-attendance-media-ui.md) | 4 | Protected attendance image presentation |
+| 09 | [Attendance write and calendar correctness](09-attendance-reliability.md) | 4 | Attendance write and calendar correctness |
+| 10 | [Additive launch lifecycle persistence](10-launch-persistence.md) | 1 | Additive launch lifecycle persistence |
+| 11 | [Workforce transfer and offboarding API](11-workforce-lifecycle-api.md) | 2 | Workforce transfer and offboarding API |
+| 12 | [Task generation and assignment reliability](12-task-readiness.md) | 1 | Task generation and assignment reliability |
+| 13 | [Atomic company registration](13-registration-atomicity.md) | 1 | Atomic company registration |
+| 14 | [Account access and capacity policy](14-entitlement-policy.md) | 2 | Account access and capacity policy |
+| 15 | [Paddle lifecycle API and configuration](15-billing-lifecycle.md) | 3 | Paddle lifecycle API and configuration |
+| 16 | [Owner verification and recovery API](16-owner-identity-api.md) | 2 | Owner verification and recovery API |
+| 17 | [Self credentials and assisted worker recovery](17-credential-handoff-api.md) | 2 | Self credentials and assisted worker recovery |
+| 18 | [Credential epoch access revocation](18-credential-revocation.md) | 3 | Credential epoch access revocation |
+| 19 | [Separate platform operator authorization](19-operator-identity.md) | 1 | Separate platform operator authorization |
+| 20 | [Photo receipt and replacement contract](20-photo-submission-contract.md) | 1 | Photo receipt and replacement contract |
+| 21 | [Fail-closed active photo qualification](21-photo-qualification.md) | 1 | Fail-closed active photo qualification |
+| 22 | [Owner company settings API](22-company-settings-api.md) | 2 | Owner company settings API |
+| 23 | [Immutable attendance annotations API](23-attendance-annotations-api.md) | 2 | Immutable attendance annotations API |
+| 24 | [Platform company operations API](24-platform-company-api.md) | 4 | Platform company operations API |
+| 25 | [Redacted diagnostics and inquiry operations](25-platform-support-api.md) | 2 | Redacted diagnostics and inquiry operations |
+| 26 | [Wire launch backend routes and policies](26-launch-api-composition.md) | 5 | Wire launch backend routes and policies |
+| 27 | [Approved v5 shared shell and route composition](27-workspace-shell.md) | 2 | Approved v5 shared shell and route composition |
+| 28 | [Real derived setup and operational dashboard](28-setup-ui.md) | 3 | Real derived setup and operational dashboard |
+| 29 | [Attendance exception context UI](29-attendance-context-ui.md) | 5 | Attendance exception context UI |
+| 30 | [Account settings and recovery UI](30-account-ui.md) | 3 | Account settings and recovery UI |
+| 31 | [Workforce access and transfer UI](31-workforce-ui.md) | 3 | Workforce access and transfer UI |
+| 32 | [Real subscription lifecycle UI](32-billing-ui.md) | 4 | Real subscription lifecycle UI |
+| 33 | [Platform company workspace](33-platform-company-ui.md) | 5 | Platform company workspace |
+| 34 | [Platform sign-in and security workspace](34-platform-security-ui.md) | 3 | Platform sign-in and security workspace |
+| 35 | [Platform service audit and leads UI](35-platform-service-ui.md) | 3 | Platform service audit and leads UI |
+| 36 | [Truthful task and photo review UX](36-photo-review-ui.md) | 3 | Truthful task and photo review UX |
+| 37 | [Native attendance/photo/account recovery](37-native-workflows.md) | 5 | Native attendance/photo/account recovery |
+| 38 | [Configured support and service information](38-service-information.md) | 3 | Configured support and service information |
+| 39 | [Launch operations and active CI proof](39-release-operations.md) | 6 | Launch operations and active CI proof |
+| 40 | [Launch end-to-end suite](40-e2e-suite.md) | 7 | Launch end-to-end suite |
+| 41 | [Final clean verification pass](41-verification-pass.md) | 8 | Final clean verification pass |
+
+## Waves
+
+- Wave 0: 00.
+- Wave 1: 01, 03, 04, 06, 10, 12, 13, 19, 20, 21.
+- Wave 2: 02, 11, 14, 16, 17, 22, 23, 25, 27.
+- Wave 3: 05, 15, 18, 28, 30, 31, 34, 35, 36, 38.
+- Wave 4: 07, 08, 09, 24, 32.
+- Wave 5: 26, 29, 33, 37.
+- Wave 6: 39.
+- Wave 7: 40.
+- Wave 8: 41.
+
+## Dependency order
+
+See docs/implementation/planning/dag.md: every edge consumes an ancestor contract. Security specs 01–05 run first locally despite other independent ready work. Use one coherent unit at a time; no automatic deployment.
+
+## Status legend
+
+Not started · In progress · Blocked · Done. Done means criteria passed, not production deployed. Tracker: PROGRESS.md; fresh-session read: AGENT-GUIDE.md and handoff.
+
+## Open questions
+
+External release facts only: configured IdP/MFA/people, verified sender/support recipient, Paddle catalog/terms/sandbox, legal/privacy/retention/exit, host/TLS/backup owner, signed Android distribution, customer calendar fit and consented photo qualification. Safe disabled boundaries are authorized. See D01–D12 for selected technical defaults.
+
+## Known gaps
+
+Final VERIFICATION.md is a terminal report consumed by human release review, not a runtime endpoint; its no-consumer warning is accepted. Recorded decision spec 00 has no GitHub issue: a planning record, not a code task. Code specs without issues remain Not started until local execution. Hot-file re-edit needs explicit ownership transfer at serialized integration units 18/26/27; amend/validate before editing, do not presume wave-safe wiring. Existing app.ts starts jobs on import: spec 03 must validate first. E2E flow table is deliberately the long spec. External provider/device/restore tests cannot be replaced by unit mocks. Existing dirty CI/dashboard work stays intact. No claim that unimplemented specs are complete.

@@ -1,3 +1,4 @@
+import { getStaffSelfProfile } from "../controllers/staffSelf.controller.js";
 import { Router } from "express";
 import {
   loginStaff,
@@ -6,7 +7,6 @@ import {
   deleteStaff,
   getStaffById,
   getStaffByLocation,
-  getProfile,
   editStaff,
   getStaffDetails,
 } from "../controllers/staff.controller.js";
@@ -24,7 +24,7 @@ router.post(
 );
 
 router.get("/", verifyJwt, authorize("ADMIN", "MANAGER"), getStaff);
-router.get("/profile/me", verifyJwt, getProfile);
+router.get("/profile/me", verifyJwt, authorize("STAFF"), getStaffSelfProfile);
 router.get(
   "/details/:id",
   verifyJwt,

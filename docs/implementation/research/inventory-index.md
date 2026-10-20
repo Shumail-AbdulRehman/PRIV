@@ -1,0 +1,368 @@
+# Existing source/export index
+
+- `backend/src/app.ts`: module/default component; inspect before extending
+- `backend/src/config/paddle.ts`: getPaddleEnvironment, getPaddleClient, getPaddleWebhookSecret
+- `backend/src/controllers/area.controller.ts`: listAreas, addArea, getArea, patchArea, addItems, patchItem, archiveArea, areaQr, rotateQr, fixtureLabels, migrationTemplates, listStandards, addStandard
+- `backend/src/controllers/assignment.controller.ts`: assignStaffToLocation, assignStaffToTaskTemplate
+- `backend/src/controllers/attendance.controller.ts`: assignShiftToStaff, checkIn, checkOut, getMyAttendance, getStaffAttendance
+- `backend/src/controllers/common.controller.ts`: getCurrentUser, refreshToken, logOut
+- `backend/src/controllers/enterpriseInquiry.controller.ts`: createEnterpriseInquiry
+- `backend/src/controllers/location.controller.ts`: createLocation, editLocation, getLocations, deleteLocation, getLocationById, getLocationStatsById
+- `backend/src/controllers/locationSchedule.controller.ts`: getLocationSchedule
+- `backend/src/controllers/manager.controller.ts`: signupManager, loginManager, getManagerProfile, getTodayStatus, createManager, getManagers, updateManager, deleteManager
+- `backend/src/controllers/managerOperations.controller.ts`: readCompanyPerformance, readDashboardTrends, operationsRead
+- `backend/src/controllers/mapConfig.controller.ts`: getLocationMapConfig
+- `backend/src/controllers/paddleWebhook.controller.ts`: handlePaddleWebhook
+- `backend/src/controllers/staff.controller.ts`: loginStaff, createStaff, getStaff, deleteStaff, getStaffById, getStaffByLocation, getProfile, editStaff, getStaffDetails
+- `backend/src/controllers/subscription.controller.ts`: getPricingContext, getSubscription, createCustomerPortalSession
+- `backend/src/controllers/taskInstance.controller.ts`: getTodaysTasksForStaff, startTask, retiredEvidenceEndpoint, getAreaSubmissions, completeTask, getTaskInstanceById, getTasknstancesOfLocation, getTaskQr
+- `backend/src/controllers/taskTemplate.controller.ts`: createTaskTemplate, mapTemplateInventory, editTaskTemplate, deleteTaskTemplate, getTaskTemplate, getTaskTemplatesByLocation
+- `backend/src/cron/attendanceCron.ts`: module/default component; inspect before extending
+- `backend/src/cron/attendanceStatusCron.ts`: module/default component; inspect before extending
+- `backend/src/cron/dailyTaskScheduler.ts`: runDailyTaskScheduler
+- `backend/src/cron/deletedMediaCron.ts`: module/default component; inspect before extending
+- `backend/src/cron/onceTaskScheduler.ts`: runOnceTaskScheduler
+- `backend/src/cron/staffNotificationCron.ts`: module/default component; inspect before extending
+- `backend/src/cron/startupCron.ts`: runStartupCron
+- `backend/src/cron/taskInstanceWindow.ts`: resolveTaskInstanceWindow
+- `backend/src/cron/taskReassignmentCron.ts`: module/default component; inspect before extending
+- `backend/src/cron/taskStatusCron.ts`: module/default component; inspect before extending
+- `backend/src/middlewares/auth.middleware.ts`: verifyJwt
+- `backend/src/middlewares/authorize.middleware.ts`: module/default component; inspect before extending
+- `backend/src/middlewares/upload.middleware.ts`: module/default component; inspect before extending
+- `backend/src/prisma/prisma.ts`: module/default component; inspect before extending
+- `backend/src/routes/area.route.ts`: areaLocationRouter
+- `backend/src/routes/assignment.route.ts`: module/default component; inspect before extending
+- `backend/src/routes/attendance.route.ts`: module/default component; inspect before extending
+- `backend/src/routes/common.route.ts`: module/default component; inspect before extending
+- `backend/src/routes/evidence.route.ts`: module/default component; inspect before extending
+- `backend/src/routes/location.route.ts`: module/default component; inspect before extending
+- `backend/src/routes/manager.route.ts`: module/default component; inspect before extending
+- `backend/src/routes/staff.route.ts`: module/default component; inspect before extending
+- `backend/src/routes/staffMobile.route.ts`: module/default component; inspect before extending
+- `backend/src/routes/staffNotification.route.ts`: module/default component; inspect before extending
+- `backend/src/routes/subscription.route.ts`: module/default component; inspect before extending
+- `backend/src/routes/taskInstance.route.ts`: module/default component; inspect before extending
+- `backend/src/routes/taskTemplate.route.ts`: module/default component; inspect before extending
+- `backend/src/routes/verification.route.ts`: module/default component; inspect before extending
+- `backend/src/routes/verificationException.route.ts`: module/default component; inspect before extending
+- `backend/src/services/area.service.ts`: createArea, areaDetail, mutateArea, bulkItems, updateItem
+- `backend/src/services/auditLog.service.ts`: writeAuditLog
+- `backend/src/services/companyPerformance.service.ts`: performanceQuery, PerformanceCounts, PerformanceRow, performanceRate, performanceWindows, summarizePerformance, companyPerformance
+- `backend/src/services/dashboardTrends.service.ts`: trendsQuery, trendRanges, dashboardTrends
+- `backend/src/services/deletedMedia.service.ts`: cloudinaryPublicId, cleanDeletedMedia
+- `backend/src/services/deletion.service.ts`: permanentlyDelete
+- `backend/src/services/managerOperations.service.ts`: OperationTaskRow, managerOperations
+- `backend/src/services/mobile/staffMobile.service.ts`: mobileTaskSelect, mobileTaskSummary, mobileTaskCursor, staffMobileTasks, staffMobileAttendance
+- `backend/src/services/operationsOverviewAggregate.ts`: OverviewAggregate, OverviewSnapshot, overviewAggregateSql
+- `backend/src/services/operationsScope.service.ts`: operationsQuery, locationDay, OperationsDay, taskDayWhere, attendanceDayWhere, submittedWhere, taskStatusWhere, attendanceStatusWhere, operationsScope, pageBounds
+- `backend/src/services/paddleFulfillment.service.ts`: subscriptionGrantsPaidAccess, companyHasPaidAccess, processPaddleEvent
+- `backend/src/services/reviewList.service.ts`: reviewQuery, countReviews, listReviews
+- `backend/src/services/scheduleDeletion.service.ts`: deleteCleaningSchedule
+- `backend/src/services/schedulePreview.service.ts`: ScheduleTemplate, ScheduleInstance, ScheduleItem, addCalendarDays, normalizeMonday, projectWeek
+- `backend/src/services/staff-notifications/inbox.service.ts`: staffOnly, deviceSchema, registerStaffDevice, listStaffNotifications
+- `backend/src/services/staff-notifications/policy.ts`: notificationKinds, NotificationKind, notificationAlertChannel, notificationAlertCategory, notificationMessage, Source, notificationCurrent, retryDelayMs
+- `backend/src/services/staff-notifications/push.provider.ts`: PushMessage, PushResult, StaffPushProvider, ExpoStaffPushProvider
+- `backend/src/services/staff-notifications/reminders.service.ts`: ShiftStaff, Window, scheduledWindows, reminderKind, collectAttendanceReminders, attendanceNotificationSource
+- `backend/src/services/staff-notifications/session.ts`: sessionHash, staffPushSession, renewStaffPushSession
+- `backend/src/services/staff-notifications/worker.service.ts`: deliverStaffNotifications, checkStaffPushReceipts, runStaffNotifications
+- `backend/src/services/subscription.service.ts`: PlanCode, PlanFeature, LimitedResource, PLAN_DEFINITIONS, getCompanyPlan, getCompanySubscriptionSummary, assertCompanyCanAdd, companyHasFeature
+- `backend/src/services/taskAssignment.service.ts`: findBestStaffForTask, ensureCurrentAssignmentForTask, ensureAssignmentsForToday, markCurrentAssignmentStarted, markCurrentAssignmentCompleted, markCurrentAssignmentsForTasks, reassignExpiredAssignments
+- `backend/src/services/templateAssignment.service.ts`: assignTemplateStaff
+- `backend/src/services/verification-v2/authorization.service.ts`: VerificationActor, requireOperationalRole, requireActiveActor, requireLocationAccess, requireAreaAccess, requireTaskAccess, requireAssignmentAccess
+- `backend/src/services/verification-v2/bufferedEvidence.service.ts`: stageReservedEvidence
+- `backend/src/services/verification-v2/bufferedPhoto.provider.ts`: BufferedAssessment, BufferedPhotoProvider, bufferedEvaluatorVersion, BufferedClefProvider
+- `backend/src/services/verification-v2/bufferedPipeline.service.ts`: processBufferedPhoto
+- `backend/src/services/verification-v2/captureSession.service.ts`: lockTask, sessionResponse, createCaptureSession, createReworkCaptureSession, authorizedSession, lockAuthorizedSession, resumeSession, reserveAttempt, retakeSlots, staffAttemptResult
+- `backend/src/services/verification-v2/cleanliness.service.ts`: cleanlinessResultSchema, CleanlinessResult, CleanlinessProvider, validateCleanlinessResult, assessCleanliness, autoPassAllowed
+- `backend/src/services/verification-v2/cleanlinessRelease.ts`: verificationReleaseConfiguration, calibrationSchema, reviewSchema, digest, calibrateCleanliness, createCleanlinessRelease, cleanlinessReleaseStatus
+- `backend/src/services/verification-v2/clef.provider.ts`: clefAnswerSchema, ClefCleanlinessProvider
+- `backend/src/services/verification-v2/clefConfiguration.ts`: clefConfiguration, clefEvaluatorVersion
+- `backend/src/services/verification-v2/clefPhoto.provider.ts`: PhotoAssessment, PhotoVerificationProvider, ClefPhotoProvider, photoEvaluatorVersion
+- `backend/src/services/verification-v2/compatibility.service.ts`: MINIMUM_NATIVE_VERSION, versionSupported, verificationCapabilities, requireNativeVerification
+- `backend/src/services/verification-v2/completion.service.ts`: itemState, finalizeTask
+- `backend/src/services/verification-v2/contextPolicy.ts`: ContextKey, CURRENT_CONTEXT_KEYS, requiredContextKeys, captureContextPolicy
+- `backend/src/services/verification-v2/contracts.ts`: WORKFLOW_VERSION, reasonCodeSchema, ReasonCode, presenceSchema, requirementStateSchema, sessionStateSchema, attemptStateSchema, requiredViewsSchema, locationSampleSchema, sessionRequestSchema, reworkSessionRequestSchema, clientDiagnosticsSchema, captureMetadataSchema, decisionRequestSchema, verificationManifestSchema
+- `backend/src/services/verification-v2/coverage.service.ts`: coverageResultSchema, CoverageResult, contextCoverageExpectedSchema, ContextCoverageExpected, FixtureCoverageExpected, CoverageExpected, CoverageProvider, assessCoverage, privacyResultSchema, assessPrivacy
+- `backend/src/services/verification-v2/deadline.service.ts`: expireVerificationTasks
+- `backend/src/services/verification-v2/directPhoto.service.ts`: directPhotoStatus, processDirectPhoto
+- `backend/src/services/verification-v2/directProcessing.ts`: DIRECT_REQUEST_TTL_MS, directRequestExpired, releaseInterruptedPhotos
+- `backend/src/services/verification-v2/dispatcher.ts`: dispatchVerificationJobs
+- `backend/src/services/verification-v2/duplicate.service.ts`: duplicateClassification, duplicateCandidates
+- `backend/src/services/verification-v2/evaluatorBenchmark.ts`: benchmarkRowsSchema, benchmarkReport
+- `backend/src/services/verification-v2/evidence.service.ts`: EvidenceStorage, originalPublicId, storeReservedEvidence, storeStandardEvidence, evidenceContent
+- `backend/src/services/verification-v2/evidenceBuffer.ts`: bufferRoot, saveBufferedPhoto, readBufferedPhoto, removeBufferedPhoto, reviewableMedia, photoStorageState
+- `backend/src/services/verification-v2/evidenceBufferCleanup.ts`: cleanupEvidenceBuffers
+- `backend/src/services/verification-v2/exception.service.ts`: GLOBAL_BLOCKING_REASONS, refreshCase, raiseIssue, caseAccess, resolveCompletedConcern, managerDecision, issueSatisfied
+- `backend/src/services/verification-v2/imageCache.ts`: createEvidenceImageCache
+- `backend/src/services/verification-v2/inventoryPresets.ts`: fixturePresets, expandCounts
+- `backend/src/services/verification-v2/inventorySnapshot.service.ts`: InventorySelectionInput, validateInventorySelection, configureTemplateInventory, InstanceGenerationInput, createTaskInstanceWithSnapshot, createTaskInstanceWithSnapshotInTransaction, createTodaysTaskForNewTemplate, generateTaskInstances, repairUnstartedInventoryTask
+- `backend/src/services/verification-v2/jobQueue.service.ts`: VerificationTransaction, LEASE_MS, RETRY_DELAYS_MS, enqueueVerificationJob, claimVerificationJob, renewJobLease, publishJobResult, failVerificationJob, workerHeartbeat, verificationQueueHealth
+- `backend/src/services/verification-v2/latency.ts`: verificationEvent, jobTiming
+- `backend/src/services/verification-v2/media.service.ts`: storePrivateImage, privateImageBytes
+- `backend/src/services/verification-v2/photoDecision.service.ts`: applyDecision, applyLockedDecision, contextNeedsReview
+- `backend/src/services/verification-v2/photoResultPolicy.ts`: Decision, bufferedDecision
+- `backend/src/services/verification-v2/pipeline.service.ts`: processVerificationJob
+- `backend/src/services/verification-v2/presence.service.ts`: PresenceLocation, PresenceSample, evaluatePresence
+- `backend/src/services/verification-v2/provider.service.ts`: providerMetadataSchema, ProviderMetadata, Assessment, ImageAssessmentContext, ImageAssessmentProvider, ProviderServiceFailure, clefScreeningConfiguration, clefScreeningEvaluatorVersion, ClefImageProvider, readClefChoice, providerHttpFailure
+- `backend/src/services/verification-v2/qr.service.ts`: signAreaQr, signFixtureQr, verifyAreaQr, slotNonce, hashNonce, signTaskQr, verifyTaskQr
+- `backend/src/services/verification-v2/quality.service.ts`: IMAGE_LIMIT_BYTES, PIXEL_LIMIT, IMAGE_ALGORITHM_VERSION, QUALITY_THRESHOLD_VERSION, sha256, dctHash, hammingDistance, inspectImage
+- `backend/src/services/verification-v2/readiness.service.ts`: verificationSchemaReadiness, requireVerificationSchema
+- `backend/src/services/verification-v2/retention.service.ts`: RetainedEntity, assertDeletionAllowed, archiveRetainedEntity
+- `backend/src/services/verification-v2/retireContextPhotos.ts`: retireContextPhotos
+- `backend/src/services/verification-v2/reviewClosure.service.ts`: reviewClosureActions, performanceCategories, closeReviewSchema, closeReview, staffPerformanceReports
+- `backend/src/services/verification-v2/reviewEvidenceSummary.ts`: reviewEvidenceSummary
+- `backend/src/services/verification-v2/rubrics.ts`: visibleRubricV1, viewSurfaces, requiredRubricSurfaces
+- `backend/src/services/verification-v2/sequentialCapture.service.ts`: activatePhotoSlot
+- `backend/src/services/verification-v2/sequentialPolicy.ts`: SEQUENTIAL_WORKFLOW, sequentialCapture, checkedAttempt, objectCaptureDeadline, staffTaskPresentation, operationalTaskStatus, managerTaskPresentation, currentPhotoSlots
+- `backend/src/services/verification-v2/spatial.contracts.ts`: spatialEvidenceSchema, SpatialEvidence, spatialUploadSchema, spatialPolicySchema, SpatialPolicy, defaultSpatialPolicy, validateSpatialBinding
+- `backend/src/services/verification-v2/spatialEvaluation.ts`: spatialEvaluationRows, spatialEvaluation
+- `backend/src/services/verification-v2/spatialIdentity.service.ts`: SpatialDecision, spatialIdentity, spatialIdentityAction
+- `backend/src/services/verification-v2/staffPhotoInstructions.ts`: PhotoFeedbackContext, staffPhotoInstructions
+- `backend/src/services/verification-v2/staffSubmission.service.ts`: finishStaffSubmission
+- `backend/src/services/verification-v2/standardPrivacy.service.ts`: screenStandardPrivacy
+- `backend/src/services/verification-v2/toiletViews.ts`: ToiletStyle, toiletSurfaceVariants, toiletPhotoInstruction, toiletViewDescription
+- `backend/src/services/verification-v2/transaction.ts`: VerificationTransaction
+- `backend/src/services/verification-v2/verificationPolicy.service.ts`: verificationPolicySchema, VerificationPolicy, defaultVerificationPolicy, DEFAULT_VERIFICATION_POLICY, resolvePolicy, taskDeadlines, cleanlinessSchema, coverageSchema, requirementDecision, completionEligibility, classifyTiming, reasonInstructions, sessionWindows, reduceSession, reduceRequirement, aggregateItems, reduceTaskVerification, escalationDecision, presenceDecision, reduceAttempt, validateCaptureTiming, reduceIssue
+- `backend/src/services/verification-v2/workerHealthPolicy.ts`: heartbeatFresh
+- `backend/src/types/express.d.ts`: module/default component; inspect before extending
+- `backend/src/types/jwt.ts`: TokenPayload
+- `backend/src/utils/ApiError.ts`: module/default component; inspect before extending
+- `backend/src/utils/ApiResponse.ts`: module/default component; inspect before extending
+- `backend/src/utils/auth.ts`: isPasswordCorrect, generateAccessToken, generateRefreshToken
+- `backend/src/utils/cloudinary.ts`: uploadBufferToCloudinary, uploadSingleImage, uploadMultipleImages
+- `backend/src/utils/cookies.ts`: getCookieOptions, getCookieRuntimeConfig
+- `backend/src/utils/dateTime.ts`: DEFAULT_TIME_ZONE, isValidTimeZone, getZonedClockMinutes, getZonedDayRangeFromDateInput, getZonedDayRange, getZonedMonthRange, withZonedClockOnLocalDay, resolveZonedAttendanceWindow, addUtcDays, getStartOfUtcDay, getUtcDayRange, getUtcDayRangeFromDateInput, getUtcMonthRange, getUtcClockMinutes, withUtcClockOnBaseDate, resolveAttendanceWindow, getStartOfStoredUtcDateAsUtcDay
+- `backend/src/utils/geofencing.ts`: getDistanceMeters, isWithinRadius
+- `backend/src/utils/scope.ts`: getScopedLocationIds, assertLocationAccess
+- `backend/src/utils/syncAttendanceWindow.ts`: syncTodaysOpenAttendanceWindow
+- `backend/src/validations/area.validation.ts`: inventoryCountsSchema, areaCreateSchema, areaEditSchema, itemEditSchema, inventorySelectionSchema
+- `backend/src/validations/attendance.validation.ts`: checkInSchema, CheckInInput, checkOutSchema, CheckOutInput, assignShiftSchema, AssignShiftInput
+- `backend/src/validations/location.validation.ts`: createLocationSchema, editLocationSchema, createLocationInput, editLocationInput
+- `backend/src/validations/manager.validation.ts`: managerSignupSchema, ManagerSignupInput, managerLoginSchema, ManagerLoginInput, createManagerSchema, CreateManagerInput, updateManagerSchema, UpdateManagerInput
+- `backend/src/validations/staff.validation.ts`: staffLoginSchema, staffLoginInput, createStaffSchema, CreateStaffInput, editStaffSchema, EditStaffInput
+- `backend/src/validations/taskTemplate.validation.ts`: createTaskMultipartSchema, createTaskSchema, editTaskSchema
+- `frontend/src/App.tsx`: ProtectedRoute, GuestRoute, RequireRole
+- `frontend/src/api/auth.ts`: refreshToken, logoutApi, getCurrentUser
+- `frontend/src/api/client.ts`: client
+- `frontend/src/components/common/AttentionList.tsx`: AttentionList
+- `frontend/src/components/common/AuthShell.tsx`: AuthShell
+- `frontend/src/components/common/AuthWorkspacePreview.tsx`: AuthWorkspacePreview
+- `frontend/src/components/common/BrandLogo.tsx`: BrandMark, BrandLogo
+- `frontend/src/components/common/DataTable.tsx`: Column, DataTable
+- `frontend/src/components/common/DeleteButton.tsx`: DeleteButton
+- `frontend/src/components/common/EmptyState.tsx`: EmptyState
+- `frontend/src/components/common/FilterBar.tsx`: FilterBar
+- `frontend/src/components/common/LanguageChoice.tsx`: LanguageChoice
+- `frontend/src/components/common/LoadingSkeleton.tsx`: SkeletonVariant, LoadingSkeleton
+- `frontend/src/components/common/LoadingSpinner.tsx`: LoadingSpinner
+- `frontend/src/components/common/OperationStatus.tsx`: OperationStatus
+- `frontend/src/components/common/OperationalSummary.tsx`: OperationalSummary
+- `frontend/src/components/common/PageHeader.tsx`: PageHeader
+- `frontend/src/components/common/PageLoadingSkeleton.tsx`: PageLoadingSkeleton
+- `frontend/src/components/common/Pagination.tsx`: Pagination
+- `frontend/src/components/common/ScopeFilters.tsx`: ScopeFilters
+- `frontend/src/components/common/StatCard.tsx`: StatCard
+- `frontend/src/components/common/StatusBadge.tsx`: StatusBadge
+- `frontend/src/components/common/SurfaceCard.tsx`: SurfaceCard
+- `frontend/src/components/common/TaskWorker.tsx`: TaskWorker
+- `frontend/src/components/common/WorkProgress.tsx`: WorkProgress
+- `frontend/src/components/common/WorkspaceBrand.tsx`: WorkspaceBrand
+- `frontend/src/components/common/WorkspaceTheme.ts`: WorkspaceTheme
+- `frontend/src/components/common/loadingLayout.ts`: PageLoadingLayout, pageLoadingLayout, pageLoadingTab
+- `frontend/src/components/landing/ConsolePreview.tsx`: ConsolePreview
+- `frontend/src/components/landing/DashboardPanel.tsx`: DashboardPanel
+- `frontend/src/components/landing/GeofenceDiagram.tsx`: GeofenceDiagram
+- `frontend/src/components/landing/LifecycleStrip.tsx`: LifecycleStrip
+- `frontend/src/components/landing/VerificationDiagram.tsx`: VerificationDiagram
+- `frontend/src/components/layout/DashboardLayout.tsx`: DashboardLayout
+- `frontend/src/components/layout/PublicLayout.tsx`: PublicLayout
+- `frontend/src/components/layout/PublicNavbar.tsx`: PublicNavbar
+- `frontend/src/components/layout/Sidebar.tsx`: Sidebar
+- `frontend/src/components/marketing/MarketingCTA.tsx`: WorkspaceLink, MarketingCTA
+- `frontend/src/components/marketing/ProductVisuals.tsx`: OperationsPreview, PhonePreview, AttendanceVisual, ScheduleVisual, ProofVisual, SetupSteps
+- `frontend/src/components/onboarding/WorkspaceGate.tsx`: WorkspaceGate
+- `frontend/src/components/ui/badge-variants.ts`: badgeVariants
+- `frontend/src/components/ui/badge.tsx`: module/default component; inspect before extending
+- `frontend/src/components/ui/button-variants.ts`: buttonVariants
+- `frontend/src/components/ui/button.tsx`: module/default component; inspect before extending
+- `frontend/src/components/ui/card.tsx`: module/default component; inspect before extending
+- `frontend/src/components/ui/dialog.tsx`: module/default component; inspect before extending
+- `frontend/src/components/ui/input.tsx`: module/default component; inspect before extending
+- `frontend/src/components/ui/textarea.tsx`: module/default component; inspect before extending
+- `frontend/src/hooks/useAuth.ts`: module/default component; inspect before extending
+- `frontend/src/hooks/useDebouncedValue.ts`: useDebouncedValue
+- `frontend/src/hooks/useOnline.ts`: useOnline
+- `frontend/src/i18n/LanguageProvider.tsx`: LanguageProvider
+- `frontend/src/i18n/context.ts`: LanguageContext, useLanguage
+- `frontend/src/i18n/managerTranslations.ts`: managerUrdu
+- `frontend/src/i18n/translations.ts`: Language, urdu, translate, translateText
+- `frontend/src/lib/attendance.ts`: AttendanceLike, getAttendanceDisplayStatus
+- `frontend/src/lib/invalidateWorkspace.ts`: invalidateWorkspace
+- `frontend/src/lib/onboarding.ts`: needsPlanSelection
+- `frontend/src/lib/paddle.ts`: getPaddle
+- `frontend/src/lib/utils.ts`: cn
+- `frontend/src/main.tsx`: module/default component; inspect before extending
+- `frontend/src/pages/Area/AreaDailyWork.tsx`: AreaReviewPreview, AreaDailyWork
+- `frontend/src/pages/Area/AreaDetailPage.tsx`: AreaDetailPage
+- `frontend/src/pages/Area/AreaSetupPage.tsx`: AreaSetupPage
+- `frontend/src/pages/Area/AreaTemplateForm.tsx`: AreaTemplateForm
+- `frontend/src/pages/Area/InventorySelector.tsx`: InventorySelector
+- `frontend/src/pages/Area/LocationAreasTab.tsx`: LocationAreasTab
+- `frontend/src/pages/Area/MigrationSetup.tsx`: MigrationSetup
+- `frontend/src/pages/Area/StandardPhotoPreview.tsx`: StandardPhotoPreview
+- `frontend/src/pages/Area/TemplateInventoryEditor.tsx`: TemplateInventoryEditor
+- `frontend/src/pages/Area/api.ts`: getAreas, getArea, createArea, editArea, addItems, editItem, archiveArea, getStandards, retryStandardPrivacy, uploadStandard, MigrationTemplate, getMappingTemplates, mapTemplate, apiMessage
+- `frontend/src/pages/Area/queries.ts`: useAreas, useArea, useMappingTemplates
+- `frontend/src/pages/Area/standardPrivacy.ts`: canRetryStandardPrivacy, runStandardPrivacyRetry
+- `frontend/src/pages/Area/types.ts`: FixtureType, AreaItem, Area, InventoryCount, InventorySelection, StandardPhoto, fixtureNames, validateInventorySelection, itemEditPayload, inventorySummary, setupFixtureTypes, previewInventoryCounts, nonRetiredFixtureCount, roomPresets, standardPhotoMessage
+- `frontend/src/pages/Assignment/api.ts`: assignStaffToLocation, assignStaffToTaskTemplate
+- `frontend/src/pages/Assignment/queries.ts`: useAssignStaffToLocation, useAssignStaffToTemplate
+- `frontend/src/pages/Attendance/AttendancePage.tsx`: AttendancePage
+- `frontend/src/pages/Attendance/api.ts`: AttendanceFilters, getStaffAttendance
+- `frontend/src/pages/Attendance/queries.ts`: useGetAttendance
+- `frontend/src/pages/Dashboard/DashboardPage.tsx`: DashboardPage
+- `frontend/src/pages/Dashboard/performance.ts`: PerformanceCounts, SitePerformance, CompanyPerformance, useCompanyPerformance, statusLabel
+- `frontend/src/pages/Exceptions/DecisionForm.tsx`: DecisionForm
+- `frontend/src/pages/Exceptions/ExceptionDetailPage.tsx`: ExceptionDetailPage
+- `frontend/src/pages/Exceptions/ExceptionInboxPage.tsx`: ExceptionInboxPage
+- `frontend/src/pages/Exceptions/ReviewSummary.tsx`: ReviewSummary
+- `frontend/src/pages/Exceptions/actionPresentation.ts`: actionLabels, actionConsequence, issueActions
+- `frontend/src/pages/Exceptions/api.ts`: getException, readException, decideException, closeException
+- `frontend/src/pages/Exceptions/performancePresentation.ts`: performanceCategoryLabels
+- `frontend/src/pages/Exceptions/queries.ts`: useException, useExceptionCount
+- `frontend/src/pages/Exceptions/reviewDiagnosis.ts`: DiagnosisRow, reviewViewLabel, requirementDiagnosis, reviewCaptureStatus, reviewDiagnosis, issueDiagnosis
+- `frontend/src/pages/Exceptions/reviewPresentation.ts`: reviewActionLabels, everydayActions, reviewHeading, reviewGuidance
+- `frontend/src/pages/Exceptions/types.ts`: ReviewClosureAction, PerformanceCategory, ExceptionAction, VerificationIssue, VerificationException, ExceptionDetail
+- `frontend/src/pages/Landing/FeaturesPage.tsx`: FeaturesPage
+- `frontend/src/pages/Landing/LandingPage.tsx`: LandingPage
+- `frontend/src/pages/Location/LocationDetailPage.tsx`: module/default component; inspect before extending
+- `frontend/src/pages/Location/LocationFormDialog.tsx`: LocationFormDialog
+- `frontend/src/pages/Location/LocationMapPicker.tsx`: LocationMapPicker
+- `frontend/src/pages/Location/LocationOverview.tsx`: LocationOverview
+- `frontend/src/pages/Location/LocationsPage.tsx`: LocationsPage
+- `frontend/src/pages/Location/api.ts`: getLocations, createLocation, LocationStatsFilter, getLocationById, deleteLocation, updateLocation, getLocationMapConfig, getLocationSchedule
+- `frontend/src/pages/Location/components/LocationScheduleTab.tsx`: LocationScheduleTab
+- `frontend/src/pages/Location/components/LocationTemplatesTab.tsx`: LocationTemplatesTab
+- `frontend/src/pages/Location/currentPosition.ts`: LOCATION_ACCURACY_LIMIT_METERS, getPreciseCurrentPosition
+- `frontend/src/pages/Location/mapsSdk.ts`: Coordinates, loadMapsSdk, parseCoordinates
+- `frontend/src/pages/Location/queries.ts`: useGetLocations, useCreateLocation, useUpdateLocation, useGetLocationById, useDeleteLocation, useLocationSchedule
+- `frontend/src/pages/Location/scheduleTypes.ts`: ScheduleItem, LocationSchedule, normalizeWeek, moveWeek
+- `frontend/src/pages/Location/types.ts`: CreateLocationInput, LocationFormValues, LocationWithCounts, LocationStaff, ReferenceImage, TaskTemplate
+- `frontend/src/pages/Login/LoginPage.tsx`: module/default component; inspect before extending
+- `frontend/src/pages/Login/api.ts`: login
+- `frontend/src/pages/Login/queries.ts`: useLogin
+- `frontend/src/pages/Login/types.ts`: LoginForm, UserRole, AuthUser
+- `frontend/src/pages/Manager/OperationsState.tsx`: OperationsState
+- `frontend/src/pages/Manager/OwnerTrends.tsx`: OwnerTrends
+- `frontend/src/pages/Manager/TodayStatusPage.tsx`: TodayStatusPage
+- `frontend/src/pages/Manager/operations.ts`: LocationScope, OperationTask, OperationStaff, OperationsBase, OperationOverview, OperationsPage, useOperations, scopeParams, dailyLink, locationTaskLink, reviewLink, workLabel, localTime
+- `frontend/src/pages/Managers/ManagerFormDialog.tsx`: ManagerFormDialog
+- `frontend/src/pages/Managers/ManagersPage.tsx`: ManagersPage
+- `frontend/src/pages/Managers/api.ts`: getManagers, createManager, updateManager, deleteManager
+- `frontend/src/pages/Managers/queries.ts`: useGetManagers, useCreateManager, useUpdateManager, useDeleteManager
+- `frontend/src/pages/Managers/types.ts`: ManagerLocationRef, Manager, CreateManagerInput, UpdateManagerInput, ManagerFormValues
+- `frontend/src/pages/Pricing/ChoosePlanPage.tsx`: ChoosePlanPage
+- `frontend/src/pages/Pricing/EnterprisePlan.tsx`: EnterprisePlan
+- `frontend/src/pages/Pricing/PaddlePricing.tsx`: PaddlePricing
+- `frontend/src/pages/Pricing/PricingPage.tsx`: PricingPage
+- `frontend/src/pages/Pricing/WelcomePage.tsx`: WelcomePage
+- `frontend/src/pages/Pricing/tiers.ts`: BillingPeriod, Tier, TIERS
+- `frontend/src/pages/Signup/SignUpPage.tsx`: module/default component; inspect before extending
+- `frontend/src/pages/Signup/api.ts`: signUp
+- `frontend/src/pages/Signup/queries.ts`: useCreateManager
+- `frontend/src/pages/Signup/types.ts`: SignUpForm, UserRole, AuthUser
+- `frontend/src/pages/Staff/StaffCreateDialog.tsx`: StaffCreateDialog
+- `frontend/src/pages/Staff/StaffDetailPage.tsx`: module/default component; inspect before extending
+- `frontend/src/pages/Staff/StaffPage.tsx`: StaffPage
+- `frontend/src/pages/Staff/StaffPerformanceIssues.tsx`: StaffPerformanceIssues
+- `frontend/src/pages/Staff/api.ts`: CreateStaffInput, EditStaffInput, getStaff, StaffDetailsFilters, getStaffDetails, createStaff, deleteStaff, assignStaffToLocation, editStaff
+- `frontend/src/pages/Staff/queries.ts`: useGetStaff, getStaffDetailsQueryOptions, useGetStaffDetails, useCreateStaff, useDeleteStaff, useEditStaff
+- `frontend/src/pages/Subscription/SubscriptionPage.tsx`: SubscriptionPage
+- `frontend/src/pages/Subscription/api.ts`: getPricingContext, getSubscription, createCustomerPortalSession
+- `frontend/src/pages/Subscription/queries.ts`: subscriptionQueryKey, usePricingContext, useSubscription, useCustomerPortalSession
+- `frontend/src/pages/Subscription/types.ts`: PlanCode, PlanDefinition, SubscriptionSummary, ApiEnvelope, PricingContext
+- `frontend/src/pages/Task/api.ts`: createTaskTemplate, getTaskTemplate, EditTaskTemplateInput, editTaskTemplate, deleteTaskTemplate, getAreaSubmissions
+- `frontend/src/pages/Task/components/AreaSubmissionsPanel.tsx`: module/default component; inspect before extending
+- `frontend/src/pages/Task/components/TaskQr.tsx`: TaskQr
+- `frontend/src/pages/Task/components/TaskScheduleWizard.tsx`: CreatedSchedule, TaskScheduleWizard
+- `frontend/src/pages/Task/queries.ts`: useGetAreaSubmissions, useCreateTaskTemplate, useEditTaskTemplate, useDeleteTaskTemplate
+- `frontend/src/pages/Task/taskAssignee.ts`: TaskWorker, WorkerAssignment, TaskWithWorker, taskAssignee, assignmentLabel
+- `frontend/src/pages/Task/taskScheduleForm.ts`: TemplateCreateForm, toDateStr, blankCreateForm, buildDateTimeIso, buildEffectiveDate, ScheduleStep, validateScheduleStep
+- `frontend/src/pages/Task/types.ts`: CreateTaskInput, CreateTaskTemplateFormData, EditTaskInput, AreaMatchStatus, AreaSubmissionAttempt, AreaSubmission
+- `frontend/src/pages/Verification/ProtectedEvidence.tsx`: ProtectedEvidence
+- `frontend/src/pages/Verification/VerificationHistoryPage.tsx`: VerificationHistoryPage
+- `frontend/src/pages/Verification/api.ts`: getVerification, getVerificationHistory, getEvidenceBlob
+- `frontend/src/pages/Verification/presentation.ts`: VerificationSummary, verificationLabel, timingLabel, exceptionStateLabel, plainReason
+- `frontend/src/pages/Verification/types.ts`: ReviewEvidenceSummary, EvidenceAttempt, EvidenceRequirement, VerificationItem, VerificationManifest
+- `frontend/src/queries/auth.ts`: useLogout, useGetCurrentUser, useRefreshToken
+- `frontend/src/routes/workspacePages.tsx`: ExceptionInboxPage, ExceptionDetailPage, VerificationHistoryPage, AreaSetupPage, AreaDetailPage, LocationsPage, LocationDetailPage, DashboardPage, StaffPage, StaffDetailPage, AttendancePage, TodayStatusPage, ManagersPage, SubscriptionPage
+- `frontend/src/store/slices/authSlice.ts`: module/default component; inspect before extending
+- `frontend/src/store/store.ts`: store, RootState, AppDispatch
+- `frontend-mobile/src/api/client.ts`: configureNativeAppVersion, configureApiAuth, changeApiServerAddress, accountRequest, client, refreshApiTokens, uploadFormData
+- `frontend-mobile/src/api/serverAddress.ts`: validateServerAddress, loadServerAddress, getServerAddress, saveServerAddress
+- `frontend-mobile/src/api/startCleaning.ts`: startCleaning
+- `frontend-mobile/src/auth/AuthContext.tsx`: AuthProvider, useAuth
+- `frontend-mobile/src/auth/logoutQueue.ts`: createLogoutQueue
+- `frontend-mobile/src/auth/pendingLogout.ts`: staffLogoutQueue
+- `frontend-mobile/src/auth/sessionStorage.ts`: SECURE_SESSION_KEY, createSessionStorage
+- `frontend-mobile/src/components/AttendanceCamera.tsx`: AttendanceCamera
+- `frontend-mobile/src/components/EmptyState.tsx`: EmptyState
+- `frontend-mobile/src/components/FactRow.tsx`: FactRow
+- `frontend-mobile/src/components/LanguageChoice.tsx`: LanguageChoice
+- `frontend-mobile/src/components/LoadingState.tsx`: LoadingState
+- `frontend-mobile/src/components/PhotoCaptureControls.tsx`: PhotoCaptureControls, CaptureFrame, PhotoStepProgress
+- `frontend-mobile/src/components/PhotoGuide.tsx`: PhotoGuide
+- `frontend-mobile/src/components/ScreenHeader.tsx`: ScreenHeader
+- `frontend-mobile/src/components/StaffBrand.tsx`: StaffBrand
+- `frontend-mobile/src/components/StatCard.tsx`: StatCard
+- `frontend-mobile/src/components/StatusBadge.tsx`: StatusBadge
+- `frontend-mobile/src/components/TaskCard.tsx`: TaskCard
+- `frontend-mobile/src/components/ui/badge.tsx`: BadgeProps
+- `frontend-mobile/src/components/ui/button.tsx`: ButtonProps
+- `frontend-mobile/src/components/ui/card.tsx`: module/default component; inspect before extending
+- `frontend-mobile/src/components/ui/icon.tsx`: LucideIconName, Icon
+- `frontend-mobile/src/components/ui/input.tsx`: InputProps
+- `frontend-mobile/src/components/ui/separator.tsx`: module/default component; inspect before extending
+- `frontend-mobile/src/components/ui/skeleton.tsx`: module/default component; inspect before extending
+- `frontend-mobile/src/components/ui/text.tsx`: module/default component; inspect before extending
+- `frontend-mobile/src/config.ts`: API_BASE_URL, STORAGE_KEY
+- `frontend-mobile/src/i18n/LanguageProvider.tsx`: useLanguage, LanguageProvider
+- `frontend-mobile/src/i18n/translations.ts`: Language, urdu, translate, translateText
+- `frontend-mobile/src/lib/utils.ts`: cn
+- `frontend-mobile/src/navigation/AppNavigator.tsx`: AppNavigator
+- `frontend-mobile/src/navigation/StaffTabs.tsx`: StaffTabs
+- `frontend-mobile/src/notifications/NotificationNavigation.tsx`: staffNavigation, NotificationNavigation
+- `frontend-mobile/src/notifications/NotificationProvider.tsx`: useNotifications, NotificationProvider
+- `frontend-mobile/src/notifications/api.ts`: acknowledgePhoneAlert
+- `frontend-mobile/src/notifications/channels.ts`: staffAlertEvents, defaultStaffAlertChannel, configureAndroidAlertChannels, configureStaffAlertActions
+- `frontend-mobile/src/notifications/model.ts`: notificationKinds, NotificationKind, NotificationTarget, notificationTarget, belongsToAccount, notificationDestination
+- `frontend-mobile/src/notifications/native.ts`: notificationDeviceId, PushAvailability, registerPhoneAlerts, clearPhoneAlerts
+- `frontend-mobile/src/queries/mobileWork.ts`: TaskCounts, MobileTaskPage, mobileTaskOptions, flattenTaskPages, updateStartedTask
+- `frontend-mobile/src/queries/staff.ts`: staffQueryKeys, useMyAttendanceQuery, useTodaysTasksQuery
+- `frontend-mobile/src/screens/HelpScreen.tsx`: HelpScreen
+- `frontend-mobile/src/screens/HomeScreen.tsx`: HomeScreen
+- `frontend-mobile/src/screens/LoginScreen.tsx`: LoginScreen
+- `frontend-mobile/src/screens/StartTaskScreen.tsx`: StartTaskScreen
+- `frontend-mobile/src/screens/TasksScreen.tsx`: TasksScreen
+- `frontend-mobile/src/screens/verification/SpatialDiagnosticScreen.tsx`: SpatialDiagnosticScreen
+- `frontend-mobile/src/screens/verification/VerificationProgress.tsx`: VerificationProgress
+- `frontend-mobile/src/screens/verification/VerificationScreen.tsx`: VerificationScreen
+- `frontend-mobile/src/types.ts`: StaffTabsParamList, RootStackParamList, StaffTabId, StaffUser, AuthTokens, AuthSession, ApiEnvelope, AttendanceStatus, AttendanceRecord, TaskStatus, TaskInstance
+- `frontend-mobile/src/utils/attendance.ts`: EARLY_CHECKIN_MINUTES, LATE_CHECKIN_GRACE_MINUTES, MIN_CHECKOUT_MINUTES, getCheckInOpenAt, getLateDeadline, getMinimumCheckoutAt, getRecommendedCheckoutAt, getRelevantAttendanceRecord, canCheckInNow, hasOpenCheckout
+- `frontend-mobile/src/utils/format.ts`: formatTaskWindow, formatClockTime, formatShortDate, formatShortDateTime, formatAttendanceStatus
+- `frontend-mobile/src/utils/taskStatus.ts`: taskCardStatus
+- `frontend-mobile/src/utils/upload.ts`: createImagePart
+- `frontend-mobile/src/verification/api.ts`: verificationManifest, installationId, openCaptureSession, resumeCapture, retakeSlots, PhotoUploadResult, uploadPhoto, findUploadedPhoto, attemptStatus, activatePhoto, finishSubmission
+- `frontend-mobile/src/verification/captureAccount.ts`: setCaptureAccount, captureAccount
+- `frontend-mobile/src/verification/capturePolicy.ts`: qualityInstruction, slotInstruction, captureProgress, reworkRequirements, manifestForAllocatedSlots
+- `frontend-mobile/src/verification/errors.ts`: verificationErrorMessage
+- `frontend-mobile/src/verification/feedback.ts`: photoFeedback, requiredPhotoIds, photoCorrection
+- `frontend-mobile/src/verification/fileUri.ts`: databaseDirectoryUri
+- `frontend-mobile/src/verification/location.ts`: currentLocation
+- `frontend-mobile/src/verification/policy.ts`: MAX_QUEUE_BYTES, MAX_QUEUE_PHOTOS, terminalRequirement, captureAllowed, checkedPhotoState, nextSlot, pendingPhotoCheck, objectSecondsRemaining, retryOutcome, recoverQueueState, reconciledState, mergeManifest
+- `frontend-mobile/src/verification/presentation.ts`: PhotoStatus, cleanlinessOutcomeForState, assessmentDetail, photoStatuses, statusLabel
+- `frontend-mobile/src/verification/spatialSession.ts`: beginSpatialWorld, breakSpatialContinuity, observationForCapture, spatialCaptureHint, boundedSpatialSample
+- `frontend-mobile/src/verification/spatialTypes.ts`: Vector3, SpatialSample, SpatialEvidence, SpatialCheckpoint
+- `frontend-mobile/src/verification/taskPresentation.ts`: verificationTaskLabel
+- `frontend-mobile/src/verification/types.ts`: RequirementState, StaffCleanlinessOutcome, StaffAttempt, Requirement, VerificationItem, CaptureSlot, CaptureSession, Manifest, LocalSession, QueueState, CaptureTimings, CaptureMetadata, QueueRow, Account

@@ -1,0 +1,44 @@
+# Current consumption DAG
+
+- Spec 00 consumes no ancestor; see each Reuses header and Scope for concrete contracts.
+- Spec 01 consumes Spec 00; see each Reuses header and Scope for concrete contracts.
+- Spec 02 consumes Spec 01; see each Reuses header and Scope for concrete contracts.
+- Spec 03 consumes Spec 00; see each Reuses header and Scope for concrete contracts.
+- Spec 04 consumes Spec 00; see each Reuses header and Scope for concrete contracts.
+- Spec 05 consumes Spec 02; see each Reuses header and Scope for concrete contracts.
+- Spec 06 consumes Spec 00; see each Reuses header and Scope for concrete contracts.
+- Spec 07 consumes Spec 05; see each Reuses header and Scope for concrete contracts.
+- Spec 08 consumes Spec 05, Spec 06; see each Reuses header and Scope for concrete contracts.
+- Spec 09 consumes Spec 05; see each Reuses header and Scope for concrete contracts.
+- Spec 10 consumes Spec 00; see each Reuses header and Scope for concrete contracts.
+- Spec 11 consumes Spec 10; see each Reuses header and Scope for concrete contracts.
+- Spec 12 consumes Spec 00; see each Reuses header and Scope for concrete contracts.
+- Spec 13 consumes Spec 00; see each Reuses header and Scope for concrete contracts.
+- Spec 14 consumes Spec 10; see each Reuses header and Scope for concrete contracts.
+- Spec 15 consumes Spec 14; see each Reuses header and Scope for concrete contracts.
+- Spec 16 consumes Spec 10, Spec 13; see each Reuses header and Scope for concrete contracts.
+- Spec 17 consumes Spec 10; see each Reuses header and Scope for concrete contracts.
+- Spec 18 consumes Spec 04, Spec 17; see each Reuses header and Scope for concrete contracts.
+- Spec 19 consumes Spec 00; see each Reuses header and Scope for concrete contracts.
+- Spec 20 consumes Spec 00; see each Reuses header and Scope for concrete contracts.
+- Spec 21 consumes Spec 00; see each Reuses header and Scope for concrete contracts.
+- Spec 22 consumes Spec 10; see each Reuses header and Scope for concrete contracts.
+- Spec 23 consumes Spec 10; see each Reuses header and Scope for concrete contracts.
+- Spec 24 consumes Spec 19, Spec 15; see each Reuses header and Scope for concrete contracts.
+- Spec 25 consumes Spec 19; see each Reuses header and Scope for concrete contracts.
+- Spec 26 consumes Spec 07, Spec 09, Spec 11, Spec 12, Spec 16, Spec 18, Spec 20, Spec 21, Spec 22, Spec 23, Spec 24, Spec 25; see each Reuses header and Scope for concrete contracts.
+- Spec 27 consumes Spec 06; see each Reuses header and Scope for concrete contracts.
+- Spec 28 consumes Spec 12, Spec 27; see each Reuses header and Scope for concrete contracts.
+- Spec 29 consumes Spec 23, Spec 27, Spec 08; see each Reuses header and Scope for concrete contracts.
+- Spec 30 consumes Spec 16, Spec 17, Spec 22, Spec 27; see each Reuses header and Scope for concrete contracts.
+- Spec 31 consumes Spec 11, Spec 17, Spec 27; see each Reuses header and Scope for concrete contracts.
+- Spec 32 consumes Spec 15, Spec 27; see each Reuses header and Scope for concrete contracts.
+- Spec 33 consumes Spec 24, Spec 27; see each Reuses header and Scope for concrete contracts.
+- Spec 34 consumes Spec 19, Spec 27; see each Reuses header and Scope for concrete contracts.
+- Spec 35 consumes Spec 25, Spec 27; see each Reuses header and Scope for concrete contracts.
+- Spec 36 consumes Spec 20, Spec 21, Spec 27; see each Reuses header and Scope for concrete contracts.
+- Spec 37 consumes Spec 09, Spec 17, Spec 20, Spec 21; see each Reuses header and Scope for concrete contracts.
+- Spec 38 consumes Spec 27; see each Reuses header and Scope for concrete contracts.
+- Spec 39 consumes Spec 03, Spec 26; see each Reuses header and Scope for concrete contracts.
+- Spec 40 consumes Spec 01, Spec 02, Spec 03, Spec 04, Spec 05, Spec 08, Spec 07, Spec 06, Spec 09, Spec 10, Spec 11, Spec 12, Spec 13, Spec 14, Spec 15, Spec 16, Spec 17, Spec 18, Spec 19, Spec 20, Spec 21, Spec 22, Spec 23, Spec 24, Spec 25, Spec 26, Spec 27, Spec 28, Spec 29, Spec 30, Spec 31, Spec 32, Spec 33, Spec 34, Spec 35, Spec 36, Spec 37, Spec 38, Spec 39; see each Reuses header and Scope for concrete contracts.
+- Spec 41 consumes Spec 40; see each Reuses header and Scope for concrete contracts.
