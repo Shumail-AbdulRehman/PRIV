@@ -1,9 +1,9 @@
 # Spec 05 — P0 private attendance media boundary
 
-**Status:** Not started
+**Status:** Done
 **Depends on:** Spec 02
 **Model:** Heavy — `claude-opus-5-5` · `gpt-6-astra` · `gemini-3.1-pro-preview`
-**Issue:** —
+**Issue:** #5
 **Owns:** `backend/src/routes/attendance.route.ts`, `backend/src/controllers/attendanceSelf.controller.ts`, `backend/src/controllers/staff.controller.ts`, `backend/src/routes/attendancePhotos.route.ts`, `backend/src/services/attendanceMedia.service.ts`, `backend/src/services/attendanceMedia.service.test.ts`, `backend/src/controllers/attendanceMedia.controller.ts`, `backend/src/controllers/attendance.controller.ts`, `specs/inventory/05-attendance-private-media.md`
 **Reuses:** `backend/src/utils/cloudinary.ts`, `backend/src/services/verification-v2/media.service.ts`, `backend/src/utils/scope.ts`
 
@@ -37,8 +37,13 @@ Use authenticated attendance upload namespace and opaque stored references witho
 
 ## Done when
 
-- [ ] `npm test --prefix backend -- src/services/attendanceMedia.service.test.ts` passes: Wrong company/site/worker and absent authentication fail before provider call; new assets upload authenticated; no public/signed URLs in attendance DTO; bytes bounded and no-store. [unit]
-- [ ] `npm test --prefix backend` passes the whole affected unit suite; record count. [unit]
-- [ ] Only scoped paths changed; relevant denial/empty/error/config-unavailable states inspected. [static]
-- [ ] `cd backend && npx tsc --noEmit` passes; no backend lint script exists. [static]
-- [ ] `npm run build --prefix backend` passes. [static]
+- [x] `npm test --prefix backend -- src/services/attendanceMedia.service.test.ts` passes: Wrong company/site/worker and absent authentication fail before provider call; new assets upload authenticated; no public/signed URLs in attendance DTO; bytes bounded and no-store. [unit]
+- [x] `npm test --prefix backend` passes the whole affected unit suite; record count. [unit]
+- [x] Only scoped paths changed; relevant denial/empty/error/config-unavailable states inspected. [static]
+- [x] `cd backend && npx tsc --noEmit` passes; no backend lint script exists. [static]
+- [x] `npm run build --prefix backend` passes. [static]
+
+## Log
+
+- **2026-10-20** — Claimed https://github.com/Shumail-AbdulRehman/PRIV/issues/5. Current ownership transferred from completed specs01/02 for DTO sanitization. Separate attendancePhotos router can be mounted in existing attendance router through explicit transfer. No Cloudinary credentials/provider calls or production migration. Private-media cleanup/old-cache cutover remains controlled spec07/09, never automatic deletion.
+- **2026-10-20** — Authenticated sanitized JPEG uploads store opaque references; byte endpoint checks active actor/company/historical manager site or own staff, limits bytes and disables caching. All attendance list/self/write/staff-detail DTOs suppress raw URLs and expose safe photo state/path. Legacy unused self export delegated; precise GPS/attendance logs removed. 20 new media tests plus 17 self/history regressions pass (37 targeted); full backend 687/687 (71 files); build passed. Cloudinary mocked: no live account/cache migration proof. Legacy photos deliberately unavailable pending spec07; new metadata consumed by spec08. Private asset lifecycle/orphan cleanup remains spec07/09 under D08, not auto-deletion.

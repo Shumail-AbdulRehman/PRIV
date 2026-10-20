@@ -1,3 +1,4 @@
+import { attendancePhotoPresentation } from "../services/attendanceMedia.service.js";
 import type { Request, Response } from "express";
 import { prisma } from "../prisma/prisma.js";
 import { ApiError } from "../utils/ApiError.js";
@@ -21,5 +22,5 @@ export const getStaffSelfAttendance = async (req: Request, res: Response) => {
     take: 30,
     include: { location: { select: { id: true, name: true } } },
   });
-  res.status(200).json(new ApiResponse(200, attendance, "Attendance fetched successfully"));
+  res.status(200).json(new ApiResponse(200, attendance.map(attendancePhotoPresentation), "Attendance fetched successfully"));
 };
