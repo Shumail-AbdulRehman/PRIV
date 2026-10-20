@@ -2,7 +2,7 @@
 
 Source of truth for execution; latest user authorization supersedes old pending labels. Approved v5 preserved.
 
-**Verified checkpoint after spec25:** decision00 and23 of41 execution/gate units Done (18 remain). Next selected eligible unit16 consumes completed10/13; it has not started. Review remains stacked draft PRs; Done does not imply merge, route composition or external release qualification. See SESSION_HANDOFF.md.
+**Active continuation after spec16:** decision00 and24 of41 execution/gate units Done (17 remain). Next selected eligible unit20 consumes completed00. Latest user explicitly requests continued completion without routine handoff stops. Review remains stacked draft PRs; Done is local verification, not merge, route composition or external release qualification.
 
 | # | Spec | Status | Depends on | Model | Issue | Notes |
 |---|---|---|---|---|---|---|
@@ -22,7 +22,7 @@ Source of truth for execution; latest user authorization supersedes old pending 
 | 13 | [Atomic company registration](13-registration-atomicity.md) | Done | 00 | Heavy | #16 | 739 backend;57+18 web; see Log |
 | 14 | [Account access and capacity policy](14-entitlement-policy.md) | Done | 10 | Heavy | #33 | 980 tests+real PG; see Log |
 | 15 | [Paddle lifecycle API and configuration](15-billing-lifecycle.md) | Done | 14 | Heavy | #37 | 1023 tests+real PG; see Log |
-| 16 | [Owner verification and recovery API](16-owner-identity-api.md) | Not started | 10, 13 | Heavy | — | See spec |
+| 16 | [Owner verification and recovery API](16-owner-identity-api.md) | Done | 10, 13 | Heavy | #47 | 74 focused/1297 backend+isolated PG; see Log |
 | 17 | [Self credentials and assisted worker recovery](17-credential-handoff-api.md) | Done | 10 | Heavy | #24 | 803 tests+real PG; see Log |
 | 18 | [Credential epoch access revocation](18-credential-revocation.md) | Done | 04, 17 | Heavy | #26 | 819 tests+real PG; see Log |
 | 19 | [Separate platform operator authorization](19-operator-identity.md) | Done | 00 | Heavy | #29 | 69 new/888 full tests; see Log |
@@ -87,3 +87,5 @@ Source of truth for execution; latest user authorization supersedes old pending 
 - **2026-10-20** — Spec25 complete:66 focused/1236 whole backend tests (87 files, zero skips), build/typechecks and real isolated PostgreSQL durable inquiry/race/audit/redaction proof pass. Read-only observed diagnostics, audit summaries, versioned accountable queue, fail-closed configured customer contact. Submission untouched; no schema/UI/provider/production mutation. Corrected25→24 audit-typing dependency and38→25 contact consumption; validator zero errors/four documented warnings.23 of41 execution/gates Done;18 remain. Next selected16, unstarted;35 newly eligible.
 
 - **2026-10-20 — Spec25 verified handoff.** Implementationc04c7ab pushed on implementation/spec-25-platform-support; draftPR46 stacked on23/PR44, issue45 open. All checks pass; validator42 specs/zero errors/four justified warnings. Original dirty/untracked work preserved exactly.23 of41 units Done,18 remain; next16 unstarted. No production/provider mutation, merge or deployment.
+
+- **2026-10-20** — Spec16 complete:74 focused/1297 whole backend tests (88 files, zero skips), build/typechecks and isolated real owner lifecycle proof pass. Hashed scoped links, legacy bootstrap boundary, neutral bounded public processing, opt-in delivery unavailable without sender, epoch revocation and audit rollback. New registration enrollment marker preserves13 atomicity; no schema/live mail/provider/production changes.24 of41 execution/gates Done;17 remain. Continue20 per user request, not a stopping handoff;30 newly eligible.

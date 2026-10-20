@@ -13,6 +13,9 @@ Account settings and recovery UI in the existing application, with persisted beh
 
 ## Scope
 
+Consume16 owner identity status/requests/completion. Implement fixed `/verify-owner-email` and `/reset-owner-password` fragment-token pages: capture and remove fragment immediately, POST token bodies, never auto-consume on GET or expose token to analytics/logs. Public request receipt states delivery unconfirmed, not email sent. Missing sender/legacy bootstrap has honest unavailable guidance; no automatic trust or production bootstrap.
+
+
 Replace27 CompanySettingsUnavailable in frontend/src/routes/workspaceRoutes.tsx via explicit serialized ownership handoff; keep owner-only company settings and independent own-security capability.
 
 Implement real reset/verify/self-password and owner Organization settings forms; neutral request states, expired/used links, force replacement and unavailable delivery. Clear cached identity on credential changes. Register actual pages via spec27 ownership handoff; no pretend sent mail.

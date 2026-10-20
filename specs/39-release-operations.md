@@ -13,6 +13,9 @@ Launch operations and active CI proof in the existing application, with persiste
 
 ## Scope
 
+Consume `backend/tests/ownerIdentity.integration.ts`, `docs/implementation/OWNER_IDENTITY.md`, `docs/implementation/research/owner-delivery.md` and `backend/src/services/ownerIdentityDelivery.service.ts` for local lifecycle proof and actual sender/domain/links/legacy identity-bootstrap qualification.
+
+
 Consume `backend/tests/platformSupport.integration.ts` and `docs/implementation/SUPPORT_OPERATIONS.md` for isolated queue race/redaction proof and actual verified support channel qualification.
 
 

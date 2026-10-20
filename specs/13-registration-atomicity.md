@@ -4,8 +4,8 @@
 **Depends on:** Spec 06
 **Model:** Heavy — `claude-opus-5-5` · `gpt-6-astra` · `gemini-3.1-pro-preview`
 **Issue:** #16
-**Owns:** `frontend/src/pages/Signup/queries.ts`, `frontend/src/pages/Signup/types.ts`, `frontend/src/pages/Signup/SignUpPage.tsx`, `frontend/src/pages/Signup/queries.test.tsx`, `backend/src/services/companyRegistration.service.ts`, `specs/inventory/13-registration-atomicity.md`
-**Reuses:** `backend/src/validations/manager.validation.ts`
+**Owns:** `frontend/src/pages/Signup/queries.ts`, `frontend/src/pages/Signup/types.ts`, `frontend/src/pages/Signup/SignUpPage.tsx`, `frontend/src/pages/Signup/queries.test.tsx`, `specs/inventory/13-registration-atomicity.md`
+**Reuses:** `backend/src/services/companyRegistration.service.ts`, `backend/src/validations/manager.validation.ts`
 
 ## Goal
 
@@ -53,3 +53,5 @@ Transact Company and first ADMIN owner using existing bcrypt and signup validati
 - **2026-10-20** — Current credential-version integration edit ownership transfers18 for `backend/src/controllers/companyRegistration.controller.ts`, `backend/src/services/companyRegistration.service.test.ts`. Existing security regression contracts retained.
 
 - **2026-10-20** — Current ownership of backend/src/controllers/manager.controller.ts transferred to11 for live workforce lifecycle/attendance serialization; earlier completed behavior and tests preserved.
+
+- **2026-10-20** — Serialized registration-service ownership transferred to16 for atomic new-owner verification enrollment (not email verification); existing signup atomicity/session contracts preserved and regression-tested. Legacy bootstrap remains manual/qualified.
