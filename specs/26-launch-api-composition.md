@@ -13,6 +13,9 @@ Wire launch backend routes and policies in the existing application, with persis
 
 ## Scope
 
+Mount `backend/src/routes/platformCompany.route.ts` at `/api/platform/companies` outside tenant JWT composition; it applies its own separate operator verification and no-store headers. Preserve metadata-only DTOs and versioned operational status mutations.
+
+
 Consume14 read/manage/start/completion policy at concrete handlers and jobs. Capacity creates must use the provided transaction. Record work entitlement in the same staff/task-locked transaction that wins a start/check-in; completion uses persisted exact-work grant, never request timestamps. Existing legacy starts without a grant stay unproven when unentitled.
 
 Mount every new launch route behind correct audience/policy and replace superseded legacy handlers. Explicitly amend ownership for earlier route/app files at this serialized wiring boundary before edits. No dynamic route discovery. Ensure login/recovery/billing/support remain reachable under D01 and operational jobs consume same account policy. Normalize known upload/schema/conflict errors without stack leakage.

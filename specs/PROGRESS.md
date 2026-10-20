@@ -2,7 +2,7 @@
 
 Source of truth for execution; latest user authorization supersedes old pending labels. Approved v5 preserved.
 
-**Session stopped after spec15 at the user’s request.** Spec15 is locally verified and published as draft PR38; no next specification has started. Completed: decision00 and19 of41 execution/gate units (22 remain, approximately54% by count, not effort). Next eligible selected unit is24, for the next session only. See docs/implementation/SESSION_HANDOFF.md for commands, changed files and blockers.
+**Continuation active:** spec24 locally complete; decision00 and20 of41 execution/gate units Done (21 remain). Next selected eligible unit22 consumes completed10. Git review remains a stack of draft PRs; Done does not imply merge or external release qualification.
 
 | # | Spec | Status | Depends on | Model | Issue | Notes |
 |---|---|---|---|---|---|---|
@@ -30,7 +30,7 @@ Source of truth for execution; latest user authorization supersedes old pending 
 | 21 | [Fail-closed active photo qualification](21-photo-qualification.md) | Not started | 00 | Heavy | — | See spec |
 | 22 | [Owner company settings API](22-company-settings-api.md) | Not started | 10 | Standard | — | See spec |
 | 23 | [Immutable attendance annotations API](23-attendance-annotations-api.md) | Not started | 10 | Standard | — | See spec |
-| 24 | [Platform company operations API](24-platform-company-api.md) | Not started | 19, 15 | Heavy | — | See spec |
+| 24 | [Platform company operations API](24-platform-company-api.md) | Done | 19, 15 | Heavy | #39 | 54 focused/1077 full backend+isolated PG; see Log |
 | 25 | [Redacted diagnostics and inquiry operations](25-platform-support-api.md) | Not started | 19 | Standard | — | See spec |
 | 26 | [Wire launch backend routes and policies](26-launch-api-composition.md) | Not started | 07, 11, 12, 16, 18, 20, 21, 22, 23, 24, 25 | Heavy | — | See spec |
 | 27 | [Approved v5 shared shell and route composition](27-workspace-shell.md) | Done | 06 | Heavy | #35 | 57+40 tests/build/lint; see Log |
@@ -73,3 +73,5 @@ Source of truth for execution; latest user authorization supersedes old pending 
 - **2026-10-20** — Spec15 local backend complete:43 new/1023 full backend tests/build/typechecks and isolatedPG billing race/order/rollback/recovery proof pass. Nineteen of41 execution/gates done (about54% remaining by count). Live merchant/catalog/sandbox qualification remains external; UI32 and route/job26 pending. Next24 platform company metadata/operations.
 
 - **2026-10-20 — Final handoff requested by user.** Spec15 committed as1ea9ae8 on implementation/spec-15-billing-lifecycle and published in stacked draft PR38 (issue37; base spec27). Confirmed backend tsc --noEmit and standalone billing/capacity integration typechecks pass; reran isolatedPG billing proof successfully. Prior full backend1023/83 and build pass retained. Validator42 specs/0 errors/2 justified warnings. No failing spec15 checks known; live Paddle qualification, browser32 and policy26 are explicitly pending. Complete files/checks/blockers and every completed unit recorded in SESSION_HANDOFF.md. Stop here:24 remains Not started; no functionality changed after spec15. No merges, deployment or production mutations.
+
+- **2026-10-20** — Spec24 complete:54 focused/1077 whole backend tests (84 files, zero skips), build/typechecks and isolated PostgreSQL status race/audit rollback/account policy proof pass. Operator-only whitelisted metadata; no provider/workforce mutations.20 of41 execution/gates Done;21 remain. Next selected22 (dependency10 Done);33 newly eligible; route integration26 and live operator qualification remain pending.

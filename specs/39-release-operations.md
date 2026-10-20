@@ -13,6 +13,9 @@ Launch operations and active CI proof in the existing application, with persiste
 
 ## Scope
 
+Consume `backend/tests/platformCompany.integration.ts` to reproduce isolated company status race, audit rollback and policy proof; never run against production.
+
+
 Consume docs/implementation/BILLING.md for qualified merchant/catalog/sandbox and ambiguous provider-request recovery requirements; never enable commercial flows with fixture values.
 
 Consume docs/implementation/OPERATOR_IDENTITY.md for real IdP/MFA qualification; missing provider configuration keeps operator access disabled.
