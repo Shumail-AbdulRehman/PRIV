@@ -79,7 +79,7 @@ Verification:74 focused tests (60 owner/14 registration), full backend1297 tests
 
 ## Spec20 verified local boundary and current Git state
 
-Current branch `implementation/spec-20-photo-contract`, base16/PR48 at5b6f82c. Issue49: https://github.com/Shumail-AbdulRehman/PRIV/issues/49. Decision00/real capture contracts read; local checks complete, publication follows. Prior PRs unmerged.
+Current branch `implementation/spec-20-photo-contract`, base16/PR48 at5b6f82c. Issue49: https://github.com/Shumail-AbdulRehman/PRIV/issues/49. Decision00/real capture contracts read; implementation7414539 and draftPR50 published; all checks pass. Prior PRs unmerged.
 
 launchPhotoPolicy binds legacy waiver receipt to exact WAIVE_REQUIREMENT decision generation/task and retained same-company ADMIN/MANAGER actor. Bare/stale/foreign waiver labels do not satisfy a mandatory view. Every remaining mandatory item/view must have its exact received checked media attempt at current task/staff/assignment ID/epoch; no other-view, stale, missing, failed or processing receipt substitution. Staff submission still distinct from verification credit; existing finalization presence/privacy/identity rules unchanged. Sequential activation/reservation uses same waiver proof for earlier waived steps.
 
