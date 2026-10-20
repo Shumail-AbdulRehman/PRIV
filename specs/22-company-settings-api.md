@@ -1,10 +1,10 @@
 # Spec 22 — Owner company settings API
 
-**Status:** Not started
+**Status:** Done
 **Depends on:** Spec 10
 **Model:** Standard — `claude-sonnet-5-5` · `gpt-6.1-sol` · `gemini-3.8-flash`
-**Issue:** —
-**Owns:** `backend/src/services/companySettings.service.ts`, `backend/src/services/companySettings.service.test.ts`, `backend/src/routes/companySettings.route.ts`, `specs/inventory/22-company-settings-api.md`
+**Issue:** #41
+**Owns:** `backend/src/services/companySettings.service.ts`, `backend/src/services/companySettings.service.test.ts`, `backend/src/routes/companySettings.route.ts`, `specs/inventory/22-company-settings-api.md`, `backend/tests/companySettings.integration.ts`
 **Reuses:** `backend/src/services/auditLog.service.ts`
 
 ## Goal
@@ -13,7 +13,7 @@ Owner company settings API in the existing application, with persisted behavior 
 
 ## Scope
 
-Read/update Company name and only approved verified-contact fields using optimistic updatedAt/version check and audit. Owner only; whitelist input and prohibit tenant/plan/role/security changes. No speculative tax/CRM schema.
+Read/update Company name and only approved verified-contact fields using optimistic updatedAt/version check and audit. Owner only; whitelist input and prohibit tenant/plan/role/security changes. No speculative tax/CRM schema. Existing Company has no approved verified-contact field: name only. Reuse registration name schema and account read policy (deny suspended company settings). Use shared accountVersion optimistic guard/increment so rapid writes cannot collide at timestamp precision; settings/status changes safely invalidate each other. Mounting remains26.
 
 ## Explicit non-scope
 
@@ -37,8 +37,14 @@ Read/update Company name and only approved verified-contact fields using optimis
 
 ## Done when
 
-- [ ] `npm test --prefix backend -- src/services/companySettings.service.test.ts` passes: Manager/staff/other-tenant denied; stale update preserves draft/current record; unknown protected fields rejected. [unit]
-- [ ] `npm test --prefix backend` passes the whole affected unit suite; record count. [unit]
-- [ ] Only scoped paths changed; relevant denial/empty/error/config-unavailable states inspected. [static]
-- [ ] `cd backend && npx tsc --noEmit` passes; no backend lint script exists. [static]
-- [ ] `npm run build --prefix backend` passes. [static]
+- [x] `npm test --prefix backend -- src/services/companySettings.service.test.ts` passes: Manager/staff/other-tenant denied; stale update preserves draft/current record; unknown protected fields rejected. [unit]
+- [x] `npm test --prefix backend` passes the whole affected unit suite; record count. [unit]
+- [x] Only scoped paths changed; relevant denial/empty/error/config-unavailable states inspected. [static]
+- [x] `cd backend && npx tsc --noEmit` passes; no backend lint script exists. [static]
+- [x] `npm run build --prefix backend` passes. [static]
+
+## Log
+
+- **2026-10-20** — Claimed issue41; dependency10 present on stacked spec24 base. Scoped name-only contract; no approved verified company contacts exist. Reuse accountVersion from10 for safe serialized optimistic writes, registration name validation and account policy from14.
+
+- **2026-10-20** — Complete:38 focused tests; whole backend1115 tests/85 files, zero skips with explicit isolated LAUNCH_PERSISTENCE_TEST_DATABASE_URL; backend tsc --noEmit/build and standalone integration tsc pass. Real isolated PostgreSQL proof: persisted owner/tenant denial, one concurrent rename winner/one409, durable actor/name/time audit, real audit failure rollback, shared settings/status version guard, unchanged owner/billing/other company. Logs `/tmp/hygene-spec22-tests.log`, `/tmp/hygene-spec22-build.log`. No contact schema, UI or dependencies added. Router mount26 and account UI30 remain pending. Next selected23 (dependency10 Done), unblocks29/26; no23 issue/code started. Issue https://github.com/Shumail-AbdulRehman/PRIV/issues/41; draft PR publication recorded below after creation.

@@ -1,10 +1,10 @@
-# Implementation handoff — 2026-10-20, after Specification24
+# Implementation handoff — 2026-10-20, after Specifications24 and22
 
 ## Current continuation state
 
 Latest user authorizes continued sequential implementation; this supersedes the prior spec15 stop instruction. Approved launch scope and design/v5 remain unchanged. Read specs/AGENT-GUIDE.md and steering docs before continuing. No deployment, production mutation, destructive migration or PR merge is authorized.
 
-Completed: decision00 and execution01–15,17–19,24,27 (20 of41 execution/gates;21 remain). Prior details remain in individual spec Logs and inventory fragments. Specs16,20–23,25–26,28–41 are Not started. No completed work has been repeated.
+Completed: decision00 and execution01–15,17–19,22,24,27 (21 of41 execution/gates;20 remain). Prior details remain in individual spec Logs and inventory fragments. Specs16,20–21,23,25–26,28–41 are Not started. No completed work has been repeated.
 
 ## Spec24 verified local boundary
 
@@ -19,21 +19,35 @@ Changed files: platformCompany.service.ts, its54-test file, platformCompany.rout
 
 Verification:54 focused tests; full backend1077 tests/84 files/zero skips with explicit isolated DATABASE_URL and LAUNCH_PERSISTENCE_TEST_DATABASE_URL; `cd backend && npx tsc --noEmit`; backend build; standalone integration tsc all pass. `PLATFORM_COMPANY_TEST_DATABASE_URL=postgresql://shumail@127.0.0.1:56439/hygene_launch_test backend/node_modules/.bin/tsx backend/tests/platformCompany.integration.ts` passed: real race one winner/one409, audit rollback, durable provenance, suspension policy, reactivation/owner/other tenant preservation. All data synthetic; no network provider calls. Logs /tmp/hygene-spec24-tests.log and /tmp/hygene-spec24-build.log. No backend lint script. Unit/router boundary tests are not the spec40 E2E suite.
 
-## Next selected eligible unit22
+## Spec22 verified local boundary and current Git state
 
-Owner company settings API, depends only on10 (Done). Re-read full spec and claim its issue before code; restrict to name and genuinely approved verified-contact fields. Current Company schema has no verified company contact fields: do not invent them or modify owner email through company settings. Owner auth, strict allowlist, optimistic conflict/audit and tenant denial required. Existing updatedAt is suitable for conflict detection and will conflict safely with concurrent billing/status writes. Preserve accountVersion semantics for24. Route composition26; UI30. Newly eligible33 also consumes24/27, but22 is selected to supply remaining26/30 contracts first.
+Current branch `implementation/spec-22-company-settings`, stacked on `implementation/spec-24-platform-companies` at6c6bdc5/PR40. Issue41: https://github.com/Shumail-AbdulRehman/PRIV/issues/41. Draft PR publication follows verification. Both units were completed sequentially and will have separate review PRs; no merge.
 
-Other eligible independent units:16,20,21,23,25,28,31,32,33,34,38. This is a dependency-based selection, not numerical ordering. Complete each unit, verify, update handoff, commit and draft PR separately. Do not merge.
+Name-only settings reuse registration name validation (trim2–160, Unicode), exact persisted active ADMIN/company authorization, existing READ_OPERATIONAL account policy and AuditLog. Company has no approved verified-contact columns; no new contact field or owner email change was invented. Settings DTO has id/name/accountVersion/updatedAt. Strict PATCH `{name,expectedVersion}` rejects company/plan/role/security/provider fields. Shared accountVersion under company-first lock safely conflicts with spec24 changes and avoids timestamp-precision lost writes. Same-name/current-version save no-op; stale409; audit and update atomic. Suspended company settings denied; active unentitled owner may rename (no new work/capacity).
+
+Router GET/PATCH `/` applies tenant JWT/ADMIN/no-store, rejects operator context. **Mount at `/api/company/settings` in26**. No UI or schema change; account UI30 remains pending.
+
+Spec22 files: companySettings.service.ts, its38-test file, companySettings.route.ts, backend/tests/companySettings.integration.ts, inventory22, specs22/26/39, PROGRESS and this handoff. Validator report refreshed. Existing unrelated dirty files remain preserved.
+
+Verification:38 focused tests; whole backend1115 tests/85 files/zero skips with explicit isolated DATABASE_URL/LAUNCH_PERSISTENCE_TEST_DATABASE_URL; backend tsc --noEmit/build; standalone22/24 integration tsc pass. `COMPANY_SETTINGS_TEST_DATABASE_URL=postgresql://shumail@127.0.0.1:56439/hygene_launch_test backend/node_modules/.bin/tsx backend/tests/companySettings.integration.ts` passed: persisted owner/tenant denial, concurrent rename one winner, actor/name/time durable, actual audit-failure rollback, shared name/status race, billing/owner/other company preservation. Logs `/tmp/hygene-spec22-tests.log`, `/tmp/hygene-spec22-build.log`. No backend lint script or frontend/mobile changes. Final validator42 specs/zero errors/two accepted warnings (decision00 issue, terminal VERIFICATION.md), justified in README.
+
+## Safe checkpoint and next selected eligible unit23
+
+This session stops at a verified, committed review/handoff checkpoint after two complete specifications. No23 issue, code or branch has been started. Continuing remains authorized in a fresh session. Do not repeat22/24 or prior completed work.
+
+Select23, immutable attendance annotations API; dependency10 is Done and present in this stack. Re-read spec23 completely and claim an issue before writing code. It supplies contracts consumed by29 and26 and needs no invented external delivery/provider credentials. Preserve original attendance times/status/photos; own staff and historical manager site/company authorization; immutable actor/reason/time and acknowledgement; safe idempotent retries. Inspect actual schema/SQL triggers and existing scope/audit helpers before choosing inputs or writing code. Mounting remains26, UI29, integrated E2E40.
+
+Eligible from actual spec dependencies after22:16,20,21,23,25,28,31,32,33,34,38.23 is selected for its29/26 consumption, not numeric sequencing.30 still needs16;26 still needs16/20/21/23/25. No later spec is marked Done from these contracts alone.
 
 ## Remaining external and integration gates
 
 Billing15 local only: real merchant/catalog/terms/sandbox/portal qualification unavailable. Browser32 must replace legacy purchase; policy/job composition26 pending. Preserve ambiguous billing reservations and canonical customer linkage, never auto-repair financial state. Read BILLING.md before changes.
 
-Other gates: operator IdP/MFA/provisioned people; verified mail/support channel; legal retention/exit text; host/TLS/secrets/signing; physical Android; calendar/customer fit; consented photo qualification; actual backup restore and legacy public URL/cache cutover. Do not invent facts or secrets. Existing photos remain private authenticated assets; credential epochs and atomic refresh regressions must remain intact. Design/v5 immutable. No frontend/mobile behavior changed by24.
+Other gates: operator IdP/MFA/provisioned people; verified mail/support channel; legal retention/exit text; host/TLS/secrets/signing; physical Android; calendar/customer fit; consented photo qualification; actual backup restore and legacy public URL/cache cutover. Do not invent facts or secrets. Existing photos remain private authenticated assets; credential epochs and atomic refresh regressions must remain intact. Design/v5 immutable. No frontend/mobile behavior changed by22/24.
 
 ## Existing Git/review state and preserved user work
 
-Prior stacked draft PRs by spec:01→7,02→8,03→9,04→10,05→11,06→13,08→15,09→17,13→19,07→21,12→23,10→25,17→27,18→28,19→30,11→32,14→34,27→36;15→38. Nothing merged. Spec24 is stacked on spec15; compare with its immediate base for a scoped review.
+Prior stacked draft PRs by spec:01→7,02→8,03→9,04→10,05→11,06→13,08→15,09→17,13→19,07→21,12→23,10→25,17→27,18→28,19→30,11→32,14→34,27→36;15→38;24→40. Nothing merged. Spec24 is stacked on spec15; compare with its immediate base for a scoped review.
 
 The following working-tree entries predate the final handoff and are **preserved user work/tooling/design inputs**, not spec15 changes. Never blanket stage, discard or overwrite them:
 

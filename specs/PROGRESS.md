@@ -2,7 +2,7 @@
 
 Source of truth for execution; latest user authorization supersedes old pending labels. Approved v5 preserved.
 
-**Continuation active:** spec24 locally complete; decision00 and20 of41 execution/gate units Done (21 remain). Next selected eligible unit22 consumes completed10. Git review remains a stack of draft PRs; Done does not imply merge or external release qualification.
+**Verified checkpoint after specs24 and22:** decision00 and21 of41 execution/gate units Done (20 remain). Next selected eligible unit23 consumes completed10; it has not started. Review remains a stack of draft PRs; Done does not imply merge, route composition or external release qualification. See SESSION_HANDOFF.md.
 
 | # | Spec | Status | Depends on | Model | Issue | Notes |
 |---|---|---|---|---|---|---|
@@ -28,7 +28,7 @@ Source of truth for execution; latest user authorization supersedes old pending 
 | 19 | [Separate platform operator authorization](19-operator-identity.md) | Done | 00 | Heavy | #29 | 69 new/888 full tests; see Log |
 | 20 | [Photo receipt and replacement contract](20-photo-submission-contract.md) | Not started | 00 | Heavy | — | See spec |
 | 21 | [Fail-closed active photo qualification](21-photo-qualification.md) | Not started | 00 | Heavy | — | See spec |
-| 22 | [Owner company settings API](22-company-settings-api.md) | Not started | 10 | Standard | — | See spec |
+| 22 | [Owner company settings API](22-company-settings-api.md) | Done | 10 | Standard | #41 | 38 focused/1115 backend+isolated PG; see Log |
 | 23 | [Immutable attendance annotations API](23-attendance-annotations-api.md) | Not started | 10 | Standard | — | See spec |
 | 24 | [Platform company operations API](24-platform-company-api.md) | Done | 19, 15 | Heavy | #39 | 54 focused/1077 full backend+isolated PG; see Log |
 | 25 | [Redacted diagnostics and inquiry operations](25-platform-support-api.md) | Not started | 19 | Standard | — | See spec |
@@ -75,3 +75,5 @@ Source of truth for execution; latest user authorization supersedes old pending 
 - **2026-10-20 — Final handoff requested by user.** Spec15 committed as1ea9ae8 on implementation/spec-15-billing-lifecycle and published in stacked draft PR38 (issue37; base spec27). Confirmed backend tsc --noEmit and standalone billing/capacity integration typechecks pass; reran isolatedPG billing proof successfully. Prior full backend1023/83 and build pass retained. Validator42 specs/0 errors/2 justified warnings. No failing spec15 checks known; live Paddle qualification, browser32 and policy26 are explicitly pending. Complete files/checks/blockers and every completed unit recorded in SESSION_HANDOFF.md. Stop here:24 remains Not started; no functionality changed after spec15. No merges, deployment or production mutations.
 
 - **2026-10-20** — Spec24 complete:54 focused/1077 whole backend tests (84 files, zero skips), build/typechecks and isolated PostgreSQL status race/audit rollback/account policy proof pass. Operator-only whitelisted metadata; no provider/workforce mutations.20 of41 execution/gates Done;21 remain. Next selected22 (dependency10 Done);33 newly eligible; route integration26 and live operator qualification remain pending.
+
+- **2026-10-20** — Spec22 complete:38 focused/1115 whole backend tests (85 files, zero skips), build/typechecks and isolated PostgreSQL owner/tenant/race/audit rollback proof pass. Name-only owner settings; no approved verified-contact schema exists. Shared version guard safely serializes rename/platform status.21 of41 execution/gates Done;20 remain. Safe handoff checkpoint; next selected23 (dependency10 Done), not started.24 published as stacked draftPR40; no merges/deployment/production mutation.

@@ -13,6 +13,9 @@ Launch operations and active CI proof in the existing application, with persiste
 
 ## Scope
 
+Consume `backend/tests/companySettings.integration.ts` for isolated owner settings race/audit rollback and tenant preservation proof.
+
+
 Consume `backend/tests/platformCompany.integration.ts` to reproduce isolated company status race, audit rollback and policy proof; never run against production.
 
 
