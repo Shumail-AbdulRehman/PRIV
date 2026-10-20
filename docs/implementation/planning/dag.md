@@ -25,7 +25,7 @@
 - Spec 22 consumes Spec 10; see each Reuses header and Scope for concrete contracts.
 - Spec 23 consumes Spec 10; see each Reuses header and Scope for concrete contracts.
 - Spec 24 consumes Spec 19, Spec 15; see each Reuses header and Scope for concrete contracts.
-- Spec 25 consumes Spec 19; see each Reuses header and Scope for concrete contracts.
+- Spec 25 consumes Spec 19 (verified operator identity), Spec 24 (PLATFORM_OPERATOR audit helper type/provenance); see each Reuses header and Scope for concrete contracts.
 - Spec 26 consumes Spec 07, Spec 11, Spec 12, Spec 16, Spec 18, Spec 20, Spec 21, Spec 22, Spec 23, Spec 24, Spec 25; see each Reuses header and Scope for concrete contracts.
 - Spec 27 consumes Spec 06; see each Reuses header and Scope for concrete contracts.
 - Spec 28 consumes Spec 12, Spec 27; see each Reuses header and Scope for concrete contracts.
@@ -38,7 +38,7 @@
 - Spec 35 consumes Spec 25, Spec 27; see each Reuses header and Scope for concrete contracts.
 - Spec 36 consumes Spec 20, Spec 21, Spec 27; see each Reuses header and Scope for concrete contracts.
 - Spec 37 consumes Spec 09, Spec 17, Spec 20, Spec 21; see each Reuses header and Scope for concrete contracts.
-- Spec 38 consumes Spec 27; see each Reuses header and Scope for concrete contracts.
+- Spec 38 consumes Spec 27 (approved shell), Spec 25 (configured public support contact availability); see each Reuses header and Scope for concrete contracts.
 - Spec 39 consumes Spec 03, Spec 26; see each Reuses header and Scope for concrete contracts.
 - Spec 40 consumes Spec 01, Spec 02, Spec 03, Spec 04, Spec 05, Spec 08, Spec 07, Spec 06, Spec 09, Spec 10, Spec 11, Spec 12, Spec 13, Spec 14, Spec 15, Spec 16, Spec 17, Spec 18, Spec 19, Spec 20, Spec 21, Spec 22, Spec 23, Spec 24, Spec 25, Spec 26, Spec 27, Spec 28, Spec 29, Spec 30, Spec 31, Spec 32, Spec 33, Spec 34, Spec 35, Spec 36, Spec 37, Spec 38, Spec 39; see each Reuses header and Scope for concrete contracts.
 - Spec 41 consumes Spec 40; see each Reuses header and Scope for concrete contracts.

@@ -29,7 +29,7 @@ Approved scope: docs/product-discovery/PRODUCT_SCOPE_PROPOSAL.md. Approved desig
 | 22 | [Owner company settings API](22-company-settings-api.md) | 2 | Owner company settings API |
 | 23 | [Immutable attendance annotations API](23-attendance-annotations-api.md) | 2 | Immutable attendance annotations API |
 | 24 | [Platform company operations API](24-platform-company-api.md) | 4 | Platform company operations API |
-| 25 | [Redacted diagnostics and inquiry operations](25-platform-support-api.md) | 2 | Redacted diagnostics and inquiry operations |
+| 25 | [Redacted diagnostics and inquiry operations](25-platform-support-api.md) | 5 | Redacted diagnostics and inquiry operations |
 | 26 | [Wire launch backend routes and policies](26-launch-api-composition.md) | 6 | Wire launch backend routes and policies |
 | 27 | [Approved v5 shared shell and route composition](27-workspace-shell.md) | 2 | Approved v5 shared shell and route composition |
 | 28 | [Real derived setup and operational dashboard](28-setup-ui.md) | 3 | Real derived setup and operational dashboard |
@@ -39,10 +39,10 @@ Approved scope: docs/product-discovery/PRODUCT_SCOPE_PROPOSAL.md. Approved desig
 | 32 | [Real subscription lifecycle UI](32-billing-ui.md) | 4 | Real subscription lifecycle UI |
 | 33 | [Platform company workspace](33-platform-company-ui.md) | 5 | Platform company workspace |
 | 34 | [Platform sign-in and security workspace](34-platform-security-ui.md) | 3 | Platform sign-in and security workspace |
-| 35 | [Platform service audit and leads UI](35-platform-service-ui.md) | 3 | Platform service audit and leads UI |
+| 35 | [Platform service audit and leads UI](35-platform-service-ui.md) | 6 | Platform service audit and leads UI |
 | 36 | [Truthful task and photo review UX](36-photo-review-ui.md) | 3 | Truthful task and photo review UX |
 | 37 | [Native attendance/photo/account recovery](37-native-workflows.md) | 5 | Native attendance/photo/account recovery |
-| 38 | [Configured support and service information](38-service-information.md) | 3 | Configured support and service information |
+| 38 | [Configured support and service information](38-service-information.md) | 6 | Configured support and service information |
 | 39 | [Launch operations and active CI proof](39-release-operations.md) | 7 | Launch operations and active CI proof |
 | 40 | [Launch end-to-end suite](40-e2e-suite.md) | 8 | Launch end-to-end suite |
 | 41 | [Final clean verification pass](41-verification-pass.md) | 9 | Final clean verification pass |
@@ -51,11 +51,11 @@ Approved scope: docs/product-discovery/PRODUCT_SCOPE_PROPOSAL.md. Approved desig
 
 - Wave 0: 00.
 - Wave 1: 01, 03, 04, 06, 10, 12, 19, 20, 21.
-- Wave 2: 02, 13, 14, 17, 22, 23, 25, 27.
-- Wave 3: 05, 15, 16, 18, 28, 34, 35, 36, 38.
+- Wave 2: 02, 13, 14, 17, 22, 23, 27.
+- Wave 3: 05, 15, 16, 18, 28, 34, 36.
 - Wave 4: 07, 08, 09, 24, 30, 32.
-- Wave 5: 11, 29, 33, 37.
-- Wave 6: 26, 31.
+- Wave 5: 11, 25, 29, 33, 37.
+- Wave 6: 26, 31, 35, 38.
 - Wave 7: 39.
 - Wave 8: 40.
 - Wave 9: 41.
@@ -75,3 +75,5 @@ External release facts only: configured IdP/MFA/people, verified sender/support 
 ## Known gaps
 
 Final VERIFICATION.md is a terminal report consumed by human release review, not a runtime endpoint; its no-consumer warning is accepted. Recorded decision spec 00 has no GitHub issue: a planning record, not a code task. Code specs without issues remain Not started until local execution. Hot-file re-edit needs explicit ownership transfer at serialized integration units 18/26/27; amend/validate before editing, do not presume wave-safe wiring. Existing app.ts starts jobs on import: spec 03 must validate first. E2E flow table is deliberately the long spec. External provider/device/restore tests cannot be replaced by unit mocks. Existing dirty CI/dashboard work stays intact. No claim that unimplemented specs are complete.
+
+Spec25 directly consumes19 identity and24 operator audit typing;26 directly mounts24 routes even though25 also depends24. The validator flags these two transitive edges as redundant; retained because each records an actual consumed contract and imposes no additional execution wave.

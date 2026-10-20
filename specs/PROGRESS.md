@@ -2,7 +2,7 @@
 
 Source of truth for execution; latest user authorization supersedes old pending labels. Approved v5 preserved.
 
-**Verified checkpoint after spec23:** decision00 and22 of41 execution/gate units Done (19 remain). Next selected eligible unit25 consumes completed19; it has not started. Review remains a stack of draft PRs; Done does not imply merge, route composition or external release qualification. See SESSION_HANDOFF.md.
+**Verified checkpoint after spec25:** decision00 and23 of41 execution/gate units Done (18 remain). Next selected eligible unit16 consumes completed10/13; it has not started. Review remains stacked draft PRs; Done does not imply merge, route composition or external release qualification. See SESSION_HANDOFF.md.
 
 | # | Spec | Status | Depends on | Model | Issue | Notes |
 |---|---|---|---|---|---|---|
@@ -31,7 +31,7 @@ Source of truth for execution; latest user authorization supersedes old pending 
 | 22 | [Owner company settings API](22-company-settings-api.md) | Done | 10 | Standard | #41 | 38 focused/1115 backend+isolated PG; see Log |
 | 23 | [Immutable attendance annotations API](23-attendance-annotations-api.md) | Done | 10 | Standard | #43 | 55 focused/1170 backend+isolated PG; see Log |
 | 24 | [Platform company operations API](24-platform-company-api.md) | Done | 19, 15 | Heavy | #39 | 54 focused/1077 full backend+isolated PG; see Log |
-| 25 | [Redacted diagnostics and inquiry operations](25-platform-support-api.md) | Not started | 19 | Standard | — | See spec |
+| 25 | [Redacted diagnostics and inquiry operations](25-platform-support-api.md) | Done | 19, 24 | Standard | #45 | 66 focused/1236 backend+isolated PG; see Log |
 | 26 | [Wire launch backend routes and policies](26-launch-api-composition.md) | Not started | 07, 11, 12, 16, 18, 20, 21, 22, 23, 24, 25 | Heavy | — | See spec |
 | 27 | [Approved v5 shared shell and route composition](27-workspace-shell.md) | Done | 06 | Heavy | #35 | 57+40 tests/build/lint; see Log |
 | 28 | [Real derived setup and operational dashboard](28-setup-ui.md) | Not started | 12, 27 | Standard | — | See spec |
@@ -44,7 +44,7 @@ Source of truth for execution; latest user authorization supersedes old pending 
 | 35 | [Platform service audit and leads UI](35-platform-service-ui.md) | Not started | 25, 27 | Standard | — | See spec |
 | 36 | [Truthful task and photo review UX](36-photo-review-ui.md) | Not started | 20, 21, 27 | Standard | — | See spec |
 | 37 | [Native attendance/photo/account recovery](37-native-workflows.md) | Not started | 09, 17, 20, 21 | Standard | — | See spec |
-| 38 | [Configured support and service information](38-service-information.md) | Not started | 27 | Standard | — | See spec |
+| 38 | [Configured support and service information](38-service-information.md) | Not started | 27, 25 | Standard | — | Contact availability consumes25 |
 | 39 | [Launch operations and active CI proof](39-release-operations.md) | Not started | 03, 26 | Heavy | — | See spec |
 | 40 | [Launch end-to-end suite](40-e2e-suite.md) | Not started | 01, 02, 03, 04, 05, 08, 07, 06, 09, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23, 24, 25, 26, 27, 28, 29, 30, 31, 32, 33, 34, 35, 36, 37, 38, 39 | Heavy | — | See spec |
 | 41 | [Final clean verification pass](41-verification-pass.md) | Not started | 40 | Heavy | — | See spec |
@@ -83,3 +83,7 @@ Source of truth for execution; latest user authorization supersedes old pending 
 - **2026-10-20** — Spec23 complete:55 focused/1170 whole backend tests (86 files, zero skips), build/typechecks and real isolated PostgreSQL retry/immutability/parent/historical authorization/audit rollback/paging proof pass. No original attendance fact, schema or UI changes.22 of41 execution/gates Done;19 remain. Next selected25 (dependency19 Done), unstarted;29 newly eligible. Route composition26/E2E40 pending.
 
 - **2026-10-20 — Spec23 verified handoff.** Implementation207dad5 pushed on implementation/spec-23-attendance-annotations; draftPR44 stacked on22/PR42, issue43 open. Final focused55 pass; validator42 specs/zero errors/two accepted warnings. Preserved pre-existing work unchanged; no merges/deployment/production mutation. Next25 unstarted; full handoff updated.
+
+- **2026-10-20** — Spec25 complete:66 focused/1236 whole backend tests (87 files, zero skips), build/typechecks and real isolated PostgreSQL durable inquiry/race/audit/redaction proof pass. Read-only observed diagnostics, audit summaries, versioned accountable queue, fail-closed configured customer contact. Submission untouched; no schema/UI/provider/production mutation. Corrected25→24 audit-typing dependency and38→25 contact consumption; validator zero errors/four documented warnings.23 of41 execution/gates Done;18 remain. Next selected16, unstarted;35 newly eligible.
+
+- **2026-10-20 — Spec25 verified handoff.** Implementationc04c7ab pushed on implementation/spec-25-platform-support; draftPR46 stacked on23/PR44, issue45 open. All checks pass; validator42 specs/zero errors/four justified warnings. Original dirty/untracked work preserved exactly.23 of41 units Done,18 remain; next16 unstarted. No production/provider mutation, merge or deployment.
