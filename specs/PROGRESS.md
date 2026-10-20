@@ -2,6 +2,8 @@
 
 Source of truth for execution; latest user authorization supersedes old pending labels. Approved v5 preserved.
 
+**Session stopped after spec15 at the user’s request.** Spec15 is locally verified and published as draft PR38; no next specification has started. Completed: decision00 and19 of41 execution/gate units (22 remain, approximately54% by count, not effort). Next eligible selected unit is24, for the next session only. See docs/implementation/SESSION_HANDOFF.md for commands, changed files and blockers.
+
 | # | Spec | Status | Depends on | Model | Issue | Notes |
 |---|---|---|---|---|---|---|
 | 00 | [Launch decisions](00-launch-decisions.md) | Done | — | Heavy | — | See decision Log |
@@ -69,3 +71,5 @@ Source of truth for execution; latest user authorization supersedes old pending 
 - **2026-10-20** — Spec14 contract complete:53 new/980 whole backend tests/build/typechecks and actual PG quota/entitlement proof pass. Seventeen of41 execution/gates done (about59% remaining by count). Route/job integration26/39 and real provider lifecycle15 remain. Next27 approved v5 shared shell, independently eligible; then15 billing.
 - **2026-10-20** — Spec27 complete:approved blue/white shell in actual React,22 new/57 node+40 component tests, build/full lint pass; six role/language/width rendered fixtures +two mobile menus no overflow/JS errors. Eighteen of41 execution/gates done (about56% remaining by count). Next15 Paddle lifecycle; real catalog/provider qualification remains gated.
 - **2026-10-20** — Spec15 local backend complete:43 new/1023 full backend tests/build/typechecks and isolatedPG billing race/order/rollback/recovery proof pass. Nineteen of41 execution/gates done (about54% remaining by count). Live merchant/catalog/sandbox qualification remains external; UI32 and route/job26 pending. Next24 platform company metadata/operations.
+
+- **2026-10-20 — Final handoff requested by user.** Spec15 committed as1ea9ae8 on implementation/spec-15-billing-lifecycle and published in stacked draft PR38 (issue37; base spec27). Confirmed backend tsc --noEmit and standalone billing/capacity integration typechecks pass; reran isolatedPG billing proof successfully. Prior full backend1023/83 and build pass retained. Validator42 specs/0 errors/2 justified warnings. No failing spec15 checks known; live Paddle qualification, browser32 and policy26 are explicitly pending. Complete files/checks/blockers and every completed unit recorded in SESSION_HANDOFF.md. Stop here:24 remains Not started; no functionality changed after spec15. No merges, deployment or production mutations.
