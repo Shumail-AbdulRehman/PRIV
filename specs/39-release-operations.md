@@ -13,6 +13,9 @@ Launch operations and active CI proof in the existing application, with persiste
 
 ## Scope
 
+Consume `backend/tests/attendanceAnnotation.integration.ts` for guarded local annotation retry/authorization/immutability/audit rollback proof.
+
+
 Consume `backend/tests/companySettings.integration.ts` for isolated owner settings race/audit rollback and tenant preservation proof.
 
 

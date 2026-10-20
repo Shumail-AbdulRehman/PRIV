@@ -2,7 +2,7 @@
 
 Source of truth for execution; latest user authorization supersedes old pending labels. Approved v5 preserved.
 
-**Verified checkpoint after specs24 and22:** decision00 and21 of41 execution/gate units Done (20 remain). Next selected eligible unit23 consumes completed10; it has not started. Review remains a stack of draft PRs; Done does not imply merge, route composition or external release qualification. See SESSION_HANDOFF.md.
+**Verified checkpoint after spec23:** decision00 and22 of41 execution/gate units Done (19 remain). Next selected eligible unit25 consumes completed19; it has not started. Review remains a stack of draft PRs; Done does not imply merge, route composition or external release qualification. See SESSION_HANDOFF.md.
 
 | # | Spec | Status | Depends on | Model | Issue | Notes |
 |---|---|---|---|---|---|---|
@@ -29,7 +29,7 @@ Source of truth for execution; latest user authorization supersedes old pending 
 | 20 | [Photo receipt and replacement contract](20-photo-submission-contract.md) | Not started | 00 | Heavy | — | See spec |
 | 21 | [Fail-closed active photo qualification](21-photo-qualification.md) | Not started | 00 | Heavy | — | See spec |
 | 22 | [Owner company settings API](22-company-settings-api.md) | Done | 10 | Standard | #41 | 38 focused/1115 backend+isolated PG; see Log |
-| 23 | [Immutable attendance annotations API](23-attendance-annotations-api.md) | Not started | 10 | Standard | — | See spec |
+| 23 | [Immutable attendance annotations API](23-attendance-annotations-api.md) | Done | 10 | Standard | #43 | 55 focused/1170 backend+isolated PG; see Log |
 | 24 | [Platform company operations API](24-platform-company-api.md) | Done | 19, 15 | Heavy | #39 | 54 focused/1077 full backend+isolated PG; see Log |
 | 25 | [Redacted diagnostics and inquiry operations](25-platform-support-api.md) | Not started | 19 | Standard | — | See spec |
 | 26 | [Wire launch backend routes and policies](26-launch-api-composition.md) | Not started | 07, 11, 12, 16, 18, 20, 21, 22, 23, 24, 25 | Heavy | — | See spec |
@@ -79,3 +79,7 @@ Source of truth for execution; latest user authorization supersedes old pending 
 - **2026-10-20** — Spec22 complete:38 focused/1115 whole backend tests (85 files, zero skips), build/typechecks and isolated PostgreSQL owner/tenant/race/audit rollback proof pass. Name-only owner settings; no approved verified-contact schema exists. Shared version guard safely serializes rename/platform status.21 of41 execution/gates Done;20 remain. Safe handoff checkpoint; next selected23 (dependency10 Done), not started.24 published as stacked draftPR40; no merges/deployment/production mutation.
 
 - **2026-10-20 — Verified session handoff.** Spec24 implementation5a70884/PR40 and spec22 implementation1b677af/PR42 pushed as separate stacked drafts. Current branch implementation/spec-22-company-settings. Issues39/41 stay open for human review; no merge. All current checks pass; validator zero errors/two documented warnings. Original dirty/untracked list preserved exactly. Next23 remains Not started; fresh-session details in SESSION_HANDOFF.md.
+
+- **2026-10-20** — Spec23 complete:55 focused/1170 whole backend tests (86 files, zero skips), build/typechecks and real isolated PostgreSQL retry/immutability/parent/historical authorization/audit rollback/paging proof pass. No original attendance fact, schema or UI changes.22 of41 execution/gates Done;19 remain. Next selected25 (dependency19 Done), unstarted;29 newly eligible. Route composition26/E2E40 pending.
+
+- **2026-10-20 — Spec23 verified handoff.** Implementation207dad5 pushed on implementation/spec-23-attendance-annotations; draftPR44 stacked on22/PR42, issue43 open. Final focused55 pass; validator42 specs/zero errors/two accepted warnings. Preserved pre-existing work unchanged; no merges/deployment/production mutation. Next25 unstarted; full handoff updated.
