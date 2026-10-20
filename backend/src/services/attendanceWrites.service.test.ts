@@ -1,5 +1,5 @@
 import { beforeEach, describe, expect, it, vi } from "vitest";
-const mock = vi.hoisted(() => ({ staff: vi.fn(), find: vi.fn(), update: vi.fn(), queue: vi.fn(), store: vi.fn() }));
+const mock = vi.hoisted(() => ({ staff: vi.fn(), find: vi.fn(), update: vi.fn(), queue: vi.fn(), store: vi.fn(), lock: vi.fn() }));
 vi.mock("../prisma/prisma.js", () => ({ prisma: {
   staff: { findFirst: mock.staff }, attendance: { findFirst: mock.find, updateMany: mock.update }, deletedMedia: { createMany: mock.queue },
 } }));
@@ -12,9 +12,9 @@ const input = { latitude: 31.5, longitude: 74.3, accuracy: 20 };
 const bytes = Buffer.from("injected-storage-boundary");
 const reference = "attendance:v1:42:7:12345678-1234-4321-aaaa-123456789abc";
 function row() { return { id: 12, staffId: 7, locationId: 20, date: new Date("2026-10-19T19:00:00Z"), expectedStart: new Date("2026-10-20T03:00:00Z"), expectedEnd: new Date("2026-10-20T11:00:00Z"), status: "CHECKED_IN", checkInTime: new Date("2026-10-20T03:00:00Z"), checkOutTime: null as Date | null, checkInImage: reference, checkOutImage: null as string | null }; }
-const db = { staff: { findFirst: mock.staff }, attendance: { findFirst: mock.find, updateMany: mock.update }, deletedMedia: { createMany: mock.queue } } as unknown as NonNullable<Parameters<typeof recordAttendance>[5]>;
+const db = { $transaction: async (run: (tx: unknown) => unknown) => run({ $queryRaw: mock.lock, attendance: { updateMany: mock.update } }), staff: { findFirst: mock.staff }, attendance: { findFirst: mock.find, updateMany: mock.update }, deletedMedia: { createMany: mock.queue } } as unknown as NonNullable<Parameters<typeof recordAttendance>[5]>;
 beforeEach(() => {
-  vi.resetAllMocks(); mock.staff.mockResolvedValue({ id: 7, companyId: 42, role: "STAFF", locationId: 20, location });
+  vi.resetAllMocks(); mock.lock.mockResolvedValue([{ id: 7 }]); mock.staff.mockResolvedValue({ id: 7, companyId: 42, role: "STAFF", locationId: 20, location });
   mock.find.mockResolvedValue(row()); mock.update.mockResolvedValue({ count: 1 }); mock.queue.mockResolvedValue({ count: 1 }); mock.store.mockResolvedValue(reference);
 });
 const save = (kind: "check-in" | "check-out" = "check-out", data = input) => recordAttendance(actor, kind, data, bytes, now, db, mock.store);
@@ -41,6 +41,7 @@ describe("attendance atomic writes", () => {
       staff: { id: 7, companyId: 42, role: "STAFF", locationId: 20, isActive: true, company: { isActive: true } },
       location: { companyId: 42, isActive: true }, expectedStart: row().expectedStart, expectedEnd: row().expectedEnd,
     }), data: { checkOutTime: now, checkOutImage: reference, status: "CHECKED_OUT" } }));
+    expect(mock.lock).toHaveBeenCalledBefore(mock.update);
     expect(result.replayed).toBe(false); expect(mock.queue).not.toHaveBeenCalled();
   });
   it("has one winner and reconciles the saved record under concurrent checkout", async () => {

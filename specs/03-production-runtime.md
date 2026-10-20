@@ -4,7 +4,7 @@
 **Depends on:** Spec 00
 **Model:** Heavy — `claude-opus-5-5` · `gpt-6-astra` · `gemini-3.1-pro-preview`
 **Issue:** #3
-**Owns:** `backend/src/config/runtimeSecurity.ts`, `backend/src/config/initializeRuntime.ts`, `backend/src/app.ts`, `docker-compose.yml`, `specs/inventory/03-production-runtime.md`
+**Owns:** `backend/src/config/runtimeSecurity.ts`, `backend/src/config/initializeRuntime.ts`, `docker-compose.yml`, `specs/inventory/03-production-runtime.md`
 **Reuses:** `backend/src/utils/cookies.ts`, `backend/src/utils/ApiError.ts`
 
 ## Goal
@@ -49,3 +49,5 @@ Validate production JWT keys, positive explicit token durations, HTTPS exact fro
 - **2026-10-20** — app.ts first ESM dependency loads dotenv and validates before cron/provider/DB imports. Compose requires unique keys and exact HTTPS origins; secure cookie default true. 29 regression tests; full backend 628/628 (68 files); build passed. Actual invalid-config app-import subprocess fails before listener/cron logs. Full-suite subprocess exceeded Vitest default 5s under contention; bounded test budget raised to 15s (child remains 10s), full suite then passed. No valid-production boot/provider calls/deployment attempted.
 - **2026-10-20** — Scoped commit published as draft https://github.com/Shumail-AbdulRehman/PRIV/pull/9; stacked on previous spec branch, not merged. Unrelated pre-existing changes excluded.
 - **2026-10-20** — Runtime security process test current ownership transfers12 for regression harness timeout. Cold full-app tsx import exceeded10s under full-suite CPU contention; child budget30s/test40s while retaining actual app import and assertions. No application guard relaxed.
+
+- **2026-10-20** — Current ownership of backend/src/app.ts transferred to11 for live workforce lifecycle/attendance serialization; earlier completed behavior and tests preserved.

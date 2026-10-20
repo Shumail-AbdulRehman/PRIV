@@ -15,7 +15,7 @@ Approved scope: docs/product-discovery/PRODUCT_SCOPE_PROPOSAL.md. Approved desig
 | 08 | [Protected attendance image presentation](08-attendance-media-ui.md) | 4 | Protected attendance image presentation |
 | 09 | [Attendance write and calendar correctness](09-attendance-reliability.md) | 4 | Attendance write and calendar correctness |
 | 10 | [Additive launch lifecycle persistence](10-launch-persistence.md) | 1 | Additive launch lifecycle persistence |
-| 11 | [Workforce transfer and offboarding API](11-workforce-lifecycle-api.md) | 2 | Workforce transfer and offboarding API |
+| 11 | [Workforce transfer and offboarding API](11-workforce-lifecycle-api.md) | 5 | Workforce transfer and offboarding API |
 | 12 | [Task generation and assignment reliability](12-task-readiness.md) | 1 | Task generation and assignment reliability |
 | 13 | [Atomic company registration](13-registration-atomicity.md) | 2 | Atomic company registration |
 | 14 | [Account access and capacity policy](14-entitlement-policy.md) | 2 | Account access and capacity policy |
@@ -30,12 +30,12 @@ Approved scope: docs/product-discovery/PRODUCT_SCOPE_PROPOSAL.md. Approved desig
 | 23 | [Immutable attendance annotations API](23-attendance-annotations-api.md) | 2 | Immutable attendance annotations API |
 | 24 | [Platform company operations API](24-platform-company-api.md) | 4 | Platform company operations API |
 | 25 | [Redacted diagnostics and inquiry operations](25-platform-support-api.md) | 2 | Redacted diagnostics and inquiry operations |
-| 26 | [Wire launch backend routes and policies](26-launch-api-composition.md) | 5 | Wire launch backend routes and policies |
+| 26 | [Wire launch backend routes and policies](26-launch-api-composition.md) | 6 | Wire launch backend routes and policies |
 | 27 | [Approved v5 shared shell and route composition](27-workspace-shell.md) | 2 | Approved v5 shared shell and route composition |
 | 28 | [Real derived setup and operational dashboard](28-setup-ui.md) | 3 | Real derived setup and operational dashboard |
 | 29 | [Attendance exception context UI](29-attendance-context-ui.md) | 5 | Attendance exception context UI |
 | 30 | [Account settings and recovery UI](30-account-ui.md) | 4 | Account settings and recovery UI |
-| 31 | [Workforce access and transfer UI](31-workforce-ui.md) | 3 | Workforce access and transfer UI |
+| 31 | [Workforce access and transfer UI](31-workforce-ui.md) | 6 | Workforce access and transfer UI |
 | 32 | [Real subscription lifecycle UI](32-billing-ui.md) | 4 | Real subscription lifecycle UI |
 | 33 | [Platform company workspace](33-platform-company-ui.md) | 5 | Platform company workspace |
 | 34 | [Platform sign-in and security workspace](34-platform-security-ui.md) | 3 | Platform sign-in and security workspace |
@@ -43,21 +43,22 @@ Approved scope: docs/product-discovery/PRODUCT_SCOPE_PROPOSAL.md. Approved desig
 | 36 | [Truthful task and photo review UX](36-photo-review-ui.md) | 3 | Truthful task and photo review UX |
 | 37 | [Native attendance/photo/account recovery](37-native-workflows.md) | 5 | Native attendance/photo/account recovery |
 | 38 | [Configured support and service information](38-service-information.md) | 3 | Configured support and service information |
-| 39 | [Launch operations and active CI proof](39-release-operations.md) | 6 | Launch operations and active CI proof |
-| 40 | [Launch end-to-end suite](40-e2e-suite.md) | 7 | Launch end-to-end suite |
-| 41 | [Final clean verification pass](41-verification-pass.md) | 8 | Final clean verification pass |
+| 39 | [Launch operations and active CI proof](39-release-operations.md) | 7 | Launch operations and active CI proof |
+| 40 | [Launch end-to-end suite](40-e2e-suite.md) | 8 | Launch end-to-end suite |
+| 41 | [Final clean verification pass](41-verification-pass.md) | 9 | Final clean verification pass |
 
 ## Waves
 
 - Wave 0: 00.
 - Wave 1: 01, 03, 04, 06, 10, 12, 19, 20, 21.
-- Wave 2: 02, 11, 13, 14, 17, 22, 23, 25, 27.
-- Wave 3: 05, 15, 16, 18, 28, 31, 34, 35, 36, 38.
+- Wave 2: 02, 13, 14, 17, 22, 23, 25, 27.
+- Wave 3: 05, 15, 16, 18, 28, 34, 35, 36, 38.
 - Wave 4: 07, 08, 09, 24, 30, 32.
-- Wave 5: 26, 29, 33, 37.
-- Wave 6: 39.
-- Wave 7: 40.
-- Wave 8: 41.
+- Wave 5: 11, 29, 33, 37.
+- Wave 6: 26, 31.
+- Wave 7: 39.
+- Wave 8: 40.
+- Wave 9: 41.
 
 ## Dependency order
 

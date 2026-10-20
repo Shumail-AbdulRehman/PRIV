@@ -4,7 +4,7 @@
 **Depends on:** Spec 02
 **Model:** Heavy — `claude-opus-5-5` · `gpt-6-astra` · `gemini-3.1-pro-preview`
 **Issue:** #5
-**Owns:** `backend/src/routes/attendance.route.ts`, `backend/src/controllers/attendanceSelf.controller.ts`, `backend/src/controllers/staff.controller.ts`, `backend/src/routes/attendancePhotos.route.ts`, `backend/src/services/attendanceMedia.service.test.ts`, `backend/src/controllers/attendanceMedia.controller.ts`, `specs/inventory/05-attendance-private-media.md`
+**Owns:** `backend/src/routes/attendance.route.ts`, `backend/src/controllers/attendanceSelf.controller.ts`, `backend/src/routes/attendancePhotos.route.ts`, `backend/src/services/attendanceMedia.service.test.ts`, `backend/src/controllers/attendanceMedia.controller.ts`, `specs/inventory/05-attendance-private-media.md`
 **Reuses:** `backend/src/utils/cloudinary.ts`, `backend/src/services/verification-v2/media.service.ts`, `backend/src/utils/scope.ts`
 
 ## Goal
@@ -50,3 +50,5 @@ Use authenticated attendance upload namespace and opaque stored references witho
 - **2026-10-20** — Scoped commit published as draft https://github.com/Shumail-AbdulRehman/PRIV/pull/11; stacked on previous spec branch, not merged. Unrelated pre-existing changes excluded.
 - **2026-10-20** — Current attendance controller edit ownership transfers to09 for reliability extraction; private DTO and storage boundaries retained.
 - **2026-10-20** — Current media service edit ownership transfers07 solely to extract no-side-effect reference parser for maintenance CLI; existing export retained.
+
+- **2026-10-20** — Current ownership of backend/src/controllers/staff.controller.ts transferred to11 for live workforce lifecycle/attendance serialization; earlier completed behavior and tests preserved.
