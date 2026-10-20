@@ -4,7 +4,7 @@
 **Depends on:** Spec 02
 **Model:** Heavy — `claude-opus-5-5` · `gpt-6-astra` · `gemini-3.1-pro-preview`
 **Issue:** #5
-**Owns:** `backend/src/routes/attendance.route.ts`, `backend/src/controllers/attendanceSelf.controller.ts`, `backend/src/controllers/staff.controller.ts`, `backend/src/routes/attendancePhotos.route.ts`, `backend/src/services/attendanceMedia.service.ts`, `backend/src/services/attendanceMedia.service.test.ts`, `backend/src/controllers/attendanceMedia.controller.ts`, `specs/inventory/05-attendance-private-media.md`
+**Owns:** `backend/src/routes/attendance.route.ts`, `backend/src/controllers/attendanceSelf.controller.ts`, `backend/src/controllers/staff.controller.ts`, `backend/src/routes/attendancePhotos.route.ts`, `backend/src/services/attendanceMedia.service.test.ts`, `backend/src/controllers/attendanceMedia.controller.ts`, `specs/inventory/05-attendance-private-media.md`
 **Reuses:** `backend/src/utils/cloudinary.ts`, `backend/src/services/verification-v2/media.service.ts`, `backend/src/utils/scope.ts`
 
 ## Goal
@@ -49,3 +49,4 @@ Use authenticated attendance upload namespace and opaque stored references witho
 - **2026-10-20** — Authenticated sanitized JPEG uploads store opaque references; byte endpoint checks active actor/company/historical manager site or own staff, limits bytes and disables caching. All attendance list/self/write/staff-detail DTOs suppress raw URLs and expose safe photo state/path. Legacy unused self export delegated; precise GPS/attendance logs removed. 20 new media tests plus 17 self/history regressions pass (37 targeted); full backend 687/687 (71 files); build passed. Cloudinary mocked: no live account/cache migration proof. Legacy photos deliberately unavailable pending spec07; new metadata consumed by spec08. Private asset lifecycle/orphan cleanup remains spec07/09 under D08, not auto-deletion.
 - **2026-10-20** — Scoped commit published as draft https://github.com/Shumail-AbdulRehman/PRIV/pull/11; stacked on previous spec branch, not merged. Unrelated pre-existing changes excluded.
 - **2026-10-20** — Current attendance controller edit ownership transfers to09 for reliability extraction; private DTO and storage boundaries retained.
+- **2026-10-20** — Current media service edit ownership transfers07 solely to extract no-side-effect reference parser for maintenance CLI; existing export retained.
