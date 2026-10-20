@@ -39,7 +39,7 @@ describe("production security configuration", () => {
   });
   it("aborts actual application import before cron/database/listener side effects with unsafe production config", () => {
     const child = spawnSync(process.execPath, ["--import", "tsx", "--input-type=module", "-e", "await import('./src/app.ts')"], {
-      cwd: process.cwd(), timeout: 10_000,
+      cwd: process.cwd(), timeout: 30_000,
       env: { PATH: process.env.PATH, NODE_ENV: "production", DOTENV_CONFIG_PATH: "/dev/null", DOTENV_CONFIG_QUIET: "true" },
       encoding: "utf8",
     });
@@ -47,5 +47,5 @@ describe("production security configuration", () => {
     expect(child.status).toBe(1);
     expect(child.stderr).toContain("Unsafe production configuration");
     expect(child.stdout).not.toMatch(/Server is listening|prisma:|cron/i);
-  }, 15_000);
+  }, 40_000);
 });

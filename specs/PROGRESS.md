@@ -16,7 +16,7 @@ Source of truth for execution; latest user authorization supersedes old pending 
 | 09 | [Attendance write and calendar correctness](09-attendance-reliability.md) | Done | 05 | Heavy | #14 | 726 tests; see spec 09 Log |
 | 10 | [Additive launch lifecycle persistence](10-launch-persistence.md) | Not started | 00 | Heavy | — | See spec |
 | 11 | [Workforce transfer and offboarding API](11-workforce-lifecycle-api.md) | Not started | 10 | Heavy | — | See spec |
-| 12 | [Task generation and assignment reliability](12-task-readiness.md) | Not started | 00 | Standard | — | See spec |
+| 12 | [Task generation and assignment reliability](12-task-readiness.md) | Done | 00 | Standard | #20 | 780 tests; see spec12 Log |
 | 13 | [Atomic company registration](13-registration-atomicity.md) | Done | 00 | Heavy | #16 | 739 backend;57+18 web; see Log |
 | 14 | [Account access and capacity policy](14-entitlement-policy.md) | Not started | 10 | Heavy | — | See spec |
 | 15 | [Paddle lifecycle API and configuration](15-billing-lifecycle.md) | Not started | 14 | Heavy | — | See spec |
@@ -60,3 +60,4 @@ Source of truth for execution; latest user authorization supersedes old pending 
 - **2026-10-20** — Spec09 complete:45 targeted/726 backend tests +build. Protected photo React draftPR15 published. Next13 atomic signup;07 isolated legacy transition still pending.
 - **2026-10-20** — Spec13 complete locally: atomic signup/session outcome +React caller;13 backend/3 hook tests;739 backend +57+18 web/builds pass. Next07 safe legacy media tooling, then additive lifecycle10 or task readiness12.
 - **2026-10-20** — Spec07 local tooling complete:27 new tests,55 targeted,766 whole backend/build and script type check; offline CLI dry-run passed. No real assets read/migrated; public-cache/restore/live qualification remain release gates. Ten execution units complete01–09,13. Next12 readiness, then10 additive persistence.
+- **2026-10-20** — Spec12 complete:14 new readiness +19 existing engine regressions;780 full backend +build pass. Eleven execution units complete01–09,12,13. Next10 additive lifecycle persistence.

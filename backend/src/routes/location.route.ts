@@ -1,3 +1,4 @@
+import taskReadinessRouter from "./taskReadiness.route.js";
 import { Router } from "express";
 import {
   createLocation,
@@ -13,6 +14,7 @@ import { getLocationSchedule } from "../controllers/locationSchedule.controller.
 import { getLocationMapConfig } from "../controllers/mapConfig.controller.js";
 
 const router = Router();
+router.use(taskReadinessRouter);
 router.get("/map-config", verifyJwt, authorize("ADMIN", "MANAGER"), getLocationMapConfig);
 
 router.post("/", verifyJwt, authorize("ADMIN"), createLocation);

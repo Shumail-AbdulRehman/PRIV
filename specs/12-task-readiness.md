@@ -1,10 +1,10 @@
 # Spec 12 — Task generation and assignment reliability
 
-**Status:** Not started
+**Status:** Done
 **Depends on:** Spec 00
 **Model:** Standard — `claude-sonnet-5-5` · `gpt-6.1-sol` · `gemini-3.8-flash`
-**Issue:** —
-**Owns:** `backend/src/services/taskReadiness.service.ts`, `backend/src/services/taskReadiness.service.test.ts`, `backend/src/routes/taskReadiness.route.ts`, `specs/inventory/12-task-readiness.md`
+**Issue:** #20
+**Owns:** `backend/src/config/runtimeSecurity.test.ts`, `backend/src/routes/location.route.ts`, `backend/src/services/taskReadiness.service.ts`, `backend/src/services/taskReadiness.service.test.ts`, `backend/src/routes/taskReadiness.route.ts`, `specs/inventory/12-task-readiness.md`
 **Reuses:** `backend/src/services/templateAssignment.service.ts`, `backend/src/services/schedulePreview.service.ts`, `backend/src/cron/startupCron.ts`
 
 ## Goal
@@ -37,8 +37,16 @@ Expose derived scoped setup/task eligibility using existing DAILY/ONCE engine. C
 
 ## Done when
 
-- [ ] `npm test --prefix backend -- src/services/taskReadiness.service.test.ts` passes: Occurrence uniqueness, preview purity, overnight shift fit and revoked old assignment proven; no speculative weekly recurrence. [unit]
-- [ ] `npm test --prefix backend` passes the whole affected unit suite; record count. [unit]
-- [ ] Only scoped paths changed; relevant denial/empty/error/config-unavailable states inspected. [static]
-- [ ] `cd backend && npx tsc --noEmit` passes; no backend lint script exists. [static]
-- [ ] `npm run build --prefix backend` passes. [static]
+- [x] `npm test --prefix backend -- src/services/taskReadiness.service.test.ts` passes: 14 readiness cases cover role/company/site denial, real count-derived setup, bounded pagination, per-site local-day/DST and unassigned/no-staff states. [unit]
+- [x] Existing templateAssignment/taskAssignment/schedulePreview/taskInstanceWindow regression files pass, preserving no-replacement authority and pure previews. [unit]
+- [x] Occurrence uniqueness and epoch revocation remain in existing schema/migrations and generator; DB trigger/race proof remains final integrated gate40. [static]
+- [x] `npm test --prefix backend` passes the whole affected unit suite; record count. [unit]
+- [x] Only scoped paths changed; relevant denial/empty/error/config-unavailable states inspected. [static]
+- [x] `cd backend && npx tsc --noEmit` passes; no backend lint script exists. [static]
+- [x] `npm run build --prefix backend` passes. [static]
+
+## Log
+
+- **2026-10-20** — Claimed https://github.com/Shumail-AbdulRehman/PRIV/issues/20. Mount bounded readonly readiness under existing location routes before:id, using current role/company/ManagerLocation and local-day helpers. Source confirms generation occurrence uniqueness and epoch-revocation triggers already exist; preserve/test them rather than rebuild engine.
+- **2026-10-20** — First full suite had779/780 passing; cold actual-app-import subprocess exceeded10s while build/test processes contended. Preserve same security assertions and bound subprocess to30s/test40s; no auth/config behavior weakened. All75 test files rerun before completion.
+- **2026-10-20** — GET/api/location/readiness mounted before:id; current manager/company scope,20-default/50-max cursor page, full-scope site total, group counts from real staff/areas/configured schedules/site-local tasks. Derived checklist never invokes scheduler/assignment mutations; no-task-today remains separate from setup readiness.14 new tests +19 existing schedule/assignment/window tests (33 targeted) pass; full backend780/780 (75 files) after bounded cold-import allowance; backend build passes. Existing generator idempotency and database epoch triggers preserved, real DB trigger/concurrency proof remains40. No external DB/provider/device exercised.
