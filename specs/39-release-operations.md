@@ -13,6 +13,9 @@ Launch operations and active CI proof in the existing application, with persiste
 
 ## Scope
 
+Preserve21 `launchQualification` guards in direct and buffered PHOTO paths: active adapter lacks privacy/identity qualification, so new processing is unavailable before provider/storage; completed result reconciliation remains available. Do not bypass with deployment flags, synthetic data or historical release records. Real representative consented privacy qualification remains an external release gate.
+
+
 Consume `backend/tests/launchPhoto.integration.ts` and `docs/implementation/PHOTO_CONTRACT.md` for real isolated failed-view generation and legacy waiver receipt proof; no live photo/provider qualification implied.
 
 

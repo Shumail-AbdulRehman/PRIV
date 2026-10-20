@@ -13,6 +13,9 @@ Wire launch backend routes and policies in the existing application, with persis
 
 ## Scope
 
+Preserve21 `launchQualification` guards in direct and buffered PHOTO paths: active adapter lacks privacy/identity qualification, so new processing is unavailable before provider/storage; completed result reconciliation remains available. Do not bypass with deployment flags, synthetic data or historical release records. Real representative consented privacy qualification remains an external release gate.
+
+
 Preserve20 policy wiring in `backend/src/services/verification-v2/staffSubmission.service.ts`, `backend/src/services/verification-v2/captureSession.service.ts` and `backend/src/services/verification-v2/sequentialCapture.service.ts` when integrating capture/account authorization; no receipt, waiver or failed-view generation bypass.
 
 
