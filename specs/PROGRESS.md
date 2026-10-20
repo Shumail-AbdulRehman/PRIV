@@ -18,7 +18,7 @@ Source of truth for execution; latest user authorization supersedes old pending 
 | 11 | [Workforce transfer and offboarding API](11-workforce-lifecycle-api.md) | Done | 09, 10 | Heavy | #31 | 927 tests+real PG; see Log |
 | 12 | [Task generation and assignment reliability](12-task-readiness.md) | Done | 00 | Standard | #20 | 780 tests; see spec12 Log |
 | 13 | [Atomic company registration](13-registration-atomicity.md) | Done | 00 | Heavy | #16 | 739 backend;57+18 web; see Log |
-| 14 | [Account access and capacity policy](14-entitlement-policy.md) | Not started | 10 | Heavy | — | See spec |
+| 14 | [Account access and capacity policy](14-entitlement-policy.md) | Done | 10 | Heavy | #33 | 980 tests+real PG; see Log |
 | 15 | [Paddle lifecycle API and configuration](15-billing-lifecycle.md) | Not started | 14 | Heavy | — | See spec |
 | 16 | [Owner verification and recovery API](16-owner-identity-api.md) | Not started | 10, 13 | Heavy | — | See spec |
 | 17 | [Self credentials and assisted worker recovery](17-credential-handoff-api.md) | Done | 10 | Heavy | #24 | 803 tests+real PG; see Log |
@@ -66,3 +66,4 @@ Source of truth for execution; latest user authorization supersedes old pending 
 - **2026-10-20** — Spec18 complete:72 targeted/819 full backend tests, build/typechecks and isolated realPG revocation proof pass. Fourteen of41 execution/gate units done (about66% remaining by count). Next19 separate operator identity boundary.
 - **2026-10-20** — Spec19 local operator identity boundary complete:69 new/888 full backend tests/build pass. Actual IdP/approved MFA/people remain external, disabled until configured. Fifteen of41 execution/gates done. Next11 workforce lifecycle; preserve historical rows and close existing transfer/deactivation gaps.
 - **2026-10-20** — Spec11 complete:39 new/76 targeted/927 backend tests, build/typechecks and actual localPG race/history/legacy-adapter proof pass. Sixteen of41 execution/gates complete (about61% remaining by count). Next14 account policy/capacity; native/web workforce inputs remain31/37. No production mutation.
+- **2026-10-20** — Spec14 contract complete:53 new/980 whole backend tests/build/typechecks and actual PG quota/entitlement proof pass. Seventeen of41 execution/gates done (about59% remaining by count). Route/job integration26/39 and real provider lifecycle15 remain. Next27 approved v5 shared shell, independently eligible; then15 billing.

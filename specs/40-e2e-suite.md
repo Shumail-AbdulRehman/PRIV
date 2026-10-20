@@ -13,6 +13,8 @@ Launch end-to-end suite in the existing application, with persisted behavior and
 
 ## Scope
 
+Reuse backend/tests/accountCapacity.integration.ts for isolated quota/entitlement evidence; integrated route tests must also prove no bypass through legacy creates/jobs.
+
 Reuse backend/tests/workforceLifecycle.integration.ts as isolated DB evidence; add actual integrated workforce UI flow coverage here, including reasoned legacy delete/archive and in-flight check-in/transfer conflict.
 
 Install Playwright Chromium and configure self-started web/backend, baseURL and failure traces. Use isolated PostgreSQL fixture strategy; no route interception in persistence proofs. Add Maestro physical Android flows. Table below owns complete integrated coverage. Report app bugs as new fix specs; do not fix app inside this unit.
