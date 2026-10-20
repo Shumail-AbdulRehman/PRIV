@@ -47,7 +47,7 @@ Verification:55 focused tests; whole backend1170 tests/86 files/zero skips with 
 
 ## Spec25 verified local boundary and current Git state
 
-Current branch `implementation/spec-25-platform-support`, base `implementation/spec-23-attendance-annotations` at74a4bc9/PR44. Prerequisites19 and24 are Done and in Git; no preceding PR merged. Issue45: https://github.com/Shumail-AbdulRehman/PRIV/issues/45. Draft PR publication follows verified implementation.
+Current branch `implementation/spec-25-platform-support`, base `implementation/spec-23-attendance-annotations` at74a4bc9/PR44. Prerequisites19 and24 are Done and in Git; no preceding PR merged. Issue45: https://github.com/Shumail-AbdulRehman/PRIV/issues/45. Implementationc04c7ab pushed; draft PR46: https://github.com/Shumail-AbdulRehman/PRIV/pull/46, stacked on PR44. Issue45 stays open for human review. This checkpoint is a subsequent documentation commit.
 
 Default platformSupport router uses separate verifyOperator and no-store; mount at `/api/platform/service` in26. GET diagnostics exposes actual DB reachability, aggregate persisted webhook/worker timestamps and configuration availability booleans only. UNAVAILABLE/null differs from reachable/no observations; no guessed liveness threshold, live provider connectivity, env/secret/worker-ID/log dump. GET audit has bounded companyId/action/ID filters and allowlisted platform company/inquiry summary fields only; no arbitrary reason/JSON or workforce actions.
 
@@ -57,7 +57,7 @@ Named customerSupportRouter separately mounts `/api/support` in26; public GET `/
 
 Dependency corrections:25 consumes24's PLATFORM_OPERATOR audit helper type as well as19 identity.38 consumes25's public contact contract. Specs/tracker/README waves/DAG agree. Validator42 specs/zero errors/four justified warnings: prior00 no issue and terminal report, plus retained direct19→25 and24→26 consumption edges implied transitively. No additional execution wave from retaining those direct contracts.
 
-Files: platformSupport.service.ts, its66-test file, platformSupport.route.ts, backend/tests/platformSupport.integration.ts, SUPPORT_OPERATIONS.md, inventory25, specs25/26/38/39, index/tracker, DAG/validator/handoff. No package dependency, migration, existing submission controller, production configuration or UI changed. Pre-existing dirty work preserved.
+Files: platformSupport.service.ts, its66-test file, platformSupport.route.ts, backend/tests/platformSupport.integration.ts, SUPPORT_OPERATIONS.md, inventory25, specs25/26/38/39, index/tracker, DAG/validator/handoff. No package dependency, migration, existing submission controller, production configuration or UI changed. Final Git status matches the original preserved dirty/untracked list exactly.
 
 Verification:66 focused tests; full backend1236 tests/87 files/zero skips with explicit isolated DATABASE_URL/LAUNCH_PERSISTENCE_TEST_DATABASE_URL; backend tsc --noEmit/build pass. Standalone integration command from backend uses `npx tsc --noEmit --strict --module NodeNext --moduleResolution NodeNext --target ES2023 --esModuleInterop --skipLibCheck src/types/express.d.ts tests/platformSupport.integration.ts` (strict nullability matches backend tsconfig/Zod transforms). Guarded real proof: `PLATFORM_SUPPORT_TEST_DATABASE_URL=postgresql://shumail@127.0.0.1:56439/hygene_launch_test backend/node_modules/.bin/tsx backend/tests/platformSupport.integration.ts`; existing public submission/retry unchanged, concurrent handling one winner/one409, actor/time/reason/owner durable, audit failure leaves state unchanged, release/close/no-op/stale safety, redacted audit filtering and actual DB observations. Logs `/tmp/hygene-spec25-tests.log`, `/tmp/hygene-spec25-build.log`, `/tmp/hygene-spec25-integration.log`. No known failing code checks; backend has no lint script, frontend/mobile unchanged. These are local boundary proofs, not40 E2E or actual provider qualification.
 
@@ -77,7 +77,7 @@ Other gates: operator IdP/MFA/provisioned people; verified mail/support channel;
 
 ## Existing Git/review state and preserved user work
 
-Prior stacked draft PRs by spec:01→7,02→8,03→9,04→10,05→11,06→13,08→15,09→17,13→19,07→21,12→23,10→25,17→27,18→28,19→30,11→32,14→34,27→36;15→38;24→40;22→42;23→44. Nothing merged. Spec24 is stacked on spec15; compare with its immediate base for a scoped review.
+Prior stacked draft PRs by spec:01→7,02→8,03→9,04→10,05→11,06→13,08→15,09→17,13→19,07→21,12→23,10→25,17→27,18→28,19→30,11→32,14→34,27→36;15→38;24→40;22→42;23→44;25→46. Nothing merged. Spec24 is stacked on spec15; compare with its immediate base for a scoped review.
 
 The following working-tree entries predate the final handoff and are **preserved user work/tooling/design inputs**, not spec15 changes. Never blanket stage, discard or overwrite them:
 
