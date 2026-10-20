@@ -1,10 +1,10 @@
 # Spec 08 — Protected attendance image presentation
 
-**Status:** Not started
+**Status:** Done
 **Depends on:** Spec 05, Spec 06
 **Model:** Standard — `claude-sonnet-5-5` · `gpt-6.1-sol` · `gemini-3.8-flash`
-**Issue:** —
-**Owns:** `frontend/src/components/common/ProtectedAttendancePhoto.tsx`, `frontend/src/components/common/ProtectedAttendancePhoto.test.tsx`, `frontend/src/pages/Attendance/AttendancePage.tsx`, `frontend/src/pages/Staff/StaffDetailPage.tsx`, `specs/inventory/08-attendance-media-ui.md`
+**Issue:** #12
+**Owns:** `frontend/src/i18n/attendancePhotoTranslations.ts`, `frontend/src/i18n/translations.ts`, `frontend/src/components/common/ProtectedAttendancePhoto.tsx`, `frontend/src/components/common/ProtectedAttendancePhoto.test.tsx`, `frontend/src/pages/Attendance/AttendancePage.tsx`, `frontend/src/pages/Staff/StaffDetailPage.tsx`, `specs/inventory/08-attendance-media-ui.md`
 **Reuses:** `frontend/src/pages/Verification/ProtectedEvidence.tsx`, `frontend/src/api/client.ts`, `frontend/src/components/ui/dialog.tsx`, `DESIGN-SYSTEM.md#component-conventions`, `design/v5/attendance.html`
 
 ## Goal
@@ -37,8 +37,13 @@ Replace attendance URL anchors/images with credentialed blob reads from scoped A
 
 ## Done when
 
-- [ ] `npm run test:components --prefix frontend -- src/components/common/ProtectedAttendancePhoto.test.tsx` passes: Render no image for unavailable/legacy reference; credentialed fetch, denied/retry state, URL cleanup and dialog keyboard labels are asserted. [unit]
-- [ ] `npm test --prefix frontend` passes the whole affected unit suite; record count. [unit]
-- [ ] Only scoped paths changed; relevant denial/empty/error/config-unavailable states inspected. [static]
-- [ ] `npm run lint --prefix frontend` reports zero errors/warnings in changed files; document baseline separately. [static]
-- [ ] `npm run build --prefix frontend` passes. [static]
+- [x] `npm run test:components --prefix frontend -- src/components/common/ProtectedAttendancePhoto.test.tsx` passes: Render no image for unavailable/legacy reference; credentialed fetch, denied/retry state, URL cleanup and dialog keyboard labels are asserted. [unit]
+- [x] `npm test --prefix frontend` passes the whole affected unit suite; record count. [unit]
+- [x] Only scoped paths changed; relevant denial/empty/error/config-unavailable states inspected. [static]
+- [x] `npm run lint --prefix frontend` reports zero errors/warnings in changed files; document baseline separately. [static]
+- [x] `npm run build --prefix frontend` passes. [static]
+
+## Log
+
+- **2026-10-20** — Claimed https://github.com/Shumail-AbdulRehman/PRIV/issues/12. Use existing Dialog/Button/evidence styles and auth hook. Read Impeccable context/harden/craft-floor; latest approved v5 overrides historical root teal guidance, no drift repair or new design. Added ownership of isolated photo vocabulary and its registration in existing translator.
+- **2026-10-20** — Attendance/StaffDetail now use request-on-open protected blob dialog, bounded JPEG response checks, denied/missing/retry/legacy states, zoom, localized close/title, abort/revoke on close/unmount/identity change. Targeted 13/13; full web57 node +15 component tests; TypeScript/Vite build and touched ESLint pass. Impeccable detector returns zero findings. Real React route rendered at390/1366px EN/UR, four fixture captures: no page overflow or JS errors, one scoped photo read each. Visual fixture uses existing v5 floor asset and intercepted APIs, not live persistence/provider proof. Existing page-wide untranslated/teal shell remains27/29 scope, no redesign done. Screenshots in docs/implementation/previews; no new prototype.

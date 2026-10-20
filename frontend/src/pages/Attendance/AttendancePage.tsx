@@ -1,3 +1,4 @@
+import ProtectedAttendancePhoto, { type AttendancePhoto } from "@/components/common/ProtectedAttendancePhoto";
 import OperationsState from "../Manager/OperationsState";
 import { useState } from "react";
 import { useGetAttendance } from "./queries";
@@ -29,6 +30,8 @@ interface AttendanceRecord {
   lateMinutes: number | null;
   checkInImage: string | null;
   checkOutImage: string | null;
+  checkInPhoto?: AttendancePhoto;
+  checkOutPhoto?: AttendancePhoto;
   staff: { id: number; name: string; email: string };
   location: { id: number; name: string; timezone: string };
 }
@@ -299,34 +302,12 @@ export default function AttendancePage() {
     {
       key: "checkInImg",
       header: "Check-In Photo",
-      render: (r) =>
-        r.checkInImage ? (
-          <a href={r.checkInImage} target="_blank" rel="noopener noreferrer">
-            <img
-              src={r.checkInImage}
-              alt="Check-in"
-              className="h-10 w-10 rounded-lg object-cover border border-gray-200 hover:ring-2 hover:ring-blue-400 transition-all cursor-pointer"
-            />
-          </a>
-        ) : (
-          <span className="text-gray-400">—</span>
-        ),
+      render: (r) => <ProtectedAttendancePhoto attendanceId={r.id} kind="check-in" photo={r.checkInPhoto} />,
     },
     {
       key: "checkOutImg",
       header: "Check-Out Photo",
-      render: (r) =>
-        r.checkOutImage ? (
-          <a href={r.checkOutImage} target="_blank" rel="noopener noreferrer">
-            <img
-              src={r.checkOutImage}
-              alt="Check-out"
-              className="h-10 w-10 rounded-lg object-cover border border-gray-200 hover:ring-2 hover:ring-blue-400 transition-all cursor-pointer"
-            />
-          </a>
-        ) : (
-          <span className="text-gray-400">—</span>
-        ),
+      render: (r) => <ProtectedAttendancePhoto attendanceId={r.id} kind="check-out" photo={r.checkOutPhoto} />,
     },
   ];
 
