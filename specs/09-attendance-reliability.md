@@ -1,10 +1,10 @@
 # Spec 09 — Attendance write and calendar correctness
 
-**Status:** Not started
+**Status:** Done
 **Depends on:** Spec 05
 **Model:** Heavy — `claude-opus-5-5` · `gpt-6-astra` · `gemini-3.1-pro-preview`
-**Issue:** —
-**Owns:** `backend/src/services/attendanceWrites.service.ts`, `backend/src/services/attendanceWrites.service.test.ts`, `backend/src/controllers/attendanceWrites.controller.ts`, `backend/src/validations/attendance.validation.ts`, `specs/inventory/09-attendance-reliability.md`
+**Issue:** #14
+**Owns:** `backend/src/controllers/attendance.controller.ts`, `backend/src/services/deletedMedia.service.ts`, `backend/src/services/deletedMedia.service.test.ts`, `backend/src/services/attendanceWrites.service.ts`, `backend/src/services/attendanceWrites.service.test.ts`, `backend/src/controllers/attendanceWrites.controller.ts`, `backend/src/validations/attendance.validation.ts`, `specs/inventory/09-attendance-reliability.md`
 **Reuses:** `backend/src/utils/dateTime.ts`, `backend/src/utils/syncAttendanceWindow.ts`, `backend/src/utils/geofencing.ts`
 
 ## Goal
@@ -13,7 +13,7 @@ Attendance write and calendar correctness in the existing application, with pers
 
 ## Scope
 
-Validate finite latitude/longitude ranges and nonnegative bounded accuracy. Implement conditional checkout and check-in reconciliation using existing unique shifts and expected location snapshots; reject transfer/open-shift mismatch. Clean up only newly orphaned private uploads. Scope dates by each location timezone, not union of unrelated day ranges. New handlers replace old route handlers at spec 26.
+Validate finite latitude/longitude ranges and nonnegative bounded accuracy. Implement conditional checkout and check-in reconciliation using existing unique shifts and expected location snapshots; reject transfer/open-shift mismatch. Clean up only newly orphaned private uploads. Scope dates by each location timezone, not union of unrelated day ranges. Wire new write adapters immediately through existing controller exports; route paths stay intact. Keep final cross-feature policy wiring in spec26.
 
 ## Explicit non-scope
 
@@ -37,8 +37,13 @@ Validate finite latitude/longitude ranges and nonnegative bounded accuracy. Impl
 
 ## Done when
 
-- [ ] `npm test --prefix backend -- src/services/attendanceWrites.service.test.ts` passes: Parallel duplicate checkout writes once; lost response re-read returns persisted state; overnight/DST/mixed-zone filters and malformed geography cannot bypass scope. [unit]
-- [ ] `npm test --prefix backend` passes the whole affected unit suite; record count. [unit]
-- [ ] Only scoped paths changed; relevant denial/empty/error/config-unavailable states inspected. [static]
-- [ ] `cd backend && npx tsc --noEmit` passes; no backend lint script exists. [static]
-- [ ] `npm run build --prefix backend` passes. [static]
+- [x] `npm test --prefix backend -- src/services/attendanceWrites.service.test.ts` passes: Parallel duplicate checkout writes once; lost response re-read returns persisted state; overnight/DST/mixed-zone filters and malformed geography cannot bypass scope. [unit]
+- [x] `npm test --prefix backend` passes the whole affected unit suite; record count. [unit]
+- [x] Only scoped paths changed; relevant denial/empty/error/config-unavailable states inspected. [static]
+- [x] `cd backend && npx tsc --noEmit` passes; no backend lint script exists. [static]
+- [x] `npm run build --prefix backend` passes. [static]
+
+## Log
+
+- **2026-10-20** — Claimed https://github.com/Shumail-AbdulRehman/PRIV/issues/14; consume05 storage and transfer current attendance controller ownership for live integration, not unused duplicate handlers. Extend existing durable media cleanup only for confirmed unused private uploads; no automatic deletion of retained or ambiguous assets.
+- **2026-10-20** — Strict geography schema rejects blank/null/boolean/nonfinite/out-of-range coordinates and accuracy>200. Extracted live check-in/out service revalidates active STAFF/company/site, expected shift and CAS; replayed check-in and attendanceId checkout return saved records, concurrent loser reconciles. Overnight window uses prior local day (DST-safe). Per-site calendar predicates bound list dates; existing controller exports wire new adapters immediately. Confirmed unused uploads enter existing durable cleanup; authenticated destroy rechecks all references. Ambiguous writes never delete potentially committed photos. 45 targeted tests (37 new writes/geography/calendar +8 cleanup including2 new); whole backend726/726 (72 files); build passed after correcting a test-only injected DB parameter type. No live database/provider run; native explicit retry ID and broader lost-response UI remain37.

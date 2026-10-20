@@ -1,3 +1,4 @@
+import { parseAttendancePhoto } from "./attendanceMedia.service.js";
 import { v2 as cloudinary } from "cloudinary";
 import { prisma } from "../prisma/prisma.js";
 import "../utils/cloudinary.js";
@@ -6,6 +7,8 @@ export function cloudinaryPublicId(
   url: string,
   cloudName = process.env.CLOUDINARY_CLOUD_NAME,
 ): string | null {
+  const attendance = parseAttendancePhoto(url);
+  if (attendance) return attendance.publicId;
   if (!cloudName) return null;
   try {
     const parsed = new URL(url);
@@ -76,6 +79,7 @@ export async function cleanDeletedMedia() {
           const result = await cloudinary.uploader.destroy(publicId, {
             invalidate: true,
             resource_type: "image",
+            ...(parseAttendancePhoto(job.url) ? { type: "authenticated" } : {}),
           });
           if (result.result !== "ok" && result.result !== "not found")
             throw new Error("Cloudinary deletion did not complete");

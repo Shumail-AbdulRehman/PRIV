@@ -13,7 +13,7 @@ Source of truth for execution; latest user authorization supersedes old pending 
 | 06 | [Web component test harness](06-web-unit-harness.md) | Done | 00 | Standard | #6 | 57+2 tests; see spec 06 Log |
 | 07 | [Legacy attendance asset transition tooling](07-legacy-media-transition.md) | Not started | 05 | Heavy | — | See spec |
 | 08 | [Protected attendance image presentation](08-attendance-media-ui.md) | Done | 05, 06 | Standard | #12 | 57+15 tests; see spec 08 Log |
-| 09 | [Attendance write and calendar correctness](09-attendance-reliability.md) | Not started | 05 | Heavy | — | See spec |
+| 09 | [Attendance write and calendar correctness](09-attendance-reliability.md) | Done | 05 | Heavy | #14 | 726 tests; see spec 09 Log |
 | 10 | [Additive launch lifecycle persistence](10-launch-persistence.md) | Not started | 00 | Heavy | — | See spec |
 | 11 | [Workforce transfer and offboarding API](11-workforce-lifecycle-api.md) | Not started | 10 | Heavy | — | See spec |
 | 12 | [Task generation and assignment reliability](12-task-readiness.md) | Not started | 00 | Standard | — | See spec |
@@ -57,3 +57,4 @@ Source of truth for execution; latest user authorization supersedes old pending 
 - **2026-10-20** — Spec05 complete: 20 new media/687 backend tests, build passed. Legacy URLs withheld; no live assets migrated. Next web harness06 and photo UI08, independent of controlled legacy transition07.
 - **2026-10-20** — Spec06 complete: 57 node +2 component tests, build/lint passed. Specs01–05 published as separate stacked draft PRs7–11; no merges/deployment. Next eligible local unit08 protected photo UI;07 controlled legacy migration independent.
 - **2026-10-20** — Spec08 complete: real protected attendance/staff photo UI;13 targeted/57+15 full web tests, build/lint pass; four EN/UR rendered fixtures checked. Seven execution units complete01–06,08. Next09 attendance writes;07 legacy transition remains independent.
+- **2026-10-20** — Spec09 complete:45 targeted/726 backend tests +build. Protected photo React draftPR15 published. Next13 atomic signup;07 isolated legacy transition still pending.
