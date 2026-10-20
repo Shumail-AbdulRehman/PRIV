@@ -1,9 +1,9 @@
 # Spec 04 — P0 atomic role-safe refresh sessions
 
-**Status:** Not started
+**Status:** Done
 **Depends on:** Spec 00
 **Model:** Heavy — `claude-opus-5-5` · `gpt-6-astra` · `gemini-3.1-pro-preview`
-**Issue:** —
+**Issue:** #4
 **Owns:** `backend/src/controllers/common.controller.ts`, `backend/src/controllers/common.session.test.ts`, `backend/src/utils/auth.ts`, `backend/src/utils/auth.test.ts`, `backend/src/middlewares/auth.middleware.ts`, `backend/src/middlewares/auth.middleware.test.ts`, `specs/inventory/04-refresh-session-safety.md`
 **Reuses:** `backend/src/services/staff-notifications/session.ts`, `backend/src/utils/cookies.ts`
 
@@ -37,8 +37,13 @@ Use unique refresh JWT IDs for all roles. Validate token purpose/algorithm, posi
 
 ## Done when
 
-- [ ] `npm test --prefix backend -- src/controllers/common.session.test.ts` passes: Concurrent refresh has one winner; inactive company/stale role/invalid identity denied; stale refresh/logout cannot revoke current session; all refresh tokens have unique jti. [unit]
-- [ ] `npm test --prefix backend` passes the whole affected unit suite; record count. [unit]
-- [ ] Only scoped paths changed; relevant denial/empty/error/config-unavailable states inspected. [static]
-- [ ] `cd backend && npx tsc --noEmit` passes; no backend lint script exists. [static]
-- [ ] `npm run build --prefix backend` passes. [static]
+- [x] `npm test --prefix backend -- src/controllers/common.session.test.ts` passes: Concurrent refresh has one winner; inactive company/stale role/invalid identity denied; stale refresh/logout cannot revoke current session; all refresh tokens have unique jti. [unit]
+- [x] `npm test --prefix backend` passes the whole affected unit suite; record count. [unit]
+- [x] Only scoped paths changed; relevant denial/empty/error/config-unavailable states inspected. [static]
+- [x] `cd backend && npx tsc --noEmit` passes; no backend lint script exists. [static]
+- [x] `npm run build --prefix backend` passes. [static]
+
+## Log
+
+- **2026-10-20** — Claimed https://github.com/Shumail-AbdulRehman/PRIV/issues/4. New JWTs bind purpose and refresh jti; older pre-patch tokens require sign-in again on rollout. Accounts/passwords/data unchanged. Access-token epoch revocation remains spec18.
+- **2026-10-20** — Purpose/expiry/HS256/role/integer-ID checks centralized in verifySessionToken; random refresh jti for all roles. Manager rotation now conditional on token/role/active company; staff retains transactional push renewal. Stale refresh never clears current token; logout revokes only exact refresh family (access-only clears local cookies). 43 targeted tests (including 4 prior middleware tests); full backend 667/667 (70 files); build passed. No DB integration/provider called. Existing access remains valid until expiry after logout; epoch revocation deliberately spec18.
