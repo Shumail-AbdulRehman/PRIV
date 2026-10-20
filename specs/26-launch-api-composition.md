@@ -13,6 +13,9 @@ Wire launch backend routes and policies in the existing application, with persis
 
 ## Scope
 
+Mount `backend/src/routes/platformSupport.route.ts` default router at `/api/platform/service` outside tenant auth; mount its named customerSupportRouter at `/api/support` for public configuration-only contact availability. Never expose inquiry/audit/diagnostics through the public contact router.
+
+
 Mount `backend/src/routes/attendanceAnnotation.route.ts` under `/api/attendance` for GET/POST `/:attendanceId/annotations`; preserve its tenant authentication, historical scope, no-store and immutable request-id contract.
 
 

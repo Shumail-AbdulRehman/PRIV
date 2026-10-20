@@ -1,10 +1,10 @@
-# Implementation handoff — 2026-10-20, after Specification23
+# Implementation handoff — 2026-10-20, after Specification25
 
 ## Current continuation state
 
 Latest user authorizes continued sequential implementation; this supersedes the prior spec15 stop instruction. Approved launch scope and design/v5 remain unchanged. Read specs/AGENT-GUIDE.md and steering docs before continuing. No deployment, production mutation, destructive migration or PR merge is authorized.
 
-Completed: decision00 and execution01–15,17–19,22–24,27 (22 of41 execution/gates;19 remain). Prior details remain in individual spec Logs and inventory fragments. Specs16,20–21,25–26,28–41 are Not started. No completed work has been repeated.
+Completed: decision00 and execution01–15,17–19,22–25,27 (23 of41 execution/gates;18 remain). Prior details remain in individual spec Logs and inventory fragments. Specs16,20–21,26,28–41 are Not started. No completed work has been repeated.
 
 ## Spec24 verified local boundary
 
@@ -31,9 +31,9 @@ Spec22 files: companySettings.service.ts, its38-test file, companySettings.route
 
 Verification:38 focused tests; whole backend1115 tests/85 files/zero skips with explicit isolated DATABASE_URL/LAUNCH_PERSISTENCE_TEST_DATABASE_URL; backend tsc --noEmit/build; standalone22/24 integration tsc pass. `COMPANY_SETTINGS_TEST_DATABASE_URL=postgresql://shumail@127.0.0.1:56439/hygene_launch_test backend/node_modules/.bin/tsx backend/tests/companySettings.integration.ts` passed: persisted owner/tenant denial, concurrent rename one winner, actor/name/time durable, actual audit-failure rollback, shared name/status race, billing/owner/other company preservation. Logs `/tmp/hygene-spec22-tests.log`, `/tmp/hygene-spec22-build.log`. No backend lint script or frontend/mobile changes. Final validator42 specs/zero errors/two accepted warnings (decision00 issue, terminal VERIFICATION.md), justified in README.
 
-## Spec23 verified local boundary and current Git state
+## Prior Spec23 verified local boundary
 
-Current branch `implementation/spec-23-attendance-annotations`, base `implementation/spec-22-company-settings` at09e0a82/PR42. Dependency10 is locally Done and present in Git; all predecessor PRs remain unmerged. Issue43: https://github.com/Shumail-AbdulRehman/PRIV/issues/43. Implementation207dad5 pushed; draft PR44: https://github.com/Shumail-AbdulRehman/PRIV/pull/44, stacked on PR42. No merge or deployment; issue43 stays open. This checkpoint is a subsequent documentation commit.
+Prior branch `implementation/spec-23-attendance-annotations`, base `implementation/spec-22-company-settings` at09e0a82/PR42. Dependency10 is locally Done and present in Git; all predecessor PRs remain unmerged. Issue43: https://github.com/Shumail-AbdulRehman/PRIV/issues/43. Implementation207dad5 pushed; draft PR44: https://github.com/Shumail-AbdulRehman/PRIV/pull/44, stacked on PR42. No merge or deployment; issue43 stays open. This checkpoint is a subsequent documentation commit.
 
 New service/router append immutable NOTE and parent-bound ACKNOWLEDGEMENT using existing schema/SQL trigger. Staff adds/views only own historical attendance even after site transfer; MANAGER consumes current persisted assignment to Attendance.locationId, ignoring claimed token sites; ADMIN company-wide. Both attendance worker/site company bindings required. Actor and company access rechecked, suspended/inactive actors denied. Context creates no new paid work/capacity, so active unentitled actors may add notes. No edit/delete/payroll/corrected-hour endpoint; original attendance and parent notes untouched.
 
@@ -45,19 +45,35 @@ Files: attendanceAnnotation.service.ts, its55-test file, attendanceAnnotation.ro
 
 Verification:55 focused tests; whole backend1170 tests/86 files/zero skips with explicit isolated DATABASE_URL/LAUNCH_PERSISTENCE_TEST_DATABASE_URL; backend tsc --noEmit/build; standalone integration tsc pass. `ATTENDANCE_ANNOTATION_TEST_DATABASE_URL=postgresql://shumail@127.0.0.1:56439/hygene_launch_test backend/node_modules/.bin/tsx backend/tests/attendanceAnnotation.integration.ts` passes real retry races, historical scope/revocation, tenant/parent/cursor denial, chronological paging, audit rollback, SQL update/delete denial and exact original fact preservation. Expected SQL immutability rejection messages appear in integration log. Initial synthetic fixture status fixed to schema CHECKED_IN before successful proof. Logs `/tmp/hygene-spec23-tests.log`, `/tmp/hygene-spec23-build.log`, `/tmp/hygene-spec23-integration.log`. No known failing checks. Backend has no lint script; frontend/mobile not changed.
 
-## Safe checkpoint and next selected eligible unit25
+## Spec25 verified local boundary and current Git state
 
-Stop at a verified review/handoff checkpoint after23. No25 issue/code/branch started; continued implementation remains authorized. Read full spec25, steering docs and current scope first. Claim issue before code; one unit/PR, no merge. Do not repeat completed specs.
+Current branch `implementation/spec-25-platform-support`, base `implementation/spec-23-attendance-annotations` at74a4bc9/PR44. Prerequisites19 and24 are Done and in Git; no preceding PR merged. Issue45: https://github.com/Shumail-AbdulRehman/PRIV/issues/45. Draft PR publication follows verified implementation.
 
-25 (redacted diagnostics and inquiry operations) consumes Done19 operator identity and supplies26/35. Inspect existing durable EnterpriseInquiry schema/controller and audit/provider sync seams. Metadata-only operator access; bounded/filterable inquiry/audit views, ownership/status recorded durably; no arbitrary logs/env, workforce/photos/credentials or financial mutation. Support contact must explicitly be unavailable unless genuinely configured; do not invent approved channels or legal/service policy. Use actual schema and simple secure approach; no speculative CRM model.
+Default platformSupport router uses separate verifyOperator and no-store; mount at `/api/platform/service` in26. GET diagnostics exposes actual DB reachability, aggregate persisted webhook/worker timestamps and configuration availability booleans only. UNAVAILABLE/null differs from reachable/no observations; no guessed liveness threshold, live provider connectivity, env/secret/worker-ID/log dump. GET audit has bounded companyId/action/ID filters and allowlisted platform company/inquiry summary fields only; no arbitrary reason/JSON or workforce actions.
 
-Eligible after23 from the graph:16,20,21,25,28,29,31,32,33,34,38.29 is newly eligible (23/27/08 Done).25 is the selected next unit for26/35 consumption, not numeric order.26 still waits16/20/21/25;30 needs16. No future unit marked Done from contracts alone.
+Existing public enterprise-inquiry controller/source unchanged. Operator GET inquiries supports submitted-company q, stable UUID cursor, default25/max50. Summary excludes submitted contact/requirements; operator detail includes submitted name/email/requirements as untrusted text, never system workforce data. ContactVerification always UNVERIFIED. PATCH strict expectedVersion/status(NEW|IN_PROGRESS|CLOSED)/ownership(SELF|UNASSIGNED)/reason; original inquiry row locked but unchanged. Existing AuditLog records PLATFORM_INQUIRY/INQUIRY_UPDATED, inquiry UUID/newValue and distinct operator issuer/subject, owner/status, reason/DB time. Latest audit ID is version; initial0/NEW/unassigned. Current exact state no-op; stale409; invalid stored state unavailable. Sole durable state write is atomic audit append. Any verified operator may reasonedly claim/release/update; no arbitrary third-party assignee input or contact-verification assertion. No message sent.
+
+Named customerSupportRouter separately mounts `/api/support` in26; public GET `/contact` exposes only available/email/channel/verification, never platform operations. Requires both valid SUPPORT_CONTACT_EMAIL and exact SUPPORT_CONTACT_VERIFIED=true, set only after responsible operator qualifies an approved public mailbox. Otherwise explicit unavailable/null. OPERATOR_CONFIGURED is a deployment fact, not automated verification/delivery proof. Actual channel/IdP remain unqualified. See SUPPORT_OPERATIONS.md for full contracts/limits/release checklist.35/38 consume this; no UI started.
+
+Dependency corrections:25 consumes24's PLATFORM_OPERATOR audit helper type as well as19 identity.38 consumes25's public contact contract. Specs/tracker/README waves/DAG agree. Validator42 specs/zero errors/four justified warnings: prior00 no issue and terminal report, plus retained direct19→25 and24→26 consumption edges implied transitively. No additional execution wave from retaining those direct contracts.
+
+Files: platformSupport.service.ts, its66-test file, platformSupport.route.ts, backend/tests/platformSupport.integration.ts, SUPPORT_OPERATIONS.md, inventory25, specs25/26/38/39, index/tracker, DAG/validator/handoff. No package dependency, migration, existing submission controller, production configuration or UI changed. Pre-existing dirty work preserved.
+
+Verification:66 focused tests; full backend1236 tests/87 files/zero skips with explicit isolated DATABASE_URL/LAUNCH_PERSISTENCE_TEST_DATABASE_URL; backend tsc --noEmit/build pass. Standalone integration command from backend uses `npx tsc --noEmit --strict --module NodeNext --moduleResolution NodeNext --target ES2023 --esModuleInterop --skipLibCheck src/types/express.d.ts tests/platformSupport.integration.ts` (strict nullability matches backend tsconfig/Zod transforms). Guarded real proof: `PLATFORM_SUPPORT_TEST_DATABASE_URL=postgresql://shumail@127.0.0.1:56439/hygene_launch_test backend/node_modules/.bin/tsx backend/tests/platformSupport.integration.ts`; existing public submission/retry unchanged, concurrent handling one winner/one409, actor/time/reason/owner durable, audit failure leaves state unchanged, release/close/no-op/stale safety, redacted audit filtering and actual DB observations. Logs `/tmp/hygene-spec25-tests.log`, `/tmp/hygene-spec25-build.log`, `/tmp/hygene-spec25-integration.log`. No known failing code checks; backend has no lint script, frontend/mobile unchanged. These are local boundary proofs, not40 E2E or actual provider qualification.
+
+## Safe checkpoint and next selected eligible unit16
+
+Stop at a verified review/handoff checkpoint after25. No16 issue/code/branch started; continued implementation remains authorized. Read full spec16 and steering docs before claiming its issue. Dependencies10 (lifecycle persistence) and13 (atomic owner registration) Done.16 supplies26/30; prioritized to unblock remaining backend composition/account recovery. No numerical-order assumption.
+
+Use existing hashed CredentialToken purpose/company/target fields, bcrypt/session/credential epoch seams and D04 expiries. Neutral requests, purpose/expiry/one-use/transactional consumption/revocation, throttling; verify actual owner email before recovery. Legacy unverified contact cannot silently become trusted: identity-verified bootstrap runbook required. Configured/injected delivery must fail unavailable when absent without account enumeration; no fake sent result, invented sender credentials or production email. Do not reactivate suspended company operations via recovery. Actual mail/sender and legacy proof qualification remain external39/40. Preserve18 session revocation regressions, never weaken tenant/operator boundaries.
+
+Eligible after25:16,20,21,28,29,31,32,33,34,35,38.35 newly eligible25/27;38 now explicitly consumes25/27 and is eligible.26 still waits16/20/21;30 waits16.23/22/24/25 are complete locally; do not repeat them or mark future UI/composition done from backend contracts alone.
 
 ## Remaining external and integration gates
 
 Billing15 local only: real merchant/catalog/terms/sandbox/portal qualification unavailable. Browser32 must replace legacy purchase; policy/job composition26 pending. Preserve ambiguous billing reservations and canonical customer linkage, never auto-repair financial state. Read BILLING.md before changes.
 
-Other gates: operator IdP/MFA/provisioned people; verified mail/support channel; legal retention/exit text; host/TLS/secrets/signing; physical Android; calendar/customer fit; consented photo qualification; actual backup restore and legacy public URL/cache cutover. Do not invent facts or secrets. Existing photos remain private authenticated assets; credential epochs and atomic refresh regressions must remain intact. Design/v5 immutable. No frontend/mobile behavior changed by22/23/24.
+Other gates: operator IdP/MFA/provisioned people; verified mail/support channel; legal retention/exit text; host/TLS/secrets/signing; physical Android; calendar/customer fit; consented photo qualification; actual backup restore and legacy public URL/cache cutover. Do not invent facts or secrets. Existing photos remain private authenticated assets; credential epochs and atomic refresh regressions must remain intact. Design/v5 immutable. No frontend/mobile behavior changed by22/23/24/25.
 
 ## Existing Git/review state and preserved user work
 

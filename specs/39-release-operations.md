@@ -13,6 +13,9 @@ Launch operations and active CI proof in the existing application, with persiste
 
 ## Scope
 
+Consume `backend/tests/platformSupport.integration.ts` and `docs/implementation/SUPPORT_OPERATIONS.md` for isolated queue race/redaction proof and actual verified support channel qualification.
+
+
 Consume `backend/tests/attendanceAnnotation.integration.ts` for guarded local annotation retry/authorization/immutability/audit rollback proof.
 
 
