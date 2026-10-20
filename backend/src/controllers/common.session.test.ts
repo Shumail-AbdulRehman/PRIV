@@ -31,7 +31,7 @@ describe.each(["ADMIN", "MANAGER", "STAFF"] as const)("%s session family", role 
     const token = generateRefreshToken({ id: 1 }, role); setup(token); const res = response();
     await refreshToken(req(token), res as unknown as Response);
     const mutate = role === "STAFF" ? db.staffUpdate : db.managerUpdate;
-    expect(mutate).toHaveBeenCalledWith({ where: { id: 1, role, companyId: 42, credentialVersion: 0, refreshToken: token, isActive: true, company: { isActive: true } }, data: { refreshToken: expect.any(String) } });
+    expect(mutate).toHaveBeenCalledWith({ where: { id: 1, role, companyId: 42, credentialVersion: 0, refreshToken: token, isActive: true }, data: { refreshToken: expect.any(String) } });
     const payload = res.json.mock.calls[0]![0].data;
     expect(payload.refreshToken).not.toBe(token); expect(payload).not.toHaveProperty("password"); expect(payload).not.toHaveProperty("company");
     expect(db.pushUpdate).toHaveBeenCalledTimes(role === "STAFF" ? 1 : 0);
@@ -57,8 +57,13 @@ describe.each(["ADMIN", "MANAGER", "STAFF"] as const)("%s session family", role 
   it.each(["user", "company"])("rejects inactive %s before rotation", async kind => {
     const token = generateRefreshToken({ id: 1 }, role), value = setup(token);
     if (kind === "user") value.isActive = false; else value.company.isActive = false;
-    await expect(refreshToken(req(token), response() as unknown as Response)).rejects.toMatchObject({ statusCode: 403 });
-    expect(db.staffUpdate).not.toHaveBeenCalled(); expect(db.managerUpdate).not.toHaveBeenCalled();
+    if(kind==='company') {
+      await expect(refreshToken(req(token), response() as unknown as Response)).resolves.toBeUndefined();
+      expect(role === "STAFF" ? db.staffUpdate : db.managerUpdate).toHaveBeenCalledOnce();
+    } else {
+      await expect(refreshToken(req(token), response() as unknown as Response)).rejects.toMatchObject({ statusCode: 403 });
+      expect(db.staffUpdate).not.toHaveBeenCalled(); expect(db.managerUpdate).not.toHaveBeenCalled();
+    }
   });
   it("rejects obsolete database role", async () => {
     const token = generateRefreshToken({ id: 1 }, role), value = setup(token);

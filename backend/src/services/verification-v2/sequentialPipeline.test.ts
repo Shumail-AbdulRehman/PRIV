@@ -1,3 +1,4 @@
+vi.mock('../launchJobs.service.js',()=>({jobAccountAllowed:vi.fn(async()=>true)}));
 import {afterEach,expect,it,vi} from 'vitest';
 const m=vi.hoisted(()=>({job:vi.fn(),history:vi.fn(),attempt:vi.fn(),attempts:vi.fn(),update:vi.fn(),publish:vi.fn(),duplicate:vi.fn()}));
 vi.mock('../../prisma/prisma.js',()=>({prisma:{verificationJob:{findFirst:m.job,findMany:m.history},verificationAttempt:{findUniqueOrThrow:m.attempt,findMany:m.attempts,updateMany:m.update}}}));

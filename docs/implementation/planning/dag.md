@@ -26,7 +26,7 @@
 - Spec 23 consumes Spec 10; see each Reuses header and Scope for concrete contracts.
 - Spec 24 consumes Spec 19, Spec 15; see each Reuses header and Scope for concrete contracts.
 - Spec 25 consumes Spec 19 (verified operator identity), Spec 24 (PLATFORM_OPERATOR audit helper type/provenance); see each Reuses header and Scope for concrete contracts.
-- Spec 26 consumes Spec 07, Spec 11, Spec 12, Spec 16, Spec 18, Spec 20, Spec 21, Spec 22, Spec 23, Spec 24, Spec 25; see each Reuses header and Scope for concrete contracts.
+- Spec 26 consumes Spec 07, Spec 11, Spec 12, Spec 14, Spec 15, Spec 16, Spec 17, Spec 18, Spec 20, Spec 21, Spec 22, Spec 23, Spec 24, Spec 25; see each Reuses header and Scope for concrete contracts.
 - Spec 27 consumes Spec 06; see each Reuses header and Scope for concrete contracts.
 - Spec 28 consumes Spec 12, Spec 27; see each Reuses header and Scope for concrete contracts.
 - Spec 29 consumes Spec 23, Spec 27, Spec 08; see each Reuses header and Scope for concrete contracts.

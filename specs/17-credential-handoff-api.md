@@ -4,7 +4,7 @@
 **Depends on:** Spec 10
 **Model:** Heavy — `claude-opus-5-5` · `gpt-6-astra` · `gemini-3.1-pro-preview`
 **Issue:** #24
-**Owns:** `backend/src/routes/common.route.ts`, `backend/src/services/credentialHandoff.service.ts`, `backend/src/services/credentialHandoff.service.test.ts`, `specs/inventory/17-credential-handoff-api.md`
+**Owns:** `specs/inventory/17-credential-handoff-api.md`
 **Reuses:** `backend/src/utils/auth.ts`, `backend/src/services/staff-notifications/session.ts`
 
 ## Goal
@@ -49,3 +49,7 @@ Require current password for self-change. Allow owner/scoped manager to issue on
 - **2026-10-20** — Current-password self changes, same-site issuer-authenticated handoff, hash-only30m code, former-password invalidation, version increments/refresh+push revocation, same-principal/token lock order, bounded issuance and secret-free audit implemented through live common security routes.16 unit tests; full backend803/803 with explicit local PG, build and integration script typecheck pass. Real isolated PostgreSQL: wrong-site manager denied; oldpassword invalid; one of two completion calls wins; bcrypt/hash/version and audit checks pass. Immediate old-access-token check is next18; native/web handoff UI remains31/37. No production accounts touched.
 - **2026-10-20** — Current credential-version integration edit ownership transfers18 for `backend/src/routes/credentialHandoff.route.ts`. Existing security regression contracts retained.
 - **2026-10-20** — Current credentialHandoff integration script ownership transfers18 to add real old-JWT/refresh denial checks around the existing handoff proof.
+
+- **2026-10-21** — Serialized composition ownership transferred to26: `backend/src/services/credentialHandoff.service.ts`, `backend/src/services/credentialHandoff.service.test.ts`. Prior completed behavior retained;26 consumes rather than reimplements this contract.
+
+- **2026-10-21** — Serialized common identity adapter/staff submission completion ownership transferred to26; existing contracts preserved.

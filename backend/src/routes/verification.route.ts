@@ -1,3 +1,4 @@
+import { launchQualificationStatus } from '../services/verification-v2/launchQualification.js';
 import {toiletPhotoInstruction} from '../services/verification-v2/toiletViews.js';
 import { reviewableMedia, photoStorageState } from "../services/verification-v2/evidenceBuffer.js";
 import { processDirectPhoto, directPhotoStatus } from "../services/verification-v2/directPhoto.service.js";
@@ -36,7 +37,7 @@ router.use([
  /^\/verification-attempt(?=\/|$)/,
  /^\/task-instance\/(?:staff\/me\/verification-work|[^/]+\/(?:verification|capture-sessions))(?=\/|$)/,
 ],verifyJwt);
-router.get('/verification-capabilities',async(req,res)=>{await requireActiveActor(req.user!);res.json({success:true,data:{...verificationCapabilities(),database:await verificationSchemaReadiness()}});});
+router.get('/verification-capabilities',async(req,res)=>{await requireActiveActor(req.user!);res.json({success:true,data:{...verificationCapabilities(),photoChecking:{available:launchQualificationStatus('ROOM_CONTEXT').processingAllowed,reasonCode:'PHOTO_QUALIFICATION_UNAVAILABLE'},database:await verificationSchemaReadiness()}});});
 router.use([
  /^\/capture-session(?=\/|$)/,
  /^\/verification-attempt(?=\/|$)/,
@@ -61,7 +62,8 @@ router.get('/task-instance/:taskId/verification',async(req,res)=>{
  const base=verificationManifestSchema.parse({workflowVersion:2,taskId:task.id,areaId:task.areaId,areaName:task.areaNameSnapshot,inventoryVersion:task.inventoryVersion,assignmentEpoch:task.assignmentEpoch,locationTimezone:task.location.timezone,items:items.map(i=>({id:i.id,name:i.nameSnapshot,mandatory:i.mandatory,state:i.state,requirements:i.requirements.map(r=>({id:r.id,viewKey:r.viewKey,instructions:i.typeSnapshot==='TOILET'?(toiletPhotoInstruction(r.viewKey)??r.instructionsSnapshot):r.instructionsSnapshot,mandatory:r.mandatory,state:r.state,decisionVersion:r.decisionVersion}))}))});
  const deadlines=taskDeadlines(task.shiftEnd,resolvePolicy(task.policySnapshot)),verificationDeadline=task.verificationDeadline??deadlines.verificationDeadline,uploadDeadline=task.uploadDeadline??deadlines.uploadDeadline,now=new Date();
  const current=task.isActive&&task.location.isActive&&req.user!.role==='STAFF'&&task.assignments.some(a=>a.staffId===req.user!.id&&a.isCurrent&&['ASSIGNED','STARTED'].includes(a.status));
- const canCapture=current&&!task.staffSubmittedAt&&!!task.startedAt&&['IN_PROGRESS','NOT_COMPLETED_INTIME'].includes(task.status)&&now<verificationDeadline;
+ const photoQualified=items.length>0&&items.every(i=>launchQualificationStatus(i.typeSnapshot,(i.rubricSnapshot as {version?:number})?.version??1).processingAllowed);
+ const canCapture=photoQualified&&current&&!task.staffSubmittedAt&&!!task.startedAt&&['IN_PROGRESS','NOT_COMPLETED_INTIME'].includes(task.status)&&now<verificationDeadline;
  const live=sessions.find(s=>s.assignmentEpoch===task.assignmentEpoch&&['ACTIVE','PAUSED'].includes(s.state));
  const captureDeadline=live&&live.captureExpiresAt<verificationDeadline?live.captureExpiresAt:verificationDeadline;
  const deadlineWarning=canCapture&&captureDeadline>now&&+captureDeadline-+now<=5*60000?{reasonCode:'CAPTURE_WINDOW_ENDING',deadline:captureDeadline,remainingSeconds:Math.ceil((+captureDeadline-+now)/1000)}:undefined;
@@ -72,7 +74,7 @@ router.get('/task-instance/:taskId/verification',async(req,res)=>{
  send(res,{...base,task:{id:task.id,title:task.title,...presentedTask,verificationVersion:2,completionTiming:task.completionTiming,areaNameSnapshot:task.areaNameSnapshot,shiftEnd:task.shiftEnd,verificationDeadline,uploadDeadline,location:{id:task.location.id,name:task.location.name,timezone:task.location.timezone}},
  items:base.items.map(i=>({...i,...{itemCodeSnapshot:items.find(x=>x.id===i.id)!.itemCodeSnapshot,typeSnapshot:items.find(x=>x.id===i.id)!.typeSnapshot,orderSnapshot:items.find(x=>x.id===i.id)!.orderSnapshot,identificationSnapshot:items.find(x=>x.id===i.id)!.identificationSnapshot},requirements:i.requirements.map(r=>{const a=attempts.find(a=>a.id===items.flatMap(i=>i.requirements).find(x=>x.id===r.id)?.currentAttemptId);return {...r,manualOutcome:r.state==='MANAGER_ACCEPTED'||r.state==='WAIVED'?r.state:null,currentAttempt:a?{id:a.id,state:a.state,...staffAttemptResult(a,reviewableMedia(a.media?.privacyState),r.state,{fixtureType:items.find(x=>x.id===i.id)!.typeSnapshot,viewKey:r.viewKey})}:null};})})),spatialCaptureEnabled:false,serverTime:now,deadlineWarning,verificationState:req.user!.role==='STAFF'?undefined:task.verificationState,outcome:req.user!.role==='STAFF'?undefined:task.completionOutcome,verificationDeadline,uploadDeadline,pendingJobs:0,caseSummary:req.user!.role==='STAFF'?undefined:caseSummary,
  requiredContextKeys:live?requiredContextKeys(live.locationCheck):CURRENT_CONTEXT_KEYS,
- staffSubmittedAt:task.staffSubmittedAt,sequentialChecks:true,objectCaptureSeconds:resolvePolicy(task.policySnapshot).objectCaptureSeconds,allowedActions:{reworkSession:canCapture&&items.some(i=>i.requirements.some(r=>r.state==='CLEANING_REQUIRED')),createSession:canCapture&&!live,resumeSession:current&&!!live,renewSession:canCapture&&!!live,retakeSlots:canCapture&&live?.state==='ACTIVE'&&live.captureExpiresAt>now,upload:current&&!task.staffSubmittedAt&&task.status!=='COMPLETED',uploadReviewOnly:current&&now>=uploadDeadline,reportIssue:false},
+ photoChecking:{available:photoQualified,...(!photoQualified?{reasonCode:"PHOTO_QUALIFICATION_UNAVAILABLE"}:{})},staffSubmittedAt:task.staffSubmittedAt,sequentialChecks:true,objectCaptureSeconds:resolvePolicy(task.policySnapshot).objectCaptureSeconds,allowedActions:{reworkSession:canCapture&&items.some(i=>i.requirements.some(r=>r.state==='CLEANING_REQUIRED')),createSession:canCapture&&!live,resumeSession:current&&!!live,renewSession:canCapture&&!!live,retakeSlots:canCapture&&live?.state==='ACTIVE'&&live.captureExpiresAt>now,upload:photoQualified&&current&&!task.staffSubmittedAt&&task.status!=='COMPLETED',uploadReviewOnly:current&&now>=uploadDeadline,reportIssue:false},
  sessions:sessions.map(s=>({...s,locationCheck:undefined,requiredContextKeys:requiredContextKeys(s.locationCheck),slots:s.slots.map(slot=>{const attempt=s.attempts.find(a=>a.id===slot.attemptId);return {...slot,state:attempt?.state??'AVAILABLE',...(attempt?staffAttemptResult({...attempt,contextKey:slot.contextKey},reviewableMedia(attempt.media?.privacyState)):{})};}),attempts:undefined}))});
 });
 // Explicit evaluation export, scoped to operational roles; no photos, GPS, tokens or AR maps.

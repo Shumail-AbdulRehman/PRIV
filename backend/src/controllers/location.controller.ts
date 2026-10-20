@@ -1,3 +1,4 @@
+import { withAccountCapacity } from '../services/accountAccess.service.js';
 import { Request, Response } from "express";
 import { managerTaskPresentation } from "../services/verification-v2/sequentialPolicy.js";
 import tzLookup from "tz-lookup";
@@ -8,7 +9,6 @@ import { ApiError } from "../utils/ApiError.js";
 import { addUtcDays, getZonedDayRange, getZonedDayRangeFromDateInput } from "../utils/dateTime.js";
 import { permanentlyDelete } from "../services/deletion.service.js";
 import { getScopedLocationIds, assertLocationAccess } from "../utils/scope.js";
-import { assertCompanyCanAdd } from "../services/subscription.service.js";
 
 const timezoneFromCoordinates = (latitude: string, longitude: string) => {
   try {
@@ -30,15 +30,13 @@ export const createLocation = async (req: Request, res: Response) => {
     throw new ApiError(400, "Validation failed", errors);
   }
 
-  await assertCompanyCanAdd(req.user!.companyId, "locations");
-
-  const location = await prisma.location.create({
+  const location = await withAccountCapacity(req.user!, 'locations', async tx => tx.location.create({
     data: {
       ...result.data,
       timezone: result.data.timezone ?? timezoneFromCoordinates(result.data.latitude, result.data.longitude),
       companyId: req.user!.companyId
     }
-  });
+  }));
 
   res.status(201).json(new ApiResponse(201, location, "Location created successfully"));
 };

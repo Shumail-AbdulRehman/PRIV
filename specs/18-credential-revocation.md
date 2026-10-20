@@ -4,7 +4,7 @@
 **Depends on:** Spec 04, Spec 17
 **Model:** Heavy — `claude-opus-5-5` · `gpt-6-astra` · `gemini-3.1-pro-preview`
 **Issue:** #26
-**Owns:** `backend/tests/credentialHandoff.integration.ts`, `backend/src/utils/auth.ts`, `backend/src/utils/auth.test.ts`, `backend/src/middlewares/auth.middleware.ts`, `backend/src/middlewares/auth.middleware.test.ts`, `backend/src/controllers/common.controller.ts`, `backend/src/controllers/common.session.test.ts`, `backend/src/controllers/companyRegistration.controller.ts`, `backend/src/routes/credentialHandoff.route.ts`, `backend/src/services/credentialSession.service.ts`, `backend/src/services/credentialSession.service.test.ts`, `specs/inventory/18-credential-revocation.md`
+**Owns:** `backend/tests/credentialHandoff.integration.ts`, `backend/src/utils/auth.ts`, `backend/src/utils/auth.test.ts`, `backend/src/controllers/companyRegistration.controller.ts`, `backend/src/services/credentialSession.service.ts`, `backend/src/services/credentialSession.service.test.ts`, `specs/inventory/18-credential-revocation.md`
 **Reuses:** `backend/src/middlewares/auth.middleware.ts`, `backend/src/utils/auth.ts`
 
 ## Goal
@@ -51,3 +51,5 @@ Integrate additive credential epoch through token issuing/verification seam via 
 - **2026-10-20** — Complete:72 targeted tests;819 whole backend tests/78 files on explicit isolated PostgreSQL (no skips), build/typechecks and real PostgreSQL handoff/password/logout old-access+refresh denial pass. No production mutation or IdP/provider claim. Legacy typed tokens are version0 only; deploy additive migration10 before this code.
 
 - **2026-10-20** — Serialized registration-test ownership transferred to16 for enrollment marker regression tests; all existing epoch/session assertions retained. No18 implementation repeated or weakened.
+
+- **2026-10-21** — Serialized composition ownership transferred to26: `backend/src/middlewares/auth.middleware.ts`, `backend/src/middlewares/auth.middleware.test.ts`, `backend/src/controllers/common.controller.ts`, `backend/src/controllers/common.session.test.ts`, `backend/src/routes/credentialHandoff.route.ts`. Prior completed behavior retained;26 consumes rather than reimplements this contract.

@@ -1,3 +1,4 @@
+import { jobAccountAllowed } from '../launchJobs.service.js';
 import {visibleRubricV1,viewSurfaces} from './rubrics.js';
 import type {Prisma} from '@prisma/client';
 import {prisma} from '../../prisma/prisma.js';
@@ -55,6 +56,7 @@ export async function createTaskInstanceWithSnapshotInTransaction(tx:Verificatio
   const existing=await tx.taskInstance.findUnique({where:{templateId_date:{templateId:template.id,date:window.date}}});
   if(existing)return {...existing,created:false};
   if(!template.isActive||!template.location.isActive||!template.location.company.isActive)return null;
+  if(!await jobAccountAllowed(template.location.companyId,'MANAGE_WORK',tx))return null;
   const common={templateId:template.id,title:template.title,locationId:template.locationId,staffId:template.staffId,...window};
   async function blockGeneration(reason:string) {
    await tx.taskTemplate.update({where:{id:template.id},data:{setupStatus:'NEEDS_REVIEW'}});

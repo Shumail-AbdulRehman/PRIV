@@ -2,7 +2,7 @@
 
 Source of truth for execution; latest user authorization supersedes old pending labels. Approved v5 preserved.
 
-**Active continuation after spec21:** decision00 and26 of41 execution/gate units Done (15 remain). Next selected eligible unit26 consumes all completed dependencies. User requests continued completion without routine handoff stops. Review remains stacked draft PRs; Done is local verification, not merge, route composition or external release qualification.
+**Active continuation after spec26:** decision00 and27 of41 execution/gate units Done (14 remain). Execution01–27 are complete; next selected eligible unit28 consumes completed12/27. User requests continued completion without routine handoff stops. Review remains stacked draft PRs; Done is local verification, not merge, route composition or external release qualification.
 
 | # | Spec | Status | Depends on | Model | Issue | Notes |
 |---|---|---|---|---|---|---|
@@ -32,7 +32,7 @@ Source of truth for execution; latest user authorization supersedes old pending 
 | 23 | [Immutable attendance annotations API](23-attendance-annotations-api.md) | Done | 10 | Standard | #43 | 55 focused/1170 backend+isolated PG; see Log |
 | 24 | [Platform company operations API](24-platform-company-api.md) | Done | 19, 15 | Heavy | #39 | 54 focused/1077 full backend+isolated PG; see Log |
 | 25 | [Redacted diagnostics and inquiry operations](25-platform-support-api.md) | Done | 19, 24 | Standard | #45 | 66 focused/1236 backend+isolated PG; see Log |
-| 26 | [Wire launch backend routes and policies](26-launch-api-composition.md) | Not started | 07, 11, 12, 16, 18, 20, 21, 22, 23, 24, 25 | Heavy | — | See spec |
+| 26 | [Wire launch backend routes and policies](26-launch-api-composition.md) | Done | 07, 11, 12, 14, 15, 16, 17, 18, 20, 21, 22, 23, 24, 25 | Heavy | #53 | 215 focused/1413 backend + SQL; see Log |
 | 27 | [Approved v5 shared shell and route composition](27-workspace-shell.md) | Done | 06 | Heavy | #35 | 57+40 tests/build/lint; see Log |
 | 28 | [Real derived setup and operational dashboard](28-setup-ui.md) | Not started | 12, 27 | Standard | — | See spec |
 | 29 | [Attendance exception context UI](29-attendance-context-ui.md) | Not started | 23, 27, 08 | Standard | — | See spec |
@@ -93,3 +93,5 @@ Source of truth for execution; latest user authorization supersedes old pending 
 - **2026-10-20** — Spec20 complete:41 policy tests and affected regressions; full backend1340/89 files/zero skips, build/typechecks and isolated SQL immutable-generation/waiver/receipt proof pass. Strict current failed-view proof on retake/rework/QR renewal and context, legacy waiver generation/actor proof, all remaining mandatory receipts/assignment binding.25 of41 execution/gates Done;16 remain. Continue21;26 waits21 only. No production/provider/photo mutation or routine stop.
 
 - **2026-10-20** — Spec21 safe-disabled implementation complete:44 focused/1360 whole backend tests (90 files, zero skips), tsc/build pass. Active categorical adapter has no privacy/identity screening; new direct/buffered processing now503 before AI/storage while reconciliation/retry preserved. No synthetic qualification or invented privacy policy. Actual empirical consented data/privacy qualification remains release gate39/40.26 of41 units Done;15 remain; next26 now eligible. Continue without routine stop.
+
+- **2026-10-21** — Spec26 complete:215 focused/1413 whole backend tests (92 files, zero skips), TypeScript/build and isolated actual controller/grant/expiry/capacity/audit rollback proof pass;20 SQL receipt/replacement regression passes. Explicit audiences mounted; suspended operations denied while active own security and owner billing retained. New work/capacity/jobs gated; exact saved grants permit prior-start completion only.21 safe-disabled availability reflected truthfully. Original dirty work preserved.27 of41 execution/gates Done (01–27),14 remain. Next28; continue automatically without routine stop. Real provider/privacy/device/release gates remain external.

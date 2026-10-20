@@ -1,3 +1,4 @@
+vi.mock('../launchJobs.service.js',()=>({jobAccountAllowed:vi.fn(async()=>true)}));
 import {afterEach,it,expect,vi} from 'vitest';
 vi.mock('../../prisma/prisma.js',()=>({prisma:{$transaction:vi.fn()}}));
 vi.mock('./exception.service.js',()=>({raiseIssue:vi.fn()}));

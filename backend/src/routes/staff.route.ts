@@ -1,3 +1,4 @@
+import { accountAccess } from '../middlewares/accountAccess.middleware.js';
 import { getStaffSelfProfile } from "../controllers/staffSelf.controller.js";
 import { Router } from "express";
 import {
@@ -39,7 +40,7 @@ router.get(
 );
 
 router.get("/:id", verifyJwt, authorize("ADMIN", "MANAGER"), getStaffById);
-router.delete("/:id", verifyJwt, authorize("ADMIN", "MANAGER"), deleteStaff);
-router.patch("/:id", verifyJwt, authorize("ADMIN", "MANAGER"), editStaff);
+router.delete("/:id", verifyJwt, authorize("ADMIN", "MANAGER"), accountAccess('MANAGE_WORK'), deleteStaff);
+router.patch("/:id", verifyJwt, authorize("ADMIN", "MANAGER"), accountAccess('MANAGE_WORK'), editStaff);
 
 export default router;

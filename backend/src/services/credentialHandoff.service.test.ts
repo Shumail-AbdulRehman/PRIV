@@ -50,7 +50,7 @@ describe("assisted staff access handoff", () => {
   });
   it("checks the issuer's own current password and manager's current site scope", async () => {
     await issueStaffHandoff({ ...actor, role: "MANAGER" }, 7, { currentPassword: "correct-current", reason: "Reset requested" }, undefined, now);
-    expect(mock.managerFind).toHaveBeenCalledWith({ where: { id: 1, companyId: 42, role: "MANAGER", isActive: true, company: { isActive: true } } });
+    expect(mock.managerFind).toHaveBeenCalledWith({ where: { id: 1, companyId: 42, role: "MANAGER", isActive: true, company: { isActive: true, operationalStatus: "ACTIVE" } } });
     expect(mock.location).toHaveBeenCalledWith({ ...actor, role: "MANAGER" }, 20, tx);
   });
   it("denies cross-tenant/staff/owner targeting and sibling-site reset without changing credentials", async () => {

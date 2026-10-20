@@ -1,3 +1,4 @@
+vi.mock('../services/launchJobs.service.js',()=>({jobAccountAllowed:vi.fn(async()=>true)}));
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 const m = vi.hoisted(() => ({ staff: vi.fn(), find: vi.fn(), update: vi.fn(), create: vi.fn(), lock: vi.fn() }));
 vi.mock('../prisma/prisma.js', () => ({ prisma: { $transaction: (run: (tx: unknown) => unknown) => run({ $queryRaw: m.lock,
@@ -38,6 +39,6 @@ describe('current unrecorded attendance preparation', () => {
         await syncTodaysOpenAttendanceWindow({ staffId: 7, locationId: 20, shiftStart: null, shiftEnd: null });
         expect(m.lock).toHaveBeenCalledBefore(m.staff);
         expect(m.create.mock.calls[0]![0].data[0].locationId).toBe(30);
-        expect(m.staff).toHaveBeenCalledWith(expect.objectContaining({ where: { id: 7, isActive: true, company: { isActive: true } } }));
+        expect(m.staff).toHaveBeenCalledWith(expect.objectContaining({ where: { id: 7, isActive: true, company: { isActive: true, operationalStatus: "ACTIVE" } } }));
     });
 });

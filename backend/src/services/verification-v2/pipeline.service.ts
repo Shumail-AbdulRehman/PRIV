@@ -1,3 +1,4 @@
+import { jobAccountAllowed } from '../launchJobs.service.js';
 import { processBufferedPhoto } from "./bufferedPipeline.service.js";
 import {sequentialCapture} from './sequentialPolicy.js';
 import {ClefPhotoProvider,photoEvaluatorVersion,type PhotoVerificationProvider,type PhotoAssessment} from './clefPhoto.provider.js';
@@ -22,6 +23,7 @@ import {resolvePolicy,requirementDecision} from './verificationPolicy.service.js
 import {applyDecision} from './photoDecision.service.js';
 export {applyDecision,contextNeedsReview} from './photoDecision.service.js';
 export async function processVerificationJob(job:VerificationJob,provider:ImageAssessmentProvider=new ClefImageProvider(),read:typeof privateImageBytes=privateImageBytes,cleanlinessProvider:CleanlinessProvider=new ClefCleanlinessProvider(),photoProvider:PhotoVerificationProvider=new ClefPhotoProvider()){
+ if(!await jobAccountAllowed(job.companyId,'READ_OPERATIONAL'))return false;
  if(job.stage==='PHOTO')return processBufferedPhoto(job);
  const stageStarted=Date.now();const measurements:Record<string,unknown>={...jobTiming(job.result),stageStartedAt:new Date().toISOString()};
  const timed=async<T>(name:string,work:()=>Promise<T>)=>{const start=Date.now();measurements[name+'StartedAt']=new Date(start).toISOString();verificationEvent(name.toUpperCase()+'_STARTED',{attemptId:job.attemptId,jobId:job.id,stage:job.stage});try{return await work();}finally{measurements[name+'Ms']=Date.now()-start;measurements[name+'CompletedAt']=new Date().toISOString();verificationEvent(name.toUpperCase()+'_COMPLETED',{attemptId:job.attemptId,jobId:job.id,stage:job.stage},{durationMs:measurements[name+'Ms']});}};

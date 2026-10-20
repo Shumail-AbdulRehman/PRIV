@@ -1,6 +1,6 @@
 import { Router } from 'express';
 import { ownerIdentity } from '../services/ownerIdentity.service.js';
-import { verifyJwt } from '../middlewares/auth.middleware.js';
+import { verifyOwnSecurityJwt } from '../middlewares/auth.middleware.js';
 import { ApiError } from '../utils/ApiError.js';
 import { ApiResponse } from '../utils/ApiResponse.js';
 import { getCookieOptions } from '../utils/cookies.js';
@@ -10,11 +10,11 @@ router.use((req, res, next) => {
     if (req.operator) throw new ApiError(401, 'Tenant identity required'); next();
 });
 const clientKey = (req: import('express').Request) => req.ip ?? req.socket.remoteAddress ?? 'unknown';
-router.get('/status', verifyJwt, async (req, res) => { res.json(new ApiResponse(200, await ownerIdentity.status(req.user!), 'Owner identity status fetched')); });
+router.get('/status', verifyOwnSecurityJwt, async (req, res) => { res.json(new ApiResponse(200, await ownerIdentity.status(req.user!), 'Owner identity status fetched')); });
 router.post('/recovery/request', async (req, res) => {
     res.status(202).json(new ApiResponse(202, await ownerIdentity.requestRecovery(req.body, clientKey(req)), 'Request accepted for processing. Delivery is not confirmed.'));
 });
-router.post('/email/request', verifyJwt, async (req, res) => {
+router.post('/email/request', verifyOwnSecurityJwt, async (req, res) => {
     res.status(202).json(new ApiResponse(202, await ownerIdentity.requestVerification(req.user!, req.body, clientKey(req)), 'Request accepted for processing. Delivery is not confirmed.'));
 });
 router.post('/email/complete', async (req, res) => {

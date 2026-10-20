@@ -4,7 +4,7 @@
 **Depends on:** Spec 00
 **Model:** Heavy — `claude-opus-5-5` · `gpt-6-astra` · `gemini-3.1-pro-preview`
 **Issue:** #1
-**Owns:** `backend/src/controllers/staffSelf.controller.ts`, `backend/src/controllers/selfAuthorization.test.ts`, `backend/src/routes/staff.route.ts`, `specs/inventory/01-actor-self-authorization.md`
+**Owns:** `backend/src/controllers/staffSelf.controller.ts`, `backend/src/controllers/selfAuthorization.test.ts`, `specs/inventory/01-actor-self-authorization.md`
 **Reuses:** `backend/src/controllers/staff.controller.ts`, `backend/src/controllers/attendance.controller.ts`, `backend/src/middlewares/authorize.middleware.ts`
 
 ## Goal
@@ -50,3 +50,5 @@ Move staff-only self reads to focused controllers. Require STAFF at route and co
 - **2026-10-20** — Serialized storage-boundary integration transfers current edit ownership of `backend/src/controllers/attendanceSelf.controller.ts` to spec05; earlier authorization checks remain mandatory.
 - **2026-10-20** — Current attendance router ownership transfers to spec05 to mount photo routes; STAFF self gate preserved.
 - **2026-10-20** — Scoped commit published as draft https://github.com/Shumail-AbdulRehman/PRIV/pull/7; stacked on previous spec branch, not merged. Unrelated pre-existing changes excluded.
+
+- **2026-10-21** — Serialized composition ownership transferred to26: `backend/src/routes/staff.route.ts`. Prior completed behavior retained;26 consumes rather than reimplements this contract.

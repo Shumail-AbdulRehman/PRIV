@@ -1,3 +1,4 @@
+import { assertAccountAction, assertAccountCompletion, recordWorkEntitlement } from './accountAccess.service.js';
 import type { Prisma } from "@prisma/client";
 import { prisma } from "../prisma/prisma.js";
 import { ApiError } from "../utils/ApiError.js";
@@ -7,7 +8,7 @@ import { storeAttendancePhoto } from "./attendanceMedia.service.js";
 import type { VerificationActor } from "./verification-v2/authorization.service.js";
 import type { CheckOutInput } from "../validations/attendance.validation.js";
 
-type Db = Pick<typeof prisma, "staff" | "attendance" | "deletedMedia" | "$transaction">;
+type Db = typeof prisma;
 const OPEN_STATUSES = ["CHECKED_IN", "LATE", "MISSED_CHECKOUT"] as const;
 
 /** Bind each calendar interval to its owning site; never union unrelated zones. */
@@ -66,6 +67,9 @@ export async function recordAttendance(
   const allowedRadius = location.radiusMeters + Math.min(input.accuracy ?? 0, 200);
   if (!Number.isFinite(distance) || distance > allowedRadius)
     throw new ApiError(400, "You are outside your site's attendance area. Move closer and try again.");
+  // Authorize before provider storage, then recheck in the winning write transaction.
+  if(kind==='check-in') await assertAccountAction(actor,'START_WORK',db,now);
+  else await assertAccountCompletion(actor,{kind:'attendance',id:row.id},db,now);
   const reference = await store(bytes, actor.companyId, actor.id);
   const late = +now > +row.expectedStart + 15 * 60_000;
   const data: Prisma.AttendanceUpdateManyMutationInput = kind === "check-in" ? {
@@ -78,11 +82,15 @@ export async function recordAttendance(
   const written = await db.$transaction(async tx => {
     // Share the workforce transfer lock only during the write, never during upload.
     await tx.$queryRaw`SELECT id FROM "Staff" WHERE id=${actor.id} FOR UPDATE`;
-    return tx.attendance.updateMany({
+    if(kind==='check-in') await assertAccountAction(actor,'START_WORK',tx,now);
+    else await assertAccountCompletion(actor,{kind:'attendance',id:row.id},tx,now);
+    const changed = await tx.attendance.updateMany({
     where: { ...boundary, id: row.id, status: row.status, expectedStart: row.expectedStart, expectedEnd: row.expectedEnd,
       checkOutTime: null, ...(kind === "check-in" ? { checkInTime: null } : { checkInTime: row.checkInTime }) },
     data,
     });
+    if(changed.count && kind==='check-in') await recordWorkEntitlement(actor,{kind:'attendance',id:row.id},tx,now);
+    return changed;
   });
   // Only a confirmed zero-row update proves this new upload is unused. Do not
   // delete uploads after an ambiguous write failure; the record may have saved.

@@ -4,7 +4,7 @@
 **Depends on:** Spec 14
 **Model:** Heavy — `claude-opus-5-5` · `gpt-6-astra` · `gemini-3.1-pro-preview`
 **Issue:** #37
-**Owns:** `backend/src/services/paddleFulfillment.service.ts`, `backend/src/services/paddleFulfillment.service.test.ts`, `backend/src/services/subscription.service.ts`, `backend/src/controllers/subscription.controller.ts`, `backend/src/routes/subscription.route.ts`, `backend/src/services/accountAccess.service.ts`, `backend/src/services/accountAccess.service.test.ts`, `backend/tests/accountCapacity.integration.ts`, `backend/tests/billingLifecycle.integration.ts`, `docs/implementation/BILLING.md`, `backend/src/services/billingLifecycle.service.ts`, `backend/src/services/billingLifecycle.service.test.ts`, `backend/src/routes/billingLifecycle.route.ts`, `backend/src/config/paddle.ts`, `specs/inventory/15-billing-lifecycle.md`
+**Owns:** `backend/src/services/paddleFulfillment.service.ts`, `backend/src/services/paddleFulfillment.service.test.ts`, `backend/src/services/subscription.service.ts`, `backend/src/controllers/subscription.controller.ts`, `backend/tests/accountCapacity.integration.ts`, `backend/tests/billingLifecycle.integration.ts`, `docs/implementation/BILLING.md`, `backend/src/services/billingLifecycle.service.ts`, `backend/src/services/billingLifecycle.service.test.ts`, `backend/src/config/paddle.ts`, `specs/inventory/15-billing-lifecycle.md`
 **Reuses:** `backend/src/services/paddleFulfillment.service.ts`, `backend/src/controllers/paddleWebhook.controller.ts`
 
 ## Goal
@@ -52,3 +52,7 @@ Reuse provider mirrors/dedup and customer links. Prevent repeat checkout for lin
 - **2026-10-20** — Canonical customer linkage replaces email/client companyId. Environment catalog replaces hardcoded price IDs. Reservation holds ambiguous creates; provider-confirmed canceled drafts may retry, paid pending-sync cannot. Metadata/checkout/catalog/portal mounted under /subscription/manage, old portal delegates; browser purchase32 and restricted-company policy26 remain. Actual merchant/catalog/terms/credentials/sandbox remain external disabled boundary, documented BILLING.md.
 
 - **2026-10-20 — Final handoff.** Commit1ea9ae8 pushed on implementation/spec-15-billing-lifecycle; draft [PR38](https://github.com/Shumail-AbdulRehman/PRIV/pull/38) closes [issue37](https://github.com/Shumail-AbdulRehman/PRIV/issues/37) only on eventual merge. TypeScript/project and standalone integrations reconfirmed; isolatedPG billing rerun passes. Complete file/check/blocker/next-unit record in SESSION_HANDOFF.md. User requests stop after15;24 remains Not started. No PR merged or next-spec implementation begun.
+
+- **2026-10-21** — Serialized composition ownership transferred to26: `backend/src/routes/subscription.route.ts`, `backend/src/routes/billingLifecycle.route.ts`. Prior completed behavior retained;26 consumes rather than reimplements this contract.
+
+- **2026-10-21** — Serialized account action/route wiring ownership transferred to26; ancestor behavior preserved.

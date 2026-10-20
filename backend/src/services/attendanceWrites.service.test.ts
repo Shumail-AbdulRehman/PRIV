@@ -1,3 +1,4 @@
+vi.mock('./accountAccess.service.js',()=>({assertAccountAction:vi.fn(async()=>({})),assertAccountCompletion:vi.fn(async()=>({})),recordWorkEntitlement:vi.fn(async()=>{})}));
 import { beforeEach, describe, expect, it, vi } from "vitest";
 const mock = vi.hoisted(() => ({ staff: vi.fn(), find: vi.fn(), update: vi.fn(), queue: vi.fn(), store: vi.fn(), lock: vi.fn() }));
 vi.mock("../prisma/prisma.js", () => ({ prisma: {

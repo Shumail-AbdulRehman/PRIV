@@ -66,7 +66,7 @@ export async function collectAttendanceReminders(now = new Date()) {
         id: { gt: cursor },
         isActive: true,
         locationId: { not: null },
-        company: { isActive: true },
+        company: { isActive: true, operationalStatus: "ACTIVE" },
         location: { isActive: true },
       },
       orderBy: { id: "asc" },

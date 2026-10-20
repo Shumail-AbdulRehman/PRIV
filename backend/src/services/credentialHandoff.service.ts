@@ -14,10 +14,10 @@ export const credentialTokenHash = (value: string) => createHash("sha256").updat
 type Db = Pick<typeof prisma, "$transaction">;
 type Transaction = Parameters<Parameters<typeof prisma.$transaction>[0]>[0];
 
-async function currentPrincipal(tx: Transaction, actor: VerificationActor, currentPassword: string) {
+async function currentPrincipal(tx: Transaction, actor: VerificationActor, currentPassword: string, ownSecurity = false) {
   const user = actor.role === "STAFF"
-    ? await tx.staff.findFirst({ where: { id: actor.id, companyId: actor.companyId, role: "STAFF", isActive: true, company: { isActive: true } } })
-    : await tx.manager.findFirst({ where: { id: actor.id, companyId: actor.companyId, role: actor.role, isActive: true, company: { isActive: true } } });
+    ? await tx.staff.findFirst({ where: { id: actor.id, companyId: actor.companyId, role: "STAFF", isActive: true, ...(!ownSecurity ? {company:{isActive:true,operationalStatus:"ACTIVE" as const}} : {}) } })
+    : await tx.manager.findFirst({ where: { id: actor.id, companyId: actor.companyId, role: actor.role, isActive: true, ...(!ownSecurity ? {company: { isActive: true, operationalStatus: "ACTIVE" as const }} : {}) } });
   if (!user || !await isPasswordCorrect(currentPassword, user.password)) throw new ApiError(403, "Current password is incorrect or account access changed");
   return user;
 }
@@ -35,7 +35,7 @@ export async function changeOwnPassword(actor: VerificationActor, raw: unknown, 
   const input = parsed.data;
   return db.$transaction(async tx => {
     await lockPrincipal(tx, actor);
-    const user = await currentPrincipal(tx, actor, input.currentPassword);
+    const user = await currentPrincipal(tx, actor, input.currentPassword, true);
     if (await isPasswordCorrect(input.newPassword, user.password)) throw new ApiError(400, "Choose a different new password");
     const data = { password: input.newPassword, credentialVersion: { increment: 1 }, refreshToken: null, mustChangePassword: false };
     if (actor.role === "STAFF") {

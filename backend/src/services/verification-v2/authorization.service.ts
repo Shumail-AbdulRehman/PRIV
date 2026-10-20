@@ -1,3 +1,4 @@
+import { assertAccountAction, assertAccountCompletion } from '../accountAccess.service.js';
 import type { Prisma } from '@prisma/client';
 import { prisma } from '../../prisma/prisma.js';
 import { ApiError } from '../../utils/ApiError.js';
@@ -9,8 +10,8 @@ export function requireOperationalRole(actor:VerificationActor) {
 }
 export async function requireActiveActor(actor:VerificationActor,db:Db=defaultDb) {
  const user = actor.role==='STAFF'
-  ? await db.staff.findFirst({where:{id:actor.id,companyId:actor.companyId,role:'STAFF',isActive:true,company:{isActive:true}}})
-  : await db.manager.findFirst({where:{id:actor.id,companyId:actor.companyId,role:actor.role,isActive:true,company:{isActive:true}}});
+  ? await db.staff.findFirst({where:{id:actor.id,companyId:actor.companyId,role:'STAFF',isActive:true,company:{isActive:true,operationalStatus:"ACTIVE"}}})
+  : await db.manager.findFirst({where:{id:actor.id,companyId:actor.companyId,role:actor.role,isActive:true,company:{isActive:true,operationalStatus:"ACTIVE"}}});
  if (!user) throw new ApiError(403,'Active account required');
  return user;
 }
@@ -40,6 +41,10 @@ export async function requireTaskAccess(actor:VerificationActor,id:number,option
   if(options.staffMutation&&!task.location.isActive)throw new ApiError(403,'Location is inactive');
   if(!task.isActive||task.staffId!==actor.id||!task.assignments.some(a=>a.staffId===actor.id&&((a.isCurrent!==false&&!['CANCELLED','REASSIGNED'].includes(a.status))||(!options.staffMutation&&task.status==='COMPLETED'&&a.status==='COMPLETED')))) throw new ApiError(403,'Current active assignment required');
  } else if(actor.role==='MANAGER'&&!await db.managerLocation.findUnique({where:{managerId_locationId:{managerId:actor.id,locationId:task.locationId}}}))throw new ApiError(403,'Location access denied');
+ if(options.staffMutation) {
+  if(task.status==='PENDING') await assertAccountAction(actor,'START_WORK',db);
+  else await assertAccountCompletion(actor,{kind:'task',id:task.id},db);
+ }
  return task;
 }
 export async function requireAssignmentAccess(actor:VerificationActor,taskId:number,assignmentId:number,epoch:number,db:Db=defaultDb) {

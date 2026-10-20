@@ -4,7 +4,7 @@
 **Depends on:** Spec 10
 **Model:** Standard — `claude-sonnet-5-5` · `gpt-6.1-sol` · `gemini-3.8-flash`
 **Issue:** #43
-**Owns:** `backend/src/services/attendanceAnnotation.service.ts`, `backend/src/services/attendanceAnnotation.service.test.ts`, `backend/src/routes/attendanceAnnotation.route.ts`, `specs/inventory/23-attendance-annotations-api.md`, `backend/tests/attendanceAnnotation.integration.ts`
+**Owns:** `backend/src/services/attendanceAnnotation.service.ts`, `backend/src/services/attendanceAnnotation.service.test.ts`, `specs/inventory/23-attendance-annotations-api.md`, `backend/tests/attendanceAnnotation.integration.ts`
 **Reuses:** `backend/src/utils/scope.ts`, `backend/src/services/auditLog.service.ts`
 
 ## Goal
@@ -50,3 +50,5 @@ Append reason/note, authenticated actor/time and acknowledgement to scoped atten
 - **2026-10-20** — Completed55 focused tests; full backend1170 tests/86 files/zero skips using explicit isolated DATABASE_URL/LAUNCH_PERSISTENCE_TEST_DATABASE_URL. Backend tsc --noEmit/build and standalone integration tsc pass. Guarded isolated PostgreSQL proof passes: exact concurrent retry one row/audit, cross-record request conflict, transferred staff own historical notes, manager historical site/current assignment and revocation denial, tenant/parent/cursor denial, actual chronological paging, audit rollback, SQL update/delete denial, unchanged original times/photos/status. Initial integration fixture status corrected to existing CHECKED_IN enum before successful proof; no application/schema correction needed. Logs `/tmp/hygene-spec23-tests.log`, `/tmp/hygene-spec23-build.log`, `/tmp/hygene-spec23-integration.log`. No migration/UI/dependency changes; route26/UI29/E2E40 remain separate. Issue https://github.com/Shumail-AbdulRehman/PRIV/issues/43; draft PR publication recorded after creation. Next selected25 (dependency19 Done);29 newly eligible.
 
 - **2026-10-20** — Committed207dad5 and pushed; stacked draft PR https://github.com/Shumail-AbdulRehman/PRIV/pull/44 (base22/PR42). Issue43 remains open for human review/merge. Final focused55 pass, validator zero errors/two documented warnings. Git status matches original preserved dirty/untracked list. Next25 unstarted.
+
+- **2026-10-21** — Serialized account action/route wiring ownership transferred to26; ancestor behavior preserved.

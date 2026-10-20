@@ -4,7 +4,7 @@
 **Depends on:** Spec 00
 **Model:** Standard — `claude-sonnet-5-5` · `gpt-6.1-sol` · `gemini-3.8-flash`
 **Issue:** #20
-**Owns:** `backend/src/config/runtimeSecurity.test.ts`, `backend/src/routes/location.route.ts`, `backend/src/services/taskReadiness.service.ts`, `backend/src/services/taskReadiness.service.test.ts`, `backend/src/routes/taskReadiness.route.ts`, `specs/inventory/12-task-readiness.md`
+**Owns:** `backend/src/config/runtimeSecurity.test.ts`, `backend/src/services/taskReadiness.service.ts`, `backend/src/services/taskReadiness.service.test.ts`, `backend/src/routes/taskReadiness.route.ts`, `specs/inventory/12-task-readiness.md`
 **Reuses:** `backend/src/services/templateAssignment.service.ts`, `backend/src/services/schedulePreview.service.ts`, `backend/src/cron/startupCron.ts`
 
 ## Goal
@@ -51,3 +51,5 @@ Expose derived scoped setup/task eligibility using existing DAILY/ONCE engine. C
 - **2026-10-20** — First full suite had779/780 passing; cold actual-app-import subprocess exceeded10s while build/test processes contended. Preserve same security assertions and bound subprocess to30s/test40s; no auth/config behavior weakened. All75 test files rerun before completion.
 - **2026-10-20** — GET/api/location/readiness mounted before:id; current manager/company scope,20-default/50-max cursor page, full-scope site total, group counts from real staff/areas/configured schedules/site-local tasks. Derived checklist never invokes scheduler/assignment mutations; no-task-today remains separate from setup readiness.14 new tests +19 existing schedule/assignment/window tests (33 targeted) pass; full backend780/780 (75 files) after bounded cold-import allowance; backend build passes. Existing generator idempotency and database epoch triggers preserved, real DB trigger/concurrency proof remains40. No external DB/provider/device exercised.
 - **2026-10-20** — Scoped draft https://github.com/Shumail-AbdulRehman/PRIV/pull/23 published, stacked on07; no merge.
+
+- **2026-10-21** — Serialized composition ownership transferred to26: `backend/src/routes/location.route.ts`. Prior completed behavior retained;26 consumes rather than reimplements this contract.

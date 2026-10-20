@@ -1,3 +1,4 @@
+import { accountAccess } from '../middlewares/accountAccess.middleware.js';
 import {closeReview, reviewClosureActions} from '../services/verification-v2/reviewClosure.service.js';
 import { reviewEvidenceSummary } from '../services/verification-v2/reviewEvidenceSummary.js';
 import { reviewableMedia } from "../services/verification-v2/evidenceBuffer.js";
@@ -44,7 +45,7 @@ router.post("/task-instance/:taskId/verification-issues", async (req) => {
  await requireTaskAccess(req.user!,idSchema.parse(req.params.taskId),{staffMutation:true});
  throw new ApiError(410,"Complete and upload all required photos. Staff exception requests are no longer available.",[{code:'REQUIRED_PHOTOS_ONLY'}]);
 });
-router.post('/verification-exceptions/:id/close', async(req,res) => {
+router.post('/verification-exceptions/:id/close', accountAccess('MANAGE_WORK'), async(req,res) => {
   res.json({success:true,data:await closeReview(req.user!,idSchema.parse(req.params.id),req.body)});
 });
 router.get("/verification-exceptions/:id/next", async (req, res) =>
@@ -623,7 +624,7 @@ router.get("/verification-exceptions/:id", async (req, res) => {
     },
   });
 });
-router.post("/verification-exceptions/:id/actions", async (req, res) =>
+router.post("/verification-exceptions/:id/actions", accountAccess('MANAGE_WORK'), async (req, res) =>
   res.json({
     success: true,
     data: await managerDecision(
@@ -633,7 +634,7 @@ router.post("/verification-exceptions/:id/actions", async (req, res) =>
     ),
   }),
 );
-router.post("/verification-exceptions/:id/read", async (req, res) => {
+router.post("/verification-exceptions/:id/read", accountAccess('MANAGE_WORK'), async (req, res) => {
   const receipt = await prisma.$transaction(async (tx) => {
     const id = idSchema.parse(req.params.id);
     await caseAccess(req.user!, id, tx);

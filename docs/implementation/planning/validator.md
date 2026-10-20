@@ -15,18 +15,14 @@ Parallel schedule  (10 waves · widest 9 · 42 specs)
 00-launch-decisions.md
   WARN   Status is 'Done' but no GitHub issue is recorded
 
-21-photo-qualification.md
-  WARN   creates 'backend/src/services/verification-v2/bufferedPipeline.service.ts' but no other spec mentions it — check it is not an endpoint or component with zero callers
-  WARN   creates 'backend/src/services/verification-v2/directPhoto.service.ts' but no other spec mentions it — check it is not an endpoint or component with zero callers
-
 25-platform-support-api.md
   WARN   Depends on 19 is already implied through another dependency
 
 26-launch-api-composition.md
-  WARN   Depends on 24 is already implied through another dependency
+  WARN   Depends on 14, 15, 17, 24 is already implied through another dependency
 
 41-verification-pass.md
   WARN   creates 'docs/implementation/VERIFICATION.md' but no other spec mentions it — check it is not an endpoint or component with zero callers
 
-42 specs · 0 error(s) · 6 warning(s)
+42 specs · 0 error(s) · 4 warning(s)
 Warnings are not blocking — justify each one in README.md under 'Known gaps', or fix it.
