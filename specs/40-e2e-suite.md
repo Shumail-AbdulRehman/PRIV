@@ -39,6 +39,8 @@ Photo vocabulary integration: `frontend/src/i18n/attendancePhotoTranslations.ts`
 
 Registration caller surfaces: `backend/src/controllers/manager.controller.ts` delegates signup; `frontend/src/pages/Signup/SignUpPage.tsx` handles account-created/session-failed outcome.
 
+Media migration integration: `backend/src/services/attendanceMediaTransition.service.ts`, `backend/src/services/attendancePhotoReference.ts` and `backend/src/services/deletedMedia.service.ts` are consumed by the isolated copy/replay/reference-cleanup flow.
+
 ### Runtime coverage surfaces
 
 These owned surfaces are consumed by the flow table above or the clean verification gate; tests must exercise their actual caller integration.

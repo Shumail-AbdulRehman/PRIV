@@ -6,14 +6,8 @@ import { ApiError } from "../utils/ApiError.js";
 import { requireActiveActor, requireLocationAccess, type VerificationActor } from "./verification-v2/authorization.service.js";
 
 const MAX_BYTES = 5 * 1024 * 1024;
-const REFERENCE = /^attendance:v1:([1-9]\d*):([1-9]\d*):([a-f0-9]{8}-[a-f0-9]{4}-[a-f0-9]{4}-[a-f0-9]{4}-[a-f0-9]{12})$/;
-export function parseAttendancePhoto(reference: string | null | undefined) {
-  const match = REFERENCE.exec(reference ?? "");
-  if (!match) return null;
-  const companyId = Number(match[1]), staffId = Number(match[2]);
-  if (!Number.isSafeInteger(companyId) || !Number.isSafeInteger(staffId)) return null;
-  return { companyId, staffId, publicId: `attendance/${companyId}/${staffId}/${match[3]}` };
-}
+export { parseAttendancePhoto } from "./attendancePhotoReference.js";
+import { parseAttendancePhoto } from "./attendancePhotoReference.js";
 
 /** Keep legacy public URLs and provider references out of every attendance DTO. */
 export function attendancePhotoPresentation<T extends { id: number; checkInImage?: string | null; checkOutImage?: string | null }>(row: T) {

@@ -7,7 +7,7 @@ const mocks = vi.hoisted(() => ({
   destroy: vi.fn(),
 }));
 vi.mock("../utils/cloudinary.js", () => ({}));
-vi.mock("./attendanceMedia.service.js", () => ({
+vi.mock("./attendancePhotoReference.js", () => ({
   parseAttendancePhoto: (value: string) => value === "attendance:v1:42:7:12345678-1234-4321-aaaa-123456789abc"
     ? { companyId: 42, staffId: 7, publicId: "attendance/42/7/12345678-1234-4321-aaaa-123456789abc" } : null,
 }));

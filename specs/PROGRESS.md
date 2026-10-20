@@ -11,7 +11,7 @@ Source of truth for execution; latest user authorization supersedes old pending 
 | 04 | [P0 atomic role-safe refresh sessions](04-refresh-session-safety.md) | Done | 00 | Heavy | #4 | 667 tests; see spec 04 Log |
 | 05 | [P0 private attendance media boundary](05-attendance-private-media.md) | Done | 01, 02 | Heavy | #5 | 687 tests; see spec 05 Log |
 | 06 | [Web component test harness](06-web-unit-harness.md) | Done | 00 | Standard | #6 | 57+2 tests; see spec 06 Log |
-| 07 | [Legacy attendance asset transition tooling](07-legacy-media-transition.md) | Not started | 05 | Heavy | — | See spec |
+| 07 | [Legacy attendance asset transition tooling](07-legacy-media-transition.md) | Done | 05 | Heavy | #18 | 766 tests; tooling only; see Log |
 | 08 | [Protected attendance image presentation](08-attendance-media-ui.md) | Done | 05, 06 | Standard | #12 | 57+15 tests; see spec 08 Log |
 | 09 | [Attendance write and calendar correctness](09-attendance-reliability.md) | Done | 05 | Heavy | #14 | 726 tests; see spec 09 Log |
 | 10 | [Additive launch lifecycle persistence](10-launch-persistence.md) | Not started | 00 | Heavy | — | See spec |
@@ -59,3 +59,4 @@ Source of truth for execution; latest user authorization supersedes old pending 
 - **2026-10-20** — Spec08 complete: real protected attendance/staff photo UI;13 targeted/57+15 full web tests, build/lint pass; four EN/UR rendered fixtures checked. Seven execution units complete01–06,08. Next09 attendance writes;07 legacy transition remains independent.
 - **2026-10-20** — Spec09 complete:45 targeted/726 backend tests +build. Protected photo React draftPR15 published. Next13 atomic signup;07 isolated legacy transition still pending.
 - **2026-10-20** — Spec13 complete locally: atomic signup/session outcome +React caller;13 backend/3 hook tests;739 backend +57+18 web/builds pass. Next07 safe legacy media tooling, then additive lifecycle10 or task readiness12.
+- **2026-10-20** — Spec07 local tooling complete:27 new tests,55 targeted,766 whole backend/build and script type check; offline CLI dry-run passed. No real assets read/migrated; public-cache/restore/live qualification remain release gates. Ten execution units complete01–09,13. Next12 readiness, then10 additive persistence.

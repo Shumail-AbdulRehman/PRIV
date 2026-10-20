@@ -1,4 +1,4 @@
-import { parseAttendancePhoto } from "./attendanceMedia.service.js";
+import { parseAttendancePhoto } from "./attendancePhotoReference.js";
 import { v2 as cloudinary } from "cloudinary";
 import { prisma } from "../prisma/prisma.js";
 import "../utils/cloudinary.js";
