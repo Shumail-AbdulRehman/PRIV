@@ -1,10 +1,10 @@
 # Spec 19 — Separate platform operator authorization
 
-**Status:** Not started
+**Status:** Done
 **Depends on:** Spec 00
 **Model:** Heavy — `claude-opus-5-5` · `gpt-6-astra` · `gemini-3.1-pro-preview`
-**Issue:** —
-**Owns:** `backend/src/services/operatorIdentity.service.ts`, `backend/src/services/operatorIdentity.service.test.ts`, `backend/src/middlewares/operatorAuth.middleware.ts`, `specs/inventory/19-operator-identity.md`
+**Issue:** #29
+**Owns:** `docs/implementation/OPERATOR_IDENTITY.md`, `backend/src/services/operatorIdentity.service.ts`, `backend/src/services/operatorIdentity.service.test.ts`, `backend/src/middlewares/operatorAuth.middleware.ts`, `specs/inventory/19-operator-identity.md`
 **Reuses:** `backend/src/utils/ApiError.ts`
 
 ## Goal
@@ -37,8 +37,13 @@ Validate configured OIDC JWT signature via provider keys with issuer/audience/ex
 
 ## Done when
 
-- [ ] `npm test --prefix backend -- src/services/operatorIdentity.service.test.ts` passes: Tenant token/wrong issuer/audience/subject/MFA and missing config denied; authorized operator DTO has no tenant role or workforce permissions. [unit]
-- [ ] `npm test --prefix backend` passes the whole affected unit suite; record count. [unit]
-- [ ] Only scoped paths changed; relevant denial/empty/error/config-unavailable states inspected. [static]
-- [ ] `cd backend && npx tsc --noEmit` passes; no backend lint script exists. [static]
-- [ ] `npm run build --prefix backend` passes. [static]
+- [x] `npm test --prefix backend -- src/services/operatorIdentity.service.test.ts` passes: Tenant token/wrong issuer/audience/subject/MFA and missing config denied; authorized operator DTO has no tenant role or workforce permissions. [unit]
+- [x] `npm test --prefix backend` passes the whole affected unit suite; record count. [unit]
+- [x] Only scoped paths changed; relevant denial/empty/error/config-unavailable states inspected. [static]
+- [x] `cd backend && npx tsc --noEmit` passes; no backend lint script exists. [static]
+- [x] `npm run build --prefix backend` passes. [static]
+
+## Log
+
+- **2026-10-20** — Claimed issue29; existing jsonwebtoken9 and Node createPublicKey JWK support suffice, no dependency added. Configured RS256 issuer/audience/JWKS, subject allowlist and exact acr required; no tenant-role promotion. External IdP/MFA facts unavailable, so real operator activation remains blocked safely.
+- **2026-10-20** — Complete local boundary:69 regression tests cover actual RSA/JWK signatures, tenants, issuer/audience/subject/MFA, key rotation/cache/failure/size and middleware denial. Whole backend888 tests/79 files (isolated PG enabled; zero skips), typecheck/build and diff check pass. No IdP configured or activated; real qualification remains39/40. Consumers24–26/34 remain pending; no public operator account created.
