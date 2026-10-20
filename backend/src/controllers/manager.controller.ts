@@ -3,7 +3,6 @@ import { managerTaskPresentation } from "../services/verification-v2/sequentialP
 import { Request, Response } from "express";
 import jwt from "jsonwebtoken";
 import {
-    managerSignupSchema,
     managerLoginSchema,
     createManagerSchema,
     updateManagerSchema,
@@ -24,72 +23,7 @@ const TASK_START_GRACE_MINUTES = 5;
 
 
 
-export const signupManager = async (req: Request, res: Response) => {
-
-    const result = managerSignupSchema.safeParse(req.body);
-
-    if (!result.success) {
-        const errors = result.error.issues.map(e => ({
-            field: e.path.join("."),
-            message: e.message
-        }));
-        throw new ApiError(400, "Validation failed", errors);
-    }
-
-    const { name, email, password, companyName } = result.data;
-
-    const existingManager = await prisma.manager.findUnique({
-        where: { email }
-    });
-
-    if (existingManager) {
-        throw new ApiError(409, "Manager with this email already exists");
-    }
-
-
-
-    const company = await prisma.company.create({
-        data: { name: companyName }
-    });
-
-    const manager = await prisma.manager.create({
-        data: {
-            name,
-            email,
-            password,
-            role: "ADMIN",
-            companyId: company.id
-        }
-    });
-
-    const accessToken = generateAccessToken(manager, manager.role);
-    const refreshToken = generateRefreshToken(manager, manager.role);
-
-    await prisma.manager.update({
-        where: { id: manager.id },
-        data: { refreshToken }
-    });
-
-    const cookieOptions = getCookieOptions();
-
-    res
-        .status(201)
-        .cookie("accessToken", accessToken, cookieOptions)
-        .cookie("refreshToken", refreshToken, cookieOptions)
-        .json(
-            new ApiResponse(
-                201,
-                {
-                    id: manager.id,
-                    name: manager.name,
-                    email: manager.email,
-                    role: manager.role,
-                    companyId: manager.companyId
-                },
-                "Manager registered successfully"
-            )
-        );
-};
+export { signupCompany as signupManager } from "./companyRegistration.controller.js";
 
 export const loginManager = async (req: Request, res: Response) => {
 

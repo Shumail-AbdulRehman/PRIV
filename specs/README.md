@@ -17,10 +17,10 @@ Approved scope: docs/product-discovery/PRODUCT_SCOPE_PROPOSAL.md. Approved desig
 | 10 | [Additive launch lifecycle persistence](10-launch-persistence.md) | 1 | Additive launch lifecycle persistence |
 | 11 | [Workforce transfer and offboarding API](11-workforce-lifecycle-api.md) | 2 | Workforce transfer and offboarding API |
 | 12 | [Task generation and assignment reliability](12-task-readiness.md) | 1 | Task generation and assignment reliability |
-| 13 | [Atomic company registration](13-registration-atomicity.md) | 1 | Atomic company registration |
+| 13 | [Atomic company registration](13-registration-atomicity.md) | 2 | Atomic company registration |
 | 14 | [Account access and capacity policy](14-entitlement-policy.md) | 2 | Account access and capacity policy |
 | 15 | [Paddle lifecycle API and configuration](15-billing-lifecycle.md) | 3 | Paddle lifecycle API and configuration |
-| 16 | [Owner verification and recovery API](16-owner-identity-api.md) | 2 | Owner verification and recovery API |
+| 16 | [Owner verification and recovery API](16-owner-identity-api.md) | 3 | Owner verification and recovery API |
 | 17 | [Self credentials and assisted worker recovery](17-credential-handoff-api.md) | 2 | Self credentials and assisted worker recovery |
 | 18 | [Credential epoch access revocation](18-credential-revocation.md) | 3 | Credential epoch access revocation |
 | 19 | [Separate platform operator authorization](19-operator-identity.md) | 1 | Separate platform operator authorization |
@@ -34,7 +34,7 @@ Approved scope: docs/product-discovery/PRODUCT_SCOPE_PROPOSAL.md. Approved desig
 | 27 | [Approved v5 shared shell and route composition](27-workspace-shell.md) | 2 | Approved v5 shared shell and route composition |
 | 28 | [Real derived setup and operational dashboard](28-setup-ui.md) | 3 | Real derived setup and operational dashboard |
 | 29 | [Attendance exception context UI](29-attendance-context-ui.md) | 5 | Attendance exception context UI |
-| 30 | [Account settings and recovery UI](30-account-ui.md) | 3 | Account settings and recovery UI |
+| 30 | [Account settings and recovery UI](30-account-ui.md) | 4 | Account settings and recovery UI |
 | 31 | [Workforce access and transfer UI](31-workforce-ui.md) | 3 | Workforce access and transfer UI |
 | 32 | [Real subscription lifecycle UI](32-billing-ui.md) | 4 | Real subscription lifecycle UI |
 | 33 | [Platform company workspace](33-platform-company-ui.md) | 5 | Platform company workspace |
@@ -50,10 +50,10 @@ Approved scope: docs/product-discovery/PRODUCT_SCOPE_PROPOSAL.md. Approved desig
 ## Waves
 
 - Wave 0: 00.
-- Wave 1: 01, 03, 04, 06, 10, 12, 13, 19, 20, 21.
-- Wave 2: 02, 11, 14, 16, 17, 22, 23, 25, 27.
-- Wave 3: 05, 15, 18, 28, 30, 31, 34, 35, 36, 38.
-- Wave 4: 07, 08, 09, 24, 32.
+- Wave 1: 01, 03, 04, 06, 10, 12, 19, 20, 21.
+- Wave 2: 02, 11, 13, 14, 17, 22, 23, 25, 27.
+- Wave 3: 05, 15, 16, 18, 28, 31, 34, 35, 36, 38.
+- Wave 4: 07, 08, 09, 24, 30, 32.
 - Wave 5: 26, 29, 33, 37.
 - Wave 6: 39.
 - Wave 7: 40.

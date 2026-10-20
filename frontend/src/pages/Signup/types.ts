@@ -7,7 +7,7 @@ export type SignUpForm = {
 
 
 
-export type UserRole = 'MANAGER' | 'STAFF';
+export type UserRole = 'ADMIN' | 'MANAGER' | 'STAFF';
 
 
 export interface AuthUser {
@@ -16,4 +16,5 @@ export interface AuthUser {
   email: string;
   role: UserRole;
   companyId: number;
+  sessionEstablished?: boolean;
 }
