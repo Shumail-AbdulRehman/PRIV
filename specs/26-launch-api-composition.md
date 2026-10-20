@@ -1,11 +1,11 @@
 # Spec 26 — Wire launch backend routes and policies
 
 **Status:** Not started
-**Depends on:** Spec 07, Spec 09, Spec 11, Spec 12, Spec 16, Spec 18, Spec 20, Spec 21, Spec 22, Spec 23, Spec 24, Spec 25
+**Depends on:** Spec 07, Spec 11, Spec 12, Spec 16, Spec 18, Spec 20, Spec 21, Spec 22, Spec 23, Spec 24, Spec 25
 **Model:** Heavy — `claude-opus-5-5` · `gpt-6-astra` · `gemini-3.1-pro-preview`
 **Issue:** —
 **Owns:** `backend/src/routes/launch.route.ts`, `backend/src/routes/launch.route.test.ts`, `backend/src/routes/manager.route.ts`, `specs/inventory/26-launch-api-composition.md`
-**Reuses:** `backend/src/app.ts`, `backend/src/routes/staff.route.ts`, `backend/src/routes/attendance.route.ts`
+**Reuses:** `backend/src/controllers/assignment.controller.ts`, `backend/src/services/verification-v2/retention.service.ts`, `backend/src/app.ts`, `backend/src/routes/staff.route.ts`, `backend/src/routes/attendance.route.ts`
 
 ## Goal
 

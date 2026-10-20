@@ -4,7 +4,7 @@
 **Depends on:** Spec 05
 **Model:** Heavy — `claude-opus-5-5` · `gpt-6-astra` · `gemini-3.1-pro-preview`
 **Issue:** #14
-**Owns:** `backend/src/controllers/attendance.controller.ts`, `backend/src/services/attendanceWrites.service.ts`, `backend/src/services/attendanceWrites.service.test.ts`, `backend/src/controllers/attendanceWrites.controller.ts`, `backend/src/validations/attendance.validation.ts`, `specs/inventory/09-attendance-reliability.md`
+**Owns:** `backend/src/controllers/attendance.controller.ts`, `backend/src/controllers/attendanceWrites.controller.ts`, `backend/src/validations/attendance.validation.ts`, `specs/inventory/09-attendance-reliability.md`
 **Reuses:** `backend/src/utils/dateTime.ts`, `backend/src/utils/syncAttendanceWindow.ts`, `backend/src/utils/geofencing.ts`
 
 ## Goal
@@ -49,3 +49,5 @@ Validate finite latitude/longitude ranges and nonnegative bounded accuracy. Impl
 - **2026-10-20** — Strict geography schema rejects blank/null/boolean/nonfinite/out-of-range coordinates and accuracy>200. Extracted live check-in/out service revalidates active STAFF/company/site, expected shift and CAS; replayed check-in and attendanceId checkout return saved records, concurrent loser reconciles. Overnight window uses prior local day (DST-safe). Per-site calendar predicates bound list dates; existing controller exports wire new adapters immediately. Confirmed unused uploads enter existing durable cleanup; authenticated destroy rechecks all references. Ambiguous writes never delete potentially committed photos. 45 targeted tests (37 new writes/geography/calendar +8 cleanup including2 new); whole backend726/726 (72 files); build passed after correcting a test-only injected DB parameter type. No live database/provider run; native explicit retry ID and broader lost-response UI remain37.
 - **2026-10-20** — Current cleanup module edit ownership transfers to07 for pure reference parser import; behavior/tests unchanged.
 - **2026-10-20** — Scoped draft https://github.com/Shumail-AbdulRehman/PRIV/pull/17 published, stacked on08; not merged.
+
+- **2026-10-20** — Current ownership of backend/src/services/attendanceWrites.service.ts, backend/src/services/attendanceWrites.service.test.ts transferred to11 for live workforce lifecycle/attendance serialization; earlier completed behavior and tests preserved.

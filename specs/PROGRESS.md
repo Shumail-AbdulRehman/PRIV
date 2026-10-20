@@ -15,7 +15,7 @@ Source of truth for execution; latest user authorization supersedes old pending 
 | 08 | [Protected attendance image presentation](08-attendance-media-ui.md) | Done | 05, 06 | Standard | #12 | 57+15 tests; see spec 08 Log |
 | 09 | [Attendance write and calendar correctness](09-attendance-reliability.md) | Done | 05 | Heavy | #14 | 726 tests; see spec 09 Log |
 | 10 | [Additive launch lifecycle persistence](10-launch-persistence.md) | Done | 00 | Heavy | #22 | 787 tests; isolated PG; see Log |
-| 11 | [Workforce transfer and offboarding API](11-workforce-lifecycle-api.md) | Not started | 10 | Heavy | — | See spec |
+| 11 | [Workforce transfer and offboarding API](11-workforce-lifecycle-api.md) | Done | 09, 10 | Heavy | #31 | 927 tests+real PG; see Log |
 | 12 | [Task generation and assignment reliability](12-task-readiness.md) | Done | 00 | Standard | #20 | 780 tests; see spec12 Log |
 | 13 | [Atomic company registration](13-registration-atomicity.md) | Done | 00 | Heavy | #16 | 739 backend;57+18 web; see Log |
 | 14 | [Account access and capacity policy](14-entitlement-policy.md) | Not started | 10 | Heavy | — | See spec |
@@ -30,7 +30,7 @@ Source of truth for execution; latest user authorization supersedes old pending 
 | 23 | [Immutable attendance annotations API](23-attendance-annotations-api.md) | Not started | 10 | Standard | — | See spec |
 | 24 | [Platform company operations API](24-platform-company-api.md) | Not started | 19, 15 | Heavy | — | See spec |
 | 25 | [Redacted diagnostics and inquiry operations](25-platform-support-api.md) | Not started | 19 | Standard | — | See spec |
-| 26 | [Wire launch backend routes and policies](26-launch-api-composition.md) | Not started | 07, 09, 11, 12, 16, 18, 20, 21, 22, 23, 24, 25 | Heavy | — | See spec |
+| 26 | [Wire launch backend routes and policies](26-launch-api-composition.md) | Not started | 07, 11, 12, 16, 18, 20, 21, 22, 23, 24, 25 | Heavy | — | See spec |
 | 27 | [Approved v5 shared shell and route composition](27-workspace-shell.md) | Not started | 06 | Heavy | — | See spec |
 | 28 | [Real derived setup and operational dashboard](28-setup-ui.md) | Not started | 12, 27 | Standard | — | See spec |
 | 29 | [Attendance exception context UI](29-attendance-context-ui.md) | Not started | 23, 27, 08 | Standard | — | See spec |
@@ -65,3 +65,4 @@ Source of truth for execution; latest user authorization supersedes old pending 
 - **2026-10-20** — Spec17 complete locally:16 unit/803 full backend/build, real isolated concurrent handoff/hash/role-site/audit proof. Thirteen execution units done. Next18 immediate access epoch.
 - **2026-10-20** — Spec18 complete:72 targeted/819 full backend tests, build/typechecks and isolated realPG revocation proof pass. Fourteen of41 execution/gate units done (about66% remaining by count). Next19 separate operator identity boundary.
 - **2026-10-20** — Spec19 local operator identity boundary complete:69 new/888 full backend tests/build pass. Actual IdP/approved MFA/people remain external, disabled until configured. Fifteen of41 execution/gates done. Next11 workforce lifecycle; preserve historical rows and close existing transfer/deactivation gaps.
+- **2026-10-20** — Spec11 complete:39 new/76 targeted/927 backend tests, build/typechecks and actual localPG race/history/legacy-adapter proof pass. Sixteen of41 execution/gates complete (about61% remaining by count). Next14 account policy/capacity; native/web workforce inputs remain31/37. No production mutation.

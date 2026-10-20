@@ -97,6 +97,7 @@ import assignmentRouter from "./routes/assignment.route.js";
 import attendanceRouter from "./routes/attendance.route.js";
 import taskInstanceRouter from "./routes/taskInstance.route.js"
 import commonRouter from "./routes/common.route.js"
+import workforceLifecycleRouter from './routes/workforceLifecycle.route.js';
 import {archiveRetainedEntity} from './services/verification-v2/retention.service.js';
 import {verifyJwt} from './middlewares/auth.middleware.js';
 import areaRouter, {areaLocationRouter} from './routes/area.route.js';
@@ -112,9 +113,10 @@ import subscriptionRouter from "./routes/subscription.route.js";
 for (const [path, entity] of [['location','location'],['staff','staff'],['manager','manager'],['task-template','taskTemplate']] as const) {
  app.post(`/api/${path}/:id/archive`,verifyJwt,async(req,res)=>{
   const id=Number(req.params.id);if(!Number.isSafeInteger(id)||id<1)throw new ApiError(400,'Invalid identifier');
-  res.json({success:true,data:await archiveRetainedEntity(entity,id,req.user!)});
+  res.json({success:true,data:await archiveRetainedEntity(entity,id,req.user!,req.body)});
  });
 }
+app.use("/api/workforce", workforceLifecycleRouter);
 app.use("/api/manager", managerRouter);
 app.use("/api/staff/mobile", staffMobileRouter);
 app.use("/api/staff", staffRouter);

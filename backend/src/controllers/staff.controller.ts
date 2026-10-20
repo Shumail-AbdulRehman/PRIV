@@ -1,3 +1,4 @@
+import { deactivateWorkforce } from '../services/workforceLifecycle.service.js';
 import { attendancePhotoPresentation } from "../services/attendanceMedia.service.js";
 import {staffPerformanceReports} from '../services/verification-v2/reviewClosure.service.js';
 import { Request, Response } from "express";
@@ -26,7 +27,6 @@ import {
 } from "../utils/dateTime.js";
 import { syncTodaysOpenAttendanceWindow } from "../utils/syncAttendanceWindow.js";
 import { getCookieOptions } from "../utils/cookies.js";
-import { permanentlyDelete } from "../services/deletion.service.js";
 import { getScopedLocationIds, assertLocationAccess } from "../utils/scope.js";
 import { assertCompanyCanAdd } from "../services/subscription.service.js";
 
@@ -109,6 +109,7 @@ export const createStaff = async (req: Request, res: Response) => {
   if (existingStaff)
     throw new ApiError(409, "Staff with this email already exists");
 
+  if (req.user!.role === "MANAGER" && !locationId) throw new ApiError(403, "Choose an assigned site when creating staff");
   await assertCompanyCanAdd(req.user!.companyId, "staff");
 
   if (locationId) {
@@ -176,8 +177,8 @@ export const getStaff = async (req: Request, res: Response) => {
 };
 
 export const deleteStaff = async (req: Request, res: Response) => {
-  await permanentlyDelete("staff", Number(req.params.id), req.user!);
-  res.status(200).json(new ApiResponse(200, {}, "Deleted permanently"));
+  const result = await deactivateWorkforce(req.user!, "staff", Number(req.params.id), req.body);
+  res.status(200).json(new ApiResponse(200, result, "Staff deactivated; history preserved"));
 };
 
 export const getStaffById = async (req: Request, res: Response) => {
@@ -298,7 +299,6 @@ export const editStaff = async (req: Request, res: Response) => {
     }
   }
 
-  console.log("staff data::", result.data);
 
   const shiftChanged =
     result.data.shiftStart !== undefined || result.data.shiftEnd !== undefined;
@@ -344,7 +344,7 @@ export const editStaff = async (req: Request, res: Response) => {
 
   const updated = await prisma.staff.update({
     where: { id: staffId },
-    data: result.data,
+    data: { ...result.data, ...(result.data.email && result.data.email !== staff.email ? { credentialVersion: { increment: 1 }, refreshToken: null } : {}) },
     select: {
       id: true,
       name: true,

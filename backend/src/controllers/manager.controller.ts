@@ -1,4 +1,4 @@
-import { permanentlyDelete } from "../services/deletion.service.js";
+import { deactivateWorkforce } from '../services/workforceLifecycle.service.js';
 import { managerTaskPresentation } from "../services/verification-v2/sequentialPolicy.js";
 import { Request, Response } from "express";
 import jwt from "jsonwebtoken";
@@ -610,6 +610,8 @@ export const updateManager = async (req: Request, res: Response) => {
                 ...(name !== undefined ? { name } : {}),
                 ...(email !== undefined ? { email } : {}),
                 ...(password !== undefined ? { password } : {}),
+                ...(password !== undefined || (email !== undefined && email !== target.email) || uniqueLocationIds !== undefined
+                    ? { credentialVersion: { increment: 1 }, refreshToken: null } : {}),
             },
         });
 
@@ -640,6 +642,6 @@ export const updateManager = async (req: Request, res: Response) => {
 };
 
 export const deleteManager = async (req: Request, res: Response) => {
-  await permanentlyDelete("manager", Number(req.params.id), req.user!);
-  res.status(200).json(new ApiResponse(200, {}, "Manager deleted permanently"));
+  const result = await deactivateWorkforce(req.user!, "manager", Number(req.params.id), req.body);
+  res.status(200).json(new ApiResponse(200, result, "Manager deactivated; history preserved"));
 };
