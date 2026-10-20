@@ -254,33 +254,8 @@ export const getStaffByLocation = async (req: Request, res: Response) => {
     .json(new ApiResponse(200, staff, "Staff fetched successfully"));
 };
 
-export const getProfile = async (req: Request, res: Response) => {
-  const staff = await prisma.staff.findUnique({
-    where: { id: req.user!.id },
-    select: {
-      id: true,
-      name: true,
-      email: true,
-      phone: true,
-      role: true,
-      isActive: true,
-      companyId: true,
-      locationId: true,
-      createdAt: true,
-      updatedAt: true,
-      shiftStart: true,
-      shiftEnd: true,
-    },
-  });
-
-  if (!staff) {
-    throw new ApiError(404, "Staff not found");
-  }
-
-  res
-    .status(200)
-    .json(new ApiResponse(200, staff, "Profile fetched successfully"));
-};
+// Retain the legacy export for internal callers with the same actor-safe contract.
+export { getStaffSelfProfile as getProfile } from "./staffSelf.controller.js";
 
 export const editStaff = async (req: Request, res: Response) => {
   const staffId = Number(req.params.id);
@@ -400,8 +375,11 @@ export const editStaff = async (req: Request, res: Response) => {
 };
 
 export const getStaffDetails = async (req: Request, res: Response) => {
+  if (!req.user) throw new ApiError(401, "Sign in to continue");
+  if (req.user.role !== "ADMIN" && req.user.role !== "MANAGER")
+    throw new ApiError(403, "Manager or owner account required");
   const staffId = Number(req.params.id);
-  if (isNaN(staffId)) throw new ApiError(400, "Invalid staff id");
+  if (!Number.isSafeInteger(staffId) || staffId < 1) throw new ApiError(400, "Invalid staff id");
 
   const monthParam = req.query.month as string | undefined;
   const dateFromParam = req.query.dateFrom as string | undefined;
@@ -494,8 +472,17 @@ export const getStaffDetails = async (req: Request, res: Response) => {
     periodLabel = `${dateFromParam} to ${dateToParam}`;
   }
 
+  // A worker's current site does not authorize their previous sites. Apply
+  // the same record-location boundary to both rows and every aggregate.
+  const scopedLocationIds = getScopedLocationIds(req.user);
+  const historyScope = {
+    location: { companyId: req.user.companyId },
+    ...(scopedLocationIds === null ? {} : { locationId: { in: scopedLocationIds } }),
+  };
+
   const taskInstanceWhere = {
     staffId,
+    ...historyScope,
     isActive: true,
     ...(dateFilter
       ? {
@@ -512,6 +499,7 @@ export const getStaffDetails = async (req: Request, res: Response) => {
 
   const attendanceWhere = {
     staffId,
+    ...historyScope,
     ...(dateFilter
       ? {
           OR: [
@@ -536,7 +524,7 @@ export const getStaffDetails = async (req: Request, res: Response) => {
     lateAttendanceCount,
   ] = await Promise.all([
     prisma.taskTemplate.findMany({
-      where: { staffId, isActive: true },
+      where: { staffId, isActive: true, ...historyScope },
       orderBy: { createdAt: "desc" },
       select: {
         id: true,
@@ -594,7 +582,7 @@ export const getStaffDetails = async (req: Request, res: Response) => {
       },
     }),
     prisma.taskTemplate.count({
-      where: { staffId, isActive: true },
+      where: { staffId, isActive: true, ...historyScope },
     }),
     prisma.taskInstance.groupBy({
       by: ["status", "staffSubmittedAt"],
@@ -614,8 +602,7 @@ export const getStaffDetails = async (req: Request, res: Response) => {
     }),
     prisma.attendance.count({
       where: {
-        ...attendanceWhere,
-        OR: [{ status: "LATE" }, { isLateCheckIn: true }],
+        AND: [attendanceWhere, { OR: [{ status: "LATE" }, { isLateCheckIn: true }] }],
       },
     }),
   ]);
