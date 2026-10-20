@@ -13,6 +13,9 @@ Launch operations and active CI proof in the existing application, with persiste
 
 ## Scope
 
+Consume `backend/tests/launchPhoto.integration.ts` and `docs/implementation/PHOTO_CONTRACT.md` for real isolated failed-view generation and legacy waiver receipt proof; no live photo/provider qualification implied.
+
+
 Consume `backend/tests/ownerIdentity.integration.ts`, `docs/implementation/OWNER_IDENTITY.md`, `docs/implementation/research/owner-delivery.md` and `backend/src/services/ownerIdentityDelivery.service.ts` for local lifecycle proof and actual sender/domain/links/legacy identity-bootstrap qualification.
 
 

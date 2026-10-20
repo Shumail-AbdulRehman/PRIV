@@ -1,10 +1,10 @@
-# Implementation handoff — 2026-10-20, after Specification16 — active continuation
+# Implementation handoff — 2026-10-20, after Specification20 — active continuation
 
 ## Current continuation state
 
 Latest user explicitly requests completing all eligible specs without routine handoff stops while they sleep; continue sequential implementation. Prior routine stopping notes are historical and superseded. This supersedes prior stopping instructions. Approved launch scope and design/v5 remain unchanged. Read specs/AGENT-GUIDE.md and steering docs before continuing. No deployment, production mutation, destructive migration or PR merge is authorized.
 
-Completed: decision00 and execution01–19,22–25,27 (24 of41 execution/gates;17 remain). Prior details remain in individual spec Logs and inventory fragments. Specs20–21,26,28–41 are Not started. No completed work has been repeated.
+Completed: decision00 and execution01–20,22–25,27 (25 of41 execution/gates;16 remain). Prior details remain in individual spec Logs and inventory fragments. Specs21,26,28–41 are Not started. No completed work has been repeated.
 
 ## Spec24 verified local boundary
 
@@ -61,9 +61,9 @@ Files: platformSupport.service.ts, its66-test file, platformSupport.route.ts, ba
 
 Verification:66 focused tests; full backend1236 tests/87 files/zero skips with explicit isolated DATABASE_URL/LAUNCH_PERSISTENCE_TEST_DATABASE_URL; backend tsc --noEmit/build pass. Standalone integration command from backend uses `npx tsc --noEmit --strict --module NodeNext --moduleResolution NodeNext --target ES2023 --esModuleInterop --skipLibCheck src/types/express.d.ts tests/platformSupport.integration.ts` (strict nullability matches backend tsconfig/Zod transforms). Guarded real proof: `PLATFORM_SUPPORT_TEST_DATABASE_URL=postgresql://shumail@127.0.0.1:56439/hygene_launch_test backend/node_modules/.bin/tsx backend/tests/platformSupport.integration.ts`; existing public submission/retry unchanged, concurrent handling one winner/one409, actor/time/reason/owner durable, audit failure leaves state unchanged, release/close/no-op/stale safety, redacted audit filtering and actual DB observations. Logs `/tmp/hygene-spec25-tests.log`, `/tmp/hygene-spec25-build.log`, `/tmp/hygene-spec25-integration.log`. No known failing code checks; backend has no lint script, frontend/mobile unchanged. These are local boundary proofs, not40 E2E or actual provider qualification.
 
-## Spec16 verified local boundary and current Git state
+## Prior Spec16 verified local boundary
 
-Current branch `implementation/spec-16-owner-identity`, base25/PR46 atb775842. Issue47: https://github.com/Shumail-AbdulRehman/PRIV/issues/47. Prerequisites10/13 Done and present; all PRs still unmerged. Implementation8c6d64f pushed; draft PR48: https://github.com/Shumail-AbdulRehman/PRIV/pull/48, stacked on PR46; issue47 open. Continue20.
+Prior branch `implementation/spec-16-owner-identity`, base25/PR46 atb775842. Issue47: https://github.com/Shumail-AbdulRehman/PRIV/issues/47. Prerequisites10/13 Done and present; all PRs still unmerged. Implementation8c6d64f pushed; draft PR48: https://github.com/Shumail-AbdulRehman/PRIV/pull/48, stacked on PR46; issue47 open. Continue20.
 
 New ownerIdentity service/factory implements status, authenticated/current-password verification enrollment request, neutral deferred public reset request, purpose-bound one-use confirmation and whenIdle drain. Existing CredentialToken hashes only,24h verify/30m reset, exact active ADMIN/company/current case-sensitive email/purpose, future/expired/used denial. Completion manager→token lock and conditional consume, bcrypt extension once, all owner links consumed, epoch increment/refresh clear and audit atomic. Verification also revokes sessions; no implicit login or company/billing reactivation. Inactive/suspended-company own security remains allowed in service; ordinary route auth's inactive-company integration is26.
 
@@ -77,13 +77,25 @@ Files: ownerIdentity.service.ts, ownerIdentityDelivery.service.ts, ownerIdentity
 
 Verification:74 focused tests (60 owner/14 registration), full backend1297 tests/88 files/zero skips with isolated DATABASE_URL/LAUNCH_PERSISTENCE_TEST_DATABASE_URL; backend tsc --noEmit/build; strict standalone integration tsc pass. `OWNER_IDENTITY_TEST_DATABASE_URL=postgresql://shumail@127.0.0.1:56439/hygene_launch_test backend/node_modules/.bin/tsx backend/tests/ownerIdentity.integration.ts` proves real enrollment/hash/expiry/one-winner verify/reset/bcrypt/epoch/suspension/audit rollback mechanics; synthetic bootstrap grant and mail capture are explicitly not real proof/sender qualification. Logs `/tmp/hygene-spec16-tests.log`, `/tmp/hygene-spec16-build.log`, `/tmp/hygene-spec16-integration.log`. No failing checks; no backend lint script. Validator42 specs/zero errors/four accepted warnings retained.
 
-## Continue with spec20 (no routine stop)
+## Spec20 verified local boundary and current Git state
 
-Latest user says “dont stop juts continue completely the specs” and is sleeping. After each unit verify/update docs/commit/push/draft PR separately, then continue next eligible unit. Do not ask ordinary implementation approval or stop just for a routine handoff. Never merge/deploy/modify production; unavailable external qualification remains documented, while independent/local safe work continues.
+Current branch `implementation/spec-20-photo-contract`, base16/PR48 at5b6f82c. Issue49: https://github.com/Shumail-AbdulRehman/PRIV/issues/49. Decision00/real capture contracts read; local checks complete, publication follows. Prior PRs unmerged.
 
-Next selected20 (photo receipt/replacement contract), depends00 Done. Read full20 and current photo/capture/attempt/controller/native contracts before editing; do not repeat existing online-only same-capture reconciliation, relax assignment/deadline/privacy rules or claim exact fixture attestation. Only server-proven failed required views on eligible current assignment may be replaced as a new immutable generation; uncertain results need real receipt/reconciliation, not made-up timers or success.
+launchPhotoPolicy binds legacy waiver receipt to exact WAIVE_REQUIREMENT decision generation/task and retained same-company ADMIN/MANAGER actor. Bare/stale/foreign waiver labels do not satisfy a mandatory view. Every remaining mandatory item/view must have its exact received checked media attempt at current task/staff/assignment ID/epoch; no other-view, stale, missing, failed or processing receipt substitution. Staff submission still distinct from verification credit; existing finalization presence/privacy/identity rules unchanged. Sequential activation/reservation uses same waiver proof for earlier waived steps.
 
-Eligible after16:20,21,28,29,30,31,32,33,34,35,38.30 newly eligible;26 waits20/21.20/21 needed to unblock composition and photo/native UI. No20 issue/code/branch started yet. Actual photo/provider/device/mail/identity/legacy bootstrap release gates remain external39/40.
+Failed-view replacement requires current active unsubmitted work, current staff/assignment, open existing capture/upload authority, exact expected requirement generation/current attempt and source slot decision generation. Only server-received RECAPTURE_REQUIRED or explicit privacy hold proves generic replacement. CLEANING_REQUIRED needs existing fresh task QR rework. Uncertain review/service/reservations cannot allocate new authority. Guard wired to retake, fresh QR rework and normal QR renewal; renewal not a bypass. Legacy required context failure likewise bound; successful context preserved. New slot/generation/nonce never rewrites old attempt/slot/media; exact allocation retry returns same allocation. Same-capture upload/result reconciliation, manager action retirement, QR/device/deadline/rate/slot limits preserved.
+
+Changed policy/test, existing staffSubmission(+tests), captureSession(+security tests), sequentialCapture; isolated launchPhoto integration, PHOTO_CONTRACT.md, inventory20, specs20/26/39, progress/handoff/validator. No schema/package/provider/actual-photo or UI change. Existing dirty work preserved.
+
+Verification:41 policy tests plus wired capture/submission/sequential/legacy-controller regressions; whole backend1340 tests/89 files/zero skips on explicit isolated DATABASE_URL/LAUNCH_PERSISTENCE_TEST_DATABASE_URL; backend tsc/build and strict standalone integration tsc pass. `LAUNCH_PHOTO_TEST_DATABASE_URL=postgresql://shumail@127.0.0.1:56439/hygene_launch_test backend/node_modules/.bin/tsx backend/tests/launchPhoto.integration.ts` proves new immutable generation, slot retry/old record preservation and mixed waiver/review submission without credit, plus submitted/missing denial. Initial synthetic fixture corrected for existing SQL snapshot constraints; full-suite regression restored early missing-evidence rejection. Log has a non-failing pre-existing pg concurrent-query deprecation warning; no dependency update made. Logs `/tmp/hygene-spec20-tests.log`, `/tmp/hygene-spec20-build.log`, `/tmp/hygene-spec20-integration.log`. No known failing checks; validator42/zero errors/four documented warnings.
+
+## Continue with spec21 (no routine stop)
+
+User explicitly requests completing specs while sleeping; no routine handoff stops or ordinary permission questions. Verify each unit, update docs, commit/push one draft PR, continue next eligible. Never merge/deploy/change production. Work across context compaction; handoff is durable state, not an instruction to stop.
+
+Next21, fail-closed active photo qualification, depends00 Done. Read full spec/current active adapters/rubrics/auto-pass/actual privacy path before editing; bind any empirical record to exact adapter/model/rubric/dataset digest. Missing real representative consented qualification remains external release gate, never fabricate a record, auto-approval, fixture attestation or redaction guarantee. Implement safe disabled/hold/review boundaries and test actual active publication paths through explicit ownership amendment. Preserve20 immutable receipts/replacement and no retired manager authority.
+
+Eligible after20:21,28,29,30,31,32,33,34,35,38.26 waits21 only;36/37 still wait21. After21 prioritize26 route/account/job composition so local backend contracts reach actual application under correct security. No21 issue/code/branch started yet.
 
 ## Remaining external and integration gates
 
