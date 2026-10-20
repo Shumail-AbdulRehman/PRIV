@@ -41,6 +41,8 @@ Registration caller surfaces: `backend/src/controllers/manager.controller.ts` de
 
 Media migration integration: `backend/src/services/attendanceMediaTransition.service.ts`, `backend/src/services/attendancePhotoReference.ts` and `backend/src/services/deletedMedia.service.ts` are consumed by the isolated copy/replay/reference-cleanup flow.
 
+Readiness HTTP composition: `backend/src/routes/location.route.ts` mounts the bounded taskReadiness router before generic:id reads.
+
 ### Runtime coverage surfaces
 
 These owned surfaces are consumed by the flow table above or the clean verification gate; tests must exercise their actual caller integration.
