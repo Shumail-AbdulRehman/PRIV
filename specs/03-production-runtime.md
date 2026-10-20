@@ -1,9 +1,9 @@
 # Spec 03 — P0 fail-closed production runtime
 
-**Status:** Not started
+**Status:** Done
 **Depends on:** Spec 00
 **Model:** Heavy — `claude-opus-5-5` · `gpt-6-astra` · `gemini-3.1-pro-preview`
-**Issue:** —
+**Issue:** #3
 **Owns:** `backend/src/config/runtimeSecurity.ts`, `backend/src/config/runtimeSecurity.test.ts`, `backend/src/config/initializeRuntime.ts`, `backend/src/app.ts`, `docker-compose.yml`, `specs/inventory/03-production-runtime.md`
 **Reuses:** `backend/src/utils/cookies.ts`, `backend/src/utils/ApiError.ts`
 
@@ -37,8 +37,13 @@ Validate production JWT keys, positive explicit token durations, HTTPS exact fro
 
 ## Done when
 
-- [ ] `npm test --prefix backend -- src/config/runtimeSecurity.test.ts` passes: Invalid production values fail before startup side effects; valid explicit HTTPS configuration passes; error text excludes key values; Compose has no replace_me JWT fallback. [unit]
-- [ ] `npm test --prefix backend` passes the whole affected unit suite; record count. [unit]
-- [ ] Only scoped paths changed; relevant denial/empty/error/config-unavailable states inspected. [static]
-- [ ] `cd backend && npx tsc --noEmit` passes; no backend lint script exists. [static]
-- [ ] `npm run build --prefix backend` passes. [static]
+- [x] `npm test --prefix backend -- src/config/runtimeSecurity.test.ts` passes: Invalid production values fail before startup side effects; valid explicit HTTPS configuration passes; error text excludes key values; Compose has no replace_me JWT fallback. [unit]
+- [x] `npm test --prefix backend` passes the whole affected unit suite; record count. [unit]
+- [x] Only scoped paths changed; relevant denial/empty/error/config-unavailable states inspected. [static]
+- [x] `cd backend && npx tsc --noEmit` passes; no backend lint script exists. [static]
+- [x] `npm run build --prefix backend` passes. [static]
+
+## Log
+
+- **2026-10-20** — Claimed https://github.com/Shumail-AbdulRehman/PRIV/issues/3; retain development behavior and validate production before cron imports.
+- **2026-10-20** — app.ts first ESM dependency loads dotenv and validates before cron/provider/DB imports. Compose requires unique keys and exact HTTPS origins; secure cookie default true. 29 regression tests; full backend 628/628 (68 files); build passed. Actual invalid-config app-import subprocess fails before listener/cron logs. Full-suite subprocess exceeded Vitest default 5s under contention; bounded test budget raised to 15s (child remains 10s), full suite then passed. No valid-production boot/provider calls/deployment attempted.

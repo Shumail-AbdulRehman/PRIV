@@ -1,3 +1,4 @@
+import "./config/initializeRuntime.js";
 import "./cron/deletedMediaCron.js";
 import express from "express";
 import cors from "cors";
