@@ -3,6 +3,8 @@ import { randomUUID } from 'node:crypto';
 import { assertIsolatedMediaDatabase } from '../src/services/attendanceMediaTransition.service.js';
 const url = process.env.LAUNCH_PHOTO_TEST_DATABASE_URL;
 assertIsolatedMediaDatabase(url, process.env.NODE_ENV); process.env.DATABASE_URL = url;
+process.env.PADDLE_ENVIRONMENT='sandbox';
+process.env.PADDLE_PRICE_CATALOG_JSON=JSON.stringify([{plan:'STARTER',interval:'month',priceId:'pri_00000000000000000000000001'}]);
 process.env.VERIFICATION_SLOT_SECRET = 'synthetic-photo-contract-signing-fixture-only';
 const { prisma } = await import('../src/prisma/prisma.js');
 const { retakeSlots } = await import('../src/services/verification-v2/captureSession.service.js');
@@ -10,6 +12,10 @@ const { finishStaffSubmission } = await import('../src/services/verification-v2/
 const now = new Date(), end = new Date(+now + 3600000), suffix = randomUUID();
 try {
     const company = await prisma.company.create({ data: { name: `Synthetic photo contract ${suffix}` } });
+    const customerId=`ctm_synthetic_photo_${suffix}`,subscriptionId=`sub_synthetic_photo_${suffix}`;
+    await prisma.paddleCustomer.create({data:{id:customerId,companyId:company.id,status:'active',paddleUpdatedAt:now,lastEventAt:now}});
+    await prisma.paddleSubscription.create({data:{id:subscriptionId,customerId,companyId:company.id,status:'active',priceId:'pri_00000000000000000000000001',productId:'pro_synthetic',currentBillingPeriodStart:new Date(+now-3600000),currentBillingPeriodEnd:end,paddleUpdatedAt:now,lastEventAt:now}});
+    await prisma.company.update({where:{id:company.id},data:{billingCustomerId:customerId,billingSubscriptionId:subscriptionId}});
     const location = await prisma.location.create({ data: { companyId: company.id, name: 'Synthetic photo site', address: 'Fixture', latitude: '31', longitude: '74' } });
     const area = await prisma.area.create({ data: { locationId: location.id, name: 'Synthetic room', roomType: 'WASHROOM', status: 'ACTIVE' } });
     const fixture = await prisma.areaItem.create({ data: { areaId: area.id, stableCode: 'SYNTHETIC-SINK', displayName: 'Synthetic sink', fixtureType: 'SINK', sequence: 1, rubricKey: 'sink', requiredViews: [] } });

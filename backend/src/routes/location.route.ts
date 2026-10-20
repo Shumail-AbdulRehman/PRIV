@@ -1,3 +1,4 @@
+import { accountAccess } from '../middlewares/accountAccess.middleware.js';
 import taskReadinessRouter from "./taskReadiness.route.js";
 import { Router } from "express";
 import {
@@ -20,8 +21,8 @@ router.get("/map-config", verifyJwt, authorize("ADMIN", "MANAGER"), getLocationM
 router.post("/", verifyJwt, authorize("ADMIN"), createLocation);
 router.get("/", verifyJwt, authorize("ADMIN", "MANAGER"), getLocations);
 router.get("/:id/schedule", verifyJwt, authorize("ADMIN", "MANAGER"), getLocationSchedule);
-router.patch("/:id", verifyJwt, authorize("ADMIN"), editLocation);
-router.delete("/:id", verifyJwt, authorize("ADMIN"), deleteLocation);
+router.patch("/:id", verifyJwt, authorize("ADMIN"), accountAccess('MANAGE_WORK'), editLocation);
+router.delete("/:id", verifyJwt, authorize("ADMIN"), accountAccess('MANAGE_WORK'), deleteLocation);
 router.get("/:id", verifyJwt, authorize("ADMIN", "MANAGER"), getLocationById);
 router.get(
   "/:id/stats",

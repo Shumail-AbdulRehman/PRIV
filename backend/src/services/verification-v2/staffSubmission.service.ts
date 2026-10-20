@@ -1,3 +1,4 @@
+import { assertAccountCompletion } from '../accountAccess.service.js';
 import {prisma} from '../../prisma/prisma.js';
 import {ApiError} from '../../utils/ApiError.js';
 import {requireTaskAccess,type VerificationActor} from './authorization.service.js';
@@ -14,6 +15,7 @@ export async function finishStaffSubmission(actor:VerificationActor,taskId:numbe
   await lockTask(tx,taskId);const task=await requireTaskAccess(actor,taskId,{},tx);
   if(task.staffSubmittedAt||task.status==='COMPLETED')return {id:taskId,status:'COMPLETED',staffSubmittedAt:task.staffSubmittedAt??task.completedAt};
   if(!['IN_PROGRESS','NOT_COMPLETED_INTIME'].includes(task.status))throw new ApiError(409,'Start this task before submitting it.');
+  await assertAccountCompletion(actor,{kind:'task',id:taskId},tx);
   const requirements=await tx.taskEvidenceRequirement.findMany({where:{item:{taskInstanceId:taskId,mandatory:true},mandatory:true},include:{item:true}});
   if(!requirements.length)throw new ApiError(409,'Capture all required photos before finishing.',[{code:'MISSING_EVIDENCE'}]);
   const waived=await authorizedWaiverReceipts(tx,actor,taskId,requirements);

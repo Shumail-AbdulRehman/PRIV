@@ -1,3 +1,4 @@
+vi.mock('../accountAccess.service.js',()=>({assertAccountAction:vi.fn(async()=>({})),assertAccountCompletion:vi.fn(async()=>({})),recordWorkEntitlement:vi.fn(async()=>{})}));
 import {beforeEach,expect,it,vi} from 'vitest';
 const m=vi.hoisted(()=>({access:vi.fn(),lock:vi.fn(),requirements:vi.fn(),attempts:vi.fn(),jobs:vi.fn(),sessions:vi.fn(),fresh:vi.fn(),update:vi.fn(),close:vi.fn(),finalize:vi.fn(),issue:vi.fn(),issues:vi.fn(),audit:vi.fn(),decisions:vi.fn(),managers:vi.fn()}));
 vi.mock('../../prisma/prisma.js',()=>({prisma:{$transaction:async(fn:any)=>fn({taskEvidenceRequirement:{findMany:m.requirements},verificationDecision:{findMany:m.decisions},manager:{findMany:m.managers},verificationAttempt:{findMany:m.attempts},verificationJob:{count:m.jobs},verificationIssue:{findMany:m.issues},captureSession:{findMany:m.sessions,updateMany:m.close},taskInstance:{findUniqueOrThrow:m.fresh,update:m.update}})}}));

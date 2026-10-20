@@ -4,7 +4,7 @@
 **Depends on:** Spec 10, Spec 13
 **Model:** Heavy — `claude-opus-5-5` · `gpt-6-astra` · `gemini-3.1-pro-preview`
 **Issue:** #47
-**Owns:** `backend/src/services/ownerIdentity.service.ts`, `backend/src/services/ownerIdentity.service.test.ts`, `backend/src/routes/ownerIdentity.route.ts`, `specs/inventory/16-owner-identity-api.md`, `backend/src/services/ownerIdentityDelivery.service.ts`, `backend/src/services/companyRegistration.service.ts`, `backend/src/services/companyRegistration.service.test.ts`, `backend/tests/ownerIdentity.integration.ts`, `docs/implementation/OWNER_IDENTITY.md`, `docs/implementation/research/owner-delivery.md`
+**Owns:** `backend/src/services/ownerIdentity.service.ts`, `backend/src/services/ownerIdentity.service.test.ts`, `specs/inventory/16-owner-identity-api.md`, `backend/src/services/ownerIdentityDelivery.service.ts`, `backend/src/services/companyRegistration.service.ts`, `backend/src/services/companyRegistration.service.test.ts`, `backend/tests/ownerIdentity.integration.ts`, `docs/implementation/OWNER_IDENTITY.md`, `docs/implementation/research/owner-delivery.md`
 **Reuses:** `backend/src/utils/auth.ts`, `backend/src/utils/ApiError.ts`
 
 ## Goal
@@ -50,3 +50,5 @@ Store only hashed scoped one-use reset/verify tokens with D04 expiry, neutral re
 - **2026-10-20** — Completed74 focused owner/registration tests (60 owner +14 registration); whole backend1297 tests/88 files/zero skips using explicit isolated DATABASE_URL/LAUNCH_PERSISTENCE_TEST_DATABASE_URL. Backend tsc --noEmit/build and strict standalone integration tsc pass. Isolated PostgreSQL verifies enrollment/no legacy auto-trust, hashed24h/30m scoped tokens, one-winner verify/reset consumption, bcrypt once, epoch/refresh revocation, suspended company preservation and actual credential/token rollback on audit failure. Native mail adapter tested only injected fetch; no actual mail/provider calls or credentials. Public response explicitly admits volatile processing without claiming sent/durable delivery; no sender configured means global503 before lookup. Runbook records bootstrap/sender/UI/proxy/graceful-drain qualification. Logs `/tmp/hygene-spec16-tests.log`, `/tmp/hygene-spec16-build.log`, `/tmp/hygene-spec16-integration.log`. Validator zero errors/four previously justified warnings. Issue https://github.com/Shumail-AbdulRehman/PRIV/issues/47; PR after publication. Continue20 next under latest user instruction; no routine handoff stop.
 
 - **2026-10-20** — Implementation8c6d64f pushed; draft PR https://github.com/Shumail-AbdulRehman/PRIV/pull/48 stacked on25/PR46, issue47 open. Continue20; no merge/deployment/live mail/production mutation.
+
+- **2026-10-21** — Serialized composition ownership transferred to26: `backend/src/routes/ownerIdentity.route.ts`. Prior completed behavior retained;26 consumes rather than reimplements this contract.

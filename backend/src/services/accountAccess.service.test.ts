@@ -161,3 +161,9 @@ describe('account policy middleware boundary', () => {
         expect(next).toHaveBeenCalledWith(expect.objectContaining({ statusCode: 403 }));
     });
 });
+
+it.each(['ADMIN','MANAGER','STAFF'] as const)('attendance context write by %s needs active current entitlement but no capacity',role=>{
+ expect(()=>evaluateAccountAccess(state(),role,'ANNOTATE_ATTENDANCE',now)).not.toThrow();
+ const expired=state();expired.subscription=null;expect(()=>evaluateAccountAccess(expired,role,'ANNOTATE_ATTENDANCE',now)).toThrow('active subscription');
+ const suspended=state();suspended.company.operationalStatus='SUSPENDED';expect(()=>evaluateAccountAccess(suspended,role,'ANNOTATE_ATTENDANCE',now)).toThrow('suspended');
+});

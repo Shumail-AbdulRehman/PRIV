@@ -44,7 +44,7 @@ export const refreshToken = async (req: Request, res: Response) => {
     }
 
     if (user.role !== role) throw new ApiError(401, "Account role changed; sign in again");
-    if (!user.isActive || !user.company.isActive) throw new ApiError(403, "Account is deactivated");
+    if (!user.isActive) throw new ApiError(403, "Account is deactivated");
     assertCredentialSession(user, decodedToken);
     if (user.refreshToken !== incomingRefreshToken) throw new ApiError(401, "Session changed; sign in again");
 
@@ -52,7 +52,7 @@ export const refreshToken = async (req: Request, res: Response) => {
     const newRefreshToken = generateRefreshToken(user, role);
     const rotated = await prisma.manager.updateMany({
       where: { id: user.id, companyId: user.companyId, role, credentialVersion: decodedToken.credentialVersion, refreshToken: incomingRefreshToken,
-        isActive: true, company: { isActive: true } },
+        isActive: true },
       data: { refreshToken: newRefreshToken },
     });
     if (!rotated.count) throw new ApiError(401, "Session changed; sign in again");
@@ -94,7 +94,7 @@ export const refreshToken = async (req: Request, res: Response) => {
       throw new ApiError(401, "Unauthorized");
     }
 
-    if (!user.isActive || !user.company.isActive)
+    if (!user.isActive)
       throw new ApiError(403, "Account is deactivated");
 
     if (user.role !== role) throw new ApiError(401, "Account role changed; sign in again");
@@ -108,7 +108,7 @@ export const refreshToken = async (req: Request, res: Response) => {
     const staffCompanyId = user.companyId;
     await prisma.$transaction(async (tx) => {
       const rotated = await tx.staff.updateMany({
-        where: { id: staffUserId, companyId: staffCompanyId, role: "STAFF", credentialVersion: decodedToken.credentialVersion, refreshToken: incomingRefreshToken, isActive: true, company: { isActive: true } },
+        where: { id: staffUserId, companyId: staffCompanyId, role: "STAFF", credentialVersion: decodedToken.credentialVersion, refreshToken: incomingRefreshToken, isActive: true },
         data: { refreshToken: newRefreshToken },
       });
       if (!rotated.count) throw new ApiError(401, "Session changed; sign in again");

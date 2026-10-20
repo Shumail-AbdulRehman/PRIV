@@ -1,3 +1,4 @@
+import { jobAccountAllowed } from '../launchJobs.service.js';
 import { prisma } from "../../prisma/prisma.js";
 import { lockTask } from "./captureSession.service.js";
 import { finalizeTask } from "./completion.service.js";
@@ -5,6 +6,7 @@ import { raiseIssue } from "./exception.service.js";
 export async function expireVerificationTasks(now = new Date()) {
   const tasks = await prisma.taskInstance.findMany({
     where: {
+      location: {company:{isActive:true,operationalStatus:"ACTIVE"}},
       verificationVersion: 2,
       isActive: true,
       status: { in: ["PENDING", "IN_PROGRESS", "NOT_COMPLETED_INTIME"] },
@@ -18,6 +20,8 @@ export async function expireVerificationTasks(now = new Date()) {
       const task = await tx.taskInstance.findUniqueOrThrow({
         where: { id: candidate.id },
       });
+      const location=await tx.location.findUniqueOrThrow({where:{id:task.locationId},select:{companyId:true}});
+      if(!await jobAccountAllowed(location.companyId,'READ_OPERATIONAL',tx,now))return;
       if (
         task.status === "COMPLETED" ||
         !task.isActive ||
@@ -185,6 +189,7 @@ export async function expireVerificationTasks(now = new Date()) {
   for (const c of reminders)
     await prisma.$transaction(async (tx) => {
       await tx.$queryRaw`SELECT id FROM "VerificationException" WHERE id=${c.id} FOR UPDATE`;
+      if(!await jobAccountAllowed(c.companyId,'READ_OPERATIONAL',tx,now))return;
       const fresh = await tx.verificationException.findUniqueOrThrow({
         where: { id: c.id },
       });

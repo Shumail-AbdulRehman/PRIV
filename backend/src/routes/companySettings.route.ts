@@ -1,3 +1,4 @@
+import { accountAccess } from '../middlewares/accountAccess.middleware.js';
 import { Router } from 'express';
 import { verifyJwt } from '../middlewares/auth.middleware.js';
 import authorize from '../middlewares/authorize.middleware.js';
@@ -15,7 +16,7 @@ router.use((req, res, next) => {
 router.get('/', async (req, res) => {
     res.json(new ApiResponse(200, await getCompanySettings(req.user!), 'Company settings fetched'));
 });
-router.patch('/', async (req, res) => {
+router.patch('/', accountAccess('MANAGE_WORK'), async (req, res) => {
     res.json(new ApiResponse(200, await updateCompanySettings(req.user!, req.body), 'Company settings saved'));
 });
 export default router;

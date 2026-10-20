@@ -51,6 +51,10 @@ Activate relevant current tests/builds, retain existing CI dirty changes. Prove 
 - Search INVENTORY.md plus fragments; preserve existing provider and component seams.
 - No raw sample operational data, invented policies or secret fallback values.
 
+## Composition evidence consumed
+
+Review26 audience/action/job integration and21 qualification denials at these concrete existing entry points when qualifying release operations; retain their focused and isolated SQL reproduction evidence: `backend/src/controllers/location.controller.ts`, `backend/src/controllers/taskInstance.controller.ts`, `backend/src/cron/attendanceCron.ts`, `backend/src/cron/attendanceStatusCron.ts`, `backend/src/cron/taskStatusCron.ts`, `backend/src/routes/area.route.ts`, `backend/src/routes/assignment.route.ts`, `backend/src/routes/taskTemplate.route.ts`, `backend/src/routes/verification.route.ts`, `backend/src/routes/verificationException.route.ts`, `backend/src/services/launchJobs.service.ts`, `backend/src/services/staff-notifications/reminders.service.ts`, `backend/src/services/staff-notifications/worker.service.ts`, `backend/src/services/verification-v2/authorization.service.ts`, `backend/src/services/verification-v2/completion.service.ts`, `backend/src/services/verification-v2/deadline.service.ts`, `backend/src/services/verification-v2/inventorySnapshot.service.ts`, `backend/src/services/verification-v2/jobQueue.service.ts`, `backend/src/services/verification-v2/pipeline.service.ts`, `backend/src/services/verification-v2/staffSubmission.service.ts`, `backend/tests/launchComposition.integration.ts`, `docs/implementation/API_COMPOSITION.md`, `backend/src/services/verification-v2/directPhoto.service.ts`, `backend/src/services/verification-v2/bufferedPipeline.service.ts`.
+
 ## Steps
 
 1. Confirm real inputs, current callers and negative authorization cases at this boundary.

@@ -1,3 +1,4 @@
+import { accountAccess } from '../middlewares/accountAccess.middleware.js';
 import { Router } from "express";
 import { ApiResponse } from "../utils/ApiResponse.js";
 import { verifyJwt, verifyPasswordChangeJwt } from "../middlewares/auth.middleware.js";
@@ -10,7 +11,7 @@ router.post("/security/password", verifyPasswordChangeJwt, async (req, res) => {
   const result = await changeOwnPassword(req.user!, req.body);
   res.clearCookie("accessToken", getCookieOptions()).clearCookie("refreshToken", getCookieOptions()).json(new ApiResponse(200, result, "Password changed. Sign in again."));
 });
-router.post("/security/staff/:id/handoff", verifyJwt, authorize("ADMIN", "MANAGER"), async (req, res) => {
+router.post("/security/staff/:id/handoff", verifyJwt, authorize("ADMIN", "MANAGER"), accountAccess("MANAGE_WORK"), async (req, res) => {
   res.json(new ApiResponse(200, await issueStaffHandoff(req.user!, Number(req.params.id), req.body), "One-use access handoff created. Share directly with the staff member."));
 });
 router.post("/security/handoff/complete", async (req, res) => {

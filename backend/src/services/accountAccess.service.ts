@@ -8,7 +8,7 @@ import { subscriptionGrantsPaidAccess } from './paddleFulfillment.service.js';
 import type { VerificationActor } from './verification-v2/authorization.service.js';
 import type { VerificationTransaction } from './verification-v2/transaction.js';
 
-export type AccountAction = 'READ_OPERATIONAL' | 'START_WORK' | 'MANAGE_WORK' | 'COMPLETE_WORK' | 'ADD_CAPACITY' | 'OWN_SECURITY' | 'OWNER_BILLING' | 'SUPPORT';
+export type AccountAction = 'READ_OPERATIONAL' | 'START_WORK' | 'MANAGE_WORK' | 'COMPLETE_WORK' | 'ADD_CAPACITY' | 'OWN_SECURITY' | 'OWNER_BILLING' | 'SUPPORT' | 'ANNOTATE_ATTENDANCE';
 export type AccountRole = VerificationActor['role'] | 'SYSTEM';
 type CompanyState = Pick<Prisma.CompanyGetPayload<object>, 'id' | 'plan' | 'isActive' | 'operationalStatus' | 'billingCustomerId' | 'billingSubscriptionId'>;
 type SubscriptionState = Pick<Prisma.PaddleSubscriptionGetPayload<object>, 'id' | 'companyId' | 'customerId' | 'priceId' | 'status' | 'currentBillingPeriodStart' | 'currentBillingPeriodEnd' | 'canceledAt' | 'pausedAt' | 'scheduledChangeAction' | 'scheduledChangeAt'>;
@@ -33,6 +33,7 @@ export function evaluateAccountAccess(state: AccountState, role: AccountRole, ac
         if (role !== 'ADMIN') throw deny('OWNER_REQUIRED', 'Company owner access required');
         return;
     }
+    if (action === 'ANNOTATE_ATTENDANCE' && role === 'SYSTEM') throw deny('PERSON_REQUIRED', 'Authenticated account required');
     if (action === 'OWN_SECURITY' || action === 'SUPPORT') {
         if (role === 'SYSTEM') throw deny('PERSON_REQUIRED', 'Authenticated account required');
         return;
@@ -72,10 +73,10 @@ export async function assertAccountAction(actor: VerificationActor, action: Excl
     return state;
 }
 
-async function startedWorkAt(actor: VerificationActor, work: { kind: 'task' | 'attendance'; id: number }, tx: VerificationTransaction, now: Date) {
+async function startedWorkAt(actor: VerificationActor, work: { kind: 'task' | 'attendance'; id: number }, tx: VerificationTransaction, now: Date, allowSubmitted = false) {
     if (!['task', 'attendance'].includes(work.kind) || !Number.isSafeInteger(work.id) || work.id < 1) throw new ApiError(400, 'Invalid work identifier');
     const row = work.kind === 'task'
-        ? await tx.taskInstance.findFirst({ where: { id: work.id, staffId: actor.id, isActive: true, location: { companyId: actor.companyId }, status: { in: ['IN_PROGRESS', 'NOT_COMPLETED_INTIME'] }, staffSubmittedAt: null }, select: { startedAt: true } })
+        ? await tx.taskInstance.findFirst({ where: { id: work.id, staffId: actor.id, isActive: true, location: { companyId: actor.companyId }, status: { in: ['IN_PROGRESS', 'NOT_COMPLETED_INTIME'] }, ...(allowSubmitted ? {} : {staffSubmittedAt: null}) }, select: { startedAt: true } })
         : await tx.attendance.findFirst({ where: { id: work.id, staffId: actor.id, location: { companyId: actor.companyId }, checkInTime: { not: null }, checkOutTime: null }, select: { checkInTime: true } });
     if (!row) throw new ApiError(404, 'Started work not found');
     const startedAt = 'startedAt' in row ? row.startedAt : row.checkInTime;
@@ -83,12 +84,12 @@ async function startedWorkAt(actor: VerificationActor, work: { kind: 'task' | 'a
     return startedAt;
 }
 
-export async function assertAccountCompletion(actor: VerificationActor, work: { kind: 'task' | 'attendance'; id: number }, tx: VerificationTransaction = prisma, now = new Date()) {
+export async function assertAccountCompletion(actor: VerificationActor, work: { kind: 'task' | 'attendance'; id: number }, tx: VerificationTransaction = prisma, now = new Date(), allowSubmitted = false) {
     if (actor.role !== 'STAFF') throw deny('STAFF_REQUIRED', 'Staff account required');
     if (!Number.isSafeInteger(work.id) || work.id < 1) throw new ApiError(400, 'Invalid work identifier');
     await currentActor(actor, tx);
     const state = await readAccountState(actor.companyId, tx);
-    const startedAt = await startedWorkAt(actor, work, tx, now);
+    const startedAt = await startedWorkAt(actor, work, tx, now, allowSubmitted);
     const audit = await tx.auditLog.findFirst({ where: { companyId: actor.companyId, actorType: 'STAFF', actorId: actor.id,
         entityType: work.kind === 'task' ? 'TASK_INSTANCE' : 'ATTENDANCE', entityId: work.id, action: 'WORK_ENTITLEMENT_GRANTED' }, orderBy: { createdAt: 'desc' } });
     const saved = audit?.newValue as Record<string, unknown> | undefined;

@@ -4,7 +4,7 @@
 **Depends on:** Spec 10
 **Model:** Standard — `claude-sonnet-5-5` · `gpt-6.1-sol` · `gemini-3.8-flash`
 **Issue:** #41
-**Owns:** `backend/src/services/companySettings.service.ts`, `backend/src/services/companySettings.service.test.ts`, `backend/src/routes/companySettings.route.ts`, `specs/inventory/22-company-settings-api.md`, `backend/tests/companySettings.integration.ts`
+**Owns:** `backend/src/services/companySettings.service.ts`, `backend/src/services/companySettings.service.test.ts`, `specs/inventory/22-company-settings-api.md`, `backend/tests/companySettings.integration.ts`
 **Reuses:** `backend/src/services/auditLog.service.ts`
 
 ## Goal
@@ -50,3 +50,5 @@ Read/update Company name and only approved verified-contact fields using optimis
 - **2026-10-20** — Complete:38 focused tests; whole backend1115 tests/85 files, zero skips with explicit isolated LAUNCH_PERSISTENCE_TEST_DATABASE_URL; backend tsc --noEmit/build and standalone integration tsc pass. Real isolated PostgreSQL proof: persisted owner/tenant denial, one concurrent rename winner/one409, durable actor/name/time audit, real audit failure rollback, shared settings/status version guard, unchanged owner/billing/other company. Logs `/tmp/hygene-spec22-tests.log`, `/tmp/hygene-spec22-build.log`. No contact schema, UI or dependencies added. Router mount26 and account UI30 remain pending. Next selected23 (dependency10 Done), unblocks29/26; no23 issue/code started. Issue https://github.com/Shumail-AbdulRehman/PRIV/issues/41; draft PR publication recorded below after creation.
 
 - **2026-10-20** — Committed1b677af and pushed; draft PR https://github.com/Shumail-AbdulRehman/PRIV/pull/42 stacked on24/PR40. Issue41 remains open pending human merge. Verified working-tree status contains only preserved pre-existing changes. Stop at safe checkpoint;23 unstarted.
+
+- **2026-10-21** — Serialized account action/route wiring ownership transferred to26; ancestor behavior preserved.

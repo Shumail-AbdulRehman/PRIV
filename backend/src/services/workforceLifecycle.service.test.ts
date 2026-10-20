@@ -43,7 +43,7 @@ describe('live tenant/site lifecycle authorization', () => {
         m.tx.staff.findFirst.mockResolvedValue(null);
         await expect(transfer()).rejects.toMatchObject({ statusCode: 404 });
         expect(m.tx.staff.findFirst).toHaveBeenCalledWith({ where: { id: 7, companyId: 42, role: 'STAFF' } });
-        expect(m.tx.manager.findFirst).toHaveBeenCalledWith(expect.objectContaining({ where: expect.objectContaining({ companyId: 42, isActive: true, company: { isActive: true } }) }));
+        expect(m.tx.manager.findFirst).toHaveBeenCalledWith(expect.objectContaining({ where: expect.objectContaining({ companyId: 42, isActive: true, company: { isActive: true, operationalStatus: "ACTIVE" } }) }));
         expect(m.tx.staff.update).not.toHaveBeenCalled();
     });
     it('denies a deactivated issuer', async () => {

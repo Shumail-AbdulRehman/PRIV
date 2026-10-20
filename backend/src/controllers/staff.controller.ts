@@ -1,3 +1,5 @@
+import { requireLocationAccess } from '../services/verification-v2/authorization.service.js';
+import { withAccountCapacity } from '../services/accountAccess.service.js';
 import { deactivateWorkforce } from '../services/workforceLifecycle.service.js';
 import { attendancePhotoPresentation } from "../services/attendanceMedia.service.js";
 import {staffPerformanceReports} from '../services/verification-v2/reviewClosure.service.js';
@@ -28,7 +30,6 @@ import {
 import { syncTodaysOpenAttendanceWindow } from "../utils/syncAttendanceWindow.js";
 import { getCookieOptions } from "../utils/cookies.js";
 import { getScopedLocationIds, assertLocationAccess } from "../utils/scope.js";
-import { assertCompanyCanAdd } from "../services/subscription.service.js";
 
 export const loginStaff = async (req: Request, res: Response) => {
   const result = staffLoginSchema.safeParse(req.body);
@@ -110,23 +111,13 @@ export const createStaff = async (req: Request, res: Response) => {
     throw new ApiError(409, "Staff with this email already exists");
 
   if (req.user!.role === "MANAGER" && !locationId) throw new ApiError(403, "Choose an assigned site when creating staff");
-  await assertCompanyCanAdd(req.user!.companyId, "staff");
 
-  if (locationId) {
-    const location = await prisma.location.findUnique({
-      where: { id: locationId },
-    });
-    if (
-      !location ||
-      location.companyId !== req.user!.companyId ||
-      !location.isActive
-    ) {
-      throw new ApiError(404, "Location not found in your company");
+  const staff = await withAccountCapacity(req.user!, 'staff', async tx => {
+    if(locationId) {
+      const location=await requireLocationAccess(req.user!,locationId,tx);
+      if(!location.isActive) throw new ApiError(403,'Location is inactive');
     }
-    assertLocationAccess(req.user!, locationId);
-  }
-
-  const staff = await prisma.staff.create({
+    return tx.staff.create({
     data: {
       name,
       email,
@@ -137,6 +128,7 @@ export const createStaff = async (req: Request, res: Response) => {
       shiftStart: shiftStart || null,
       shiftEnd: shiftEnd || null,
     },
+    });
   });
 
   const { password: _, ...safeStaff } = staff;
