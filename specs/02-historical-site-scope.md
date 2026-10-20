@@ -1,9 +1,9 @@
 # Spec 02 — P0 historical worker site authorization
 
-**Status:** Not started
+**Status:** Done
 **Depends on:** Spec 01
 **Model:** Heavy — `claude-opus-5-5` · `gpt-6-astra` · `gemini-3.1-pro-preview`
-**Issue:** —
+**Issue:** #2
 **Owns:** `backend/src/controllers/staffHistory.authorization.test.ts`, `specs/inventory/02-historical-site-scope.md`
 **Reuses:** `backend/src/controllers/staffSelf.controller.ts`, `backend/src/utils/scope.ts`, `backend/src/services/verification-v2/reviewClosure.service.ts`
 
@@ -37,8 +37,13 @@ Constrain worker detail task templates, task instances, attendance rows and ever
 
 ## Done when
 
-- [ ] `npm test --prefix backend -- src/controllers/staffHistory.authorization.test.ts` passes: Transferred site-A history is absent for manager-B in rows and every aggregate; ADMIN retains both sites; cross-company/empty-scope denied. [unit]
-- [ ] `npm test --prefix backend` passes the whole affected unit suite; record count. [unit]
-- [ ] Only scoped paths changed; relevant denial/empty/error/config-unavailable states inspected. [static]
-- [ ] `cd backend && npx tsc --noEmit` passes; no backend lint script exists. [static]
-- [ ] `npm run build --prefix backend` passes. [static]
+- [x] `npm test --prefix backend -- src/controllers/staffHistory.authorization.test.ts` passes: Transferred site-A history is absent for manager-B in rows and every aggregate; ADMIN retains both sites; cross-company/empty-scope denied. [unit]
+- [x] `npm test --prefix backend` passes the whole affected unit suite; record count. [unit]
+- [x] Only scoped paths changed; relevant denial/empty/error/config-unavailable states inspected. [static]
+- [x] `cd backend && npx tsc --noEmit` passes; no backend lint script exists. [static]
+- [x] `npm run build --prefix backend` passes. [static]
+
+## Log
+
+- **2026-10-20** — Claimed https://github.com/Shumail-AbdulRehman/PRIV/issues/2. Consume spec01 controller to delegate the unused legacy export safely; dependency updated accordingly.
+- **2026-10-20** — Historical lists/templates/counts/group totals now share company/location scope; late count preserves original date OR using AND. Legacy profile export delegates spec01. Targeted 8/8; whole backend 599/599 (67 files); Prisma/TypeScript build passed. No live transfer or production data used; mocked Prisma-boundary predicates tested.

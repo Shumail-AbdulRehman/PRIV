@@ -6,7 +6,7 @@ Source of truth for execution; latest user authorization supersedes old pending 
 |---|---|---|---|---|---|---|
 | 00 | [Launch decisions](00-launch-decisions.md) | Done | — | Heavy | — | See decision Log |
 | 01 | [P0 actor-safe self endpoints](01-actor-self-authorization.md) | Done | 00 | Heavy | #1 | 591 tests; see spec 01 Log |
-| 02 | [P0 historical worker site authorization](02-historical-site-scope.md) | Not started | 01 | Heavy | — | See spec |
+| 02 | [P0 historical worker site authorization](02-historical-site-scope.md) | Done | 01 | Heavy | #2 | 599 tests; see spec 02 Log |
 | 03 | [P0 fail-closed production runtime](03-production-runtime.md) | Not started | 00 | Heavy | — | See spec |
 | 04 | [P0 atomic role-safe refresh sessions](04-refresh-session-safety.md) | Not started | 00 | Heavy | — | See spec |
 | 05 | [P0 private attendance media boundary](05-attendance-private-media.md) | Not started | 01, 02 | Heavy | — | See spec |
@@ -50,3 +50,4 @@ Source of truth for execution; latest user authorization supersedes old pending 
 ## Log
 
 - **2026-10-20** — Spec 01 implemented; whole backend 591 tests and build passed. See spec Log.
+- **2026-10-20** — Spec 02 implemented; whole backend 599 tests and build passed. See spec Log.
