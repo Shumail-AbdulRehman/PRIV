@@ -5,7 +5,7 @@
 **Model:** Heavy — `claude-opus-5-5` · `gpt-6-astra` · `gemini-3.1-pro-preview`
 **Issue:** —
 **Owns:** `backend/src/routes/launch.route.ts`, `backend/src/routes/launch.route.test.ts`, `backend/src/routes/manager.route.ts`, `specs/inventory/26-launch-api-composition.md`
-**Reuses:** `backend/src/controllers/assignment.controller.ts`, `backend/src/services/verification-v2/retention.service.ts`, `backend/src/app.ts`, `backend/src/routes/staff.route.ts`, `backend/src/routes/attendance.route.ts`
+**Reuses:** `backend/src/controllers/subscription.controller.ts`, `backend/src/routes/subscription.route.ts`, `backend/src/services/paddleFulfillment.service.ts`, `backend/src/controllers/assignment.controller.ts`, `backend/src/services/verification-v2/retention.service.ts`, `backend/src/app.ts`, `backend/src/routes/staff.route.ts`, `backend/src/routes/attendance.route.ts`
 
 ## Goal
 

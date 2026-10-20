@@ -19,7 +19,7 @@ Source of truth for execution; latest user authorization supersedes old pending 
 | 12 | [Task generation and assignment reliability](12-task-readiness.md) | Done | 00 | Standard | #20 | 780 tests; see spec12 Log |
 | 13 | [Atomic company registration](13-registration-atomicity.md) | Done | 00 | Heavy | #16 | 739 backend;57+18 web; see Log |
 | 14 | [Account access and capacity policy](14-entitlement-policy.md) | Done | 10 | Heavy | #33 | 980 tests+real PG; see Log |
-| 15 | [Paddle lifecycle API and configuration](15-billing-lifecycle.md) | Not started | 14 | Heavy | — | See spec |
+| 15 | [Paddle lifecycle API and configuration](15-billing-lifecycle.md) | Done | 14 | Heavy | #37 | 1023 tests+real PG; see Log |
 | 16 | [Owner verification and recovery API](16-owner-identity-api.md) | Not started | 10, 13 | Heavy | — | See spec |
 | 17 | [Self credentials and assisted worker recovery](17-credential-handoff-api.md) | Done | 10 | Heavy | #24 | 803 tests+real PG; see Log |
 | 18 | [Credential epoch access revocation](18-credential-revocation.md) | Done | 04, 17 | Heavy | #26 | 819 tests+real PG; see Log |
@@ -68,3 +68,4 @@ Source of truth for execution; latest user authorization supersedes old pending 
 - **2026-10-20** — Spec11 complete:39 new/76 targeted/927 backend tests, build/typechecks and actual localPG race/history/legacy-adapter proof pass. Sixteen of41 execution/gates complete (about61% remaining by count). Next14 account policy/capacity; native/web workforce inputs remain31/37. No production mutation.
 - **2026-10-20** — Spec14 contract complete:53 new/980 whole backend tests/build/typechecks and actual PG quota/entitlement proof pass. Seventeen of41 execution/gates done (about59% remaining by count). Route/job integration26/39 and real provider lifecycle15 remain. Next27 approved v5 shared shell, independently eligible; then15 billing.
 - **2026-10-20** — Spec27 complete:approved blue/white shell in actual React,22 new/57 node+40 component tests, build/full lint pass; six role/language/width rendered fixtures +two mobile menus no overflow/JS errors. Eighteen of41 execution/gates done (about56% remaining by count). Next15 Paddle lifecycle; real catalog/provider qualification remains gated.
+- **2026-10-20** — Spec15 local backend complete:43 new/1023 full backend tests/build/typechecks and isolatedPG billing race/order/rollback/recovery proof pass. Nineteen of41 execution/gates done (about54% remaining by count). Live merchant/catalog/sandbox qualification remains external; UI32 and route/job26 pending. Next24 platform company metadata/operations.

@@ -13,6 +13,8 @@ Launch operations and active CI proof in the existing application, with persiste
 
 ## Scope
 
+Consume docs/implementation/BILLING.md for qualified merchant/catalog/sandbox and ambiguous provider-request recovery requirements; never enable commercial flows with fixture values.
+
 Consume docs/implementation/OPERATOR_IDENTITY.md for real IdP/MFA qualification; missing provider configuration keeps operator access disabled.
 
 Activate relevant current tests/builds, retain existing CI dirty changes. Prove config/TLS/secret/job owner, migration backup/rollback/restore, bounded operational queries, Paddle config and Android signed distribution boundaries. Instrument redacted readiness; no fake provider health. Evaluate existing list bounds; add dedicated follow-up spec for confirmed query gaps, not silent broad changes. Never deploy or modify production.
