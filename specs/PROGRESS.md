@@ -22,7 +22,7 @@ Source of truth for execution; latest user authorization supersedes old pending 
 | 15 | [Paddle lifecycle API and configuration](15-billing-lifecycle.md) | Not started | 14 | Heavy | — | See spec |
 | 16 | [Owner verification and recovery API](16-owner-identity-api.md) | Not started | 10, 13 | Heavy | — | See spec |
 | 17 | [Self credentials and assisted worker recovery](17-credential-handoff-api.md) | Done | 10 | Heavy | #24 | 803 tests+real PG; see Log |
-| 18 | [Credential epoch access revocation](18-credential-revocation.md) | Not started | 04, 17 | Heavy | — | See spec |
+| 18 | [Credential epoch access revocation](18-credential-revocation.md) | Done | 04, 17 | Heavy | #26 | 819 tests+real PG; see Log |
 | 19 | [Separate platform operator authorization](19-operator-identity.md) | Not started | 00 | Heavy | — | See spec |
 | 20 | [Photo receipt and replacement contract](20-photo-submission-contract.md) | Not started | 00 | Heavy | — | See spec |
 | 21 | [Fail-closed active photo qualification](21-photo-qualification.md) | Not started | 00 | Heavy | — | See spec |
@@ -63,3 +63,4 @@ Source of truth for execution; latest user authorization supersedes old pending 
 - **2026-10-20** — Spec12 complete:14 new readiness +19 existing engine regressions;780 full backend +build pass. Eleven execution units complete01–09,12,13. Next10 additive lifecycle persistence.
 - **2026-10-20** — Spec10 complete:18 migrations applied only localPG16.15;7 SQL invariants, seeded prior-state preservation/DDL rollback/reapply, real signup race/hash, local dump/restore all pass. Full backend787 tests/build/typecheck; no proddata touched. Twelve execution units done01–10,12,13. Next17 credentials and18 epoch revocation or other eligible APIs.
 - **2026-10-20** — Spec17 complete locally:16 unit/803 full backend/build, real isolated concurrent handoff/hash/role-site/audit proof. Thirteen execution units done. Next18 immediate access epoch.
+- **2026-10-20** — Spec18 complete:72 targeted/819 full backend tests, build/typechecks and isolated realPG revocation proof pass. Fourteen of41 execution/gate units done (about66% remaining by count). Next19 separate operator identity boundary.

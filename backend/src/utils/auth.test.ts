@@ -38,3 +38,12 @@ describe("tenant JWT contracts", () => {
     expect(() => verifySessionToken(wrongAlgorithm, "access")).toThrow();
   });
 });
+it("binds access and refresh claims to the real credential epoch", () => {
+  const user = { id: 1, name: "Test", email: "test@example.invalid", credentialVersion: 4 };
+  expect(verifySessionToken(generateAccessToken(user, "ADMIN"), "access").credentialVersion).toBe(4);
+  expect(verifySessionToken(generateRefreshToken(user, "ADMIN"), "refresh").credentialVersion).toBe(4);
+});
+it.each([-1, 1.5, null, "0"])("rejects malformed signed credential epoch %j", credentialVersion => {
+  const token = jwt.sign({ id: 1, role: "STAFF", tokenUse: "access", credentialVersion }, "test-access-key", { expiresIn: "15m" });
+  expect(() => verifySessionToken(token, "access")).toThrow();
+});

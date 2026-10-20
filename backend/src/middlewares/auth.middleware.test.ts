@@ -13,3 +13,11 @@ describe('active JWT principals',()=>{
  it('rejects disabled companies',async()=>{m.staff.mockResolvedValue({id:1,role:'STAFF',isActive:true,company:{isActive:false}});await expect(verifyJwt(request('STAFF'),{} as Response,vi.fn())).rejects.toMatchObject({statusCode:403});});
  it('loads staff and manager IDs from separate tables',async()=>{m.staff.mockResolvedValue({id:1,companyId:1,role:'STAFF',isActive:true,company:{isActive:true}});const req=request('STAFF');await verifyJwt(req,{} as Response,vi.fn());expect(m.manager).not.toHaveBeenCalled();expect(req.user).toMatchObject({id:1,role:'STAFF'});expect(req.user).not.toHaveProperty('company');});
 });
+it('rejects a credential version changed by password reset before authorizing access',async()=>{
+ m.staff.mockResolvedValue({id:1,companyId:1,role:'STAFF',credentialVersion:1,isActive:true,company:{isActive:true}});
+ const next=vi.fn();await expect(verifyJwt(request('STAFF'),{} as Response,next)).rejects.toMatchObject({statusCode:401,errors:[{code:'SESSION_REVOKED'}]});expect(next).not.toHaveBeenCalled();
+});
+it('requires forced replacement before operational access',async()=>{
+ m.staff.mockResolvedValue({id:1,companyId:1,role:'STAFF',credentialVersion:0,mustChangePassword:true,isActive:true,company:{isActive:true}});
+ await expect(verifyJwt(request('STAFF'),{} as Response,vi.fn())).rejects.toMatchObject({statusCode:403,errors:[{code:'PASSWORD_CHANGE_REQUIRED'}]});
+});

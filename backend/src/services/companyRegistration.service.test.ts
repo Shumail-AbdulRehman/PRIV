@@ -63,7 +63,7 @@ describe("company registration", () => {
   it("does not overwrite an intervening sign-in when establishing the signup session", async () => {
     mock.session.mockResolvedValue({ count: 0 }); const res = response();
     await signupCompany({ body: input() } as Request, res as unknown as Response);
-    expect(mock.session).toHaveBeenCalledWith(expect.objectContaining({ where: { id: 2, companyId: 3, role: "ADMIN", isActive: true, refreshToken: null, company: { isActive: true } } }));
+    expect(mock.session).toHaveBeenCalledWith(expect.objectContaining({ where: { id: 2, companyId: 3, role: "ADMIN", credentialVersion: 0, isActive: true, refreshToken: null, company: { isActive: true } } }));
     expect(res.cookie).not.toHaveBeenCalled(); expect(res.json.mock.calls[0]![0].data.sessionEstablished).toBe(false);
   });
 });

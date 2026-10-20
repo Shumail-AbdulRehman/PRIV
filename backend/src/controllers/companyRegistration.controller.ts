@@ -10,7 +10,7 @@ export async function establishRegisteredSession(owner: RegisteredOwner) {
   const accessToken = generateAccessToken(owner, owner.role);
   const refreshToken = generateRefreshToken(owner, owner.role);
   const saved = await prisma.manager.updateMany({
-    where: { id: owner.id, companyId: owner.companyId, role: "ADMIN", isActive: true, refreshToken: null, company: { isActive: true } },
+    where: { id: owner.id, companyId: owner.companyId, role: "ADMIN", credentialVersion: 0, isActive: true, refreshToken: null, company: { isActive: true } },
     data: { refreshToken },
   });
   if (!saved.count) throw new Error("Session was changed after registration");
