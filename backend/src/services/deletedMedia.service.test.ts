@@ -7,6 +7,10 @@ const mocks = vi.hoisted(() => ({
   destroy: vi.fn(),
 }));
 vi.mock("../utils/cloudinary.js", () => ({}));
+vi.mock("./attendanceMedia.service.js", () => ({
+  parseAttendancePhoto: (value: string) => value === "attendance:v1:42:7:12345678-1234-4321-aaaa-123456789abc"
+    ? { companyId: 42, staffId: 7, publicId: "attendance/42/7/12345678-1234-4321-aaaa-123456789abc" } : null,
+}));
 vi.mock("cloudinary", () => ({ v2: { uploader: { destroy: mocks.destroy } } }));
 vi.mock("../prisma/prisma.js", () => ({
   prisma: {
@@ -85,5 +89,18 @@ describe("permanently deleted media", () => {
     await cleanDeletedMedia();
     expect(mocks.remove).toHaveBeenCalled();
     expect(mocks.retry).not.toHaveBeenCalled();
+  });
+});
+
+describe("private attendance orphan cleanup", () => {
+  const reference = "attendance:v1:42:7:12345678-1234-4321-aaaa-123456789abc";
+  it("deletes only an unreferenced private orphan using authenticated storage type", async () => {
+    mocks.jobs.mockResolvedValue([{ id: 2, url: reference, attempts: 0 }]);
+    await cleanDeletedMedia();
+    expect(mocks.destroy).toHaveBeenCalledWith("attendance/42/7/12345678-1234-4321-aaaa-123456789abc", { invalidate: true, resource_type: "image", type: "authenticated" });
+  });
+  it("preserves an authenticated photo still referenced by attendance", async () => {
+    mocks.jobs.mockResolvedValue([{ id: 2, url: reference, attempts: 0 }]); mocks.count.mockResolvedValue(1);
+    await cleanDeletedMedia(); expect(mocks.destroy).not.toHaveBeenCalled(); expect(mocks.remove).toHaveBeenCalled();
   });
 });

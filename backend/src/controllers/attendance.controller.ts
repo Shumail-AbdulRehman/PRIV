@@ -1,21 +1,17 @@
+import { attendanceDateScope } from "../services/attendanceWrites.service.js";
 import { Request, Response } from "express";
 import { prisma } from "../prisma/prisma.js";
 import { ApiResponse } from "../utils/ApiResponse.js";
 import { ApiError } from "../utils/ApiError.js";
-import { checkInSchema, checkOutSchema, assignShiftSchema } from "../validations/attendance.validation.js";
-import { isWithinRadius } from "../utils/geofencing.js";
-import { addUtcDays, DEFAULT_TIME_ZONE, getZonedDayRange, getZonedDayRangeFromDateInput } from "../utils/dateTime.js";
-import { storeAttendancePhoto, attendancePhotoPresentation } from "../services/attendanceMedia.service.js";
+import { assignShiftSchema } from "../validations/attendance.validation.js";
+import { attendancePhotoPresentation } from "../services/attendanceMedia.service.js";
 import { syncTodaysOpenAttendanceWindow } from "../utils/syncAttendanceWindow.js";
 import { getScopedLocationIds, assertLocationAccess } from "../utils/scope.js";
 
-const LATE_GRACE_MINUTES = 15;
-const EARLY_CHECKIN_MINUTES = 30;
-const MIN_CHECKOUT_MINUTES = 30;
 
 export const assignShiftToStaff = async (req: Request, res: Response) => {
     const staffId = Number(req.params.id);
-    if (isNaN(staffId)) throw new ApiError(400, "Invalid staff id");
+    if (!Number.isSafeInteger(staffId) || staffId < 1) throw new ApiError(400, "Invalid staff id");
 
     const result = assignShiftSchema.safeParse(req.body);
 
@@ -129,233 +125,7 @@ export const assignShiftToStaff = async (req: Request, res: Response) => {
         .json(new ApiResponse(200, updated, "Shift assigned to staff successfully"));
 };
 
-export const checkIn = async (req: Request, res: Response) => {
-    
-    const file=req.file;
-    
-
-    if(!file) throw new ApiError(400,"Check In image is required");
-
-    if (req.user!.role !== "STAFF") {
-        throw new ApiError(403, "Only staff can check in");
-    }
-
-    const result = checkInSchema.safeParse(req.body);
-
-    if (!result.success) {
-        const errors = result.error.issues.map(e => ({
-            field: e.path.join("."),
-            message: e.message,
-        }));
-        throw new ApiError(400, "Validation failed", errors);
-    }
-
-    const staffId = req.user!.id;
-    const locationId = req.user!.locationId;
-
-    if (!locationId) {
-        throw new ApiError(400, "You are not assigned to any location");
-    }
-
-    const location = await prisma.location.findUnique({ where: { id: locationId } });
-
-    if (!location || !location.isActive) {
-        throw new ApiError(404, "Your assigned location is not active");
-    }
-
-    const { latitude, longitude, accuracy } = result.data;
-
-    const actualDistance = (await import("../utils/geofencing.js")).getDistanceMeters(
-      Number(latitude), Number(longitude),
-      Number(location.latitude), Number(location.longitude)
-    );
-    // Trust the device's reported accuracy up to a 200m ceiling so a single
-    // bogus accuracy value cannot disable geofencing entirely.
-    const accuracyBuffer = Math.min(accuracy ?? 0, 200);
-    const effectiveRadius = location.radiusMeters + accuracyBuffer;
-
-
-    if (
-  !isWithinRadius(
-    Number(latitude),
-    Number(longitude),
-    Number(location.latitude),
-    Number(location.longitude),
-    effectiveRadius
-  )
-) {
-  throw new ApiError(400, `You are not within the allowed radius of your location (you are ${Math.round(actualDistance)}m away, allowed: ${effectiveRadius}m including GPS accuracy)`);
-}
-
-    const now = new Date();
-
-    const { start: today, end: tomorrow } = getZonedDayRange(now, location.timezone);
-
-const attendance = await prisma.attendance.findFirst({
-  where: {
-    staffId,
-    expectedStart: { lte: new Date(now.getTime() + EARLY_CHECKIN_MINUTES * 60 * 1000) },
-    expectedEnd: { gte: now },
-  },
-});
-
-    if (!attendance) {
-        const alreadyCheckedIn = await prisma.attendance.findFirst({
-            where: {
-                staffId,
-                date: { gte: today, lt: tomorrow },
-                status: { in: ["CHECKED_IN", "LATE", "CHECKED_OUT"] },
-            },
-        });
-
-        if (alreadyCheckedIn) {
-            throw new ApiError(400, "You have already checked in today");
-        }
-
-        throw new ApiError(404, "No attendance record found for today");
-    }
-
-    const graceDeadline = new Date(attendance.expectedStart.getTime() + LATE_GRACE_MINUTES * 60 * 1000);
-
-    let status: "CHECKED_IN" | "LATE";
-    let isLateCheckIn = false;
-    let lateMinutes: number | null = null;
-
-    if (now > graceDeadline) {
-        status = "LATE";
-        isLateCheckIn = true;
-        lateMinutes = Math.floor((now.getTime() - attendance.expectedStart.getTime()) / (1000 * 60));
-    } else {
-        status = "CHECKED_IN";
-    }
-     const checkInFile = await storeAttendancePhoto(file.buffer, req.user!.companyId, staffId);
-
-    if(!checkInFile) throw new ApiError(501,"something went wrong while uploading check in image");
-    const { count } = await prisma.attendance.updateMany({
-        where: { id: attendance.id, status: "ABSENT" },
-        data: {
-            checkInTime: now,
-            status,
-            isLateCheckIn,
-            lateMinutes,
-            checkInImage:checkInFile
-        },
-    });
-
-    if (count === 0) {
-        throw new ApiError(400, "You have already checked in for this shift");
-    }
-
-    const updated = await prisma.attendance.findUnique({ where: { id: attendance.id } });
-    if (!updated) throw new ApiError(409, "Attendance changed. Refresh your attendance.");
-    res.status(200).json(new ApiResponse(200, attendancePhotoPresentation(updated), `Checked in successfully${isLateCheckIn ? ` (late by ${lateMinutes} minutes)` : ""}`));
-};
-
-export const checkOut = async (req: Request, res: Response) => {
-    
-    const file=req.file;
-
-    if(!file) throw new ApiError(400,"check out image is required");
-
-    if (req.user!.role !== "STAFF") {
-        throw new ApiError(403, "Only staff can check out");
-    }
-
-    const result = checkOutSchema.safeParse(req.body);
-
-    if (!result.success) {
-        const errors = result.error.issues.map(e => ({
-            field: e.path.join("."),
-            message: e.message,
-        }));
-        throw new ApiError(400, "Validation failed", errors);
-    }
-
-    const staffId = req.user!.id;
-    const locationId = req.user!.locationId;
-
-    if (!locationId) {
-        throw new ApiError(400, "You are not assigned to any location");
-    }
-
-    const location = await prisma.location.findUnique({ where: { id: locationId } });
-
-    if (!location || !location.isActive) {
-        throw new ApiError(404, "Your assigned location is not active");
-    }
-
-    const { latitude, longitude, accuracy } = result.data;
-
-    const actualDistance = (await import("../utils/geofencing.js")).getDistanceMeters(
-      Number(latitude), Number(longitude),
-      Number(location.latitude), Number(location.longitude)
-    );
-    const accuracyBuffer = Math.min(accuracy ?? 0, 200);
-    const effectiveRadius = location.radiusMeters + accuracyBuffer;
-
-
-    if (
-  !isWithinRadius(
-    Number(latitude),
-    Number(longitude),
-    Number(location.latitude),
-    Number(location.longitude),
-    effectiveRadius
-  )
-) {
-  throw new ApiError(400, `You are not within the allowed radius of your location (you are ${Math.round(actualDistance)}m away, allowed: ${effectiveRadius}m including GPS accuracy)`);
-}
-
-    const { start: today, end: tomorrow } = getZonedDayRange(new Date(), location.timezone);
-
-    let attendance = await prisma.attendance.findFirst({
-        where: {
-            staffId,
-            date: { gte: today, lt: tomorrow },
-            status: { in: ["CHECKED_IN", "LATE", "MISSED_CHECKOUT"] },
-        },  
-    });
-
-    if (!attendance) {
-        const yesterday = addUtcDays(today, -1);
-
-        attendance = await prisma.attendance.findFirst({
-            where: {
-                staffId,
-                date: { gte: yesterday, lt: today },
-                status: { in: ["CHECKED_IN", "LATE", "MISSED_CHECKOUT"] },
-            },
-        });
-    }
-
-    if (!attendance) {
-        throw new ApiError(400, "You have not checked in today or already checked out");
-    }
-
-    const now = new Date();
-
-    if (attendance.checkInTime) {
-        const minutesSinceCheckIn = Math.floor((now.getTime() - attendance.checkInTime.getTime()) / (1000 * 60));
-        if (minutesSinceCheckIn < MIN_CHECKOUT_MINUTES) {
-            throw new ApiError(400, `Cannot check out within ${MIN_CHECKOUT_MINUTES} minutes of check-in. Please wait ${MIN_CHECKOUT_MINUTES - minutesSinceCheckIn} more minute(s).`);
-        }
-    }
-
-    const checkOutImage=await storeAttendancePhoto(file.buffer, req.user!.companyId, staffId);
-
-    if(!checkOutImage) throw new ApiError(501,"something went wrong while uploading check out image");
-    
-    const updated = await prisma.attendance.update({
-        where: { id: attendance.id },
-        data: {
-            checkOutTime: now,
-            status: attendance.status === "MISSED_CHECKOUT" ? "MISSED_CHECKOUT" : "CHECKED_OUT",
-            checkOutImage
-        },
-    });
-
-    res.status(200).json(new ApiResponse(200, attendancePhotoPresentation(updated), "Checked out successfully"));
-};
+export { checkIn, checkOut } from "./attendanceWrites.controller.js";
 
 export { getStaffSelfAttendance as getMyAttendance } from "./attendanceSelf.controller.js";
 
@@ -368,7 +138,7 @@ export const getStaffAttendance = async (req: Request, res: Response) => {
 
     if (req.query.locationId) {
         const locationId = Number(req.query.locationId);
-        if (isNaN(locationId)) throw new ApiError(400, "Invalid locationId");
+        if (!Number.isSafeInteger(locationId) || locationId < 1) throw new ApiError(400, "Invalid locationId");
         assertLocationAccess(req.user!, locationId);
         filters.locationId = locationId;
     } else if (scopedLocationIds) {
@@ -377,67 +147,25 @@ export const getStaffAttendance = async (req: Request, res: Response) => {
 
     if (req.query.staffId) {
         const staffId = Number(req.query.staffId);
-        if (isNaN(staffId)) throw new ApiError(400, "Invalid staffId");
+        if (!Number.isSafeInteger(staffId) || staffId < 1) throw new ApiError(400, "Invalid staffId");
         filters.staffId = staffId;
     }
 
-    if (req.query.from || req.query.to) {
-        const fromInput = req.query.from as string | undefined;
-        const toInput = req.query.to as string | undefined;
-
-        let timeZones: string[];
-
-        if (typeof filters.locationId === "number") {
-            const location = await prisma.location.findUnique({
-                where: { id: filters.locationId },
-                select: { timezone: true },
-            });
-            timeZones = [location?.timezone ?? DEFAULT_TIME_ZONE];
-        } else {
-            const scopedLocations = await prisma.location.findMany({
-                where: filters.locationId?.in
-                    ? { id: { in: filters.locationId.in } }
-                    : { companyId },
-                select: { timezone: true },
-                distinct: ["timezone"],
-            });
-            timeZones = scopedLocations.map((location) => location.timezone);
-            if (timeZones.length === 0) timeZones = [DEFAULT_TIME_ZONE];
-        }
-
-        const ranges = timeZones.map((timeZone) => ({
-            from: fromInput ? getZonedDayRangeFromDateInput(fromInput, timeZone) : null,
-            to: toInput ? getZonedDayRangeFromDateInput(toInput, timeZone) : null,
-        }));
-
-        if (fromInput && ranges.some((range) => !range.from)) {
-            throw new ApiError(400, "Invalid from format. Use YYYY-MM-DD");
-        }
-        if (toInput && ranges.some((range) => !range.to)) {
-            throw new ApiError(400, "Invalid to format. Use YYYY-MM-DD");
-        }
-        if (fromInput && toInput && ranges.some((range) => range.from!.start > range.to!.start)) {
-            throw new ApiError(400, "from must be before or equal to to");
-        }
-
-        if (ranges.length === 1) {
-            filters.date = {
-                ...(fromInput ? { gte: ranges[0].from!.start } : {}),
-                ...(toInput ? { lt: ranges[0].to!.end } : {}),
-            };
-        } else {
-            filters.OR = ranges.map((range) => ({
-                date: {
-                    ...(fromInput ? { gte: range.from!.start } : {}),
-                    ...(toInput ? { lt: range.to!.end } : {}),
-                },
-            }));
-        }
+    if (req.query.from !== undefined || req.query.to !== undefined) {
+        if ((req.query.from !== undefined && typeof req.query.from !== "string") ||
+            (req.query.to !== undefined && typeof req.query.to !== "string"))
+            throw new ApiError(400, "Choose dates in YYYY-MM-DD format");
+        const locations = await prisma.location.findMany({
+            where: { companyId, ...(filters.locationId !== undefined ? { id: filters.locationId } : {}) },
+            select: { id: true, timezone: true },
+        });
+        Object.assign(filters, attendanceDateScope(locations, req.query.from as string | undefined, req.query.to as string | undefined));
     }
 
     const attendance = await prisma.attendance.findMany({
         where: {
             ...filters,
+            location: { companyId },
             staff: {
                 companyId,
                 isActive: true,
