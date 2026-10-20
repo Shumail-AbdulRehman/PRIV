@@ -2,7 +2,7 @@
 
 Source of truth for execution; latest user authorization supersedes old pending labels. Approved v5 preserved.
 
-**Active continuation after spec20:** decision00 and25 of41 execution/gate units Done (16 remain). Next selected eligible unit21 consumes completed00. User requests continued completion without routine handoff stops. Review remains stacked draft PRs; Done is local verification, not merge, route composition or external release qualification.
+**Active continuation after spec21:** decision00 and26 of41 execution/gate units Done (15 remain). Next selected eligible unit26 consumes all completed dependencies. User requests continued completion without routine handoff stops. Review remains stacked draft PRs; Done is local verification, not merge, route composition or external release qualification.
 
 | # | Spec | Status | Depends on | Model | Issue | Notes |
 |---|---|---|---|---|---|---|
@@ -27,7 +27,7 @@ Source of truth for execution; latest user authorization supersedes old pending 
 | 18 | [Credential epoch access revocation](18-credential-revocation.md) | Done | 04, 17 | Heavy | #26 | 819 tests+real PG; see Log |
 | 19 | [Separate platform operator authorization](19-operator-identity.md) | Done | 00 | Heavy | #29 | 69 new/888 full tests; see Log |
 | 20 | [Photo receipt and replacement contract](20-photo-submission-contract.md) | Done | 00 | Heavy | #49 | 41 policy/1340 backend+isolated PG; see Log |
-| 21 | [Fail-closed active photo qualification](21-photo-qualification.md) | Not started | 00 | Heavy | — | See spec |
+| 21 | [Fail-closed active photo qualification](21-photo-qualification.md) | Done | 00 | Heavy | #51 | 44 focused/1360 backend; safe-disabled; see Log |
 | 22 | [Owner company settings API](22-company-settings-api.md) | Done | 10 | Standard | #41 | 38 focused/1115 backend+isolated PG; see Log |
 | 23 | [Immutable attendance annotations API](23-attendance-annotations-api.md) | Done | 10 | Standard | #43 | 55 focused/1170 backend+isolated PG; see Log |
 | 24 | [Platform company operations API](24-platform-company-api.md) | Done | 19, 15 | Heavy | #39 | 54 focused/1077 full backend+isolated PG; see Log |
@@ -91,3 +91,5 @@ Source of truth for execution; latest user authorization supersedes old pending 
 - **2026-10-20** — Spec16 complete:74 focused/1297 whole backend tests (88 files, zero skips), build/typechecks and isolated real owner lifecycle proof pass. Hashed scoped links, legacy bootstrap boundary, neutral bounded public processing, opt-in delivery unavailable without sender, epoch revocation and audit rollback. New registration enrollment marker preserves13 atomicity; no schema/live mail/provider/production changes.24 of41 execution/gates Done;17 remain. Continue20 per user request, not a stopping handoff;30 newly eligible.
 
 - **2026-10-20** — Spec20 complete:41 policy tests and affected regressions; full backend1340/89 files/zero skips, build/typechecks and isolated SQL immutable-generation/waiver/receipt proof pass. Strict current failed-view proof on retake/rework/QR renewal and context, legacy waiver generation/actor proof, all remaining mandatory receipts/assignment binding.25 of41 execution/gates Done;16 remain. Continue21;26 waits21 only. No production/provider/photo mutation or routine stop.
+
+- **2026-10-20** — Spec21 safe-disabled implementation complete:44 focused/1360 whole backend tests (90 files, zero skips), tsc/build pass. Active categorical adapter has no privacy/identity screening; new direct/buffered processing now503 before AI/storage while reconciliation/retry preserved. No synthetic qualification or invented privacy policy. Actual empirical consented data/privacy qualification remains release gate39/40.26 of41 units Done;15 remain; next26 now eligible. Continue without routine stop.

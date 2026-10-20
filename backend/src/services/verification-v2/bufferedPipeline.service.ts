@@ -1,3 +1,4 @@
+import { requireLaunchPhotoQualification } from './launchQualification.js';
 import { Prisma, type VerificationJob } from '@prisma/client';
 import { prisma } from '../../prisma/prisma.js';
 import { publishJobResult } from './jobQueue.service.js';
@@ -21,6 +22,8 @@ export async function processBufferedPhoto(job: VerificationJob, provider: Buffe
   if (!a.media || a.media.companyId !== job.companyId || !['BUFFERED', 'NOT_REQUIRED', 'DISCARDED'].includes(a.media.privacyState)) throw new Error('EVIDENCE_NOT_READY');
   if (job.evaluatorVersion !== bufferedEvaluatorVersion()) throw new ProviderServiceFailure('PROVIDER_CONFIGURATION_CHANGED');
   if (!await prisma.verificationJob.findFirst({ where: { id: job.id, state: 'RUNNING', leaseToken: job.leaseToken, leaseUntil: { gt: new Date() } }, select: { id: true } })) return false;
+  requireLaunchPhotoQualification(a.requirement?.item.typeSnapshot ?? 'ROOM_CONTEXT',
+    (a.requirement?.item.rubricSnapshot as {version?:number}|undefined)?.version ?? 1);
   const quality = a.qualityResult as { acceptable?: boolean; reasons?: string[] } | null;
   const persisted = job.result as { assessment?: BufferedAssessment; decision?: Decision } | null;
   let assessment = persisted?.assessment;
