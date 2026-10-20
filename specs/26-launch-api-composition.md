@@ -13,6 +13,9 @@ Wire launch backend routes and policies in the existing application, with persis
 
 ## Scope
 
+Mount `backend/src/routes/companySettings.route.ts` at `/api/company/settings` under its tenant-owner authentication, with no operator promotion or company ID input.
+
+
 Mount `backend/src/routes/platformCompany.route.ts` at `/api/platform/companies` outside tenant JWT composition; it applies its own separate operator verification and no-store headers. Preserve metadata-only DTOs and versioned operational status mutations.
 
 
