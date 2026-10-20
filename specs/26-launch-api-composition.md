@@ -13,6 +13,9 @@ Wire launch backend routes and policies in the existing application, with persis
 
 ## Scope
 
+Mount `backend/src/routes/attendanceAnnotation.route.ts` under `/api/attendance` for GET/POST `/:attendanceId/annotations`; preserve its tenant authentication, historical scope, no-store and immutable request-id contract.
+
+
 Mount `backend/src/routes/companySettings.route.ts` at `/api/company/settings` under its tenant-owner authentication, with no operator promotion or company ID input.
 
 
