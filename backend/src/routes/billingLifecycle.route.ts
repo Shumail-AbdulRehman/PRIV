@@ -1,0 +1,12 @@
+import { Router } from 'express';
+import { verifyJwt } from '../middlewares/auth.middleware.js';
+import authorize from '../middlewares/authorize.middleware.js';
+import { createBillingCheckout, createBillingPortal, getBillingCatalog, getBillingLifecycle } from '../services/billingLifecycle.service.js';
+import { ApiResponse } from '../utils/ApiResponse.js';
+const router = Router();
+router.use(verifyJwt, authorize('ADMIN'), (_req, res, next) => { res.setHeader('Cache-Control', 'private, no-store'); next(); });
+router.get('/lifecycle', async (req, res) => { res.json(new ApiResponse(200, await getBillingLifecycle(req.user!), 'Billing details fetched')); });
+router.get('/catalog', async (req, res) => { res.json(new ApiResponse(200, await getBillingCatalog(req.user!), 'Configured catalog fetched')); });
+router.post('/checkout', async (req, res) => { res.status(201).json(new ApiResponse(201, await createBillingCheckout(req.user!, req.body), 'Checkout prepared')); });
+router.post('/managed-portal', async (req, res) => { res.status(201).json(new ApiResponse(201, await createBillingPortal(req.user!, req.body), 'Billing portal prepared')); });
+export default router;

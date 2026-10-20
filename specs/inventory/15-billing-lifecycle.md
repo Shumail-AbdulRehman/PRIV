@@ -1,0 +1,8 @@
+# Spec15 reuse inventory
+
+- `backend/src/config/paddle.ts`: explicit environment catalog plan/interval/price IDs, activation/real credential requirement, strong webhook secret; no hardcoded catalog or prices.
+- `backend/src/services/paddleFulfillment.service.ts`: canonical Company.billingCustomerId only; company→provider locks, one atomic event+mirror transaction, duplicate/order checks, epoch placeholders, configured-catalog/current-period access. Signed checkout correlation may resolve an existing reservation only with canonical customer and exact item. No email/customData tenant linkage.
+- `backend/src/services/billingLifecycle.service.ts`: owner-scoped whitelisted lifecycle metadata, actual catalog facts, fresh nonpersisted portal, verified-owner server draft checkout with company-locked audit reservation/reuse/uncertainty/canceled retry. Generic provider errors; missing activation unavailable.
+- `backend/src/routes/billingLifecycle.route.ts`: mounted /subscription/manage, private/no-store, owner only. Existing public pricing unaffected; old portal-session delegates same service. Inactive-company owner auth adapter remains26.
+- `backend/tests/billingLifecycle.integration.ts`: explicit isolated DB, no-network provider seam; real atomic dedup/rollback/order/customer link and checkout race/recovery proof. Native SDK signatures tested separately in43 new unit cases; not real sandbox qualification.
+- `docs/implementation/BILLING.md`: configuration, live sandbox/legacy cutover/reconciliation gates. Consumers26/32/39 must replace old browser purchase and complete route/job policy; no rollout/production mutation authorized.

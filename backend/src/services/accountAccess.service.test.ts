@@ -1,4 +1,4 @@
-import { beforeEach, describe, expect, it, vi } from 'vitest';
+import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 const m = vi.hoisted(() => ({ company: vi.fn(), subscription: vi.fn(), staff: vi.fn(), manager: vi.fn(), task: vi.fn(), attendance: vi.fn(), auditFind: vi.fn(), auditCreate: vi.fn(), count: vi.fn(), lock: vi.fn() }));
 vi.mock('../prisma/prisma.js', () => ({ prisma: { company: { findUnique: m.company }, paddleSubscription: { findFirst: m.subscription }, staff: { findFirst: m.staff }, manager: { findFirst: m.manager } } }));
 import { accountAccess } from '../middlewares/accountAccess.middleware.js';
@@ -8,10 +8,11 @@ const now = new Date('2026-10-20T12:00:00Z');
 const from = new Date(+now - 3600000), until = new Date(+now + 3600000);
 const owner = { id: 1, companyId: 42, role: 'ADMIN' as const }, worker = { id: 7, companyId: 42, role: 'STAFF' as const };
 function state(): AccountState { return { company: { id: 42, plan: 'STARTER', isActive: true, operationalStatus: 'ACTIVE', billingCustomerId: 'customer-fixture', billingSubscriptionId: 'subscription-fixture' },
-    subscription: { id: 'subscription-fixture', companyId: 42, customerId: 'customer-fixture', status: 'active', currentBillingPeriodStart: from, currentBillingPeriodEnd: until, canceledAt: null, pausedAt: null, scheduledChangeAction: null, scheduledChangeAt: null } }; }
+    subscription: { priceId: 'pri_00000000000000000000000001', id: 'subscription-fixture', companyId: 42, customerId: 'customer-fixture', status: 'active', currentBillingPeriodStart: from, currentBillingPeriodEnd: until, canceledAt: null, pausedAt: null, scheduledChangeAction: null, scheduledChangeAt: null } }; }
 const tx = { company: { findUnique: m.company }, paddleSubscription: { findFirst: m.subscription }, staff: { findFirst: m.staff, count: m.count }, manager: { findFirst: m.manager, count: m.count }, location: { count: m.count }, taskInstance: { findFirst: m.task }, attendance: { findFirst: m.attendance }, auditLog: { findFirst: m.auditFind, create: m.auditCreate }, $queryRaw: m.lock } as unknown as Parameters<typeof readAccountState>[1];
 const db = { $transaction: async (run: (tx: unknown) => unknown) => run(tx) } as unknown as NonNullable<Parameters<typeof withAccountCapacity>[3]>;
-beforeEach(() => { vi.resetAllMocks(); const current = state(); m.company.mockResolvedValue(current.company); m.subscription.mockResolvedValue(current.subscription); m.staff.mockResolvedValue({ id: 7 }); m.manager.mockResolvedValue({ id: 1 }); m.count.mockResolvedValue(0); m.task.mockResolvedValue({ startedAt: now }); m.attendance.mockResolvedValue({ checkInTime: now }); });
+afterEach(() => vi.unstubAllEnvs());
+beforeEach(() => { vi.stubEnv('PADDLE_ENVIRONMENT', 'sandbox'); vi.stubEnv('PADDLE_PRICE_CATALOG_JSON', JSON.stringify([{ plan: 'STARTER', interval: 'month', priceId: 'pri_00000000000000000000000001' }])); vi.resetAllMocks(); const current = state(); m.company.mockResolvedValue(current.company); m.subscription.mockResolvedValue(current.subscription); m.staff.mockResolvedValue({ id: 7 }); m.manager.mockResolvedValue({ id: 1 }); m.count.mockResolvedValue(0); m.task.mockResolvedValue({ startedAt: now }); m.attendance.mockResolvedValue({ checkInTime: now }); });
 const roles: AccountRole[] = ['ADMIN', 'MANAGER', 'STAFF', 'SYSTEM'];
 describe('plain account restriction policy', () => {
     it.each(roles)('%s retains operational reads when unentitled', role => {

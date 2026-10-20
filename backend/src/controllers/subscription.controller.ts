@@ -1,9 +1,7 @@
+import { createBillingPortal } from "../services/billingLifecycle.service.js";
 import { Request, Response } from "express";
-import { prisma } from "../prisma/prisma.js";
-import { ApiError } from "../utils/ApiError.js";
 import { ApiResponse } from "../utils/ApiResponse.js";
 import { getCompanySubscriptionSummary } from "../services/subscription.service.js";
-import { getPaddleClient } from "../config/paddle.js";
 
 const countryHeaders = [
   "x-vercel-ip-country",
@@ -45,40 +43,7 @@ export const getSubscription = async (req: Request, res: Response) => {
 };
 
 export const createCustomerPortalSession = async (req: Request, res: Response) => {
-  const company = await prisma.company.findUnique({
-    where: { id: req.user!.companyId },
-    select: { billingCustomerId: true },
-  });
-
-  if (!company?.billingCustomerId) {
-    throw new ApiError(404, "No Paddle billing customer is linked to this workspace yet.");
-  }
-
-  const customer = await prisma.paddleCustomer.findUnique({
-    where: { id: company.billingCustomerId },
-    select: { id: true },
-  });
-  if (!customer) {
-    throw new ApiError(409, "Billing details are still being synchronized. Try again shortly.");
-  }
-
-  const subscriptions = await prisma.paddleSubscription.findMany({
-    where: { customerId: customer.id, companyId: req.user!.companyId },
-    select: { id: true },
-    orderBy: { paddleUpdatedAt: "desc" },
-  });
-
-  const portalSession = await getPaddleClient().customerPortalSessions.create(
-    customer.id,
-    subscriptions.map((subscription) => subscription.id),
-  );
-
-  res.setHeader("Cache-Control", "no-store");
-  res.status(201).json(
-    new ApiResponse(
-      201,
-      { url: portalSession.urls.general.overview },
-      "Customer portal session created successfully",
-    ),
-  );
+  const result = await createBillingPortal(req.user!, req.body);
+  res.setHeader("Cache-Control", "private, no-store");
+  res.status(201).json(new ApiResponse(201, result, "Customer portal session created successfully"));
 };

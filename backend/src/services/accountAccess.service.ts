@@ -1,3 +1,4 @@
+import { configuredPlanForPrice } from "../config/paddle.js";
 import type { Prisma } from '@prisma/client';
 import { prisma } from '../prisma/prisma.js';
 import { writeAuditLog } from './auditLog.service.js';
@@ -10,7 +11,7 @@ import type { VerificationTransaction } from './verification-v2/transaction.js';
 export type AccountAction = 'READ_OPERATIONAL' | 'START_WORK' | 'MANAGE_WORK' | 'COMPLETE_WORK' | 'ADD_CAPACITY' | 'OWN_SECURITY' | 'OWNER_BILLING' | 'SUPPORT';
 export type AccountRole = VerificationActor['role'] | 'SYSTEM';
 type CompanyState = Pick<Prisma.CompanyGetPayload<object>, 'id' | 'plan' | 'isActive' | 'operationalStatus' | 'billingCustomerId' | 'billingSubscriptionId'>;
-type SubscriptionState = Pick<Prisma.PaddleSubscriptionGetPayload<object>, 'id' | 'companyId' | 'customerId' | 'status' | 'currentBillingPeriodStart' | 'currentBillingPeriodEnd' | 'canceledAt' | 'pausedAt' | 'scheduledChangeAction' | 'scheduledChangeAt'>;
+type SubscriptionState = Pick<Prisma.PaddleSubscriptionGetPayload<object>, 'id' | 'companyId' | 'customerId' | 'priceId' | 'status' | 'currentBillingPeriodStart' | 'currentBillingPeriodEnd' | 'canceledAt' | 'pausedAt' | 'scheduledChangeAction' | 'scheduledChangeAt'>;
 export type AccountState = { company: CompanyState; subscription: SubscriptionState | null };
 export type WorkEntitlement = { startedAt: Date; entitledFrom: Date; entitledUntil: Date };
 const deny = (code: string, message: string) => new ApiError(403, message, [{ code }]);
@@ -57,7 +58,7 @@ export async function readAccountState(companyId: number, tx: VerificationTransa
     const subscription = company.billingSubscriptionId && company.billingCustomerId ? await tx.paddleSubscription.findFirst({ where: {
         id: company.billingSubscriptionId, companyId, customerId: company.billingCustomerId,
     } }) : null;
-    return { company, subscription };
+    return { company, subscription: subscription && configuredPlanForPrice(subscription.priceId) === company.plan ? subscription : null };
 }
 async function currentActor(actor: VerificationActor, tx: VerificationTransaction) {
     const where = { id: actor.id, companyId: actor.companyId, role: actor.role, isActive: true };
