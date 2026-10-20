@@ -1,3 +1,4 @@
+import { attendancePhotoPresentation } from "../services/attendanceMedia.service.js";
 import {staffPerformanceReports} from '../services/verification-v2/reviewClosure.service.js';
 import { Request, Response } from "express";
 import {
@@ -657,7 +658,7 @@ export const getStaffDetails = async (req: Request, res: Response) => {
         ...staff,
         taskTemplates,
         taskInstances: taskInstances.map(managerTaskPresentation),
-        attendances,
+        attendances: attendances.map(attendancePhotoPresentation),
         taskStats,
         attendanceStats,
         performanceIssues,

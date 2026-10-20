@@ -47,3 +47,5 @@ Move staff-only self reads to focused controllers. Require STAFF at route and co
 
 - **2026-10-20** — Claimed https://github.com/Shumail-AbdulRehman/PRIV/issues/1. No production DB needed; test DB boundary mocked.
 - **2026-10-20** — Implemented new self controllers and route STAFF gates. Targeted tests 9/9; whole backend 591/591 (66 files); Prisma generate + TypeScript build passed. No DB/provider integration performed or needed for this read-authorization unit. Legacy unused handler exports will be delegated by their owning specs 02/05. PR publication pending clean scoped commit; unrelated dirty changes preserved.
+- **2026-10-20** — Serialized storage-boundary integration transfers current edit ownership of `backend/src/controllers/attendanceSelf.controller.ts` to spec05; earlier authorization checks remain mandatory.
+- **2026-10-20** — Current attendance router ownership transfers to spec05 to mount photo routes; STAFF self gate preserved.

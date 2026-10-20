@@ -5,7 +5,7 @@ import { ApiError } from "../utils/ApiError.js";
 import { checkInSchema, checkOutSchema, assignShiftSchema } from "../validations/attendance.validation.js";
 import { isWithinRadius } from "../utils/geofencing.js";
 import { addUtcDays, DEFAULT_TIME_ZONE, getZonedDayRange, getZonedDayRangeFromDateInput } from "../utils/dateTime.js";
-import { uploadSingleImage } from "../utils/cloudinary.js";
+import { storeAttendancePhoto, attendancePhotoPresentation } from "../services/attendanceMedia.service.js";
 import { syncTodaysOpenAttendanceWindow } from "../utils/syncAttendanceWindow.js";
 import { getScopedLocationIds, assertLocationAccess } from "../utils/scope.js";
 
@@ -173,10 +173,7 @@ export const checkIn = async (req: Request, res: Response) => {
     // bogus accuracy value cannot disable geofencing entirely.
     const accuracyBuffer = Math.min(accuracy ?? 0, 200);
     const effectiveRadius = location.radiusMeters + accuracyBuffer;
-    console.log("[DEBUG check-in] worker:", latitude, longitude,
-      "| location:", Number(location.latitude), Number(location.longitude),
-      "| distance:", Math.round(actualDistance), "m | radius:", location.radiusMeters,
-      "m | accuracy:", accuracy ?? "N/A", "m | effective:", effectiveRadius, "m");
+
 
     if (
   !isWithinRadius(
@@ -231,7 +228,7 @@ const attendance = await prisma.attendance.findFirst({
     } else {
         status = "CHECKED_IN";
     }
-     const checkInFile = await uploadSingleImage(file, "attendance-selfies");
+     const checkInFile = await storeAttendancePhoto(file.buffer, req.user!.companyId, staffId);
 
     if(!checkInFile) throw new ApiError(501,"something went wrong while uploading check in image");
     const { count } = await prisma.attendance.updateMany({
@@ -241,7 +238,7 @@ const attendance = await prisma.attendance.findFirst({
             status,
             isLateCheckIn,
             lateMinutes,
-            checkInImage:checkInFile?.secure_url
+            checkInImage:checkInFile
         },
     });
 
@@ -250,8 +247,8 @@ const attendance = await prisma.attendance.findFirst({
     }
 
     const updated = await prisma.attendance.findUnique({ where: { id: attendance.id } });
-    console.log("updated attendace is::",updated);
-    res.status(200).json(new ApiResponse(200, updated, `Checked in successfully${isLateCheckIn ? ` (late by ${lateMinutes} minutes)` : ""}`));
+    if (!updated) throw new ApiError(409, "Attendance changed. Refresh your attendance.");
+    res.status(200).json(new ApiResponse(200, attendancePhotoPresentation(updated), `Checked in successfully${isLateCheckIn ? ` (late by ${lateMinutes} minutes)` : ""}`));
 };
 
 export const checkOut = async (req: Request, res: Response) => {
@@ -295,10 +292,7 @@ export const checkOut = async (req: Request, res: Response) => {
     );
     const accuracyBuffer = Math.min(accuracy ?? 0, 200);
     const effectiveRadius = location.radiusMeters + accuracyBuffer;
-    console.log("[DEBUG check-out] worker:", latitude, longitude,
-      "| location:", Number(location.latitude), Number(location.longitude),
-      "| distance:", Math.round(actualDistance), "m | radius:", location.radiusMeters,
-      "m | accuracy:", accuracy ?? "N/A", "m | effective:", effectiveRadius, "m");
+
 
     if (
   !isWithinRadius(
@@ -347,7 +341,7 @@ export const checkOut = async (req: Request, res: Response) => {
         }
     }
 
-    const checkOutImage=await uploadSingleImage(file,"attendance-check-out-image");
+    const checkOutImage=await storeAttendancePhoto(file.buffer, req.user!.companyId, staffId);
 
     if(!checkOutImage) throw new ApiError(501,"something went wrong while uploading check out image");
     
@@ -356,31 +350,14 @@ export const checkOut = async (req: Request, res: Response) => {
         data: {
             checkOutTime: now,
             status: attendance.status === "MISSED_CHECKOUT" ? "MISSED_CHECKOUT" : "CHECKED_OUT",
-            checkOutImage:checkOutImage.secure_url
+            checkOutImage
         },
     });
 
-    res.status(200).json(new ApiResponse(200, updated, "Checked out successfully"));
+    res.status(200).json(new ApiResponse(200, attendancePhotoPresentation(updated), "Checked out successfully"));
 };
 
-export const getMyAttendance = async (req: Request, res: Response) => {
-
-    if (req.user?.role === "MANAGER") throw new ApiError(401,"only staff can get their attendance");
-    const staffId = req.user!.id;
-
-    const attendance = await prisma.attendance.findMany({
-        where: { staffId },
-        orderBy: { date: "desc" },
-        take: 30, // bound the payload — the staff app only needs recent records at login
-        include: {
-            location: {
-                select: { id: true, name: true },
-            },
-        },
-    });
-
-    res.status(200).json(new ApiResponse(200, attendance, "Attendance fetched successfully"));
-};
+export { getStaffSelfAttendance as getMyAttendance } from "./attendanceSelf.controller.js";
 
 export const getStaffAttendance = async (req: Request, res: Response) => {
     const companyId = req.user!.companyId;
@@ -490,5 +467,5 @@ export const getStaffAttendance = async (req: Request, res: Response) => {
         },
     });
 
-    res.status(200).json(new ApiResponse(200, attendance, "Staff attendance fetched successfully"));
+    res.status(200).json(new ApiResponse(200, attendance.map(attendancePhotoPresentation), "Staff attendance fetched successfully"));
 };

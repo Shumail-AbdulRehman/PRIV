@@ -9,7 +9,7 @@ Source of truth for execution; latest user authorization supersedes old pending 
 | 02 | [P0 historical worker site authorization](02-historical-site-scope.md) | Done | 01 | Heavy | #2 | 599 tests; see spec 02 Log |
 | 03 | [P0 fail-closed production runtime](03-production-runtime.md) | Done | 00 | Heavy | #3 | 628 tests; see spec 03 Log |
 | 04 | [P0 atomic role-safe refresh sessions](04-refresh-session-safety.md) | Done | 00 | Heavy | #4 | 667 tests; see spec 04 Log |
-| 05 | [P0 private attendance media boundary](05-attendance-private-media.md) | Not started | 01, 02 | Heavy | — | See spec |
+| 05 | [P0 private attendance media boundary](05-attendance-private-media.md) | Done | 01, 02 | Heavy | #5 | 687 tests; see spec 05 Log |
 | 06 | [Web component test harness](06-web-unit-harness.md) | Not started | 00 | Standard | — | See spec |
 | 07 | [Legacy attendance asset transition tooling](07-legacy-media-transition.md) | Not started | 05 | Heavy | — | See spec |
 | 08 | [Protected attendance image presentation](08-attendance-media-ui.md) | Not started | 05, 06 | Standard | — | See spec |
@@ -53,3 +53,4 @@ Source of truth for execution; latest user authorization supersedes old pending 
 - **2026-10-20** — Spec 02 implemented; whole backend 599 tests and build passed. See spec Log.
 - **2026-10-20** — Spec 03 implemented; whole backend 628 tests and build passed. See spec Log.
 - **2026-10-20** — Spec 04 implemented; whole backend 667 tests and build passed. See spec Log.
+- **2026-10-20** — Spec 05 implemented; whole backend 687 tests and build passed. See spec Log.
