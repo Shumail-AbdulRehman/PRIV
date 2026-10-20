@@ -43,6 +43,8 @@ Media migration integration: `backend/src/services/attendanceMediaTransition.ser
 
 Readiness HTTP composition: `backend/src/routes/location.route.ts` mounts the bounded taskReadiness router before generic:id reads.
 
+Persistence rehearsal supplement: `backend/tests/launchMigration.integration.ts` is an isolated schema/SQL/service test (not a browser end-to-end runner); final verification reruns it only in a new empty disposable PostgreSQL database.
+
 ### Runtime coverage surfaces
 
 These owned surfaces are consumed by the flow table above or the clean verification gate; tests must exercise their actual caller integration.
