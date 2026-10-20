@@ -10,7 +10,7 @@ Source of truth for execution; latest user authorization supersedes old pending 
 | 03 | [P0 fail-closed production runtime](03-production-runtime.md) | Done | 00 | Heavy | #3 | 628 tests; see spec 03 Log |
 | 04 | [P0 atomic role-safe refresh sessions](04-refresh-session-safety.md) | Done | 00 | Heavy | #4 | 667 tests; see spec 04 Log |
 | 05 | [P0 private attendance media boundary](05-attendance-private-media.md) | Done | 01, 02 | Heavy | #5 | 687 tests; see spec 05 Log |
-| 06 | [Web component test harness](06-web-unit-harness.md) | Not started | 00 | Standard | — | See spec |
+| 06 | [Web component test harness](06-web-unit-harness.md) | Done | 00 | Standard | #6 | 57+2 tests; see spec 06 Log |
 | 07 | [Legacy attendance asset transition tooling](07-legacy-media-transition.md) | Not started | 05 | Heavy | — | See spec |
 | 08 | [Protected attendance image presentation](08-attendance-media-ui.md) | Not started | 05, 06 | Standard | — | See spec |
 | 09 | [Attendance write and calendar correctness](09-attendance-reliability.md) | Not started | 05 | Heavy | — | See spec |
@@ -49,8 +49,10 @@ Source of truth for execution; latest user authorization supersedes old pending 
 
 ## Log
 
-- **2026-10-20** — Spec 01 implemented; whole backend 591 tests and build passed. See spec Log.
-- **2026-10-20** — Spec 02 implemented; whole backend 599 tests and build passed. See spec Log.
-- **2026-10-20** — Spec 03 implemented; whole backend 628 tests and build passed. See spec Log.
-- **2026-10-20** — Spec 04 implemented; whole backend 667 tests and build passed. See spec Log.
-- **2026-10-20** — Spec 05 implemented; whole backend 687 tests and build passed. See spec Log.
+- **2026-10-20** — Continued from approved scope/design. Generated source-grounded steering docs and implementation queue. No production data/config touched. Await initial validator before spec 01.
+- **2026-10-20** — Spec 01 complete locally: 9 regression tests, whole backend 591 tests, build passed. Next P0 historical scope (02).
+- **2026-10-20** — Spec 02 complete: 8 regression/599 full backend tests, build passed. Next 03 config and 04 sessions.
+- **2026-10-20** — Spec 03 complete: production runtime guard and Compose fail closed; 29 regression/628 full backend tests, build passed. No deployment.
+- **2026-10-20** — Spec04 complete: 43 targeted/667 full backend tests; build passed. Next spec05 private attendance media; old tokens require signin on rollout.
+- **2026-10-20** — Spec05 complete: 20 new media/687 backend tests, build passed. Legacy URLs withheld; no live assets migrated. Next web harness06 and photo UI08, independent of controlled legacy transition07.
+- **2026-10-20** — Spec06 complete: 57 node +2 component tests, build/lint passed. Specs01–05 published as separate stacked draft PRs7–11; no merges/deployment. Next eligible local unit08 protected photo UI;07 controlled legacy migration independent.
