@@ -4,7 +4,7 @@
 **Depends on:** Spec 06
 **Model:** Heavy — `claude-opus-5-5` · `gpt-6-astra` · `gemini-3.1-pro-preview`
 **Issue:** #16
-**Owns:** `frontend/src/pages/Signup/queries.ts`, `frontend/src/pages/Signup/types.ts`, `frontend/src/pages/Signup/SignUpPage.tsx`, `frontend/src/pages/Signup/queries.test.tsx`, `backend/src/controllers/manager.controller.ts`, `backend/src/services/companyRegistration.service.ts`, `backend/src/services/companyRegistration.service.test.ts`, `backend/src/controllers/companyRegistration.controller.ts`, `specs/inventory/13-registration-atomicity.md`
+**Owns:** `frontend/src/pages/Signup/queries.ts`, `frontend/src/pages/Signup/types.ts`, `frontend/src/pages/Signup/SignUpPage.tsx`, `frontend/src/pages/Signup/queries.test.tsx`, `backend/src/controllers/manager.controller.ts`, `backend/src/services/companyRegistration.service.ts`, `specs/inventory/13-registration-atomicity.md`
 **Reuses:** `backend/src/controllers/manager.controller.ts`, `backend/src/validations/manager.validation.ts`
 
 ## Goal
@@ -50,3 +50,4 @@ Transact Company and first ADMIN owner using existing bcrypt and signup validati
 - **2026-10-20** — Company/ADMIN inserts share transaction, explicit safe DTO/strict claim rejection, bounded nonblank names and bcrypt UTF8 length. Existing email case and Prisma hashing extension preserved. Signup session persistence is separate CAS and cannot replace an intervening login;201 carries sessionEstablished false on failure. Existing React hook/page handle this flag without authenticating/redirecting; owner type corrected.13 targeted backend +3 hook tests; whole backend739/739 (73 files); full web57+18 and both builds/touched UI ESLint pass. Transaction rollback/unique failure tested at injected Prisma boundary; real PostgreSQL race/hash/rollback remains integrated gate40, not claimed as exercised.
 - **2026-10-20** — Scoped draft https://github.com/Shumail-AbdulRehman/PRIV/pull/19 published, stacked on09; not merged.
 - **2026-10-20** — Supplemental isolated PostgreSQL proof in spec10 migration rehearsal: simultaneous registerCompany calls produce one owner/company, duplicate leaves no orphan, actual bcrypt hash compares successfully (exactly once). No production accounts touched.
+- **2026-10-20** — Current credential-version integration edit ownership transfers18 for `backend/src/controllers/companyRegistration.controller.ts`, `backend/src/services/companyRegistration.service.test.ts`. Existing security regression contracts retained.

@@ -1,3 +1,4 @@
+import type { Request, Response } from "express";
 import assert from "node:assert/strict";
 import { randomUUID } from "node:crypto";
 import bcrypt from "bcrypt";
@@ -5,9 +6,17 @@ import { assertIsolatedMediaDatabase } from "../src/services/attendanceMediaTran
 const url = process.env.CREDENTIAL_HANDOFF_TEST_DATABASE_URL;
 assertIsolatedMediaDatabase(url, process.env.NODE_ENV);
 process.env.DATABASE_URL = url;
+process.env.ACCESS_TOKEN_SECRET = "isolated-test-access-key-1234567890";
+process.env.REFRESH_TOKEN_SECRET = "isolated-test-refresh-key-9876543210";
+process.env.ACCESS_TOKEN_EXPIRY = "15m";
+process.env.REFRESH_TOKEN_EXPIRY = "7d";
 const { prisma } = await import("../src/prisma/prisma.js");
 const { registerCompany } = await import("../src/services/companyRegistration.service.js");
 const { issueStaffHandoff, completeStaffHandoff, changeOwnPassword, credentialTokenHash } = await import("../src/services/credentialHandoff.service.js");
+const { generateAccessToken, generateRefreshToken } = await import("../src/utils/auth.js");
+const { verifyJwt } = await import("../src/middlewares/auth.middleware.js");
+const { refreshToken, logOut } = await import("../src/controllers/common.controller.js");
+const request = (accessToken: string) => ({ cookies: {}, header: () => `Bearer ${accessToken}` } as unknown as Request);
 const suffix = randomUUID();
 const ownerPassword = "synthetic-owner-current-password";
 try {
@@ -17,7 +26,11 @@ try {
   const worker = await prisma.staff.create({ data: { name: "Synthetic worker", email: `${suffix}-worker@example.invalid`, password: originalPassword, companyId: owner.companyId, locationId: location.id, refreshToken: "synthetic-obsolete-refresh" } });
   const manager = await prisma.manager.create({ data: { name: "Unassigned manager", email: `${suffix}-manager@example.invalid`, password: "synthetic-manager-password", companyId: owner.companyId, role: "MANAGER" } });
   await assert.rejects(issueStaffHandoff({ id: manager.id, role: "MANAGER", companyId: owner.companyId }, worker.id, { currentPassword: "synthetic-manager-password", reason: "Wrong-site reset attempt" }), error => (error as { statusCode?: number }).statusCode === 403);
+  const oldAccess = generateAccessToken(worker, "STAFF");
+  let authorized = false; await verifyJwt(request(oldAccess), {} as Response, () => { authorized = true; });
+  assert.equal(authorized, true);
   const handoff = await issueStaffHandoff(owner, worker.id, { currentPassword: ownerPassword, reason: "Synthetic worker requested reset" });
+  await assert.rejects(verifyJwt(request(oldAccess), {} as Response, () => { throw new Error("Revoked access must not authorize"); }), error => (error as { statusCode?: number }).statusCode === 401);
   const issued = await prisma.staff.findUniqueOrThrow({ where: { id: worker.id } });
   assert.equal(await bcrypt.compare(originalPassword, issued.password), false);
   assert.equal(issued.mustChangePassword, true); assert.equal(issued.refreshToken, null); assert.equal(issued.credentialVersion, 1);
@@ -30,7 +43,13 @@ try {
   const replaced = await prisma.staff.findUniqueOrThrow({ where: { id: worker.id } });
   assert.equal(await bcrypt.compare(replacementPassword, replaced.password), true);
   assert.equal(replaced.mustChangePassword, false); assert.equal(replaced.credentialVersion, 2);
+  const priorAccess = generateAccessToken(replaced, "STAFF");
+  const priorRefresh = generateRefreshToken(replaced, "STAFF");
+  await prisma.staff.update({ where: { id: worker.id }, data: { refreshToken: priorRefresh } });
+  await verifyJwt(request(priorAccess), {} as Response, () => {});
   await changeOwnPassword({ id: worker.id, companyId: owner.companyId, role: "STAFF" }, { currentPassword: replacementPassword, newPassword: "synthetic-next-worker-password" });
+  await assert.rejects(verifyJwt(request(priorAccess), {} as Response, () => { throw new Error("Old password access must not authorize"); }), error => (error as { statusCode?: number }).statusCode === 401);
+  await assert.rejects(refreshToken({ cookies: { refreshToken: priorRefresh }, body: {}, header: () => undefined } as unknown as Request, {} as Response), error => (error as { statusCode?: number }).statusCode === 401);
   const changed = await prisma.staff.findUniqueOrThrow({ where: { id: worker.id } });
   assert.equal(changed.credentialVersion, 3); assert.equal(await bcrypt.compare("synthetic-next-worker-password", changed.password), true);
   await assert.rejects(completeStaffHandoff({ token: handoff.token, newPassword: "synthetic-replayed-password" }));
@@ -38,5 +57,11 @@ try {
   assert.equal(audits.length, 3);
   assert.equal(JSON.stringify(audits).includes(handoff.token), false);
   assert.equal(JSON.stringify(audits).includes(ownerPassword), false);
-  console.log("PASS isolated PostgreSQL credential handoff: wrong-site denial, former-password invalidation, hash-only one-use code, concurrent consumption, exact password hashing, credential versions and secret-free audit.");
+  const signoutAccess = generateAccessToken(changed, "STAFF");
+  const signoutRefresh = generateRefreshToken(changed, "STAFF");
+  await prisma.staff.update({ where: { id: worker.id }, data: { refreshToken: signoutRefresh } });
+  const response = { clearCookie() { return this; }, status() { return this; }, json() { return this; } } as unknown as Response;
+  await logOut({ cookies: { refreshToken: signoutRefresh }, body: {}, header: () => undefined } as unknown as Request, response);
+  await assert.rejects(verifyJwt(request(signoutAccess), {} as Response, () => { throw new Error("Signed-out access must not authorize"); }), error => (error as { statusCode?: number }).statusCode === 401);
+  console.log("PASS isolated PostgreSQL credential handoff: wrong-site denial, former-password invalidation, hash-only one-use code, concurrent consumption, exact password hashing, immediate old-access/refresh/logout rejection and secret-free audit.");
 } finally { await prisma.$disconnect(); }

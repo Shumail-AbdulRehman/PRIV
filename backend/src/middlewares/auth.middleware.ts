@@ -1,9 +1,10 @@
+import { assertCredentialSession } from "../services/credentialSession.service.js";
 import { verifySessionToken } from "../utils/auth.js";
 import { Request, Response, NextFunction } from "express";
 import { ApiError } from "../utils/ApiError.js";
 import { prisma } from "../prisma/prisma.js";
 
-export const verifyJwt = async (req: Request, res: Response, next: NextFunction) => {
+const authenticateJwt = (allowPasswordReplacement: boolean) => async (req: Request, res: Response, next: NextFunction) => {
     const token =
         req.cookies?.accessToken ||
         req.header("Authorization")?.replace("Bearer ", "");
@@ -21,7 +22,7 @@ export const verifyJwt = async (req: Request, res: Response, next: NextFunction)
     if (role === "MANAGER" || role === "ADMIN") {
         user = await prisma.manager.findUnique({
             where: { id },
-            select: { id: true, name: true, email: true, companyId: true, role: true, company: { select: { isActive: true } }, isActive: true },
+            select: { id: true, name: true, email: true, companyId: true, role: true, credentialVersion: true, mustChangePassword: true, company: { select: { isActive: true } }, isActive: true },
         });
 
         if (user && role === "MANAGER") {
@@ -34,7 +35,7 @@ export const verifyJwt = async (req: Request, res: Response, next: NextFunction)
     } else if (role === "STAFF") {
         user = await prisma.staff.findUnique({
             where: { id },
-            select: { id: true, name: true, email: true, companyId: true, locationId: true, role: true, company: { select: { isActive: true } }, isActive: true },
+            select: { id: true, name: true, email: true, companyId: true, locationId: true, role: true, credentialVersion: true, mustChangePassword: true, company: { select: { isActive: true } }, isActive: true },
         });
     }
 
@@ -45,7 +46,12 @@ export const verifyJwt = async (req: Request, res: Response, next: NextFunction)
         throw new ApiError(401, "Invalid access token");
     }
 
-    const { isActive, company, ...safeUser } = user as typeof user & { isActive?: boolean };
+    assertCredentialSession(user, decoded, allowPasswordReplacement);
+    const { isActive, company, credentialVersion, mustChangePassword, ...safeUser } = user as typeof user & { isActive?: boolean };
     (req as any).user = { ...safeUser, role, ...(locationIds ? { locationIds } : {}) };
     next();
 };
+
+export const verifyJwt = authenticateJwt(false);
+// Only the current-password endpoint may admit a forced-replacement session.
+export const verifyPasswordChangeJwt = authenticateJwt(true);

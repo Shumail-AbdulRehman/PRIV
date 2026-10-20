@@ -31,7 +31,7 @@ describe.each(["ADMIN", "MANAGER", "STAFF"] as const)("%s session family", role 
     const token = generateRefreshToken({ id: 1 }, role); setup(token); const res = response();
     await refreshToken(req(token), res as unknown as Response);
     const mutate = role === "STAFF" ? db.staffUpdate : db.managerUpdate;
-    expect(mutate).toHaveBeenCalledWith({ where: { id: 1, role, companyId: 42, refreshToken: token, isActive: true, company: { isActive: true } }, data: { refreshToken: expect.any(String) } });
+    expect(mutate).toHaveBeenCalledWith({ where: { id: 1, role, companyId: 42, credentialVersion: 0, refreshToken: token, isActive: true, company: { isActive: true } }, data: { refreshToken: expect.any(String) } });
     const payload = res.json.mock.calls[0]![0].data;
     expect(payload.refreshToken).not.toBe(token); expect(payload).not.toHaveProperty("password"); expect(payload).not.toHaveProperty("company");
     expect(db.pushUpdate).toHaveBeenCalledTimes(role === "STAFF" ? 1 : 0);
@@ -71,7 +71,7 @@ describe.each(["ADMIN", "MANAGER", "STAFF"] as const)("%s session family", role 
     const mutate = role === "STAFF" ? db.staffUpdate : db.managerUpdate;
     mutate.mockResolvedValue({ count: 0 });
     const res = response(); await logOut(req(token), res as unknown as Response);
-    expect(mutate).toHaveBeenCalledWith({ where: { id: 1, role, refreshToken: token }, data: { refreshToken: null } });
+    expect(mutate).toHaveBeenCalledWith({ where: { id: 1, role, refreshToken: token }, data: { refreshToken: null, credentialVersion: { increment: 1 } } });
     expect(db.pushUpdate).not.toHaveBeenCalled(); expect(res.clearCookie).toHaveBeenCalledTimes(2);
   });
 });
@@ -88,4 +88,14 @@ it("access-only logout clears local cookies without revoking a newer stored fami
 it("current staff logout disables current push delivery", async () => {
   await logOut(req(generateRefreshToken({ id: 1 }, "STAFF")), response() as unknown as Response);
   expect(db.pushUpdate).toHaveBeenCalledWith({ where: { staffId: 1 }, data: { enabled: false } });
+});
+it("a password change revokes old refresh even if an old stored token was not yet cleared", async () => {
+  const token = generateRefreshToken({ id: 1 }, "ADMIN"); db.managerFind.mockResolvedValue({ ...user("ADMIN", token), credentialVersion: 1 });
+  await expect(refreshToken(req(token), response() as unknown as Response)).rejects.toMatchObject({ statusCode: 401 });
+  expect(db.managerUpdate).not.toHaveBeenCalled();
+});
+it("does not refresh forced-password-replacement accounts", async () => {
+  const token = generateRefreshToken({ id: 1 }, "STAFF"); db.staffFind.mockResolvedValue({ ...user("STAFF", token), mustChangePassword: true });
+  await expect(refreshToken(req(token), response() as unknown as Response)).rejects.toMatchObject({ statusCode: 403 });
+  expect(db.staffUpdate).not.toHaveBeenCalled(); expect(db.pushUpdate).not.toHaveBeenCalled();
 });

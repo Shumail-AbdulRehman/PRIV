@@ -1,3 +1,4 @@
+import { assertCredentialSession } from "../services/credentialSession.service.js";
 
 import { ApiResponse } from "../utils/ApiResponse.js";
 import { ApiError } from "../utils/ApiError.js";
@@ -44,12 +45,13 @@ export const refreshToken = async (req: Request, res: Response) => {
 
     if (user.role !== role) throw new ApiError(401, "Account role changed; sign in again");
     if (!user.isActive || !user.company.isActive) throw new ApiError(403, "Account is deactivated");
+    assertCredentialSession(user, decodedToken);
     if (user.refreshToken !== incomingRefreshToken) throw new ApiError(401, "Session changed; sign in again");
 
     const accessToken = generateAccessToken(user, role);
     const newRefreshToken = generateRefreshToken(user, role);
     const rotated = await prisma.manager.updateMany({
-      where: { id: user.id, companyId: user.companyId, role, refreshToken: incomingRefreshToken,
+      where: { id: user.id, companyId: user.companyId, role, credentialVersion: decodedToken.credentialVersion, refreshToken: incomingRefreshToken,
         isActive: true, company: { isActive: true } },
       data: { refreshToken: newRefreshToken },
     });
@@ -96,6 +98,7 @@ export const refreshToken = async (req: Request, res: Response) => {
       throw new ApiError(403, "Account is deactivated");
 
     if (user.role !== role) throw new ApiError(401, "Account role changed; sign in again");
+    assertCredentialSession(user, decodedToken);
     if (user.refreshToken !== incomingRefreshToken) throw new ApiError(401, "Session changed; sign in again");
 
     const accessToken = generateAccessToken(user, role);
@@ -105,7 +108,7 @@ export const refreshToken = async (req: Request, res: Response) => {
     const staffCompanyId = user.companyId;
     await prisma.$transaction(async (tx) => {
       const rotated = await tx.staff.updateMany({
-        where: { id: staffUserId, companyId: staffCompanyId, role: "STAFF", refreshToken: incomingRefreshToken, isActive: true, company: { isActive: true } },
+        where: { id: staffUserId, companyId: staffCompanyId, role: "STAFF", credentialVersion: decodedToken.credentialVersion, refreshToken: incomingRefreshToken, isActive: true, company: { isActive: true } },
         data: { refreshToken: newRefreshToken },
       });
       if (!rotated.count) throw new ApiError(401, "Session changed; sign in again");
@@ -157,14 +160,14 @@ export const logOut = async (req: Request, res: Response) => {
     if (principal?.role === "ADMIN" || principal?.role === "MANAGER") {
       await prisma.manager.updateMany({
         where: { id: principal.id, role: principal.role, refreshToken: incomingRefreshToken },
-        data: { refreshToken: null },
+        data: { refreshToken: null, credentialVersion: { increment: 1 } },
       });
     } else if (principal?.role === "STAFF") {
       const staffId = principal.id;
       await prisma.$transaction(async tx => {
         const revoked = await tx.staff.updateMany({
           where: { id: staffId, role: "STAFF", refreshToken: incomingRefreshToken },
-          data: { refreshToken: null },
+          data: { refreshToken: null, credentialVersion: { increment: 1 } },
         });
         if (revoked.count) await tx.staffPushDevice.updateMany({ where: { staffId }, data: { enabled: false } });
       });

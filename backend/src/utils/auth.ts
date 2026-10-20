@@ -11,22 +11,22 @@ export async function isPasswordCorrect(
 }
 
 export function generateAccessToken(
-  user: { id: number; email: string; name: string },
+  user: { id: number; email: string; name: string; credentialVersion?: number },
   role: "ADMIN" | "MANAGER" | "STAFF",
 ) {
   return jwt.sign(
-    { id: user.id, email: user.email, name: user.name, role, tokenUse: "access" },
+    { id: user.id, email: user.email, name: user.name, role, credentialVersion: user.credentialVersion ?? 0, tokenUse: "access" },
     process.env.ACCESS_TOKEN_SECRET as string,
     { algorithm: "HS256", expiresIn: process.env.ACCESS_TOKEN_EXPIRY } as SignOptions,
   );
 }
 
 export function generateRefreshToken(
-  user: { id: number },
+  user: { id: number; credentialVersion?: number },
   role: "ADMIN" | "MANAGER" | "STAFF",
 ) {
   return jwt.sign(
-    { id: user.id, role, tokenUse: "refresh" },
+    { id: user.id, role, credentialVersion: user.credentialVersion ?? 0, tokenUse: "refresh" },
     process.env.REFRESH_TOKEN_SECRET as string,
     {
       expiresIn:
@@ -43,6 +43,7 @@ export type SessionToken = jwt.JwtPayload & {
   id: number;
   role: "ADMIN" | "MANAGER" | "STAFF";
   tokenUse: "access" | "refresh";
+  credentialVersion: number;
 };
 
 /** Keep refresh tokens out of access endpoints even under misconfiguration. */
@@ -58,7 +59,9 @@ export function verifySessionToken(token: unknown, purpose: "access" | "refresh"
         (purpose === "refresh" && (typeof decoded.jti !== "string" || !decoded.jti))) {
       throw new Error("Invalid principal");
     }
-    return decoded as SessionToken;
+    const version = decoded.credentialVersion === undefined ? 0 : decoded.credentialVersion;
+    if (!Number.isSafeInteger(version) || version < 0) throw new Error("Invalid credential version");
+    return { ...decoded, credentialVersion: version } as SessionToken;
   } catch {
     // Preserve the existing clients' refresh trigger while stable codes roll out.
     throw new ApiError(401, "Access Token Expired");

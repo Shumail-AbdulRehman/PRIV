@@ -1,12 +1,12 @@
 import { Router } from "express";
 import { ApiResponse } from "../utils/ApiResponse.js";
-import { verifyJwt } from "../middlewares/auth.middleware.js";
+import { verifyJwt, verifyPasswordChangeJwt } from "../middlewares/auth.middleware.js";
 import authorize from "../middlewares/authorize.middleware.js";
 import { changeOwnPassword, issueStaffHandoff, completeStaffHandoff } from "../services/credentialHandoff.service.js";
 import { getCookieOptions } from "../utils/cookies.js";
 const router = Router();
 router.use((_req, res, next) => { res.setHeader("Cache-Control", "private, no-store"); next(); });
-router.post("/security/password", verifyJwt, async (req, res) => {
+router.post("/security/password", verifyPasswordChangeJwt, async (req, res) => {
   const result = await changeOwnPassword(req.user!, req.body);
   res.clearCookie("accessToken", getCookieOptions()).clearCookie("refreshToken", getCookieOptions()).json(new ApiResponse(200, result, "Password changed. Sign in again."));
 });
