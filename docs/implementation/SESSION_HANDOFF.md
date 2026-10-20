@@ -8,7 +8,7 @@ Completed: decision00 and execution01–15,17–19,24,27 (20 of41 execution/gate
 
 ## Spec24 verified local boundary
 
-Branch `implementation/spec-24-platform-companies`, base `implementation/spec-15-billing-lifecycle` at2558549. Prerequisites19 and15 are complete and reachable in Git; all predecessor PRs remain open and unmerged. Issue39: https://github.com/Shumail-AbdulRehman/PRIV/issues/39. Draft PR publication is the next bookkeeping action.
+Branch `implementation/spec-24-platform-companies`, base `implementation/spec-15-billing-lifecycle` at2558549. Prerequisites19 and15 are complete and reachable in Git; all predecessor PRs remain open and unmerged. Issue39: https://github.com/Shumail-AbdulRehman/PRIV/issues/39. Implementation commit5a70884 pushed; draft PR40: https://github.com/Shumail-AbdulRehman/PRIV/pull/40, stacked on PR38. No merge or issue closure.
 
 - Service/router provide bounded name/status-filtered company paging and whitelisted detail with local subscription/provider-sync facts and last20 platform status audit records. No workforce/evidence, credentials, arbitrary audit JSON, impersonation or financial mutation.
 - PATCH status consumes strict expectedVersion/status/reason. Company-first lock, conditional update and audit in one transaction; stale409, current-version same-state no-op. Suspension changes only operationalStatus/version/context. Legacy isActive:false reactivation409 requires review. Reactivation does not grant paid entitlement or change billing.
