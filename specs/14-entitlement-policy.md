@@ -1,10 +1,10 @@
 # Spec 14 — Account access and capacity policy
 
-**Status:** Not started
+**Status:** Done
 **Depends on:** Spec 10
 **Model:** Heavy — `claude-opus-5-5` · `gpt-6-astra` · `gemini-3.1-pro-preview`
-**Issue:** —
-**Owns:** `backend/src/services/accountAccess.service.ts`, `backend/src/services/accountAccess.service.test.ts`, `backend/src/middlewares/accountAccess.middleware.ts`, `specs/inventory/14-entitlement-policy.md`
+**Issue:** #33
+**Owns:** `backend/tests/accountCapacity.integration.ts`, `backend/src/services/accountAccess.service.ts`, `backend/src/services/accountAccess.service.test.ts`, `backend/src/middlewares/accountAccess.middleware.ts`, `specs/inventory/14-entitlement-policy.md`
 **Reuses:** `backend/src/services/subscription.service.ts`
 
 ## Goal
@@ -37,8 +37,14 @@ Implement D01/D03 as one plain policy shared by mutations and jobs. Suspension d
 
 ## Done when
 
-- [ ] `npm test --prefix backend -- src/services/accountAccess.service.test.ts` passes: Policy table covers each role, suspended/unentitled/over-limit state and in-progress completion; quota race cannot exceed limit. [unit]
-- [ ] `npm test --prefix backend` passes the whole affected unit suite; record count. [unit]
-- [ ] Only scoped paths changed; relevant denial/empty/error/config-unavailable states inspected. [static]
-- [ ] `cd backend && npx tsc --noEmit` passes; no backend lint script exists. [static]
-- [ ] `npm run build --prefix backend` passes. [static]
+- [x] `npm test --prefix backend -- src/services/accountAccess.service.test.ts` passes: Policy table covers each role, suspended/unentitled/over-limit state and in-progress completion; quota race cannot exceed limit. [unit]
+- [x] `npm test --prefix backend` passes the whole affected unit suite; record count. [unit]
+- [x] Only scoped paths changed; relevant denial/empty/error/config-unavailable states inspected. [static]
+- [x] `cd backend && npx tsc --noEmit` passes; no backend lint script exists. [static]
+- [x] `npm run build --prefix backend` passes. [static]
+
+## Log
+
+- **2026-10-20** — Claimed issue33. Implement shared policy/capacity contract against existing provider mirrors/plan limits; old route/job adapters are explicitly26/39. No commercial grace, free entitlement or price invented. Provider lifecycle qualification remains15/39/40.
+- **2026-10-20** — Local policy contract complete:53 new tests;980 full backend tests/82 files with isolated PG enabled/no skips; build/typechecks pass. Actual isolated PostgreSQL proves quota race one winner, oversized creator rollback, persisted start entitlement after expiry, unproven legacy completion denied, downgrade history/manager reads retained and suspension/owner billing/security boundaries. No billing/provider/production mutations.
+- **2026-10-20** — Exact route/start/job integration remains26/39, provider mirror synchronization15. Record WORK_ENTITLEMENT_GRANTED in the same successful start/check-in transaction; completion reads that own-work audit and exact persisted start. Never infer a legacy grant or trust body timestamps. Existing legacy subscription-only gates remain until their explicit handoff.

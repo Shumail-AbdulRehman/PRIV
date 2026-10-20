@@ -13,6 +13,8 @@ Paddle lifecycle API and configuration in the existing application, with persist
 
 ## Scope
 
+Consume14 account window and lock contract: provider mirror/account synchronization takes company→subscription locks consistently with capacity transactions. Replace legacy status-only paid-access callers with qualified current-period policy; preserve provider facts, never invent a trial period.
+
 Reuse provider mirrors/dedup and customer links. Prevent repeat checkout for linked subscriptions; use qualified provider portal for changes. Show provider period/status/sync errors. No client company/plan trust; missing catalog/config returns unavailable, no invented trial or pricing. Reconciliation must not mutate provider financial state implicitly.
 
 ## Explicit non-scope
