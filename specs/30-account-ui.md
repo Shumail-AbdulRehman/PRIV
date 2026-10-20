@@ -13,6 +13,8 @@ Account settings and recovery UI in the existing application, with persisted beh
 
 ## Scope
 
+Replace27 CompanySettingsUnavailable in frontend/src/routes/workspaceRoutes.tsx via explicit serialized ownership handoff; keep owner-only company settings and independent own-security capability.
+
 Implement real reset/verify/self-password and owner Organization settings forms; neutral request states, expired/used links, force replacement and unavailable delivery. Clear cached identity on credential changes. Register actual pages via spec27 ownership handoff; no pretend sent mail.
 
 ## Explicit non-scope

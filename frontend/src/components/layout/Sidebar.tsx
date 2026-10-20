@@ -1,4 +1,4 @@
-import WorkspaceBrand from "@/components/common/WorkspaceBrand";
+import BrandLogo from "@/components/common/BrandLogo";
 import { useLanguage } from "@/i18n/context";
 import { Link, NavLink } from "react-router-dom";
 import { useExceptionCount } from "@/pages/Exceptions/queries";
@@ -11,7 +11,8 @@ import {
   LogOut,
   ClipboardCheck,
   CreditCard,
-  Leaf,
+  Building2,
+  X,
 } from "lucide-react";
 import { useLogout } from "@/queries/auth";
 import { useSelector } from "react-redux";
@@ -21,6 +22,7 @@ import {
   DialogContent,
   DialogTitle,
   DialogDescription,
+  DialogClose,
 } from "@/components/ui/dialog";
 import { cn } from "@/lib/utils";
 
@@ -56,18 +58,18 @@ export default function Sidebar({
         ...(user?.role === "ADMIN"
           ? [{ to: "/managers", icon: UserCog, label: "Managers" }]
           : []),
-        { to: "/subscription", icon: CreditCard, label: "Plan & billing" },
+        ...(user?.role === "ADMIN" ? [{ to: "/subscription", icon: CreditCard, label: "Plan & billing" }] : []),
       ],
     },
-  ];
+  ].filter(group => group.items.length);
   const content = (
     <>
       <Link to="/dashboard" onClick={onClose} className="workspace-brand">
-        <WorkspaceBrand />
+        <BrandLogo />
       </Link>
       <p className="workspace-brand-caption">{t("Cleaning operations")}</p>
       <div className="workspace-role">
-        <Leaf size={15} />
+        <Building2 size={15} aria-hidden="true" />
         <span>
           {t(
             user?.role === "ADMIN" ? "Company workspace" : "Manager workspace",
@@ -90,7 +92,7 @@ export default function Sidebar({
                   cn("workspace-nav-link", isActive && "is-active")
                 }
               >
-                <Icon size={19} strokeWidth={1.75} />
+                <Icon size={19} strokeWidth={1.75} aria-hidden="true" />
                 <span>{t(label)}</span>
                 {to === "/exceptions" && !!exceptions.data?.total ? (
                   <span
@@ -108,16 +110,6 @@ export default function Sidebar({
         ))}
       </nav>
       <div className="workspace-sidebar-footer">
-        <div className="workspace-sidebar-note">
-          <span className="workspace-note-mark">
-            <Leaf size={20} />
-          </span>
-          <p>
-            {t("Cleaner spaces.")}
-            <br />
-            <strong>{t("A clearer working day.")}</strong>
-          </p>
-        </div>
         <div className="workspace-sidebar-account">
           <span className="workspace-avatar">
             {user?.name
@@ -142,12 +134,13 @@ export default function Sidebar({
           <LogOut size={17} />
           {t(logout.isPending ? "Signing out…" : "Sign out")}
         </button>
+        {logout.isError && <p role="alert" className="workspace-signout-error">{t("Sign out failed. Try again.")}</p>}
       </div>
     </>
   );
   return (
     <>
-      <aside className="workspace-sidebar hidden lg:flex">{content}</aside>
+      <aside className="workspace-sidebar workspace-desktop-sidebar">{content}</aside>
       <Dialog
         open={open}
         onOpenChange={(value) => {
@@ -155,7 +148,9 @@ export default function Sidebar({
         }}
       >
         <DialogContent
+          id="workspace-mobile-menu"
           className="workspace-mobile-sidebar"
+          showCloseButton={false}
           onCloseAutoFocus={(event) => {
             event.preventDefault();
             document.getElementById("workspace-menu-trigger")?.focus();
@@ -165,6 +160,7 @@ export default function Sidebar({
           <DialogDescription className="sr-only">
             {t("Navigate your Hygene Ops workspace.")}
           </DialogDescription>
+          <DialogClose asChild><button className="workspace-menu-close" aria-label={t("Close navigation")}><X size={20} aria-hidden="true" /></button></DialogClose>
           {content}
         </DialogContent>
       </Dialog>

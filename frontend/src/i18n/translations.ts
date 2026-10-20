@@ -1,3 +1,4 @@
+import { launchUrdu } from "./launchTranslations.ts";
 import { attendancePhotoUrdu } from "./attendancePhotoTranslations.ts";
 import { managerUrdu } from "./managerTranslations.ts";
 // Shared English/Urdu vocabulary. Keep web and native copies in parity.
@@ -600,7 +601,7 @@ export function translate(
   values: Record<string, string | number> = {},
 ): string {
   const template =
-    language === "ur" ? (attendancePhotoUrdu[text] ?? managerUrdu[text] ?? urdu[text] ?? text) : text;
+    language === "ur" ? (launchUrdu[text] ?? attendancePhotoUrdu[text] ?? managerUrdu[text] ?? urdu[text] ?? text) : text;
   return template.replace(/\{(\w+)\}/g, (token, key: string) =>
     String(values[key] ?? token),
   );

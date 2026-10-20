@@ -31,7 +31,7 @@ Source of truth for execution; latest user authorization supersedes old pending 
 | 24 | [Platform company operations API](24-platform-company-api.md) | Not started | 19, 15 | Heavy | — | See spec |
 | 25 | [Redacted diagnostics and inquiry operations](25-platform-support-api.md) | Not started | 19 | Standard | — | See spec |
 | 26 | [Wire launch backend routes and policies](26-launch-api-composition.md) | Not started | 07, 11, 12, 16, 18, 20, 21, 22, 23, 24, 25 | Heavy | — | See spec |
-| 27 | [Approved v5 shared shell and route composition](27-workspace-shell.md) | Not started | 06 | Heavy | — | See spec |
+| 27 | [Approved v5 shared shell and route composition](27-workspace-shell.md) | Done | 06 | Heavy | #35 | 57+40 tests/build/lint; see Log |
 | 28 | [Real derived setup and operational dashboard](28-setup-ui.md) | Not started | 12, 27 | Standard | — | See spec |
 | 29 | [Attendance exception context UI](29-attendance-context-ui.md) | Not started | 23, 27, 08 | Standard | — | See spec |
 | 30 | [Account settings and recovery UI](30-account-ui.md) | Not started | 16, 17, 22, 27 | Standard | — | See spec |
@@ -67,3 +67,4 @@ Source of truth for execution; latest user authorization supersedes old pending 
 - **2026-10-20** — Spec19 local operator identity boundary complete:69 new/888 full backend tests/build pass. Actual IdP/approved MFA/people remain external, disabled until configured. Fifteen of41 execution/gates done. Next11 workforce lifecycle; preserve historical rows and close existing transfer/deactivation gaps.
 - **2026-10-20** — Spec11 complete:39 new/76 targeted/927 backend tests, build/typechecks and actual localPG race/history/legacy-adapter proof pass. Sixteen of41 execution/gates complete (about61% remaining by count). Next14 account policy/capacity; native/web workforce inputs remain31/37. No production mutation.
 - **2026-10-20** — Spec14 contract complete:53 new/980 whole backend tests/build/typechecks and actual PG quota/entitlement proof pass. Seventeen of41 execution/gates done (about59% remaining by count). Route/job integration26/39 and real provider lifecycle15 remain. Next27 approved v5 shared shell, independently eligible; then15 billing.
+- **2026-10-20** — Spec27 complete:approved blue/white shell in actual React,22 new/57 node+40 component tests, build/full lint pass; six role/language/width rendered fixtures +two mobile menus no overflow/JS errors. Eighteen of41 execution/gates done (about56% remaining by count). Next15 Paddle lifecycle; real catalog/provider qualification remains gated.
