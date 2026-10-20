@@ -21,13 +21,13 @@ Verification:54 focused tests; full backend1077 tests/84 files/zero skips with e
 
 ## Spec22 verified local boundary and current Git state
 
-Current branch `implementation/spec-22-company-settings`, stacked on `implementation/spec-24-platform-companies` at6c6bdc5/PR40. Issue41: https://github.com/Shumail-AbdulRehman/PRIV/issues/41. Draft PR publication follows verification. Both units were completed sequentially and will have separate review PRs; no merge.
+Current branch `implementation/spec-22-company-settings`, stacked on `implementation/spec-24-platform-companies` at6c6bdc5/PR40. Issue41: https://github.com/Shumail-AbdulRehman/PRIV/issues/41. Implementation commit1b677af pushed; draft PR42: https://github.com/Shumail-AbdulRehman/PRIV/pull/42, base PR40. This documentation is a subsequent checkpoint commit. Both units were completed sequentially and will have separate review PRs; no merge.
 
 Name-only settings reuse registration name validation (trim2–160, Unicode), exact persisted active ADMIN/company authorization, existing READ_OPERATIONAL account policy and AuditLog. Company has no approved verified-contact columns; no new contact field or owner email change was invented. Settings DTO has id/name/accountVersion/updatedAt. Strict PATCH `{name,expectedVersion}` rejects company/plan/role/security/provider fields. Shared accountVersion under company-first lock safely conflicts with spec24 changes and avoids timestamp-precision lost writes. Same-name/current-version save no-op; stale409; audit and update atomic. Suspended company settings denied; active unentitled owner may rename (no new work/capacity).
 
 Router GET/PATCH `/` applies tenant JWT/ADMIN/no-store, rejects operator context. **Mount at `/api/company/settings` in26**. No UI or schema change; account UI30 remains pending.
 
-Spec22 files: companySettings.service.ts, its38-test file, companySettings.route.ts, backend/tests/companySettings.integration.ts, inventory22, specs22/26/39, PROGRESS and this handoff. Validator report refreshed. Existing unrelated dirty files remain preserved.
+Spec22 files: companySettings.service.ts, its38-test file, companySettings.route.ts, backend/tests/companySettings.integration.ts, inventory22, specs22/26/39, PROGRESS and this handoff. Validator report refreshed. Existing unrelated dirty files remain preserved; final git status matches the pre-session dirty/untracked list exactly.
 
 Verification:38 focused tests; whole backend1115 tests/85 files/zero skips with explicit isolated DATABASE_URL/LAUNCH_PERSISTENCE_TEST_DATABASE_URL; backend tsc --noEmit/build; standalone22/24 integration tsc pass. `COMPANY_SETTINGS_TEST_DATABASE_URL=postgresql://shumail@127.0.0.1:56439/hygene_launch_test backend/node_modules/.bin/tsx backend/tests/companySettings.integration.ts` passed: persisted owner/tenant denial, concurrent rename one winner, actor/name/time durable, actual audit-failure rollback, shared name/status race, billing/owner/other company preservation. Logs `/tmp/hygene-spec22-tests.log`, `/tmp/hygene-spec22-build.log`. No backend lint script or frontend/mobile changes. Final validator42 specs/zero errors/two accepted warnings (decision00 issue, terminal VERIFICATION.md), justified in README.
 
@@ -47,7 +47,7 @@ Other gates: operator IdP/MFA/provisioned people; verified mail/support channel;
 
 ## Existing Git/review state and preserved user work
 
-Prior stacked draft PRs by spec:01→7,02→8,03→9,04→10,05→11,06→13,08→15,09→17,13→19,07→21,12→23,10→25,17→27,18→28,19→30,11→32,14→34,27→36;15→38;24→40. Nothing merged. Spec24 is stacked on spec15; compare with its immediate base for a scoped review.
+Prior stacked draft PRs by spec:01→7,02→8,03→9,04→10,05→11,06→13,08→15,09→17,13→19,07→21,12→23,10→25,17→27,18→28,19→30,11→32,14→34,27→36;15→38;24→40;22→42. Nothing merged. Spec24 is stacked on spec15; compare with its immediate base for a scoped review.
 
 The following working-tree entries predate the final handoff and are **preserved user work/tooling/design inputs**, not spec15 changes. Never blanket stage, discard or overwrite them:
 
