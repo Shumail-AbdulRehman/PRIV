@@ -33,7 +33,7 @@ Verification:38 focused tests; whole backend1115 tests/85 files/zero skips with 
 
 ## Spec23 verified local boundary and current Git state
 
-Current branch `implementation/spec-23-attendance-annotations`, base `implementation/spec-22-company-settings` at09e0a82/PR42. Dependency10 is locally Done and present in Git; all predecessor PRs remain unmerged. Issue43: https://github.com/Shumail-AbdulRehman/PRIV/issues/43. Draft PR publication follows verification; no merge or deployment.
+Current branch `implementation/spec-23-attendance-annotations`, base `implementation/spec-22-company-settings` at09e0a82/PR42. Dependency10 is locally Done and present in Git; all predecessor PRs remain unmerged. Issue43: https://github.com/Shumail-AbdulRehman/PRIV/issues/43. Implementation207dad5 pushed; draft PR44: https://github.com/Shumail-AbdulRehman/PRIV/pull/44, stacked on PR42. No merge or deployment; issue43 stays open. This checkpoint is a subsequent documentation commit.
 
 New service/router append immutable NOTE and parent-bound ACKNOWLEDGEMENT using existing schema/SQL trigger. Staff adds/views only own historical attendance even after site transfer; MANAGER consumes current persisted assignment to Attendance.locationId, ignoring claimed token sites; ADMIN company-wide. Both attendance worker/site company bindings required. Actor and company access rechecked, suspended/inactive actors denied. Context creates no new paid work/capacity, so active unentitled actors may add notes. No edit/delete/payroll/corrected-hour endpoint; original attendance and parent notes untouched.
 
@@ -41,7 +41,7 @@ POST strict input: NOTE `{kind,reason,requestId}` or ACKNOWLEDGEMENT additionall
 
 Mount `backend/src/routes/attendanceAnnotation.route.ts` under `/api/attendance` in26; paths GET/POST `/:attendanceId/annotations`, tenant JWT/no-store, operator context denied. Router remains unmounted until26; UI29 and E2E40 separate.
 
-Files: attendanceAnnotation.service.ts, its55-test file, attendanceAnnotation.route.ts, backend/tests/attendanceAnnotation.integration.ts, inventory23, specs23/26/39, PROGRESS/handoff; validator evidence refreshed. No dependency, schema or UI changes. Pre-existing user changes preserved.
+Files: attendanceAnnotation.service.ts, its55-test file, attendanceAnnotation.route.ts, backend/tests/attendanceAnnotation.integration.ts, inventory23, specs23/26/39, PROGRESS/handoff; validator evidence refreshed. No dependency, schema or UI changes. Final git status matches the original preserved dirty/untracked list exactly.
 
 Verification:55 focused tests; whole backend1170 tests/86 files/zero skips with explicit isolated DATABASE_URL/LAUNCH_PERSISTENCE_TEST_DATABASE_URL; backend tsc --noEmit/build; standalone integration tsc pass. `ATTENDANCE_ANNOTATION_TEST_DATABASE_URL=postgresql://shumail@127.0.0.1:56439/hygene_launch_test backend/node_modules/.bin/tsx backend/tests/attendanceAnnotation.integration.ts` passes real retry races, historical scope/revocation, tenant/parent/cursor denial, chronological paging, audit rollback, SQL update/delete denial and exact original fact preservation. Expected SQL immutability rejection messages appear in integration log. Initial synthetic fixture status fixed to schema CHECKED_IN before successful proof. Logs `/tmp/hygene-spec23-tests.log`, `/tmp/hygene-spec23-build.log`, `/tmp/hygene-spec23-integration.log`. No known failing checks. Backend has no lint script; frontend/mobile not changed.
 
@@ -61,7 +61,7 @@ Other gates: operator IdP/MFA/provisioned people; verified mail/support channel;
 
 ## Existing Git/review state and preserved user work
 
-Prior stacked draft PRs by spec:01→7,02→8,03→9,04→10,05→11,06→13,08→15,09→17,13→19,07→21,12→23,10→25,17→27,18→28,19→30,11→32,14→34,27→36;15→38;24→40;22→42. Nothing merged. Spec24 is stacked on spec15; compare with its immediate base for a scoped review.
+Prior stacked draft PRs by spec:01→7,02→8,03→9,04→10,05→11,06→13,08→15,09→17,13→19,07→21,12→23,10→25,17→27,18→28,19→30,11→32,14→34,27→36;15→38;24→40;22→42;23→44. Nothing merged. Spec24 is stacked on spec15; compare with its immediate base for a scoped review.
 
 The following working-tree entries predate the final handoff and are **preserved user work/tooling/design inputs**, not spec15 changes. Never blanket stage, discard or overwrite them:
 
