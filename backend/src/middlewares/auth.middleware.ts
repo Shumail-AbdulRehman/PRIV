@@ -1,4 +1,4 @@
-import jwt, { JwtPayload } from "jsonwebtoken";
+import { verifySessionToken } from "../utils/auth.js";
 import { Request, Response, NextFunction } from "express";
 import { ApiError } from "../utils/ApiError.js";
 import { prisma } from "../prisma/prisma.js";
@@ -12,12 +12,7 @@ export const verifyJwt = async (req: Request, res: Response, next: NextFunction)
         throw new ApiError(401, "Unauthorized access");
     }
 
-    let decoded: JwtPayload;
-    try {
-        decoded = jwt.verify(token, process.env.ACCESS_TOKEN_SECRET as string) as JwtPayload;
-    } catch (error) {
-        throw new ApiError(401, "Access Token Expired");
-    }
+    const decoded = verifySessionToken(token, "access");
 
     const { id, role } = decoded;
     let user;

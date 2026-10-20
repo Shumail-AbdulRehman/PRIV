@@ -5,7 +5,7 @@ const m=vi.hoisted(()=>({staff:vi.fn(),manager:vi.fn(),locations:vi.fn()}));
 vi.mock('../prisma/prisma.js',()=>({prisma:{staff:{findUnique:m.staff},manager:{findUnique:m.manager},managerLocation:{findMany:m.locations}}}));
 import {verifyJwt} from './auth.middleware.js';
 process.env.ACCESS_TOKEN_SECRET='test-auth-secret';
-const request=(role:string)=>({cookies:{},header:()=>`Bearer ${jwt.sign({id:1,role},'test-auth-secret')}`} as unknown as Request);
+const request=(role:string)=>({cookies:{},header:()=>`Bearer ${jwt.sign({id:1,role,tokenUse:'access'},'test-auth-secret',{expiresIn:'15m'})}`} as unknown as Request);
 beforeEach(()=>{vi.resetAllMocks();m.locations.mockResolvedValue([]);});
 describe('active JWT principals',()=>{
  it('rejects inactive staff',async()=>{m.staff.mockResolvedValue({id:1,companyId:1,role:'STAFF',isActive:false,company:{isActive:true}});await expect(verifyJwt(request('STAFF'),{} as Response,vi.fn())).rejects.toMatchObject({statusCode:403});});

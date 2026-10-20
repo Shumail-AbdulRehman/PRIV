@@ -2,10 +2,8 @@
 import { ApiResponse } from "../utils/ApiResponse.js";
 import { ApiError } from "../utils/ApiError.js";
 import { Request, Response } from "express";
-import { TokenPayload } from "../types/jwt.js";
 import { prisma } from "../prisma/prisma.js"; 
-import jwt from "jsonwebtoken";
-import { generateAccessToken,generateRefreshToken } from "../utils/auth.js";
+import { generateAccessToken,generateRefreshToken,verifySessionToken } from "../utils/auth.js";
 import { getCookieOptions } from "../utils/cookies.js";
 import { renewStaffPushSession } from "../services/staff-notifications/session.js";
 
@@ -20,7 +18,7 @@ export const getCurrentUser = async (req: Request, res: Response) => {
 
 export const refreshToken = async (req: Request, res: Response) => {
   const incomingRefreshToken =
-    req.cookies.refreshToken ||
+    req.cookies?.refreshToken ||
     req.body?.refreshToken ||
     req.header("x-refresh-token");
 
@@ -28,16 +26,7 @@ export const refreshToken = async (req: Request, res: Response) => {
     throw new ApiError(401, "Refresh token missing");
   }
 
-  let decodedToken: TokenPayload;
-
-  try {
-    decodedToken = jwt.verify(
-      incomingRefreshToken,
-      process.env.REFRESH_TOKEN_SECRET!
-    ) as TokenPayload;
-  } catch {
-    throw new ApiError(401, "Access Token Expired");
-  }
+  const decodedToken = verifySessionToken(incomingRefreshToken, "refresh");
 
   const { id, role } = decodedToken;
 
@@ -46,27 +35,25 @@ export const refreshToken = async (req: Request, res: Response) => {
   if (role === "MANAGER" || role === "ADMIN") {
     user = await prisma.manager.findUnique({
       where: { id },
+      include: { company: { select: { isActive: true } } },
     });
 
     if (!user) {
       throw new ApiError(401, "Unauthorized");
     }
 
-    if (user.refreshToken !== incomingRefreshToken) {
-      await prisma.manager.update({
-        where: { id: user.id },
-        data: { refreshToken: null },
-      });
-      throw new ApiError(403, "Token reuse detected");
-    }
+    if (user.role !== role) throw new ApiError(401, "Account role changed; sign in again");
+    if (!user.isActive || !user.company.isActive) throw new ApiError(403, "Account is deactivated");
+    if (user.refreshToken !== incomingRefreshToken) throw new ApiError(401, "Session changed; sign in again");
 
     const accessToken = generateAccessToken(user, role);
     const newRefreshToken = generateRefreshToken(user, role);
-
-    await prisma.manager.update({
-      where: { id: user.id },
+    const rotated = await prisma.manager.updateMany({
+      where: { id: user.id, companyId: user.companyId, role, refreshToken: incomingRefreshToken,
+        isActive: true, company: { isActive: true } },
       data: { refreshToken: newRefreshToken },
     });
+    if (!rotated.count) throw new ApiError(401, "Session changed; sign in again");
 
     const cookieOptions = getCookieOptions(true);
 
@@ -108,21 +95,17 @@ export const refreshToken = async (req: Request, res: Response) => {
     if (!user.isActive || !user.company.isActive)
       throw new ApiError(403, "Account is deactivated");
 
-    if (user.refreshToken !== incomingRefreshToken) {
-      await prisma.staff.update({
-        where: { id: user.id },
-        data: { refreshToken: null },
-      });
-      throw new ApiError(403, "Token reuse detected");
-    }
+    if (user.role !== role) throw new ApiError(401, "Account role changed; sign in again");
+    if (user.refreshToken !== incomingRefreshToken) throw new ApiError(401, "Session changed; sign in again");
 
     const accessToken = generateAccessToken(user, role);
     const newRefreshToken = generateRefreshToken(user, role);
 
     const staffUserId = user.id;
+    const staffCompanyId = user.companyId;
     await prisma.$transaction(async (tx) => {
       const rotated = await tx.staff.updateMany({
-        where: { id: staffUserId, refreshToken: incomingRefreshToken, isActive: true, company: { isActive: true } },
+        where: { id: staffUserId, companyId: staffCompanyId, role: "STAFF", refreshToken: incomingRefreshToken, isActive: true, company: { isActive: true } },
         data: { refreshToken: newRefreshToken },
       });
       if (!rotated.count) throw new ApiError(401, "Session changed; sign in again");
@@ -162,59 +145,31 @@ export const refreshToken = async (req: Request, res: Response) => {
 
 export const logOut = async (req: Request, res: Response) => {
   const cookieOptions = getCookieOptions(true);
-  const accessToken =
-    req.cookies?.accessToken ||
-    req.header("Authorization")?.replace("Bearer ", "");
-  const refreshTokenCookie =
-    req.cookies?.refreshToken ||
-    req.body?.refreshToken ||
-    req.header("x-refresh-token");
+  const incomingRefreshToken =
+    req.cookies?.refreshToken || req.body?.refreshToken || req.header("x-refresh-token");
 
-  let decodedAccessToken: TokenPayload | null = null;
-  let decodedRefreshToken: TokenPayload | null = null;
-
-  if (accessToken) {
-    try {
-      decodedAccessToken = jwt.verify(
-        accessToken,
-        process.env.ACCESS_TOKEN_SECRET!
-      ) as TokenPayload;
-    } catch {
-      decodedAccessToken = null;
-    }
-  }
-
-  if (refreshTokenCookie) {
-    try {
-      decodedRefreshToken = jwt.verify(
-        refreshTokenCookie,
-        process.env.REFRESH_TOKEN_SECRET!
-      ) as TokenPayload;
-    } catch {
-      decodedRefreshToken = null;
-    }
-  }
-
-  const tokenPayload = decodedRefreshToken ?? decodedAccessToken;
-
-  if (tokenPayload?.role === "MANAGER" || tokenPayload?.role === "ADMIN") {
-    await prisma.manager
-      .update({
-        where: { id: tokenPayload.id },
-        data: { refreshToken: null },
-      })
-      .catch(() => null);
-  } else if (tokenPayload?.role === "STAFF") {
-    const staffId = tokenPayload.id;
-    await prisma.$transaction(async tx => {
-      const revoked = await tx.staff.updateMany({
-        where: { id: staffId, ...(decodedRefreshToken ? { refreshToken: refreshTokenCookie } : {}) },
+  // Access-only or stale logout must not revoke a later sign-in. Only the
+  // current, verified refresh family can revoke the stored session.
+  if (incomingRefreshToken) {
+    let principal;
+    try { principal = verifySessionToken(incomingRefreshToken, "refresh"); }
+    catch { /* Clear local cookies even when the presented family has expired. */ }
+    if (principal?.role === "ADMIN" || principal?.role === "MANAGER") {
+      await prisma.manager.updateMany({
+        where: { id: principal.id, role: principal.role, refreshToken: incomingRefreshToken },
         data: { refreshToken: null },
       });
-      if (revoked.count) await tx.staffPushDevice.updateMany({where:{staffId},data:{enabled:false}});
-    });
+    } else if (principal?.role === "STAFF") {
+      const staffId = principal.id;
+      await prisma.$transaction(async tx => {
+        const revoked = await tx.staff.updateMany({
+          where: { id: staffId, role: "STAFF", refreshToken: incomingRefreshToken },
+          data: { refreshToken: null },
+        });
+        if (revoked.count) await tx.staffPushDevice.updateMany({ where: { staffId }, data: { enabled: false } });
+      });
+    }
   }
-
   return res
     .clearCookie("accessToken", cookieOptions)
     .clearCookie("refreshToken", cookieOptions)
