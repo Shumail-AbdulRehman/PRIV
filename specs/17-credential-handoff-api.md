@@ -1,10 +1,10 @@
 # Spec 17 — Self credentials and assisted worker recovery
 
-**Status:** Not started
+**Status:** Done
 **Depends on:** Spec 10
 **Model:** Heavy — `claude-opus-5-5` · `gpt-6-astra` · `gemini-3.1-pro-preview`
-**Issue:** —
-**Owns:** `backend/src/services/credentialHandoff.service.ts`, `backend/src/services/credentialHandoff.service.test.ts`, `backend/src/routes/credentialHandoff.route.ts`, `specs/inventory/17-credential-handoff-api.md`
+**Issue:** #24
+**Owns:** `backend/tests/credentialHandoff.integration.ts`, `backend/src/routes/common.route.ts`, `backend/src/services/credentialHandoff.service.ts`, `backend/src/services/credentialHandoff.service.test.ts`, `backend/src/routes/credentialHandoff.route.ts`, `specs/inventory/17-credential-handoff-api.md`
 **Reuses:** `backend/src/utils/auth.ts`, `backend/src/services/staff-notifications/session.ts`
 
 ## Goal
@@ -37,8 +37,13 @@ Require current password for self-change. Allow owner/scoped manager to issue on
 
 ## Done when
 
-- [ ] `npm test --prefix backend -- src/services/credentialHandoff.service.test.ts` passes: Wrong-current-password, cross-site reset, owner escalation and consumed handoff denied; issued handoff forces credential replacement. [unit]
-- [ ] `npm test --prefix backend` passes the whole affected unit suite; record count. [unit]
-- [ ] Only scoped paths changed; relevant denial/empty/error/config-unavailable states inspected. [static]
-- [ ] `cd backend && npx tsc --noEmit` passes; no backend lint script exists. [static]
-- [ ] `npm run build --prefix backend` passes. [static]
+- [x] `npm test --prefix backend -- src/services/credentialHandoff.service.test.ts` passes: Wrong-current-password, cross-site reset, owner escalation and consumed handoff denied; issued handoff forces credential replacement. [unit]
+- [x] `npm test --prefix backend` passes the whole affected unit suite; record count. [unit]
+- [x] Only scoped paths changed; relevant denial/empty/error/config-unavailable states inspected. [static]
+- [x] `cd backend && npx tsc --noEmit` passes; no backend lint script exists. [static]
+- [x] `npm run build --prefix backend` passes. [static]
+
+## Log
+
+- **2026-10-20** — Claimed https://github.com/Shumail-AbdulRehman/PRIV/issues/24. Current common router ownership from future26 used to mount security routes immediately. Current issuer password required for worker handoff;30-minute one-use technical expiry, no raw password delivery/storage. Immediate access epoch integration follows18.
+- **2026-10-20** — Current-password self changes, same-site issuer-authenticated handoff, hash-only30m code, former-password invalidation, version increments/refresh+push revocation, same-principal/token lock order, bounded issuance and secret-free audit implemented through live common security routes.16 unit tests; full backend803/803 with explicit local PG, build and integration script typecheck pass. Real isolated PostgreSQL: wrong-site manager denied; oldpassword invalid; one of two completion calls wins; bcrypt/hash/version and audit checks pass. Immediate old-access-token check is next18; native/web handoff UI remains31/37. No production accounts touched.

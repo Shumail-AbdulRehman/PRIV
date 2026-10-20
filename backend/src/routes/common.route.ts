@@ -1,3 +1,4 @@
+import credentialHandoffRouter from "./credentialHandoff.route.js";
 import { Router } from "express";
 import { verifyJwt } from "../middlewares/auth.middleware.js";
 import { getCurrentUser,logOut,refreshToken } from "../controllers/common.controller.js";
@@ -7,6 +8,7 @@ import { getCurrentUser,logOut,refreshToken } from "../controllers/common.contro
 
 
 const router = Router();
+router.use(credentialHandoffRouter);
 
 
 router.post("/logout",logOut);

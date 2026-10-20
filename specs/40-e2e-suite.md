@@ -45,6 +45,8 @@ Readiness HTTP composition: `backend/src/routes/location.route.ts` mounts the bo
 
 Persistence rehearsal supplement: `backend/tests/launchMigration.integration.ts` is an isolated schema/SQL/service test (not a browser end-to-end runner); final verification reruns it only in a new empty disposable PostgreSQL database.
 
+Credential service SQL rehearsal: `backend/tests/credentialHandoff.integration.ts` verifies actual transactions, password hashing and concurrent consumption in explicit local DB; browser/native handoff completion remains in the final flow suite.
+
 ### Runtime coverage surfaces
 
 These owned surfaces are consumed by the flow table above or the clean verification gate; tests must exercise their actual caller integration.
