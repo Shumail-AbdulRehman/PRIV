@@ -2,7 +2,7 @@
 
 ## Current continuation state
 
-Latest user explicitly requests completing all eligible specs without routine handoff stops while they sleep; continue sequential implementation. Prior routine stopping notes are historical and superseded. This supersedes the prior spec15 stop instruction. Approved launch scope and design/v5 remain unchanged. Read specs/AGENT-GUIDE.md and steering docs before continuing. No deployment, production mutation, destructive migration or PR merge is authorized.
+Latest user explicitly requests completing all eligible specs without routine handoff stops while they sleep; continue sequential implementation. Prior routine stopping notes are historical and superseded. This supersedes prior stopping instructions. Approved launch scope and design/v5 remain unchanged. Read specs/AGENT-GUIDE.md and steering docs before continuing. No deployment, production mutation, destructive migration or PR merge is authorized.
 
 Completed: decision00 and execution01–19,22–25,27 (24 of41 execution/gates;17 remain). Prior details remain in individual spec Logs and inventory fragments. Specs20–21,26,28–41 are Not started. No completed work has been repeated.
 
@@ -63,7 +63,7 @@ Verification:66 focused tests; full backend1236 tests/87 files/zero skips with e
 
 ## Spec16 verified local boundary and current Git state
 
-Current branch `implementation/spec-16-owner-identity`, base25/PR46 atb775842. Issue47: https://github.com/Shumail-AbdulRehman/PRIV/issues/47. Prerequisites10/13 Done and present; all PRs still unmerged. Publication follows verification.
+Current branch `implementation/spec-16-owner-identity`, base25/PR46 atb775842. Issue47: https://github.com/Shumail-AbdulRehman/PRIV/issues/47. Prerequisites10/13 Done and present; all PRs still unmerged. Implementation8c6d64f pushed; draft PR48: https://github.com/Shumail-AbdulRehman/PRIV/pull/48, stacked on PR46; issue47 open. Continue20.
 
 New ownerIdentity service/factory implements status, authenticated/current-password verification enrollment request, neutral deferred public reset request, purpose-bound one-use confirmation and whenIdle drain. Existing CredentialToken hashes only,24h verify/30m reset, exact active ADMIN/company/current case-sensitive email/purpose, future/expired/used denial. Completion manager→token lock and conditional consume, bcrypt extension once, all owner links consumed, epoch increment/refresh clear and audit atomic. Verification also revokes sessions; no implicit login or company/billing reactivation. Inactive/suspended-company own security remains allowed in service; ordinary route auth's inactive-company integration is26.
 
@@ -93,7 +93,7 @@ Other gates: operator IdP/MFA/provisioned people; verified mail/support channel;
 
 ## Existing Git/review state and preserved user work
 
-Prior stacked draft PRs by spec:01→7,02→8,03→9,04→10,05→11,06→13,08→15,09→17,13→19,07→21,12→23,10→25,17→27,18→28,19→30,11→32,14→34,27→36;15→38;24→40;22→42;23→44;25→46. Nothing merged. Spec24 is stacked on spec15; compare with its immediate base for a scoped review.
+Prior stacked draft PRs by spec:01→7,02→8,03→9,04→10,05→11,06→13,08→15,09→17,13→19,07→21,12→23,10→25,17→27,18→28,19→30,11→32,14→34,27→36;15→38;24→40;22→42;23→44;25→46;16→48. Nothing merged. Spec24 is stacked on spec15; compare with its immediate base for a scoped review.
 
 The following working-tree entries predate the final handoff and are **preserved user work/tooling/design inputs**, not spec15 changes. Never blanket stage, discard or overwrite them:
 
