@@ -23,6 +23,7 @@ const TITLES: Record<string, string> = {
   exceptions: "Reviews",
   verification: "Task photos",
   areas: "Room",
+  settings: "Settings",
 };
 export default function DashboardLayout() {
   const { t } = useLanguage();
@@ -47,12 +48,15 @@ export default function DashboardLayout() {
               <Button
                 variant="ghost"
                 size="icon"
-                className="lg:hidden"
+                className="workspace-menu-trigger"
                 id="workspace-menu-trigger"
                 aria-label={t("Open navigation")}
+                aria-expanded={isSidebarOpen}
+                aria-controls="workspace-mobile-menu"
+                aria-haspopup="dialog"
                 onClick={() => setIsSidebarOpen(true)}
               >
-                <Menu size={20} />
+                <Menu size={20} aria-hidden="true" />
               </Button>
               <nav
                 aria-label={t("Breadcrumb")}

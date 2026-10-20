@@ -1,10 +1,10 @@
 # Spec 27 — Approved v5 shared shell and route composition
 
-**Status:** Not started
+**Status:** Done
 **Depends on:** Spec 06
 **Model:** Heavy — `claude-opus-5-5` · `gpt-6-astra` · `gemini-3.1-pro-preview`
-**Issue:** —
-**Owns:** `frontend/src/main.tsx`, `frontend/src/routes/workspacePages.tsx`, `frontend/src/components/layout/DashboardLayout.tsx`, `frontend/src/components/layout/Sidebar.tsx`, `frontend/src/workspace-refresh.css`, `frontend/src/i18n/launchTranslations.ts`, `frontend/src/routes/launchPages.tsx`, `frontend/src/routes/launchPages.test.tsx`, `specs/inventory/27-workspace-shell.md`
+**Issue:** #35
+**Owns:** `frontend/src/routes/workspaceRoutes.tsx`, `frontend/src/i18n/translations.ts`, `frontend/src/main.tsx`, `frontend/src/routes/workspacePages.tsx`, `frontend/src/components/layout/DashboardLayout.tsx`, `frontend/src/components/layout/Sidebar.tsx`, `frontend/src/workspace-refresh.css`, `frontend/src/i18n/launchTranslations.ts`, `frontend/src/routes/launchPages.tsx`, `frontend/src/routes/launchPages.test.tsx`, `specs/inventory/27-workspace-shell.md`
 **Reuses:** `frontend/src/components/common/LanguageChoice.tsx`, `frontend/src/components/common/PageHeader.tsx`, `frontend/src/i18n/LanguageProvider.tsx`, `DESIGN-SYSTEM.md#component-conventions`, `design/v5/overview.html`
 
 ## Goal
@@ -37,8 +37,15 @@ Translate approved shell/spacing/fonts/navigation into existing reusable compone
 
 ## Done when
 
-- [ ] `npm run test:components --prefix frontend -- src/routes/launchPages.test.tsx` passes: EN/UR/RTL role-correct navigation, keyboard focus, 390px layout and forbidden routes covered by component tests. [unit]
-- [ ] `npm test --prefix frontend` passes the whole affected unit suite; record count. [unit]
-- [ ] Only scoped paths changed; relevant denial/empty/error/config-unavailable states inspected. [static]
-- [ ] `npm run lint --prefix frontend` reports zero errors/warnings in changed files; document baseline separately. [static]
-- [ ] `npm run build --prefix frontend` passes. [static]
+- [x] `npm run test:components --prefix frontend -- src/routes/launchPages.test.tsx` passes: EN/UR/RTL role-correct navigation, keyboard focus, mobile menu semantics and forbidden routes covered by component tests; inspect the real rendered390px layout separately. [unit]
+- [x] `npm test --prefix frontend` passes the whole affected unit suite; record count. [unit]
+- [x] Only scoped paths changed; relevant denial/empty/error/config-unavailable states inspected. [static]
+- [x] `npm run lint --prefix frontend` reports zero errors/warnings in changed files; document baseline separately. [static]
+- [x] `npm run build --prefix frontend` passes. [static]
+
+## Log
+
+- **2026-10-20** — Claimed issue35. Reuse approved v5 exact blue/white tokens and existing matching blue H logo, Inter/Arabic fonts, Radix dialog and auth/query providers. Translation entry ownership transferred08→27; attendance dictionary retained. No design/prototype changes; user dirty Dashboard/manager translations preserved.
+- **2026-10-20** — Complete:22 new component regressions; full web57 node+40 component tests, build and full npm lint pass. Actual React fixture renders390/1366 EN/UR plus manager/staff pass no overflow/JS errors; two mobile dialog renders/focus/RTL inspected. Source v5 colour values confirmed computed blue/white. Screenshots in docs/implementation/previews/shell-*.png; fixture API interception is visual proof, not live provider/persistence E2E.
+- **2026-10-20** — Reused exact blue H brand asset, approved Inter/Arabic fonts and existing primitives. Source detector had only its generic Inter popularity advisory; explicitly pinned v5 overrides it. Existing operational page copy/forms remain29/28/31; dirty Dashboard unchanged. Billing/settings owner-only, staff gets app handoff, operator never inherits tenant auth, route errors hide internals; future settings/operator controls unavailable honestly.
+- **2026-10-20** — Removed the owner-wide forced plan-selection redirect so unpaid accounts can reach approved read-only operations; server mutation gates remain required. Future account policy composition26 must finish legacy starts/jobs/capacity handoff. No sample records or prototypes added to app.
