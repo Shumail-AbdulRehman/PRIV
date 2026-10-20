@@ -2,6 +2,7 @@ import {prisma} from '../../prisma/prisma.js';
 import {ApiError} from '../../utils/ApiError.js';
 import {requireTaskAccess,type VerificationActor} from './authorization.service.js';
 import {lockTask} from './captureSession.service.js';
+import {authorizedWaiverReceipts,assertRequiredReceipts} from './launchPhotoPolicy.js';
 import {checkedAttempt} from './sequentialPolicy.js';
 import {finalizeTask} from './completion.service.js';
 import {raiseIssue} from './exception.service.js';
@@ -14,9 +15,14 @@ export async function finishStaffSubmission(actor:VerificationActor,taskId:numbe
   if(task.staffSubmittedAt||task.status==='COMPLETED')return {id:taskId,status:'COMPLETED',staffSubmittedAt:task.staffSubmittedAt??task.completedAt};
   if(!['IN_PROGRESS','NOT_COMPLETED_INTIME'].includes(task.status))throw new ApiError(409,'Start this task before submitting it.');
   const requirements=await tx.taskEvidenceRequirement.findMany({where:{item:{taskInstanceId:taskId,mandatory:true},mandatory:true},include:{item:true}});
-  if(!requirements.length||requirements.some(r=>!r.currentAttemptId))throw new ApiError(409,'Capture all required photos before finishing.',[{code:'MISSING_EVIDENCE'}]);
-  const attempts=await tx.verificationAttempt.findMany({where:{id:{in:requirements.map(r=>r.currentAttemptId!)}},include:{media:true}});
-  if(attempts.length!==requirements.length||attempts.some(a=>!a.receivedAt||!a.media||!checkedAttempt(a.state)))throw new ApiError(409,'Wait for all required photos to upload and finish checking.',[{code:'PHOTOS_NOT_CHECKED'}]);
+  if(!requirements.length)throw new ApiError(409,'Capture all required photos before finishing.',[{code:'MISSING_EVIDENCE'}]);
+  const waived=await authorizedWaiverReceipts(tx,actor,taskId,requirements);
+  const remaining=requirements.filter(r=>!waived.has(r.id));
+  if(remaining.some(r=>!r.currentAttemptId))throw new ApiError(409,'Capture all required photos before finishing.',[{code:'MISSING_EVIDENCE'}]);
+  const attempts=await tx.verificationAttempt.findMany({where:{id:{in:remaining.map(r=>r.currentAttemptId).filter((id):id is string=>!!id)}},include:{media:true,session:true}});
+  const assignment=task.assignments.find(a=>a.isCurrent&&a.staffId===actor.id&&['ASSIGNED','STARTED'].includes(a.status));
+  if(!assignment)throw new ApiError(409,'Current assignment required',[{code:'STALE_ASSIGNMENT'}]);
+  assertRequiredReceipts(requirements,attempts,waived,{taskId,staffId:actor.id,assignmentEpoch:task.assignmentEpoch,assignmentId:assignment.id});
   const sessionIds=[...new Set(attempts.map(a=>a.sessionId))];
   const sessions=await tx.captureSession.findMany({where:{id:{in:sessionIds}}});
   // A required room-context photo must have been received and checked, including preserved QR renewals.

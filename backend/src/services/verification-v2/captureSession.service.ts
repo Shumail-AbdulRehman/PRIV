@@ -1,3 +1,4 @@
+import {assertFailedViewReplacement,assertFailedContextReplacement,authorizedWaiverReceipts} from './launchPhotoPolicy.js';
 import {releaseInterruptedPhotos} from './directProcessing.js';
 import {staffPhotoInstructions, type PhotoFeedbackContext} from './staffPhotoInstructions.js';
 import { retireContextPhotos } from "./retireContextPhotos.js";
@@ -42,9 +43,13 @@ export async function createCaptureSession(actor:VerificationActor,taskId:number
  if(previousSession&&sequentialCapture(previousSession.locationCheck)&&await tx.verificationAttempt.count({where:{session:{taskInstanceId:taskId},receivedAt:{not:null},state:{in:['RECEIVED','QUALITY_CHECK','COVERAGE_CHECK','CLEANLINESS_CHECK','RETRY_WAIT']}}}))throw fail(409,'PREVIOUS_PHOTO_UNRESOLVED','Wait for the current photo to finish checking before scanning again.');
  const reworkTargets=reworkInput?.requirements??[];
  for(const requested of reworkTargets){
-  const r=await tx.taskEvidenceRequirement.findFirst({where:{id:requested.requirementId,item:{taskInstanceId:taskId}}});
+  const r=await tx.taskEvidenceRequirement.findFirst({where:{id:requested.requirementId,item:{taskInstanceId:taskId}},include:{item:true}});
   if(!r)throw fail(404,'REQUIREMENT_NOT_FOUND','Requirement not found');
   if(r.state!=='CLEANING_REQUIRED'||r.decisionVersion!==requested.expectedGeneration)throw fail(409,'STALE_GENERATION','Select the items that need cleaning');
+  const failed=r.currentAttemptId?await tx.verificationAttempt.findUnique({where:{id:r.currentAttemptId},include:{session:true,slot:true}}):null;
+  const current=task.assignments.find(a=>a.isCurrent&&a.staffId===actor.id&&['ASSIGNED','STARTED'].includes(a.status));
+  if(!current)throw fail(409,'STALE_ASSIGNMENT','Assignment changed');
+  assertFailedViewReplacement({task,session:{id:'fresh-qr',taskInstanceId:task.id,staffId:actor.id,assignmentId:current.id,assignmentEpoch:task.assignmentEpoch,...windows},staffId:actor.id,now,requirement:r,attempt:failed,expectedGeneration:requested.expectedGeneration,cleaning:true});
  }
  await tx.$queryRaw`SELECT pg_advisory_xact_lock(hashtextextended(${'session-rate:'+actor.companyId},0))::text`;if(await tx.captureSession.count({where:{task:{location:{companyId:actor.companyId}},issuedAt:{gt:new Date(+now-60000)}}})>=100)throw fail(429,'RATE_LIMITED','Too many company session requests');if(await tx.captureSession.count({where:{staffId:actor.id,issuedAt:{gt:new Date(+now-60000)}}})>=10)throw fail(429,'RATE_LIMITED','Too many worker session requests');if(await tx.captureSession.count({where:{staffId:actor.id,taskInstanceId:taskId,issuedAt:{gt:new Date(+now-60000)}}})>=5)throw new ApiError(429,'Too many session requests');
  if(active)await tx.captureSession.update({where:{id:active.id},data:{state:active.deviceId!==input.deviceId?'REVOKED':'EXPIRED',closedAt:now,rowVersion:{increment:1}}});
@@ -63,7 +68,12 @@ export async function createCaptureSession(actor:VerificationActor,taskId:number
  const abandoned=await tx.verificationAttempt.findMany({where:{id:{in:processing.map(r=>r.currentAttemptId!)},state:{in:['RESERVED','STORING']},mediaAssetId:null,OR:[{session:{OR:[{uploadExpiresAt:{lt:now}},{state:'REVOKED'}]}},{qualityResult:{path:['workflow'],equals:'DIRECT_PHOTO_V1'}}]},select:{id:true}});
  const abandonedIds=new Set(abandoned.map(a=>a.id));
  for(const r of processing)if(abandonedIds.has(r.currentAttemptId!))await tx.taskEvidenceRequirement.update({where:{id:r.id},data:{state:'MISSING',currentAttemptId:null,decisionVersion:{increment:1}}});
- const requirements=await tx.taskEvidenceRequirement.findMany({where:{item:{taskInstanceId:taskId},...(rework?previousSession&&sequentialCapture(previousSession.locationCheck)?{OR:[{id:{in:reworkTargets.map(r=>r.requirementId)},state:'CLEANING_REQUIRED' as const},{state:'MISSING' as const}],state:undefined}:{id:{in:reworkTargets.map(r=>r.requirementId)},state:'CLEANING_REQUIRED' as const}:{state:{notIn:[...terminal,'PROCESSING','CLEANING_REQUIRED','REVIEW_REQUIRED']}})},include:{item:true},orderBy:[{item:{orderSnapshot:'asc'}},{viewKey:'asc'}]});for(const r of requirements){const generation=r.decisionVersion+(previousSession||rework?1:0);if(previousSession||rework)await tx.taskEvidenceRequirement.update({where:{id:r.id},data:{decisionVersion:generation,...(reworkTargets.some(target=>target.requirementId===r.id)?{state:'MISSING' as const}:{})}});await allocate(tx,s.id,{requirementId:r.id},sequence++,generation,s.captureExpiresAt);}
+ const requirements=await tx.taskEvidenceRequirement.findMany({where:{item:{taskInstanceId:taskId},...(rework?previousSession&&sequentialCapture(previousSession.locationCheck)?{OR:[{id:{in:reworkTargets.map(r=>r.requirementId)},state:'CLEANING_REQUIRED' as const},{state:'MISSING' as const}],state:undefined}:{id:{in:reworkTargets.map(r=>r.requirementId)},state:'CLEANING_REQUIRED' as const}:{state:{notIn:[...terminal,'PROCESSING','CLEANING_REQUIRED','REVIEW_REQUIRED']}})},include:{item:true},orderBy:[{item:{orderSnapshot:'asc'}},{viewKey:'asc'}]});for(const r of requirements){
+ if(r.state==='RECAPTURE_REQUIRED'){
+  const failed=r.currentAttemptId?await tx.verificationAttempt.findUnique({where:{id:r.currentAttemptId},include:{session:true,slot:true}}):null;
+  assertFailedViewReplacement({task,session:s,staffId:actor.id,now,requirement:r,attempt:failed,expectedGeneration:r.decisionVersion});
+ }
+ const generation=r.decisionVersion+(previousSession||rework?1:0);if(previousSession||rework)await tx.taskEvidenceRequirement.update({where:{id:r.id},data:{decisionVersion:generation,...(reworkTargets.some(target=>target.requirementId===r.id)?{state:'MISSING' as const}:{})}});await allocate(tx,s.id,{requirementId:r.id},sequence++,generation,s.captureExpiresAt);}
  if(rework)await tx.auditLog.create({data:{companyId:actor.companyId,actorType:actor.role,actorId:actor.id,entityType:'TaskInstance',entityId:taskId,action:'DIRTY_REWORK_QR_AUTHORIZED',newValue:{sessionId:s.id,requirementIds:reworkTargets.map(r=>r.requirementId),assignmentEpoch:task.assignmentEpoch}}});
  await tx.taskInstance.update({where:{id:taskId},data:{verificationState:'CAPTURING',rowVersion:{increment:1}}});await tx.verificationRequest.create({data:{...key,bodyHash,resultEntityId:s.id}});return sessionResponse(tx,s.id);
  });}
@@ -88,8 +98,9 @@ export async function reserveAttempt(actor:VerificationActor,id:string,raw:unkno
  const slot=await tx.captureSlot.findFirst({where:{id:input.slotId,sessionId:id}});if(!slot||slot.contextKey&&!requiredContextKeys(s.locationCheck).includes(slot.contextKey as any))throw new ApiError(404,'Capture slot not found');if(slot.nonceHash!==hashNonce(input.nonce))throw new ApiError(422,'Invalid capture nonce');let staleContext=false;if(slot.contextKey){const latest=await tx.captureSlot.findFirst({where:{sessionId:id,contextKey:slot.contextKey},orderBy:{generation:'desc'}});staleContext=!!latest&&latest.generation!==slot.generation;if(manifest&&staleContext)throw fail(409,'STALE_GENERATION','Context generation changed');}if(slot.attemptId)throw new ApiError(409,'Capture slot already consumed');
  if(sequentialCapture(s.locationCheck)){
   if(!slot.activatedAt)throw fail(409,'PHOTO_STEP_NOT_ACTIVE','Open the current photo step before capturing.');
-  const earlier=await tx.captureSlot.findMany({where:{sessionId:id},include:{attempt:true}});
-  if(currentPhotoSlots(earlier.filter(slot=>!slot.contextKey||requiredContextKeys(s.locationCheck).includes(slot.contextKey as any))).some(prior=>prior.sequence<slot.sequence&&(!prior.attempt||!prior.attempt.receivedAt||!prior.attempt.mediaAssetId||!checkedAttempt(prior.attempt.state))))throw fail(409,'PREVIOUS_PHOTO_UNRESOLVED','Wait for the current photo check before taking the next.');
+  const earlier=await tx.captureSlot.findMany({where:{sessionId:id},include:{attempt:true,requirement:true}});
+  const waived=await authorizedWaiverReceipts(tx,actor,s.taskInstanceId,earlier.flatMap(slot=>slot.requirement?[slot.requirement]:[]));
+  if(currentPhotoSlots(earlier.filter(slot=>!slot.contextKey||requiredContextKeys(s.locationCheck).includes(slot.contextKey as any))).some(prior=>prior.sequence<slot.sequence&&!(prior.requirementId&&waived.has(prior.requirementId))&&(!prior.attempt||!prior.attempt.receivedAt||!prior.attempt.mediaAssetId||!checkedAttempt(prior.attempt.state))))throw fail(409,'PREVIOUS_PHOTO_UNRESOLVED','Wait for the current photo check before taking the next.');
   if(Date.parse(input.claimedCapturedAt)<+slot.activatedAt||Date.parse(input.claimedCapturedAt)>+slot.expiresAt)throw fail(410,'QR_RENEWAL_REQUIRED','Time expired. Scan the room QR again to continue this item.');
  }
  const capturedAt=new Date(input.claimedCapturedAt),validTiming=validateCaptureTiming({issuedAt:s.issuedAt,claimedCapturedAt:capturedAt,elapsedMs:input.elapsedMs,sessionBootId:s.clientBootId,captureBootId:input.bootId,receivedAt:now});if(manifest&&(s.state!=='ACTIVE'||now>s.captureExpiresAt))throw new ApiError(410,'Capture authority expired');if(capturedAt>slot.expiresAt||+s.issuedAt+input.elapsedMs>+slot.expiresAt)throw new ApiError(410,'Photo is outside the capture window');
@@ -116,12 +127,14 @@ export async function retakeSlots(actor:VerificationActor,id:string,raw:unknown)
  const count=await tx.captureSlot.count({where:{sessionId:id}});if(count+input.requirements.length+input.contexts.length>2402)throw fail(429,'SLOT_LIMIT','Capture slot limit reached');
  const result=[];
  for(const requested of input.requirements){
- const r=await tx.taskEvidenceRequirement.findFirst({where:{id:requested.requirementId,item:{taskInstanceId:s.taskInstanceId}}});if(!r)throw fail(404,'REQUIREMENT_NOT_FOUND','Requirement not found');
+ const r=await tx.taskEvidenceRequirement.findFirst({where:{id:requested.requirementId,item:{taskInstanceId:s.taskInstanceId}},include:{item:true}});if(!r)throw fail(404,'REQUIREMENT_NOT_FOUND','Requirement not found');
  if(r.state==='CLEANING_REQUIRED')throw fail(409,'REWORK_QR_REQUIRED','Clean this item, then scan the task QR again');
  // Repeating a successful allocation with its original generation returns the same slot.
  const prior=await tx.captureSlot.findFirst({where:{sessionId:id,requirementId:r.id,generation:requested.expectedGeneration+1},orderBy:{sequence:'desc'}});
- if(prior&&r.decisionVersion===requested.expectedGeneration+1){result.push(prior);continue;}
+ if(prior&&r.decisionVersion===requested.expectedGeneration+1&&!['PASSED','MANAGER_ACCEPTED','WAIVED'].includes(r.state)){result.push(prior);continue;}
  if(r.decisionVersion!==requested.expectedGeneration||!['RECAPTURE_REQUIRED','CLEANING_REQUIRED','REVIEW_REQUIRED'].includes(r.state))throw fail(409,'STALE_GENERATION','Requirement is not available for retake');
+ const failed=r.currentAttemptId?await tx.verificationAttempt.findUnique({where:{id:r.currentAttemptId},include:{session:true,slot:true}}):null;
+ assertFailedViewReplacement({task:s.task,session:s,staffId:actor.id,now:new Date(),requirement:r,attempt:failed,expectedGeneration:requested.expectedGeneration});
  await tx.taskEvidenceRequirement.update({where:{id:r.id},data:{decisionVersion:{increment:1},currentAttemptId:null,state:'MISSING'}});
  const original=sequentialCapture(s.locationCheck)?await tx.captureSlot.findFirst({where:{sessionId:id,requirementId:r.id},orderBy:{generation:'desc'}}):null;
  result.push(await allocate(tx,id,{requirementId:r.id},original?.sequence??count+result.length,r.decisionVersion+1,s.captureExpiresAt));
@@ -130,9 +143,10 @@ export async function retakeSlots(actor:VerificationActor,id:string,raw:unknown)
  if(!requiredContextKeys(s.locationCheck).includes(requested.contextKey))throw fail(404,'CONTEXT_NOT_FOUND','This photo is no longer required');
  const latest=await tx.captureSlot.findFirst({where:{sessionId:id,contextKey:requested.contextKey},orderBy:{generation:'desc'}});
  if(!latest)throw fail(404,'CONTEXT_NOT_FOUND','Context slot not found');
- if(latest.generation===requested.expectedGeneration+1){result.push(latest);continue;}
- const attempt=latest.attemptId?await tx.verificationAttempt.findUnique({where:{id:latest.attemptId}}):null;
- if(latest.generation!==requested.expectedGeneration||!attempt||!['RECAPTURE_REQUIRED','REVIEW_REQUIRED','PRIVACY_HOLD'].includes(attempt.state))throw fail(409,'STALE_GENERATION','Context is not available for retake');
+ if(latest.generation===requested.expectedGeneration+1){const saved=latest.attemptId?await tx.verificationAttempt.findUnique({where:{id:latest.attemptId}}):null;if(saved&&['PASSED','MANAGER_ACCEPTED','WAIVED'].includes(saved.state))throw fail(409,'REPLACEMENT_UNAVAILABLE','Successful context evidence cannot be replaced');result.push(latest);continue;}
+ const attempt=latest.attemptId?await tx.verificationAttempt.findUnique({where:{id:latest.attemptId},include:{session:true,slot:true}}):null;
+ if(latest.generation!==requested.expectedGeneration||!attempt||!['RECAPTURE_REQUIRED','PRIVACY_HOLD'].includes(attempt.state))throw fail(409,'STALE_GENERATION','Context is not available for retake');
+ assertFailedContextReplacement({task:s.task,session:s,staffId:actor.id,now:new Date(),contextKey:requested.contextKey,expectedGeneration:requested.expectedGeneration,attempt});
  result.push(await allocate(tx,id,{contextKey:requested.contextKey},sequentialCapture(s.locationCheck)?latest.sequence:count+result.length,latest.generation+1,s.captureExpiresAt));
  await tx.captureSession.update({where:{id},data:{contextStatus:'PENDING',rowVersion:{increment:1}}});
  }

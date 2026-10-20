@@ -1,10 +1,10 @@
 # Spec 20 — Photo receipt and replacement contract
 
-**Status:** Not started
+**Status:** Done
 **Depends on:** Spec 00
 **Model:** Heavy — `claude-opus-5-5` · `gpt-6-astra` · `gemini-3.1-pro-preview`
-**Issue:** —
-**Owns:** `backend/src/services/verification-v2/launchPhotoPolicy.ts`, `backend/src/services/verification-v2/launchPhotoPolicy.test.ts`, `specs/inventory/20-photo-submission-contract.md`
+**Issue:** #49
+**Owns:** `backend/src/services/verification-v2/launchPhotoPolicy.ts`, `backend/src/services/verification-v2/launchPhotoPolicy.test.ts`, `specs/inventory/20-photo-submission-contract.md`, `backend/src/services/verification-v2/staffSubmission.service.ts`, `backend/src/services/verification-v2/staffSubmission.service.test.ts`, `backend/src/services/verification-v2/captureSession.service.ts`, `backend/src/services/verification-v2/captureSession.security.test.ts`, `backend/src/services/verification-v2/sequentialCapture.service.ts`, `backend/tests/launchPhoto.integration.ts`, `docs/implementation/PHOTO_CONTRACT.md`
 **Reuses:** `backend/src/services/verification-v2/staffSubmission.service.ts`, `backend/src/services/verification-v2/sequentialPolicy.ts`
 
 ## Goal
@@ -37,8 +37,14 @@ Reconcile authorized legacy waiver receipt without allowing missing mandatory vi
 
 ## Done when
 
-- [ ] `npm test --prefix backend -- src/services/verification-v2/launchPhotoPolicy.test.ts` passes: Mixed waived/review-required submission allowed only when all remaining required receipts exist; stale/submitted success/cross-assignment replacement denied. [unit]
-- [ ] `npm test --prefix backend` passes the whole affected unit suite; record count. [unit]
-- [ ] Only scoped paths changed; relevant denial/empty/error/config-unavailable states inspected. [static]
-- [ ] `cd backend && npx tsc --noEmit` passes; no backend lint script exists. [static]
-- [ ] `npm run build --prefix backend` passes. [static]
+- [x] `npm test --prefix backend -- src/services/verification-v2/launchPhotoPolicy.test.ts` passes: Mixed waived/review-required submission allowed only when all remaining required receipts exist; stale/submitted success/cross-assignment replacement denied. [unit]
+- [x] `npm test --prefix backend` passes the whole affected unit suite; record count. [unit]
+- [x] Only scoped paths changed; relevant denial/empty/error/config-unavailable states inspected. [static]
+- [x] `cd backend && npx tsc --noEmit` passes; no backend lint script exists. [static]
+- [x] `npm run build --prefix backend` passes. [static]
+
+## Log
+
+- **2026-10-20** — Claimed49, branched from16/PR48 after verified1297-test checkpoint. Existing waiver, immutable attempt/generation, retake/rework and same-capture paths inspected. Expanded scoped ownership before wiring: submission receipts, capture/rework allocation and sequential activation; preserve manager retirement/current assignment/deadline checks.
+
+- **2026-10-20** — Completed41 policy tests plus wired submission/capture/sequential/controller regressions; whole backend1340 tests/89 files/zero skips with explicit isolated DATABASE_URL/LAUNCH_PERSISTENCE_TEST_DATABASE_URL. Backend TypeScript/build and strict standalone SQL-proof tsc pass. Real isolated PostgreSQL proof verifies new immutable failed-view slot generation, exact allocation retry, unchanged old attempt/slot, proven waiver + required review receipt submission without verification credit, and submitted/missing-view denial. Initial synthetic task fixture fixed to include existing snapshot fields; full-suite controller regression restored early MISSING_EVIDENCE guard. Log retains non-failing existing pg concurrent-query deprecation notice; no pg upgrade/migration performed. Logs `/tmp/hygene-spec20-tests.log`, `/tmp/hygene-spec20-build.log`, `/tmp/hygene-spec20-integration.log`. No real photo/provider/production mutation. Validator zero errors/four existing justified warnings. Issue https://github.com/Shumail-AbdulRehman/PRIV/issues/49; draft PR https://github.com/Shumail-AbdulRehman/PRIV/pull/50; implementation7414539. Continue21 without routine stop.

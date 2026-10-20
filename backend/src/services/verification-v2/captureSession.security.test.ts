@@ -8,7 +8,7 @@ const actor={role:'STAFF' as const,id:7,companyId:1};
 const sessionId='11111111-1111-4111-8111-111111111111',slotId='22222222-2222-4222-8222-222222222222';
 const input=()=>({deviceId:'phone',clientCaptureId:'33333333-3333-4333-8333-333333333333',slotId,nonce:'a'.repeat(40),sha256:'b'.repeat(64),claimedCapturedAt:new Date().toISOString(),elapsedMs:1000,bootId:'boot'});
 beforeEach(()=>{
- vi.resetAllMocks();const now=new Date();const task={assignmentEpoch:2,assignments:[{id:3,isCurrent:true}],shiftEnd:new Date(+now+60000)};
+ vi.resetAllMocks();const now=new Date();const task={id:9,status:'IN_PROGRESS',isActive:true,staffId:7,staffSubmittedAt:null,assignmentEpoch:2,assignments:[{id:3,isCurrent:true}],shiftEnd:new Date(+now+60000)};
  const session={id:sessionId,staffId:7,taskInstanceId:9,assignmentId:3,assignmentEpoch:2,qrVersion:1,deviceId:'phone',clientBootId:'boot',state:'ACTIVE',issuedAt:new Date(+now-1000),captureExpiresAt:new Date(+now+60000),uploadExpiresAt:new Date(+now+120000),task};
  m.access.mockResolvedValue(task);m.nonce.mockReturnValue('hash');
  m.tx={auditLog:{create:vi.fn()},area:{findUnique:vi.fn().mockResolvedValue({qrVersion:1}),findUniqueOrThrow:vi.fn().mockResolvedValue({qrVersion:1})},$queryRaw:vi.fn(),captureSession:{findMany:vi.fn().mockResolvedValue([]),findUnique:vi.fn().mockResolvedValue(session),update:vi.fn(),updateMany:vi.fn(),findUniqueOrThrow:vi.fn().mockResolvedValue({...session,slots:[],attempts:[]})},captureSlot:{findFirst:vi.fn().mockResolvedValue({id:slotId,nonceHash:'hash',contextKey:'ENTRANCE',expiresAt:session.captureExpiresAt,generation:0}),update:vi.fn(),count:vi.fn().mockResolvedValue(2),create:vi.fn().mockImplementation(({data}:any)=>data)},verificationAttempt:{findUnique:vi.fn().mockResolvedValue(null),count:vi.fn().mockResolvedValue(0),create:vi.fn().mockImplementation(({data}:any)=>({id:'attempt',...data}))}};
@@ -135,7 +135,7 @@ describe('capture authority',()=>{
   await expect(reserveAttempt(actor,sessionId,input(),false)).rejects.toThrow('scan the task QR again');
   expect(m.tx.verificationAttempt.create).not.toHaveBeenCalled();expect(m.tx.taskEvidenceRequirement.update).not.toHaveBeenCalled();
  });
- it('allocates failed context retakes',async()=>{m.tx.captureSlot.findFirst.mockResolvedValue({generation:0,attemptId:'old'});m.tx.verificationAttempt.findUnique.mockResolvedValue({state:'RECAPTURE_REQUIRED'});expect((await retakeSlots(actor,sessionId,{deviceId:'phone',contexts:[{contextKey:'ENTRANCE',expectedGeneration:0}]}))[0]).toMatchObject({contextKey:'ENTRANCE',generation:1});});
+ it('allocates failed context retakes',async()=>{m.tx.captureSlot.findFirst.mockResolvedValue({generation:0,attemptId:'old'});m.tx.verificationAttempt.findUnique.mockResolvedValue({id:'old',state:'RECAPTURE_REQUIRED',requirementId:null,contextKey:'ENTRANCE',receivedAt:new Date(),staffId:7,assignmentEpoch:2,slot:{generation:0},session:{taskInstanceId:9,staffId:7,assignmentEpoch:2,assignmentId:3,state:'ACTIVE'}});expect((await retakeSlots(actor,sessionId,{deviceId:'phone',contexts:[{contextKey:'ENTRANCE',expectedGeneration:0}]}))[0]).toMatchObject({contextKey:'ENTRANCE',generation:1});});
  it('preserves passed context',async()=>{m.tx.captureSlot.findFirst.mockResolvedValue({generation:0,attemptId:'old'});m.tx.verificationAttempt.findUnique.mockResolvedValue({state:'PASSED'});await expect(retakeSlots(actor,sessionId,{deviceId:'phone',contexts:[{contextKey:'ENTRANCE',expectedGeneration:0}]})).rejects.toThrow('not available');});
 });
 

@@ -13,6 +13,9 @@ Wire launch backend routes and policies in the existing application, with persis
 
 ## Scope
 
+Preserve20 policy wiring in `backend/src/services/verification-v2/staffSubmission.service.ts`, `backend/src/services/verification-v2/captureSession.service.ts` and `backend/src/services/verification-v2/sequentialCapture.service.ts` when integrating capture/account authorization; no receipt, waiver or failed-view generation bypass.
+
+
 Mount `backend/src/routes/ownerIdentity.route.ts` at `/api/owner-identity`; public POST capability/request endpoints remain outside operational entitlement gates. Replace ordinary owner status/email-request auth with explicit own-security adapter permitting active owners of inactive/suspended companies; preserve epoch/forced-password checks and operator denial. No GET token consumption; unknown credential errors stay sanitized.
 
 
