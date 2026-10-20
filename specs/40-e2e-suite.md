@@ -37,6 +37,8 @@ Photo authorization route: `backend/src/routes/attendancePhotos.route.ts` is mou
 
 Photo vocabulary integration: `frontend/src/i18n/attendancePhotoTranslations.ts` and `frontend/src/i18n/translations.ts` are consumed by every EN/UR protected-photo flow.
 
+Registration caller surfaces: `backend/src/controllers/manager.controller.ts` delegates signup; `frontend/src/pages/Signup/SignUpPage.tsx` handles account-created/session-failed outcome.
+
 ### Runtime coverage surfaces
 
 These owned surfaces are consumed by the flow table above or the clean verification gate; tests must exercise their actual caller integration.

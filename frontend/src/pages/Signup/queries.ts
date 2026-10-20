@@ -3,7 +3,7 @@ import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { useDispatch } from 'react-redux';
 import { useNavigate } from 'react-router-dom';
 
-import { setUser } from '@/store/slices/authSlice';
+import { setUser, clearUser } from '@/store/slices/authSlice';
 import type { AppDispatch } from '@/store/store';
 import { signUp } from './api';
 
@@ -22,6 +22,10 @@ export const useCreateManager = () => {
     mutationFn: signUp,
     onSuccess: (user) => {
       queryClient.clear();
+      if (user.sessionEstablished === false) {
+        dispatch(clearUser());
+        return;
+      }
       queryClient.setQueryData(["currentUser"], user);
       dispatch(setUser(user));
       navigate("/choose-plan", { replace: true });

@@ -17,7 +17,7 @@ Source of truth for execution; latest user authorization supersedes old pending 
 | 10 | [Additive launch lifecycle persistence](10-launch-persistence.md) | Not started | 00 | Heavy | — | See spec |
 | 11 | [Workforce transfer and offboarding API](11-workforce-lifecycle-api.md) | Not started | 10 | Heavy | — | See spec |
 | 12 | [Task generation and assignment reliability](12-task-readiness.md) | Not started | 00 | Standard | — | See spec |
-| 13 | [Atomic company registration](13-registration-atomicity.md) | Not started | 00 | Heavy | — | See spec |
+| 13 | [Atomic company registration](13-registration-atomicity.md) | Done | 00 | Heavy | #16 | 739 backend;57+18 web; see Log |
 | 14 | [Account access and capacity policy](14-entitlement-policy.md) | Not started | 10 | Heavy | — | See spec |
 | 15 | [Paddle lifecycle API and configuration](15-billing-lifecycle.md) | Not started | 14 | Heavy | — | See spec |
 | 16 | [Owner verification and recovery API](16-owner-identity-api.md) | Not started | 10, 13 | Heavy | — | See spec |
@@ -58,3 +58,4 @@ Source of truth for execution; latest user authorization supersedes old pending 
 - **2026-10-20** — Spec06 complete: 57 node +2 component tests, build/lint passed. Specs01–05 published as separate stacked draft PRs7–11; no merges/deployment. Next eligible local unit08 protected photo UI;07 controlled legacy migration independent.
 - **2026-10-20** — Spec08 complete: real protected attendance/staff photo UI;13 targeted/57+15 full web tests, build/lint pass; four EN/UR rendered fixtures checked. Seven execution units complete01–06,08. Next09 attendance writes;07 legacy transition remains independent.
 - **2026-10-20** — Spec09 complete:45 targeted/726 backend tests +build. Protected photo React draftPR15 published. Next13 atomic signup;07 isolated legacy transition still pending.
+- **2026-10-20** — Spec13 complete locally: atomic signup/session outcome +React caller;13 backend/3 hook tests;739 backend +57+18 web/builds pass. Next07 safe legacy media tooling, then additive lifecycle10 or task readiness12.

@@ -53,7 +53,12 @@ const SignUp = () => {
         </p>
       }
     >
-      <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
+      {createManager.isSuccess && createManager.data.sessionEstablished === false ? (
+        <div role="status" className="space-y-3">
+          <p>Account created. Sign in to continue.</p>
+          <Button asChild><Link to="/login">Sign in</Link></Button>
+        </div>
+      ) : <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
         <div>
           <label
             htmlFor="name"
@@ -184,7 +189,7 @@ const SignUp = () => {
             ? "Creating..."
             : "Create account & choose plan"}
         </Button>
-      </form>
+      </form>}
     </AuthShell>
   );
 };
