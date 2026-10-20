@@ -1,9 +1,9 @@
 # Spec 06 — Web component test harness
 
-**Status:** Not started
+**Status:** Done
 **Depends on:** Spec 00
 **Model:** Standard — `claude-sonnet-5-5` · `gpt-6.1-sol` · `gemini-3.8-flash`
-**Issue:** —
+**Issue:** #6
 **Owns:** `frontend/vitest.config.ts`, `frontend/src/test/setup.ts`, `frontend/src/test/harness.test.tsx`, `frontend/package.json`, `frontend/package-lock.json`, `specs/inventory/06-web-unit-harness.md`
 **Reuses:** `frontend/src/components/ui/button.tsx`
 
@@ -37,8 +37,13 @@ Add only Vitest/jsdom/Testing Library needed to prove React behavior while prese
 
 ## Done when
 
-- [ ] `npm run test:components --prefix frontend -- src/test/harness.test.tsx` passes: Existing node tests and new component harness both run; accessible button behavior passes. [unit]
-- [ ] `npm test --prefix frontend` passes the whole affected unit suite; record count. [unit]
-- [ ] Only scoped paths changed; relevant denial/empty/error/config-unavailable states inspected. [static]
-- [ ] `npm run lint --prefix frontend` reports zero errors/warnings in changed files; document baseline separately. [static]
-- [ ] `npm run build --prefix frontend` passes. [static]
+- [x] `npm run test:components --prefix frontend -- src/test/harness.test.tsx` passes: Existing node tests and new component harness both run; accessible button behavior passes. [unit]
+- [x] `npm test --prefix frontend` passes the whole affected unit suite; record count. [unit]
+- [x] Only scoped paths changed; relevant denial/empty/error/config-unavailable states inspected. [static]
+- [x] `npm run lint --prefix frontend` reports zero errors/warnings in changed files; document baseline separately. [static]
+- [x] `npm run build --prefix frontend` passes. [static]
+
+## Log
+
+- **2026-10-20** — Claimed https://github.com/Shumail-AbdulRehman/PRIV/issues/6. Existing node tests preserved; install only required component runner/DOM/assertion packages.
+- **2026-10-20** — Added Vitest/jsdom/Testing Library + jest-dom only; retained node runner under test:unit, full test runs both. 57 existing pure tests + 2 real Button role/focus/disabled component tests pass; TypeScript/Vite build and touched-file ESLint (zero warnings) pass. Initial checks ran before dependency install finished and reported missing packages; rerun after completed install passed. npm audit reports 33 advisories including existing direct axios/router/vite/shadcn; saved bounded evidence for release security remediation, no force upgrade used.
