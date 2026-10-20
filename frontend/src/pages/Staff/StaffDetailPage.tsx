@@ -1,3 +1,4 @@
+import ProtectedAttendancePhoto, { type AttendancePhoto } from "@/components/common/ProtectedAttendancePhoto";
 import StaffPerformanceIssues from './StaffPerformanceIssues';
 import OperationsState from "../Manager/OperationsState";
 import { Link } from "react-router-dom";
@@ -78,6 +79,8 @@ interface StaffAttendanceRow {
   lateMinutes: number | null;
   checkInImage?: string | null;
   checkOutImage?: string | null;
+  checkInPhoto?: AttendancePhoto;
+  checkOutPhoto?: AttendancePhoto;
 }
 
 interface StaffTaskTemplateRow {
@@ -400,42 +403,12 @@ const StaffDetailPage: React.FC = () => {
       {
         key: "checkInImg",
         header: "Check-In Photo",
-        render: (attendance) =>
-          attendance.checkInImage ? (
-            <a
-              href={attendance.checkInImage}
-              target="_blank"
-              rel="noopener noreferrer"
-            >
-              <img
-                src={attendance.checkInImage}
-                alt="Check-in"
-                className="h-9 w-9 rounded-md object-cover border border-gray-200 hover:ring-2 hover:ring-blue-400 transition-all cursor-pointer"
-              />
-            </a>
-          ) : (
-            <span className="text-xs text-muted-foreground">—</span>
-          ),
+        render: (attendance) => <ProtectedAttendancePhoto attendanceId={attendance.id} kind="check-in" photo={attendance.checkInPhoto} />,
       },
       {
         key: "checkOutImg",
         header: "Check-Out Photo",
-        render: (attendance) =>
-          attendance.checkOutImage ? (
-            <a
-              href={attendance.checkOutImage}
-              target="_blank"
-              rel="noopener noreferrer"
-            >
-              <img
-                src={attendance.checkOutImage}
-                alt="Check-out"
-                className="h-9 w-9 rounded-md object-cover border border-gray-200 hover:ring-2 hover:ring-blue-400 transition-all cursor-pointer"
-              />
-            </a>
-          ) : (
-            <span className="text-xs text-muted-foreground">—</span>
-          ),
+        render: (attendance) => <ProtectedAttendancePhoto attendanceId={attendance.id} kind="check-out" photo={attendance.checkOutPhoto} />,
       },
     ],
     [],
