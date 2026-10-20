@@ -13,6 +13,9 @@ Wire launch backend routes and policies in the existing application, with persis
 
 ## Scope
 
+Mount `backend/src/routes/ownerIdentity.route.ts` at `/api/owner-identity`; public POST capability/request endpoints remain outside operational entitlement gates. Replace ordinary owner status/email-request auth with explicit own-security adapter permitting active owners of inactive/suspended companies; preserve epoch/forced-password checks and operator denial. No GET token consumption; unknown credential errors stay sanitized.
+
+
 Mount `backend/src/routes/platformSupport.route.ts` default router at `/api/platform/service` outside tenant auth; mount its named customerSupportRouter at `/api/support` for public configuration-only contact availability. Never expose inquiry/audit/diagnostics through the public contact router.
 
 

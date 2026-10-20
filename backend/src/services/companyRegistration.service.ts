@@ -1,6 +1,8 @@
 import { prisma } from "../prisma/prisma.js";
 import { managerSignupSchema } from "../validations/manager.validation.js";
 import { ApiError } from "../utils/ApiError.js";
+import { createHash } from "node:crypto";
+import { writeAuditLog } from "./auditLog.service.js";
 
 export const companyRegistrationSchema = managerSignupSchema.extend({
   companyName: managerSignupSchema.shape.companyName.trim().min(2).max(160),
@@ -21,10 +23,16 @@ export async function registerCompany(input: unknown, db: RegistrationDb = prism
       const company = await tx.company.create({ data: { name: companyName }, select: { id: true } });
       // The existing extended Prisma client hashes manager.create passwords,
       // including its transaction client. Do not hash again before this call.
-      return tx.manager.create({
+      const created = await tx.manager.create({
         data: { name, email, password, companyId: company.id, role: "ADMIN" },
         select: { id: true, name: true, email: true, role: true, companyId: true },
       });
+      // New registrations may prove their supplied email. This grants no verified
+      // state; pre-existing unverified accounts require a qualified bootstrap.
+      await writeAuditLog({ companyId: company.id, actorType: "ADMIN", actorId: created.id,
+        entityType: "MANAGER", entityId: created.id, action: "OWNER_EMAIL_ENROLLMENT_ALLOWED",
+        newValue: { emailHash: createHash("sha256").update(created.email).digest("hex"), source: "REGISTRATION" } }, tx);
+      return created;
     });
     if (owner.role !== "ADMIN") throw new ApiError(500, "Account creation could not be confirmed");
     return { id: owner.id, name: owner.name, email: owner.email, role: "ADMIN", companyId: owner.companyId };

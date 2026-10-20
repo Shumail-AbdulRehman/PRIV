@@ -1,6 +1,6 @@
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import type { Request, Response } from "express";
-const mock = vi.hoisted(() => ({ transaction: vi.fn(), company: vi.fn(), owner: vi.fn(), session: vi.fn(), access: vi.fn(), refresh: vi.fn() }));
+const mock = vi.hoisted(() => ({ transaction: vi.fn(), company: vi.fn(), owner: vi.fn(), session: vi.fn(), access: vi.fn(), refresh: vi.fn(), audit: vi.fn() }));
 vi.mock("../prisma/prisma.js", () => ({ prisma: { $transaction: mock.transaction, manager: { updateMany: mock.session } } }));
 vi.mock("../utils/auth.js", () => ({ generateAccessToken: mock.access, generateRefreshToken: mock.refresh }));
 import { companyRegistrationSchema, registerCompany } from "./companyRegistration.service.js";
@@ -9,7 +9,7 @@ const input = () => ({ companyName: "Test cleaning", name: "Test owner", email: 
 const owner = { id: 2, name: "Test owner", email: "owner@example.invalid", role: "ADMIN", companyId: 3 };
 beforeEach(() => {
   vi.resetAllMocks(); mock.company.mockResolvedValue({ id: 3 }); mock.owner.mockResolvedValue(owner);
-  mock.transaction.mockImplementation(async work => work({ company: { create: mock.company }, manager: { create: mock.owner } }));
+  mock.transaction.mockImplementation(async work => work({ company: { create: mock.company }, manager: { create: mock.owner }, auditLog: { create: mock.audit } }));
   mock.session.mockResolvedValue({ count: 1 }); mock.access.mockReturnValue("test-access"); mock.refresh.mockReturnValue("test-refresh");
 });
 function response() { const res = { status: vi.fn(), cookie: vi.fn(), json: vi.fn() }; res.status.mockReturnValue(res); res.cookie.mockReturnValue(res); return res; }
@@ -19,7 +19,13 @@ describe("company registration", () => {
     expect(mock.transaction).toHaveBeenCalledTimes(1);
     expect(mock.company).toHaveBeenCalledWith({ data: { name: "Test cleaning" }, select: { id: true } });
     expect(mock.owner).toHaveBeenCalledWith({ data: { name: "Test owner", email: "owner@example.invalid", password: "test-password", companyId: 3, role: "ADMIN" }, select: { id: true, name: true, email: true, role: true, companyId: true } });
+    expect(mock.audit).toHaveBeenCalledWith(expect.objectContaining({ data: expect.objectContaining({ action: "OWNER_EMAIL_ENROLLMENT_ALLOWED", actorId: owner.id, newValue: { emailHash: expect.stringMatching(/^[a-f0-9]{64}$/), source: "REGISTRATION" } }) }));
     expect(result).toEqual(owner); expect(result).not.toHaveProperty("password");
+  });
+  it("does not publish a signup/session when enrollment audit fails inside its transaction", async () => {
+    mock.audit.mockRejectedValueOnce(new Error("synthetic enrollment audit failure"));
+    await expect(registerCompany(input())).rejects.toThrow("synthetic enrollment audit failure");
+    expect(mock.session).not.toHaveBeenCalled();
   });
   it("rolls back a newly created company if owner insert fails", async () => {
     const persisted: object[] = [];
