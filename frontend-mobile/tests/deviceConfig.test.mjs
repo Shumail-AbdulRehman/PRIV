@@ -1,5 +1,6 @@
 import assert from 'node:assert/strict';
 import test from 'node:test';
+import { createRequire } from 'node:module';
 import { validateDeviceApiUrl } from '../scripts/validate-device-config.mjs';
 
 test('physical-device build refuses absent, relative, loopback, emulator and credential-bearing API URLs', () => {
@@ -10,4 +11,16 @@ test('physical-device build refuses absent, relative, loopback, emulator and cre
   }
   assert.equal(validateDeviceApiUrl('http://192.168.100.198:8080/api/'), 'http://192.168.100.198:8080/api');
   assert.equal(validateDeviceApiUrl('https://test.example.com'), 'https://test.example.com/api');
+});
+
+
+test('dynamic Expo configuration preserves the supplied static configuration', () => {
+  const configure = createRequire(import.meta.url)('../app.config.js');
+  const config = { name: 'Test name', version: '9.8.7', android: { versionCode: 321, package: 'test.synthetic' } };
+  const result = configure({ config });
+  assert.equal(result.name, config.name);
+  assert.equal(result.version, config.version);
+  assert.equal(result.android.versionCode, config.android.versionCode);
+  assert.equal(result.android.package, config.android.package);
+  assert.deepEqual(config.android, { versionCode: 321, package: 'test.synthetic' });
 });
