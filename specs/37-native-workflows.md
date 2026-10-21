@@ -1,11 +1,11 @@
 # Spec 37 — Native attendance/photo/account recovery
 
-**Status:** Not started
-**Depends on:** Spec 09, Spec 17, Spec 20, Spec 21
+**Status:** In progress
+**Depends on:** Spec 09, Spec 17, Spec 20, Spec 21, Spec 26
 **Model:** Standard — `claude-sonnet-5-5` · `gpt-6.1-sol` · `gemini-3.8-flash`
-**Issue:** —
-**Owns:** `frontend-mobile/src/launch/LaunchRecovery.tsx`, `frontend-mobile/src/launch/LaunchRecovery.test.ts`, `frontend-mobile/src/launch/launchApi.ts`, `specs/inventory/37-native-workflows.md`
-**Reuses:** `frontend-mobile/src/components/AttendanceCamera.tsx`, `frontend-mobile/src/types.ts`, `DESIGN-SYSTEM.md#component-conventions`, `design/v5/mobile.html`
+**Issue:** #60
+**Owns:** `frontend-mobile/src/launch/LaunchRecovery.tsx`, `frontend-mobile/src/launch/LaunchRecovery.test.ts`, `frontend-mobile/src/launch/launchApi.ts`, `frontend-mobile/src/launch/recoveryPolicy.ts`, `frontend-mobile/src/launch/launchTranslations.ts`, `frontend-mobile/tests/launchRecovery.test.mjs`, `frontend-mobile/tests/verificationLifecycle.test.mjs`, `frontend-mobile/src/auth/AuthContext.tsx`, `frontend-mobile/src/api/client.ts`, `frontend-mobile/src/api/client.test.ts`, `frontend-mobile/tests/credentialRecovery.test.mjs`, `frontend-mobile/tests/attendanceRecovery.test.mjs`, `frontend-mobile/src/navigation/AppNavigator.tsx`, `frontend-mobile/src/screens/LoginScreen.tsx`, `frontend-mobile/src/screens/HomeScreen.tsx`, `frontend-mobile/src/screens/HelpScreen.tsx`, `frontend-mobile/src/screens/verification/VerificationScreen.tsx`, `frontend-mobile/src/verification/types.ts`, `frontend-mobile/src/notifications/NotificationProvider.tsx`, `frontend-mobile/src/notifications/NotificationNavigation.tsx`, `frontend-mobile/src/types.ts`, `frontend-mobile/src/i18n/translations.ts`, `docs/implementation/NATIVE_RECOVERY.md`, `specs/inventory/37-native-workflows.md`
+**Reuses:** `frontend-mobile/src/components/AttendanceCamera.tsx`, `frontend-mobile/src/notifications/NotificationProvider.tsx`, `frontend-mobile/src/notifications/NotificationNavigation.tsx`, `frontend-mobile/src/types.ts`, `DESIGN-SYSTEM.md#component-conventions`, `design/v5/mobile.html`
 
 ## Goal
 
@@ -37,8 +37,14 @@ Integrate approved v5 native states into existing actual screens: role-correct s
 
 ## Done when
 
-- [ ] `npm test --prefix frontend-mobile` passes: Offline/lost response never duplicates completed capture; receipt persists; permission retry and expired authority distinct; EN/UR/large text supported. [unit]
-- [ ] `npm test --prefix frontend-mobile` passes the whole affected unit suite; record count. [unit]
+- [x] `npm test --prefix frontend-mobile` passes: Offline/lost response never duplicates completed capture; receipt persists; permission retry and expired authority distinct; EN/UR/large text supported. [unit]
+- [x] `npm test --prefix frontend-mobile` passes the whole affected unit suite; record count. [unit]
 - [ ] Only scoped paths changed; relevant denial/empty/error/config-unavailable states inspected. [static]
-- [ ] `npm run typecheck --prefix frontend-mobile` passes. [static]
-- [ ] `npm run build:web --prefix frontend-mobile` passes; native release separately gated. [static]
+- [x] `npm run typecheck --prefix frontend-mobile` passes. [static]
+- [x] `npm run build:web --prefix frontend-mobile` passes; native release separately gated. [static]
+
+## Log
+
+- **2026-10-21** — Claimed issue60 in isolated worktree based on Spec28/PR56. Consume26 real manifest permissions and forced-password denial; amend existing native screen/auth/client ownership before integration. No backend, provider, schema, new dependency or production change.
+
+- **2026-10-21** — Implemented actual staff login/handoff/self replacement with retained mandatory-change gate; exact persisted attendance/lost-response reads and checkout ID; server photo qualification/authority before permission/capture/upload, retained same-capture result/manual retry and immutable submission receipt; settings/push help with EN/UR.101 mobile tests/zero skips, TypeScript and Expo web export pass. Existing72 baseline plus29 cases at policy, form, AuthProvider, Home and Verification seams. No dependency/backend/database/provider change. No adb/emulator/device available; native runtime/font scale/permission/push/Android qualification remains39/40, explicitly not proven by web export or component trees. Docs NATIVE_RECOVERY.md and inventory37 contain proof/limits. Await independent finish source/component review and lead integration before Done; no push/PR from parallel worker.

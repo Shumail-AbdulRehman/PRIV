@@ -27,7 +27,7 @@ const Context = createContext({
 });
 export const useNotifications = () => useContext(Context);
 export function NotificationProvider({ children }: { children: ReactNode }) {
-  const { user, isBootstrapping } = useAuth(),
+  const { user, isBootstrapping, passwordChangeRequired } = useAuth(),
     { language } = useLanguage(),
     cache = useQueryClient();
   const [pending, setPending] = useState<NotificationTarget | null>(null);
@@ -39,7 +39,7 @@ export function NotificationProvider({ children }: { children: ReactNode }) {
   );
   const register = useCallback(
     async (request = false) => {
-      if (!scope || isBootstrapping) return;
+      if (!scope || isBootstrapping || passwordChangeRequired) return;
       if (registration.current?.scope === scope)
         return registration.current.promise;
       const operation = (async () => {
@@ -53,7 +53,7 @@ export function NotificationProvider({ children }: { children: ReactNode }) {
           registration.current = null;
       }
     },
-    [scope, language, isBootstrapping],
+    [scope, language, isBootstrapping, passwordChangeRequired],
   );
   useEffect(() => {
     void register(true);

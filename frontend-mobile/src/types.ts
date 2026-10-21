@@ -31,6 +31,7 @@ export type AuthTokens = {
 };
 
 export type AuthSession = AuthTokens & {
+  passwordChangeRequired?: boolean;
   user: StaffUser | null;
 };
 
