@@ -1,0 +1,7 @@
+.launch-review-context { margin-block: 16px; }
+.launch-review-context h2 { font-size: 19px; font-weight: 650; }
+.launch-review-facts { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 24px; margin-block: 16px; }
+.launch-review-facts dt { font-size: 14px; color: var(--muted-foreground); }
+.launch-review-facts dd { margin-block-start: 6px; overflow-wrap: anywhere; }
+@media (max-width: 900px) { .launch-review-facts { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
+@media (max-width: 620px) { .launch-review-facts { grid-template-columns: minmax(0, 1fr); gap: 16px; } }

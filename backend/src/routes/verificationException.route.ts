@@ -1,3 +1,4 @@
+import { reviewReplacementContext } from '../services/verification-v2/launchReviewContext.js';
 import { accountAccess } from '../middlewares/accountAccess.middleware.js';
 import {closeReview, reviewClosureActions} from '../services/verification-v2/reviewClosure.service.js';
 import { reviewEvidenceSummary } from '../services/verification-v2/reviewEvidenceSummary.js';
@@ -318,6 +319,7 @@ router.get("/verification-exceptions/:id", async (req, res) => {
               startedAt: true,
               staffSubmittedAt: true,
               assignmentEpoch: true,
+              staffId: true,
               shiftStart: true,
               areaId: true,
               policySnapshot: true,
@@ -443,8 +445,9 @@ router.get("/verification-exceptions/:id", async (req, res) => {
       },
       session: { taskInstanceId: c.taskInstanceId ?? -1 },
     },
-    include: { media: { select: { privacyState: true } } },
+    include: { media: { select: { privacyState: true } }, slot: { select: { generation: true } }, session: {select:{id:true,taskInstanceId:true,staffId:true,assignmentId:true,assignmentEpoch:true,captureExpiresAt:true,uploadExpiresAt:true,state:true}} },
   });
+  const currentAssignment = task?.staffId ? await prisma.taskAssignment.findFirst({where:{taskInstanceId:task.id,staffId:task.staffId,isCurrent:true},select:{id:true}}) : null;
   const serverTime = new Date();
   const captureAvailable =
     mutable &&
@@ -586,6 +589,11 @@ router.get("/verification-exceptions/:id", async (req, res) => {
           );
           return {
             ...r,
+            replacement: reviewReplacementContext(task && task.staffId && currentAttempt ? {
+              task, staffId: task.staffId, now: serverTime, session: currentAttempt.session,
+              requirement: {...r, item: {mandatory:item.mandatory}}, attempt: currentAttempt,
+              expectedGeneration: r.decisionVersion, cleaning: r.state === "CLEANING_REQUIRED",
+            } : null, item.typeSnapshot, currentAssignment?.id ?? null),
             currentAttempt: currentAttempt
               ? {
                   id: currentAttempt.id,
