@@ -55,20 +55,17 @@ jobs:
       - name: Build backend
         run: npm run build
 
-      - name: Isolated database evidence lifecycle
-        run: npm run test:verification:lifecycle
-
       - name: Manager operations contracts and pagination
         run: npm run test:manager:integration
 
-      - name: Deferred photo storage and staff feedback
-        run: npm run test:verification:buffered
+      - name: Active direct-photo, review and qualification regressions
+        run: npx vitest run src/services/verification-v2/directPhoto.service.test.ts src/services/verification-v2/launchQualification.test.ts src/services/verification-v2/reviewClosure.service.test.ts src/services/verification-v2/launchPhotoPolicy.test.ts src/services/verification-v2/launchReviewContext.test.ts
 
-      - name: Photo upload HTTP workflow
-        run: npm run test:verification:photo-http
-
-      - name: Preserve evaluator gate
-        run: npm run verification:benchmark
+      - name: Current isolated launch contracts
+        env:
+          NODE_ENV: test
+          LAUNCH_CI_DATABASE_URL: postgresql://verification:verification-test-only@127.0.0.1:5432/priv_verification_test
+        run: node --import tsx scripts/launchCiDatabase.ts
 
   frontend:
     runs-on: ubuntu-latest
@@ -89,7 +86,7 @@ jobs:
       - name: Install dependencies
         run: npm ci
 
-      - name: Test onboarding rules
+      - name: Full web component and policy regressions
         run: npm test
 
       - name: Lint frontend
@@ -119,6 +116,9 @@ jobs:
 
       - name: Mobile queue, force-kill and auth reliability tests
         run: npm test
+
+      - name: Device API URL safety regressions
+        run: node --test tests/deviceConfig.test.mjs
 
       - name: Type-check mobile app
         run: npm run typecheck

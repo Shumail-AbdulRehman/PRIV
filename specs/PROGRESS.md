@@ -45,7 +45,7 @@ Source of truth for execution; latest user authorization supersedes old pending 
 | 36 | [Truthful task and photo review UX](36-photo-review-ui.md) | Done | 20, 21, 27 | Standard | #66 | PR67;22focused;17new backend; see Log |
 | 37 | [Native attendance/photo/account recovery](37-native-workflows.md) | Done | 09, 17, 20, 21, 26 | Standard | #60 |101native/tsc/Expoexport; deviceunverified |
 | 38 | [Configured support and service information](38-service-information.md) | Done | 27, 25 | Standard | #75 |16help+24billing;57+215web;109backend |
-| 39 | [Launch operations and active CI proof](39-release-operations.md) | Not started | 03, 26 | Heavy | — | See spec |
+| 39 | [Launch operations and active CI proof](39-release-operations.md) | In progress | 03, 26 | Heavy | #77 | See spec |
 | 40 | [Launch end-to-end suite](40-e2e-suite.md) | Not started | 01, 02, 03, 04, 05, 08, 07, 06, 09, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23, 24, 25, 26, 27, 28, 29, 30, 31, 32, 33, 34, 35, 36, 37, 38, 39 | Heavy | — | See spec |
 | 41 | [Final clean verification pass](41-verification-pass.md) | Not started | 40 | Heavy | — | See spec |
 

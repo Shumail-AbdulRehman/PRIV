@@ -1,10 +1,10 @@
 # Spec 39 — Launch operations and active CI proof
 
-**Status:** Not started
+**Status:** In progress
 **Depends on:** Spec 03, Spec 26
 **Model:** Heavy — `claude-opus-5-5` · `gpt-6-astra` · `gemini-3.1-pro-preview`
-**Issue:** —
-**Owns:** `.github/workflows/ci.yml`, `docs/implementation/RELEASE_RUNBOOK.md`, `backend/src/services/releaseReadiness.test.ts`, `specs/inventory/39-release-operations.md`
+**Issue:** #77
+**Owns:** `backend/src/services/releaseReadiness.ts`, `backend/scripts/launchCiDatabase.ts`, `docs/implementation/followups/BOUNDED_LISTS_SPEC.md`, `.github/workflows/ci.yml`, `docs/implementation/RELEASE_RUNBOOK.md`, `backend/src/services/releaseReadiness.test.ts`, `specs/inventory/39-release-operations.md`
 **Reuses:** `frontend-mobile/scripts/validate-device-config.mjs`, `backend/src/services/verification-v2/readiness.service.ts`
 
 ## Goal
