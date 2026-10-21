@@ -2,7 +2,7 @@
 
 Source of truth for execution; latest user authorization supersedes old pending labels. Approved v5 preserved.
 
-**Active continuation after spec26:** decision00 and27 of41 execution/gate units Done (14 remain). Execution01–27 are complete; next selected eligible unit28 consumes completed12/27. User requests continued completion without routine handoff stops. Review remains stacked draft PRs; Done is local verification, not merge, route composition or external release qualification.
+**Active continuation after spec28:** decision00 and28 of41 execution/gate units Done (13 remain). Execution01–28 are complete; next selected eligible unit29 consumes completed23/27/08. User requests continued completion without routine handoff stops. Review remains stacked draft PRs; Done is local verification, not merge or external release qualification.
 
 | # | Spec | Status | Depends on | Model | Issue | Notes |
 |---|---|---|---|---|---|---|
@@ -34,11 +34,11 @@ Source of truth for execution; latest user authorization supersedes old pending 
 | 25 | [Redacted diagnostics and inquiry operations](25-platform-support-api.md) | Done | 19, 24 | Standard | #45 | 66 focused/1236 backend+isolated PG; see Log |
 | 26 | [Wire launch backend routes and policies](26-launch-api-composition.md) | Done | 07, 11, 12, 14, 15, 16, 17, 18, 20, 21, 22, 23, 24, 25 | Heavy | #53 | 215 focused/1413 backend + SQL; see Log |
 | 27 | [Approved v5 shared shell and route composition](27-workspace-shell.md) | Done | 06 | Heavy | #35 | 57+40 tests/build/lint; see Log |
-| 28 | [Real derived setup and operational dashboard](28-setup-ui.md) | Not started | 12, 27 | Standard | — | See spec |
+| 28 | [Real derived setup and operational dashboard](28-setup-ui.md) | Done | 12, 14, 15, 27 | Standard | #55 | 16 focused/57+56 web;1416 backend; see Log |
 | 29 | [Attendance exception context UI](29-attendance-context-ui.md) | Not started | 23, 27, 08 | Standard | — | See spec |
 | 30 | [Account settings and recovery UI](30-account-ui.md) | Not started | 16, 17, 22, 27 | Standard | — | See spec |
 | 31 | [Workforce access and transfer UI](31-workforce-ui.md) | Not started | 11, 17, 27 | Standard | — | See spec |
-| 32 | [Real subscription lifecycle UI](32-billing-ui.md) | Not started | 15, 27 | Standard | — | See spec |
+| 32 | [Real subscription lifecycle UI](32-billing-ui.md) | Not started | 15, 27, 28 | Standard | — | Shared lifecycle client from28 |
 | 33 | [Platform company workspace](33-platform-company-ui.md) | Not started | 24, 27 | Standard | — | See spec |
 | 34 | [Platform sign-in and security workspace](34-platform-security-ui.md) | Not started | 19, 27 | Heavy | — | See spec |
 | 35 | [Platform service audit and leads UI](35-platform-service-ui.md) | Not started | 25, 27 | Standard | — | See spec |
@@ -95,3 +95,5 @@ Source of truth for execution; latest user authorization supersedes old pending 
 - **2026-10-20** — Spec21 safe-disabled implementation complete:44 focused/1360 whole backend tests (90 files, zero skips), tsc/build pass. Active categorical adapter has no privacy/identity screening; new direct/buffered processing now503 before AI/storage while reconciliation/retry preserved. No synthetic qualification or invented privacy policy. Actual empirical consented data/privacy qualification remains release gate39/40.26 of41 units Done;15 remain; next26 now eligible. Continue without routine stop.
 
 - **2026-10-21** — Spec26 complete:215 focused/1413 whole backend tests (92 files, zero skips), TypeScript/build and isolated actual controller/grant/expiry/capacity/audit rollback proof pass;20 SQL receipt/replacement regression passes. Explicit audiences mounted; suspended operations denied while active own security and owner billing retained. New work/capacity/jobs gated; exact saved grants permit prior-start completion only.21 safe-disabled availability reflected truthfully. Original dirty work preserved.27 of41 execution/gates Done (01–27),14 remain. Next28; continue automatically without routine stop. Real provider/privacy/device/release gates remain external.
+
+- **2026-10-21** — Spec28 verified: persisted per-site setup with actual access/lifecycle metadata and existing form deep links.16 focused,57 Node+56 component web,1416 backend/zero skips; tsc/lint/build pass. Independent review fix resolved, design documentation comparison retained incumbent.13 remain; continue29.

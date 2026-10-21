@@ -16,7 +16,7 @@ import AttentionList from "@/components/common/AttentionList";
 import WorkProgress from "@/components/common/WorkProgress";
 import OperationStatus from "@/components/common/OperationStatus";
 import TaskWorker from "@/components/common/TaskWorker";
-import { CalendarDays, Search } from "lucide-react";
+import { Search } from "lucide-react";
 import {
   useOperations,
   scopeParams,
@@ -198,10 +198,6 @@ export default function TodayStatusPage() {
     <div className="ops-page daily-work-page">
       <header className="ops-header">
         <div>
-          <span className="ops-eyebrow">
-            <CalendarDays size={13} />
-            {t("Daily operations")}
-          </span>
           <h1>
             {t(
               params.get("date") && params.get("date") !== "today"
@@ -210,6 +206,8 @@ export default function TodayStatusPage() {
             )}
           </h1>
           <p>{t("Your team and cleaning work. Times follow each location.")}</p>
+          <p>{t('Daily schedules include every day, including weekends. Dates and times follow each location’s timezone.')}</p>
+          <Link to="/setup">{t('Review location setup')}</Link>
         </div>
         <ScopeFilters locations={data?.locations ?? []} />
       </header>

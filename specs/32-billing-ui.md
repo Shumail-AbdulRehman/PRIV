@@ -1,11 +1,11 @@
 # Spec 32 — Real subscription lifecycle UI
 
 **Status:** Not started
-**Depends on:** Spec 15, Spec 27
+**Depends on:** Spec 15, Spec 27, Spec 28
 **Model:** Standard — `claude-sonnet-5-5` · `gpt-6.1-sol` · `gemini-3.8-flash`
 **Issue:** —
-**Owns:** `frontend/src/pages/Subscription/SubscriptionPage.tsx`, `frontend/src/pages/Subscription/SubscriptionPage.test.tsx`, `frontend/src/pages/Subscription/api.ts`, `frontend/src/pages/Subscription/queries.ts`, `specs/inventory/32-billing-ui.md`
-**Reuses:** `frontend/src/lib/paddle.ts`, `frontend/src/pages/Pricing/PaddlePricing.tsx`, `DESIGN-SYSTEM.md#component-conventions`, `design/v5/billing.html`
+**Owns:** `frontend/src/pages/Subscription/SubscriptionPage.tsx`, `frontend/src/pages/Subscription/SubscriptionPage.test.tsx`, `frontend/src/pages/Subscription/queries.ts`, `specs/inventory/32-billing-ui.md`
+**Reuses:** `frontend/src/pages/Subscription/api.ts`, `frontend/src/pages/Subscription/types.ts`, `frontend/src/lib/paddle.ts`, `frontend/src/pages/Pricing/PaddlePricing.tsx`, `DESIGN-SYSTEM.md#component-conventions`, `design/v5/billing.html`
 
 ## Goal
 
@@ -42,3 +42,5 @@ Display real capacity/provider period/status/activation/sync and restricted-acco
 - [ ] Only scoped paths changed; relevant denial/empty/error/config-unavailable states inspected. [static]
 - [ ] `npm run lint --prefix frontend` reports zero errors/warnings in changed files; document baseline separately. [static]
 - [ ] `npm run build --prefix frontend` passes. [static]
+
+- **2026-10-21** — Serialized setup integration ownership transferred to28 for existing route/nav/translation/form/readiness/API seams. Preserve previous behavior; subsequent feature edits must amend ownership again.

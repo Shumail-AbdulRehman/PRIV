@@ -2,7 +2,7 @@ import DataTable from "@/components/common/DataTable";
 import { useLanguage } from "@/i18n/context";
 import TemplateInventoryEditor from "@/pages/Area/TemplateInventoryEditor";
 import { useAreas } from "@/pages/Area/queries";
-import { Link, useLocation } from "react-router-dom";
+import { Link, useLocation, useSearchParams } from "react-router-dom";
 import { useEffect, useState } from "react";
 import { formatInTimeZone } from "date-fns-tz";
 import DeleteButton from "@/components/common/DeleteButton";
@@ -66,7 +66,9 @@ export default function LocationTemplatesTab({
     null,
   );
   const [editError, setEditError] = useState<string | null>(null);
-  const [createDialogOpen, setCreateDialogOpen] = useState(false);
+  const [params,setParams]=useSearchParams();
+  const createDialogOpen=params.get('newSchedule')==='1';
+  const setCreateDialogOpen=(open:boolean)=>setParams(previous=>{const result=new URLSearchParams(previous);if(open)result.set('newSchedule','1');else result.delete('newSchedule');return result;},{replace:true});
   const [editForm, setEditForm] = useState({
     title: "",
     description: "",

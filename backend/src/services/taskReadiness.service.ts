@@ -1,3 +1,4 @@
+import {readAccountState,evaluateAccountAccess} from './accountAccess.service.js';
 import { z } from "zod";
 import type { Prisma } from "@prisma/client";
 import { prisma } from "../prisma/prisma.js";
@@ -17,6 +18,11 @@ export async function workspaceTaskReadiness(actor: VerificationActor, raw: unkn
   const query = readinessQuery.safeParse(raw);
   if (!query.success) throw new ApiError(400, "Choose a valid readiness page or site");
   const { locationId, afterId, limit } = query.data;
+  const state=await readAccountState(actor.companyId);
+  let manageWork=true;
+  try {evaluateAccountAccess(state,actor.role,'MANAGE_WORK',now);}
+  catch(error) {if(error instanceof ApiError && error.statusCode===403)manageWork=false;else throw error;}
+  const access={manageWork};
   const scope: Prisma.LocationWhereInput = {
     companyId: actor.companyId, isActive: true,
     ...(actor.role === "MANAGER" ? { managerAssignments: { some: { managerId: actor.id } } } : {}),
@@ -31,7 +37,7 @@ export async function workspaceTaskReadiness(actor: VerificationActor, raw: unkn
   ]);
   if (locationId && !totalLocations) throw new ApiError(404, "Site not found in your workspace");
   const page = locations.slice(0, limit);
-  if (!page.length) return { asOf: now, totalLocations, sites: [], nextCursor: null, calendar: "DAILY_INCLUDES_EVERY_DAY" as const };
+  if (!page.length) return { asOf: now, access, totalLocations, sites: [], nextCursor: null, calendar: "DAILY_INCLUDES_EVERY_DAY" as const };
   const ids = page.map(location => location.id);
   const activeLocation: Prisma.LocationWhereInput = { ...scope, id: { in: ids } };
   const siteWhere = { locationId: { in: ids }, location: activeLocation };
@@ -62,5 +68,5 @@ export async function workspaceTaskReadiness(actor: VerificationActor, raw: unkn
     if (counts.unassignedTasksToday) reasons.push(counts.staffWithShift ? "UNASSIGNED_WORK" : "NO_ELIGIBLE_STAFF");
     return { ...location, counts, setupReady: counts.staffWithShift > 0 && counts.activeAreas > 0 && counts.readySchedules > 0, reasons };
   });
-  return { asOf: now, totalLocations, sites, nextCursor: locations.length > limit ? page.at(-1)!.id : null, calendar: "DAILY_INCLUDES_EVERY_DAY" as const };
+  return { asOf: now, access, totalLocations, sites, nextCursor: locations.length > limit ? page.at(-1)!.id : null, calendar: "DAILY_INCLUDES_EVERY_DAY" as const };
 }

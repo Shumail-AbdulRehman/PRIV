@@ -4,7 +4,7 @@
 **Depends on:** Spec 06
 **Model:** Heavy — `claude-opus-5-5` · `gpt-6-astra` · `gemini-3.1-pro-preview`
 **Issue:** #35
-**Owns:** `frontend/src/routes/workspaceRoutes.tsx`, `frontend/src/i18n/translations.ts`, `frontend/src/main.tsx`, `frontend/src/routes/workspacePages.tsx`, `frontend/src/components/layout/DashboardLayout.tsx`, `frontend/src/components/layout/Sidebar.tsx`, `frontend/src/workspace-refresh.css`, `frontend/src/i18n/launchTranslations.ts`, `frontend/src/routes/launchPages.tsx`, `frontend/src/routes/launchPages.test.tsx`, `specs/inventory/27-workspace-shell.md`
+**Owns:** `frontend/src/main.tsx`, `frontend/src/workspace-refresh.css`, `frontend/src/i18n/launchTranslations.ts`, `frontend/src/routes/launchPages.tsx`, `frontend/src/routes/launchPages.test.tsx`, `specs/inventory/27-workspace-shell.md`
 **Reuses:** `frontend/src/components/common/LanguageChoice.tsx`, `frontend/src/components/common/PageHeader.tsx`, `frontend/src/i18n/LanguageProvider.tsx`, `DESIGN-SYSTEM.md#component-conventions`, `design/v5/overview.html`
 
 ## Goal
@@ -49,3 +49,5 @@ Translate approved shell/spacing/fonts/navigation into existing reusable compone
 - **2026-10-20** — Complete:22 new component regressions; full web57 node+40 component tests, build and full npm lint pass. Actual React fixture renders390/1366 EN/UR plus manager/staff pass no overflow/JS errors; two mobile dialog renders/focus/RTL inspected. Source v5 colour values confirmed computed blue/white. Screenshots in docs/implementation/previews/shell-*.png; fixture API interception is visual proof, not live provider/persistence E2E.
 - **2026-10-20** — Reused exact blue H brand asset, approved Inter/Arabic fonts and existing primitives. Source detector had only its generic Inter popularity advisory; explicitly pinned v5 overrides it. Existing operational page copy/forms remain29/28/31; dirty Dashboard unchanged. Billing/settings owner-only, staff gets app handoff, operator never inherits tenant auth, route errors hide internals; future settings/operator controls unavailable honestly.
 - **2026-10-20** — Removed the owner-wide forced plan-selection redirect so unpaid accounts can reach approved read-only operations; server mutation gates remain required. Future account policy composition26 must finish legacy starts/jobs/capacity handoff. No sample records or prototypes added to app.
+
+- **2026-10-21** — Serialized setup integration ownership transferred to28 for existing route/nav/translation/form/readiness/API seams. Preserve previous behavior; subsequent feature edits must amend ownership again.

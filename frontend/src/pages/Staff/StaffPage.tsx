@@ -2,7 +2,7 @@ import StaffCreateDialog from "./StaffCreateDialog";
 import OperationsState from "../Manager/OperationsState";
 import DeleteButton from "@/components/common/DeleteButton";
 import { useState } from "react";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, useSearchParams } from "react-router-dom";
 import { formatInTimeZone, fromZonedTime } from "date-fns-tz";
 import {
   useGetStaff,
@@ -93,8 +93,11 @@ export default function StaffPage() {
   const navigate = useNavigate();
 
   const [search, setSearch] = useState("");
-  const [locationFilter, setLocationFilter] = useState<string>("all");
-  const [dialogOpen, setDialogOpen] = useState(false);
+  const [params,setParams]=useSearchParams();
+  const locationFilter=params.get('locationId')??'all';
+  const setLocationFilter=(id:string)=>setParams(previous=>{const result=new URLSearchParams(previous);if(id==='all')result.delete('locationId');else result.set('locationId',id);return result;},{replace:true});
+  const dialogOpen=params.get('create')==='1';
+  const setDialogOpen=(open:boolean)=>setParams(previous=>{const result=new URLSearchParams(previous);if(open)result.set('create','1');else result.delete('create');return result;},{replace:true});
 
   const [editingStaff, setEditingStaff] = useState<StaffMember | null>(null);
   const [editError, setEditError] = useState<string | null>(null);
@@ -330,6 +333,7 @@ export default function StaffPage() {
           open={dialogOpen}
           onOpenChange={setDialogOpen}
           locations={locations}
+          location={locations.find(location=>String(location.id)===locationFilter)}
           onSaved={() => setSuccess("Team member added.")}
         />
       ) : null}

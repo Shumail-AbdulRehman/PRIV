@@ -46,3 +46,12 @@ export type ApiEnvelope<T> = {
 export type PricingContext = {
   countryCode?: string;
 };
+
+export type BillingLifecycle = {
+ company:{id:number;name:string;plan:PlanCode;operationalStatus:'ACTIVE'|'SUSPENDED'};
+ usage:{locations:number;staff:number;managers:number};
+ limits:PlanDefinition['limits'];
+ subscription:null|{status:string;plan:PlanCode|null;catalogQualified:boolean;periodStart:string|null;periodEnd:string|null;scheduledChangeAction:string|null;scheduledChangeAt:string|null;lastEventAt:string};
+ reconciliationRequired:boolean;billingConfigured:boolean;ownerVerified:boolean;
+ providerState:'MIRRORED'|'AWAITING_PROVIDER'|'NOT_LINKED';portalAvailable:boolean;checkoutAvailable:boolean;
+};

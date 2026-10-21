@@ -5,7 +5,7 @@ import OperationStatus from "@/components/common/OperationStatus";
 import OperationsState from "../Manager/OperationsState";
 import { useOperations, type OperationOverview } from "../Manager/operations";
 import { useLanguage } from "@/i18n/context";
-import { Link } from "react-router-dom";
+import { Link, useSearchParams } from "react-router-dom";
 import type { LocationWithCounts } from "./types";
 import LoadingSpinner from "@/components/common/LoadingSpinner";
 import PageHeader from "@/components/common/PageHeader";
@@ -39,7 +39,9 @@ export default function LocationsPage() {
   const getLocations = useGetLocations();
   const user = useSelector((s: RootState) => s.auth.user);
   const isAdmin = user?.role === "ADMIN";
-  const [dialogOpen, setDialogOpen] = useState(false);
+  const [params,setParams]=useSearchParams();
+  const dialogOpen=params.get('create')==='1';
+  const setDialogOpen=(open:boolean)=>setParams(previous=>{const result=new URLSearchParams(previous);if(open)result.set('create','1');else result.delete('create');return result;},{replace:true});
   if (getLocations.isPending) return <LoadingSpinner fullScreen />;
 
   if (getLocations.isError)

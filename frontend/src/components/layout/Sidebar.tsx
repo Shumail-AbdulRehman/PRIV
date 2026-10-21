@@ -3,6 +3,7 @@ import { useLanguage } from "@/i18n/context";
 import { Link, NavLink } from "react-router-dom";
 import { useExceptionCount } from "@/pages/Exceptions/queries";
 import {
+  ListChecks,
   LayoutDashboard,
   MapPin,
   Users,
@@ -51,7 +52,7 @@ export default function Sidebar({
   );
   const groups = [
     { label: "Daily operations", items: WORK },
-    { label: "Your organization", items: ORGANIZATION },
+    { label: "Your organization", items: [...ORGANIZATION, ...(user?.role === "ADMIN" ? [{to:"/setup",icon:ListChecks,label:"Company setup"}] : [])] },
     {
       label: "Administration",
       items: [

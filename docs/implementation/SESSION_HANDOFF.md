@@ -1,10 +1,21 @@
-# Implementation handoff — 2026-10-21, after Specification26 — active continuation
+# Implementation handoff — 2026-10-21, after Specification28 — active continuation
 
 ## Current continuation state
 
 Latest user explicitly requests completing all eligible specs without routine handoff stops while they sleep; continue sequential implementation. Prior routine stopping notes are historical and superseded. This supersedes prior stopping instructions. Approved launch scope and design/v5 remain unchanged. Read specs/AGENT-GUIDE.md and steering docs before continuing. No deployment, production mutation, destructive migration or PR merge is authorized.
 
-Completed: decision00 and execution01–27 (27 of41 execution/gates;14 remain). Specs28–41 are Not started. Prior details remain in individual spec Logs/inventories; no completed work has been repeated. Next28 is eligible; continue automatically after current publication.
+Completed: decision00 and execution01–28 (28 of41 execution/gates;13 remain). Specs29–41 are Not started. Next29 is eligible through23/27/08. Continue automatically after current publication; no previous work repeated.
+
+## Spec28 verified local boundary
+
+Current branch `implementation/spec-28-derived-setup`, base26/PR54 atd078847. Issue55. Implemented actual owner/assigned-manager setup page using12 persisted bounded per-site readiness plus14 exact server MANAGE_WORK permission and15 owner lifecycle metadata. Four derived steps navigate existing location/staff/area/schedule forms, no saved browser checklist. Role/403/error/loading/read-only/partial-page selection explicit; timestamp uses location timezone. Owner contact and billing service state remain independent from permission; unknown permission never implies billing failure. Actual API policies retained. Today adds calendar/setup guidance; dirty Dashboard performance source unchanged.
+
+Verification:17 readiness tests; whole backend1416/92 files/zero skips using explicit isolated test DB.16 focused frontend tests/2 files, whole57 Node+56 component/6 files. Backend tsc/build and frontend lint/TypeScript/build pass; no backend lint script. Eight synthetic React capture states1440/390 EN/UR checked with no overflow/JS errors; these are component/render evidence, not40 integrated persistence E2E. Impeccable detector returned[]; independent reviewer requested access-unknown state separation, same reviewer scored the correction resolved/ship at fix scope. Approvedv5 and dirty DESIGN.md preserved; no new raster assets/dependencies/schema/production data/config. Full contracts/reuse in SETUP_UI.md and inventory28. Validator42 specs/zero errors/six justified warnings.
+
+Future30 replaces honest settings-unavailable boundary;32 consumes shared getBillingLifecycle/BillingLifecycle and replaces legacy billing management. Spec21 real privacy/identity/consented empirical qualification and39/40 provider/device/legal/host/mail/billing/backup gates remain external; never infer qualification from these mocks. All8 original dirty tracked files verified byte-for-byte against checkpoint. Continue29 after scoped commit/push/stacked draft PR; don't merge.
+
+Logs `/tmp/hygene-spec28-{backend-tests,backend-tsc,backend-build,focused-final,web-final,lint-final,build-final,render}.log`, detector JSON. Temporary render tooling may disappear; screenshots under ignored `.impeccable/review/spec28/` are local evidence. Loopback Vite5188 session53653 is fixture tooling; no deployed service.
+
 
 ## Spec24 verified local boundary
 
