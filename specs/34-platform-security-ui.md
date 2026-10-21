@@ -4,7 +4,7 @@
 **Depends on:** Spec 19, Spec 27
 **Model:** Heavy — `claude-opus-5-5` · `gpt-6-astra` · `gemini-3.1-pro-preview`
 **Issue:** #59
-**Owns:** `frontend/src/main.tsx`, `frontend/src/pages/Platform/OperatorLogin.tsx`, `frontend/src/pages/Platform/OperatorLogin.test.tsx`, `frontend/src/pages/Platform/operatorSession.ts`, `specs/inventory/34-platform-security-ui.md`, `frontend/src/pages/Platform/operator.css`, `frontend/src/pages/Platform/operatorTranslations.ts`, `docs/implementation/OPERATOR_UI.md`, `.impeccable/surfaces/frontend-src-pages-platform-operatorlogin-tsx.md`
+**Owns:** `frontend/src/pages/Platform/OperatorLogin.tsx`, `frontend/src/pages/Platform/OperatorLogin.test.tsx`, `frontend/src/pages/Platform/operatorSession.ts`, `specs/inventory/34-platform-security-ui.md`, `frontend/src/pages/Platform/operator.css`, `frontend/src/pages/Platform/operatorTranslations.ts`, `docs/implementation/OPERATOR_UI.md`, `.impeccable/surfaces/frontend-src-pages-platform-operatorlogin-tsx.md`
 **Reuses:** `frontend/src/components/common/AuthShell.tsx`, `DESIGN-SYSTEM.md#component-conventions`, `design/v5/operator-login.html`
 
 ## Goal
@@ -53,3 +53,5 @@ Use configured OIDC sign-in/MFA/own security provider handoff with safe redirect
 - **2026-10-21** — Root integrated874fff1/3cb20d1/82a7d21 after30/PR62; registered platformRoutes top-level outside tenantApp. ActualReact syntheticrouteproof /platform/login,security,callback,wildcard made zeroAPIrequests (includingtenantbootstrap), noJSerrors; callback query/fragmentremoved.15focused; integratedwhole57Node+102components/10files, lint/tsc/buildpass. Independentfullreview shipatintentionallydisabledboundaryscope;3initiallintunusederrorscorrectedandfreshreviewerlintverified.7EN/URcaptures plusdocumentercomparisoncomplete. Provider/browserOIDCclientnotselected, sooperatorRequest failbeforeI/O, no tokenargument/tenantJWT/cookiecachefallback, noenabledsigninandnoMFAqualification. Realprovider39/40blocked. No production/dependency/schema/designreplacement. Userstopafterbatch.
 
 - **2026-10-21** — Serialized platform company registration ownership transferred to33; existing authentication/security/billing behavior preserved.
+
+- **2026-10-21** — Sequential38 owns main.tsx for public help outside tenant bootstrap; platform route order/boundary preserved.

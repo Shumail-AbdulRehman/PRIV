@@ -1,10 +1,10 @@
 # Spec 38 — Configured support and service information
 
-**Status:** Not started
+**Status:** Done
 **Depends on:** Spec 27, Spec 25
 **Model:** Standard — `claude-sonnet-5-5` · `gpt-6.1-sol` · `gemini-3.8-flash`
-**Issue:** —
-**Owns:** `frontend/src/pages/Help/HelpPage.tsx`, `frontend/src/pages/Help/HelpPage.test.tsx`, `frontend/src/pages/Help/serviceInformation.ts`, `docs/implementation/COMMERCIAL_CONTENT.md`, `specs/inventory/38-service-information.md`
+**Issue:** #75
+**Owns:** `frontend/src/main.tsx`, `frontend/src/components/layout/Sidebar.tsx`, `frontend/src/components/layout/PublicLayout.tsx`, `frontend/src/pages/Subscription/SubscriptionPage.tsx`, `frontend/src/pages/Subscription/SubscriptionPage.test.tsx`, `frontend/src/i18n/translations.ts`, `frontend/src/i18n/serviceTranslations.ts`, `frontend/src/pages/Help/help.css`, `.impeccable/surfaces/frontend-src-pages-help-helppage-tsx.md`, `frontend/src/pages/Help/HelpPage.tsx`, `frontend/src/pages/Help/HelpPage.test.tsx`, `frontend/src/pages/Help/serviceInformation.ts`, `docs/implementation/COMMERCIAL_CONTENT.md`, `specs/inventory/38-service-information.md`
 **Reuses:** `frontend/src/components/layout/PublicLayout.tsx`, `DESIGN-SYSTEM.md#component-conventions`, `design/v5/information.html`
 
 ## Goal
@@ -40,8 +40,14 @@ Provide actual support path, approved service/privacy/exit text via explicit con
 
 ## Done when
 
-- [ ] `npm run test:components --prefix frontend -- src/pages/Help/HelpPage.test.tsx` passes: Missing support/link/policy never renders a working claim; configured safe links use expected origin; EN/UR assistance available. [unit]
-- [ ] `npm test --prefix frontend` passes the whole affected unit suite; record count. [unit]
-- [ ] Only scoped paths changed; relevant denial/empty/error/config-unavailable states inspected. [static]
-- [ ] `npm run lint --prefix frontend` reports zero errors/warnings in changed files; document baseline separately. [static]
-- [ ] `npm run build --prefix frontend` passes. [static]
+- [x] `npm run test:components --prefix frontend -- src/pages/Help/HelpPage.test.tsx` passes: Missing support/link/policy never renders a working claim; configured safe links use expected origin; EN/UR assistance available. [unit]
+- [x] `npm test --prefix frontend` passes the whole affected unit suite; record count. [unit]
+- [x] Only scoped paths changed; relevant denial/empty/error/config-unavailable states inspected. [static]
+- [x] `npm run lint --prefix frontend` reports zero errors/warnings in changed files; document baseline separately. [static]
+- [x] `npm run build --prefix frontend` passes. [static]
+
+## Log
+
+- **2026-10-21** — Issue75 claimed, actual25/27 ancestors verified; branch implementation/spec-38-service-information based35/5f10d3c. Latest user authorizes38/39 only. Explicit shared ownership transferred30/32/34/35 before edits, no DAG change. Preserve eight dirty files snapshot /tmp/hygene-spec38-39-preserved.json.
+- **2026-10-21** — Added actual public help/information routes outside tenant bootstrap, configured safe support/contact no-credentials/no-store request and retry, escaped facts, origin-pinned explicitly approved policy/distribution links with unavailable defaults. Separate photo upload/submission/review/verification and unqualified processing guidance. New checkout blocks absent policy/support, rechecks recipient before transaction; existing portal retained. No legal promises, production config/provider activation, database or dependency changes.
+- **2026-10-21** —16focused Help +24billing React tests; full57Node+215React/16files;109existing support/billing backend tests. Full frontend lint0/TypeScript/Vite build pass.8built-route synthetic HTTP renders EN/UR390/1440 zero overflow/JS errors, only public support requests; desktop/mobile viewed, fixed marketing heading precedence and contact wrapping. Detector[]. No live delivery/legal/device/provider qualification inferred;39/40 retain gates. Inventory38/COMMERCIAL_CONTENT list files/config/limits; logs /tmp/hygene-spec38-*.

@@ -4,7 +4,7 @@
 **Depends on:** Spec 15, Spec 27, Spec 28
 **Model:** Standard — `claude-sonnet-5-5` · `gpt-6.1-sol` · `gemini-3.8-flash`
 **Issue:** #69
-**Owns:** `docs/implementation/BILLING.md`, `frontend/src/pages/Subscription/api.ts`, `frontend/src/pages/Subscription/types.ts`, `frontend/src/pages/Subscription/billing.css`, `frontend/src/i18n/billingTranslations.ts`, `frontend/src/pages/Pricing/PaddlePricing.tsx`, `frontend/src/pages/Pricing/ChoosePlanPage.tsx`, `frontend/src/pages/Pricing/WelcomePage.tsx`, `frontend/src/pages/Subscription/SubscriptionPage.tsx`, `frontend/src/pages/Subscription/SubscriptionPage.test.tsx`, `frontend/src/pages/Subscription/queries.ts`, `specs/inventory/32-billing-ui.md`
+**Owns:** `docs/implementation/BILLING.md`, `frontend/src/pages/Subscription/api.ts`, `frontend/src/pages/Subscription/types.ts`, `frontend/src/pages/Subscription/billing.css`, `frontend/src/i18n/billingTranslations.ts`, `frontend/src/pages/Pricing/PaddlePricing.tsx`, `frontend/src/pages/Pricing/ChoosePlanPage.tsx`, `frontend/src/pages/Pricing/WelcomePage.tsx`, `frontend/src/pages/Subscription/queries.ts`, `specs/inventory/32-billing-ui.md`
 **Reuses:** `frontend/src/pages/Subscription/api.ts`, `frontend/src/pages/Subscription/types.ts`, `frontend/src/lib/paddle.ts`, `frontend/src/pages/Pricing/PaddlePricing.tsx`, `DESIGN-SYSTEM.md#component-conventions`, `design/v5/billing.html`
 
 ## Goal
@@ -55,3 +55,5 @@ Display real capacity/provider period/status/activation/sync and restricted-acco
 - **2026-10-21** — Published implementation9a08f78 in OPEN/DRAFT PR70: https://github.com/Shumail-AbdulRehman/PRIV/pull/70, base implementation/spec-31-36-verification atb21dcca; issue69 remains open for human review. No merge/deploy. Final metadata checkpoint records publication; next eligible33 identified only, STOP.
 
 - **2026-10-21** — Serialized platform company registration ownership transferred to33; existing authentication/security/billing behavior preserved.
+
+- **2026-10-21** — Serialized ownership handed to38 before support/information route/nav/dictionary/checkout-availability integration; existing feature behavior preserved.

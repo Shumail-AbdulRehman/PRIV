@@ -1,3 +1,4 @@
+import { useServiceInformation, getPublicSupport } from '../Help/serviceInformation';
 import { useEffect, useRef, useState } from 'react';
 import { Link, useSearchParams } from 'react-router-dom';
 import { useQuery } from '@tanstack/react-query';
@@ -31,6 +32,7 @@ function OwnerBilling({activationReturn}:{activationReturn:boolean}) {
  const [prepared,setPrepared]=useState<(BillingCheckout&{plan:string;interval:string})|null>(null);
  const lock=useRef(false),alive=useRef(true),request=useRef<AbortController|null>(null);
  useEffect(()=>{alive.current=true;return()=>{alive.current=false;request.current?.abort();};},[]);
+ const service=useServiceInformation();
  const data=query.data;
  const linked=data?.providerState==='MIRRORED';
  const catalog=useQuery({queryKey:['billing-catalog',user!.companyId,user!.id],queryFn:({signal})=>getBillingCatalog(signal),enabled:!query.isError&&!!data?.checkoutAvailable&&data.billingConfigured&&!linked&&!data.reconciliationRequired&&!uncertain,retry:false,staleTime:0});
@@ -54,6 +56,7 @@ function OwnerBilling({activationReturn}:{activationReturn:boolean}) {
     const {url}=await prepareBillingPortal(abort.signal);
     if(alive.current)navigateToBillingPortal(url);
    }else{
+    if(!service.purchaseReady||!(await getPublicSupport(abort.signal)).email)throw new Error('CHECKOUT_UNAVAILABLE');
     if(!entry||!fresh.checkoutAvailable||fresh.providerState==='MIRRORED'||fresh.reconciliationRequired||uncertain)throw new Error('CHECKOUT_UNAVAILABLE');
     const paddle=await getPaddle(); // Missing browser configuration never reserves a purchase.
     if(!alive.current)return;
@@ -116,13 +119,14 @@ function OwnerBilling({activationReturn}:{activationReturn:boolean}) {
     </section>
    </div>
    {!linked?<section className="ops-panel ops-panel-body" aria-labelledby="billing-offers-heading"><h2 id="billing-offers-heading">{t('Available billing options')}</h2>
+    {!service.purchaseReady?<p role="status">{t('New purchases are unavailable until approved customer policies and a support contact are available.')} <Link to="/help">{t('Help & service information')}</Link></p>:null}
     {!data.billingConfigured?<p role="status">{t('Checkout is unavailable until the billing catalog and commercial terms are approved and configured.')}</p>:!data.ownerVerified?<p>{t('Verify your owner email in Settings before starting checkout.')}</p>:!data.checkoutAvailable?<p>{t('New checkout is unavailable for this account. Refresh billing status before continuing.')}</p>:null}
     {catalog.isFetching?<p role="status">{t('Loading configured provider prices…')}</p>:null}
     {catalog.isError?<p role="alert">{t('Configured prices could not be loaded. Checkout is unavailable. Refresh billing status to try again.')}</p>:null}
     {data.checkoutAvailable&&!catalog.isFetching&&!catalog.isError&&catalog.data?.length===0?<p>{t('No approved provider prices are available. Checkout is disabled.')}</p>:null}
     {!!catalog.data?.length&&data.checkoutAvailable&&!uncertain?<div className="billing-offers">{catalog.data.map(entry=>{
      const price=providerPrice(entry,language),same=prepared?.plan===entry.plan&&prepared.interval===entry.interval;
-     return <div key={`${entry.plan}:${entry.interval}`}><div><h3><bdi>{entry.plan}</bdi> · {t(entry.interval==='month'?'Monthly':'Yearly')}</h3><p>{price??t('Provider price unavailable')} · {t('Final total and taxes are shown by Paddle before confirmation.')}</p>{entry.trialPeriod?<p>{t('Provider trial')}: <bdi>{entry.trialPeriod.frequency} {entry.trialPeriod.interval}</bdi></p>:null}</div><Button className="min-h-12!" disabled={busy||query.isError||!price||!!prepared&&!same} onClick={()=>void act('checkout',entry)}>{t(busy?'Opening…':same?'Reopen existing checkout':'Continue to checkout')}</Button></div>;
+     return <div key={`${entry.plan}:${entry.interval}`}><div><h3><bdi>{entry.plan}</bdi> · {t(entry.interval==='month'?'Monthly':'Yearly')}</h3><p>{price??t('Provider price unavailable')} · {t('Final total and taxes are shown by Paddle before confirmation.')}</p>{entry.trialPeriod?<p>{t('Provider trial')}: <bdi>{entry.trialPeriod.frequency} {entry.trialPeriod.interval}</bdi></p>:null}</div><Button className="min-h-12!" disabled={!service.purchaseReady||busy||query.isError||!price||!!prepared&&!same} onClick={()=>void act('checkout',entry)}>{t(busy?'Opening…':same?'Reopen existing checkout':'Continue to checkout')}</Button></div>;
     })}</div>:null}
    </section>:null}
   </>:null}
