@@ -1,3 +1,4 @@
+import { launchUrdu } from "../launch/launchTranslations.ts";
 // Shared English/Urdu vocabulary. Keep web and native copies in parity.
 export type Language = "en" | "ur";
 export const urdu: Record<string, string> = {
@@ -596,13 +597,14 @@ export function translate(
   language: Language,
   values: Record<string, string | number> = {},
 ): string {
-  const template = language === "ur" ? (urdu[text] ?? text) : text;
+  const template = language === "ur" ? (launchUrdu[text] ?? urdu[text] ?? text) : text;
   return template.replace(/\{(\w+)\}/g, (token, key: string) =>
     String(values[key] ?? token),
   );
 }
 export function translateText(text: string, language: Language): string {
   if (language === "en") return text;
+  if (launchUrdu[text]) return launchUrdu[text];
   if (urdu[text]) return urdu[text];
   // Only recognizable fixture labels are translated; names entered by users remain intact.
   return text.replace(

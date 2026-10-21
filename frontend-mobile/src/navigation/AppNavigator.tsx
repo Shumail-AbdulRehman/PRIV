@@ -1,3 +1,7 @@
+import { KeyboardAvoidingView, Platform, ScrollView } from "react-native";
+import { useSafeAreaInsets } from "react-native-safe-area-context";
+import { LaunchRecovery } from "../launch/LaunchRecovery";
+import { Button } from "../components/ui/button";
 import { SpatialDiagnosticScreen } from "../screens/verification/SpatialDiagnosticScreen";
 import { VerificationScreen } from "../screens/verification/VerificationScreen";
 import { StartTaskScreen } from "../screens/StartTaskScreen";
@@ -14,7 +18,8 @@ const Stack = createNativeStackNavigator<RootStackParamList>();
 
 export function AppNavigator() {
   const { t } = useLanguage();
-  const { user, isBootstrapping } = useAuth();
+  const insets = useSafeAreaInsets();
+  const { user, isBootstrapping, passwordChangeRequired, logout } = useAuth();
 
   if (isBootstrapping) {
     return (
@@ -25,6 +30,11 @@ export function AppNavigator() {
       />
     );
   }
+
+  if (user && passwordChangeRequired) return <KeyboardAvoidingView className="flex-1 bg-background" behavior={Platform.OS === 'ios' ? 'padding' : 'height'}><ScrollView keyboardShouldPersistTaps="handled" contentContainerStyle={{padding:24,paddingTop:insets.top+24,paddingBottom:insets.bottom+24,gap:24}}>
+    <LaunchRecovery onComplete={async () => { await logout().catch(() => {}); }} />
+    <Button variant="outline" onPress={() => void logout().catch(() => {})}>{t('Sign out')}</Button>
+  </ScrollView></KeyboardAvoidingView>;
 
   return (
     <Stack.Navigator

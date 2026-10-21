@@ -1,3 +1,4 @@
+import { photoAuthority, photoResultAction, reconcileSubmission } from "../../launch/recoveryPolicy";
 import { useCallback, useEffect, useRef, useState } from 'react';
 import { AppState, Image, Linking, Platform, ScrollView, StyleSheet, View, useWindowDimensions } from 'react-native';
 import { useIsFocused } from '@react-navigation/native';
@@ -35,7 +36,7 @@ const messageFor=(error:unknown)=>error instanceof Error?error.message:'Could no
 const removeTemporary=(uri:string)=>{try{const file=new File(uri);if(file.exists)file.delete();}catch{/* Do not hide the upload result. */}};
 
 export function VerificationScreen({route,navigation}:Props) {
-  const {user}=useAuth(),{t}=useLanguage();
+  const {user}=useAuth(),{t,language}=useLanguage();
   const taskId=route.params.taskId,scope=user?`${user.companyId}_${user.id}`:null;
   const queryClient=useQueryClient(),insets=useSafeAreaInsets(),focused=useIsFocused();
   const [permission,requestPermission]=useCameraPermissions();
@@ -52,6 +53,7 @@ export function VerificationScreen({route,navigation}:Props) {
   const cameraHeight=Math.max(220,Math.min(420,(width-40)*1.25,height*.48));
   const valid=()=>mounted.current&&scope!==null&&captureAccount()===scope;
   const rememberPending=(photo:PendingPhoto|null)=>{pendingRef.current=photo;if(mounted.current)setPending(photo);};
+  const authority=photoAuthority(manifest);
   const finished=!!manifest&&(!!manifest.staffSubmittedAt||manifest.task.status==='COMPLETED');
   const required=manifest?requiredPhotoIds(manifest):new Set<string>();
   const mandatory=manifest?.items.flatMap(i=>i.requirements).filter(r=>required.has(r.id))??[];
@@ -78,20 +80,22 @@ export function VerificationScreen({route,navigation}:Props) {
     tick();const timer=setInterval(tick,1000);return()=>clearInterval(timer);
   },[local,slot?.id,slot?.activatedAt]);
   useEffect(()=>{
-    if(!local||!slot||slotActive||pending||busy||mode!=='capture'||activation.current===slot.id)return;
+    if(!authority.capture||!local||!slot||slotActive||pending||busy||mode!=='capture'||activation.current===slot.id)return;
     activation.current=slot.id;let live=true;
     void activatePhoto(local.session.id,slot.id).then(response=>{
       if(!live||!valid())return;
       setLocal(previous=>previous&&previous.session.id===local.session.id?{...previous,session:{...previous.session,...response,serverTime:previous.session.serverTime}}:previous);
     }).catch(error=>{if(live&&valid()){setMessage(messageFor(error));setMode('progress');}}).finally(()=>{activation.current=null;});
     return()=>{live=false;};
-  },[local?.session.id,slot?.id,slotActive,pending,busy,mode]);
+  },[local?.session.id,slot?.id,slotActive,pending,busy,mode,authority.capture]);
   async function action(work:()=>Promise<void>,label='Please wait…') {
     if(inFlight.current)return;inFlight.current=true;setBusy(true);setBusyLabel(label);setMessage('');
     try{await work();}catch(error){if(valid())setMessage(messageFor(error));}
     finally{inFlight.current=false;if(mounted.current)setBusy(false);}
   }
   async function beginPhotos(){await action(async()=>{
+    const current=await load();
+    if(!photoAuthority(current).capture)throw new Error('Task photos are unavailable. Your received results are kept. Ask your manager for help.');
     if(Platform.OS==='web')throw new Error('Open the installed staff app to scan the task QR and take photos.');
     if(!online)throw new Error('Internet needed to continue. Reconnect, then scan this task’s QR code.');
     const result=permission?.granted?permission:await requestPermission();
@@ -99,6 +103,7 @@ export function VerificationScreen({route,navigation}:Props) {
     setMode('scan');
   });}
   async function scanned(qr:string){await action(async()=>{
+    if(!photoAuthority(await load()).capture)throw new Error('Task photos are unavailable. Your received results are kept. Ask your manager for help.');
     if(!online)throw new Error('Internet needed to confirm the room. Reconnect, then scan this task’s QR code.');
     setMode('locating');
     const targets=manifest?.items.flatMap(i=>i.requirements).filter(r=>r.state==='CLEANING_REQUIRED').map(r=>({requirementId:r.id,expectedGeneration:r.decisionVersion}));
@@ -121,19 +126,21 @@ export function VerificationScreen({route,navigation}:Props) {
     setBusyLabel('Uploading and checking photo…');
     if(checkFirst){
       const existing=await findUploadedPhoto(photo.metadata.sessionId,photo.metadata.clientCaptureId,scope);
-      if(existing&&['PASSED','REVIEW_REQUIRED','PRIVACY_HOLD','CLEANING_REQUIRED','RECAPTURE_REQUIRED'].includes(existing.state)){
+      if(photoResultAction(existing?.state)==='received'){
         removeTemporary(photo.uri);rememberPending(null);await refreshAfterUpload();return;
       }
-      if(existing&&['RECEIVED','QUALITY_CHECK','COVERAGE_CHECK','CLEANLINESS_CHECK'].includes(existing.state)){
+      if(photoResultAction(existing?.state)==='checking'){
         setMessage('This photo is still being checked. Tap Check result shortly.');return;
       }
     }
+    // Same-capture result lookup remains available even when new processing is unavailable.
+    if(!photoAuthority(await load()).upload)throw new Error('Photo upload is unavailable. Check the result before retrying. Your received photos are kept.');
     await uploadPhoto(photo.metadata,photo.uri,scope);
     if(!valid()){removeTemporary(photo.uri);return;}
     removeTemporary(photo.uri);rememberPending(null);await refreshAfterUpload();
   }
   async function capture(){await action(async()=>{
-    if(!local||!slot||!slotActive||!allowed||!cameraReady||!focused||!foreground||pending||!scope)throw new Error('Scan this task’s QR code again to continue taking photos.');
+    if(!authority.capture||!local||!slot||!slotActive||!allowed||!cameraReady||!focused||!foreground||pending||!scope)throw new Error('Scan this task’s QR code again to continue taking photos.');
     if(!online)throw new Error('Internet needed to upload. Reconnect before taking the photo.');
     const session=local,clock=captureClock();
     const photo=await camera.current?.takePictureAsync({quality:.9,skipProcessing:false});
@@ -154,35 +161,37 @@ export function VerificationScreen({route,navigation}:Props) {
   async function checkResult(){await action(async()=>{
     if(!pending||!scope)return;
     const result=await findUploadedPhoto(pending.metadata.sessionId,pending.metadata.clientCaptureId,scope);
-    if(result&&['PASSED','REVIEW_REQUIRED','PRIVACY_HOLD','CLEANING_REQUIRED','RECAPTURE_REQUIRED'].includes(result.state)){
+    if(photoResultAction(result?.state)==='received'){
       removeTemporary(pending.uri);rememberPending(null);await refreshAfterUpload();
-    }else setMessage(result&&result.state!=='RESERVED'?'This photo is still being checked. Check again shortly.':'The photo has not finished uploading. Tap Upload again.');
+    }else setMessage(result?.state==='SERVICE_FAILURE'?'Photo checking could not finish. Check availability before retrying this same photo.':result&&result.state!=='RESERVED'?'This photo is still being checked. Check again shortly.':'The photo has not finished uploading. Tap Upload again.');
   },'Checking photo result…');}
-  async function submit(){await action(async()=>{await finishSubmission(taskId);await load();await queryClient.invalidateQueries({queryKey:staffQueryKeys.all});},'Submitting work…');}
-  const cameraVisible=!finished&&!pending&&focused&&foreground&&permission?.granted&&['scan','capture'].includes(mode);
+  async function submit(){await action(async()=>{await reconcileSubmission(()=>verificationManifest(taskId),()=>finishSubmission(taskId));await load();await queryClient.invalidateQueries({queryKey:staffQueryKeys.all});},'Submitting work…');}
+  const cameraVisible=authority.capture&&!finished&&!pending&&focused&&foreground&&permission?.granted&&['scan','capture'].includes(mode);
   return <View style={{flex:1}} className="bg-background">
     <ScrollView contentContainerStyle={{padding:20,gap:20,paddingBottom:32}}>
       <LanguageChoice/>
-      <View style={{gap:8}}><Text className="text-sm font-semibold text-primary">{finished?'Work submitted':'Finish cleaning'}</Text><Text className="text-2xl font-bold">{manifest?.task.areaNameSnapshot??'Your assigned area'}</Text></View>
+      <View style={{gap:8}}><Text accessibilityRole="header" className="text-xl font-bold">{finished?'Work submitted':'Finish cleaning'}</Text><Text className="text-2xl font-bold">{manifest?.task.areaNameSnapshot??'Your assigned area'}</Text></View>
       {!online?<Text accessibilityLiveRegion="polite">Internet needed to upload. Reconnect, then tap Upload again.</Text>:null}
       {message?<View className="rounded-xl bg-accent p-4"><Text accessibilityLiveRegion="polite">{message}</Text></View>:null}
       {!manifest?<Button loading={refreshing} onPress={()=>void action(async()=>{await load();})}>Load task photos</Button>:null}
-      {!finished&&mode==='prepare'?<View style={{gap:16}}><Text className="text-xl font-bold">Ready to finish?</Text><Text>Complete every required photo. Scan the task QR to begin.</Text><Text>Keep people out of the photos, including mirror reflections.</Text><Button size="lg" disabled={!manifest||!online} onPress={()=>void beginPhotos()}>Scan QR to take photos</Button></View>:null}
+      {!finished&&!authority.capture?<View className="gap-3 rounded-xl border border-border p-5"><Text className="text-xl font-bold">Task photos are unavailable</Text><Text className="text-base leading-7">{authority.qualified?'Photo authority ended. Refresh results and ask your manager about the task window.':'Your received results are kept. Ask your manager for help. Refresh results to check availability.'}</Text></View>:null}
+      {finished&&manifest?.staffSubmittedAt?<View className="gap-2 rounded-xl bg-accent p-5"><Text className="text-xl font-bold">Submission receipt</Text><Text>{t('Task {id}',{id:taskId})}</Text><Text>{new Date(manifest.staffSubmittedAt).toLocaleString(language==='ur'?'ur-PK':'en-PK',{timeZone:manifest.task.location?.timezone})}</Text>{manifest.task.location?.timezone?<Text>{manifest.task.location.timezone}</Text>:null}<Text>Your work has been submitted. Your manager may still need to review it.</Text></View>:null}
+      {!finished&&authority.capture&&mode==='prepare'?<View style={{gap:16}}><Text className="text-xl font-bold">Ready to finish?</Text><Text>Complete every required photo. Scan the task QR to begin.</Text><Text>Keep people out of the photos, including mirror reflections.</Text><Button size="lg" disabled={!manifest||!online} onPress={()=>void beginPhotos()}>Scan QR to take photos</Button></View>:null}
       {mode==='locating'?<Text accessibilityLiveRegion="polite">{busyLabel}</Text>:null}
       {mode==='scan'?<Text className="text-xl font-bold">Scan the task QR</Text>:null}
       {mode==='capture'&&heading?<View style={{gap:8}}><PhotoStepProgress current={Math.max(1,(local?.session.slots.findIndex(s=>s.id===slot?.id)??0)+1)} total={Math.max(1,local?.session.slots.length??1)}/><Text className="text-3xl font-bold">{heading.title}</Text><PhotoGuide fixture={local?.manifest.items.find(i=>i.requirements.some(r=>r.id===slot?.requirementId))?.typeSnapshot} instruction={heading.view}/>{heading.hint?<Text>{heading.hint}</Text>:null}</View>:null}
       {cameraVisible?<View style={{width:'100%',height:cameraHeight,flexShrink:0,borderRadius:24,overflow:'hidden',backgroundColor:'#DDE5DE'}}><CameraView key={cameraKey} ref={camera} style={StyleSheet.absoluteFill} facing="back" enableTorch={torch} onCameraReady={()=>setCameraReady(true)} onMountError={()=>{setCameraReady(false);setMessage('Camera could not open. Tap Restart camera.');}} barcodeScannerSettings={mode==='scan'?scanSettings:undefined} onBarcodeScanned={mode==='scan'?({data})=>{if(!inFlight.current&&focused&&foreground&&online)void scanned(data);}:undefined}/><CaptureFrame/></View>:null}
       {cameraVisible?<View style={{flexDirection:'row',gap:12}}><Button className="flex-1" variant="outline" onPress={()=>setTorch(value=>!value)}>{torch?'Torch off':'Torch on'}</Button><Button className="flex-1" variant="ghost" onPress={()=>setCameraKey(value=>value+1)}>Restart camera</Button></View>:null}
-      {!permission?.granted&&mode==='scan'?<Button onPress={()=>void (permission?.canAskAgain?requestPermission():Linking.openSettings())}>Allow camera</Button>:null}
+      {authority.capture&&!permission?.granted&&mode==='scan'?<Button onPress={()=>void (permission?.canAskAgain?requestPermission():Linking.openSettings())}>Allow camera</Button>:null}
       {mode==='capture'&&seconds!==null?<Text className="text-xl font-bold">{t('Time remaining: {time}',{time:`${Math.floor(seconds/60)}:${String(seconds%60).padStart(2,'0')}`})}</Text>:null}
-      {pending?<View style={{gap:12}}><Text className="text-xl font-bold">{busy?'Uploading and checking photo…':'Upload this photo again'}</Text><Image source={{uri:pending.uri}} style={{height:180,width:'100%',borderRadius:16}} resizeMode="contain"/><Text>This picture is temporary. If you close this screen, take it again.</Text><Button size="lg" loading={busy} disabled={!online} onPress={()=>void action(async()=>{if(pending)await sendPhoto(pending,true);})}>Upload again</Button><Button variant="outline" disabled={busy||!online} onPress={()=>void checkResult()}>Check result</Button><Button variant="ghost" disabled={busy||!online} onPress={()=>void beginPhotos()}>Scan task QR and take a new photo</Button></View>:null}
-      {manifest&&mode==='progress'&&!pending?<VerificationProgress manifest={manifest} local={local} rows={[]} online={online} lastUpdated={lastUpdated}/>:null}
-      {!finished&&mode==='progress'&&!pending&&!canSubmit?<Button size="lg" disabled={!online||busy} onPress={()=>{if(slot&&allowed&&!dirty&&!retake)setMode('capture');else void beginPhotos();}}>{dirty?'Clean items, then scan QR':retake?'Scan task QR to retake photos':slot&&allowed?'Continue photos':'Scan task QR to continue photos'}</Button>:null}
-      {!finished&&mode==='capture'&&(!slot||!allowed)&&!busy?<Button size="lg" onPress={()=>void (slot?beginPhotos():action(async()=>{await load();setMode('progress');}))}>{slot?'Scan task QR to renew photo window':'View photo results'}</Button>:null}
+      {pending?<View style={{gap:12}}><Text className="text-xl font-bold">{busy?'Uploading and checking photo…':'Upload this photo again'}</Text><Image source={{uri:pending.uri}} style={{height:180,width:'100%',borderRadius:16}} resizeMode="contain"/><Text>This picture is temporary. If you close this screen, take it again.</Text><Button size="lg" loading={busy} disabled={!online||!authority.upload} onPress={()=>void action(async()=>{if(pending)await sendPhoto(pending,true);})}>Upload again</Button><Button variant="outline" disabled={busy||!online} onPress={()=>void checkResult()}>Check result</Button><Button variant="ghost" disabled={busy||!online||!authority.capture} onPress={()=>void beginPhotos()}>Scan task QR and take a new photo</Button></View>:null}
+      {manifest&&(mode==='progress'||!authority.capture||finished)&&!pending?<VerificationProgress manifest={manifest} local={local} rows={[]} online={online} lastUpdated={lastUpdated}/>:null}
+      {!finished&&authority.capture&&mode==='progress'&&!pending&&!canSubmit?<Button size="lg" disabled={!online||busy} onPress={()=>{if(slot&&allowed&&!dirty&&!retake)setMode('capture');else void beginPhotos();}}>{dirty?'Clean items, then scan QR':retake?'Scan task QR to retake photos':slot&&allowed?'Continue photos':'Scan task QR to continue photos'}</Button>:null}
+      {!finished&&authority.capture&&mode==='capture'&&(!slot||!allowed)&&!busy?<Button size="lg" onPress={()=>void (slot?beginPhotos():action(async()=>{await load();setMode('progress');}))}>{slot?'Scan task QR to renew photo window':'View photo results'}</Button>:null}
       <Button variant="outline" loading={refreshing} disabled={busy||!online} onPress={()=>void action(async()=>{await load();})}>Refresh results</Button>
       <Button variant="ghost" disabled={busy} onPress={()=>navigation.goBack()}>Back to tasks</Button>
     </ScrollView>
     {canSubmit?<View style={{padding:16,paddingBottom:16+insets.bottom,flexShrink:0}} className="border-t border-border"><Text>Your work is ready to submit. Manager review may still be needed.</Text><Button size="lg" loading={busy} disabled={!online} onPress={()=>void submit()}>Submit work</Button></View>:null}
-    {!finished&&mode==='capture'&&slot&&allowed&&!pending?<View style={{padding:16,paddingBottom:16+insets.bottom,flexShrink:0}} className="border-t border-border"><PhotoCaptureControls disabled={!cameraReady||!slotActive||!online} busy={busy} label={busy?busyLabel:'Take photo'} onCapture={()=>void capture()}/></View>:null}
+    {!finished&&authority.capture&&mode==='capture'&&slot&&allowed&&!pending?<View style={{padding:16,paddingBottom:16+insets.bottom,flexShrink:0}} className="border-t border-border"><PhotoCaptureControls disabled={!cameraReady||!slotActive||!online} busy={busy} label={busy?busyLabel:'Take photo'} onCapture={()=>void capture()}/></View>:null}
   </View>;
 }

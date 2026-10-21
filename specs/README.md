@@ -41,7 +41,7 @@ Approved scope: docs/product-discovery/PRODUCT_SCOPE_PROPOSAL.md. Approved desig
 | 34 | [Platform sign-in and security workspace](34-platform-security-ui.md) | 3 | Platform sign-in and security workspace |
 | 35 | [Platform service audit and leads UI](35-platform-service-ui.md) | 6 | Platform service audit and leads UI |
 | 36 | [Truthful task and photo review UX](36-photo-review-ui.md) | 3 | Truthful task and photo review UX |
-| 37 | [Native attendance/photo/account recovery](37-native-workflows.md) | 5 | Native attendance/photo/account recovery |
+| 37 | [Native attendance/photo/account recovery](37-native-workflows.md) | 7 | Native attendance/photo/account recovery |
 | 38 | [Configured support and service information](38-service-information.md) | 6 | Configured support and service information |
 | 39 | [Launch operations and active CI proof](39-release-operations.md) | 7 | Launch operations and active CI proof |
 | 40 | [Launch end-to-end suite](40-e2e-suite.md) | 8 | Launch end-to-end suite |
@@ -54,9 +54,9 @@ Approved scope: docs/product-discovery/PRODUCT_SCOPE_PROPOSAL.md. Approved desig
 - Wave 2: 02, 13, 14, 17, 22, 23, 27.
 - Wave 3: 05, 15, 16, 18, 34, 36.
 - Wave 4: 07, 08, 09, 24, 28.
-- Wave 5: 11, 25, 29, 30, 32, 33, 37.
+- Wave 5: 11, 25, 29, 30, 32, 33.
 - Wave 6: 26, 31, 35, 38.
-- Wave 7: 39.
+- Wave 7: 37, 39.
 - Wave 8: 40.
 - Wave 9: 41.
 
@@ -85,3 +85,5 @@ Spec28 directly consumes14 account action evaluation alongside15 lifecycle metad
 Spec32 directly consumes15 billing lifecycle behavior and27 approved shell in addition to28 shared client types. Those transitive warnings record actual contracts and impose no extra wave. Spec40 consumes28 setup documentation, form entry points, translated copy and styling for its integrated reload/deep-link/role tests; the surface brief is review evidence, never a runtime dependency.
 
 Spec30 consumes28 registered setup/navigation route composition while reusing27 shell; direct27 transitive warning recordsactualshell. Sharedmain/routeseditedserially duringparallelworktreeintegration.
+
+Spec37 directly consumes26 composed manifests/allowedActions and structured forced-password denial, plus09attendance,17credentials,20receipts and21qualification semantics. Their transitive warning is accepted because those actualcontracts are tested directly. Spec37 moves toW7,40remainsW8.40 consumes nativeauth/recovery/navigation/notifications/screens andNATIVE_RECOVERY evidence; nativevisual/device qualification remainsunverified, not impliedbyExpoexport.
