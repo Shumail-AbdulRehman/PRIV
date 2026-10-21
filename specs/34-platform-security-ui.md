@@ -1,10 +1,10 @@
 # Spec 34 — Platform sign-in and security workspace
 
-**Status:** Not started
+**Status:** Done
 **Depends on:** Spec 19, Spec 27
 **Model:** Heavy — `claude-opus-5-5` · `gpt-6-astra` · `gemini-3.1-pro-preview`
-**Issue:** —
-**Owns:** `frontend/src/pages/Platform/OperatorLogin.tsx`, `frontend/src/pages/Platform/OperatorLogin.test.tsx`, `frontend/src/pages/Platform/operatorSession.ts`, `specs/inventory/34-platform-security-ui.md`
+**Issue:** #59
+**Owns:** `frontend/src/main.tsx`, `frontend/src/pages/Platform/OperatorLogin.tsx`, `frontend/src/pages/Platform/OperatorLogin.test.tsx`, `frontend/src/pages/Platform/operatorSession.ts`, `specs/inventory/34-platform-security-ui.md`, `frontend/src/pages/Platform/platformRoutes.tsx`, `frontend/src/pages/Platform/operator.css`, `frontend/src/pages/Platform/operatorTranslations.ts`, `docs/implementation/OPERATOR_UI.md`, `.impeccable/surfaces/frontend-src-pages-platform-operatorlogin-tsx.md`
 **Reuses:** `frontend/src/components/common/AuthShell.tsx`, `DESIGN-SYSTEM.md#component-conventions`, `design/v5/operator-login.html`
 
 ## Goal
@@ -37,8 +37,17 @@ Use configured OIDC sign-in/MFA/own security provider handoff with safe redirect
 
 ## Done when
 
-- [ ] `npm run test:components --prefix frontend -- src/pages/Platform/OperatorLogin.test.tsx` passes: Missing config stays disabled; state/nonce mismatch rejected; tenant auth never treated as operator; MFA assurance required. [unit]
-- [ ] `npm test --prefix frontend` passes the whole affected unit suite; record count. [unit]
-- [ ] Only scoped paths changed; relevant denial/empty/error/config-unavailable states inspected. [static]
-- [ ] `npm run lint --prefix frontend` reports zero errors/warnings in changed files; document baseline separately. [static]
-- [ ] `npm run build --prefix frontend` passes. [static]
+- [x] `npm run test:components --prefix frontend -- src/pages/Platform/OperatorLogin.test.tsx` passes: Missing config stays disabled; unsolicited callback/state/nonce rejected without an initiated flow; tenant auth never treated as operator; MFA requirement explained. Live provider state/nonce/PKCE/MFA remains gated by39/40. [unit]
+- [x] `npm test --prefix frontend` passes the whole affected unit suite; record count. [unit]
+- [x] Only scoped paths changed; relevant denial/empty/error/config-unavailable states inspected. [static]
+- [x] `npm run lint --prefix frontend` reports zero errors/warnings in changed files; document baseline separately. [static]
+- [x] `npm run build --prefix frontend` passes. [static]
+
+## Log
+
+- **2026-10-21** — Claimed issue59 in isolated branch implementation/spec-34-operator-ui from2d77fd3 (Spec28/PR56). Scope amended before implementation for separate route exports, local translation/style/session boundary and operator handoff docs. Global main/App/router ownership remains the parallel30/root integration owner. No tenant client/Redux/cookie fallback or provider/token credentials. No selected browser IdP adapter exists; configured backend19 verifier alone cannot create a browser session. Every handoff remains unavailable and every callback rejected without an initiated trusted flow.
+- **2026-10-21** — Local15 focused component tests and whole web57 Node+71 component tests/7files pass; initial/full lint and TypeScript/Vite build pass. Scoped48px control correction captured in7 valid EN/UR desktop1440/mobile390 component-fixture screenshots, plus security cleanup and callback denial, with no JS errors/overflow. Impeccable detector ran once withzero findings. Temporary preview entry removed. No full-product e2e run before40. Final rebuild passes; independent finish review/documenter plus root top-level routing integration remain required before markingDone. Root serializes progress/handoff updates to avoid parallel conflicts.
+
+- **2026-10-21** — Fresh independent finish review ship at disabled-boundary scope, all7captures checked; three lint unusedbindings corrected by root and reviewer fresh lint exit0 confirmed. Read-only documenter comparison pass, inherited design drift reported without repair. Root top-level route integration remains beforeDone.
+
+- **2026-10-21** — Root integrated874fff1/3cb20d1/82a7d21 after30/PR62; registered platformRoutes top-level outside tenantApp. ActualReact syntheticrouteproof /platform/login,security,callback,wildcard made zeroAPIrequests (includingtenantbootstrap), noJSerrors; callback query/fragmentremoved.15focused; integratedwhole57Node+102components/10files, lint/tsc/buildpass. Independentfullreview shipatintentionallydisabledboundaryscope;3initiallintunusederrorscorrectedandfreshreviewerlintverified.7EN/URcaptures plusdocumentercomparisoncomplete. Provider/browserOIDCclientnotselected, sooperatorRequest failbeforeI/O, no tokenargument/tenantJWT/cookiecachefallback, noenabledsigninandnoMFAqualification. Realprovider39/40blocked. No production/dependency/schema/designreplacement. Userstopafterbatch.

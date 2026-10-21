@@ -185,3 +185,7 @@ Branch implementation/spec-29-attendance-context base28/PR56 at2d77fd3, issue57.
 ## Spec30 integrated checkpoint
 
 Root branch implementation/spec-30-account-integrated based29/PR61 (008c2d3); parallelcommitc38e208 integrated83e8a8c plus48pxtargetfix2b42bad anddocsbe81d57. Owner16verification/recovery,17ownpassword and22versionedname actualAPIs; principal-boundownerstatus; first-importfragmentcapture/scrub, explicitPOST only; mandatorypassword403standalonesecurity withcache/sessionclearandsigninconfirmation.19focused; integrated29+30 whole57Node+87components/9files, lint/type/buildpass. Independentfullreview mobileerroraction48pxfixresolvedbysamereviewer; documentercomparisoncompleted.9syntheticEN/URcapturesvalid, nooverflow/JSerrors, no realmaildelivery/productionqualification. Specs31/32/33/35/36/38/39/40/41 untouched; complete34/37integrationthenSTOP.
+
+## Spec34 integrated checkpoint
+
+Rootbranch implementation/spec-34-operator-integrated base30/PR62 at52c301b; issue59. Top-levelplatformRoutes outsidetenantApp preservefirstownerlinktokenimport; zeroAPImountproof4routes, callbackscrubbed, noJSerrors.15focused; integrated57Node+102components/10files,lint/type/buildpass. Independentreviewer scopedship anddocumentercomparisonpass. MissingrealOIDCclient/provider/MFA qualificationremains39/40external, allauthhandoffdisabledbeforeI/O, notenantreuse. Complete37integration/publishandSTOP; noadditionalunits.

@@ -1,0 +1,17 @@
+.workspace.operator-page { min-height: 100dvh; }
+.operator-header { display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 16px; padding: 20px 32px; border-block-end: 1px solid var(--border); background: var(--card); }
+.operator-content { display: grid; gap: 24px; width: min(100%, 620px); padding: 40px 28px; margin-inline: auto; }
+.operator-content > svg { color: var(--primary); }
+.operator-content > h1 + p { margin-block-start: -12px; color: var(--muted-foreground); }
+.operator-notice { display: grid; gap: 16px; padding: 24px; background: var(--card); border: 1px solid var(--border); border-radius: 10px; }
+.operator-notice p, .operator-requirements { color: var(--muted-foreground); }
+.operator-requirements { display: grid; gap: 12px; padding-inline-start: 20px; list-style: disc; }
+.operator-content .operator-link { display: inline-flex; align-items: center; min-height: 48px; color: var(--primary); text-decoration: underline; text-underline-offset: 4px; width: fit-content; }
+.operator-content :focus-visible { outline: 3px solid var(--primary); outline-offset: 3px; }
+@media (max-width: 620px) {
+  .operator-header { padding: 16px; }
+  .operator-content { padding: 32px 20px; }
+  .operator-notice { padding: 20px; }
+}
+.workspace.operator-page .language-choice button,
+.workspace.operator-page [data-slot="button"] { min-height: 48px; }
