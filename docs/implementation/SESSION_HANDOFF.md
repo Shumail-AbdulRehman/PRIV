@@ -1,3 +1,100 @@
+# Implementation handoff — 2026-10-21, Specs31/36 complete — STOP
+
+## Current verified state
+
+Latest user explicitly requested two simultaneous implementation agents in isolated worktrees, followed by independent review, combined verification, documentation and STOP. That batch is complete. Decision00 and34 of41 execution/gate units are Done; **7 remain:32,33,35,38,39,40,41**. No other specification was started. No PR merge, deployment, production mutation, destructive migration or new dependency.
+
+Both11/17/27 and20/21 dependencies were independently checked against full specs/PROGRESS and actual Git ancestry. Both implementation branches start from the same dependency-complete37/PR64, with no31↔36 edge. Common prerequisite26000a7 fixes only the inherited native translation import extension so Node parity tests resolve;101 native tests and native tsc passed. It fast-forwarded37/PR64, with no feature scope expansion or history rewrite.
+
+## Branches and draft reviews
+
+- **31:** `/tmp/hygene-spec31`, `implementation/spec-31-workforce-management`; implementation0264ad9, completion metadata325149f. Issue65 https://github.com/Shumail-AbdulRehman/PRIV/issues/65; **draft PR68** https://github.com/Shumail-AbdulRehman/PRIV/pull/68.
+- **36:** `/tmp/hygene-spec36`, `implementation/spec-36-photo-review-clarity`; implementatione3c3f4a, completion metadata628545f. Issue66 https://github.com/Shumail-AbdulRehman/PRIV/issues/66; **draft PR67** https://github.com/Shumail-AbdulRehman/PRIV/pull/67.
+- Both PRs confirmed OPEN/DRAFT, base `implementation/spec-37-native-integrated` at26000a7/PR64. All earlier stacked drafts remain unmerged. Neither31 nor36 depends on the other's PR. The evidence subagent reached its usage limit after its final documentation commit; coordinator verified that628545f was already pushed.
+- Current checkout **`implementation/spec-31-36-verification`** combines both through scoped cherry-picks9de1347(36),99592ad(31),8e3b3f1/b3a30c3(metadata). Shared progress/handoff/validator final checkpoint lives here, preserving both independently reviewable branches. This is a verification branch, not a production merge or deployment.
+- Only application conflict was the shared translation registry. Coordinator retained both imports/lookups (`reviewUrdu` and `workforceUrdu`) and reran the complete frontend suite/lint/build. Human merge review should retain both registrations; the combined branch contains the resolved result. Do not make36 depend on31 just to resolve this textual conflict.
+
+## Implemented behavior
+
+**31:** Real staff list/detail and manager forms now expose reasoned history-preserving deactivate/archive, assigned-site transfer with expected source and open-shift denial/draft preservation, manager hire site requirement, and current-password one-use recovery code. The code stays out of browser storage/query/mutation caches, is cleared on dialog close/principal changes and is displayed without refresh unmounting the detail. Existing APIs revoke credentials/push/capture and preserve historical attendance/task/evidence. Manager handover deliberately uses two persisted steps: deactivate/release sites, then assign released sites to an active replacement using the existing editor. Other-account manager password replacement and general restore remain unavailable. Misleading reasonless permanent-delete row controls were replaced; shared DeleteButton retained-history fallback for other entities is unchanged. New workforce actions/form controls have measured48px targets, English/Urdu/RTL and busy/error feedback.
+
+**36:** Actual review queue/detail independently render current upload receipts, persisted task submission, attributed manager closure/note and only persisted VERIFIED_COMPLETE as verified. Closing a review never grants verification. New authorized read-only per-view context reuses20 failed-view/current assignment guard and21 qualification, separating policy eligibility from service availability. Held/outage/unknown evidence never implies dirty,403/404/410/network evidence states differ, and protected credentialed blob access is retained. Existing resolve-review/performance-issue actions remain the only closure workflows. No retired extension, waiver or manual manager retake actions were restored; no fabricated AI scores/results. Real new photo processing stays disabled pending genuine privacy/production qualification.
+
+## Independent verification
+
+Coordinator reviewed both actual diffs and representative desktop/mobile English/Urdu renders, then verified the combined application source:
+
+- `DATABASE_URL=<explicit isolated loopback test URL> LAUNCH_PERSISTENCE_TEST_DATABASE_URL=<same> npm test --prefix backend`: **1433 tests/94files, zero skips**. Includes new replacement DTO/helper/Express authorization reads and existing role/company/site/private-media/closure policies.
+- `npm test --prefix frontend`: **57 Node +142 React component tests/12files**, zero failures/skips.
+- `npm run lint --prefix frontend`: **zero errors/warnings**.
+- `npm run build --prefix frontend` and `npm run build --prefix backend`: **pass**, including TypeScript. No backend lint script exists. The frontend emits a non-failing plugin timing advisory, not a compilation warning/error.
+- Coordinator separately reran guarded `backend/tests/workforceLifecycle.integration.ts` and `backend/tests/credentialHandoff.integration.ts` against `postgresql://shumail@127.0.0.1:56439/hygene_launch_test`: **both PASS**. Proved upload/transfer race, open-shift denial, original history, revoked captures/epochs/push/session, manager site release, wrong-site recovery denial, hash-only code, one-winner consumption, old access/refresh/logout denial and secret-free credential audits. Synthetic local entitlement/catalog only; no provider or production data.
+- Per-branch31:18focused React;57+120whole web;50focused backend; backend/web builds, frontend lint, native101+tsc. Per-branch36:22focused React;57+124whole web;98focused backend/9files (17new), frontend/backend tsc, web lint/build. Exact commands/details in spec Logs/inventories.
+- Each engineer inspected16 synthetic API-intercepted actual React presentation captures (EN/UR ×390/1440):31 transfer/handoff/manager/conflict,36 outage/resolved/missing/denied. No page overflow/JS errors.31 final mobile transfer targets measured48px and dialog bounds fit viewport. These screenshots/component fixtures are **not integrated product/device/provider E2E proof**. Whole-product E2E remains40; no release qualification inferred.
+
+Logs: `/tmp/hygene-spec31-36-{combined-backend,combined-web,backend-build,web-build,lint,workforce-sql,credential-sql}.log`; per-agent logs `/tmp/hygene-spec31-*` and `/tmp/hygene-spec36-*`. Captures `/tmp/hygene-spec31-captures/`, `/tmp/hygene-spec36-visual/`; temporary artifacts may vanish. Durable contracts: inventory31/inventory36 and `docs/implementation/PHOTO_REVIEW_UI.md`. Validator evidence: `docs/implementation/planning/validator.md`.
+
+## Changed files
+
+### Spec31
+
+- `backend/tests/credentialHandoff.integration.ts`
+- `backend/tests/workforceLifecycle.integration.ts`
+- `frontend/src/i18n/translations.ts`
+- `frontend/src/i18n/workforceTranslations.ts`
+- `frontend/src/pages/Managers/ManagerAccessActions.tsx`
+- `frontend/src/pages/Managers/ManagerFormDialog.tsx`
+- `frontend/src/pages/Managers/ManagersPage.tsx`
+- `frontend/src/pages/Staff/StaffCreateDialog.tsx`
+- `frontend/src/pages/Staff/StaffDetailPage.tsx`
+- `frontend/src/pages/Staff/StaffPage.tsx`
+- `frontend/src/pages/Staff/WorkforceActions.test.tsx`
+- `frontend/src/pages/Staff/WorkforceActions.tsx`
+- `specs/11-workforce-lifecycle-api.md`
+- `specs/18-credential-revocation.md`
+- `specs/28-setup-ui.md`
+- `specs/29-attendance-context-ui.md`
+- `specs/30-account-ui.md`
+- `specs/31-workforce-ui.md`
+- `specs/inventory/31-workforce-ui.md`
+
+### Spec36
+
+- `backend/src/routes/verificationException.launchReview.test.ts`
+- `backend/src/routes/verificationException.route.ts`
+- `backend/src/services/verification-v2/launchReviewContext.test.ts`
+- `backend/src/services/verification-v2/launchReviewContext.ts`
+- `docs/implementation/PHOTO_REVIEW_UI.md`
+- `frontend/src/i18n/reviewTranslations.ts`
+- `frontend/src/i18n/translations.ts`
+- `frontend/src/pages/Exceptions/ExceptionDetailPage.tsx`
+- `frontend/src/pages/Exceptions/ExceptionInboxPage.tsx`
+- `frontend/src/pages/Exceptions/LaunchReviewContext.test.tsx`
+- `frontend/src/pages/Exceptions/LaunchReviewContext.tsx`
+- `frontend/src/pages/Exceptions/launch-review.css`
+- `frontend/src/pages/Exceptions/reviewDiagnosis.ts`
+- `frontend/src/pages/Exceptions/types.ts`
+- `frontend/src/pages/Verification/ProtectedEvidence.tsx`
+- `specs/26-launch-api-composition.md`
+- `specs/36-photo-review-ui.md`
+- `specs/inventory/36-photo-review-ui.md`
+
+### Shared coordination and prerequisite correction
+
+- `frontend-mobile/src/i18n/translations.ts`: shared prerequisite import-only correction26000a7, kept in37/PR64.
+- `specs/PROGRESS.md`, `specs/README.md`, `specs/40-e2e-suite.md`, `docs/implementation/SESSION_HANDOFF.md`, `docs/implementation/planning/validator.md`: verified status, consumers, final handoff and validation evidence. Completion metadata updates only the assigned31/36 specification Logs.
+
+## Remaining limitations and next eligible work
+
+No unresolved local implementation failures. Manager handover is explicitly two persisted actions, not an invented atomic HR workflow. Real consented photo/privacy qualification, live OIDC/MFA/provisioned operators, verified delivery/support, Paddle/catalog/terms, legal/retention/exit, hosting/TLS/backups, signing/device and customer/calendar qualification remain39/40 external gates.31/36 do not enable any of these. Real new photo processing remains disabled21.
+
+**Next eligible:32**, consuming15/27/28Done;33,35,38 also eligible.39 is locally dependency-eligible via03/26 but its actual external operations qualification remains incomplete.40 requires remaining01–39;41 requires40. Identify only; **STOP — do not implement another specification without a fresh instruction.**
+
+All eight original dirty tracked files passed the byte-for-byte preservation check before temporary runtime cleanup; existing dashboard/performance/CI/package/manager translations and unrelated untracked design/skills/investor-video were excluded from commits. Preserve those files and prior worktree registrations. After the final continuation, temporary worktrees, SQL infrastructure, raw logs/captures and preservation JSON were no longer present; their Git branches, implementation commits, published PRs and durable verification records remain. Do not mistake prunable worktree registrations for missing implementation commits. Recreate isolated infrastructure only if future changes require retesting. Agents used distinct frontend ports5195/5196/5197 with API mocks and isolated Vite caches; SQL/build generation serialized between agents. Existing root backend/frontend dev processes are not ours and must not be stopped. No production environment loaded to choose a database.
+
+## Historical handoff (prior batches; superseded by the verified checkpoint above)
+
+
 # Implementation handoff — 2026-10-21, requested batch29/30/34/37 complete — STOP checkpoint
 
 ## Current continuation state

@@ -2,7 +2,7 @@
 
 Source of truth for execution; latest user authorization supersedes old pending labels. Approved v5 preserved.
 
-**Safe checkpoint after requested batch:** decision00 and32 of41 execution/gate units Done; **9 remain:31,32,33,35,36,38,39,40,41**. Execution01–30 plus34/37 are complete locally. User requested stop after29/30/34/37; do not begin further specifications without a new instruction. Review remains stacked draft PRs, not merged. External qualification/device gates remain unverified.
+**Verified priority batch complete:** decision00 and34 of41 execution/gate units Done; **7 remain:32,33,35,38,39,40,41**. Specs31/36 were implemented concurrently by two engineers in isolated worktrees, reviewed independently and checked together on `implementation/spec-31-36-verification`. Draft PR68(31) and67(36) independently target37/PR64; neither depends on the other. No PR merged or production change. STOP after this batch; next eligible32 identified only.
 
 | # | Spec | Status | Depends on | Model | Issue | Notes |
 |---|---|---|---|---|---|---|
@@ -37,12 +37,12 @@ Source of truth for execution; latest user authorization supersedes old pending 
 | 28 | [Real derived setup and operational dashboard](28-setup-ui.md) | Done | 12, 14, 15, 27 | Standard | #55 | 16 focused/57+56 web;1416 backend; see Log |
 | 29 | [Attendance exception context UI](29-attendance-context-ui.md) | Done | 23, 27, 08 | Standard | #57 |12focused/57+68web; seeLog |
 | 30 | [Account settings and recovery UI](30-account-ui.md) | Done | 16, 17, 22, 27, 28 | Standard | #58 |19focused/realaccountAPIs; seeLog |
-| 31 | [Workforce access and transfer UI](31-workforce-ui.md) | Not started | 11, 17, 27 | Standard | — | See spec |
+| 31 | [Workforce access and transfer UI](31-workforce-ui.md) | Done | 11, 17, 27 | Standard | #65 | PR68;18focused; SQL proofs; see Log |
 | 32 | [Real subscription lifecycle UI](32-billing-ui.md) | Not started | 15, 27, 28 | Standard | — | Shared lifecycle client from28 |
 | 33 | [Platform company workspace](33-platform-company-ui.md) | Not started | 24, 27 | Standard | — | See spec |
 | 34 | [Platform sign-in and security workspace](34-platform-security-ui.md) | Done | 19, 27 | Heavy | #59 |15focused; isolatedoperatorroutes; seeLog |
 | 35 | [Platform service audit and leads UI](35-platform-service-ui.md) | Not started | 25, 27 | Standard | — | See spec |
-| 36 | [Truthful task and photo review UX](36-photo-review-ui.md) | Not started | 20, 21, 27 | Standard | — | See spec |
+| 36 | [Truthful task and photo review UX](36-photo-review-ui.md) | Done | 20, 21, 27 | Standard | #66 | PR67;22focused;17new backend; see Log |
 | 37 | [Native attendance/photo/account recovery](37-native-workflows.md) | Done | 09, 17, 20, 21, 26 | Standard | #60 |101native/tsc/Expoexport; deviceunverified |
 | 38 | [Configured support and service information](38-service-information.md) | Not started | 27, 25 | Standard | — | Contact availability consumes25 |
 | 39 | [Launch operations and active CI proof](39-release-operations.md) | Not started | 03, 26 | Heavy | — | See spec |
@@ -105,3 +105,9 @@ Source of truth for execution; latest user authorization supersedes old pending 
 - **2026-10-21** — Requestedparallelbatch29/30/34/37 complete locally and reviewed atactualevidencescope. Integratedweb57Node+102components/10files,lint/type/build; native101tests/zeroskips,typecheck/Expoexport.32of41Done,9remain31/32/33/35/36/38/39/40/41. Stopperlatestuser. Nexteligible31 (11/17/27Done);32,33,35,36,38alsoeligible,39localoperationseligiblebutexternalqualificationblocked.40/41noteligibleuntiltheirrequiredgates.
 
 - **2026-10-21** — BatchpublishedasstackeddraftsPR61/62/63/64 (29/30/34/37), allOPEN/DRAFTconfirmed, basechain28→29→30→34→37.32Done/9remain, no merge/deploy. STOPcheckpoint reached peruser.
+
+- **2026-10-21** — New user authorization overrides prior stop/order: implement31 then36 only, each verified and published separately; no other unit started.
+
+- **2026-10-21** — Latest user supersedes sequential order with two-agent parallel implementation in isolated worktrees.31 issue65 and36 issue66 share dependency-complete19eec29/PR64 base, no cross-edge. Root owns tracker/handoff; per-spec agents own code/log/inventory. Shared node_modules are read-only except serialized backend generation; SQL proofs serialized by coordinator.
+
+- **2026-10-21** — Parallel31/36 completed and independently reviewed:31 implementation0264ad9 / draftPR68;36 implementatione3c3f4a / draftPR67. Both base common37/PR64 at26000a7 (one-line native import correction;101native tests+tsc pass). Coordinator combined verification:1433 backend tests/94files/zero skips;57Node+142React tests/12files; full web lint0, backend/web TypeScript builds pass; actual isolated workforce and credential SQL proofs rerun PASS. Secure role/site/company boundaries, transfer conflicts/history/revocation, one-use recovery, lifecycle distinctions and evidence errors covered.16 synthetic EN/UR390/1440 presentation captures per spec plus31 mobile48px measurements; no live product E2E/device/provider qualification claim. Translation registry conflict resolved retaining both dictionaries; no other application conflict. Original eight dirty tracked files preserved byte-for-byte, unrelated untracked work unstaged. No schema/dependency/production change or merge.34Done/7remaining. Next eligible32 (15/27/28Done);33/35/38 also eligible,39 external operational qualification incomplete.40/41 not eligible. STOP.

@@ -87,3 +87,7 @@ Spec32 directly consumes15 billing lifecycle behavior and27 approved shell in ad
 Spec30 consumes28 registered setup/navigation route composition while reusing27 shell; direct27 transitive warning recordsactualshell. Sharedmain/routeseditedserially duringparallelworktreeintegration.
 
 Spec37 directly consumes26 composed manifests/allowedActions and structured forced-password denial, plus09attendance,17credentials,20receipts and21qualification semantics. Their transitive warning is accepted because those actualcontracts are tested directly. Spec37 moves toW7,40remainsW8.40 consumes nativeauth/recovery/navigation/notifications/screens andNATIVE_RECOVERY evidence; nativevisual/device qualification remainsunverified, not impliedbyExpoexport.
+
+Spec31 serially consumes existing staff/manager parent forms and workforce dictionary; these are runtime callers of the owned actions. Consumer40 validates their integrated lifecycle flows. No new execution dependency on36.
+
+Priority31/36 completed concurrently in isolated branches based37/PR64; neither depends on the other. Shared translation registration was resolved only on the verification branch, retaining both dictionaries. Next eligible32 is recorded but not started; see current PROGRESS/handoff. Original eight validator warnings remain justified above; new runtime callers/read DTO consumers are explicitly named in40.
