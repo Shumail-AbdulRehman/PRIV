@@ -2,7 +2,7 @@
 
 Source of truth for execution; latest user authorization supersedes old pending labels. Approved v5 preserved.
 
-**Verified priority batch complete:** decision00 and34 of41 execution/gate units Done; **7 remain:32,33,35,38,39,40,41**. Specs31/36 were implemented concurrently by two engineers in isolated worktrees, reviewed independently and checked together on `implementation/spec-31-36-verification`. Draft PR68(31) and67(36) independently target37/PR64; neither depends on the other. No PR merged or production change. STOP after this batch; next eligible32 identified only.
+**Spec32 complete:** decision00 and35 of41 execution/gate units Done; **6 remain:33,35,38,39,40,41**. Current unit32 implemented and verified on `implementation/spec-32-billing-ui`, based completed31/36 verification checkpointb21dcca. Prior31/36 draft PRs68/67 remain independent and open; no merge/deployment. Stop after32; next eligible33 identified only.
 
 | # | Spec | Status | Depends on | Model | Issue | Notes |
 |---|---|---|---|---|---|---|
@@ -38,7 +38,7 @@ Source of truth for execution; latest user authorization supersedes old pending 
 | 29 | [Attendance exception context UI](29-attendance-context-ui.md) | Done | 23, 27, 08 | Standard | #57 |12focused/57+68web; seeLog |
 | 30 | [Account settings and recovery UI](30-account-ui.md) | Done | 16, 17, 22, 27, 28 | Standard | #58 |19focused/realaccountAPIs; seeLog |
 | 31 | [Workforce access and transfer UI](31-workforce-ui.md) | Done | 11, 17, 27 | Standard | #65 | PR68;18focused; SQL proofs; see Log |
-| 32 | [Real subscription lifecycle UI](32-billing-ui.md) | Not started | 15, 27, 28 | Standard | — | Shared lifecycle client from28 |
+| 32 | [Real subscription lifecycle UI](32-billing-ui.md) | Done | 15, 27, 28 | Standard | #69 |PR70;23focused;57+165web;109backend |
 | 33 | [Platform company workspace](33-platform-company-ui.md) | Not started | 24, 27 | Standard | — | See spec |
 | 34 | [Platform sign-in and security workspace](34-platform-security-ui.md) | Done | 19, 27 | Heavy | #59 |15focused; isolatedoperatorroutes; seeLog |
 | 35 | [Platform service audit and leads UI](35-platform-service-ui.md) | Not started | 25, 27 | Standard | — | See spec |
@@ -111,3 +111,9 @@ Source of truth for execution; latest user authorization supersedes old pending 
 - **2026-10-21** — Latest user supersedes sequential order with two-agent parallel implementation in isolated worktrees.31 issue65 and36 issue66 share dependency-complete19eec29/PR64 base, no cross-edge. Root owns tracker/handoff; per-spec agents own code/log/inventory. Shared node_modules are read-only except serialized backend generation; SQL proofs serialized by coordinator.
 
 - **2026-10-21** — Parallel31/36 completed and independently reviewed:31 implementation0264ad9 / draftPR68;36 implementatione3c3f4a / draftPR67. Both base common37/PR64 at26000a7 (one-line native import correction;101native tests+tsc pass). Coordinator combined verification:1433 backend tests/94files/zero skips;57Node+142React tests/12files; full web lint0, backend/web TypeScript builds pass; actual isolated workforce and credential SQL proofs rerun PASS. Secure role/site/company boundaries, transfer conflicts/history/revocation, one-use recovery, lifecycle distinctions and evidence errors covered.16 synthetic EN/UR390/1440 presentation captures per spec plus31 mobile48px measurements; no live product E2E/device/provider qualification claim. Translation registry conflict resolved retaining both dictionaries; no other application conflict. Original eight dirty tracked files preserved byte-for-byte, unrelated untracked work unstaged. No schema/dependency/production change or merge.34Done/7remaining. Next eligible32 (15/27/28Done);33/35/38 also eligible,39 external operational qualification incomplete.40/41 not eligible. STOP.
+
+- **2026-10-21** — User authorizes the next unit32, superseding prior STOP for this unit only. Issue69, branch implementation/spec-32-billing-ui based completed verification checkpointb21dcca. Dependencies15/27/28 verified in history; unrelated dirty changes preserved.
+
+- **2026-10-21** — Spec32 complete locally: real provider lifecycle/capacity/restricted-owner recovery, owner-only catalog, existing-subscriber portal and server-created transaction checkout with uncertainty/reconciliation safety. Removed public price-only purchase and fixed trial claims; legacy return remains pending until provider facts.23focused React,57Node+165React whole web/13files,109backend/3files, frontend lint0+TypeScript/build pass;16 synthetic EN/UR390/1440 renders pass, buttons48px. No live billing, provider qualification, schema/dependency or production changes.35Done/6remaining; next eligible33 (24/27Done), also35/38,39 locally eligible with external qualification blocked;40/41 not eligible. Stop after scoped commit/draft publication.
+
+- **2026-10-21** — Published32 implementation9a08f78 as draftPR70: https://github.com/Shumail-AbdulRehman/PRIV/pull/70, based verified31/36 checkpointb21dcca; currentbranch implementation/spec-32-billing-ui.35Done/6remaining. Stop reached; no33 implementation, merge, deployment or production action.
