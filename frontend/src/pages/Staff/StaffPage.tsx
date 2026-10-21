@@ -1,18 +1,17 @@
+import { useLanguage } from "@/i18n/context";
+import WorkforceActions from "./WorkforceActions";
 import StaffCreateDialog from "./StaffCreateDialog";
 import OperationsState from "../Manager/OperationsState";
-import DeleteButton from "@/components/common/DeleteButton";
 import { useState } from "react";
 import { useNavigate, useSearchParams } from "react-router-dom";
 import { formatInTimeZone, fromZonedTime } from "date-fns-tz";
 import {
   useGetStaff,
-  useDeleteStaff,
   useEditStaff,
   getStaffDetailsQueryOptions,
 } from "./queries";
 import type { EditStaffInput } from "./api";
 import { useGetLocations } from "../Location/queries";
-import { useAssignStaffToLocation } from "../Assignment/queries";
 import PageHeader from "@/components/common/PageHeader";
 import DataTable from "@/components/common/DataTable";
 import StatusBadge from "@/components/common/StatusBadge";
@@ -82,13 +81,12 @@ const inputCls =
   "flex h-11 w-full rounded-lg border border-border/80 bg-background/90 px-4 py-2 text-sm shadow-xs outline-none focus:border-primary/60 focus:ring-4 focus:ring-primary/10";
 
 export default function StaffPage() {
+  const { t } = useLanguage();
   const staffQuery = useGetStaff();
   const { data, isLoading } = staffQuery;
   const [success, setSuccess] = useState("");
   const locationsQuery = useGetLocations();
-  const deleteStaff = useDeleteStaff();
   const editStaffMutation = useEditStaff();
-  const assignLocation = useAssignStaffToLocation();
   const queryClient = useQueryClient();
   const navigate = useNavigate();
 
@@ -210,15 +208,6 @@ export default function StaffPage() {
           );
         });
       }
-      const newLoc = editForm.locationId ? Number(editForm.locationId) : null;
-      if (newLoc && newLoc !== editingStaff.locationId) {
-        await new Promise<void>((resolve, reject) => {
-          assignLocation.mutate(
-            { staffId: editingStaff.id, locationId: newLoc },
-            { onSuccess: () => resolve(), onError: (err) => reject(err) },
-          );
-        });
-      }
       setEditingStaff(null);
       setSuccess("Team member changes saved.");
     } catch (err: unknown) {
@@ -303,11 +292,8 @@ export default function StaffPage() {
             <Pencil className="h-4 w-4" />
             <span>Edit</span>
           </button>
-          <DeleteButton
-            name={s.name}
-            description="Their account, attendance, assignments, and submitted evidence will be removed. Site task schedules will become unassigned."
-            onDelete={() => deleteStaff.mutateAsync(s.id)}
-          />
+          <WorkforceActions person={s} locations={locations} />
+
         </div>
       ),
     },
@@ -449,28 +435,7 @@ export default function StaffPage() {
                   }
                 />
               </div>
-              <div>
-                <label
-                  htmlFor="staff-create-locationId"
-                  className="mb-1.5 block text-sm font-medium text-foreground"
-                >
-                  Location
-                </label>
-                <select
-                  value={editForm.locationId}
-                  onChange={(e) =>
-                    setEditForm({ ...editForm, locationId: e.target.value })
-                  }
-                  className={inputCls}
-                >
-                  <option value="">Unassigned</option>
-                  {locations.map((l) => (
-                    <option key={l.id} value={l.id}>
-                      {l.name}
-                    </option>
-                  ))}
-                </select>
-              </div>
+              <p className="text-sm text-muted-foreground">{t("Use Staff access to transfer sites with a reason and open-shift checks.")}</p>
               <div className="grid grid-cols-2 gap-4">
                 <div>
                   <label className="mb-1.5 block text-sm font-medium text-foreground">
@@ -514,14 +479,13 @@ export default function StaffPage() {
                   onClick={handleEditSave}
                   disabled={
                     editStaffMutation.isPending ||
-                    assignLocation.isPending ||
                     !editForm.name.trim() ||
                     !editForm.email.trim() ||
                     !editForm.phone.trim()
                   }
                   className="flex-1 rounded-lg"
                 >
-                  {editStaffMutation.isPending || assignLocation.isPending
+                  {editStaffMutation.isPending
                     ? "Saving..."
                     : "Save changes"}
                 </Button>

@@ -4,7 +4,7 @@
 **Depends on:** Spec 09, Spec 10
 **Model:** Heavy — `claude-opus-5-5` · `gpt-6-astra` · `gemini-3.1-pro-preview`
 **Issue:** #31
-**Owns:** `backend/tests/workforceLifecycle.integration.ts`, `backend/src/controllers/assignment.controller.ts`, `backend/src/services/verification-v2/retention.service.ts`, `backend/src/services/workforceLifecycle.service.ts`, `specs/inventory/11-workforce-lifecycle-api.md`
+**Owns:** `backend/src/controllers/assignment.controller.ts`, `backend/src/services/verification-v2/retention.service.ts`, `backend/src/services/workforceLifecycle.service.ts`, `specs/inventory/11-workforce-lifecycle-api.md`
 **Reuses:** `backend/src/services/verification-v2/retention.service.ts`, `backend/src/services/taskAssignment.service.ts`
 
 ## Goal

@@ -1,4 +1,5 @@
 import { reviewUrdu } from "./reviewTranslations.ts";
+import { workforceUrdu } from "./workforceTranslations.ts";
 import { accountUrdu } from "./accountTranslations.ts";
 import { attendanceContextUrdu } from "./attendanceContextTranslations.ts";
 import { setupUrdu } from "./setupTranslations.ts";
@@ -605,7 +606,7 @@ export function translate(
   values: Record<string, string | number> = {},
 ): string {
   const template =
-    language === "ur" ? (reviewUrdu[text] ?? accountUrdu[text] ?? attendanceContextUrdu[text] ?? setupUrdu[text] ?? launchUrdu[text] ?? attendancePhotoUrdu[text] ?? managerUrdu[text] ?? urdu[text] ?? text) : text;
+    language === "ur" ? (reviewUrdu[text] ?? workforceUrdu[text] ?? accountUrdu[text] ?? attendanceContextUrdu[text] ?? setupUrdu[text] ?? launchUrdu[text] ?? attendancePhotoUrdu[text] ?? managerUrdu[text] ?? urdu[text] ?? text) : text;
   return template.replace(/\{(\w+)\}/g, (token, key: string) =>
     String(values[key] ?? token),
   );

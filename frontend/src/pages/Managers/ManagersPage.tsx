@@ -1,4 +1,4 @@
-import DeleteButton from "@/components/common/DeleteButton";
+import ManagerAccessActions from "./ManagerAccessActions";
 import { useState } from "react";
 import { Link } from "react-router-dom";
 import {
@@ -21,7 +21,7 @@ import { useLanguage } from "@/i18n/context";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { useGetLocations } from "../Location/queries";
-import { useGetManagers, useDeleteManager } from "./queries";
+import { useGetManagers } from "./queries";
 import ManagerFormDialog from "./ManagerFormDialog";
 import type { LocationWithCounts } from "../Location/types";
 import type { Manager } from "./types";
@@ -29,8 +29,7 @@ import type { Manager } from "./types";
 export default function ManagersPage() {
   const { t } = useLanguage();
   const getManagers = useGetManagers(),
-    getLocations = useGetLocations(),
-    deleteManager = useDeleteManager();
+    getLocations = useGetLocations();
   const [dialogOpen, setDialogOpen] = useState(false);
   const [editingManager, setEditingManager] = useState<Manager | null>(null);
   const [search, setSearch] = useState("");
@@ -192,6 +191,7 @@ export default function ManagersPage() {
                   <div className="flex gap-2">
                     <Button
                       variant="outline"
+                      disabled={!m.isActive}
                       onClick={() => {
                         setEditingManager(m);
                         setDialogOpen(true);
@@ -200,14 +200,8 @@ export default function ManagersPage() {
                       <Pencil size={14} />
                       {t("Edit")}
                     </Button>
-                    <DeleteButton
-                      name={m.name}
-                      description="Their manager account and location access will be removed."
-                      onDelete={async () => {
-                        await deleteManager.mutateAsync(m.id);
-                        setSuccess("Manager removed.");
-                      }}
-                    />
+                    <ManagerAccessActions manager={m} />
+
                   </div>
                 ),
               },
