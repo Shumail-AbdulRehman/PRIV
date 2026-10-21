@@ -25,6 +25,8 @@ export async function operatorRequest<T>(
   _path: string,
   _options?: { method?: 'GET' | 'POST' | 'PATCH'; body?: unknown; signal?: AbortSignal },
 ): Promise<T> {
+  void _path;
+  void _options;
   throw new OperatorUnavailableError();
 }
 

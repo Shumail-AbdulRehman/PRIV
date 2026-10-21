@@ -91,6 +91,7 @@ export function OperatorSecurity() {
 }
 
 /** No tenant role/Redux state can enter an operator surface. */
-export function OperatorBoundary({ children: _children }: { children: ReactNode }) {
+export function OperatorBoundary(props: { children: ReactNode }) {
+  void props.children;
   return <OperatorLogin />;
 }
