@@ -4,7 +4,7 @@
 **Depends on:** Spec 06
 **Model:** Heavy — `claude-opus-5-5` · `gpt-6-astra` · `gemini-3.1-pro-preview`
 **Issue:** #35
-**Owns:** `frontend/src/main.tsx`, `frontend/src/workspace-refresh.css`, `frontend/src/i18n/launchTranslations.ts`, `frontend/src/routes/launchPages.tsx`, `frontend/src/routes/launchPages.test.tsx`, `specs/inventory/27-workspace-shell.md`
+**Owns:** `frontend/src/workspace-refresh.css`, `frontend/src/i18n/launchTranslations.ts`, `frontend/src/routes/launchPages.tsx`, `specs/inventory/27-workspace-shell.md`
 **Reuses:** `frontend/src/components/common/LanguageChoice.tsx`, `frontend/src/components/common/PageHeader.tsx`, `frontend/src/i18n/LanguageProvider.tsx`, `DESIGN-SYSTEM.md#component-conventions`, `design/v5/overview.html`
 
 ## Goal
@@ -51,3 +51,5 @@ Translate approved shell/spacing/fonts/navigation into existing reusable compone
 - **2026-10-20** — Removed the owner-wide forced plan-selection redirect so unpaid accounts can reach approved read-only operations; server mutation gates remain required. Future account policy composition26 must finish legacy starts/jobs/capacity handoff. No sample records or prototypes added to app.
 
 - **2026-10-21** — Serialized setup integration ownership transferred to28 for existing route/nav/translation/form/readiness/API seams. Preserve previous behavior; subsequent feature edits must amend ownership again.
+
+- **2026-10-21** — Serialized shared integration ownership handed to30 for actual account/settings/recovery routes, navigation and dictionary registration; existing behavior preserved.
