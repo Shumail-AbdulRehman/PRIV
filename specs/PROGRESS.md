@@ -38,7 +38,7 @@ Source of truth for execution; latest user authorization supersedes old pending 
 | 29 | [Attendance exception context UI](29-attendance-context-ui.md) | Done | 23, 27, 08 | Standard | #57 |12focused/57+68web; seeLog |
 | 30 | [Account settings and recovery UI](30-account-ui.md) | Done | 16, 17, 22, 27, 28 | Standard | #58 |19focused/realaccountAPIs; seeLog |
 | 31 | [Workforce access and transfer UI](31-workforce-ui.md) | Done | 11, 17, 27 | Standard | #65 | PR68;18focused; SQL proofs; see Log |
-| 32 | [Real subscription lifecycle UI](32-billing-ui.md) | Done | 15, 27, 28 | Standard | #69 |23focused;57+165web;109backend; see Log |
+| 32 | [Real subscription lifecycle UI](32-billing-ui.md) | Done | 15, 27, 28 | Standard | #69 |PR70;23focused;57+165web;109backend |
 | 33 | [Platform company workspace](33-platform-company-ui.md) | Not started | 24, 27 | Standard | — | See spec |
 | 34 | [Platform sign-in and security workspace](34-platform-security-ui.md) | Done | 19, 27 | Heavy | #59 |15focused; isolatedoperatorroutes; seeLog |
 | 35 | [Platform service audit and leads UI](35-platform-service-ui.md) | Not started | 25, 27 | Standard | — | See spec |
@@ -115,3 +115,5 @@ Source of truth for execution; latest user authorization supersedes old pending 
 - **2026-10-21** — User authorizes the next unit32, superseding prior STOP for this unit only. Issue69, branch implementation/spec-32-billing-ui based completed verification checkpointb21dcca. Dependencies15/27/28 verified in history; unrelated dirty changes preserved.
 
 - **2026-10-21** — Spec32 complete locally: real provider lifecycle/capacity/restricted-owner recovery, owner-only catalog, existing-subscriber portal and server-created transaction checkout with uncertainty/reconciliation safety. Removed public price-only purchase and fixed trial claims; legacy return remains pending until provider facts.23focused React,57Node+165React whole web/13files,109backend/3files, frontend lint0+TypeScript/build pass;16 synthetic EN/UR390/1440 renders pass, buttons48px. No live billing, provider qualification, schema/dependency or production changes.35Done/6remaining; next eligible33 (24/27Done), also35/38,39 locally eligible with external qualification blocked;40/41 not eligible. Stop after scoped commit/draft publication.
+
+- **2026-10-21** — Published32 implementation9a08f78 as draftPR70: https://github.com/Shumail-AbdulRehman/PRIV/pull/70, based verified31/36 checkpointb21dcca; currentbranch implementation/spec-32-billing-ui.35Done/6remaining. Stop reached; no33 implementation, merge, deployment or production action.

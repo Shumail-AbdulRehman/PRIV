@@ -6,7 +6,7 @@ Latest user authorized the next specification only and requested notification wh
 
 Branch `implementation/spec-32-billing-ui` is based on completed integration checkpointb21dcca (`implementation/spec-31-36-verification`), which includes both independent31/36 implementations and their resolved dictionary registration. Spec32 actual dependencies15/27/28 are Done and verified Git ancestors; no new spec dependency was added. The Git base preserves the latest complete application; it does not imply32 consumes workforce or photo features. Existing draft PR68(31) and67(36) remain independently based37/PR64. Their human integration and the verification checkpoint remain outstanding review prerequisites of the Git stack, not authorized merges.
 
-Issue69: https://github.com/Shumail-AbdulRehman/PRIV/issues/69. Separate scoped implementation commit and draft PR publication recorded below once available. Pre-existing eight dirty tracked files and all unrelated untracked files were preserved; checkpoint `/tmp/hygene-spec32-preserved.json` verified byte-for-byte after implementation.
+Issue69: https://github.com/Shumail-AbdulRehman/PRIV/issues/69. Implementation9a08f78 is published as **OPEN/DRAFT PR70**: https://github.com/Shumail-AbdulRehman/PRIV/pull/70, base implementation/spec-31-36-verification atb21dcca. Issue remains open for human review; completion metadata is a subsequent documentation commit. Pre-existing eight dirty tracked files and all unrelated untracked files were preserved; checkpoint `/tmp/hygene-spec32-preserved.json` verified byte-for-byte after implementation.
 
 ## Spec32 implemented behavior
 
