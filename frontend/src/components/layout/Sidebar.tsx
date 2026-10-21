@@ -8,6 +8,8 @@ import {
   MapPin,
   Users,
   UserCog,
+  ShieldCheck,
+  Settings,
   CalendarCheck,
   LogOut,
   ClipboardCheck,
@@ -56,6 +58,8 @@ export default function Sidebar({
     {
       label: "Administration",
       items: [
+        {to: "/account/security", icon: ShieldCheck, label: "Your account security"},
+        ...(user?.role === "ADMIN" ? [{to: "/settings", icon: Settings, label: "Organization settings"}] : []),
         ...(user?.role === "ADMIN"
           ? [{ to: "/managers", icon: UserCog, label: "Managers" }]
           : []),

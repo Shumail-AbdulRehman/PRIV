@@ -2,7 +2,8 @@ import { useForm } from "react-hook-form";
 import type { LoginForm } from "./types";
 import { useState } from "react";
 import { useLogin } from "./queries";
-import { Link } from "react-router-dom";
+import { useLanguage } from "@/i18n/context";
+import { Link, useLocation } from "react-router-dom";
 import AuthShell from "@/components/common/AuthShell";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -16,6 +17,8 @@ interface ApiError {
 }
 
 const Login = () => {
+  const {t} = useLanguage();
+  const location = useLocation();
   const {
     register,
     handleSubmit,
@@ -53,6 +56,8 @@ const Login = () => {
         </p>
       }
     >
+      {location.state?.securityCompleted && <p role="status">{t('Security details updated. Sign in again to continue.')}</p>}
+      <p className="mb-4"><Link to="/recover-owner-account">{t('Owner password recovery')}</Link></p>
       <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
         <div>
           <label

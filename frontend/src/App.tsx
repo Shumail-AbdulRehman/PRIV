@@ -1,3 +1,5 @@
+import { OwnSecurityPage } from './pages/Account/AccountPages';
+import { requiresPasswordChange } from './pages/Account/api';
 import './App.css';
 import { Outlet, Navigate, useLocation } from 'react-router-dom';
 import useAuth from '@/hooks/useAuth';
@@ -81,6 +83,9 @@ function App() {
 }
 
 
+  if (requiresPasswordChange(getCurrentUserQuery.error) && !['/verify-owner-email', '/reset-owner-password', '/recover-owner-account'].includes(window.location.pathname)) {
+    return <OwnSecurityPage forced />;
+  }
   return <Outlet />;
 }
 

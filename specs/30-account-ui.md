@@ -1,10 +1,10 @@
 # Spec 30 — Account settings and recovery UI
 
-**Status:** Not started
+**Status:** In progress
 **Depends on:** Spec 16, Spec 17, Spec 22, Spec 27
 **Model:** Standard — `claude-sonnet-5-5` · `gpt-6.1-sol` · `gemini-3.8-flash`
-**Issue:** —
-**Owns:** `frontend/src/pages/Account/AccountPages.tsx`, `frontend/src/pages/Account/AccountPages.test.tsx`, `frontend/src/pages/Account/api.ts`, `specs/inventory/30-account-ui.md`
+**Issue:** https://github.com/Shumail-AbdulRehman/PRIV/issues/58
+**Owns:** `frontend/src/pages/Account/AccountPages.tsx`, `frontend/src/pages/Account/AccountPages.test.tsx`, `frontend/src/pages/Account/api.ts`, `frontend/src/pages/Account/linkToken.ts`, `frontend/src/pages/Account/linkToken.test.tsx`, `frontend/src/pages/Account/account.css`, `frontend/src/i18n/accountTranslations.ts`, `frontend/src/i18n/translations.ts`, `frontend/src/main.tsx`, `frontend/src/App.tsx`, `frontend/src/routes/workspaceRoutes.tsx`, `frontend/src/routes/launchPages.test.tsx`, `frontend/src/components/layout/Sidebar.tsx`, `frontend/src/pages/Login/LoginPage.tsx`, `docs/implementation/ACCOUNT_UI.md`, `.impeccable/surfaces/frontend-src-pages-account-accountpages-tsx.md`, `specs/inventory/30-account-ui.md`
 **Reuses:** `frontend/src/components/common/AuthShell.tsx`, `frontend/src/pages/Login/LoginPage.tsx`, `DESIGN-SYSTEM.md#component-conventions`, `design/v5/recovery.html`
 
 ## Goal
@@ -42,8 +42,12 @@ Implement real reset/verify/self-password and owner Organization settings forms;
 
 ## Done when
 
-- [ ] `npm run test:components --prefix frontend -- src/pages/Account/AccountPages.test.tsx` passes: Owner/manager separation, required/current password, expired recovery, unavailable sender and saved-setting display tested. [unit]
-- [ ] `npm test --prefix frontend` passes the whole affected unit suite; record count. [unit]
+- [x] `npm run test:components --prefix frontend -- src/pages/Account/AccountPages.test.tsx` passes: Owner/manager separation, required/current password, expired recovery, unavailable sender and saved-setting display tested. [unit]
+- [x] `npm test --prefix frontend` passes the whole affected unit suite; record count. [unit]
 - [ ] Only scoped paths changed; relevant denial/empty/error/config-unavailable states inspected. [static]
-- [ ] `npm run lint --prefix frontend` reports zero errors/warnings in changed files; document baseline separately. [static]
-- [ ] `npm run build --prefix frontend` passes. [static]
+- [x] `npm run lint --prefix frontend` reports zero errors/warnings in changed files; document baseline separately. [static]
+- [x] `npm run build --prefix frontend` passes. [static]
+
+## Log
+
+- 2026-10-21: Issue58 claimed; isolated worktree based28 at2d77fd3. Implemented actual22 versioned organization name,16 owner verification/recovery/link confirmation,17 own-password and structured forced-password bootstrap fallback; first-import volatile fragment scrub; complete new EN/UR workflow and48px v5 forms. Reused incumbent UI/client/auth; no dependency/backend/schema/production changes.19 focused tests and57 Node+75 component whole frontend tests pass (final principal-change regression). Detector once returned[]; nine synthetic EN/UR mobile/desktop captures checked, not E2E/mail qualification. Final whole suite, full lint and TypeScript/build all exit0 after principal-cache regression; independent finish reviewer/documenter remain coordinating-agent gates, so status stays In progress. Root serializes ownership/PROGRESS/handoff and publishes after review; do not mark delivery/provider qualification. User stop after batch29/30/34/37.

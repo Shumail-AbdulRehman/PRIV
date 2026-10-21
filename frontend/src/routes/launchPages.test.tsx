@@ -1,3 +1,4 @@
+import {QueryClient, QueryClientProvider} from "@tanstack/react-query";
 import { configureStore } from '@reduxjs/toolkit';
 import { fireEvent, render, screen, waitFor, within } from '@testing-library/react';
 import { Provider } from 'react-redux';
@@ -9,6 +10,7 @@ import { ProtectedRoute } from '../App';
 import DashboardLayout from '../components/layout/DashboardLayout';
 import { workspaceRoutes } from './workspaceRoutes';
 import { PlatformUnavailable, WorkspaceAudience, WorkspaceRouteError } from './launchPages';
+vi.mock('../api/client', () => ({client: {get: async (url: string) => ({data: {data: url === '/company/settings' ? {id:42,name:'Synthetic saved company',accountVersion:1,updatedAt:'2026-10-21T00:00:00Z'} : {emailVerified:true,deliveryConfigured:false,bootstrapRequired:false}}})}}));
 const m = vi.hoisted(() => ({ logout: { mutate: vi.fn(), isPending: false, isError: false } }));
 vi.mock('../queries/auth', () => ({ useLogout: () => m.logout, useGetCurrentUser: vi.fn() }));
 vi.mock('../pages/Exceptions/queries', () => ({ useExceptionCount: () => ({ data: { total: 2 } }) }));
@@ -25,7 +27,8 @@ function mount(role: AuthUser['role'] | null = 'ADMIN', path = '/dashboard', lan
     { path: '/login', element: <h1>Sign in fixture</h1> },
     { path: '/broken', loader: () => { throw new Error('private-exception-detail'); }, element: <p>Should not render</p>, errorElement: <WorkspaceRouteError /> },
   ], { initialEntries: [path] });
-  render(<Provider store={store}><LanguageProvider><RouterProvider router={router} /></LanguageProvider></Provider>);
+  const query = new QueryClient({defaultOptions:{queries:{retry:false,gcTime:0}}});
+  render(<Provider store={store}><QueryClientProvider client={query}><LanguageProvider><RouterProvider router={router} /></LanguageProvider></QueryClientProvider></Provider>);
   return router;
 }
 beforeEach(() => {
@@ -61,10 +64,10 @@ describe('approved workspace shell and actual route role guards', () => {
     mount('ADMIN', '/subscription');
     await screen.findByRole('heading', { name: 'Billing details fixture' });
   });
-  it('renders truthful settings unavailable state without fake save controls', async () => {
+  it('mounts actual owner settings from the registered workspace route', async () => {
     mount('ADMIN', '/settings');
-    expect(await screen.findByRole('heading', { name: 'Company settings are unavailable' })).toBeInTheDocument();
-    expect(screen.queryByRole('button', { name: /save/i })).not.toBeInTheDocument();
+    expect(await screen.findByRole('heading', { name: 'Organization settings' })).toBeInTheDocument();
+    expect(await screen.findByLabelText('Company name')).toHaveValue('Synthetic saved company');
   });
   it.each(['/dashboard', '/attendance', '/staff', '/subscription', '/managers'])('hands staff web access at %s to Android without mounting operational pages', async path => {
     mount('STAFF', path);
