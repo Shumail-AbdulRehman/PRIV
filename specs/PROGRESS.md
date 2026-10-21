@@ -2,7 +2,7 @@
 
 Source of truth for execution; latest user authorization supersedes old pending labels. Approved v5 preserved.
 
-**Current: Spec40 in progress** on `implementation/spec-40-launch-e2e`, issue79, base39/dbbb51d. Decision00 and39of41execution/gate units remain Done;40is not complete and41is not eligible. Real persisted browser suite, guarded disposable DB and native templates implemented; full table/device/provider qualification remains incomplete and registration navigation has a confirmed failing regression. See `docs/implementation/E2E_RESULTS.md`. Latest user also requests fresh current-UI testing APK: independent build branch `build/hygeneops-android-testing-20261021`, draftPR80. No merge/deploy/provider activation; root dirty work preserved.
+**Current: Spec40 in progress** on `implementation/spec-40-launch-e2e`, issue79, draftPR81 https://github.com/Shumail-AbdulRehman/PRIV/pull/81 base39/dbbb51d. Decision00 and39of41execution/gate units remain Done;40is not complete and41is not eligible. Real persisted browser suite, guarded disposable DB and native templates implemented; full table/device/provider qualification remains incomplete and registration navigation has a confirmed failing regression. See `docs/implementation/E2E_RESULTS.md`. Latest user also requests fresh current-UI testing APK: independent build branch `build/hygeneops-android-testing-20261021`, draftPR80. No merge/deploy/provider activation; root dirty work preserved.
 
 | # | Spec | Status | Depends on | Model | Issue | Notes |
 |---|---|---|---|---|---|---|
