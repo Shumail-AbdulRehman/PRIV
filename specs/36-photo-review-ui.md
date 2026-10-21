@@ -1,6 +1,6 @@
 # Spec 36 — Truthful task and photo review UX
 
-**Status:** Done
+**Status:** In progress
 **Depends on:** Spec 20, Spec 21, Spec 27
 **Model:** Standard — `claude-sonnet-5-5` · `gpt-6.1-sol` · `gemini-3.8-flash`
 **Issue:** #66
@@ -41,6 +41,7 @@ Existing detail, queue, diagnosis and protected evidence are extended in place; 
 
 ## Done when
 
+- [ ] Approved V5 layout and interactions are implemented and paired actual-app/reference screenshots are inspected at desktop/phone EN/UR; state/permission deviations are recorded. Native acceptance requires a native runtime. [static]
 - [x] `npm run test:components --prefix frontend -- src/pages/Exceptions/LaunchReviewContext.test.tsx` passes: Review closure does not render verified; outage/held photo distinct from dirty; forbidden actions absent and enforced API-side. [unit]
 - [x] `npm test --prefix frontend` passes the whole affected unit suite; record count. [unit]
 - [x] Only scoped paths changed; relevant denial/empty/error/config-unavailable states inspected. [static]
@@ -54,3 +55,5 @@ Existing detail, queue, diagnosis and protected evidence are extended in place; 
 - **2026-10-21** — Actual React synthetic HTTP render inspection covers16 EN/UR390/1440 outage/resolved/missing/denied captures, zero overflow/JS errors; `/tmp/hygene-spec36-render.log`, `/tmp/hygene-spec36-visual/`. No integrated SQL/provider/E2E claim from these fixtures. No schema/dependency/production change; real processing remains disabled21 pending actual safety qualification. Coordinator owns shared tracker/handoff/40 consumer updates and independent combined full backend/build verification.
 
 - **2026-10-21** — Published implementation `e3c3f4a` on `implementation/spec-36-photo-review-clarity`: issue66 https://github.com/Shumail-AbdulRehman/PRIV/issues/66 and OPEN/DRAFT PR67 https://github.com/Shumail-AbdulRehman/PRIV/pull/67, base `implementation/spec-37-native-integrated`, independent of31. Coordinator independently reviewed actual source diff, original replacement guard/authority whitelist and EN/UR rendered captures. Safe combined31+36 verification passed backend1433 tests/94files/zero skips; web57 Node +142 components/12files; full frontend lint zero findings; backend/frontend builds including TypeScript pass. These combined checks and synthetic rendering do not constitute integrated whole-product/provider E2E proof. No merge/deployment/production data change. Shared progress/handoff updated by coordinator only.
+
+- **2026-10-21 — Visual acceptance correction:** reopened for outstanding approved V5 acceptance. Historical functional checkmarks/logs are preserved; they do not certify visual fidelity. Current four-part status and evidence: docs/implementation/V5_IMPLEMENTATION.md. No prior visual requirement is newly verified by a build.

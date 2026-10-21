@@ -1,6 +1,6 @@
 # Spec 32 — Real subscription lifecycle UI
 
-**Status:** Done
+**Status:** In progress
 **Depends on:** Spec 15, Spec 27, Spec 28
 **Model:** Standard — `claude-sonnet-5-5` · `gpt-6.1-sol` · `gemini-3.8-flash`
 **Issue:** #69
@@ -37,6 +37,7 @@ Display real capacity/provider period/status/activation/sync and restricted-acco
 
 ## Done when
 
+- [ ] Approved V5 layout and interactions are implemented and paired actual-app/reference screenshots are inspected at desktop/phone EN/UR; state/permission deviations are recorded. Native acceptance requires a native runtime. [static]
 - [x] `npm run test:components --prefix frontend -- src/pages/Subscription/SubscriptionPage.test.tsx` passes: Unconfigured catalog cannot checkout; linked subscriber invokes portal not new purchase; delayed webhook shown pending; owner access retained. [unit]
 - [x] `npm test --prefix frontend` passes the whole affected unit suite; record count. [unit]
 - [x] Only scoped paths changed; relevant denial/empty/error/config-unavailable states inspected. [static]
@@ -57,3 +58,5 @@ Display real capacity/provider period/status/activation/sync and restricted-acco
 - **2026-10-21** — Serialized platform company registration ownership transferred to33; existing authentication/security/billing behavior preserved.
 
 - **2026-10-21** — Serialized ownership handed to38 before support/information route/nav/dictionary/checkout-availability integration; existing feature behavior preserved.
+
+- **2026-10-21 — Visual acceptance correction:** reopened for outstanding approved V5 acceptance. Historical functional checkmarks/logs are preserved; they do not certify visual fidelity. Current four-part status and evidence: docs/implementation/V5_IMPLEMENTATION.md. No prior visual requirement is newly verified by a build.

@@ -1,6 +1,6 @@
 # Spec 33 — Platform company workspace
 
-**Status:** Done
+**Status:** In progress
 **Depends on:** Spec 24, Spec 27
 **Model:** Standard — `claude-sonnet-5-5` · `gpt-6.1-sol` · `gemini-3.8-flash`
 **Issue:** #71
@@ -37,6 +37,7 @@ Build bounded company list/detail Account/Billing/Activity with operator-only re
 
 ## Done when
 
+- [ ] Approved V5 layout and interactions are implemented and paired actual-app/reference screenshots are inspected at desktop/phone EN/UR; state/permission deviations are recorded. Native acceptance requires a native runtime. [static]
 - [x] `npm run test:components --prefix frontend -- src/pages/Platform/CompaniesPage.test.tsx` passes: Operator company search/paging/status save reflect API; tenant identity denied; protected workforce fields absent. [unit]
 - [x] `npm test --prefix frontend` passes the whole affected unit suite; record count. [unit]
 - [x] Only scoped paths changed; relevant denial/empty/error/config-unavailable states inspected. [static]
@@ -52,3 +53,5 @@ Build bounded company list/detail Account/Billing/Activity with operator-only re
 
 2026-10-21: Published e0a5d63 as draft PR72 (https://github.com/Shumail-AbdulRehman/PRIV/pull/72), base32. Sequential shared route/dictionary ownership handed to35 before its edits; no specification dependency added.
 2026-10-21:35 owns the company-page navigation seam for the service link; company behavior remains covered by33 tests.
+
+- **2026-10-21 — Visual acceptance correction:** reopened for outstanding approved V5 acceptance. Historical functional checkmarks/logs are preserved; they do not certify visual fidelity. Current four-part status and evidence: docs/implementation/V5_IMPLEMENTATION.md. No prior visual requirement is newly verified by a build.

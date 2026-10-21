@@ -1,6 +1,6 @@
 # Spec 35 — Platform service audit and leads UI
 
-**Status:** Done
+**Status:** In progress
 **Depends on:** Spec 25, Spec 27
 **Model:** Standard — `claude-sonnet-5-5` · `gpt-6.1-sol` · `gemini-3.8-flash`
 **Issue:** #73
@@ -37,6 +37,7 @@ Expose real redacted diagnostics/audit/inquiry status with bounded filters and a
 
 ## Done when
 
+- [ ] Approved V5 layout and interactions are implemented and paired actual-app/reference screenshots are inspected at desktop/phone EN/UR; state/permission deviations are recorded. Native acceptance requires a native runtime. [static]
 - [x] `npm run test:components --prefix frontend -- src/pages/Platform/ServicePage.test.tsx` passes: Unavailable diagnostic distinct from healthy; lead state persists; retry performs actual scoped request; no private workforce data. [unit]
 - [x] `npm test --prefix frontend` passes the whole affected unit suite; record count. [unit]
 - [x] Only scoped paths changed; relevant denial/empty/error/config-unavailable states inspected. [static]
@@ -51,3 +52,5 @@ Expose real redacted diagnostics/audit/inquiry status with bounded filters and a
 - **2026-10-21** — Published02fbd79 as OPEN/DRAFT PR74 https://github.com/Shumail-AbdulRehman/PRIV/pull/74, base33/e0a5d63. Spec validator42specs/0errors/8existing documented warnings. Final handoff published; STOP.
 
 - **2026-10-21** — Serialized ownership handed to38 before support/information route/nav/dictionary/checkout-availability integration; existing feature behavior preserved.
+
+- **2026-10-21 — Visual acceptance correction:** reopened for outstanding approved V5 acceptance. Historical functional checkmarks/logs are preserved; they do not certify visual fidelity. Current four-part status and evidence: docs/implementation/V5_IMPLEMENTATION.md. No prior visual requirement is newly verified by a build.

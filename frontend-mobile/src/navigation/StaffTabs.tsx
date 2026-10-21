@@ -1,3 +1,4 @@
+import { v5Colors } from '../theme';
 import { HelpScreen } from "../screens/HelpScreen";
 import { useLanguage } from "../i18n/LanguageProvider";
 import { createBottomTabNavigator } from "@react-navigation/bottom-tabs";
@@ -17,16 +18,16 @@ export function StaffTabs() {
     <Tab.Navigator
       screenOptions={{
         headerShown: false,
-        tabBarActiveTintColor: "#093F45",
-        tabBarInactiveTintColor: "#536760",
+        tabBarActiveTintColor: v5Colors.primary,
+        tabBarInactiveTintColor: v5Colors.muted,
         tabBarLabelStyle: { fontSize: 14, fontWeight: "600" },
         tabBarAllowFontScaling: true,
         tabBarStyle: {
-          backgroundColor: "#FCFAF6",
+          backgroundColor: v5Colors.surface,
           minHeight: 76 + insets.bottom,
           paddingTop: 8,
           paddingBottom: Math.max(8, insets.bottom),
-          borderTopColor: "#E8E5DF",
+          borderTopColor: v5Colors.border,
           borderTopWidth: 1,
         },
       }}

@@ -9,7 +9,6 @@ import {
   MapPin,
   Users,
   UserCog,
-  ShieldCheck,
   Settings,
   CalendarCheck,
   LogOut,
@@ -33,7 +32,7 @@ import { cn } from "@/lib/utils";
 const WORK = [
   { to: "/dashboard", icon: LayoutDashboard, label: "Overview" },
   { to: "/today-status", icon: CalendarCheck, label: "Today" },
-  { to: "/exceptions", icon: ClipboardCheck, label: "Reviews" },
+  { to: "/exceptions", icon: ClipboardCheck, label: "Photo Reviews" },
 ];
 const ORGANIZATION = [
   { to: "/locations", icon: MapPin, label: "Locations" },
@@ -43,7 +42,9 @@ const ORGANIZATION = [
 export default function Sidebar({
   open = false,
   onClose,
+  companyName,
 }: {
+  companyName?: string;
   open?: boolean;
   onClose?: () => void;
 }) {
@@ -54,18 +55,14 @@ export default function Sidebar({
     user?.role === "ADMIN" || user?.role === "MANAGER",
   );
   const groups = [
-    { label: "Daily operations", items: WORK },
-    { label: "Your organization", items: [...ORGANIZATION, ...(user?.role === "ADMIN" ? [{to:"/setup",icon:ListChecks,label:"Company setup"}] : [])] },
+    { label: "Daily operations", items: [...WORK, ...ORGANIZATION] },
+    { label: "Your organization", items: user?.role === "ADMIN" ? [{to:"/setup",icon:ListChecks,label:"Company setup"}, {to: "/managers", icon: UserCog, label: "Managers"}] : [] },
     {
       label: "Administration",
       items: [
-        {to: "/help", icon: LifeBuoy, label: "Help & service information"},
-        {to: "/account/security", icon: ShieldCheck, label: "Your account security"},
-        ...(user?.role === "ADMIN" ? [{to: "/settings", icon: Settings, label: "Organization settings"}] : []),
-        ...(user?.role === "ADMIN"
-          ? [{ to: "/managers", icon: UserCog, label: "Managers" }]
-          : []),
+        {to: user?.role === "ADMIN" ? "/settings" : "/account/security", icon: Settings, label: "Settings"},
         ...(user?.role === "ADMIN" ? [{ to: "/subscription", icon: CreditCard, label: "Plan & billing" }] : []),
+        {to: "/help", icon: LifeBuoy, label: "Help & account"},
       ],
     },
   ].filter(group => group.items.length);
@@ -74,22 +71,16 @@ export default function Sidebar({
       <Link to="/dashboard" onClick={onClose} className="workspace-brand">
         <BrandLogo />
       </Link>
-      <p className="workspace-brand-caption">{t("Cleaning operations")}</p>
       <div className="workspace-role">
-        <Building2 size={15} aria-hidden="true" />
-        <span>
-          {t(
-            user?.role === "ADMIN" ? "Company workspace" : "Manager workspace",
-          )}
-        </span>
+        <span className="workspace-company-monogram" aria-hidden="true">{companyName ? companyName.split(' ').map(word=>word[0]).join('').slice(0,2).toUpperCase() : <Building2 size={18} />}</span>
+        <div><strong><bdi>{companyName || t("Company workspace")}</bdi></strong><small>{t(user?.role === "ADMIN" ? "Company workspace" : "Manager workspace")}</small></div>
       </div>
       <nav
         aria-label={t("Workspace navigation")}
         className="workspace-navigation"
       >
         {groups.map((group) => (
-          <div className="workspace-nav-group" key={group.label}>
-            <p className="workspace-nav-label">{t(group.label)}</p>
+          <div className="workspace-nav-group" key={group.label} role="group" aria-label={t(group.label)}>
             {group.items.map(({ to, icon: Icon, label }) => (
               <NavLink
                 key={to}

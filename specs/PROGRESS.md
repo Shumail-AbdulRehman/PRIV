@@ -2,7 +2,16 @@
 
 Source of truth for execution; latest user authorization supersedes old pending labels. Approved v5 preserved.
 
-**Current: Spec40 in progress** on `implementation/spec-40-launch-e2e`, issue79, draftPR81 https://github.com/Shumail-AbdulRehman/PRIV/pull/81 base39/dbbb51d. Decision00 and39of41execution/gate units remain Done;40is not complete and41is not eligible. Real persisted browser suite, guarded disposable DB and native templates implemented; full table/device/provider qualification remains incomplete and registration navigation has a confirmed failing regression. See `docs/implementation/E2E_RESULTS.md`. Latest user also requests fresh current-UI testing APK: independent build branch `build/hygeneops-android-testing-20261021`, draftPR80. Fresh testing APK completed and locally inspected: `frontend-mobile/build-output/HygeneOps-staff-2.1.7-ui-20261021.apk`, run39644524268 all3jobs passed; physical/provider qualification remains pending. No merge/deploy/provider activation; root dirty work preserved.
+**V5 acceptance correction (2026-10-21): overall UI completion is INCOMPLETE.**
+The historical Done rows below record functional deliveries and earlier checks;
+they do not establish approved V5 visual implementation or verification. They are
+retained without erasing their logs. The current four-part per-page ledger is in
+[the V5 implementation record](../docs/implementation/V5_IMPLEMENTATION.md).
+Spec40 remains in progress and41 remains ineligible. Current correction branch:
+`implementation/v5-visual-corrections`, issue82. No previous UI screen is newly
+marked visually verified merely because its existing tests pass.
+
+**Historical functional checkpoint (not V5 visual completion): Spec40 in progress** on `implementation/spec-40-launch-e2e`, issue79, draftPR81 https://github.com/Shumail-AbdulRehman/PRIV/pull/81 base39/dbbb51d. Decision00 and39of41execution/gate units remain Done;40is not complete and41is not eligible. Real persisted browser suite, guarded disposable DB and native templates implemented; full table/device/provider qualification remains incomplete and registration navigation has a confirmed failing regression. See `docs/implementation/E2E_RESULTS.md`. Latest user also requests fresh current-UI testing APK: independent build branch `build/hygeneops-android-testing-20261021`, draftPR80. Fresh testing APK completed and locally inspected: `frontend-mobile/build-output/HygeneOps-staff-2.1.7-ui-20261021.apk`, run39644524268 all3jobs passed; physical/provider qualification remains pending. No merge/deploy/provider activation; root dirty work preserved.
 
 | # | Spec | Status | Depends on | Model | Issue | Notes |
 |---|---|---|---|---|---|---|
@@ -33,18 +42,18 @@ Source of truth for execution; latest user authorization supersedes old pending 
 | 24 | [Platform company operations API](24-platform-company-api.md) | Done | 19, 15 | Heavy | #39 | 54 focused/1077 full backend+isolated PG; see Log |
 | 25 | [Redacted diagnostics and inquiry operations](25-platform-support-api.md) | Done | 19, 24 | Standard | #45 | 66 focused/1236 backend+isolated PG; see Log |
 | 26 | [Wire launch backend routes and policies](26-launch-api-composition.md) | Done | 07, 11, 12, 14, 15, 16, 17, 18, 20, 21, 22, 23, 24, 25 | Heavy | #53 | 215 focused/1413 backend + SQL; see Log |
-| 27 | [Approved v5 shared shell and route composition](27-workspace-shell.md) | Done | 06 | Heavy | #35 | 57+40 tests/build/lint; see Log |
-| 28 | [Real derived setup and operational dashboard](28-setup-ui.md) | Done | 12, 14, 15, 27 | Standard | #55 | 16 focused/57+56 web;1416 backend; see Log |
-| 29 | [Attendance exception context UI](29-attendance-context-ui.md) | Done | 23, 27, 08 | Standard | #57 |12focused/57+68web; seeLog |
-| 30 | [Account settings and recovery UI](30-account-ui.md) | Done | 16, 17, 22, 27, 28 | Standard | #58 |19focused/realaccountAPIs; seeLog |
-| 31 | [Workforce access and transfer UI](31-workforce-ui.md) | Done | 11, 17, 27 | Standard | #65 | PR68;18focused; SQL proofs; see Log |
-| 32 | [Real subscription lifecycle UI](32-billing-ui.md) | Done | 15, 27, 28 | Standard | #69 |PR70;23focused;57+165web;109backend |
-| 33 | [Platform company workspace](33-platform-company-ui.md) | Done | 24, 27 | Standard | #71 |PR72;11focused;57+176web;123backend; live auth gated |
-| 34 | [Platform sign-in and security workspace](34-platform-security-ui.md) | Done | 19, 27 | Heavy | #59 |15focused; isolatedoperatorroutes; seeLog |
-| 35 | [Platform service audit and leads UI](35-platform-service-ui.md) | Done | 25, 27 | Standard | #73 |PR74;22focused;57+198web;135backend; live auth gated |
-| 36 | [Truthful task and photo review UX](36-photo-review-ui.md) | Done | 20, 21, 27 | Standard | #66 | PR67;22focused;17new backend; see Log |
-| 37 | [Native attendance/photo/account recovery](37-native-workflows.md) | Done | 09, 17, 20, 21, 26 | Standard | #60 |101native/tsc/Expoexport; deviceunverified |
-| 38 | [Configured support and service information](38-service-information.md) | Done | 27, 25 | Standard | #75 |PR76;16help+24billing;57+215web;109backend |
+| 27 | [Approved v5 shared shell and route composition](27-workspace-shell.md) | In progress | 06 | Heavy | #35 | 57+40 tests/build/lint; see Log |
+| 28 | [Real derived setup and operational dashboard](28-setup-ui.md) | In progress | 12, 14, 15, 27 | Standard | #55 | 16 focused/57+56 web;1416 backend; see Log |
+| 29 | [Attendance exception context UI](29-attendance-context-ui.md) | In progress | 23, 27, 08 | Standard | #57 |12focused/57+68web; seeLog |
+| 30 | [Account settings and recovery UI](30-account-ui.md) | In progress | 16, 17, 22, 27, 28 | Standard | #58 |19focused/realaccountAPIs; seeLog |
+| 31 | [Workforce access and transfer UI](31-workforce-ui.md) | In progress | 11, 17, 27 | Standard | #65 | PR68;18focused; SQL proofs; see Log |
+| 32 | [Real subscription lifecycle UI](32-billing-ui.md) | In progress | 15, 27, 28 | Standard | #69 |PR70;23focused;57+165web;109backend |
+| 33 | [Platform company workspace](33-platform-company-ui.md) | In progress | 24, 27 | Standard | #71 |PR72;11focused;57+176web;123backend; live auth gated |
+| 34 | [Platform sign-in and security workspace](34-platform-security-ui.md) | In progress | 19, 27 | Heavy | #59 |15focused; isolatedoperatorroutes; seeLog |
+| 35 | [Platform service audit and leads UI](35-platform-service-ui.md) | In progress | 25, 27 | Standard | #73 |PR74;22focused;57+198web;135backend; live auth gated |
+| 36 | [Truthful task and photo review UX](36-photo-review-ui.md) | In progress | 20, 21, 27 | Standard | #66 | PR67;22focused;17new backend; see Log |
+| 37 | [Native attendance/photo/account recovery](37-native-workflows.md) | In progress | 09, 17, 20, 21, 26 | Standard | #60 |101native/tsc/Expoexport; deviceunverified |
+| 38 | [Configured support and service information](38-service-information.md) | In progress | 27, 25 | Standard | #75 |PR76;16help+24billing;57+215web;109backend |
 | 39 | [Launch operations and active CI proof](39-release-operations.md) | Done | 03, 26 | Heavy | #77 |PR78;13readiness;10SQL+7invariants;all4CIjobs pass; release blocked |
 | 40 | [Launch end-to-end suite](40-e2e-suite.md) | In progress | 01, 02, 03, 04, 05, 08, 07, 06, 09, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23, 24, 25, 26, 27, 28, 29, 30, 31, 32, 33, 34, 35, 36, 37, 38, 39 | Heavy | #79 | DraftPR81;29/30browser cases pass; APK built; full acceptance incomplete |
 | 41 | [Final clean verification pass](41-verification-pass.md) | Not started | 40 | Heavy | — | See spec |
@@ -127,3 +136,10 @@ Source of truth for execution; latest user authorization supersedes old pending 
 - **2026-10-21 —38 complete, continue39 only.** Public configured help/policies/download, honest unavailable states and checkout prerequisites;16Help+24billing,57Node+215React,109backend; frontend lint/TS/build. User authorized38/39; no40/41 work.
 
 - **2026-10-21 —38/39 complete; STOP.**38 implementation44df792 / draftPR76;39 implementations24b7fdb/fbd5ca7 / draftPR78. Public configured assistance/customer documents with guarded checkout; active current launch CI, redacted readiness and explicit external release gates.38focused16Help+24billing/full57Node+215React/lint0/TS/build/109backend/8ENURrenders.39readiness13,active103,localfullbackend1439+7SQLskips,cleanhosted1435+7SQLskips; all7SQL invariants then passed explicitly alongside10guarded launch workflows; manager SQL also passes.101native+types/web bundle; backendTS/build. Hosted39626388658 all4jobs passed including backend/web/native and3non-pushing container builds.38typography66723be integrated normally; rebuilt/rendered successfully. No true release/IdP/photo/provider/device/legal/restore qualification inferred. Query gap gets proposed follow-up only. Preserve seven untouched dirty files byte-for-byte and original3-line CI performance edit unstaged. Remaining40/41;40identified only, not started. No merge/deployment/production action.
+
+- **2026-10-21 — V5 corrective implementation:** historical completion reports are
+  qualified above. Shared shell/Today corrections implement the approved blue/white
+  composition in React; native palette/navigation foundations are being corrected.
+  Paired real-app/V5 screenshots and current check results are recorded separately
+  in V5_IMPLEMENTATION.md. Full V5 coverage remains incomplete pending every screen,
+  state and native acceptance requirement. User changes preserved; no production action.

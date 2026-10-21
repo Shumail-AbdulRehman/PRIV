@@ -1,3 +1,4 @@
+import { v5Colors } from '../../theme';
 import * as React from "react";
 import {
   ActivityIndicator,
@@ -120,7 +121,7 @@ const Button = React.forwardRef<View, ButtonProps>(
             {iconLeft && !loading ? (
               <Icon
                 name={iconLeft}
-                color={variant === "default" || variant === "destructive" ? "#FFFFFF" : "#093F45"}
+                color={variant === "default" || variant === "destructive" ? "#FFFFFF" : v5Colors.primary}
                 size={size === "icon" ? 18 : 16}
                 className={cn(
                   "text-current",
@@ -143,7 +144,7 @@ const Button = React.forwardRef<View, ButtonProps>(
             {iconRight && !loading ? (
               <Icon
                 name={iconRight}
-                color={variant === "default" || variant === "destructive" ? "#FFFFFF" : "#093F45"}
+                color={variant === "default" || variant === "destructive" ? "#FFFFFF" : v5Colors.primary}
                 size={size === "icon" ? 18 : 16}
                 className={cn(
                   "text-current",

@@ -1,6 +1,6 @@
 # Spec 30 — Account settings and recovery UI
 
-**Status:** Done
+**Status:** In progress
 **Depends on:** Spec 16, Spec 17, Spec 22, Spec 27, Spec 28
 **Model:** Standard — `claude-sonnet-5-5` · `gpt-6.1-sol` · `gemini-3.8-flash`
 **Issue:** https://github.com/Shumail-AbdulRehman/PRIV/issues/58
@@ -42,6 +42,7 @@ Implement real reset/verify/self-password and owner Organization settings forms;
 
 ## Done when
 
+- [ ] Approved V5 layout and interactions are implemented and paired actual-app/reference screenshots are inspected at desktop/phone EN/UR; state/permission deviations are recorded. Native acceptance requires a native runtime. [static]
 - [x] `npm run test:components --prefix frontend -- src/pages/Account/AccountPages.test.tsx` passes: Owner/manager separation, required/current password, expired recovery, unavailable sender and saved-setting display tested. [unit]
 - [x] `npm test --prefix frontend` passes the whole affected unit suite; record count. [unit]
 - [x] Only scoped paths changed; relevant denial/empty/error/config-unavailable states inspected. [static]
@@ -59,3 +60,5 @@ Implement real reset/verify/self-password and owner Organization settings forms;
 - **2026-10-21** — Serialized workforce integration ownership transferred to31; existing setup/account behavior retained.
 
 - **2026-10-21** — Serialized ownership handed to38 before support/information route/nav/dictionary/checkout-availability integration; existing feature behavior preserved.
+
+- **2026-10-21 — Visual acceptance correction:** reopened for outstanding approved V5 acceptance. Historical functional checkmarks/logs are preserved; they do not certify visual fidelity. Current four-part status and evidence: docs/implementation/V5_IMPLEMENTATION.md. No prior visual requirement is newly verified by a build.

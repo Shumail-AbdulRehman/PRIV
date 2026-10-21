@@ -1,3 +1,53 @@
+# Active V5 correction checkpoint — 2026-10-22
+
+Source commit5313b73 passes clean detached-worktree frontend build and64Node+220React tests without copying the user performance work. Final real-backend edge geometry case passes for1366/390 EN/UR; menu/drawer screenshots were re-inspected.242PNG reference/app captures are committed, with capture coverage distinct from acceptance.0generated test DBs remain; owned56442cluster/temporary5199preview stopped; user5173/8080 left running.
+
+User authorizes implementing the complete approved V5 in the real applications,
+with sequential work; no new prototype/design version, production action, merge
+or reset. This instruction supersedes historical STOP/next-spec restrictions below.
+
+Current correction branch `implementation/v5-visual-corrections` derives from
+`e0337b4`/spec40, issue82. **Full V5 implementation remains incomplete.** UI specs
+27–38 were reopened for missing visual acceptance; historical logs/checkmarks remain.
+See [V5_IMPLEMENTATION.md](V5_IMPLEMENTATION.md) for the complete29-entry mapping,
+four independent statuses, implementation checklist, test evidence and deviations.
+
+Implemented: shared blue/white shell/company identity/navigation/control/type/table
+foundations; Today summary/task register/right attention rail; actual API search/status/
+location/date/pagination; accessible task drawer preserving QR/review/schedule actions;
+EN/UR/RTL and summary error/retry; submitted remains distinct from verified. Native
+NativeWind/navigation/capture/button palette now consumes approved V5 colours, with
+no native device acceptance claim. Existing business APIs/authorization retained.
+
+Verification:64Node+220React tests;27focused;101native tests; frontend lint0;
+TypeScript/Vite build; native TypeScript and Expo web export;14real persisted SQL/API/
+React integration cases passed. Paired screenshots are under `v5-evidence/`; final
+recapture outcome is recorded in V5_IMPLEMENTATION.md. The screenshot harness now
+serves its private disposable build directory instead of sharing frontend/dist.
+No whole-product/provider/native qualification claimed. Known signup redirect issue
+from the earlier spec40 suite remains uncorrected and is not hidden by subset passes.
+
+Environment: Vite5173 and backend8080 both serve this root checkout (verified cwd).
+8080 uses the existing guarded restored local DB, not production. Screenshot tests
+use fresh disposable migrated synthetic DBs under owned local56442 cluster; they do
+not use restored customer data. ADB reports no connected device/emulator. Operator
+positive routes remain blocked by unqualified/missing IdP; do not bypass guards.
+
+Preserve original dirty CI/gitignore/DESIGN/backend/dashboard/manager dictionary
+and the prior handoff append below. Their original diffs were checked byte-for-byte;
+none belongs in the correction commit. Overview screenshot provenance includes the
+user's performance changes; do not overwrite or claim to have implemented them.
+No new dependencies/framework/schema, deployed service or production mutation.
+
+Next coherent boundary: implement `design/v5/reviews.html` queue/evidence/decision
+composition in existing ExceptionInboxPage/ExceptionDetailPage, reusing protected
+media/zoom and current server-authorized closure. Keep receive/submit/review/verify
+separate, then continue the remaining customer/platform/form/table/chart pages and
+native workflows. Do not mark a captured page accepted without comparing it. Finish
+each component group with matching rendered evidence and current functional checks.
+
+## Retained prior handoff history
+
 # Latest database operation — 2026-10-21
 
 User explicitly authorized applying the pending migration through backend/.env DIRECT_URL. Completed202610200001_launch_lifecycle with Prisma migrate deploy; both configured connections now18applied/0pending/0unfinished, all checksums match. Encrypted full backup plus isolated public-schema restore/migration rehearsal passed before apply. Backup/reports: ~/.local/share/hygene-ops/backups/launch-lifecycle-2026-10-21T18-00-04-984Z; key separately protected.40business tables unchanged;8heartbeat stable identities/start times/job counts preserved with normal lastSeenAt advances. New defaults/tables/trigger validated; no reset/seed/deployment or env changes. See MIGRATIONS.md authorized-apply entry. Spec40 and the registration fix remain incomplete; this does not mark41eligible.

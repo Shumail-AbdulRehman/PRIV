@@ -1,3 +1,4 @@
+import { v5Colors } from './src/theme';
 import { LanguageProvider, useLanguage } from "./src/i18n/LanguageProvider";
 import * as Application from "expo-application";
 import { configureNativeAppVersion } from "./src/api/client";
@@ -17,11 +18,11 @@ const navTheme = {
   ...DefaultTheme,
   colors: {
     ...DefaultTheme.colors,
-    background: "#FCFAF6",
-    card: "#FCFAF6",
-    text: "#10232D",
-    border: "#E8E5DF",
-    primary: "#093F45",
+    background: v5Colors.surface,
+    card: v5Colors.surface,
+    text: v5Colors.ink,
+    border: v5Colors.border,
+    primary: v5Colors.primary,
   },
 };
 
