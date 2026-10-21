@@ -204,3 +204,7 @@ Root branch implementation/spec-30-account-integrated based29/PR61 (008c2d3); pa
 ## Spec34 integrated checkpoint
 
 Rootbranch implementation/spec-34-operator-integrated base30/PR62 at52c301b; issue59. Top-levelplatformRoutes outsidetenantApp preservefirstownerlinktokenimport; zeroAPImountproof4routes, callbackscrubbed, noJSerrors.15focused; integrated57Node+102components/10files,lint/type/buildpass. Independentreviewer scopedship anddocumentercomparisonpass. MissingrealOIDCclient/provider/MFA qualificationremains39/40external, allauthhandoffdisabledbeforeI/O, notenantreuse. Complete37integration/publishandSTOP; noadditionalunits.
+
+## Final publication — STOP
+
+Allfour requestedbatchPRs confirmedOPEN/DRAFT andstackedcorrectly:29 https://github.com/Shumail-AbdulRehman/PRIV/pull/61 base28;30 https://github.com/Shumail-AbdulRehman/PRIV/pull/62 base29;34 https://github.com/Shumail-AbdulRehman/PRIV/pull/63 base30;37 https://github.com/Shumail-AbdulRehman/PRIV/pull/64 base34.37verifiedintegrationcheckpointbbe3175 pushed, currentbranchimplementation/spec-37-native-integrated. Issues57–60remainopen, no merge/deploy. Thispublicationrecordis a subsequentdocumentationcommit. Userstopcheckpoint reached:32Done/9remaining; nexteligible31identifiedonly, notstarted.
