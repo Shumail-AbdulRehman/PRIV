@@ -1,7 +1,7 @@
 # Launch lifecycle additive migration
 
 Migration: backend/prisma/migrations/202610200001_launch_lifecycle/migration.sql.
-No production apply is authorized or performed. Never run migrate reset, db push, seed-demo, rollback drops or destructive down migrations against an application database.
+Original Spec10 implementation did not authorize or perform an application-database migration. The later explicitly authorized apply is recorded below. Never run migrate reset, db push, seed-demo, rollback drops or destructive down migrations against an application database.
 
 ## Contents and deployment order
 Add credentialVersion(default0), mustChangePassword(defaultfalse) for Manager/Staff; owner emailVerifiedAt remains null for existing accounts. Add operational company status/version/reason/time separate from provider status. Existing inactive companies backfill to SUSPENDED without inventing reason/time or changing isActive. Existing ADMIN still means company owner, never platform operator.
@@ -38,3 +38,14 @@ Continuation commands (substitute an explicitly isolated local URL; no credentia
 - `LAUNCH_MIGRATION_TEST_DATABASE_URL=<new-empty-isolated-url> npx tsx tests/launchMigration.integration.ts` from backend.
 
 Temporary fixture database/process can be stopped with the user-owned pg_ctl path after the session; it is not a production application service. Keep test fixtures separate from customer data.
+
+
+## Authorized configured-database apply — 2026-10-21
+
+User explicitly instructed: apply the pending migration using DIRECT_URL in backend/.env. Read that exact file value; no credentials printed or environment files changed. Preflight found17applied, no unfinished/checksum conflicts and no checked tenant/site inconsistencies. Actual PostgreSQL17.6 target; downloaded matching17tools into/tmp without system installation.
+
+Created an AES256-GCM encrypted full logical database backup before applying. Backup: `/home/shumail/.local/share/hygene-ops/backups/launch-lifecycle-2026-10-21T18-00-04-984Z/database.dump.aes256gcm`; separate600-permission key referenced by protected encryption.json under that backup directory. Backup/key directories are private. Restored all42public application tables into a fresh password-protected local PostgreSQL17cluster, matched counts/content hashes, and rehearsed `prisma migrate deploy`; original application facts preserved. Managed Supabase auth/storage/vault schemas remain in the encrypted backup but their disaster recovery is not claimed by the public-schema rehearsal. Temporary restored customer data/cluster were stopped and removed.
+
+Applied only `202610200001_launch_lifecycle` through `prisma migrate deploy` with DIRECT_URL and DATABASE_URL explicitly set to that authorized DIRECT_URL. Final actual direct and application connections both report18applied/0unfinished; all18migration checksums match repository and none remain pending. Credential/company defaults, new tables and enabled attendance integrity trigger verified.40existing business tables match immediate-before counts/content hashes exactly; the only changing table was operational VerificationWorkerHeartbeat, whose8identities/start times/job counts remain unchanged while lastSeenAt advances normally. No captured attendance, task, account, password or workforce records rewritten/deleted.
+
+Protected preflight/rehearsal/apply/final reports are retained in the same backup directory; verification-final.json completed2026-10-21T18:06:52Z. No reset, db push, seeds, destructive rollback, provider activation or application deployment. This schema operation does not fix the separately documented registration redirect or qualify remaining E2E/provider/device gates.

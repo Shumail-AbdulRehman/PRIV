@@ -1,3 +1,7 @@
+# Latest database operation — 2026-10-21
+
+User explicitly authorized applying the pending migration through backend/.env DIRECT_URL. Completed202610200001_launch_lifecycle with Prisma migrate deploy; both configured connections now18applied/0pending/0unfinished, all checksums match. Encrypted full backup plus isolated public-schema restore/migration rehearsal passed before apply. Backup/reports: ~/.local/share/hygene-ops/backups/launch-lifecycle-2026-10-21T18-00-04-984Z; key separately protected.40business tables unchanged;8heartbeat stable identities/start times/job counts preserved with normal lastSeenAt advances. New defaults/tables/trigger validated; no reset/seed/deployment or env changes. See MIGRATIONS.md authorized-apply entry. Spec40 and the registration fix remain incomplete; this does not mark41eligible.
+
 # Active handoff — 2026-10-21: Spec40 plus requested testing APK
 
 Latest user authorizes continuing40 and building a fresh testing APK with current mobile UI. Do not start41 or unrelated specs. **40 remains In progress**, not Done;39of41 execution/gate units +decision00 Done. Full persisted/device/provider acceptance is not met. No production deployment/data/provider activation, merge or rewrite.
