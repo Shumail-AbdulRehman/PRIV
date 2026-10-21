@@ -1,6 +1,6 @@
 # Native launch recovery — Specification 37
 
-Implementation branch `implementation/spec-37-native-workflows`, based on Spec28/PR56. Issue60. Local implementation and automated checks complete; independent finish review and lead integration remain pending. This is an Expo/React Native extension of existing screens, not a new app or camera architecture.
+Implementation branch `implementation/spec-37-native-workflows`, based on Spec28/PR56. Issue60. Local implementation and automated checks complete; independent source/component review passed; lead integration remains pending. This is an Expo/React Native extension of existing screens, not a new app or camera architecture.
 
 ## Actual screen integration
 
@@ -36,6 +36,6 @@ Logs: `/tmp/hygene-spec37-{tests,type,build}.log`; isolated worktree `/tmp/hygen
 
 ## Explicit remaining limits
 
-No `adb` executable/emulator/connected physical phone was available. No native screenshots, system font-scale/device Urdu shaping, actual camera/GPS permission cycle, push delivery, OS Back/IME interaction, Android install/signing or performance is claimed. Expo web export and React component trees are local automated evidence only. Impeccable's Android guidance requires emulator/device captures; those runtime checks remain qualification gates39/40. No web detector was run for this native-only unit. Independent finish source/component review remains pending with the lead before marking37 Done.
+No `adb` executable/emulator/connected physical phone was available. No native screenshots, system font-scale/device Urdu shaping, actual camera/GPS permission cycle, push delivery, OS Back/IME interaction, Android install/signing or performance is claimed. Expo web export and React component trees are local automated evidence only. Impeccable's Android guidance requires emulator/device captures; those runtime checks remain qualification gates39/40. No web detector was run for this native-only unit. Fresh independent finish review: ship at source/component scope only, no material fixes identified. Independent ordinary-extension documenter confirms component/reuse consistency and preserved historical tokens; neither review establishes rendered v5 equivalence or hardware approval. Lead integration remains before completed status.
 
 Actual21 privacy/identity qualification and consented empirical release evidence remain external blockers. This unit keeps the affected new processing unavailable and does not activate it. Safe-disabled implementation and completed historical result reconciliation are not evidence of a qualified photo pipeline.
