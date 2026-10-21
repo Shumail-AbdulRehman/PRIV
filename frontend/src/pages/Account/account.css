@@ -24,3 +24,5 @@
 .account-public .auth-preview { display: none; }
 .workspace.account-public main { grid-template-columns: minmax(0, 1fr); max-width: 600px; min-height: auto; align-items: start; }
 .account-language { margin-block-end: 24px; }
+
+.workspace .account-section > button {min-height:48px;height:auto;white-space:normal}
