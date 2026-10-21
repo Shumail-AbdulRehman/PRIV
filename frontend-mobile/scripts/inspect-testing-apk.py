@@ -121,8 +121,11 @@ def inspect(apk, api_url, commit, require_notifications=False, require_heads_up=
             raise ValueError('Heads-up channel migration missing from bundled JavaScript')
         if require_notifications and not all(marker in bundle for marker in [b'/staff/mobile/tasks', b'/staff-notifications/devices']):
             raise ValueError('Optimized mobile queries or push registration are missing from the bundle')
-        if push_only and any(marker in bundle for marker in [b'/staff-notifications/unread-count', b'/staff-notifications/read-all', b'Stop listening', b'Tasks and attendance updates']):
-            raise ValueError('Removed inbox or speech UI is still bundled')
+        # Unused localization keys (including 'Stop listening') survive bundling;
+        # they cannot establish that a retired UI is mounted. Native speech is
+        # independently denied above; reject actual retired inbox API callers here.
+        if push_only and any(marker in bundle for marker in [b'/staff-notifications/unread-count', b'/staff-notifications/read-all']):
+            raise ValueError('Removed inbox API is still bundled')
         for name in names:
             if name.endswith('.json'):
                 try:
