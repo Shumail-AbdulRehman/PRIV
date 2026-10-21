@@ -1,3 +1,9 @@
+# Active batch — 2026-10-21:38 complete, continue39
+
+Latest user authorizes next two38/39 only.38 implemented/verified on implementation/spec-38-service-information based35/5f10d3c, issue75; draft publication follows.16Help+24billing React; whole57Node+215React/16files;109backend; frontend lint0/TS/build.8built-route EN/UR renders no overflow/JS errors; public help never bootstraps tenant session. Customer facts default unavailable, new checkout requires policies/support and fresh recipient, existing portal retained. Real commercial/legal/delivery/device qualification remains external; no production config/provider changes. Files/config/evidence in inventory38 and COMMERCIAL_CONTENT. Eight original dirty files preserved;39 must retain unrelated CI step as uncommitted. Continue39 then STOP, never40/41.
+
+## Prior history
+
 # Final handoff — 2026-10-21: Specs33 and35 complete — STOP
 
 Latest user requested two next specs. Completed33 Platform company workspace and35 Platform service audit/leads UI; no further spec started. Decision00 plus37 of41 units Done. Remaining38/39/40/41; **next eligible38**.39 is graph-eligible but has unresolved real launch/provider/device/operational qualification requirements.40 waits on38/39 and41 waits on40. No merge, deployment, production data/configuration change, database migration/reset or live IdP/provider/email operation.

@@ -3,6 +3,7 @@ import { useLanguage } from "@/i18n/context";
 import { Link, NavLink } from "react-router-dom";
 import { useExceptionCount } from "@/pages/Exceptions/queries";
 import {
+  LifeBuoy,
   ListChecks,
   LayoutDashboard,
   MapPin,
@@ -58,6 +59,7 @@ export default function Sidebar({
     {
       label: "Administration",
       items: [
+        {to: "/help", icon: LifeBuoy, label: "Help & service information"},
         {to: "/account/security", icon: ShieldCheck, label: "Your account security"},
         ...(user?.role === "ADMIN" ? [{to: "/settings", icon: Settings, label: "Organization settings"}] : []),
         ...(user?.role === "ADMIN"

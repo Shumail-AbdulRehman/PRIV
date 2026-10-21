@@ -11,7 +11,8 @@ import WelcomePage from '../Pricing/WelcomePage';
 import {PaddlePricing} from '../Pricing/PaddlePricing';
 import * as api from './api';
 import type {BillingLifecycle,BillingCatalogEntry} from './types';
-const m=vi.hoisted(()=>({get:vi.fn(),post:vi.fn(),paddle:vi.fn(),open:vi.fn()}));
+const m=vi.hoisted(()=>({get:vi.fn(),post:vi.fn(),paddle:vi.fn(),open:vi.fn(),commercialReady:true}));
+vi.mock('../Help/serviceInformation',()=>({useServiceInformation:()=>({purchaseReady:m.commercialReady}),getPublicSupport:async()=>({email:m.commercialReady?'synthetic@example.invalid':null})}));
 vi.mock('@/api/client',()=>({client:{get:m.get,post:m.post}}));
 vi.mock('@/lib/paddle',()=>({getPaddle:m.paddle}));
 const transactionId='txn_'+'a'.repeat(26);
@@ -25,7 +26,7 @@ function mount(page:React.ReactNode=<SubscriptionPage/>,role:AuthUser['role']='A
  const view=render(<Provider store={store}><QueryClientProvider client={query}><LanguageProvider><MemoryRouter><div className="workspace">{page}</div></MemoryRouter></LanguageProvider></QueryClientProvider></Provider>);
  return {...view,store,query};
 }
-beforeEach(()=>{
+beforeEach(()=>{m.commercialReady=true;
  vi.clearAllMocks();localStorage.clear();
  lifecycle={company:{id:42,name:'Synthetic company',plan:'PRO',operationalStatus:'ACTIVE'},usage:{locations:4,staff:28,managers:2},limits:{locations:5,staff:25,managers:3},subscription:null,reconciliationRequired:false,billingConfigured:false,ownerVerified:true,providerState:'NOT_LINKED',portalAvailable:false,checkoutAvailable:false};
  catalog=[{plan:'PRO',interval:'month',priceId:'pri_'+'b'.repeat(26),productId:'pro_fixture',amount:'2500',currencyCode:'USD',trialPeriod:null}];
@@ -102,3 +103,5 @@ it('guards duplicate clicks while the server checkout is pending',async()=>{
 it('rejects mismatched company data without exposing its counts',async()=>{
  lifecycle.company.id=55;mount();await screen.findByRole('alert');expect(screen.getByRole('alert')).toHaveTextContent('do not match');expect(screen.queryByText('28 / 25')).not.toBeInTheDocument();expect(screen.queryByRole('button',{name:'Continue to checkout'})).not.toBeInTheDocument();
 });
+
+it('unavailable customer policy/support information disables purchase without blocking existing account reads',async()=>{enableCheckout();m.commercialReady=false;mount();await screen.findByText('New purchases are unavailable until approved customer policies and a support contact are available.');expect(await screen.findByRole('button',{name:'Continue to checkout'})).toBeDisabled();expect(m.post).not.toHaveBeenCalled();});
