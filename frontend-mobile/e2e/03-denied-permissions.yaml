@@ -1,0 +1,12 @@
+appId: ${APP_ID}
+name: Camera and location denial never imply uploaded evidence
+---
+- launchApp:
+    clearState: false
+    permissions:
+      camera: deny
+      location: deny
+- assertVisible: "Today"
+- tapOn: "Check In"
+- assertVisible: "Allow camera access to capture an attendance image."
+- assertNotVisible: "Verified completion recorded"

@@ -1,3 +1,24 @@
+# Active handoff — 2026-10-21: Spec40 plus requested testing APK
+
+Latest user authorizes continuing40 and building a fresh testing APK with current mobile UI. Do not start41 or unrelated specs. **40 remains In progress**, not Done;39of41 execution/gate units +decision00 Done. Full persisted/device/provider acceptance is not met. No production deployment/data/provider activation, merge or rewrite.
+
+## Working branches and evidence
+
+- `/tmp/hygene-spec40`, `implementation/spec-40-launch-e2e`, based39/dbbb51d and issue79. Real Playwright1.58.2 suite uses actual compiled React/API and migrated synthetic UUID child PostgreSQL databases. Initial28case final run27passed/1failed; two additional suspended-account/public inquiry cases passed in9case focused run. Final combined30case run29passed/1failed in37.1s, zero skipped/expected failures; draftPR recorded below. Registration persists correctly but navigates to dashboard rather than canonical billing; narrow proposed fix in followups/E2E_DEFECTS.md, no application fix inside40.
+- Strict browser TypeScript, backend TypeScript, frontend TypeScript/Vite build, frontend lint,64Node +215React tests passed. E2E_RESULTS.md maps every required flow and gaps; passing subset/API calls/component checks are not whole-product proof. Four source-checked native Maestro templates remain unexecuted.
+- Fresh APK build branch `/tmp/hygene-apk-20261021`, `build/hygeneops-android-testing-20261021`, commit9bf91d4, OPEN/DRAFT PR80 https://github.com/Shumail-AbdulRehman/PRIV/pull/80 base39. Initial unmodified39 workflow39641691401 failed Expo doctor (dynamic context composition) and retired integration assumptions. Build branch preserves supplied Expo config, adds a regression and uses39current isolated SQL/manager tests plus current push-only/notification packaging inspection. No business-policy change. Retry39642102013 https://github.com/Shumail-AbdulRehman/PRIV/actions/runs/39642102013; actual artifact result follows.
+- Phone API default `http://192.168.100.198:8080/api`, configurable in native Server settings; no test backend availability or reachability inferred. Android2.1.7/versionCode10 current source. Packaging does not prove physical install/update, camera/GPS/push or photo qualification. adb discovered under user-local tools; `adb devices -l` reports no devices. No Maestro executable located. Never use old private access/test-session fixtures as current qualification.
+
+## Safety and remaining work
+
+Existing root checkout stays at39;8original dirty tracked file hashes in `/tmp/hygene-spec40-preserved.json` must remain byte-identical, along with unrelated untracked work. No root app edits or blanket staging.40and build branch are independent siblings, no spec dependency added.
+
+Owned40PostgreSQL16.15 at127.0.0.1:56442, bootstrappriv_e2e_test; server tools `/tmp/hygene-spec39-postgres-tools/usr/lib/postgresql/16/bin`, owned data `/tmp/hygene-spec40-postgres-data`. Child DBs and generated secrets cleaned after each run. Only stop this owned cluster after testing; do not stop the user's backendPID2737 or unknown servers. Artifacts/logs in/tmp are temporary; publish redacted source/results, no tokens or raw credential traces. Build outputs are not committed.
+
+All15required-flow gaps are enumerated in E2E_RESULTS.md, including real IdP/MFA browser adapter, qualified mail/Paddle/storage/photo processing, full native permission/retry/receipt/push/ENUR workflows and full browser setup/calendar/suspension-audit/restore coverage. Operator sign-in and new photo processing stay disabled.41depends40and is not eligible; resolve the confirmed proposed fix and missing40evidence before final qualification. Do not mark completion from APK or unit tests alone.
+
+## Previous handoff history
+
 # Final handoff — 2026-10-21: Specs38 and39 complete — STOP
 
 Latest user requested next two specs. Completed38 Configured support/service information and39 Launch operations/active CI proof. Decision00 and39 of41units Done; **2 remain:40/41**. Next in graph40, but real release/provider/device gates below still block full integrated qualification. Do not automatically begin40 or41. No PR merged, image pushed, production deployment/data/configuration modification, production migration/restore or live provider/email/IdP/photo call.

@@ -1,0 +1,10 @@
+# Spec40 — persisted browser suite and native qualification templates
+
+- `frontend/e2e/guard.mjs` and7Node guard tests: explicit local `priv_e2e_test` bootstrap only, no production/remote/query override. Included in existing frontend unit command.
+- `frontend/e2e/run.mjs`: clean environment; generated child DB with ordered real migrations, random secrets/private manifest, real backend/React/browser TypeScript+build, serial self-started API/built web, owned cleanup. No inherited production environment or network mocks.
+- `frontend/e2e/seed.mjs`, `fixtures.ts`: synthetic two-company/two-site/foreign-site role collision, historical attendance/task/open-shift, real one-use credentials and missing evidence; raw SQL entitlement mirrors never count as provider proof. API login helpers use real cookies; actual UI auth cases are separately identified.
+- `frontend/playwright.config.ts`, `e2e/tsconfig.json`: exact Playwright1.58.2 Chromium, explicit managed origins/servers, no attach/reuse, private ignored diagnostics, credential flow trace/screenshot/video disabled, strict browser-source typecheck.
+- `frontend/e2e/{public,workspace,workforce,lifecycle,review}.spec.ts`: actual React+API+SQL behaviors and denial/state persistence; intentionally failing post-registration billing regression, no skip/expected-failure masking. Complete requirement mapping and unexecuted gaps are in E2E_RESULTS.md.
+- `frontend-mobile/e2e/`: four unexecuted source-checked Maestro templates for physical-device session/recovery/permission/alert qualification; no physical or push success inferred.
+- `docs/implementation/{E2E_RESULTS.md,followups/E2E_DEFECTS.md}`: redacted reproducible evidence, all15required flow rows, proposed narrow registration-navigation fix and explicit qualification gaps. App fixes remain outside40;41not started.
+- APK request is isolated on `build/hygeneops-android-testing-20261021`/draftPR80, based directly on39; no dependency on40 and no shared root source edits.
