@@ -1,5 +1,7 @@
 # Active V5 correction checkpoint — 2026-10-22
 
+Source commit5313b73 passes clean detached-worktree frontend build and64Node+220React tests without copying the user performance work. Final real-backend edge geometry case passes for1366/390 EN/UR; menu/drawer screenshots were re-inspected.242PNG reference/app captures are committed, with capture coverage distinct from acceptance.0generated test DBs remain; owned56442cluster/temporary5199preview stopped; user5173/8080 left running.
+
 User authorizes implementing the complete approved V5 in the real applications,
 with sequential work; no new prototype/design version, production action, merge
 or reset. This instruction supersedes historical STOP/next-spec restrictions below.

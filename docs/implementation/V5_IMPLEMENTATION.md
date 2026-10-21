@@ -193,3 +193,17 @@ edge navigation/task drawers.
   for byte. The pre-existing handoff append remains unstaged, with only this session's
   new header committed. No design artifact, schema, production data/service, deployed
   site, shared branch history or provider configuration was changed.
+
+### Committed-source verification
+
+Source commit `5313b73` on `implementation/v5-visual-corrections` was checked in a
+fresh detached worktree `/tmp/hygene-v5-clean-5313b73` with existing installed
+node_modules linked, no ignored environment or user performance source copied.
+`npm run build` and `npm test` pass there:64Node+220React,17React files. This proves
+the correction builds/tests independently of the preserved dirty dashboard/backend
+work. It does not retroactively accept those other pages' screenshots as this commit's UI.
+
+Final isolated edge run:1passed, real backend,1366/390 EN/UR drawer/menu geometry,
+corrected viewport screenshots directly inspected. The private child test databases
+were removed (0remaining); the owned56442test cluster and temporary5199preview were
+stopped. User Vite5173/backend8080 remain running. No merge/deployment.
