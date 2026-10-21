@@ -4,7 +4,7 @@
 **Depends on:** Spec 04, Spec 17
 **Model:** Heavy — `claude-opus-5-5` · `gpt-6-astra` · `gemini-3.1-pro-preview`
 **Issue:** #26
-**Owns:** `backend/tests/credentialHandoff.integration.ts`, `backend/src/utils/auth.ts`, `backend/src/utils/auth.test.ts`, `backend/src/controllers/companyRegistration.controller.ts`, `backend/src/services/credentialSession.service.ts`, `backend/src/services/credentialSession.service.test.ts`, `specs/inventory/18-credential-revocation.md`
+**Owns:** `backend/src/utils/auth.ts`, `backend/src/utils/auth.test.ts`, `backend/src/controllers/companyRegistration.controller.ts`, `backend/src/services/credentialSession.service.ts`, `backend/src/services/credentialSession.service.test.ts`, `specs/inventory/18-credential-revocation.md`
 **Reuses:** `backend/src/middlewares/auth.middleware.ts`, `backend/src/utils/auth.ts`
 
 ## Goal

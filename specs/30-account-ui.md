@@ -4,7 +4,7 @@
 **Depends on:** Spec 16, Spec 17, Spec 22, Spec 27, Spec 28
 **Model:** Standard — `claude-sonnet-5-5` · `gpt-6.1-sol` · `gemini-3.8-flash`
 **Issue:** https://github.com/Shumail-AbdulRehman/PRIV/issues/58
-**Owns:** `frontend/src/pages/Account/AccountPages.tsx`, `frontend/src/pages/Account/AccountPages.test.tsx`, `frontend/src/pages/Account/api.ts`, `frontend/src/pages/Account/linkToken.ts`, `frontend/src/pages/Account/linkToken.test.tsx`, `frontend/src/pages/Account/account.css`, `frontend/src/i18n/accountTranslations.ts`, `frontend/src/i18n/translations.ts`, `frontend/src/App.tsx`, `frontend/src/routes/workspaceRoutes.tsx`, `frontend/src/routes/launchPages.test.tsx`, `frontend/src/components/layout/Sidebar.tsx`, `frontend/src/pages/Login/LoginPage.tsx`, `docs/implementation/ACCOUNT_UI.md`, `.impeccable/surfaces/frontend-src-pages-account-accountpages-tsx.md`, `specs/inventory/30-account-ui.md`
+**Owns:** `frontend/src/pages/Account/AccountPages.tsx`, `frontend/src/pages/Account/AccountPages.test.tsx`, `frontend/src/pages/Account/api.ts`, `frontend/src/pages/Account/linkToken.ts`, `frontend/src/pages/Account/linkToken.test.tsx`, `frontend/src/pages/Account/account.css`, `frontend/src/i18n/accountTranslations.ts`, `frontend/src/App.tsx`, `frontend/src/routes/workspaceRoutes.tsx`, `frontend/src/routes/launchPages.test.tsx`, `frontend/src/components/layout/Sidebar.tsx`, `frontend/src/pages/Login/LoginPage.tsx`, `docs/implementation/ACCOUNT_UI.md`, `.impeccable/surfaces/frontend-src-pages-account-accountpages-tsx.md`, `specs/inventory/30-account-ui.md`
 **Reuses:** `frontend/src/components/common/AuthShell.tsx`, `frontend/src/pages/Login/LoginPage.tsx`, `DESIGN-SYSTEM.md#component-conventions`, `design/v5/recovery.html`
 
 ## Goal
@@ -55,3 +55,5 @@ Implement real reset/verify/self-password and owner Organization settings forms;
 - **2026-10-21** — Root integrated83e8a8c/2b42bad/be81d57 after29/PR61, retaining both dictionaries and existing routes. Direct28 records actualshared nav/route consumption;27 main/test and29 registration handoff serialized.19 focused tests; isolated full57Node+75components/8files, lint/tsc/buildpass. Independent fullreview foundonlyerrorbutton44px; scoped48pxfix recaptured9views andsamereviewer scoredresolved/ship atfixscope. Read-only documentercomparisonpass, historicalDESIGNdriftpreserved. Ownerverification query/receipt principal-bound withregression. Fragmentfirstimportscrub+explicitPOST; exactreal16/17/22 APIs, unavailabledeliveryhonest. Root integratedwholewebchecks recordedinbatchhandoff. No credentials/provider/production/schema/dependencychanges.
 
 - **2026-10-21** — Serialized main route registration ownership passed34; first-import ownerlink scrub and account routes preserved.
+
+- **2026-10-21** — Serialized workforce integration ownership transferred to31; existing setup/account behavior retained.

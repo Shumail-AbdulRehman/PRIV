@@ -1,3 +1,5 @@
+import WorkforceActions from "./WorkforceActions";
+import { useGetLocations } from "../Location/queries";
 import AttendanceContext from "@/pages/Attendance/AttendanceContext";
 import ProtectedAttendancePhoto, { type AttendancePhoto } from "@/components/common/ProtectedAttendancePhoto";
 import StaffPerformanceIssues from './StaffPerformanceIssues';
@@ -188,6 +190,7 @@ const StaffDetailPage: React.FC = () => {
   });
   const monthOptions = useMemo(() => getMonthOptions(), []);
 
+  const workforceSites = useGetLocations();
   const staffQuery = useGetStaffDetails(Number(id), filters);
   const { data, isLoading, isFetching } = staffQuery;
 
@@ -554,7 +557,7 @@ const StaffDetailPage: React.FC = () => {
       <PageHeader
         title={staff.name}
         subtitle={`${periodLabel} · Attendance and task history${focusMode === "today" ? " for today" : ""}.`}
-        action={<StatusBadge status={staff.isActive ? "ACTIVE" : "INACTIVE"} />}
+        action={<div className="flex flex-wrap items-center gap-3"><StatusBadge status={staff.isActive ? "ACTIVE" : "INACTIVE"} /><WorkforceActions person={{id:staff.id,name:staff.name,isActive:staff.isActive,locationId:staff.locationId ?? staff.location?.id}} locations={workforceSites.data?.data ?? []} /></div>}
       />
 
       <div className="flex flex-wrap gap-x-6 gap-y-3 rounded-xl border border-border bg-card px-5 py-4 text-sm text-muted-foreground">
