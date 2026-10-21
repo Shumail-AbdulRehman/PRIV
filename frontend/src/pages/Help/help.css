@@ -1,7 +1,7 @@
 .service-information { max-width:1000px; margin-inline:auto; padding:32px 28px; color:var(--foreground); background:var(--background); overflow-wrap:anywhere; }
 .service-information header { display:grid; gap:16px; }
-.marketing-site .service-information h1 { font-size:30px; font-weight:650; line-height:1.3; }
-.marketing-site .service-information h2 { font-size:19px; font-weight:650; margin-block-end:16px; }
+.marketing-site .service-information h1 { font-family:inherit; font-size:30px; font-weight:650; line-height:1.3; }
+.marketing-site .service-information h2 { font-family:inherit; font-size:19px; font-weight:650; margin-block-end:16px; }
 .service-information nav { display:flex; flex-wrap:wrap; gap:16px; padding-block:24px; }
 .service-information a { color:var(--primary); text-decoration:underline; text-underline-offset:4px; display:inline-flex; align-items:center; min-height:48px; }
 .service-information section { padding-block:24px; border-block-start:1px solid var(--border); scroll-margin-block-start:100px; }
