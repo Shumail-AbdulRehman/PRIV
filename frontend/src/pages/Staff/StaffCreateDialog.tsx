@@ -1,3 +1,4 @@
+import useAuth from "@/hooks/useAuth";
 import { useLanguage } from "@/i18n/context";
 import { useForm } from "react-hook-form";
 import { fromZonedTime } from "date-fns-tz";
@@ -36,6 +37,8 @@ export default function StaffCreateDialog({
   onSaved?: () => void;
 }) {
   const { t } = useLanguage();
+  const { user } = useAuth();
+  const managerHire = user?.role === "MANAGER";
   const createStaff = useCreateStaff();
   const {
     register,
@@ -50,7 +53,7 @@ export default function StaffCreateDialog({
       ? location.timezone
       : locations.find((l) => l.id === id)?.timezone) ?? "UTC";
   const inputCls =
-    "flex h-11 w-full rounded-lg border border-border/80 bg-background/90 px-4 py-2 text-sm outline-none focus:border-primary/60 focus:ring-4 focus:ring-primary/10";
+    "flex min-h-12! w-full rounded-lg border border-border/80 bg-background/90 px-4 py-2 text-sm outline-none focus:border-primary/60 focus:ring-4 focus:ring-primary/10";
   const extractError = (error: unknown) => {
     const e = error as {
       response?: { data?: { message?: string; errors?: { message: string }[] } };
@@ -64,6 +67,8 @@ export default function StaffCreateDialog({
     );
   };
   const onCreateSubmit = (formData: CreateStaffForm) => {
+    const selected = location?.id ?? Number(formData.locationId);
+    if (managerHire && !locations.some(site => site.id === selected)) return;
     const tz = tzForLocation(
       location?.id ??
         (formData.locationId ? Number(formData.locationId) : null),
@@ -200,15 +205,15 @@ export default function StaffCreateDialog({
               htmlFor="staff-create-locationId"
               className="mb-1.5 block text-sm font-medium text-foreground"
             >
-              {t(location ? "Location" : "Location (optional)")}
+              {t(location || managerHire ? "Location" : "Location (optional)")}
             </label>
             <select
               disabled={!!location}
               id="staff-create-locationId"
-              {...register("locationId")}
+              {...register("locationId", { validate: value => !managerHire || locations.some(site => String(site.id) === (location ? String(location.id) : value)) || "Select assigned site" })}
               className={inputCls}
             >
-              <option value="">{t("No location")}</option>
+              <option value="">{t(managerHire ? "Select assigned site" : "No location")}</option>
               {(location ? [location] : locations).map((l) => (
                 <option key={l.id} value={l.id}>
                   {l.name}
@@ -216,6 +221,7 @@ export default function StaffCreateDialog({
               ))}
             </select>
           </div>
+          {errors.locationId ? <p role="alert" className="text-destructive">{t(String(errors.locationId.message))}</p> : null}
           <div className="grid grid-cols-2 gap-4">
             <div>
               <label

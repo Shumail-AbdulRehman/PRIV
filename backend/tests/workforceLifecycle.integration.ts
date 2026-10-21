@@ -5,6 +5,8 @@ import { assertIsolatedMediaDatabase } from '../src/services/attendanceMediaTran
 const url = process.env.WORKFORCE_LIFECYCLE_TEST_DATABASE_URL;
 assertIsolatedMediaDatabase(url, process.env.NODE_ENV);
 process.env.DATABASE_URL = url;
+process.env.PADDLE_ENVIRONMENT='sandbox';
+process.env.PADDLE_PRICE_CATALOG_JSON=JSON.stringify([{plan:'STARTER',interval:'month',priceId:'pri_00000000000000000000000001'}]);
 process.env.ACCESS_TOKEN_SECRET = 'isolated-test-access-key-1234567890';
 process.env.REFRESH_TOKEN_SECRET = 'isolated-test-refresh-key-9876543210';
 process.env.ACCESS_TOKEN_EXPIRY = '15m'; process.env.REFRESH_TOKEN_EXPIRY = '7d';
@@ -24,6 +26,11 @@ const now = new Date();
 const start = new Date(+now - 5 * 60_000), end = new Date(+now + 60 * 60_000);
 try {
     const owner = await registerCompany({ name: 'Synthetic lifecycle owner', companyName: 'Synthetic workforce test', email: `${suffix}-owner@example.invalid`, password: 'synthetic-owner-password' });
+    // Synthetic local entitlement only; no live billing provider is involved.
+    const customerId = 'ctm_synthetic_' + suffix, subscriptionId = 'sub_synthetic_' + suffix;
+    await prisma.paddleCustomer.create({data:{id:customerId,companyId:owner.companyId,status:'active',paddleUpdatedAt:now,lastEventAt:now}});
+    await prisma.paddleSubscription.create({data:{id:subscriptionId,customerId,companyId:owner.companyId,status:'active',priceId:'pri_00000000000000000000000001',productId:'pro_synthetic',currentBillingPeriodStart:new Date(+now-86400000),currentBillingPeriodEnd:new Date(+now+86400000),paddleUpdatedAt:now,lastEventAt:now}});
+    await prisma.company.update({where:{id:owner.companyId},data:{billingCustomerId:customerId,billingSubscriptionId:subscriptionId}});
     const location = (name: string) => prisma.location.create({ data: { name, address: 'Isolated fixture', latitude: '31', longitude: '74', companyId: owner.companyId, timezone: 'UTC' } });
     const siteA = await location('Source fixture'), siteB = await location('Destination fixture');
     const createStaff = (name: string) => prisma.staff.create({ data: { name, email: `${suffix}-${name}@example.invalid`, password: 'synthetic-worker-password', companyId: owner.companyId, locationId: siteA.id, shiftStart: start, shiftEnd: end, refreshToken: 'synthetic-obsolete-refresh' } });
@@ -47,7 +54,7 @@ try {
     const pendingCheckIn = recordAttendance(actor, 'check-in', { latitude: 31, longitude: 74 }, Buffer.from('isolated-storage-fixture'), now, prisma, async () => { entered(); return uploaded; });
     // Attach rejection handling before releasing the asynchronous storage boundary.
     const outcome = Promise.allSettled([pendingCheckIn]);
-    await enteredUpload;
+    await Promise.race([enteredUpload, pendingCheckIn.then(() => { throw new Error("Check-in completed before the upload barrier"); })]);
     const moved = await transferStaff(owner, worker.id, siteB.id, { reason: 'Synthetic transfer race', expectedLocationId: siteA.id });
     release(reference);
     assert.equal((await outcome)[0]!.status, 'rejected');
@@ -82,7 +89,8 @@ try {
     const oldManagerAccess = generateAccessToken(manager, 'MANAGER');
     await prisma.manager.update({ where: { id: manager.id }, data: { refreshToken: 'synthetic-prior-manager-refresh' } });
     const response = { status() { return this; }, json() { return this; } } as unknown as Response;
-    await updateManager({ params: { id: String(manager.id) }, body: { password: 'synthetic-replacement-manager-password' }, user: owner } as unknown as Request, response);
+    await assert.rejects(updateManager({ params: { id: String(manager.id) }, body: { password: 'synthetic-replacement-manager-password' }, user: owner } as unknown as Request, response), error => (error as { statusCode?: number }).statusCode === 400);
+    await updateManager({ params: { id: String(manager.id) }, body: { locationIds: [siteA.id] }, user: owner } as unknown as Request, response);
     assert.equal((await prisma.manager.findUniqueOrThrow({ where: { id: manager.id } })).credentialVersion, 1);
     assert.equal((await prisma.manager.findUniqueOrThrow({ where: { id: manager.id } })).refreshToken, null);
     await assert.rejects(verifyJwt({ cookies: {}, header: () => `Bearer ${oldManagerAccess}` } as unknown as Request, response, () => { throw new Error('Old manager credential must not authorize'); }));

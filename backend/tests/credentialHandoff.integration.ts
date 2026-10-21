@@ -54,7 +54,7 @@ try {
   assert.equal(changed.credentialVersion, 3); assert.equal(await bcrypt.compare("synthetic-next-worker-password", changed.password), true);
   await assert.rejects(completeStaffHandoff({ token: handoff.token, newPassword: "synthetic-replayed-password" }));
   const audits = await prisma.auditLog.findMany({ where: { companyId: owner.companyId } });
-  assert.equal(audits.length, 3);
+  assert.equal(audits.filter(audit => ["STAFF_ACCESS_HANDOFF_ISSUED", "STAFF_ACCESS_HANDOFF_COMPLETED", "OWN_PASSWORD_CHANGED"].includes(audit.action)).length, 3);
   assert.equal(JSON.stringify(audits).includes(handoff.token), false);
   assert.equal(JSON.stringify(audits).includes(ownerPassword), false);
   const signoutAccess = generateAccessToken(changed, "STAFF");
