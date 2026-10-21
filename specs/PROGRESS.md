@@ -2,7 +2,7 @@
 
 Source of truth for execution; latest user authorization supersedes old pending labels. Approved v5 preserved.
 
-**Active continuation after spec28:** decision00 and28 of41 execution/gate units Done (13 remain). Execution01–28 are complete; next selected eligible unit29 consumes completed23/27/08. User requests continued completion without routine handoff stops. Review remains stacked draft PRs; Done is local verification, not merge or external release qualification.
+**Active continuation after spec28:** decision00 and29 of41 execution/gate units Done (12 remain). Execution01–29 are complete; next selected eligible unit29 consumes completed23/27/08. User now requests stop after the active parallel batch29/30/34/37; no further specs start. Review remains stacked draft PRs; Done is local verification, not merge or external release qualification.
 
 | # | Spec | Status | Depends on | Model | Issue | Notes |
 |---|---|---|---|---|---|---|
@@ -35,7 +35,7 @@ Source of truth for execution; latest user authorization supersedes old pending 
 | 26 | [Wire launch backend routes and policies](26-launch-api-composition.md) | Done | 07, 11, 12, 14, 15, 16, 17, 18, 20, 21, 22, 23, 24, 25 | Heavy | #53 | 215 focused/1413 backend + SQL; see Log |
 | 27 | [Approved v5 shared shell and route composition](27-workspace-shell.md) | Done | 06 | Heavy | #35 | 57+40 tests/build/lint; see Log |
 | 28 | [Real derived setup and operational dashboard](28-setup-ui.md) | Done | 12, 14, 15, 27 | Standard | #55 | 16 focused/57+56 web;1416 backend; see Log |
-| 29 | [Attendance exception context UI](29-attendance-context-ui.md) | Not started | 23, 27, 08 | Standard | — | See spec |
+| 29 | [Attendance exception context UI](29-attendance-context-ui.md) | Done | 23, 27, 08 | Standard | #57 |12focused/57+68web; seeLog |
 | 30 | [Account settings and recovery UI](30-account-ui.md) | Not started | 16, 17, 22, 27 | Standard | — | See spec |
 | 31 | [Workforce access and transfer UI](31-workforce-ui.md) | Not started | 11, 17, 27 | Standard | — | See spec |
 | 32 | [Real subscription lifecycle UI](32-billing-ui.md) | Not started | 15, 27, 28 | Standard | — | Shared lifecycle client from28 |
@@ -99,3 +99,5 @@ Source of truth for execution; latest user authorization supersedes old pending 
 - **2026-10-21** — Spec28 verified: persisted per-site setup with actual access/lifecycle metadata and existing form deep links.16 focused,57 Node+56 component web,1416 backend/zero skips; tsc/lint/build pass. Independent review fix resolved, design documentation comparison retained incumbent.13 remain; continue29.
 
 - Published28 implementation8ffdcf8 in stacked draft PR56: https://github.com/Shumail-AbdulRehman/PRIV/pull/56 (base26/PR54). Issue55 remains open for review. Continue eligible29; no merge/deploy.
+
+- **2026-10-21** — User authorized parallel independent agents.29 root;30 worktree/tmp/hygene-spec30,34/tmp/hygene-spec34,37/tmp/hygene-spec37. Latest instruction: finish only this batch, publish reviewed draft PRs and stop. Shared routes/progress serialize at root.

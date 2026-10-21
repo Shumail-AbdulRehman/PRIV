@@ -1,3 +1,4 @@
+import AttendanceContext from "@/pages/Attendance/AttendanceContext";
 import ProtectedAttendancePhoto, { type AttendancePhoto } from "@/components/common/ProtectedAttendancePhoto";
 import OperationsState from "../Manager/OperationsState";
 import { useState } from "react";
@@ -298,6 +299,11 @@ export default function AttendancePage() {
         ) : (
           <span className="text-gray-400">—</span>
         ),
+    },
+    {
+      key: "context",
+      header: "Attendance context",
+      render: (r) => <AttendanceContext attendance={r} staffName={r.staff.name} />,
     },
     {
       key: "checkInImg",

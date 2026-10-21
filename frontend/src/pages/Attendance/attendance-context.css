@@ -1,0 +1,30 @@
+.workspace.attendance-context-dialog {padding:24px;gap:20px;overflow-wrap:anywhere}
+.workspace .attendance-capture,.workspace .attendance-context-history {border-bottom:1px solid var(--border);padding-block-end:20px}
+.workspace .attendance-capture h2,.workspace .attendance-context-history h2,.workspace .attendance-context-form h2 {font-size:16px;font-weight:600;margin-block-end:12px}
+.workspace .attendance-capture > p {margin-block:4px;color:var(--muted-foreground)}
+.workspace .attendance-capture dl {display:grid;grid-template-columns:minmax(100px,1fr) minmax(0,2fr);gap:12px 20px;margin-block-start:16px}
+.workspace .attendance-capture dt {color:var(--muted-foreground)}
+.workspace .attendance-capture dd {text-align:end;min-width:0}
+.workspace .attendance-context-photos {display:flex;gap:12px;flex-wrap:wrap;margin-block-start:20px}
+.workspace .attendance-context-history ol {display:block;list-style:none;margin:0;padding:0}
+.workspace .attendance-context-history li {padding-block:16px;border-bottom:1px solid var(--border)}
+.workspace .attendance-context-history li:last-child {border-bottom:0}
+.workspace .attendance-context-attribution {display:flex;align-items:baseline;gap:8px 16px;flex-wrap:wrap}
+.workspace .attendance-context-attribution span,.workspace .attendance-context-attribution time,.workspace .attendance-context-reference {font-size:13px;color:var(--muted-foreground)}
+.workspace .attendance-context-reason {white-space:pre-wrap;margin-block:12px;max-width:70ch;unicode-bidi:plaintext}
+.workspace .attendance-context-reference {margin-block:8px}
+.workspace .attendance-context-form {display:grid;gap:12px}
+.workspace .attendance-context-form h2 {margin:0}
+.workspace .attendance-context-form label {font-weight:550}
+.workspace .attendance-context-form textarea {min-height:120px;width:100%;resize:vertical;border:1px solid var(--input);border-radius:7px;padding:12px;background:var(--card);color:var(--ink);caret-color:var(--primary)}
+.workspace .attendance-context-form textarea:read-only {background:var(--muted)}
+.workspace .attendance-context-form > p {color:var(--muted-foreground)}
+.workspace.attendance-context-dialog [role="alert"] {padding:12px;color:var(--danger-ink);background:var(--danger-fill);border-radius:7px}
+.workspace.attendance-context-dialog [role="status"] {padding-block:8px}
+.workspace .attendance-context-actions {display:flex;gap:12px;flex-wrap:wrap}
+.workspace.attendance-context-dialog button {min-height:44px;height:auto;white-space:normal}
+@media (max-width:600px) {.workspace.attendance-context-dialog {padding:16px}.workspace .attendance-capture dl {grid-template-columns:1fr}.workspace .attendance-capture dd {text-align:start;margin-block-start:-8px}.workspace .attendance-context-actions > [data-slot="button"] {flex:1 1 140px}}
+
+.workspace .attendance-context-header {display:flex;align-items:center;justify-content:space-between;gap:16px;position:sticky;top:0;z-index:1;background:var(--card);padding-block:12px}
+
+@media (max-width:900px) {.workspace.attendance-context-dialog button {min-height:48px}}
