@@ -17,6 +17,8 @@ export function requirementDiagnosis(detail:ExceptionDetail, requirement:Evidenc
   const result=attempt?.reviewSummary;
   const dirty=surfaces(result?.dirtySurfaces,t), missing=surfaces(result?.missingSurfaces,t);
   const row={id:requirement.id,name,view:reviewViewLabel(requirement.viewKey,t),state:requirement.state,mandatory:mandatory&&requirement.mandatory!==false,attempt};
+  if (attempt?.state === 'PRIVACY_HOLD' || ['HOLD','HELD','PRIVACY_HOLD'].includes(attempt?.privacyState ?? '') || reason === 'PRIVACY_HOLD') return {...row,category:'review',title:t('Privacy review needed'),description:t('The photo is restricted for a privacy review. Check it carefully before deciding whether it is safe to use.')};
+  if (reason === 'SERVICE_FAILURE' || attempt?.state === 'SERVICE_FAILURE') return {...row,category:'review',title:t('Photo check failed'),description:t('The automatic photo check could not finish. This is a checking failure, not a finding that the fixture is dirty.')};
   if(['PASSED','MANAGER_ACCEPTED','WAIVED'].includes(requirement.state))return {...row,category:'checked',title:t(requirement.state==='WAIVED'?'Accepted with an exception':'Photo requirement satisfied'),description:t(requirement.state==='WAIVED'?'A manager recorded an exception for this required view.':'This photo requirement has been satisfied.')};
   if(requirement.state==='MISSING') {
     const earlier=detail.attempts?.some(attempt=>attempt.requirementId===requirement.id&&!!attempt.receivedAt);

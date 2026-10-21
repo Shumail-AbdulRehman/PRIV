@@ -22,7 +22,7 @@ export default function ProtectedEvidence({
 }) {
   const { t } = useLanguage();
   const [image, setImage] = useState<{ key: string; url: string } | null>(null);
-  const [failed, setFailed] = useState<string | null>(null);
+  const [failed, setFailed] = useState<{key: string; status?: number} | null>(null);
   const [retry, setRetry] = useState(0);
   const [expanded, setExpanded] = useState(false);
   const [zoom, setZoom] = useState(1);
@@ -54,8 +54,8 @@ export default function ProtectedEvidence({
         setImage({ key, url });
         setFailed(null);
       })
-      .catch(() => {
-        if (!abort.signal.aborted) setFailed(key);
+      .catch((error: {response?:{status?:number}}) => {
+        if (!abort.signal.aborted) setFailed({key, status:error.response?.status});
       });
     return () => {
       abort.abort();
@@ -67,19 +67,19 @@ export default function ProtectedEvidence({
       <p className="ops-evidence-placeholder">
         {t(
           held
-            ? "Sensitive image restricted. Request a safe recapture."
+            ? "Sensitive image restricted. Only an authorized privacy review can access it."
             : "Privacy check pending. Photo is not available for routine review yet.",
         )}
       </p>
     );
   const url = image?.key === key ? image.url : null;
-  if (failed === key)
+  if (failed?.key === key)
     return (
       <div role="alert" className="ops-evidence-placeholder">
-        {t("Evidence unavailable.")}
-        <Button variant="outline" onClick={() => setRetry((r) => r + 1)}>
+        {t(failed.status === 403 || failed.status === 401 ? "You do not have access to this evidence." : failed.status === 404 || failed.status === 410 ? "This evidence is no longer available." : "Evidence could not load. Retry when connected.")}
+        {![401,403,404,410].includes(failed.status ?? 0) && <Button variant="outline" onClick={() => setRetry((r) => r + 1)}>
           {t("Retry")}
-        </Button>
+        </Button>}
       </div>
     );
   return (
