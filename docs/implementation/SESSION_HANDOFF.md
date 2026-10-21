@@ -1,10 +1,25 @@
-# Implementation handoff — 2026-10-21, after Specification28 — active continuation
+# Implementation handoff — 2026-10-21, requested batch29/30/34/37 complete — STOP checkpoint
 
 ## Current continuation state
 
 Latest user explicitly authorizes parallel agents for independent work, then asks to STOP after the current batch29/30/34/37 completes. Finish verification, integration, scoped commits/pushes and draft PRs for this batch only, update this handoff and report remaining work. Do not start another specification. This supersedes earlier unlimited-continuation instructions. Approved launch scope/design/v5 remain authoritative. No deployment, production mutation, destructive migration or PR merge is authorized.
 
-Completed: decision00 and execution01–28 (28 of41 execution/gates;13 remain). Specs29–41 are Not started. Next29 is eligible through23/27/08. Continue automatically after current publication; no previous work repeated.
+Completed: decision00 and32 of41 execution/gate units:01–30,34,37. **9 remain:31,32,33,35,36,38,39,40,41.** Latest user asked to finish this batch and stop; do not implement any further unit until a fresh instruction. Draft review is unmerged and no production operation/deployment is authorized.
+
+## Latest batch and next continuation
+
+Root integrated isolated parallel implementations onto a serialized stack:29→30→34→37.29 implementation008c2d3 draftPR61 (base28/PR56).30 integrated83e8a8c/2b42bad/be81d57 plus52c301b draftPR62 (base29/PR61).34 integrated874fff1/3cb20d1/82a7d21 plusb5d88d2 draftPR63 (base30/PR62).37 integratedab9e8da/bc2d2fc currentbranch `implementation/spec-37-native-integrated` based34/PR63; finalpublicationrecordbelow. Issues57/58/59/60 remainopenforhumanreview. NoPRmerged.
+
+Final evidence: wholefrontend57Node+102componenttests/10files, fullfrontendlint0, TypeScript/Vitebuildpass; wholemobile101tests/zeroskips,tsc,Expowebexportpass. Backendunchangedafter28 (1416tests/92files/zeroskips +tsc/buildverifiedthen). 29actualAPIcontext12focused,30account19focused,34operator15focused; fresh independentreviews/documentation completed.29mobiletargetfix48 verifiedbyfreshfixreview afteroriginalreviewerquota;30samereviewerfixverdictresolved;34scopeintentionallydisabledprovider, zerotenant/APIrequestsfromactual4platformroutefixture renders. Native37review/sourcecomponentsONLY; noAndroidruntimevisualapproval.
+
+Nexteligibleunit31 consumes11/17/27Done;32(15/27/28),33(24/27),35(25/27),36(20/21/27),38(27/25) also eligible.39 operations/config is locallyeligible via03/26 but actualIdP/mail/support/Paddle/legal/host/backup/signing/device/consentedphoto qualification remains external.40 requires01–39,41requires40; do not markeither frommocks. User has NOT authorized continuingafterthisbatch.
+
+Preservealloriginaldirtytrackedfiles:CI,gitignore,DESIGN.md,backendpackage,managercontroller/routes,managertranslations,Dashboard.8filehashesmatch `/tmp/hygene-spec29-preserved.json`; untrackedperformance/design/skills/investor-video remainoutsidecommits. Parallelworktrees /tmp/hygene-spec30,/tmp/hygene-spec34,/tmp/hygene-spec37 retainimplementationbranches andlocalcaptureevidence; don'treset/stash/deleteuserwork. Sharedroute/translation/progressconflictswere resolvedretainingallfeaturechangesandlateststopinstruction. Rootmainownernow34; furtherregistrationneedsserializedownershiphandoff.
+
+No newdependencies/schema/migration/backendpolicy/providerconfiguration introducedbybatch. Actual21newphoto processing staysunavailable;37camera/uploadhonorsmanifestqualification while historicalsamecaptureresult/retryandpersistedreceipt remainreachable. Historicalnativeglobalteal/systemfontvsapprovedv5blue/Interdrift is documentedandunchanged, notvisualparityclaim. Noadb/emulator/nativecaptures; fontscale/Urdu/devicepermissionsGPS/push/IMEBack/install/signing/performance39/40unverified. LiveIdPbrowseradapterabsent:34separateplatformrequestsdenybeforeI/Oandnocallerprovidestoken; do notfallbacktotenantauthin33/35.
+
+Logs `/tmp/hygene-batch-web-{tests,lint,build}-final.log`, `/tmp/hygene-batch-native-{tests,type,build}.log`, `/tmp/hygene-spec34-route-proof.log`;temporaryfilescanvanish. SyntheticReactcaptures29root `.impeccable/review/spec29/`,30/34respectiveworktreesarecomponent/renderproofonly, not40E2E. Validator42specs/zeroerrors/eightjustifiedwarnings; READMEwaves/DAGinclude30actual28composition and37actual26capabilityconsumption.
+
 
 ## Spec28 verified local boundary
 

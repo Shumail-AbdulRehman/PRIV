@@ -2,7 +2,7 @@
 
 Source of truth for execution; latest user authorization supersedes old pending labels. Approved v5 preserved.
 
-**Active continuation after spec28:** decision00 and31 of41 execution/gate units Done (10 remain). Execution01–30 and34 are complete; next selected eligible unit29 consumes completed23/27/08. User now requests stop after the active parallel batch29/30/34/37; no further specs start. Review remains stacked draft PRs; Done is local verification, not merge or external release qualification.
+**Safe checkpoint after requested batch:** decision00 and32 of41 execution/gate units Done; **9 remain:31,32,33,35,36,38,39,40,41**. Execution01–30 plus34/37 are complete locally. User requested stop after29/30/34/37; do not begin further specifications without a new instruction. Review remains stacked draft PRs, not merged. External qualification/device gates remain unverified.
 
 | # | Spec | Status | Depends on | Model | Issue | Notes |
 |---|---|---|---|---|---|---|
@@ -43,7 +43,7 @@ Source of truth for execution; latest user authorization supersedes old pending 
 | 34 | [Platform sign-in and security workspace](34-platform-security-ui.md) | Done | 19, 27 | Heavy | #59 |15focused; isolatedoperatorroutes; seeLog |
 | 35 | [Platform service audit and leads UI](35-platform-service-ui.md) | Not started | 25, 27 | Standard | — | See spec |
 | 36 | [Truthful task and photo review UX](36-photo-review-ui.md) | Not started | 20, 21, 27 | Standard | — | See spec |
-| 37 | [Native attendance/photo/account recovery](37-native-workflows.md) | Not started | 09, 17, 20, 21 | Standard | — | See spec |
+| 37 | [Native attendance/photo/account recovery](37-native-workflows.md) | Done | 09, 17, 20, 21, 26 | Standard | #60 |101native/tsc/Expoexport; deviceunverified |
 | 38 | [Configured support and service information](38-service-information.md) | Not started | 27, 25 | Standard | — | Contact availability consumes25 |
 | 39 | [Launch operations and active CI proof](39-release-operations.md) | Not started | 03, 26 | Heavy | — | See spec |
 | 40 | [Launch end-to-end suite](40-e2e-suite.md) | Not started | 01, 02, 03, 04, 05, 08, 07, 06, 09, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23, 24, 25, 26, 27, 28, 29, 30, 31, 32, 33, 34, 35, 36, 37, 38, 39 | Heavy | — | See spec |
@@ -101,3 +101,5 @@ Source of truth for execution; latest user authorization supersedes old pending 
 - Published28 implementation8ffdcf8 in stacked draft PR56: https://github.com/Shumail-AbdulRehman/PRIV/pull/56 (base26/PR54). Issue55 remains open for review. Continue eligible29; no merge/deploy.
 
 - **2026-10-21** — User authorized parallel independent agents.29 root;30 worktree/tmp/hygene-spec30,34/tmp/hygene-spec34,37/tmp/hygene-spec37. Latest instruction: finish only this batch, publish reviewed draft PRs and stop. Shared routes/progress serialize at root.
+
+- **2026-10-21** — Requestedparallelbatch29/30/34/37 complete locally and reviewed atactualevidencescope. Integratedweb57Node+102components/10files,lint/type/build; native101tests/zeroskips,typecheck/Expoexport.32of41Done,9remain31/32/33/35/36/38/39/40/41. Stopperlatestuser. Nexteligible31 (11/17/27Done);32,33,35,36,38alsoeligible,39localoperationseligiblebutexternalqualificationblocked.40/41noteligibleuntiltheirrequiredgates.

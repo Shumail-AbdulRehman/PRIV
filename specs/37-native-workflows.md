@@ -1,6 +1,6 @@
 # Spec 37 — Native attendance/photo/account recovery
 
-**Status:** In progress
+**Status:** Done
 **Depends on:** Spec 09, Spec 17, Spec 20, Spec 21, Spec 26
 **Model:** Standard — `claude-sonnet-5-5` · `gpt-6.1-sol` · `gemini-3.8-flash`
 **Issue:** #60
@@ -39,7 +39,7 @@ Integrate approved v5 native states into existing actual screens: role-correct s
 
 - [x] `npm test --prefix frontend-mobile` passes: Offline/lost response never duplicates completed capture; receipt persists; permission retry and expired authority distinct; EN/UR/large text supported. [unit]
 - [x] `npm test --prefix frontend-mobile` passes the whole affected unit suite; record count. [unit]
-- [ ] Only scoped paths changed; relevant denial/empty/error/config-unavailable states inspected. [static]
+- [x] Only scoped paths changed; relevant denial/empty/error/config-unavailable states inspected. [static]
 - [x] `npm run typecheck --prefix frontend-mobile` passes. [static]
 - [x] `npm run build:web --prefix frontend-mobile` passes; native release separately gated. [static]
 
@@ -50,3 +50,5 @@ Integrate approved v5 native states into existing actual screens: role-correct s
 - **2026-10-21** — Implemented actual staff login/handoff/self replacement with retained mandatory-change gate; exact persisted attendance/lost-response reads and checkout ID; server photo qualification/authority before permission/capture/upload, retained same-capture result/manual retry and immutable submission receipt; settings/push help with EN/UR.101 mobile tests/zero skips, TypeScript and Expo web export pass. Existing72 baseline plus29 cases at policy, form, AuthProvider, Home and Verification seams. No dependency/backend/database/provider change. No adb/emulator/device available; native runtime/font scale/permission/push/Android qualification remains39/40, explicitly not proven by web export or component trees. Docs NATIVE_RECOVERY.md and inventory37 contain proof/limits. Await independent finish source/component review and lead integration before Done; no push/PR from parallel worker.
 
 - **2026-10-21** — Fresh independent review ship at source/component scope, no material fixes; documenter confirms reuse and explicitly limits evidence: no native visual/device approval, historical teal/systemfont drift remains unchanged, qualification39/40 external. Root integration/publication remains.
+
+- **2026-10-21** — Root integratedab9e8da/bc2d2fc on34/PR63, preservinglatest stopinstruction andsharedprogress.101native tests/zeroskips,tsc andExpo webexportpass; current29/30/34web57Node+102components/10files,lint/tsc/build unchangedandpassing. Freshindependentreview anddocumenter ship SOURCE/COMPONENT SCOPE ONLY: noadb/emulator/device/nativecaptures, Urdufontscale/IME/Back/cameraGPS/push/install/signing/performance qualificationremains39/40. Historicalnativeglobalteal/systemfontdriftpreserved, notrenderedv5visualparity. Actual26photoChecking/allowedActions andstructuredPASSWORD_CHANGE_REQUIRED consumed;21newprocessingunavailable, samecaptureresultlookup andpersistedreceiptretained. No newdependency/backend/schema/productionmutation. Validator42/zeroerrors/eightjustifiedwarnings afterdirect26edge/W7 and40consumers. Userbatch29/30/34/37ends here; nofutureunitstarted.
