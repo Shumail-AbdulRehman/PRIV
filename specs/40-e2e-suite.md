@@ -5,7 +5,7 @@
 **Model:** Heavy — `claude-opus-5-5` · `gpt-6-astra` · `gemini-3.1-pro-preview`
 **Issue:** —
 **Owns:** `frontend/playwright.config.ts`, `frontend/e2e/`, `frontend-mobile/e2e/`, `docs/implementation/E2E_RESULTS.md`
-**Reuses:** `specs/ARCHITECTURE.md`
+**Reuses:** `specs/ARCHITECTURE.md`, `docs/implementation/SETUP_UI.md`, `.impeccable/surfaces/frontend-src-pages-setup-setuppage-tsx.md`, `frontend/src/pages/Setup/setup.css`, `frontend/src/i18n/setupTranslations.ts`, `frontend/src/pages/Location/LocationsPage.tsx`, `frontend/src/pages/Location/components/LocationTemplatesTab.tsx`, `frontend/src/pages/Manager/TodayStatusPage.tsx`, `frontend/src/pages/Staff/StaffPage.tsx`
 
 ## Goal
 

@@ -4,7 +4,7 @@
 **Depends on:** Spec 00
 **Model:** Standard — `claude-sonnet-5-5` · `gpt-6.1-sol` · `gemini-3.8-flash`
 **Issue:** #20
-**Owns:** `backend/src/config/runtimeSecurity.test.ts`, `backend/src/services/taskReadiness.service.ts`, `backend/src/services/taskReadiness.service.test.ts`, `backend/src/routes/taskReadiness.route.ts`, `specs/inventory/12-task-readiness.md`
+**Owns:** `backend/src/config/runtimeSecurity.test.ts`, `backend/src/routes/taskReadiness.route.ts`, `specs/inventory/12-task-readiness.md`
 **Reuses:** `backend/src/services/templateAssignment.service.ts`, `backend/src/services/schedulePreview.service.ts`, `backend/src/cron/startupCron.ts`
 
 ## Goal
@@ -53,3 +53,5 @@ Expose derived scoped setup/task eligibility using existing DAILY/ONCE engine. C
 - **2026-10-20** — Scoped draft https://github.com/Shumail-AbdulRehman/PRIV/pull/23 published, stacked on07; no merge.
 
 - **2026-10-21** — Serialized composition ownership transferred to26: `backend/src/routes/location.route.ts`. Prior completed behavior retained;26 consumes rather than reimplements this contract.
+
+- **2026-10-21** — Serialized setup integration ownership transferred to28 for existing route/nav/translation/form/readiness/API seams. Preserve previous behavior; subsequent feature edits must amend ownership again.

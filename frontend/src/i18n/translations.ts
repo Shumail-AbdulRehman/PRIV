@@ -1,3 +1,4 @@
+import { setupUrdu } from "./setupTranslations.ts";
 import { launchUrdu } from "./launchTranslations.ts";
 import { attendancePhotoUrdu } from "./attendancePhotoTranslations.ts";
 import { managerUrdu } from "./managerTranslations.ts";
@@ -601,7 +602,7 @@ export function translate(
   values: Record<string, string | number> = {},
 ): string {
   const template =
-    language === "ur" ? (launchUrdu[text] ?? attendancePhotoUrdu[text] ?? managerUrdu[text] ?? urdu[text] ?? text) : text;
+    language === "ur" ? (setupUrdu[text] ?? launchUrdu[text] ?? attendancePhotoUrdu[text] ?? managerUrdu[text] ?? urdu[text] ?? text) : text;
   return template.replace(/\{(\w+)\}/g, (token, key: string) =>
     String(values[key] ?? token),
   );

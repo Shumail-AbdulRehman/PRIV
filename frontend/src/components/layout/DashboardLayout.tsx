@@ -14,6 +14,7 @@ import "@/workspace-refresh.css";
 
 const TITLES: Record<string, string> = {
   dashboard: "Overview",
+  setup: "Setup",
   "today-status": "Today",
   locations: "Locations",
   staff: "Team",

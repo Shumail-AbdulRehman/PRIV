@@ -1,5 +1,6 @@
+vi.mock('./accountAccess.service.js',async original=>({...await original<typeof import('./accountAccess.service.js')>(),readAccountState:mock.access}));
 import { beforeEach, describe, expect, it, vi } from "vitest";
-const mock = vi.hoisted(() => ({ active: vi.fn(), locations: vi.fn(), total: vi.fn(), staff: vi.fn(), areas: vi.fn(), schedules: vi.fn(), tasks: vi.fn() }));
+const mock = vi.hoisted(() => ({ access:vi.fn(), active: vi.fn(), locations: vi.fn(), total: vi.fn(), staff: vi.fn(), areas: vi.fn(), schedules: vi.fn(), tasks: vi.fn() }));
 vi.mock("../prisma/prisma.js", () => ({ prisma: { location: { findMany: mock.locations, count: mock.total }, staff: { groupBy: mock.staff }, area: { groupBy: mock.areas }, taskTemplate: { groupBy: mock.schedules }, taskInstance: { groupBy: mock.tasks } } }));
 vi.mock("./verification-v2/authorization.service.js", () => ({ requireActiveActor: mock.active, requireOperationalRole: (actor: { role: string }) => { if (!["ADMIN", "MANAGER"].includes(actor.role)) throw Object.assign(new Error("Operational role required"), { statusCode: 403 }); } }));
 import { workspaceTaskReadiness } from "./taskReadiness.service.js";
@@ -8,7 +9,7 @@ const site = { id: 20, name: "Test site", timezone: "Asia/Karachi" };
 const now = new Date("2026-11-01T12:00:00Z");
 const group = (id: number, count: number) => ({ locationId: id, _count: { _all: count } });
 beforeEach(() => {
-  vi.resetAllMocks(); mock.active.mockResolvedValue({}); mock.locations.mockResolvedValue([site]); mock.total.mockResolvedValue(1);
+  vi.resetAllMocks();mock.access.mockResolvedValue({company:{id:42,isActive:true,operationalStatus:'ACTIVE',billingCustomerId:null,billingSubscriptionId:null},subscription:null}); mock.active.mockResolvedValue({}); mock.locations.mockResolvedValue([site]); mock.total.mockResolvedValue(1);
   mock.staff.mockResolvedValue([]); mock.areas.mockResolvedValue([]); mock.schedules.mockResolvedValue([]); mock.tasks.mockResolvedValue([]);
 });
 describe("derived workspace/task readiness", () => {
@@ -70,4 +71,19 @@ describe("derived workspace/task readiness", () => {
     const result = await workspaceTaskReadiness(actor, {}, now);
     expect(result.sites[0]?.counts.unassignedTasksToday).toBe(2); expect(result.sites[0]?.reasons).toContain("NO_ELIGIBLE_STAFF");
   });
+});
+
+it('readiness does not imply permission to manage an unentitled account, including an empty site scope',async()=>{
+ expect((await workspaceTaskReadiness(actor,{},now)).access.manageWork).toBe(false);
+ mock.locations.mockResolvedValue([]);mock.total.mockResolvedValue(0);
+ expect((await workspaceTaskReadiness(actor,{},now)).access.manageWork).toBe(false);
+});
+it('unavailable account state is an error, never inferred permission or a fabricated incomplete checklist',async()=>{
+ mock.access.mockRejectedValue(new Error('Account read failed'));
+ await expect(workspaceTaskReadiness(actor,{},now)).rejects.toThrow('Account read failed');expect(mock.locations).not.toHaveBeenCalled();
+});
+it('reports manage permission only from the current provider window and exact linkage',async()=>{
+ mock.access.mockResolvedValue({company:{id:42,isActive:true,operationalStatus:'ACTIVE',billingCustomerId:'c',billingSubscriptionId:'s'},subscription:{id:'s',companyId:42,customerId:'c',status:'active',currentBillingPeriodStart:new Date(+now-1000),currentBillingPeriodEnd:new Date(+now+1000)}});
+ expect((await workspaceTaskReadiness(actor,{},now)).access.manageWork).toBe(true);
+ expect((await workspaceTaskReadiness(actor,{},new Date(+now+1000))).access.manageWork).toBe(false);
 });
