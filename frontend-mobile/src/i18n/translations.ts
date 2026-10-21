@@ -1,4 +1,4 @@
-import { launchUrdu } from "../launch/launchTranslations";
+import { launchUrdu } from "../launch/launchTranslations.ts";
 // Shared English/Urdu vocabulary. Keep web and native copies in parity.
 export type Language = "en" | "ur";
 export const urdu: Record<string, string> = {
