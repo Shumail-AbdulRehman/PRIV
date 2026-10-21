@@ -33,7 +33,7 @@ function CompanyContent(){
  }
  const activeQuery=companyId?detail:list;
  return <OperatorShell title={t('Platform companies')}><div className="platform-company-workspace ops-page">
-  <nav className="platform-company-links" aria-label={t('Platform navigation')}><Link to="/platform/companies">{t('Companies')}</Link><Link to="/platform/security">{t('Platform security')}</Link></nav>
+  <nav className="platform-company-links" aria-label={t('Platform navigation')}><Link to="/platform/companies">{t('Companies')}</Link><Link to="/platform/service">{t('Platform service')}</Link><Link to="/platform/security">{t('Platform security')}</Link></nav>
   {saved?<p role="status" className="ops-save-result">{t(saved)}</p>:null}
   {companyId&&!id?<p role="alert">{t('Company account not found.')}</p>:null}
   {activeQuery.isFetching?<p role="status">{t('Loading company records…')}</p>:null}

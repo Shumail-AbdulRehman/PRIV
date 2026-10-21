@@ -1,10 +1,10 @@
 # Spec 35 — Platform service audit and leads UI
 
-**Status:** Not started
+**Status:** Done
 **Depends on:** Spec 25, Spec 27
 **Model:** Standard — `claude-sonnet-5-5` · `gpt-6.1-sol` · `gemini-3.8-flash`
-**Issue:** —
-**Owns:** `frontend/src/pages/Platform/ServicePage.tsx`, `frontend/src/pages/Platform/ServicePage.test.tsx`, `frontend/src/pages/Platform/serviceApi.ts`, `specs/inventory/35-platform-service-ui.md`
+**Issue:** #73
+**Owns:** `docs/implementation/PLATFORM_SERVICE_UI.md`, `.impeccable/surfaces/frontend-src-pages-platform-servicepage-tsx.md`, `frontend/src/pages/Platform/CompaniesPage.tsx`, `frontend/src/pages/Platform/platformRoutes.tsx`, `frontend/src/i18n/translations.ts`, `frontend/src/pages/Platform/service.css`, `frontend/src/i18n/platformServiceTranslations.ts`, `frontend/src/pages/Platform/ServicePage.tsx`, `frontend/src/pages/Platform/ServicePage.test.tsx`, `frontend/src/pages/Platform/serviceApi.ts`, `specs/inventory/35-platform-service-ui.md`
 **Reuses:** `frontend/src/components/common/DataTable.tsx`, `frontend/src/components/common/OperationStatus.tsx`, `DESIGN-SYSTEM.md#component-conventions`, `design/v5/service.html`
 
 ## Goal
@@ -37,8 +37,14 @@ Expose real redacted diagnostics/audit/inquiry status with bounded filters and a
 
 ## Done when
 
-- [ ] `npm run test:components --prefix frontend -- src/pages/Platform/ServicePage.test.tsx` passes: Unavailable diagnostic distinct from healthy; lead state persists; retry performs actual scoped request; no private workforce data. [unit]
-- [ ] `npm test --prefix frontend` passes the whole affected unit suite; record count. [unit]
-- [ ] Only scoped paths changed; relevant denial/empty/error/config-unavailable states inspected. [static]
-- [ ] `npm run lint --prefix frontend` reports zero errors/warnings in changed files; document baseline separately. [static]
-- [ ] `npm run build --prefix frontend` passes. [static]
+- [x] `npm run test:components --prefix frontend -- src/pages/Platform/ServicePage.test.tsx` passes: Unavailable diagnostic distinct from healthy; lead state persists; retry performs actual scoped request; no private workforce data. [unit]
+- [x] `npm test --prefix frontend` passes the whole affected unit suite; record count. [unit]
+- [x] Only scoped paths changed; relevant denial/empty/error/config-unavailable states inspected. [static]
+- [x] `npm run lint --prefix frontend` reports zero errors/warnings in changed files; document baseline separately. [static]
+- [x] `npm run build --prefix frontend` passes. [static]
+
+## Log
+
+- **2026-10-21** — Issue73 claimed before source edits. Actual25(c04c7ab)/27(b8396ff) commits verified as HEAD ancestors, not assumed present on main. Existing34 unavailable operator boundary/request reused unchanged. Shared routes/dictionary/company-navigation ownership transferred33→35 before edits. Branch implementation/spec-35-platform-service-ui based completed33/e0a5d63; this preserves established Git stack, not a new spec dependency.
+- **2026-10-21** — Implemented actual guarded service/audit/inquiry routes, redacted diagnostics with unknown/unavailable observations, real retry, bounded audit/company/action/inquiry search/cursors, escaped submission detail, accountable versioned status/SELF-or-UNASSIGNED handling/reason.409/uncertain save keeps draft and requires successful explicit refresh; no duplicate pending update. Configured validated support mailto only, no delivery/verification claim. No private workforce fields or fabricated health/provider results. Backend/schema/provider configuration unchanged.
+- **2026-10-21** —22focused React tests; full57Node+198React/15files pass.135backend support/operator identity tests/2files pass. Full frontend lint0 and TypeScript/Vite build pass; non-failing plugin timing advisory only.20 isolated named-workspace renders EN/UR390/1440 across diagnostics/audit/inquiries/detail/error have no page overflow/JS errors or visible buttons below44px. Desktop EN diagnostics and mobile Urdu detail visually inspected; detector[]. Actual guarded route tests for all3paths deny tenant/storage roles before requests. Positive fixtures replace only the request seam; live IdP/MFA, operational mutation and integrated E2E qualification remain39/40. Temporary harness removed; eight original dirty files byte-preserved. Evidence and files in inventory35/PLATFORM_SERVICE_UI.md; ephemeral logs /tmp/hygene-spec35-*. No production/provider/database operation.

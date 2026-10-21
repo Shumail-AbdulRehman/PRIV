@@ -4,7 +4,7 @@
 **Depends on:** Spec 24, Spec 27
 **Model:** Standard — `claude-sonnet-5-5` · `gpt-6.1-sol` · `gemini-3.8-flash`
 **Issue:** #71
-**Owns:** `frontend/src/pages/Platform/platformRoutes.tsx`, `frontend/src/pages/Platform/companies.css`, `frontend/src/i18n/platformCompanyTranslations.ts`, `frontend/src/i18n/translations.ts`, `frontend/src/pages/Platform/CompaniesPage.tsx`, `frontend/src/pages/Platform/CompaniesPage.test.tsx`, `frontend/src/pages/Platform/companyApi.ts`, `specs/inventory/33-platform-company-ui.md`
+**Owns:** `frontend/src/pages/Platform/companies.css`, `frontend/src/i18n/platformCompanyTranslations.ts`, `frontend/src/pages/Platform/CompaniesPage.test.tsx`, `frontend/src/pages/Platform/companyApi.ts`, `specs/inventory/33-platform-company-ui.md`
 **Reuses:** `frontend/src/components/common/DataTable.tsx`, `frontend/src/components/ui/dialog.tsx`, `DESIGN-SYSTEM.md#component-conventions`, `design/v5/platform.html`
 
 ## Goal
@@ -49,3 +49,6 @@ Build bounded company list/detail Account/Billing/Activity with operator-only re
 
 - **2026-10-21** — Implemented real24 DTO company search/status filters/cursor pages(default25), Account/Billing/Activity detail, reasoned explicit suspension/reactivation confirmation with expectedVersion, honest errors/empty/denied/legacy-inactive state, draft-preserving409 refresh and fixed intended target. Allowlisted metadata only; no tenant roster/photo/impersonation/payment mutation. Existing34 shell/request/guard reused; registered actual protected routes outside tenant App. Provider transport still rejects before I/O; no fake operator session/config flag added. Named workspace is tested at the dedicated request seam, not exposed without qualification.
 - **2026-10-21** —11focused React tests; full frontend57Node+176React/14files; frontend full lint0 and TypeScript/Vite build pass.123existing backend company/operator identity tests/2files pass; backend unchanged/no database/provider operation.16 synthetic named-workspace/network-boundary renders EN/UR390/1440 list/account/confirmation/billing pass overflow/JS checks. Actual route test never mounts child or performs requests without qualified identity. Desktop EN account and Urdu mobile confirmation viewed; RTL close/title overlap fixed and rerendered. Detector[]. Positive UI/network mocks do not qualify browser IdP/MFA or live operator mutation; those remain39/40. Logs `/tmp/hygene-spec33-{focused-final,web-final,backend,lint-final,build-final,render-final,rtl-fix}.log` and `/tmp/hygene-spec33-visual/`.
+
+2026-10-21: Published e0a5d63 as draft PR72 (https://github.com/Shumail-AbdulRehman/PRIV/pull/72), base32. Sequential shared route/dictionary ownership handed to35 before its edits; no specification dependency added.
+2026-10-21:35 owns the company-page navigation seam for the service link; company behavior remains covered by33 tests.
