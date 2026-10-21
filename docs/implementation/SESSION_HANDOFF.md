@@ -1,3 +1,11 @@
+# Active batch checkpoint — 2026-10-21:33 complete, continue35
+
+Latest user authorized next two specs33/35 only.33 scoped UI implementation and checks pass; continue35 before final handoff/STOP. Branch implementation/spec-33-platform-company-ui based32/PR70 at207dd6c, issue71. Actual24/27 dependencies and existing34 auth seam verified in Git. Company search/paging/detail Account/Billing/Activity/status confirmation use24 contracts through separate operator transport. Draft409 reason/intended target preserved, no tenant/workforce/evidence/financial mutations. Existing unqualified browser sign-in remains disabled; positive workspace fixtures are network-seam proof, not live IdP qualification.39/40 retain that external gate.
+
+33 verification:11focused React; full57Node+176components/14files;123backend/2files; full frontend lint0+TypeScript/build.16 EN/UR390/1440 synthetic named-component renders zero overflow/JS errors; Urdu close-title overlap corrected. Actual guarded route never mounts workspace or calls API from tenant/storage identity. Logs/captures /tmp/hygene-spec33-*. Ownership/dto reuse in inventory33. No schema/dependency/production/provider changes. Preserve eight dirty files checkpoint /tmp/hygene-spec33-35-preserved.json; unrelated files excluded.33 draft PR/commit publication follows; then35 separate branch/issue/PR. No further specs authorized.
+
+## Prior handoff history
+
 # Implementation handoff — 2026-10-21, Spec32 complete — STOP
 
 ## Current continuation state
