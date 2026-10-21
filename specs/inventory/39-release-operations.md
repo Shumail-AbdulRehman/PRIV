@@ -1,0 +1,7 @@
+# Spec39 — active launch CI and redacted readiness
+
+- `.github/workflows/ci.yml`: full backend/frontend/native regressions/types/builds; active direct-photo/review/qualification/receipt read-model unit group; current isolated10contract proofs and7SQL persistence invariants; retain manager operations integration and non-pushing Docker builds. Existing unrelated performance step remains uncommitted, not lost or staged.
+- `backend/scripts/launchCiDatabase.ts`: explicit local disposable bootstrap only; generated child DB, ordered real migrations, sequential guarded tests and owned cleanup. No dotenv/application URL fallback or production reset. Child timeouts/failure stop the job.
+- `backend/src/services/releaseReadiness.ts`/test: redacted actual production-config validation, current photo qualification, supplied schema observation and named external evidence gates. Always releaseAllowed=false until a separately approved evidence-review mechanism; no generic boolean auto-approval.
+- `docs/implementation/RELEASE_RUNBOOK.md`: exact external ownership/proof boundaries and old/new CI mapping. `followups/BOUNDED_LISTS_SPEC.md`: confirmed unbounded master-list and inquiry-audit lookup scale follow-up, proposed only; not a silent API rewrite or authorized additional implementation.
+- `backend/tests/managerOperations.integration.ts`: retained query/pagination/tenant/HTTP/action proof updated to real typed access-token generation and synthetic provider-mirrored entitlement; legacy untyped JWT rejection added, no production policy bypass.
