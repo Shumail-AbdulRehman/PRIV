@@ -1,3 +1,38 @@
+# Final handoff — 2026-10-21: Specs33 and35 complete — STOP
+
+Latest user requested two next specs. Completed33 Platform company workspace and35 Platform service audit/leads UI; no further spec started. Decision00 plus37 of41 units Done. Remaining38/39/40/41; **next eligible38**.39 is graph-eligible but has unresolved real launch/provider/device/operational qualification requirements.40 waits on38/39 and41 waits on40. No merge, deployment, production data/configuration change, database migration/reset or live IdP/provider/email operation.
+
+## Branches and review
+
+-33: implementation/spec-33-platform-company-ui, e0a5d63, issue71, OPEN/DRAFT PR72 https://github.com/Shumail-AbdulRehman/PRIV/pull/72; base implementation/spec-32-billing-ui/207dd6c (PR70).
+-35: implementation/spec-35-platform-service-ui, issue73 https://github.com/Shumail-AbdulRehman/PRIV/issues/73; base33/e0a5d63. Implementation02fbd79 published OPEN/DRAFT PR74 https://github.com/Shumail-AbdulRehman/PRIV/pull/74. Final docs commit follows; source checks unchanged.
+- Both actual spec dependencies were verified in current Git ancestry (33:24/27;35:25/27).34's existing separate identity boundary is also present. Git serialization preserves existing completed work and draft stack; no new specification dependency added. Outstanding review includes all prior stacked draft PRs and31/36 combined verification checkpointb21dcca. Human integration/review remains required; no PR merged.
+
+## Implemented behavior
+
+33: bounded company search/status/cursor pages; Account/Billing/Activity detail with allowlisted metadata; explicit reasoned/versioned suspend/reactivate confirmation.409 refresh preserves reason and intended action; legacy inactive reactivation stays unavailable. No workforce/photos/impersonation or paid/financial overrides. Historical records unchanged.
+
+35: actual service/audit/inquiry routes; real nullable redacted diagnostics, database observation separated from overall health/provider connectivity/production readiness; bounded metadata audit and inquiry filters/pages. Separately loaded submission text stays escaped/untrusted. Handling persists through existing25 API, with deliberate SELF/UNASSIGNED assignment/status/reason/expectedVersion.409/uncertain save keeps draft and blocks resave until successful explicit refresh; failed refresh preserves draft; duplicate click lock. Only configured validated support mailbox gets an email handoff; queue handling neither verifies contacts nor sends messages. Responsive approved v5 blue/white EN/UR/RTL.
+
+**External limitation:** existing34 browser operator provider remains unqualified and safe-disabled. Actual guarded routes never mount workspaces or request protected data from tenant/storage identity. Positive component/render fixtures replace only operatorRequest to prove contracts; they do not qualify live IdP/MFA or integrated application mutation. Real browser adapter/provider security qualification remains39/40. No tenant authentication fallback or fabricated session was added.
+
+## Verification
+
+-33:11focused React; whole frontend57Node+176React/14files;123backend company/operator tests/2files; full lint0/TypeScript/Vite build pass.16EN/UR390/1440 isolated renders; desktop account/mobile Urdu dialog inspected; title-close RTL overlap fixed. Detector[].
+-35:22focused React; whole frontend57Node+198React/15files includes33/34 regressions;135backend support/operator tests/2files. Full lint0/TypeScript/Vite build pass (existing non-failing plugin timing advisory).20EN/UR390/1440 named-workspace diagnostics/audit/inquiries/detail/error renders: no page overflow/JS errors or visible buttons below44px; source controls48px. Desktop EN diagnostics/mobile Urdu detail inspected; detector[]. Actual guard denial checked on all3routes. No whole-product E2E or live provider proof claimed.
+- No backend source/schema/dependency/config change. Test seams use isolated synthetic data; no production/test DB operation required. Temporary render/request harness removed before final checks. Logs/captures `/tmp/hygene-spec33-*`, `/tmp/hygene-spec35-*` are ephemeral; durable behavior/tests/limitations documented in specs/inventory and PLATFORM_SERVICE_UI.md.
+- Original eight dirty tracked files verified byte-for-byte against `/tmp/hygene-spec33-35-preserved.json`; unrelated untracked assets/skills/performance/investor-video files excluded. No blanket staging.
+
+Spec validator:42specs,0errors/8existing documented warnings. Final read-only Git checks confirm PR72/74 OPEN/DRAFT with the intended32→33→35 stack.
+
+## Changed files in this batch
+
+33 commit: frontend/src/pages/Platform/{CompaniesPage.tsx,CompaniesPage.test.tsx,companyApi.ts,companies.css,platformRoutes.tsx}, frontend/src/i18n/{platformCompanyTranslations.ts,translations.ts}, specs/{32-billing-ui.md,33-platform-company-ui.md,34-platform-security-ui.md,40-e2e-suite.md,PROGRESS.md}, specs/inventory/33-platform-company-ui.md, docs/implementation/SESSION_HANDOFF.md. See e0a5d63 for exact ownership metadata changes.
+
+35: frontend/src/pages/Platform/{ServicePage.tsx,ServicePage.test.tsx,serviceApi.ts,service.css,platformRoutes.tsx,CompaniesPage.tsx(nav only)}, frontend/src/i18n/{platformServiceTranslations.ts,translations.ts}, specs/{33-platform-company-ui.md,35-platform-service-ui.md,40-e2e-suite.md,PROGRESS.md}, specs/inventory/35-platform-service-ui.md, docs/implementation/{PLATFORM_SERVICE_UI.md,SESSION_HANDOFF.md}, .impeccable/surfaces/frontend-src-pages-platform-servicepage-tsx.md. Shared ownership transferred explicitly before edits; approved design artifacts untouched.
+
+## Prior handoff history
+
 # Active batch checkpoint — 2026-10-21:33 complete, continue35
 
 Latest user authorized next two specs33/35 only.33 scoped UI implementation and checks pass; continue35 before final handoff/STOP. Branch implementation/spec-33-platform-company-ui based32/PR70 at207dd6c, issue71. Actual24/27 dependencies and existing34 auth seam verified in Git. Company search/paging/detail Account/Billing/Activity/status confirmation use24 contracts through separate operator transport. Draft409 reason/intended target preserved, no tenant/workforce/evidence/financial mutations. Existing unqualified browser sign-in remains disabled; positive workspace fixtures are network-seam proof, not live IdP qualification.39/40 retain that external gate.

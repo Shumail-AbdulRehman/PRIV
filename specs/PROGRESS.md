@@ -2,7 +2,7 @@
 
 Source of truth for execution; latest user authorization supersedes old pending labels. Approved v5 preserved.
 
-**Spec32 complete:** decision00 and35 of41 execution/gate units Done; **6 remain:33,35,38,39,40,41**. Current unit32 implemented and verified on `implementation/spec-32-billing-ui`, based completed31/36 verification checkpointb21dcca. Prior31/36 draft PRs68/67 remain independent and open; no merge/deployment. Stop after32; next eligible33 identified only.
+**Specs33/35 complete:** decision00 and37 of41 execution/gate units Done; **4 remain:38,39,40,41**. Latest authorized two-unit batch is finished.33 draft PR72 is based32/PR70;35 is based33, using actual completed25/27 contracts and unchanged34 safe-disabled identity seam. No merge/deployment. STOP after this batch; next eligible38 identified only.39 is graph-eligible but external launch qualification remains unresolved;40/41 depend on remaining gates.
 
 | # | Spec | Status | Depends on | Model | Issue | Notes |
 |---|---|---|---|---|---|---|
@@ -39,9 +39,9 @@ Source of truth for execution; latest user authorization supersedes old pending 
 | 30 | [Account settings and recovery UI](30-account-ui.md) | Done | 16, 17, 22, 27, 28 | Standard | #58 |19focused/realaccountAPIs; seeLog |
 | 31 | [Workforce access and transfer UI](31-workforce-ui.md) | Done | 11, 17, 27 | Standard | #65 | PR68;18focused; SQL proofs; see Log |
 | 32 | [Real subscription lifecycle UI](32-billing-ui.md) | Done | 15, 27, 28 | Standard | #69 |PR70;23focused;57+165web;109backend |
-| 33 | [Platform company workspace](33-platform-company-ui.md) | Done | 24, 27 | Standard | #71 |11focused;57+176web;123backend; live auth gated |
+| 33 | [Platform company workspace](33-platform-company-ui.md) | Done | 24, 27 | Standard | #71 |PR72;11focused;57+176web;123backend; live auth gated |
 | 34 | [Platform sign-in and security workspace](34-platform-security-ui.md) | Done | 19, 27 | Heavy | #59 |15focused; isolatedoperatorroutes; seeLog |
-| 35 | [Platform service audit and leads UI](35-platform-service-ui.md) | Not started | 25, 27 | Standard | — | See spec |
+| 35 | [Platform service audit and leads UI](35-platform-service-ui.md) | Done | 25, 27 | Standard | #73 |PR74;22focused;57+198web;135backend; live auth gated |
 | 36 | [Truthful task and photo review UX](36-photo-review-ui.md) | Done | 20, 21, 27 | Standard | #66 | PR67;22focused;17new backend; see Log |
 | 37 | [Native attendance/photo/account recovery](37-native-workflows.md) | Done | 09, 17, 20, 21, 26 | Standard | #60 |101native/tsc/Expoexport; deviceunverified |
 | 38 | [Configured support and service information](38-service-information.md) | Not started | 27, 25 | Standard | — | Contact availability consumes25 |
@@ -121,3 +121,5 @@ Source of truth for execution; latest user authorization supersedes old pending 
 - **2026-10-21** — User authorizes next two units33/35, superseding prior stop for this batch only. Dependencies24/25/27Done and existing34 operator boundary verified in Git.33 issue71 on implementation/spec-33-platform-company-ui;35 follows separately. Preserve fail-closed operator provider boundary and unrelated dirty changes.
 
 - **2026-10-21** — Spec33 scoped implementation verified:11focused React;57Node+176React/14files;123backend/2files; lint0+TypeScript/build,16 synthetic named-workspace renders and actual no-auth route denial. Existing34 provider boundary stays safely unavailable until39/40 qualification; no fake token/tenant fallback, backend/schema/provider/production change.36Done/5remaining. Continue only35 for authorized two-unit batch.
+
+- **2026-10-21 — Specs33/35 complete; STOP.**33 e0a5d63 published draft PR72, base32/PR70.35 on implementation/spec-35-platform-service-ui, base33/e0a5d63, issue73: actual service/audit/inquiry React routes and existing25 contract-backed actions;22focused,57Node+198React full frontend,135backend, full lint0/TS/build,20EN/URresponsive fixture checks. No live operator browser adapter/IdP/MFA qualification or production action. Shared route/dictionary/nav ownership serialized; spec dependency DAG unchanged. Eight original dirty tracked files preserved byte-for-byte; unrelated paths excluded. SESSION_HANDOFF and inventory35 carry files/evidence/limitations. Remaining38/39/40/41; next38 identified, not started.35 implementation02fbd79 published OPEN/DRAFT PR74 https://github.com/Shumail-AbdulRehman/PRIV/pull/74, base33. Validator42specs/0errors/8existing documented warnings.
