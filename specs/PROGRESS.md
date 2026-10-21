@@ -2,7 +2,7 @@
 
 Source of truth for execution; latest user authorization supersedes old pending labels. Approved v5 preserved.
 
-**Active continuation after spec28:** decision00 and29 of41 execution/gate units Done (12 remain). Execution01–29 are complete; next selected eligible unit29 consumes completed23/27/08. User now requests stop after the active parallel batch29/30/34/37; no further specs start. Review remains stacked draft PRs; Done is local verification, not merge or external release qualification.
+**Active continuation after spec28:** decision00 and30 of41 execution/gate units Done (11 remain). Execution01–30 are complete; next selected eligible unit29 consumes completed23/27/08. User now requests stop after the active parallel batch29/30/34/37; no further specs start. Review remains stacked draft PRs; Done is local verification, not merge or external release qualification.
 
 | # | Spec | Status | Depends on | Model | Issue | Notes |
 |---|---|---|---|---|---|---|
@@ -36,7 +36,7 @@ Source of truth for execution; latest user authorization supersedes old pending 
 | 27 | [Approved v5 shared shell and route composition](27-workspace-shell.md) | Done | 06 | Heavy | #35 | 57+40 tests/build/lint; see Log |
 | 28 | [Real derived setup and operational dashboard](28-setup-ui.md) | Done | 12, 14, 15, 27 | Standard | #55 | 16 focused/57+56 web;1416 backend; see Log |
 | 29 | [Attendance exception context UI](29-attendance-context-ui.md) | Done | 23, 27, 08 | Standard | #57 |12focused/57+68web; seeLog |
-| 30 | [Account settings and recovery UI](30-account-ui.md) | Not started | 16, 17, 22, 27 | Standard | — | See spec |
+| 30 | [Account settings and recovery UI](30-account-ui.md) | Done | 16, 17, 22, 27, 28 | Standard | #58 |19focused/realaccountAPIs; seeLog |
 | 31 | [Workforce access and transfer UI](31-workforce-ui.md) | Not started | 11, 17, 27 | Standard | — | See spec |
 | 32 | [Real subscription lifecycle UI](32-billing-ui.md) | Not started | 15, 27, 28 | Standard | — | Shared lifecycle client from28 |
 | 33 | [Platform company workspace](33-platform-company-ui.md) | Not started | 24, 27 | Standard | — | See spec |

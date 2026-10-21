@@ -30,7 +30,7 @@
 - Spec 27 consumes Spec 06; see each Reuses header and Scope for concrete contracts.
 - Spec 28 consumes Spec 12, Spec 14 (server-derived manage-work access), Spec 15 (actual owner lifecycle/contact state), Spec 27; see each Reuses header and Scope for concrete contracts.
 - Spec 29 consumes Spec 23, Spec 27, Spec 08; see each Reuses header and Scope for concrete contracts.
-- Spec 30 consumes Spec 16, Spec 17, Spec 22, Spec 27; see each Reuses header and Scope for concrete contracts.
+- Spec 30 consumes Spec 16, Spec 17, Spec 22, Spec 27, Spec 28 (existing setup/navigation composition); see each Reuses header and Scope for concrete contracts.
 - Spec 31 consumes Spec 11, Spec 17, Spec 27; see each Reuses header and Scope for concrete contracts.
 - Spec 32 consumes Spec 15, Spec 27, Spec 28 (shared lifecycle client/type); see each Reuses header and Scope for concrete contracts.
 - Spec 33 consumes Spec 24, Spec 27; see each Reuses header and Scope for concrete contracts.

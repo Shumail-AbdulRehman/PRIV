@@ -1,3 +1,5 @@
+import './pages/Account/linkToken';
+import { OwnSecurityPage, OwnerRecoveryPage, OwnerLinkPage } from './pages/Account/AccountPages';
 import { WorkspaceAudience, WorkspaceRouteError, PlatformUnavailable } from "./routes/launchPages";
 import { workspaceRoutes } from "./routes/workspaceRoutes";
 import '@fontsource/noto-sans-arabic/arabic-400.css';
@@ -39,6 +41,10 @@ const router = createBrowserRouter([
     element: <App />,
     errorElement: <WorkspaceRouteError />,
     children: [
+      { path: 'account/security', element: <OwnSecurityPage /> },
+      { path: 'recover-owner-account', element: <OwnerRecoveryPage /> },
+      { path: 'verify-owner-email', element: <OwnerLinkPage kind="verify" /> },
+      { path: 'reset-owner-password', element: <OwnerLinkPage kind="reset" /> },
       { path: "platform/*", element: <PlatformUnavailable /> },
       {
         element: <PublicLayout />,

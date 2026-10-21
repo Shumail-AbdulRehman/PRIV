@@ -34,7 +34,7 @@ Approved scope: docs/product-discovery/PRODUCT_SCOPE_PROPOSAL.md. Approved desig
 | 27 | [Approved v5 shared shell and route composition](27-workspace-shell.md) | 2 | Approved v5 shared shell and route composition |
 | 28 | [Real derived setup and operational dashboard](28-setup-ui.md) | 4 | Real derived setup and operational dashboard |
 | 29 | [Attendance exception context UI](29-attendance-context-ui.md) | 5 | Attendance exception context UI |
-| 30 | [Account settings and recovery UI](30-account-ui.md) | 4 | Account settings and recovery UI |
+| 30 | [Account settings and recovery UI](30-account-ui.md) | 5 | Account settings and recovery UI |
 | 31 | [Workforce access and transfer UI](31-workforce-ui.md) | 6 | Workforce access and transfer UI |
 | 32 | [Real subscription lifecycle UI](32-billing-ui.md) | 5 | Real subscription lifecycle UI |
 | 33 | [Platform company workspace](33-platform-company-ui.md) | 5 | Platform company workspace |
@@ -53,8 +53,8 @@ Approved scope: docs/product-discovery/PRODUCT_SCOPE_PROPOSAL.md. Approved desig
 - Wave 1: 01, 03, 04, 06, 10, 12, 19, 20, 21.
 - Wave 2: 02, 13, 14, 17, 22, 23, 27.
 - Wave 3: 05, 15, 16, 18, 34, 36.
-- Wave 4: 07, 08, 09, 24, 28, 30.
-- Wave 5: 11, 25, 29, 32, 33, 37.
+- Wave 4: 07, 08, 09, 24, 28.
+- Wave 5: 11, 25, 29, 30, 32, 33, 37.
 - Wave 6: 26, 31, 35, 38.
 - Wave 7: 39.
 - Wave 8: 40.
@@ -83,3 +83,5 @@ Spec26 directly consumes14 account policy,15 billing routes and17 credential rou
 Spec28 directly consumes14 account action evaluation alongside15 lifecycle metadata; its transitive14 warning is accepted because it is the actual readonly permission contract, not extra sequencing. Spec32 consumes the shared lifecycle client/type added by28, so28 is a real direct dependency.
 
 Spec32 directly consumes15 billing lifecycle behavior and27 approved shell in addition to28 shared client types. Those transitive warnings record actual contracts and impose no extra wave. Spec40 consumes28 setup documentation, form entry points, translated copy and styling for its integrated reload/deep-link/role tests; the surface brief is review evidence, never a runtime dependency.
+
+Spec30 consumes28 registered setup/navigation route composition while reusing27 shell; direct27 transitive warning recordsactualshell. Sharedmain/routeseditedserially duringparallelworktreeintegration.

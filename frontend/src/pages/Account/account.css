@@ -1,0 +1,28 @@
+.account-settings { max-width: 900px; }
+.account-settings > header { margin-block-end: 28px; }
+.account-settings > header p { margin-block-start: 10px; max-width: 70ch; color: var(--muted-foreground); }
+.account-section { padding-block: 24px; border-block-start: 1px solid var(--border); }
+.account-section h2 { margin-block-end: 16px; }
+.account-section > p { margin-block-end: 16px; max-width: 70ch; }
+.account-form { display: grid; gap: 16px; max-width: 480px; }
+.account-form label { display: grid; gap: 8px; font-weight: 550; }
+.account-form input { min-height: 48px; }
+.workspace .account-form button { min-height: 48px; justify-self: start; white-space: normal; height: auto; }
+.account-help { color: var(--muted-foreground); font-size: 14px; margin-block: 12px; }
+.account-form .account-help { margin: 0; }
+.account-error { color: var(--danger-ink); }
+.workspace .account-reload { margin-block-start: 12px; min-height: 48px; }
+.account-public { min-height: 100vh; }
+.account-public a { text-underline-offset: 4px; }
+.account-public [role="status"] p { margin-block-start: 16px; }
+.account-public section { min-width: 0; }
+@media (max-width: 620px) {
+ .workspace .account-form button { width: 100%; }
+ .account-settings > header { margin-block-end: 24px; }
+}
+
+.account-public .auth-preview { display: none; }
+.workspace.account-public main { grid-template-columns: minmax(0, 1fr); max-width: 600px; min-height: auto; align-items: start; }
+.account-language { margin-block-end: 24px; }
+
+.workspace .account-section > button {min-height:48px;height:auto;white-space:normal}
