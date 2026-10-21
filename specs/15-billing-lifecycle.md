@@ -4,7 +4,7 @@
 **Depends on:** Spec 14
 **Model:** Heavy — `claude-opus-5-5` · `gpt-6-astra` · `gemini-3.1-pro-preview`
 **Issue:** #37
-**Owns:** `backend/src/services/paddleFulfillment.service.ts`, `backend/src/services/paddleFulfillment.service.test.ts`, `backend/src/services/subscription.service.ts`, `backend/src/controllers/subscription.controller.ts`, `backend/tests/accountCapacity.integration.ts`, `backend/tests/billingLifecycle.integration.ts`, `docs/implementation/BILLING.md`, `backend/src/services/billingLifecycle.service.ts`, `backend/src/services/billingLifecycle.service.test.ts`, `backend/src/config/paddle.ts`, `specs/inventory/15-billing-lifecycle.md`
+**Owns:** `backend/src/services/paddleFulfillment.service.ts`, `backend/src/services/paddleFulfillment.service.test.ts`, `backend/src/services/subscription.service.ts`, `backend/src/controllers/subscription.controller.ts`, `backend/tests/accountCapacity.integration.ts`, `backend/tests/billingLifecycle.integration.ts`, `backend/src/services/billingLifecycle.service.ts`, `backend/src/services/billingLifecycle.service.test.ts`, `backend/src/config/paddle.ts`, `specs/inventory/15-billing-lifecycle.md`
 **Reuses:** `backend/src/services/paddleFulfillment.service.ts`, `backend/src/controllers/paddleWebhook.controller.ts`
 
 ## Goal
@@ -56,3 +56,5 @@ Reuse provider mirrors/dedup and customer links. Prevent repeat checkout for lin
 - **2026-10-21** — Serialized composition ownership transferred to26: `backend/src/routes/subscription.route.ts`, `backend/src/routes/billingLifecycle.route.ts`. Prior completed behavior retained;26 consumes rather than reimplements this contract.
 
 - **2026-10-21** — Serialized account action/route wiring ownership transferred to26; ancestor behavior preserved.
+
+- **2026-10-21** — Billing runbook ownership transferred to32 for actual browser consumer/safety documentation; backend contracts unchanged.

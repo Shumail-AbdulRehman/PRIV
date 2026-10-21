@@ -55,3 +55,9 @@ export type BillingLifecycle = {
  reconciliationRequired:boolean;billingConfigured:boolean;ownerVerified:boolean;
  providerState:'MIRRORED'|'AWAITING_PROVIDER'|'NOT_LINKED';portalAvailable:boolean;checkoutAvailable:boolean;
 };
+
+export type BillingCatalogEntry = {
+ plan: PlanCode; interval: 'month' | 'year'; priceId: string; productId: string;
+ amount: string; currencyCode: string; trialPeriod: null | {interval: string; frequency: number};
+};
+export type BillingCheckout = {transactionId: string; reused: boolean};

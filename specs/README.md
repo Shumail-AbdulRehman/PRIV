@@ -91,3 +91,5 @@ Spec37 directly consumes26 composed manifests/allowedActions and structured forc
 Spec31 serially consumes existing staff/manager parent forms and workforce dictionary; these are runtime callers of the owned actions. Consumer40 validates their integrated lifecycle flows. No new execution dependency on36.
 
 Priority31/36 completed concurrently in isolated branches based37/PR64; neither depends on the other. Shared translation registration was resolved only on the verification branch, retaining both dictionaries. Next eligible32 is recorded but not started; see current PROGRESS/handoff. Original eight validator warnings remain justified above; new runtime callers/read DTO consumers are explicitly named in40.
+
+Spec32 completed on the latest verified application checkpoint; actual dependencies remain15/27/28. Owner billing uses the server catalog/transaction and fresh portal contracts; public/legacy entry points consume the same canonical workspace.39/40 still own real provider/commercial qualification. Latest user requested this one next unit only; stop after32, identify33 but do not start it.

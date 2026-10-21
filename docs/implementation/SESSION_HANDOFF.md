@@ -1,3 +1,47 @@
+# Implementation handoff — 2026-10-21, Spec32 complete — STOP
+
+## Current continuation state
+
+Latest user authorized the next specification only and requested notification when complete. **Spec32 is implemented and verified.** Decision00 and35 of41 execution/gate units Done; **6 remain:33,35,38,39,40,41**. Stop after this unit; next eligible33 identified only. No other specification was started, no PR merge, deployment, production data/configuration, destructive migration or live financial/provider action.
+
+Branch `implementation/spec-32-billing-ui` is based on completed integration checkpointb21dcca (`implementation/spec-31-36-verification`), which includes both independent31/36 implementations and their resolved dictionary registration. Spec32 actual dependencies15/27/28 are Done and verified Git ancestors; no new spec dependency was added. The Git base preserves the latest complete application; it does not imply32 consumes workforce or photo features. Existing draft PR68(31) and67(36) remain independently based37/PR64. Their human integration and the verification checkpoint remain outstanding review prerequisites of the Git stack, not authorized merges.
+
+Issue69: https://github.com/Shumail-AbdulRehman/PRIV/issues/69. Separate scoped implementation commit and draft PR publication recorded below once available. Pre-existing eight dirty tracked files and all unrelated untracked files were preserved; checkpoint `/tmp/hygene-spec32-preserved.json` verified byte-for-byte after implementation.
+
+## Spec32 implemented behavior
+
+- Actual React `/subscription` reads owner-scoped lifecycle/catalog from15, showing provider state/periods/scheduled changes/last-event facts separately from workspace capacity and permissions. Null dates are unavailable; no invented trial clock, price, paid flag or grace period. Actual over-limit counts remain visible; no deletion controls or record loss.
+- Owner/company query identity, principal-keyed UI, fresh identity/lifecycle rechecks, duplicate-click lock and late-response cancellation protect billing actions. Restricted owners retain billing/account-security links; administrative suspension is separate from payment.
+- Existing linked subscribers use fresh `/subscription/manage/managed-portal` only. Temporary URLs are host-validated, navigated directly, and never query/mutation/browser persisted.
+- Approved available catalog entries show provider currency/minor-unit amounts and only genuine trialPeriod facts. Checkout posts only plan/interval to server `/checkout`; Paddle opens the returned transaction ID, never browser-owned price/customer/customData. Prepared checkout can reopen without another POST. Uncertain responses block new attempts until explicit refresh/reconciliation; no automatic purchase retry or inferred failure.
+- Legacy `/choose-plan` goes to canonical billing; `/welcome` redirects with a pending hint that never proves payment. Public pricing retains capacity/inquiry and links to owner billing/signup; no public price-only purchase or fixed7-day trial claim remains in that component. Billing provider/terms approval flag was not enabled or modified.
+- Approved v5 blue/white, existing component primitives, EN/UR/RTL, explicit loading/denial/stale/empty/error states, responsive facts/capacity and48px actions. No additional billing infrastructure or dependency.
+
+## Verification and evidence
+
+- Focused `npm run test:components --prefix frontend -- src/pages/Subscription/SubscriptionPage.test.tsx`: **23 passed**.
+- Exact `npm test --prefix frontend`: **57 Node +165 React tests/13files**, zero failures/skips.
+- Backend relevant existing lifecycle/account-access/auth: **109 tests/3files passed**. Backend implementation unchanged; no SQL/provider operation required or claimed for this UI unit.
+- Full frontend lint: **0 errors/warnings**. `npm run build --prefix frontend`: **pass**, including TypeScript; non-failing plugin timing advisory only.
+-16 built-app synthetic HTTP fixtures EN/UR×390/1440×unconfigured/linked/pending/suspended: no page overflow/JS errors, no initial POSTs, billing buttons48px. Desktop EN linked and mobile Urdu pending visually reviewed. Detector `[]`. Network-mocked screenshots/component tests are not live Paddle/payment/portal/webhook/whole-product qualification; those remain39/40.
+- Spec validator:42specs, **0errors/8documented warnings**; current output `docs/implementation/planning/validator.md`.
+
+Logs `/tmp/hygene-spec32-{focused-final,web-tests-final,backend-focused,lint-final,build-final,render-final}.log`, captures `/tmp/hygene-spec32-visual/`, synthetic harness `/tmp/hygene-spec32-render.mjs`; temporary evidence may disappear. Only our frontend fixture servers5198/5199 were started; existing root user dev processes were untouched. No application .env was used to choose a database.
+
+## Changed files and reuse
+
+Runtime/test files: `frontend/src/pages/Subscription/{SubscriptionPage.tsx,SubscriptionPage.test.tsx,api.ts,queries.ts,types.ts,billing.css}`, `frontend/src/pages/Pricing/{PaddlePricing.tsx,ChoosePlanPage.tsx,WelcomePage.tsx}`, `frontend/src/i18n/{billingTranslations.ts,translations.ts}`. Reuse: existing15 APIs,28 lifecycle client/types,27 shell, API/auth, Paddle.js transaction contract, PageHeader/Button and language provider. Shared operational summary hooks and existing enterprise inquiry remain intact.
+
+Documentation: `docs/implementation/BILLING.md`, `specs/32-billing-ui.md`, inventory32, ownership handoffs in15/28/31, runtime consumers40, PROGRESS/README and this handoff. No generated artifacts, original dirty CI/dashboard/performance/manager translations/package files or untracked design/skills/investor-video staged.
+
+## Limits and next eligible unit
+
+No unresolved local implementation failures. Real merchant eligibility, catalog/terms approval, actual sandbox payment/portal/webhook and reconciliation operations remain external39/40 qualification gates. No live billing availability claimed from mocks; existing backend release activation configuration remains authoritative and disabled unless independently qualified. Existing photo/privacy/operator/mail/legal/host/backup/Android gates remain unchanged.
+
+**Next eligible33** consumes24/27Done;35 and38 also eligible.39 locally consumes03/26Done but external operational qualification remains incomplete;40 waits remaining units and41 waits40. **STOP after publishing32; do not begin33 without a new instruction.**
+
+## Previous verified handoffs (historical; latest Spec32 state above takes precedence)
+
 # Implementation handoff — 2026-10-21, Specs31/36 complete — STOP
 
 ## Current verified state

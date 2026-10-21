@@ -4,7 +4,7 @@
 **Depends on:** Spec 12, Spec 14, Spec 15, Spec 27
 **Model:** Standard — `claude-sonnet-5-5` · `gpt-6.1-sol` · `gemini-3.8-flash`
 **Issue:** #55
-**Owns:** `frontend/src/pages/Setup/SetupLinks.test.tsx`, `.impeccable/surfaces/frontend-src-pages-setup-setuppage-tsx.md`, `frontend/src/pages/Setup/SetupPage.tsx`, `frontend/src/pages/Setup/SetupPage.test.tsx`, `frontend/src/pages/Setup/api.ts`, `frontend/src/pages/Setup/setup.css`, `frontend/src/i18n/setupTranslations.ts`, `frontend/src/routes/workspacePages.tsx`, `frontend/src/components/layout/DashboardLayout.tsx`, `frontend/src/pages/Location/LocationsPage.tsx`, `frontend/src/pages/Location/components/LocationTemplatesTab.tsx`, `frontend/src/pages/Manager/TodayStatusPage.tsx`, `frontend/src/pages/Subscription/api.ts`, `frontend/src/pages/Subscription/types.ts`, `backend/src/services/taskReadiness.service.ts`, `backend/src/services/taskReadiness.service.test.ts`, `docs/implementation/SETUP_UI.md`, `specs/inventory/28-setup-ui.md`
+**Owns:** `frontend/src/pages/Setup/SetupLinks.test.tsx`, `.impeccable/surfaces/frontend-src-pages-setup-setuppage-tsx.md`, `frontend/src/pages/Setup/SetupPage.tsx`, `frontend/src/pages/Setup/SetupPage.test.tsx`, `frontend/src/pages/Setup/api.ts`, `frontend/src/pages/Setup/setup.css`, `frontend/src/i18n/setupTranslations.ts`, `frontend/src/routes/workspacePages.tsx`, `frontend/src/components/layout/DashboardLayout.tsx`, `frontend/src/pages/Location/LocationsPage.tsx`, `frontend/src/pages/Location/components/LocationTemplatesTab.tsx`, `frontend/src/pages/Manager/TodayStatusPage.tsx`, `backend/src/services/taskReadiness.service.ts`, `backend/src/services/taskReadiness.service.test.ts`, `docs/implementation/SETUP_UI.md`, `specs/inventory/28-setup-ui.md`
 **Reuses:** `frontend/src/components/onboarding/WorkspaceGate.tsx`, `frontend/src/components/common/OperationalSummary.tsx`, `frontend/src/pages/Dashboard/DashboardPage.tsx`, `DESIGN-SYSTEM.md#component-conventions`, `design/v5/setup.html`
 
 ## Goal
@@ -58,3 +58,5 @@ Implement approved setup surface driven by real scoped readiness; deep-link exis
 - **2026-10-21** — Serialized shared integration ownership handed to30 for actual account/settings/recovery routes, navigation and dictionary registration; existing behavior preserved.
 
 - **2026-10-21** — Serialized workforce integration ownership transferred to31; existing setup/account behavior retained.
+
+- **2026-10-21** — Serialized billing integration ownership transferred to32; prior contracts preserved.
