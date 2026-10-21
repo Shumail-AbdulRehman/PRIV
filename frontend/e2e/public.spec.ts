@@ -70,17 +70,21 @@ for (const width of [390, 1440])
     await expect(page).toHaveURL(/recover-owner-account/);
   });
 test("actual production bootstrap rejects unsafe config before listener/jobs", () => {
-  const result = spawnSync(process.execPath, ["dist/app.js"], {
-    cwd: fileURLToPath(new URL("../../backend/", import.meta.url)),
-    env: {
-      ...process.env,
-      NODE_ENV: "production",
-      PORT: "0",
-      COOKIE_SECURE: "false",
+  const result = spawnSync(
+    process.execPath,
+    [fileURLToPath(new URL("../../backend/dist/app.js", import.meta.url))],
+    {
+      cwd: process.env.HYGENE_E2E_RUNTIME_DIR!,
+      env: {
+        ...process.env,
+        NODE_ENV: "production",
+        PORT: "0",
+        COOKIE_SECURE: "false",
+      },
+      encoding: "utf8",
+      timeout: 15000,
     },
-    encoding: "utf8",
-    timeout: 15000,
-  });
+  );
   expect(result.status).not.toBe(0);
   expect(result.stderr).toContain("Unsafe production configuration");
   expect(result.stdout).not.toContain("Server is listening");

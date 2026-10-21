@@ -67,6 +67,7 @@ const env = {
   HYGENE_E2E_MANIFEST: join(directory, "fixture.json"),
   HYGENE_E2E_DATABASE_URL: target.href,
   HYGENE_E2E_MANAGED: "true",
+  HYGENE_E2E_RUNTIME_DIR: directory,
   VITE_API_BASE_URL: `http://127.0.0.1:${backendPort}/api`,
   ...(process.env.HYGENE_E2E_BROWSER_PATH
     ? { HYGENE_E2E_BROWSER_PATH: process.env.HYGENE_E2E_BROWSER_PATH }
@@ -143,7 +144,7 @@ try {
     join(root, "frontend"),
   );
   await command(
-    [join(root, "frontend/node_modules/vite/bin/vite.js"), "build"],
+    [join(root, "frontend/e2e/build.mjs")],
     join(root, "frontend"),
     { NODE_ENV: "production" },
   );

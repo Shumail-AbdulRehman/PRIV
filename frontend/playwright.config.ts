@@ -1,4 +1,7 @@
 import { defineConfig, devices } from "@playwright/test";
+import { fileURLToPath } from "node:url";
+const shellQuote = (value: string) =>
+  "'" + value.replaceAll("'", "'\\''") + "'";
 if (process.env.HYGENE_E2E_MANAGED !== "true")
   throw new Error(
     "Run npm run test:e2e with the explicit isolated bootstrap; do not attach to an existing application.",
@@ -29,8 +32,8 @@ export default defineConfig({
   },
   webServer: [
     {
-      command: "node dist/app.js",
-      cwd: "../backend",
+      command: `${shellQuote(process.execPath)} ${shellQuote(fileURLToPath(new URL("../backend/dist/app.js", import.meta.url)))}`,
+      cwd: process.env.HYGENE_E2E_RUNTIME_DIR!,
       url: backend + "/api/support/contact",
       reuseExistingServer: false,
       timeout: 20000,
