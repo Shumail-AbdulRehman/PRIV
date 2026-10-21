@@ -1,6 +1,6 @@
 # Spec 29 — Attendance exception context UI
 
-**Status:** Done
+**Status:** In progress
 **Depends on:** Spec 23, Spec 27, Spec 08
 **Model:** Standard — `claude-sonnet-5-5` · `gpt-6.1-sol` · `gemini-3.8-flash`
 **Issue:** #57
@@ -37,6 +37,7 @@ Show original captured facts plus immutable attributed annotations and acknowled
 
 ## Done when
 
+- [ ] Approved V5 layout and interactions are implemented and paired actual-app/reference screenshots are inspected at desktop/phone EN/UR; state/permission deviations are recorded. Native acceptance requires a native runtime. [static]
 - [x] `npm run test:components --prefix frontend -- src/pages/Attendance/AttendanceContext.test.tsx` passes: Required reason validates; save/error/conflict maintains draft; original capture separate from annotation; EN/UR text complete. [unit]
 - [x] `npm test --prefix frontend` passes the whole affected unit suite; record count. [unit]
 - [x] Only scoped paths changed; relevant denial/empty/error/config-unavailable states inspected. [static]
@@ -50,3 +51,5 @@ Show original captured facts plus immutable attributed annotations and acknowled
 - **2026-10-21** — Actual attendance and staff-history dialogs consume23 immutable note/acknowledgement API; original day/shift/capture/status/protected-media separate, local timestamps, attributed chronology/paging, strict reason, principal reset, retained exact-request/lost-response retry and explicit409 review.12 focused tests; whole frontend57 Node+68 components/7files; lint/TypeScript/build pass.18 synthetic render captures desktop1440/mobile390 EN/UR plus empty/denied/loading/conflict/uncertain, including lowerform; no overflow/JS errors. Detectoronce[]. Independent full review found only mobile44px minimum; fixed to48px, fresh independent fix verification resolved after original reviewer hit usage limit. Review is fix scope, not liveE2E. Ordinary-extension documenter preserves dirtyDESIGN/sidecars and existingv5. No backend/dependency/schema/production changes.8 original dirtytracked files byte-identical. External39/40 qualification and nativevisual gates unchanged. Latest user asks stop afterbatch29/30/34/37.
 
 - **2026-10-21** — Serialized shared integration ownership handed to30 for actual account/settings/recovery routes, navigation and dictionary registration; existing behavior preserved.
+
+- **2026-10-21 — Visual acceptance correction:** reopened for outstanding approved V5 acceptance. Historical functional checkmarks/logs are preserved; they do not certify visual fidelity. Current four-part status and evidence: docs/implementation/V5_IMPLEMENTATION.md. No prior visual requirement is newly verified by a build.

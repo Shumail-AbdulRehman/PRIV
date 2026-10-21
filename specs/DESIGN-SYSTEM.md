@@ -9,8 +9,8 @@ Calm blue and white operational workspace, clear text and real data. Retain sepa
 Use semantic names from this source transcription; normalize aliases in the token implementation, not per page. Frontmatter below also preserves typography/radii/spacing observed in v5.
 
 ```yaml
-name: Hygene Ops v5 candidate extension
-description: PENDING EXPLICIT USER DESIGN APPROVAL; observed offline candidate values only
+name: Hygene Ops v5 approved application system
+description: Approved 2026-10-20; prototype values transcribed for the real application
 colors:
   primary: "#2556d8"
   primary-dark: "#1d42b1"
@@ -94,3 +94,12 @@ Source: design/v5/motion.css and stage-motion.js. Ease cubic-bezier(.23,1,.32,1)
 
 ## Accessibility floor
 Text contrast 4.5:1, large text/controls 3:1; 44px targets, mobile 48px, staff primary actions 52px. Keyboard reachability, visible labels, dialog focus/return/Escape, live status/error feedback. Translate complete workflow and errors; set html lang/dir, respect Urdu line height and isolate mixed IDs.
+
+## Native implementation mapping
+
+NativeWind values in `frontend-mobile/global.css` normalize the approved hex palette
+to HSL. `frontend-mobile/src/theme.ts` exposes the same primary/canvas/surface/ink/
+muted/border/selection values to React Navigation and native style props, which do
+not consume CSS variables. This is a bridge for the existing architecture, not a
+second theme. Semantic success/warning/error retain their existing meanings. Native
+visual acceptance remains pending a real runtime; web export is not that evidence.

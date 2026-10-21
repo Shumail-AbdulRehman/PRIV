@@ -27,11 +27,11 @@ Search INVENTORY.md, inventory fragments and code by purpose before writing comp
 ## Design tokens are a closed list
 DESIGN-SYSTEM.md is transcribed from approved design/v5. No arbitrary raw colors/palette classes in new UI. Missing tokens need a source-backed addition, not an invented local variant. Preserve existing operational functions and blue/white identity.
 
-## Unit tests prove every spec
+## Unit tests verify behavior, not visual acceptance
 Backend single file: `npm test --prefix backend -- src/path.test.ts`; full backend: `npm test --prefix backend`.
 Web full: `npm test --prefix frontend`; mobile full: `npm test --prefix frontend-mobile`.
 Web component testing infrastructure is installed by spec 08; use roles/text, not snapshots. Mobile uses existing tsx/node test harness and react-test-renderer, not a new Jest migration.
-End-to-end: `npm run test:e2e --prefix frontend` (installed only by spec 40); only that spec writes/runs integrated browser/device flows. Use dedicated disposable test DB explicitly supplied by operator; never load production .env for DB integration.
+End-to-end: `npm run test:e2e --prefix frontend` (installed only by spec 40); spec40 owns integrated browser/device flows; the explicitly authorized V5 correction may extend that harness for paired visual acceptance. Use dedicated disposable test DB explicitly supplied by operator; never load production .env for DB integration.
 
 ## Acceptance criterion tiering
 [static] inspection/type/build; [unit] isolated behavior; [runtime] one started process; [e2e] integrated flow (spec 40 only); [suite] clean whole suites (spec 41 only); [requires: named dependency] cannot pass without it. Tick only checks actually passed in this session.
@@ -44,3 +44,31 @@ Append dated spec Log with files, commands/counts, decisions, blockers; update P
 
 ## When blocked
 Record unavailable external configuration in the affected criterion; keep safe functionality disabled and continue independent units. A production deployment, irreversible change or unapproved business commitment needs explicit authorization. Do not migrate/reset a real database in development.
+
+## Mandatory visual acceptance — V5 correction, 2026-10-21
+
+Passing backend tests, TypeScript checks and builds does **not** prove UI/UX completeness.
+Every UI-related specification must be visually verified against approved `design/v5`.
+Historical Done checkmarks and synthetic render counts are retained as history, not
+accepted as evidence that the approved layout was implemented.
+
+Track four independent facts for each page: functional implementation, visual
+implementation, functional verification, visual verification. A UI page is complete
+only when all four pass and its API, authorization, responsive EN/UR and loading,
+empty/error states are verified. Any unmet criterion leaves the page Incomplete;
+name an external blocker where appropriate. Do not infer verification from a build.
+
+Before edits, verify the served checkout/process cwd, API target and revision.
+Capture the V5 reference and the actual rendered React route at matching viewport
+sizes (desktop and phone), in English and Urdu. Inspect composition, navigation,
+type, spacing, controls, tables/charts and significant interactions; fix and recapture.
+Record screenshot paths, viewport, state, fixture provenance, commands and deviations.
+Reviewer bars/sample identities are prototype tooling and must not ship. Never use
+prototype data in the application or label intercepted HTTP fixtures as real API proof.
+Native screenshots must come from a native runtime; Expo web export is not native
+visual acceptance. Missing device/provider access is an explicit unverified gate.
+
+Current page inventory and correction evidence: `docs/implementation/V5_IMPLEMENTATION.md`.
+User authorizes sequential V5 corrections beyond the historical one-spec restriction.
+Preserve pre-existing changes; commit only the correction's own paths/hunks. Never
+merge/deploy or change production data as part of visual verification.

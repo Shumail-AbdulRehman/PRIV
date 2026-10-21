@@ -1,5 +1,6 @@
 import { defineConfig, devices } from "@playwright/test";
 import { fileURLToPath } from "node:url";
+import { join } from "node:path";
 const shellQuote = (value: string) =>
   "'" + value.replaceAll("'", "'\\''") + "'";
 if (process.env.HYGENE_E2E_MANAGED !== "true")
@@ -41,7 +42,7 @@ export default defineConfig({
       stderr: "pipe",
     },
     {
-      command: `node node_modules/vite/bin/vite.js preview --host 127.0.0.1 --port ${new URL(web).port} --strictPort`,
+      command: `node node_modules/vite/bin/vite.js preview --outDir ${shellQuote(join(process.env.HYGENE_E2E_RUNTIME_DIR!, "web"))} --host 127.0.0.1 --port ${new URL(web).port} --strictPort`,
       url: web + "/help",
       reuseExistingServer: false,
       timeout: 20000,

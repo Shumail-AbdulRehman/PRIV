@@ -21,7 +21,7 @@
   --accent-foreground: var(--primary);
   --border: rgb(220 228 238);
   --line: var(--border);
-  --input: var(--muted-foreground);
+  --input: var(--border);
   --ring: var(--primary);
   --radius: 7px;
   --font-heading: "Inter Variable", Arial, sans-serif;
@@ -56,10 +56,10 @@
   font-weight: 650;
 }
 .workspace h2 {
-  font-size: 1.0625rem;
+  font-size: 1.1875rem;
   line-height: 1.4;
   letter-spacing: -0.025em;
-  font-weight: 700;
+  font-weight: 650;
 }
 .workspace h3 {
   font-size: 0.9375rem;
@@ -435,8 +435,8 @@
 .ops-panel,
 .workspace [data-slot="card"] {
   border-color: var(--border);
-  border-radius: 8px;
-  box-shadow: 0 1px 2px oklch(0.2 0.01 180 / 0.025);
+  border-radius: 10px;
+  box-shadow: none;
 }
 .ops-panel-heading {
   padding: 20px 22px 16px;
@@ -459,12 +459,12 @@
 }
 .workspace [data-slot="button"],
 .workspace-dialog [data-slot="button"] {
-  min-height: 40px;
+  min-height: 44px;
   height: auto;
   padding: 9px 14px;
-  border-radius: 5px;
-  font-size: 0.8125rem;
-  font-weight: 600;
+  border-radius: 7px;
+  font-size: 0.875rem;
+  font-weight: 550;
   line-height: 1.4;
   box-shadow: none;
   white-space: normal;
@@ -479,9 +479,9 @@
 .workspace-dialog input,
 .workspace-dialog select,
 .workspace-dialog textarea {
-  min-height: 42px;
+  min-height: 44px;
   border-color: var(--input);
-  border-radius: 5px;
+  border-radius: 7px;
   background-color: var(--card);
   color: var(--ink);
   font-size: 0.8125rem;
@@ -514,7 +514,7 @@
   border: 1px solid var(--border);
   background: var(--card);
   color: var(--ink);
-  border-radius: 10px;
+  border-radius: 12px;
 }
 .workspace-dialog [data-slot="dialog-title"] {
   font-size: 1.25rem;
@@ -546,15 +546,15 @@
   color: var(--sidebar-ink);
 }
 .workspace table {
-  font-size: 0.8125rem;
+  font-size: 0.875rem;
 }
 .workspace thead tr {
   background: var(--muted);
 }
 .workspace th {
   color: var(--muted-foreground);
-  font-size: 0.75rem;
-  font-weight: 600;
+  font-size: 0.8125rem;
+  font-weight: 550;
   text-transform: none;
   letter-spacing: 0;
   text-align: start;
@@ -1956,3 +1956,40 @@ th[aria-sort="descending"] .table-sort svg {
 
 .workspace-topbar-account { min-width: 0; max-inline-size: min(320px, 35vw); }
 .workspace-topbar-account > div { min-width: 0; }
+
+/* V5 shell correction: one operational register, company identity, quiet account tools. */
+.workspace-sidebar { padding:24px 12px 14px; }
+.workspace-brand { padding:0 12px; }
+.workspace-brand .hygene-wordmark { font-family:"Inter Variable",Arial,sans-serif; font-size:21px; font-weight:650; letter-spacing:-.035em; }
+.workspace-brand .hygene-mark { width:32px; height:32px; }
+.workspace-role { border:1px solid var(--border); border-radius:7px; margin:28px 4px 22px; padding:12px; gap:10px; }
+.workspace-role > div { min-width:0; }
+.workspace-role strong { display:block; font-size:12px; font-weight:650; color:var(--ink); overflow-wrap:anywhere; }
+.workspace-role small { display:block; margin-block-start:2px; font-size:12px; }
+.workspace-company-monogram { display:grid; place-items:center; flex-shrink:0; width:32px; height:32px; border:1px solid var(--border); background:var(--accent); color:var(--primary); border-radius:5px; font-size:11px; font-weight:600; }
+.workspace-nav-group { margin-block-end:20px; }
+.workspace-nav-group + .workspace-nav-group { padding-block-start:16px; border-block-start:1px solid var(--border); }
+.workspace-nav-link { min-height:46px; padding:10px 12px; gap:12px; font-size:14px; color:var(--muted-foreground); }
+.workspace-nav-link.is-active { color:var(--primary); font-weight:600; }
+.workspace-topbar-account { border:0; padding:0; }
+.workspace-topbar-account > div { display:none; }
+.workspace-company-crumb { display:flex; align-items:center; gap:12px; }
+.workspace-breadcrumb > a { color:var(--ink); font-weight:600; }
+.workspace-content { padding-block-start:28px; }
+.language-choice button { min-height:38px; }
+.workspace-dialog [data-slot="dialog-close"] { min-height:44px; min-width:44px; }
+@media(max-width:650px) { .workspace-company-crumb { display:none; } .workspace-content { padding-block-start:24px; } }
+/* Edge navigation must not inherit the centered dialog's position/zoom animation. */
+.workspace-mobile-sidebar[data-slot="dialog-content"] {
+  inset-block:0;
+  inset-inline-start:0;
+  inset-inline-end:auto;
+  translate:none;
+  transform:none;
+  animation:none;
+}
+/* Preserve edge placement after production CSS optimization lowers translate:none. */
+.workspace-mobile-sidebar[data-slot="dialog-content"] {
+  --tw-translate-x:0px;
+  --tw-translate-y:0px;
+}

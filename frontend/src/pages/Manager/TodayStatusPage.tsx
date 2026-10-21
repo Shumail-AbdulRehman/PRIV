@@ -11,17 +11,16 @@ import { Input } from "@/components/ui/input";
 import DataTable from "@/components/common/DataTable";
 import ScopeFilters from "@/components/common/ScopeFilters";
 import Pagination from "@/components/common/Pagination";
-import OperationalSummary from "@/components/common/OperationalSummary";
-import AttentionList from "@/components/common/AttentionList";
-import WorkProgress from "@/components/common/WorkProgress";
 import OperationStatus from "@/components/common/OperationStatus";
 import TaskWorker from "@/components/common/TaskWorker";
-import { Search } from "lucide-react";
+import { Search, RefreshCw, Sun, ShieldCheck, ChevronRight } from "lucide-react";
+import { Dialog, DialogContent, DialogTitle, DialogDescription, DialogClose } from "@/components/ui/dialog";
+import TodayPulse, { TodayAside } from "./TodayPulse";
+import "./today.css";
 import {
   useOperations,
   scopeParams,
   dailyLink,
-  locationTaskLink,
   workLabel,
   localTime,
   type OperationsPage,
@@ -50,27 +49,14 @@ function TaskPanel({ id, close }: { id: number; close: () => void }) {
       ).data.data,
   });
   const task = query.data;
-  useEffect(() => {
-    if (!task) return;
-    requestAnimationFrame(() => {
-      const panel = document.getElementById("ops-task-detail");
-      panel?.scrollIntoView({ block: "start", behavior: "instant" });
-      panel?.focus({ preventScroll: true });
-    });
-  }, [task]);
   return (
-    <section
-      className="ops-panel ops-task-panel"
-      aria-label={t("Task details")}
-      id="ops-task-detail"
-      tabIndex={-1}
-    >
-      <div className="ops-panel-heading">
-        <h2>{task?.areaNameSnapshot ?? task?.title ?? t("Task details")}</h2>
-        <Button variant="outline" onClick={close}>
-          {t("Close details")}
-        </Button>
-      </div>
+    <Dialog open onOpenChange={(open) => { if (!open) close(); }}>
+      <DialogContent className="today-task-drawer" showCloseButton={false} onCloseAutoFocus={(event) => { const opener=Array.from(document.querySelectorAll<HTMLAnchorElement>(`a[data-task-opener="${id}"]`)).find(el=>el.getClientRects().length>0); if (opener) { event.preventDefault(); opener.focus(); } }}>
+        <div className="today-drawer-heading">
+          <DialogTitle>{t("Task details")}</DialogTitle>
+          <DialogClose asChild><Button variant="ghost">{t("Close details")}</Button></DialogClose>
+        </div>
+        <DialogDescription className="sr-only">{t("Task submission and verified completion are recorded separately.")}</DialogDescription>
       <div className="ops-panel-body">
         <OperationsState
           loading={query.isPending}
@@ -80,6 +66,7 @@ function TaskPanel({ id, close }: { id: number; close: () => void }) {
         />
         {task ? (
           <>
+            <h2>{task.areaNameSnapshot ?? task.title}</h2>
             <p>
               <strong>{t("Task")}:</strong> {task.title}
             </p>
@@ -125,14 +112,12 @@ function TaskPanel({ id, close }: { id: number; close: () => void }) {
           </>
         ) : null}
       </div>
-    </section>
+      </DialogContent>
+    </Dialog>
   );
 }
 export default function TodayStatusPage() {
   const { t, language } = useLanguage();
-  const isManager = useSelector(
-    (s: RootState) => s.auth.user?.role === "MANAGER",
-  );
   const [params, setParams] = useSearchParams();
   const { hash, key: navigationKey } = useLocation();
   useEffect(() => {
@@ -145,7 +130,7 @@ export default function TodayStatusPage() {
     return () => cancelAnimationFrame(frame);
   }, [hash, navigationKey]);
   const tab =
-    params.get("tab") === "tasks" || (!params.get("tab") && isManager)
+    params.get("tab") !== "staff"
       ? "tasks"
       : "staff";
   const overview = useOperations<OperationOverview>(
@@ -179,7 +164,7 @@ export default function TodayStatusPage() {
       const next = new URLSearchParams(old);
       if (value) next.set(key, value);
       else next.delete(key);
-      if (key !== "page") next.delete("page");
+      if (key !== "page" && key !== "taskId") next.delete("page");
       return next;
     });
   }
@@ -194,33 +179,44 @@ export default function TodayStatusPage() {
         { replace: true },
       );
   }, [data, params, setParams]);
+  function renderWorkStatus(task: OperationTask) {
+    const submitted = !!task.staffSubmittedAt || task.status === 'COMPLETED';
+    const overdue = !submitted && Date.parse(task.shiftEnd) < Date.parse(data?.asOf ?? '');
+    return <OperationStatus
+      state={submitted ? 'SUBMITTED' : overdue ? 'NOT_COMPLETED_INTIME' : task.rawStatus}
+      label={overdue ? 'Overdue' : workLabel(task)}
+    />;
+  }
+  function taskDestination(id: number) {
+    return dailyLink(params, { ...Object.fromEntries(params), tab:'tasks', taskId:String(id) });
+  }
+  const days = overview.data?.days ?? [];
+  const sharedLocalDate = days.length && new Set(days.map(day => day.localDate)).size === 1
+    ? days[0].localDate : undefined;
+  const dateLabel = sharedLocalDate
+    ? new Intl.DateTimeFormat(language === 'ur' ? 'ur-PK' : 'en-PK', {
+        weekday:'long', day:'numeric', month:'long', year:'numeric', timeZone:'UTC',
+      }).format(new Date(sharedLocalDate + 'T12:00:00Z'))
+    : t('Today in each location');
   return (
     <div className="ops-page daily-work-page">
-      <header className="ops-header">
+      <header className="ops-header today-heading">
         <div>
-          <h1>
-            {t(
-              params.get("date") && params.get("date") !== "today"
-                ? "Daily records"
-                : "Today",
-            )}
-          </h1>
-          <p>{t("Your team and cleaning work. Times follow each location.")}</p>
-          <p>{t('Daily schedules include every day, including weekends. Dates and times follow each location’s timezone.')}</p>
-          <Link to="/setup">{t('Review location setup')}</Link>
+          <div className="today-date"><Sun size={17} aria-hidden="true" /><bdi>{dateLabel}</bdi></div>
+          <h1>{t(params.get("date") && params.get("date") !== "today" ? "Daily records" : "Today, at a glance")}</h1>
+          <p>{t("Your team, the work in motion, and what needs attention.")}</p>
         </div>
-        <ScopeFilters locations={data?.locations ?? []} />
+        <ScopeFilters localDate={sharedLocalDate} locations={data?.locations ?? overview.data?.locations ?? []} />
       </header>
-      <OperationsState loading={overview.isPending} layout="today-summary" />
-      {overview.data && !overview.isError ? (
-        <>
-          <OperationalSummary data={overview.data} params={params} />
-          <div className="ops-overview-columns">
-            <AttentionList data={overview.data} params={params} limit={3} />
-            <WorkProgress data={overview.data} params={params} />
-          </div>
-        </>
-      ) : null}
+      <OperationsState loading={overview.isPending} error={overview.error} retry={() => void overview.refetch()} layout="today-summary" />
+      {overview.data && !overview.isError ? <TodayPulse data={overview.data} params={params} /> : null}
+      <div className="today-layout">
+      <section className="ops-panel today-register">
+        <div className="ops-panel-heading">
+          <div><h2>{t(tab === 'tasks' ? "Today’s tasks" : "Staff")} {data ? <span className="today-count">{data.total}</span> : null}</h2>
+          <p>{t("Scheduled work across your assigned locations")}</p></div>
+          <Button variant="ghost" disabled={query.isFetching} onClick={() => { void query.refetch(); void overview.refetch(); }}><RefreshCw size={16} aria-hidden="true" />{t("Refresh")}</Button>
+        </div>
       <div
         className="ops-tabs"
         role="tablist"
@@ -240,7 +236,7 @@ export default function TodayStatusPage() {
           </Link>
         ))}
       </div>
-      <div className="ops-toolbar">
+      <div className="ops-toolbar today-toolbar">
         <label className="ops-search">
           <span className="flex items-center gap-2">
             <Search size={14} />
@@ -285,6 +281,9 @@ export default function TodayStatusPage() {
             ))}
           </select>
         </label>
+        {tab === 'tasks' ? <div className="today-status-tabs" role="group" aria-label={t("Task status")}>
+          {[["all","All tasks"],["in-progress","In progress"],["submitted","Work submitted"],["overdue","Overdue"]].map(([value,label]) => <button key={value} type="button" aria-pressed={(params.get('status') ?? 'all') === value} onClick={() => update('status',value)}>{t(label)}</button>)}
+        </div> : null}
       </div>
       <OperationsState
         loading={query.isPending}
@@ -395,6 +394,14 @@ export default function TodayStatusPage() {
           ) : (
             <DataTable
               data={tasks.data?.rows ?? []}
+              mobileRender={(r) => <div className="today-task-row">
+                <div className="today-task-title"><strong><bdi>{r.areaNameSnapshot ?? r.title}</bdi></strong><p><bdi>{r.location.name}</bdi></p></div>
+                <div><span className="today-field-label">{t('Assigned to')}</span><TaskWorker task={r}/></div>
+                <div><span className="today-field-label">{t('Work status')}</span>{renderWorkStatus(r)}</div>
+                <div className="today-task-time"><span className="today-field-label">{t('Scheduled')}</span><bdi>{localTime(r.shiftStart,r.location.timezone,language)} – {localTime(r.shiftEnd,r.location.timezone,language)}</bdi></div>
+                {r.carryOver ? <small className="today-overnight">{t('Started yesterday · overnight shift')}</small> : null}
+                <Button asChild variant="ghost" className="today-task-open"><Link data-task-opener={r.id} to={taskDestination(r.id)} preventScrollReset><ChevronRight size={18} aria-hidden="true"/><span className="sr-only">{t('Open task')}: {r.areaNameSnapshot ?? r.title}</span></Link></Button>
+              </div>}
               rowKey={(r) => r.id}
               emptyMessage="No tasks match these filters."
               columns={[
@@ -417,55 +424,26 @@ export default function TodayStatusPage() {
                 },
                 {
                   key: "worker",
-                  header: "Worker / schedule",
+                  header: "Assigned to",
                   render: (r) => (
                     <div>
                       <TaskWorker task={r} />
-                      <p>
-                        {localTime(r.shiftStart, r.location.timezone, language)}{" "}
-                        – {localTime(r.shiftEnd, r.location.timezone, language)}
-                      </p>
+
                     </div>
                   ),
                 },
+                { key: "time", header: "Scheduled", render: (r) => <bdi>{localTime(r.shiftStart,r.location.timezone,language)} – {localTime(r.shiftEnd,r.location.timezone,language)}</bdi> },
                 {
                   key: "status",
                   header: "Work status",
-                  render: (r) => (
-                    <OperationStatus
-                      state={
-                        r.staffSubmittedAt || r.status === "COMPLETED"
-                          ? "PASSED"
-                          : Date.parse(r.shiftEnd) < Date.parse(data.asOf)
-                            ? "NOT_COMPLETED_INTIME"
-                            : r.rawStatus
-                      }
-                      label={
-                        !r.staffSubmittedAt &&
-                        r.status !== "COMPLETED" &&
-                        Date.parse(r.shiftEnd) < Date.parse(data.asOf)
-                          ? "Overdue"
-                          : workLabel(r)
-                      }
-                    />
-                  ),
-                },
-                {
-                  key: "review",
-                  header: "Review status",
-                  render: (r) => (
-                    <OperationStatus
-                      state={r.verificationState}
-                      label={verificationLabel(r)}
-                    />
-                  ),
+                  render: renderWorkStatus,
                 },
                 {
                   key: "action",
                   header: "Next action",
                   render: (r) => (
                     <Button asChild variant="outline">
-                      <Link to={locationTaskLink(r)}>{t("Open task")}</Link>
+                      <Link data-task-opener={r.id} to={taskDestination(r.id)} preventScrollReset><ChevronRight size={18} aria-hidden="true" /><span className="sr-only">{t("Open task")}: {r.areaNameSnapshot ?? r.title}</span></Link>
                     </Button>
                   ),
                 },
@@ -482,6 +460,10 @@ export default function TodayStatusPage() {
           />
         </section>
       ) : null}
+      </section>
+      {overview.data && !overview.isError ? <TodayAside data={overview.data} params={params} /> : null}
+      </div>
+      <p className="today-footnote"><ShieldCheck size={16} aria-hidden="true" />{t("Task submission and verified completion are recorded separately.")}</p>
       {params.get("taskId") && Number(params.get("taskId")) > 0 ? (
         <TaskPanel
           key={params.get("taskId")}

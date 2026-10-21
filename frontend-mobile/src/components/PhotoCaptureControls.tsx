@@ -1,3 +1,4 @@
+import { v5Colors } from '../theme';
 import { useState } from 'react';
 import { ActivityIndicator, Pressable, StyleSheet, View } from 'react-native';
 import { useLanguage } from '../i18n/LanguageProvider';
@@ -28,9 +29,9 @@ export function PhotoCaptureControls({ disabled, busy, label, onCapture }: {
 const captureStyles = StyleSheet.create({
   controls: {width:'100%',alignItems:'center',gap:8,flexGrow:0,flexShrink:0},
   shutter: {width:88,height:88,flexGrow:0,flexShrink:0,alignSelf:'center',
-    borderRadius:44,borderWidth:2,borderColor:'#093F45',padding:5,
+    borderRadius:44,borderWidth:2,borderColor:v5Colors.primary,padding:5,
     alignItems:'center',justifyContent:'center'},
-  shutterFace: {width:74,height:74,borderRadius:37,backgroundColor:'#093F45',
+  shutterFace: {width:74,height:74,borderRadius:37,backgroundColor:v5Colors.primary,
     alignItems:'center',justifyContent:'center'},
 });
 
@@ -46,7 +47,7 @@ export function PhotoStepProgress({current,total}:{current:number;total:number})
   const { t, isRTL } = useLanguage();
   return <View className="gap-2">
     <View style={{flexDirection:isRTL?'row-reverse':'row',gap:5}} accessible={false}>
-      {Array.from({length:Math.min(total,12)},(_,i)=><View key={i} style={{flex:1,height:6,borderRadius:4,backgroundColor:i<Math.ceil(current/total*Math.min(total,12))?'#093F45':'#E3E7E2'}}/>)}
+      {Array.from({length:Math.min(total,12)},(_,i)=><View key={i} style={{flex:1,height:6,borderRadius:4,backgroundColor:i<Math.ceil(current/total*Math.min(total,12))?v5Colors.primary:v5Colors.border}}/>)}
     </View>
     <Text className="text-sm text-muted-foreground">{t('Photo {current} of {total}',{current,total})}</Text>
   </View>;

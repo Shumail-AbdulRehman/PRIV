@@ -1,3 +1,4 @@
+import { v5Colors } from '../theme';
 import { KeyboardAvoidingView, Platform, ScrollView } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { LaunchRecovery } from "../launch/LaunchRecovery";
@@ -41,15 +42,15 @@ export function AppNavigator() {
       screenOptions={{
         headerShadowVisible: false,
         headerStyle: {
-          backgroundColor: "#FCFAF6",
+          backgroundColor: v5Colors.surface,
         },
         headerTitleStyle: {
-          color: "#10232D",
+          color: v5Colors.ink,
           fontWeight: "700",
         },
-        headerTintColor: "#093F45",
+        headerTintColor: v5Colors.primary,
         contentStyle: {
-          backgroundColor: "#FCFAF6",
+          backgroundColor: v5Colors.surface,
         },
       }}
     >

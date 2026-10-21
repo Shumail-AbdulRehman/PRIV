@@ -1,6 +1,6 @@
 # Spec 34 — Platform sign-in and security workspace
 
-**Status:** Done
+**Status:** In progress
 **Depends on:** Spec 19, Spec 27
 **Model:** Heavy — `claude-opus-5-5` · `gpt-6-astra` · `gemini-3.1-pro-preview`
 **Issue:** #59
@@ -37,6 +37,7 @@ Use configured OIDC sign-in/MFA/own security provider handoff with safe redirect
 
 ## Done when
 
+- [ ] Approved V5 layout and interactions are implemented and paired actual-app/reference screenshots are inspected at desktop/phone EN/UR; state/permission deviations are recorded. Native acceptance requires a native runtime. [static]
 - [x] `npm run test:components --prefix frontend -- src/pages/Platform/OperatorLogin.test.tsx` passes: Missing config stays disabled; unsolicited callback/state/nonce rejected without an initiated flow; tenant auth never treated as operator; MFA requirement explained. Live provider state/nonce/PKCE/MFA remains gated by39/40. [unit]
 - [x] `npm test --prefix frontend` passes the whole affected unit suite; record count. [unit]
 - [x] Only scoped paths changed; relevant denial/empty/error/config-unavailable states inspected. [static]
@@ -55,3 +56,5 @@ Use configured OIDC sign-in/MFA/own security provider handoff with safe redirect
 - **2026-10-21** — Serialized platform company registration ownership transferred to33; existing authentication/security/billing behavior preserved.
 
 - **2026-10-21** — Sequential38 owns main.tsx for public help outside tenant bootstrap; platform route order/boundary preserved.
+
+- **2026-10-21 — Visual acceptance correction:** reopened for outstanding approved V5 acceptance. Historical functional checkmarks/logs are preserved; they do not certify visual fidelity. Current four-part status and evidence: docs/implementation/V5_IMPLEMENTATION.md. No prior visual requirement is newly verified by a build.

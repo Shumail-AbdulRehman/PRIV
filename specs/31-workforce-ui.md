@@ -1,6 +1,6 @@
 # Spec 31 — Workforce access and transfer UI
 
-**Status:** Done
+**Status:** In progress
 **Depends on:** Spec 11, Spec 17, Spec 27
 **Model:** Standard — `claude-sonnet-5-5` · `gpt-6.1-sol` · `gemini-3.8-flash`
 **Issue:** #65
@@ -37,6 +37,7 @@ Wire safe deactivation/archive, open-shift transfer conflict, manager-site hando
 
 ## Done when
 
+- [ ] Approved V5 layout and interactions are implemented and paired actual-app/reference screenshots are inspected at desktop/phone EN/UR; state/permission deviations are recorded. Native acceptance requires a native runtime. [static]
 - [x] `npm run test:components --prefix frontend -- src/pages/Staff/WorkforceActions.test.tsx` passes: Manager cannot select unassigned site/reset owner; conflict keeps draft; one-use credential never saved in browser; mutation errors shown. [unit]
 - [x] `npm test --prefix frontend` passes the whole affected unit suite; record count. [unit]
 - [x] Only scoped paths changed; relevant denial/empty/error/config-unavailable states inspected. [static]
@@ -56,3 +57,5 @@ Wire safe deactivation/archive, open-shift transfer conflict, manager-site hando
 - **2026-10-21** — Completed after coordinator independent source/diff and EN/UR screenshot review, including measured48px transfer controls. Issue https://github.com/Shumail-AbdulRehman/PRIV/issues/65; independent draft PR https://github.com/Shumail-AbdulRehman/PRIV/pull/68, base `implementation/spec-37-native-integrated`, implementation0264ad9. Coordinator combined verification: backend1433 tests/94 files/zero skips; web57 Node +142 components/12 files; frontend lint0; frontend/backend TypeScript/build pass. Coordinator independently reran both actual isolated workforce and credential SQL proofs successfully. Combined checks and API-intercepted presentation captures do not claim integrated whole-product/browser/device E2E; that remains40. Global PROGRESS/SESSION_HANDOFF belong to coordinator; no PR merged or production change.
 
 - **2026-10-21** — Serialized billing integration ownership transferred to32; prior contracts preserved.
+
+- **2026-10-21 — Visual acceptance correction:** reopened for outstanding approved V5 acceptance. Historical functional checkmarks/logs are preserved; they do not certify visual fidelity. Current four-part status and evidence: docs/implementation/V5_IMPLEMENTATION.md. No prior visual requirement is newly verified by a build.

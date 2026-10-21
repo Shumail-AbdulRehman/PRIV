@@ -1,10 +1,10 @@
 # Spec 27 — Approved v5 shared shell and route composition
 
-**Status:** Done
+**Status:** In progress
 **Depends on:** Spec 06
 **Model:** Heavy — `claude-opus-5-5` · `gpt-6-astra` · `gemini-3.1-pro-preview`
 **Issue:** #35
-**Owns:** `frontend/src/workspace-refresh.css`, `frontend/src/i18n/launchTranslations.ts`, `frontend/src/routes/launchPages.tsx`, `specs/inventory/27-workspace-shell.md`
+**Owns:** `frontend/src/workspace-refresh.css`, `frontend/src/i18n/launchTranslations.ts`, `frontend/src/routes/launchPages.tsx`, `specs/inventory/27-workspace-shell.md`, `frontend/src/components/layout/Sidebar.tsx`, `frontend/src/components/common/OperationStatus.tsx`, `frontend/src/components/common/ScopeFilters.tsx`
 **Reuses:** `frontend/src/components/common/LanguageChoice.tsx`, `frontend/src/components/common/PageHeader.tsx`, `frontend/src/i18n/LanguageProvider.tsx`, `DESIGN-SYSTEM.md#component-conventions`, `design/v5/overview.html`
 
 ## Goal
@@ -37,6 +37,7 @@ Translate approved shell/spacing/fonts/navigation into existing reusable compone
 
 ## Done when
 
+- [ ] Approved V5 layout and interactions are implemented and paired actual-app/reference screenshots are inspected at desktop/phone EN/UR; state/permission deviations are recorded. Native acceptance requires a native runtime. [static]
 - [x] `npm run test:components --prefix frontend -- src/routes/launchPages.test.tsx` passes: EN/UR/RTL role-correct navigation, keyboard focus, mobile menu semantics and forbidden routes covered by component tests; inspect the real rendered390px layout separately. [unit]
 - [x] `npm test --prefix frontend` passes the whole affected unit suite; record count. [unit]
 - [x] Only scoped paths changed; relevant denial/empty/error/config-unavailable states inspected. [static]
@@ -53,3 +54,7 @@ Translate approved shell/spacing/fonts/navigation into existing reusable compone
 - **2026-10-21** — Serialized setup integration ownership transferred to28 for existing route/nav/translation/form/readiness/API seams. Preserve previous behavior; subsequent feature edits must amend ownership again.
 
 - **2026-10-21** — Serialized shared integration ownership handed to30 for actual account/settings/recovery routes, navigation and dictionary registration; existing behavior preserved.
+
+- **2026-10-21 — Visual acceptance correction:** reopened for outstanding approved V5 acceptance. Historical functional checkmarks/logs are preserved; they do not certify visual fidelity. Current four-part status and evidence: docs/implementation/V5_IMPLEMENTATION.md. No prior visual requirement is newly verified by a build.
+
+- **2026-10-22 — Issue82 correction:** Shared V5 tokens, dimensions, actual company identity and grouped owner/manager navigation corrected. Mobile menu positioning/centered-dialog animation drift fixed; real rendered bounds checked, not inferred from accessibility tests. See docs/implementation/V5_IMPLEMENTATION.md for commands, counts, screenshots and intentional deviations. This log does not close the reopened full V5 acceptance criterion.

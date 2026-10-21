@@ -95,3 +95,12 @@ Priority31/36 completed concurrently in isolated branches based37/PR64; neither 
 Spec32 completed on the latest verified application checkpoint; actual dependencies remain15/27/28. Owner billing uses the server catalog/transaction and fresh portal contracts; public/legacy entry points consume the same canonical workspace.39/40 still own real provider/commercial qualification. Latest user requested this one next unit only; stop after32, identify33 but do not start it.
 
 Spec40 validation2026-10-21: the three additional no-consumer warnings are accepted. frontend/package.json and package-lock.json are existing tooling manifests transferred from06, not new application endpoints; npm and CI consume them directly. E2E_DEFECTS.md is a human-reviewed proposed fix report consumed by E2E_RESULTS and the final handoff, not a runtime module. Combined with the eight previously justified warnings, validator reports42specs/0errors/11warnings. Ignored approved design/v5 references are made available read-only from the preserved root design folder in the isolated worktree; no redesign or design commit.
+
+V5 corrective visual acceptance (2026-10-21): historical UI completion has been
+reopened in27–38 while retaining prior logs. Functional and visual statuses are
+tracked independently in docs/implementation/V5_IMPLEMENTATION.md. Screenshot
+capture alone does not certify fidelity. Spec40 remains the existing long integrated
+flow table; its extra visual-evidence consumption log is intentionally retained
+rather than split into a second E2E spec. No extra architecture or dependency wave.
+
+Spec40 remains the single integrated flow table; its additional correction logs may exceed130lines. This is an intentionally long E2E record already accepted above, not a reason to create a second E2E specification.

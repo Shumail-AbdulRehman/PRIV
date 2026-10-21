@@ -7,3 +7,6 @@
 - Existing AuthContext now exposes a server-derived/persisted restrictive passwordChangeRequired flag. AppNavigator admits only own replacement/signout in that state; notifications do not enter operational routes. Reuse existing secure session instead of creating another store.
 - Actual Home, Verification, Login and Help screens consume these contracts. Receipt comes from persisted manifest, never local success intent. No offline photo queue; old capture metadata/result lookup unchanged.
 - `docs/implementation/NATIVE_RECOVERY.md`: exact behavior, source/component proof, automatic checks and unavailable hardware/empirical qualification. Specs39/40 must preserve the active21 gate and qualify actual native hardware separately.
+
+### V5 palette bridge — 2026-10-22
+`frontend-mobile/src/theme.ts` centralizes approved V5 native prop colours; NativeWind global.css uses matching HSL tokens. Existing navigation, brand, shutter/progress and button native props consume the same palette. No camera/API/Expo architecture changed.101tests/typecheck/web export pass; native visual/permission/device acceptance remains unverified.

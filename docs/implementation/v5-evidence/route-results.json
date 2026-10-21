@@ -1,0 +1,602 @@
+[
+  {
+    "name": "today",
+    "path": "/today-status",
+    "prototype": "manager",
+    "width": 1366,
+    "language": "en",
+    "overflow": false,
+    "errors": [],
+    "url": "/today-status"
+  },
+  {
+    "name": "overview",
+    "path": "/dashboard",
+    "prototype": "owner",
+    "width": 1366,
+    "language": "en",
+    "overflow": false,
+    "errors": [],
+    "url": "/dashboard"
+  },
+  {
+    "name": "setup",
+    "path": "/setup",
+    "prototype": "setup",
+    "width": 1366,
+    "language": "en",
+    "overflow": false,
+    "errors": [],
+    "url": "/setup"
+  },
+  {
+    "name": "team",
+    "path": "/staff",
+    "prototype": "team",
+    "width": 1366,
+    "language": "en",
+    "overflow": false,
+    "errors": [],
+    "url": "/staff"
+  },
+  {
+    "name": "workforce",
+    "path": "/staff/1",
+    "prototype": "workforce",
+    "width": 1366,
+    "language": "en",
+    "overflow": false,
+    "errors": [],
+    "url": "/staff/1"
+  },
+  {
+    "name": "locations",
+    "path": "/locations",
+    "prototype": "location",
+    "width": 1366,
+    "language": "en",
+    "overflow": false,
+    "errors": [],
+    "url": "/locations"
+  },
+  {
+    "name": "location",
+    "path": "/locations/1",
+    "prototype": "location",
+    "width": 1366,
+    "language": "en",
+    "overflow": false,
+    "errors": [],
+    "url": "/locations/1"
+  },
+  {
+    "name": "attendance",
+    "path": "/attendance",
+    "prototype": "attendance",
+    "width": 1366,
+    "language": "en",
+    "overflow": false,
+    "errors": [],
+    "url": "/attendance"
+  },
+  {
+    "name": "billing",
+    "path": "/subscription",
+    "prototype": "billing",
+    "width": 1366,
+    "language": "en",
+    "overflow": false,
+    "errors": [],
+    "url": "/subscription"
+  },
+  {
+    "name": "settings",
+    "path": "/settings",
+    "prototype": "settings",
+    "width": 1366,
+    "language": "en",
+    "overflow": false,
+    "errors": [],
+    "url": "/settings"
+  },
+  {
+    "name": "security",
+    "path": "/account/security",
+    "prototype": "settings",
+    "width": 1366,
+    "language": "en",
+    "overflow": false,
+    "errors": [],
+    "url": "/account/security"
+  },
+  {
+    "name": "reviews",
+    "path": "/exceptions",
+    "prototype": "reviews",
+    "width": 1366,
+    "language": "en",
+    "overflow": false,
+    "errors": [],
+    "url": "/exceptions"
+  },
+  {
+    "name": "review-detail",
+    "path": "/exceptions/1",
+    "prototype": "reviews",
+    "width": 1366,
+    "language": "en",
+    "overflow": false,
+    "errors": [],
+    "url": "/exceptions/1"
+  },
+  {
+    "name": "help",
+    "path": "/help",
+    "prototype": "help",
+    "width": 1366,
+    "language": "en",
+    "overflow": false,
+    "errors": [],
+    "url": "/help"
+  },
+  {
+    "name": "information",
+    "path": "/service-information",
+    "prototype": "information",
+    "width": 1366,
+    "language": "en",
+    "overflow": false,
+    "errors": [],
+    "url": "/service-information"
+  },
+  {
+    "name": "today",
+    "path": "/today-status",
+    "prototype": "manager",
+    "width": 1366,
+    "language": "ur",
+    "overflow": false,
+    "errors": [],
+    "url": "/today-status"
+  },
+  {
+    "name": "overview",
+    "path": "/dashboard",
+    "prototype": "owner",
+    "width": 1366,
+    "language": "ur",
+    "overflow": false,
+    "errors": [],
+    "url": "/dashboard"
+  },
+  {
+    "name": "setup",
+    "path": "/setup",
+    "prototype": "setup",
+    "width": 1366,
+    "language": "ur",
+    "overflow": false,
+    "errors": [],
+    "url": "/setup"
+  },
+  {
+    "name": "team",
+    "path": "/staff",
+    "prototype": "team",
+    "width": 1366,
+    "language": "ur",
+    "overflow": false,
+    "errors": [],
+    "url": "/staff"
+  },
+  {
+    "name": "workforce",
+    "path": "/staff/1",
+    "prototype": "workforce",
+    "width": 1366,
+    "language": "ur",
+    "overflow": false,
+    "errors": [],
+    "url": "/staff/1"
+  },
+  {
+    "name": "locations",
+    "path": "/locations",
+    "prototype": "location",
+    "width": 1366,
+    "language": "ur",
+    "overflow": false,
+    "errors": [],
+    "url": "/locations"
+  },
+  {
+    "name": "location",
+    "path": "/locations/1",
+    "prototype": "location",
+    "width": 1366,
+    "language": "ur",
+    "overflow": false,
+    "errors": [],
+    "url": "/locations/1"
+  },
+  {
+    "name": "attendance",
+    "path": "/attendance",
+    "prototype": "attendance",
+    "width": 1366,
+    "language": "ur",
+    "overflow": false,
+    "errors": [],
+    "url": "/attendance"
+  },
+  {
+    "name": "billing",
+    "path": "/subscription",
+    "prototype": "billing",
+    "width": 1366,
+    "language": "ur",
+    "overflow": false,
+    "errors": [],
+    "url": "/subscription"
+  },
+  {
+    "name": "settings",
+    "path": "/settings",
+    "prototype": "settings",
+    "width": 1366,
+    "language": "ur",
+    "overflow": false,
+    "errors": [],
+    "url": "/settings"
+  },
+  {
+    "name": "security",
+    "path": "/account/security",
+    "prototype": "settings",
+    "width": 1366,
+    "language": "ur",
+    "overflow": false,
+    "errors": [],
+    "url": "/account/security"
+  },
+  {
+    "name": "reviews",
+    "path": "/exceptions",
+    "prototype": "reviews",
+    "width": 1366,
+    "language": "ur",
+    "overflow": false,
+    "errors": [],
+    "url": "/exceptions"
+  },
+  {
+    "name": "review-detail",
+    "path": "/exceptions/1",
+    "prototype": "reviews",
+    "width": 1366,
+    "language": "ur",
+    "overflow": false,
+    "errors": [],
+    "url": "/exceptions/1"
+  },
+  {
+    "name": "help",
+    "path": "/help",
+    "prototype": "help",
+    "width": 1366,
+    "language": "ur",
+    "overflow": false,
+    "errors": [],
+    "url": "/help"
+  },
+  {
+    "name": "information",
+    "path": "/service-information",
+    "prototype": "information",
+    "width": 1366,
+    "language": "ur",
+    "overflow": false,
+    "errors": [],
+    "url": "/service-information"
+  },
+  {
+    "name": "today",
+    "path": "/today-status",
+    "prototype": "manager",
+    "width": 390,
+    "language": "en",
+    "overflow": false,
+    "errors": [],
+    "url": "/today-status"
+  },
+  {
+    "name": "overview",
+    "path": "/dashboard",
+    "prototype": "owner",
+    "width": 390,
+    "language": "en",
+    "overflow": false,
+    "errors": [],
+    "url": "/dashboard"
+  },
+  {
+    "name": "setup",
+    "path": "/setup",
+    "prototype": "setup",
+    "width": 390,
+    "language": "en",
+    "overflow": false,
+    "errors": [],
+    "url": "/setup"
+  },
+  {
+    "name": "team",
+    "path": "/staff",
+    "prototype": "team",
+    "width": 390,
+    "language": "en",
+    "overflow": false,
+    "errors": [],
+    "url": "/staff"
+  },
+  {
+    "name": "workforce",
+    "path": "/staff/1",
+    "prototype": "workforce",
+    "width": 390,
+    "language": "en",
+    "overflow": false,
+    "errors": [],
+    "url": "/staff/1"
+  },
+  {
+    "name": "locations",
+    "path": "/locations",
+    "prototype": "location",
+    "width": 390,
+    "language": "en",
+    "overflow": false,
+    "errors": [],
+    "url": "/locations"
+  },
+  {
+    "name": "location",
+    "path": "/locations/1",
+    "prototype": "location",
+    "width": 390,
+    "language": "en",
+    "overflow": false,
+    "errors": [],
+    "url": "/locations/1"
+  },
+  {
+    "name": "attendance",
+    "path": "/attendance",
+    "prototype": "attendance",
+    "width": 390,
+    "language": "en",
+    "overflow": false,
+    "errors": [],
+    "url": "/attendance"
+  },
+  {
+    "name": "billing",
+    "path": "/subscription",
+    "prototype": "billing",
+    "width": 390,
+    "language": "en",
+    "overflow": false,
+    "errors": [],
+    "url": "/subscription"
+  },
+  {
+    "name": "settings",
+    "path": "/settings",
+    "prototype": "settings",
+    "width": 390,
+    "language": "en",
+    "overflow": false,
+    "errors": [],
+    "url": "/settings"
+  },
+  {
+    "name": "security",
+    "path": "/account/security",
+    "prototype": "settings",
+    "width": 390,
+    "language": "en",
+    "overflow": false,
+    "errors": [],
+    "url": "/account/security"
+  },
+  {
+    "name": "reviews",
+    "path": "/exceptions",
+    "prototype": "reviews",
+    "width": 390,
+    "language": "en",
+    "overflow": false,
+    "errors": [],
+    "url": "/exceptions"
+  },
+  {
+    "name": "review-detail",
+    "path": "/exceptions/1",
+    "prototype": "reviews",
+    "width": 390,
+    "language": "en",
+    "overflow": false,
+    "errors": [],
+    "url": "/exceptions/1"
+  },
+  {
+    "name": "help",
+    "path": "/help",
+    "prototype": "help",
+    "width": 390,
+    "language": "en",
+    "overflow": false,
+    "errors": [],
+    "url": "/help"
+  },
+  {
+    "name": "information",
+    "path": "/service-information",
+    "prototype": "information",
+    "width": 390,
+    "language": "en",
+    "overflow": false,
+    "errors": [],
+    "url": "/service-information"
+  },
+  {
+    "name": "today",
+    "path": "/today-status",
+    "prototype": "manager",
+    "width": 390,
+    "language": "ur",
+    "overflow": false,
+    "errors": [],
+    "url": "/today-status"
+  },
+  {
+    "name": "overview",
+    "path": "/dashboard",
+    "prototype": "owner",
+    "width": 390,
+    "language": "ur",
+    "overflow": false,
+    "errors": [],
+    "url": "/dashboard"
+  },
+  {
+    "name": "setup",
+    "path": "/setup",
+    "prototype": "setup",
+    "width": 390,
+    "language": "ur",
+    "overflow": false,
+    "errors": [],
+    "url": "/setup"
+  },
+  {
+    "name": "team",
+    "path": "/staff",
+    "prototype": "team",
+    "width": 390,
+    "language": "ur",
+    "overflow": false,
+    "errors": [],
+    "url": "/staff"
+  },
+  {
+    "name": "workforce",
+    "path": "/staff/1",
+    "prototype": "workforce",
+    "width": 390,
+    "language": "ur",
+    "overflow": false,
+    "errors": [],
+    "url": "/staff/1"
+  },
+  {
+    "name": "locations",
+    "path": "/locations",
+    "prototype": "location",
+    "width": 390,
+    "language": "ur",
+    "overflow": false,
+    "errors": [],
+    "url": "/locations"
+  },
+  {
+    "name": "location",
+    "path": "/locations/1",
+    "prototype": "location",
+    "width": 390,
+    "language": "ur",
+    "overflow": false,
+    "errors": [],
+    "url": "/locations/1"
+  },
+  {
+    "name": "attendance",
+    "path": "/attendance",
+    "prototype": "attendance",
+    "width": 390,
+    "language": "ur",
+    "overflow": false,
+    "errors": [],
+    "url": "/attendance"
+  },
+  {
+    "name": "billing",
+    "path": "/subscription",
+    "prototype": "billing",
+    "width": 390,
+    "language": "ur",
+    "overflow": false,
+    "errors": [],
+    "url": "/subscription"
+  },
+  {
+    "name": "settings",
+    "path": "/settings",
+    "prototype": "settings",
+    "width": 390,
+    "language": "ur",
+    "overflow": false,
+    "errors": [],
+    "url": "/settings"
+  },
+  {
+    "name": "security",
+    "path": "/account/security",
+    "prototype": "settings",
+    "width": 390,
+    "language": "ur",
+    "overflow": false,
+    "errors": [],
+    "url": "/account/security"
+  },
+  {
+    "name": "reviews",
+    "path": "/exceptions",
+    "prototype": "reviews",
+    "width": 390,
+    "language": "ur",
+    "overflow": false,
+    "errors": [],
+    "url": "/exceptions"
+  },
+  {
+    "name": "review-detail",
+    "path": "/exceptions/1",
+    "prototype": "reviews",
+    "width": 390,
+    "language": "ur",
+    "overflow": false,
+    "errors": [],
+    "url": "/exceptions/1"
+  },
+  {
+    "name": "help",
+    "path": "/help",
+    "prototype": "help",
+    "width": 390,
+    "language": "ur",
+    "overflow": false,
+    "errors": [],
+    "url": "/help"
+  },
+  {
+    "name": "information",
+    "path": "/service-information",
+    "prototype": "information",
+    "width": 390,
+    "language": "ur",
+    "overflow": false,
+    "errors": [],
+    "url": "/service-information"
+  }
+]
