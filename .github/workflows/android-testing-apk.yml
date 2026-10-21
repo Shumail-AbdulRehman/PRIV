@@ -88,10 +88,13 @@ jobs:
       - run: npx prisma generate
       - name: Backend contracts and build
         run: npm test && npm run build
-      - name: Isolated PostgreSQL contracts, lifecycle and direct photo requests
+      - name: Current isolated launch contracts and protected manager HTTP
+        env:
+          NODE_ENV: test
+          LAUNCH_CI_DATABASE_URL: postgresql://verification:verification-test-only@127.0.0.1:5432/priv_verification_test
         run: |
-          npm run test:verification:lifecycle
-          npm run test:verification:photo-http
+          node --import tsx scripts/launchCiDatabase.ts
+          npm run test:manager:integration
       - name: Preserve closed evaluation gate
         run: npm run verification:benchmark
 
@@ -181,6 +184,7 @@ jobs:
         run: |
           python3 scripts/inspect-testing-apk.py build-output/HygeneOps-testing.apk \
             --api-url "$EXPO_PUBLIC_API_BASE_URL" --commit "$GITHUB_SHA" \
+            --push-only --require-notifications --require-heads-up \
             --output build-output/apk-inspection.json
           "$ANDROID_HOME/build-tools/36.0.0/apksigner" verify --verbose --print-certs \
             build-output/HygeneOps-testing.apk | tee build-output/signature-verification.txt
