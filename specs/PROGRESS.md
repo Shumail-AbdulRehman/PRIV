@@ -39,7 +39,7 @@ Source of truth for execution; latest user authorization supersedes old pending 
 | 30 | [Account settings and recovery UI](30-account-ui.md) | Done | 16, 17, 22, 27, 28 | Standard | #58 |19focused/realaccountAPIs; seeLog |
 | 31 | [Workforce access and transfer UI](31-workforce-ui.md) | Done | 11, 17, 27 | Standard | #65 | PR68;18focused; SQL proofs; see Log |
 | 32 | [Real subscription lifecycle UI](32-billing-ui.md) | Done | 15, 27, 28 | Standard | #69 |PR70;23focused;57+165web;109backend |
-| 33 | [Platform company workspace](33-platform-company-ui.md) | Not started | 24, 27 | Standard | — | See spec |
+| 33 | [Platform company workspace](33-platform-company-ui.md) | Done | 24, 27 | Standard | #71 |11focused;57+176web;123backend; live auth gated |
 | 34 | [Platform sign-in and security workspace](34-platform-security-ui.md) | Done | 19, 27 | Heavy | #59 |15focused; isolatedoperatorroutes; seeLog |
 | 35 | [Platform service audit and leads UI](35-platform-service-ui.md) | Not started | 25, 27 | Standard | — | See spec |
 | 36 | [Truthful task and photo review UX](36-photo-review-ui.md) | Done | 20, 21, 27 | Standard | #66 | PR67;22focused;17new backend; see Log |
@@ -117,3 +117,7 @@ Source of truth for execution; latest user authorization supersedes old pending 
 - **2026-10-21** — Spec32 complete locally: real provider lifecycle/capacity/restricted-owner recovery, owner-only catalog, existing-subscriber portal and server-created transaction checkout with uncertainty/reconciliation safety. Removed public price-only purchase and fixed trial claims; legacy return remains pending until provider facts.23focused React,57Node+165React whole web/13files,109backend/3files, frontend lint0+TypeScript/build pass;16 synthetic EN/UR390/1440 renders pass, buttons48px. No live billing, provider qualification, schema/dependency or production changes.35Done/6remaining; next eligible33 (24/27Done), also35/38,39 locally eligible with external qualification blocked;40/41 not eligible. Stop after scoped commit/draft publication.
 
 - **2026-10-21** — Published32 implementation9a08f78 as draftPR70: https://github.com/Shumail-AbdulRehman/PRIV/pull/70, based verified31/36 checkpointb21dcca; currentbranch implementation/spec-32-billing-ui.35Done/6remaining. Stop reached; no33 implementation, merge, deployment or production action.
+
+- **2026-10-21** — User authorizes next two units33/35, superseding prior stop for this batch only. Dependencies24/25/27Done and existing34 operator boundary verified in Git.33 issue71 on implementation/spec-33-platform-company-ui;35 follows separately. Preserve fail-closed operator provider boundary and unrelated dirty changes.
+
+- **2026-10-21** — Spec33 scoped implementation verified:11focused React;57Node+176React/14files;123backend/2files; lint0+TypeScript/build,16 synthetic named-workspace renders and actual no-auth route denial. Existing34 provider boundary stays safely unavailable until39/40 qualification; no fake token/tenant fallback, backend/schema/provider/production change.36Done/5remaining. Continue only35 for authorized two-unit batch.

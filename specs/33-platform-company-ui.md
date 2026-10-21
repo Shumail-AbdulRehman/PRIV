@@ -1,10 +1,10 @@
 # Spec 33 — Platform company workspace
 
-**Status:** Not started
+**Status:** Done
 **Depends on:** Spec 24, Spec 27
 **Model:** Standard — `claude-sonnet-5-5` · `gpt-6.1-sol` · `gemini-3.8-flash`
-**Issue:** —
-**Owns:** `frontend/src/pages/Platform/CompaniesPage.tsx`, `frontend/src/pages/Platform/CompaniesPage.test.tsx`, `frontend/src/pages/Platform/companyApi.ts`, `specs/inventory/33-platform-company-ui.md`
+**Issue:** #71
+**Owns:** `frontend/src/pages/Platform/platformRoutes.tsx`, `frontend/src/pages/Platform/companies.css`, `frontend/src/i18n/platformCompanyTranslations.ts`, `frontend/src/i18n/translations.ts`, `frontend/src/pages/Platform/CompaniesPage.tsx`, `frontend/src/pages/Platform/CompaniesPage.test.tsx`, `frontend/src/pages/Platform/companyApi.ts`, `specs/inventory/33-platform-company-ui.md`
 **Reuses:** `frontend/src/components/common/DataTable.tsx`, `frontend/src/components/ui/dialog.tsx`, `DESIGN-SYSTEM.md#component-conventions`, `design/v5/platform.html`
 
 ## Goal
@@ -37,8 +37,15 @@ Build bounded company list/detail Account/Billing/Activity with operator-only re
 
 ## Done when
 
-- [ ] `npm run test:components --prefix frontend -- src/pages/Platform/CompaniesPage.test.tsx` passes: Operator company search/paging/status save reflect API; tenant identity denied; protected workforce fields absent. [unit]
-- [ ] `npm test --prefix frontend` passes the whole affected unit suite; record count. [unit]
-- [ ] Only scoped paths changed; relevant denial/empty/error/config-unavailable states inspected. [static]
-- [ ] `npm run lint --prefix frontend` reports zero errors/warnings in changed files; document baseline separately. [static]
-- [ ] `npm run build --prefix frontend` passes. [static]
+- [x] `npm run test:components --prefix frontend -- src/pages/Platform/CompaniesPage.test.tsx` passes: Operator company search/paging/status save reflect API; tenant identity denied; protected workforce fields absent. [unit]
+- [x] `npm test --prefix frontend` passes the whole affected unit suite; record count. [unit]
+- [x] Only scoped paths changed; relevant denial/empty/error/config-unavailable states inspected. [static]
+- [x] `npm run lint --prefix frontend` reports zero errors/warnings in changed files; document baseline separately. [static]
+- [x] `npm run build --prefix frontend` passes. [static]
+
+## Log
+
+- **2026-10-21** — User authorizes next two units33/35 only. Issue71 claimed; dependencies24/27 and actual existing34 boundary verified in current Git ancestry. Preserve eight dirty files checkpoint /tmp/hygene-spec33-35-preserved.json. Existing operator browser provider remains unqualified: preserve fail-closed boundary and transport, no tenant identity promotion. Implement real contract-backed workspace behind it; live access remains external39/40 qualification. Serialized route/dictionary ownership transferred before edits.
+
+- **2026-10-21** — Implemented real24 DTO company search/status filters/cursor pages(default25), Account/Billing/Activity detail, reasoned explicit suspension/reactivation confirmation with expectedVersion, honest errors/empty/denied/legacy-inactive state, draft-preserving409 refresh and fixed intended target. Allowlisted metadata only; no tenant roster/photo/impersonation/payment mutation. Existing34 shell/request/guard reused; registered actual protected routes outside tenant App. Provider transport still rejects before I/O; no fake operator session/config flag added. Named workspace is tested at the dedicated request seam, not exposed without qualification.
+- **2026-10-21** —11focused React tests; full frontend57Node+176React/14files; frontend full lint0 and TypeScript/Vite build pass.123existing backend company/operator identity tests/2files pass; backend unchanged/no database/provider operation.16 synthetic named-workspace/network-boundary renders EN/UR390/1440 list/account/confirmation/billing pass overflow/JS checks. Actual route test never mounts child or performs requests without qualified identity. Desktop EN account and Urdu mobile confirmation viewed; RTL close/title overlap fixed and rerendered. Detector[]. Positive UI/network mocks do not qualify browser IdP/MFA or live operator mutation; those remain39/40. Logs `/tmp/hygene-spec33-{focused-final,web-final,backend,lint-final,build-final,render-final,rtl-fix}.log` and `/tmp/hygene-spec33-visual/`.
