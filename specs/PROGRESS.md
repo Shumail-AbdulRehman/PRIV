@@ -2,7 +2,7 @@
 
 Source of truth for execution; latest user authorization supersedes old pending labels. Approved v5 preserved.
 
-**Active continuation after spec28:** decision00 and30 of41 execution/gate units Done (11 remain). Execution01–30 are complete; next selected eligible unit29 consumes completed23/27/08. User now requests stop after the active parallel batch29/30/34/37; no further specs start. Review remains stacked draft PRs; Done is local verification, not merge or external release qualification.
+**Active continuation after spec28:** decision00 and31 of41 execution/gate units Done (10 remain). Execution01–30 and34 are complete; next selected eligible unit29 consumes completed23/27/08. User now requests stop after the active parallel batch29/30/34/37; no further specs start. Review remains stacked draft PRs; Done is local verification, not merge or external release qualification.
 
 | # | Spec | Status | Depends on | Model | Issue | Notes |
 |---|---|---|---|---|---|---|
@@ -40,7 +40,7 @@ Source of truth for execution; latest user authorization supersedes old pending 
 | 31 | [Workforce access and transfer UI](31-workforce-ui.md) | Not started | 11, 17, 27 | Standard | — | See spec |
 | 32 | [Real subscription lifecycle UI](32-billing-ui.md) | Not started | 15, 27, 28 | Standard | — | Shared lifecycle client from28 |
 | 33 | [Platform company workspace](33-platform-company-ui.md) | Not started | 24, 27 | Standard | — | See spec |
-| 34 | [Platform sign-in and security workspace](34-platform-security-ui.md) | Not started | 19, 27 | Heavy | — | See spec |
+| 34 | [Platform sign-in and security workspace](34-platform-security-ui.md) | Done | 19, 27 | Heavy | #59 |15focused; isolatedoperatorroutes; seeLog |
 | 35 | [Platform service audit and leads UI](35-platform-service-ui.md) | Not started | 25, 27 | Standard | — | See spec |
 | 36 | [Truthful task and photo review UX](36-photo-review-ui.md) | Not started | 20, 21, 27 | Standard | — | See spec |
 | 37 | [Native attendance/photo/account recovery](37-native-workflows.md) | Not started | 09, 17, 20, 21 | Standard | — | See spec |
