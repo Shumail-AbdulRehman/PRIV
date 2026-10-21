@@ -4,7 +4,7 @@
 **Depends on:** Spec 05, Spec 06
 **Model:** Standard — `claude-sonnet-5-5` · `gpt-6.1-sol` · `gemini-3.8-flash`
 **Issue:** #12
-**Owns:** `frontend/src/i18n/attendancePhotoTranslations.ts`, `frontend/src/components/common/ProtectedAttendancePhoto.tsx`, `frontend/src/components/common/ProtectedAttendancePhoto.test.tsx`, `frontend/src/pages/Attendance/AttendancePage.tsx`, `frontend/src/pages/Staff/StaffDetailPage.tsx`, `specs/inventory/08-attendance-media-ui.md`
+**Owns:** `frontend/src/i18n/attendancePhotoTranslations.ts`, `frontend/src/components/common/ProtectedAttendancePhoto.tsx`, `frontend/src/components/common/ProtectedAttendancePhoto.test.tsx`, `specs/inventory/08-attendance-media-ui.md`
 **Reuses:** `frontend/src/pages/Verification/ProtectedEvidence.tsx`, `frontend/src/api/client.ts`, `frontend/src/components/ui/dialog.tsx`, `DESIGN-SYSTEM.md#component-conventions`, `design/v5/attendance.html`
 
 ## Goal
@@ -50,3 +50,5 @@ Replace attendance URL anchors/images with credentialed blob reads from scoped A
 - **2026-10-20** — Published scoped draft https://github.com/Shumail-AbdulRehman/PRIV/pull/15, stacked on spec06; not merged.
 
 - **2026-10-20** — Translation entry ownership transferred to27 for launch vocabulary; attendancePhotoUrdu remains unchanged and registered.
+
+- **2026-10-21** — Serialized handoff of existing AttendancePage/StaffDetailPage to29 for annotation entry points; protected media contract stays08. No08 reimplementation.

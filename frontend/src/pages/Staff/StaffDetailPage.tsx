@@ -1,3 +1,4 @@
+import AttendanceContext from "@/pages/Attendance/AttendanceContext";
 import ProtectedAttendancePhoto, { type AttendancePhoto } from "@/components/common/ProtectedAttendancePhoto";
 import StaffPerformanceIssues from './StaffPerformanceIssues';
 import OperationsState from "../Manager/OperationsState";
@@ -399,6 +400,11 @@ const StaffDetailPage: React.FC = () => {
 
           return <span className="text-xs text-muted-foreground">—</span>;
         },
+      },
+      {
+        key: "context",
+        header: "Attendance context",
+        render: (attendance) => <AttendanceContext attendance={attendance} />,
       },
       {
         key: "checkInImg",

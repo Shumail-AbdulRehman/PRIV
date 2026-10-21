@@ -1,10 +1,10 @@
 # Spec 29 — Attendance exception context UI
 
-**Status:** Not started
+**Status:** Done
 **Depends on:** Spec 23, Spec 27, Spec 08
 **Model:** Standard — `claude-sonnet-5-5` · `gpt-6.1-sol` · `gemini-3.8-flash`
-**Issue:** —
-**Owns:** `frontend/src/pages/Attendance/AttendanceContext.tsx`, `frontend/src/pages/Attendance/AttendanceContext.test.tsx`, `frontend/src/pages/Attendance/contextApi.ts`, `specs/inventory/29-attendance-context-ui.md`
+**Issue:** #57
+**Owns:** `.impeccable/surfaces/frontend-src-pages-attendance-attendancecontext-tsx.md`, `frontend/src/pages/Attendance/attendance-context.css`, `frontend/src/i18n/attendanceContextTranslations.ts`, `frontend/src/i18n/translations.ts`, `frontend/src/pages/Attendance/AttendancePage.tsx`, `frontend/src/pages/Staff/StaffDetailPage.tsx`, `docs/implementation/ATTENDANCE_CONTEXT_UI.md`, `frontend/src/pages/Attendance/AttendanceContext.tsx`, `frontend/src/pages/Attendance/AttendanceContext.test.tsx`, `frontend/src/pages/Attendance/contextApi.ts`, `specs/inventory/29-attendance-context-ui.md`
 **Reuses:** `frontend/src/components/ui/dialog.tsx`, `frontend/src/lib/attendance.ts`, `DESIGN-SYSTEM.md#component-conventions`, `design/v5/attendance.html`
 
 ## Goal
@@ -37,8 +37,14 @@ Show original captured facts plus immutable attributed annotations and acknowled
 
 ## Done when
 
-- [ ] `npm run test:components --prefix frontend -- src/pages/Attendance/AttendanceContext.test.tsx` passes: Required reason validates; save/error/conflict maintains draft; original capture separate from annotation; EN/UR text complete. [unit]
-- [ ] `npm test --prefix frontend` passes the whole affected unit suite; record count. [unit]
-- [ ] Only scoped paths changed; relevant denial/empty/error/config-unavailable states inspected. [static]
-- [ ] `npm run lint --prefix frontend` reports zero errors/warnings in changed files; document baseline separately. [static]
-- [ ] `npm run build --prefix frontend` passes. [static]
+- [x] `npm run test:components --prefix frontend -- src/pages/Attendance/AttendanceContext.test.tsx` passes: Required reason validates; save/error/conflict maintains draft; original capture separate from annotation; EN/UR text complete. [unit]
+- [x] `npm test --prefix frontend` passes the whole affected unit suite; record count. [unit]
+- [x] Only scoped paths changed; relevant denial/empty/error/config-unavailable states inspected. [static]
+- [x] `npm run lint --prefix frontend` reports zero errors/warnings in changed files; document baseline separately. [static]
+- [x] `npm run build --prefix frontend` passes. [static]
+
+## Log
+
+- **2026-10-21** — Claimed issue57 on implementation/spec-29-attendance-context, base28/PR56 at2d77fd3.23/27/08 Done and reachable; preceding PRs remain unmerged. Transfer attendance/staff detail ownership from08 and dictionary registration from28 before editing. Reuse actual23 GET/POST annotation contract and08 protected-photo rendering; original facts unchanged. Approvedv5/code-led Operate extension, no redesign/new dependency/schema. Dirty user work preserved; no E2E before40.
+
+- **2026-10-21** — Actual attendance and staff-history dialogs consume23 immutable note/acknowledgement API; original day/shift/capture/status/protected-media separate, local timestamps, attributed chronology/paging, strict reason, principal reset, retained exact-request/lost-response retry and explicit409 review.12 focused tests; whole frontend57 Node+68 components/7files; lint/TypeScript/build pass.18 synthetic render captures desktop1440/mobile390 EN/UR plus empty/denied/loading/conflict/uncertain, including lowerform; no overflow/JS errors. Detectoronce[]. Independent full review found only mobile44px minimum; fixed to48px, fresh independent fix verification resolved after original reviewer hit usage limit. Review is fix scope, not liveE2E. Ordinary-extension documenter preserves dirtyDESIGN/sidecars and existingv5. No backend/dependency/schema/production changes.8 original dirtytracked files byte-identical. External39/40 qualification and nativevisual gates unchanged. Latest user asks stop afterbatch29/30/34/37.

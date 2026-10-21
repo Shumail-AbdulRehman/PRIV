@@ -2,7 +2,7 @@
 
 ## Current continuation state
 
-Latest user explicitly requests completing all eligible specs without routine handoff stops while they sleep; continue sequential implementation. Prior routine stopping notes are historical and superseded. This supersedes prior stopping instructions. Approved launch scope and design/v5 remain unchanged. Read specs/AGENT-GUIDE.md and steering docs before continuing. No deployment, production mutation, destructive migration or PR merge is authorized.
+Latest user explicitly authorizes parallel agents for independent work, then asks to STOP after the current batch29/30/34/37 completes. Finish verification, integration, scoped commits/pushes and draft PRs for this batch only, update this handoff and report remaining work. Do not start another specification. This supersedes earlier unlimited-continuation instructions. Approved launch scope/design/v5 remain authoritative. No deployment, production mutation, destructive migration or PR merge is authorized.
 
 Completed: decision00 and execution01–28 (28 of41 execution/gates;13 remain). Specs29–41 are Not started. Next29 is eligible through23/27/08. Continue automatically after current publication; no previous work repeated.
 
@@ -177,3 +177,7 @@ Possible leftover frontend fixture devserver is loopback127.0.0.1:5188 (earlier 
 - Published26 implementation7368750 in stacked draft PR54: https://github.com/Shumail-AbdulRehman/PRIV/pull/54 (base21/PR52); all checks including strict standalone integration TypeScript pass, issue53 remains open for human review. Continue28.
 
 - Published28 implementation8ffdcf8 in stacked draft PR56: https://github.com/Shumail-AbdulRehman/PRIV/pull/56 (base26/PR54). Issue55 remains open for review. Continue eligible29; no merge/deploy.
+
+## Spec29 batch checkpoint
+
+Branch implementation/spec-29-attendance-context base28/PR56 at2d77fd3, issue57. Actual immutable context dialogs wired in AttendancePage and StaffDetailPage; originalfacts/08protectedmedia preserved, reasonedNOTE/parentACK, serverattribution, bounded chronological paging, exactretainedrequestretry and409draftrecovery.12focused,57Node+68components/7files,lint/tsc/build pass;18syntheticReactrenders EN/UR1440/390 andempty/denied/loading/conflict/uncertain, detector[]. Independentreview mobiletargetfix resolved byfreshfixverifier afteroriginalreviewerquota; no wholeE2E/liveproofclaim. DocsATTENDANCE_CONTEXT_UI/inventory29. All8dirtytrackedfiles preserved. Batch30/34/37 implementationcommits are in isolatedworktrees and reviewed; root nowintegrates individuallyandpublishes stackedPRs, thenSTOP perlatestuser. Do notstart31/32/33/35/36/38/39/40/41.
