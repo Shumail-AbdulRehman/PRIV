@@ -20,7 +20,7 @@ npx tsc --noEmit
 npm run build
 ```
 
-Do not substitute an application/production URL. This environment has PostgreSQL client tools but no server binary and Docker socket access is denied; no sudo password is available. Hosted CI provides the isolated service. Local negative runner tests exercise refusal before any DB connection. Exact hosted run outcome must be recorded after publishing; no isolated SQL rerun is claimed until it succeeds.
+Do not substitute an application/production URL. Docker socket access is denied and no server was installed. For local proof, official PostgreSQL16.15 package files were extracted only under /tmp/hygene-spec39-postgres-tools; an unprivileged fresh cluster under /tmp/hygene-spec39-postgres-data listened on127.0.0.1:56441. No system installation or existing DB was used. All10current proofs plus7SQL invariants and retained manager integration passed. The runner created/dropped only its own child database. Hosted CI independently provides its disposable service; its exact result is recorded in the Log/handoff. Negative runner tests also prove unsafe targets fail before connecting.
 
 ## Required external evidence
 
@@ -43,4 +43,4 @@ All below remain REQUIRES_EVIDENCE. Assign an accountable owner and attach actua
 
 ## Verification limits
 
-Unit, type/build and hosted CI results are recorded in spec39 Log/SESSION_HANDOFF. Pending external evidence is a release blocker even when all code checks pass.40 owns whole-product/device flows and41 clean final verification; neither started here. No production/provider/email/deployment operation performed.
+Hosted run39626388658 on fbd5ca7 passed backend/frontend/mobile-web/docker-builds, including current10SQL proofs+7invariants and3non-pushing images. Local unit/type/build and SQL checks independently passed.38 typography-only base follow-up66723be was integrated afterward and frontend rebuild/8renders passed. Exact results are recorded in spec39 Log/SESSION_HANDOFF. Pending external evidence is a release blocker even when all code checks pass.40 owns whole-product/device flows and41 clean final verification; neither started here. No production/provider/email/deployment operation performed.

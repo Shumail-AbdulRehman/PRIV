@@ -2,7 +2,7 @@
 
 Source of truth for execution; latest user authorization supersedes old pending labels. Approved v5 preserved.
 
-**Specs33/35 complete:** decision00 and37 of41 execution/gate units Done; **4 remain:38,39,40,41**. Latest authorized two-unit batch is finished.33 draft PR72 is based32/PR70;35 is based33, using actual completed25/27 contracts and unchanged34 safe-disabled identity seam. No merge/deployment. STOP after this batch; next eligible38 identified only.39 is graph-eligible but external launch qualification remains unresolved;40/41 depend on remaining gates.
+**Specs38/39 complete:** decision00 and39 of41 execution/gate units Done; **2 remain:40 and41**. Latest authorized two-unit batch finished.38 draftPR76 base35/PR74;39 draftPR78 base38. Actual27/25 and03/26 dependencies verified in Git. Stop after this batch;40 is next in the graph but integrated provider/device/release qualification remains externally gated. No merge/deployment/production changes; existing operator sign-in and new automated photo processing stay disabled.
 
 | # | Spec | Status | Depends on | Model | Issue | Notes |
 |---|---|---|---|---|---|---|
@@ -44,8 +44,8 @@ Source of truth for execution; latest user authorization supersedes old pending 
 | 35 | [Platform service audit and leads UI](35-platform-service-ui.md) | Done | 25, 27 | Standard | #73 |PR74;22focused;57+198web;135backend; live auth gated |
 | 36 | [Truthful task and photo review UX](36-photo-review-ui.md) | Done | 20, 21, 27 | Standard | #66 | PR67;22focused;17new backend; see Log |
 | 37 | [Native attendance/photo/account recovery](37-native-workflows.md) | Done | 09, 17, 20, 21, 26 | Standard | #60 |101native/tsc/Expoexport; deviceunverified |
-| 38 | [Configured support and service information](38-service-information.md) | Done | 27, 25 | Standard | #75 |16help+24billing;57+215web;109backend |
-| 39 | [Launch operations and active CI proof](39-release-operations.md) | In progress | 03, 26 | Heavy | #77 | See spec |
+| 38 | [Configured support and service information](38-service-information.md) | Done | 27, 25 | Standard | #75 |PR76;16help+24billing;57+215web;109backend |
+| 39 | [Launch operations and active CI proof](39-release-operations.md) | Done | 03, 26 | Heavy | #77 |PR78;13readiness;10SQL+7invariants;all4CIjobs pass; release blocked |
 | 40 | [Launch end-to-end suite](40-e2e-suite.md) | Not started | 01, 02, 03, 04, 05, 08, 07, 06, 09, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23, 24, 25, 26, 27, 28, 29, 30, 31, 32, 33, 34, 35, 36, 37, 38, 39 | Heavy | — | See spec |
 | 41 | [Final clean verification pass](41-verification-pass.md) | Not started | 40 | Heavy | — | See spec |
 
@@ -125,3 +125,5 @@ Source of truth for execution; latest user authorization supersedes old pending 
 - **2026-10-21 — Specs33/35 complete; STOP.**33 e0a5d63 published draft PR72, base32/PR70.35 on implementation/spec-35-platform-service-ui, base33/e0a5d63, issue73: actual service/audit/inquiry React routes and existing25 contract-backed actions;22focused,57Node+198React full frontend,135backend, full lint0/TS/build,20EN/URresponsive fixture checks. No live operator browser adapter/IdP/MFA qualification or production action. Shared route/dictionary/nav ownership serialized; spec dependency DAG unchanged. Eight original dirty tracked files preserved byte-for-byte; unrelated paths excluded. SESSION_HANDOFF and inventory35 carry files/evidence/limitations. Remaining38/39/40/41; next38 identified, not started.35 implementation02fbd79 published OPEN/DRAFT PR74 https://github.com/Shumail-AbdulRehman/PRIV/pull/74, base33. Validator42specs/0errors/8existing documented warnings.
 
 - **2026-10-21 —38 complete, continue39 only.** Public configured help/policies/download, honest unavailable states and checkout prerequisites;16Help+24billing,57Node+215React,109backend; frontend lint/TS/build. User authorized38/39; no40/41 work.
+
+- **2026-10-21 —38/39 complete; STOP.**38 implementation44df792 / draftPR76;39 implementations24b7fdb/fbd5ca7 / draftPR78. Public configured assistance/customer documents with guarded checkout; active current launch CI, redacted readiness and explicit external release gates.38focused16Help+24billing/full57Node+215React/lint0/TS/build/109backend/8ENURrenders.39readiness13,active103,localfullbackend1439+7SQLskips,cleanhosted1435+7SQLskips; all7SQL invariants then passed explicitly alongside10guarded launch workflows; manager SQL also passes.101native+types/web bundle; backendTS/build. Hosted39626388658 all4jobs passed including backend/web/native and3non-pushing container builds.38typography66723be integrated normally; rebuilt/rendered successfully. No true release/IdP/photo/provider/device/legal/restore qualification inferred. Query gap gets proposed follow-up only. Preserve seven untouched dirty files byte-for-byte and original3-line CI performance edit unstaged. Remaining40/41;40identified only, not started. No merge/deployment/production action.
