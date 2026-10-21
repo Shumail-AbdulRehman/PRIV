@@ -304,6 +304,11 @@ export default function ExceptionInboxPage() {
                   ),
                 },
                 {
+                  key: "lifecycle",
+                  header: "Task / review status",
+                  render: (c) => <div><p>{t(c.task?.staffSubmittedAt ? 'Task submitted' : 'Task not submitted')}</p><p>{t(c.state === 'RESOLVED' ? 'Review closed' : 'Review pending')}</p>{c.task?.completionOutcome === 'VERIFIED_COMPLETE' && <p>{t('Verified completion recorded')}</p>}</div>,
+                },
+                {
                   key: "worker",
                   header: "Worker",
                   render: (c) => c.task?.staff?.name ?? t("Unassigned"),

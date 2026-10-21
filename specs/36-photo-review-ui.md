@@ -1,10 +1,10 @@
 # Spec 36 — Truthful task and photo review UX
 
-**Status:** Not started
+**Status:** Done
 **Depends on:** Spec 20, Spec 21, Spec 27
 **Model:** Standard — `claude-sonnet-5-5` · `gpt-6.1-sol` · `gemini-3.8-flash`
-**Issue:** —
-**Owns:** `frontend/src/pages/Exceptions/LaunchReviewContext.tsx`, `frontend/src/pages/Exceptions/LaunchReviewContext.test.tsx`, `specs/inventory/36-photo-review-ui.md`
+**Issue:** #66
+**Owns:** `frontend/src/pages/Exceptions/LaunchReviewContext.tsx`, `frontend/src/pages/Exceptions/LaunchReviewContext.test.tsx`, `specs/inventory/36-photo-review-ui.md`, `docs/implementation/PHOTO_REVIEW_UI.md`, `frontend/src/pages/Exceptions/ExceptionDetailPage.tsx`, `frontend/src/pages/Exceptions/ExceptionInboxPage.tsx`, `frontend/src/pages/Exceptions/types.ts`, `frontend/src/pages/Exceptions/reviewDiagnosis.ts`, `frontend/src/pages/Verification/ProtectedEvidence.tsx`, `frontend/src/i18n/reviewTranslations.ts`, `frontend/src/pages/Exceptions/launch-review.css`, `backend/src/services/verification-v2/launchReviewContext.ts`, `backend/src/services/verification-v2/launchReviewContext.test.ts`, `backend/src/routes/verificationException.route.ts`, `backend/src/routes/verificationException.launchReview.test.ts`
 **Reuses:** `frontend/src/pages/Exceptions/DecisionForm.tsx`, `frontend/src/pages/Exceptions/ReviewSummary.tsx`, `frontend/src/pages/Verification/ProtectedEvidence.tsx`, `DESIGN-SYSTEM.md#component-conventions`, `design/v5/reviews.html`
 
 ## Goal
@@ -26,6 +26,10 @@ Polish existing review queue/detail per approved design; received/submitted/revi
 - Search INVENTORY.md plus fragments; preserve existing provider and component seams.
 - No raw sample operational data, invented policies or secret fallback values.
 
+## Ownership handoff
+
+Existing detail, queue, diagnosis and protected evidence are extended in place; spec26 transfers only the detail read adapter, retaining write/authorization policies. Coordinator owns final shared translation registration, serializing the review-only import/lookup with31. No dependency on31. New read context consumes20 replacement guards and21 qualification; no authority is granted by the DTO.
+
 ## Steps
 
 1. Confirm real inputs, current callers and negative authorization cases at this boundary.
@@ -37,8 +41,14 @@ Polish existing review queue/detail per approved design; received/submitted/revi
 
 ## Done when
 
-- [ ] `npm run test:components --prefix frontend -- src/pages/Exceptions/LaunchReviewContext.test.tsx` passes: Review closure does not render verified; outage/held photo distinct from dirty; forbidden actions absent and enforced API-side. [unit]
-- [ ] `npm test --prefix frontend` passes the whole affected unit suite; record count. [unit]
-- [ ] Only scoped paths changed; relevant denial/empty/error/config-unavailable states inspected. [static]
-- [ ] `npm run lint --prefix frontend` reports zero errors/warnings in changed files; document baseline separately. [static]
-- [ ] `npm run build --prefix frontend` passes. [static]
+- [x] `npm run test:components --prefix frontend -- src/pages/Exceptions/LaunchReviewContext.test.tsx` passes: Review closure does not render verified; outage/held photo distinct from dirty; forbidden actions absent and enforced API-side. [unit]
+- [x] `npm test --prefix frontend` passes the whole affected unit suite; record count. [unit]
+- [x] Only scoped paths changed; relevant denial/empty/error/config-unavailable states inspected. [static]
+- [x] `npm run lint --prefix frontend` reports zero errors/warnings in changed files; document baseline separately. [static]
+- [x] `npm run build --prefix frontend` passes. [static]
+
+## Log
+
+- **2026-10-21** — Issue66 claimed before code. Dependencies20/21/27 verified Done and present in shared37 ancestry; branch independent of31. Read approved design/v5 review sources; extended existing React queue/detail and protected blob component, no prototype/new HR functionality. Read-only replacement context consumes actual20 guard and21 qualification, separating recorded policy eligibility from safe-disabled processing. Uploaded/submitted/attributed manager closure/verified outcome remain distinct; closure note and performance intent use existing API. Held/service uncertainty precedes stale cleaning labels;401/403/404/410/network evidence feedback distinct; EN/UR responsive facts layout.
+- **2026-10-21** — Files: Owns paths plus coordinator-serialized review import/lookup in translations.ts;26 ownership transferred before source edits. Common37 prerequisite26000a7 fixes inherited native translation module resolution, with no31 implementation consumption. Relevant frontend focused22; full57 Node +124 components/11files; full lint zero errors/warnings; frontend/backend TypeScript checks and frontend build pass. Backend98 focused tests/9files (17 new read-policy/Express tests,61 existing replacement/qualification/closure,20 authorization/private evidence/queue). Logs `/tmp/hygene-spec36-{focused,frontend-tests,lint,frontend-type,build,backend-type,backend-focused,backend-read,security}.log`; mechanical UI detector `[]`.
+- **2026-10-21** — Actual React synthetic HTTP render inspection covers16 EN/UR390/1440 outage/resolved/missing/denied captures, zero overflow/JS errors; `/tmp/hygene-spec36-render.log`, `/tmp/hygene-spec36-visual/`. No integrated SQL/provider/E2E claim from these fixtures. No schema/dependency/production change; real processing remains disabled21 pending actual safety qualification. Coordinator owns shared tracker/handoff/40 consumer updates and independent combined full backend/build verification.

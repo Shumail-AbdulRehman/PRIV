@@ -1,3 +1,4 @@
+import LaunchReviewContext from './LaunchReviewContext';
 import ReviewSummary from './ReviewSummary';
 import {reviewDiagnosis, issueDiagnosis, reviewViewLabel} from './reviewDiagnosis';
 import OperationStatus from "@/components/common/OperationStatus";
@@ -29,7 +30,6 @@ import ProtectedEvidence from "../Verification/ProtectedEvidence";
 import {
   exceptionStateLabel,
   plainReason,
-  verificationLabel,
 } from "../Verification/presentation";
 import { localTime } from "../Manager/operations";
 import OperationsState from "../Manager/OperationsState";
@@ -268,9 +268,6 @@ function Workspace({ id }: { id: number }) {
             ? t("Work submitted")
             : detail.task?.title}
         </span>
-        {detail.task?.completionOutcome || detail.task?.staffSubmittedAt ? (
-          <span>{t(verificationLabel(detail.task))}</span>
-        ) : null}
       </div>
       <OperationsState error={query.error} retry={() => void query.refetch()} />
       {!online ? (
@@ -291,6 +288,7 @@ function Workspace({ id }: { id: number }) {
           </div>
         </div>
       ) : null}
+      {detail.kind !== 'SETUP' && <LaunchReviewContext detail={detail} replacement={selectedRequirement?.replacement} />}
       {detail.kind !== 'SETUP' && <ReviewSummary detail={detail} onSelect={inspectRequirement} />}
       {open.length > 1 ? (
         <div className="ops-issue-tabs" aria-label={t("Issues in this review")}>
