@@ -204,6 +204,14 @@ jobs:
             frontend-mobile/build-output/zipalign-verification.txt
           if-no-files-found: error
           retention-days: 7
+      - name: Preserve failed package for private inspection
+        if: failure()
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
+        with:
+          name: unqualified-testing-apk-for-inspection
+          path: frontend-mobile/build-output/HygeneOps-testing.apk
+          if-no-files-found: ignore
+          retention-days: 1
       - name: Preserve native build diagnostics
         if: always()
         uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
