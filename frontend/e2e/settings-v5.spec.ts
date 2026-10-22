@@ -46,3 +46,29 @@ test('settings loading forwards real request and manager denial keeps own securi
  await enter(page,'/settings','managerA');expect((await page.request.get(backend+'/api/company/settings')).status()).toBe(403);await expect(page.locator('input[name=name]')).toHaveCount(0);await page.screenshot({path:join(out,'app-manager-settings-denied-390-en.png'),fullPage:true});
  await page.goto('/account/security');await expect(page.getByLabel('Current password',{exact:true})).toBeVisible();await page.screenshot({path:join(out,'app-manager-own-security-390-en.png'),fullPage:true});
 });
+test('settings show actual unverified enrollment and labelled network failure with explicit retry',async({browser})=>{
+ test.setTimeout(60000);await mkdir(out,{recursive:true});
+ const before=await sql('SELECT "emailVerifiedAt" FROM "Manager" WHERE id=$1',[fixture.users.ownerA.id]);
+ try{
+  // Synthetic fixture mutation tests the real unverified/legacy status. It does
+  // not enroll or verify a person, qualify a sender, or send a message.
+  await sql('UPDATE "Manager" SET "emailVerifiedAt"=NULL WHERE id=$1',[fixture.users.ownerA.id]);
+  for(const lang of ['en','ur']){
+   const context=await browser.newContext({viewport:{width:390,height:900}});const page=await context.newPage();
+   await enter(page,'/settings?section=account','ownerA',lang);
+   await expect(page.getByText(lang==='ur'?'مالک کی ای میل کی تصدیق نہیں ہوئی۔':'Owner email is not verified.',{exact:true})).toBeVisible();
+   await expect(page.locator('.settings-verification [role=status]')).toHaveCount(0);
+   await page.screenshot({path:join(out,`app-account-unverified-390-${lang}.png`),fullPage:true});
+   // Explicit transport-failure seam: abort GET, never substitute an API response.
+   await page.route('**/api/company/settings',route=>route.abort('failed'));
+   await page.goto('/settings');await expect(page.locator('.settings-v5 [role=alert]')).toBeVisible();
+   await page.screenshot({path:join(out,`app-organization-network-error-390-${lang}.png`),fullPage:true});
+   await page.unroute('**/api/company/settings');await page.getByRole('button',{name:lang==='ur'?'محفوظ ترتیبات دوبارہ کھولیں':'Reload saved settings',exact:true}).click();await expect(page.locator('input[name=name]')).toBeVisible();
+   await page.locator('input[name=name]').fill(lang==='ur'?'نیٹ ورک کے دوران مسودہ':'Draft through failed refresh');
+   await page.route('**/api/company/settings',route=>route.abort('failed'));await page.getByRole('button',{name:lang==='ur'?'محفوظ ترتیبات دوبارہ کھولیں':'Reload saved settings',exact:true}).click();
+   await expect(page.locator('.settings-v5 [role=alert]')).toBeVisible();await expect(page.locator('input[name=name]')).toHaveValue(lang==='ur'?'نیٹ ورک کے دوران مسودہ':'Draft through failed refresh');
+   await page.screenshot({path:join(out,`app-organization-stale-draft-390-${lang}.png`),fullPage:true});await page.unroute('**/api/company/settings');
+   expect(await page.evaluate(()=>document.documentElement.scrollWidth>innerWidth+1)).toBe(false);await context.close();
+  }
+ }finally{await sql('UPDATE "Manager" SET "emailVerifiedAt"=$2 WHERE id=$1',[fixture.users.ownerA.id,before[0].emailVerifiedAt]);}
+});
