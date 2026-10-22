@@ -1,0 +1,114 @@
+[
+  {
+    "name": "help",
+    "path": "/help",
+    "width": 1366,
+    "lang": "en",
+    "overflow": false,
+    "dir": "ltr",
+    "h1Font": "\"Inter Variable\", Arial, sans-serif",
+    "h1Size": "30px",
+    "errors": [],
+    "apiRequests": [
+      "GET /api/support/contact"
+    ]
+  },
+  {
+    "name": "information",
+    "path": "/service-information",
+    "width": 1366,
+    "lang": "en",
+    "overflow": false,
+    "dir": "ltr",
+    "h1Font": "\"Inter Variable\", Arial, sans-serif",
+    "h1Size": "30px",
+    "errors": [],
+    "apiRequests": [
+      "GET /api/support/contact"
+    ]
+  },
+  {
+    "name": "help",
+    "path": "/help",
+    "width": 1366,
+    "lang": "ur",
+    "overflow": false,
+    "dir": "rtl",
+    "h1Font": "\"Noto Sans Arabic\", Tahoma, sans-serif",
+    "h1Size": "30px",
+    "errors": [],
+    "apiRequests": [
+      "GET /api/support/contact"
+    ]
+  },
+  {
+    "name": "information",
+    "path": "/service-information",
+    "width": 1366,
+    "lang": "ur",
+    "overflow": false,
+    "dir": "rtl",
+    "h1Font": "\"Noto Sans Arabic\", Tahoma, sans-serif",
+    "h1Size": "30px",
+    "errors": [],
+    "apiRequests": [
+      "GET /api/support/contact"
+    ]
+  },
+  {
+    "name": "help",
+    "path": "/help",
+    "width": 390,
+    "lang": "en",
+    "overflow": false,
+    "dir": "ltr",
+    "h1Font": "\"Inter Variable\", Arial, sans-serif",
+    "h1Size": "27px",
+    "errors": [],
+    "apiRequests": [
+      "GET /api/support/contact"
+    ]
+  },
+  {
+    "name": "information",
+    "path": "/service-information",
+    "width": 390,
+    "lang": "en",
+    "overflow": false,
+    "dir": "ltr",
+    "h1Font": "\"Inter Variable\", Arial, sans-serif",
+    "h1Size": "30px",
+    "errors": [],
+    "apiRequests": [
+      "GET /api/support/contact"
+    ]
+  },
+  {
+    "name": "help",
+    "path": "/help",
+    "width": 390,
+    "lang": "ur",
+    "overflow": false,
+    "dir": "rtl",
+    "h1Font": "\"Noto Sans Arabic\", Tahoma, sans-serif",
+    "h1Size": "27px",
+    "errors": [],
+    "apiRequests": [
+      "GET /api/support/contact"
+    ]
+  },
+  {
+    "name": "information",
+    "path": "/service-information",
+    "width": 390,
+    "lang": "ur",
+    "overflow": false,
+    "dir": "rtl",
+    "h1Font": "\"Noto Sans Arabic\", Tahoma, sans-serif",
+    "h1Size": "30px",
+    "errors": [],
+    "apiRequests": [
+      "GET /api/support/contact"
+    ]
+  }
+]

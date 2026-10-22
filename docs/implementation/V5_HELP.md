@@ -73,7 +73,43 @@ explicitly aborted network-error/retry state. It verifies public-only API access
 real configured-unavailable200 responses, navigation, RTL and zero horizontal
 overscroll/JS errors. Traces/video/automatic failure screenshots are disabled.
 
-Screenshots and final inspected results are recorded in `v5-help-evidence/` after
-the coordinator's guarded run. The source-worktree unit/config seams are not live
+Screenshots and final inspected results are recorded in `v5-help-evidence/`. The source-worktree unit/config seams are not live
 mail delivery, approved legal content, Android-device or production qualification.
 Those externally unavailable configured-positive states remain explicitly unverified.
+
+
+## Final integrated visual checkpoint
+
+The coordinator integrated source944186b with independent Organization/Settings at
+`5acdf6a` in `/tmp/hygene-v5-integrated`, then ran the existing guarded real-API/SQL
+browser harness: **21cases passed in52.2s**, including both Help cases. Matching
+frontend/backend were built privately against a fresh migrated synthetic disposable
+DB. The integrated whole frontend passes **64Node+245React**, full lint, TypeScript
+and production build. Agent B's independent source-worktree count remains239React;
+the higher integrated count includes the other parallel implementation.
+
+**22PNGs +8base observations** are in [the evidence index](v5-help-evidence/README.md):
+16paired base captures,4FAQ captures and2loading/network-error captures. No base
+horizontal overflow or JavaScript errors; only credential-free public support API
+requests occur. Actual support200unavailable facts, real loading-forward, explicit
+network-abort/retry, native FAQ and recovery/information navigation pass. No network
+response replaced for the base screenshots. No saved credentials/traces/video.
+
+Agent B directly inspected Help1366EN/ref, Information390UR/ref, Information1366EN,
+Help390UR and network-error390EN. The coordinator and independent Agent C reviewed
+all8base variants and representative interactions/states. No significant clipping,
+reading or core-composition issue remains in the current matrix. Blue/white panels,
+Inter/Arabic hierarchy, split/stack geometry, centered public card and RTL are
+visually verified within the intentional content/audience differences above.
+
+| Page/state | Functional implementation | Visual implementation | Functional verification | Visual verification |
+|---|---|---|---|---|
+| Public Help, unavailable support, EN/UR1366/390 | Implemented | V5 core with documented public/header/title differences | Actual support API/navigation/FAQ pass | Paired reviewed; no significant issue |
+| Public Service information, unconfigured facts, EN/UR1366/390 | Implemented | Approved centered card, expanded truthful copy | Actual support/guarded facts/navigation pass | Paired reviewed; no significant issue |
+| Help loading and network-error/retry390EN | Implemented | Readable within panels | Actual delayed-forward plus explicitly aborted network seam/retry pass | Captures inspected |
+| Approved-positive mailbox/documents/Android | Existing guards preserved | Implemented conditional links |20focused unit/config seam checks include safe/unsafe links | **Unverified with live approved configuration** |
+
+Spec38 therefore remains **In progress**. Real approved commercial/legal facts,
+mail delivery and Android/native qualification were unavailable and not activated.
+This checkpoint implements and visually verifies the scoped public core; it does
+not complete full V5 or qualification gates. No further UI group starts this session.
