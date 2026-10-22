@@ -131,3 +131,14 @@ it('Urdu settings tabs and profile facts use RTL with an isolated account email'
  fireEvent.click(screen.getByRole('button',{name:'میرا اکاؤنٹ'}));expect(screen.getByText('fixture@example.invalid')).toHaveAttribute('dir','ltr');expect(screen.getByRole('heading',{name:'میرا اکاؤنٹ'})).toBeVisible();
  fireEvent.click(screen.getByRole('button',{name:'سکیورٹی'}));expect(screen.getByLabelText('موجودہ پاس ورڈ')).toHaveAttribute('dir','ltr');
 });
+it('inline settings password completion revokes identity and private cache through the existing security flow',async()=>{
+ const {store,query}=mount(<CompanySettingsPage/>);fireEvent.click(screen.getByRole('button',{name:'Security'}));
+ fireEvent.change(screen.getByLabelText('Current password'),{target:{value:'current password'}});fireEvent.change(screen.getByLabelText('New password'),{target:{value:'new inline password'}});fireEvent.change(screen.getByLabelText('Confirm new password'),{target:{value:'new inline password'}});
+ fireEvent.click(screen.getByRole('button',{name:'Change password'}));await screen.findByRole('heading',{name:'Sign in again'});
+ expect(m.post).toHaveBeenCalledWith('/common/security/password',{currentPassword:'current password',newPassword:'new inline password'});expect(store.getState().auth.user).toBeNull();expect(query.getQueryData(['private-operational-data'])).toBeUndefined();
+});
+it('pending company-name save disables duplicate submission and retains saved facts until receipt',async()=>{
+ m.patch.mockImplementationOnce(()=>new Promise(()=>undefined));mount(<CompanySettingsPage/>);
+ fireEvent.change(await screen.findByLabelText('Company name'),{target:{value:'Pending company draft'}});fireEvent.click(screen.getByRole('button',{name:'Save company name'}));
+ expect(await screen.findByRole('button',{name:'Saving…'})).toBeDisabled();expect(screen.getByText(/Saved company name:/)).toHaveTextContent(fixture.name);expect(m.patch).toHaveBeenCalledTimes(1);expect(screen.queryByText('Company settings saved.')).not.toBeInTheDocument();
+});
