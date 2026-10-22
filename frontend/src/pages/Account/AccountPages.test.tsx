@@ -142,3 +142,11 @@ it('pending company-name save disables duplicate submission and retains saved fa
  fireEvent.change(await screen.findByLabelText('Company name'),{target:{value:'Pending company draft'}});fireEvent.click(screen.getByRole('button',{name:'Save company name'}));
  expect(await screen.findByRole('button',{name:'Saving…'})).toBeDisabled();expect(screen.getByText(/Saved company name:/)).toHaveTextContent(fixture.name);expect(m.patch).toHaveBeenCalledTimes(1);expect(screen.queryByText('Company settings saved.')).not.toBeInTheDocument();
 });
+
+it('failed saved-settings refresh leaves the current organization draft mounted until successful retry',async()=>{
+ mount(<CompanySettingsPage/>);fireEvent.change(await screen.findByLabelText('Company name'),{target:{value:'Keep draft through network failure'}});
+ m.get.mockRejectedValueOnce(new Error('network unavailable'));fireEvent.click(screen.getByRole('button',{name:'Reload saved settings'}));
+ await screen.findByText('Company settings could not load. Your saved records are unchanged.');expect(screen.getByLabelText('Company name')).toHaveValue('Keep draft through network failure');
+ m.get.mockResolvedValueOnce({data:{data:{...fixture,name:'Refreshed saved name',accountVersion:4}}});fireEvent.click(screen.getByRole('button',{name:'Reload saved settings'}));
+ await waitFor(()=>expect(screen.getByLabelText('Company name')).toHaveValue('Refreshed saved name'));
+});
