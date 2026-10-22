@@ -27,9 +27,11 @@ export const ProtectedRoute = ({ children }: { children: React.ReactNode }) => {
 
 export const GuestRoute = ({ children }: { children: React.ReactNode }) => {
 
-  const { isAuthenticated } = useAuth();
+  const { isAuthenticated, user } = useAuth();
   const location = useLocation();
-  const destination = location.state?.from === "/welcome" ? "/welcome" : "/dashboard";
+  // Signup and the mutation callback must agree after Redux establishes a session.
+  const destination = location.pathname === "/signup" && user?.role === "ADMIN"
+    ? "/subscription" : location.state?.from === "/welcome" ? "/welcome" : "/dashboard";
   if (isAuthenticated) return <Navigate to={destination} replace />;
 
 

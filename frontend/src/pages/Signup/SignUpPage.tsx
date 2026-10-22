@@ -1,3 +1,4 @@
+import { useLanguage } from "@/i18n/context";
 import { useForm } from "react-hook-form";
 import { useCreateManager } from "./queries.js";
 import { useState } from "react";
@@ -16,6 +17,7 @@ interface ApiError {
 }
 
 const SignUp = () => {
+  const {t}=useLanguage();
   const {
     register,
     handleSubmit,
@@ -31,7 +33,7 @@ const SignUp = () => {
       onSuccess: () => reset(),
       onError: (error: unknown) => {
         setErr(
-          (error as ApiError).response?.data?.message || "Something went wrong",
+          (error as ApiError).response?.data?.message || "Account creation could not finish. Check your details and try again.",
         );
       },
     });
@@ -39,32 +41,32 @@ const SignUp = () => {
 
   return (
     <AuthShell
-      title="Create your workspace"
-      subtitle="Step 1 of 2: create your account. Next, choose a plan to activate your workspace."
+      title={t("Create your workspace")}
+      subtitle={t("Create your company owner account, then review the available plans.")}
       footer={
         <p>
-          Already have an account?{" "}
+          {t("Already have an account?")}{" "}
           <Link
             to="/login"
             className="font-medium text-primary hover:text-primary/80"
           >
-            Log in
+            {t("Log in")}
           </Link>
         </p>
       }
     >
       {createManager.isSuccess && createManager.data.sessionEstablished === false ? (
         <div role="status" className="space-y-3">
-          <p>Account created. Sign in to continue.</p>
-          <Button asChild><Link to="/login">Sign in</Link></Button>
+          <p>{t("Account created. Sign in to continue.")}</p>
+          <Button asChild><Link to="/login">{t("Sign in")}</Link></Button>
         </div>
-      ) : <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
+      ) : <form onSubmit={handleSubmit(onSubmit)} aria-busy={createManager.isPending}>
         <div>
           <label
             htmlFor="name"
             className="mb-1.5 block text-sm font-medium text-foreground"
           >
-            Full Name
+            {t("Full Name")}
           </label>
           <Input
             id="name"
@@ -72,15 +74,15 @@ const SignUp = () => {
             aria-describedby={errors.name ? "name-error" : undefined}
             autoComplete="name"
             {...register("name", { required: "Name is required" })}
-            placeholder="Alice Johnson"
+            placeholder={t("Your name")}
           />
           {errors.name && (
             <p
               id="name-error"
               role="alert"
-              className="mt-1 text-xs text-red-500"
+              className="mt-1 text-xs text-destructive"
             >
-              {errors.name.message}
+              {t(errors.name.message??"Check this field.")}
             </p>
           )}
         </div>
@@ -90,7 +92,7 @@ const SignUp = () => {
             htmlFor="companyName"
             className="mb-1.5 block text-sm font-medium text-foreground"
           >
-            Company Name
+            {t("Company Name")}
           </label>
           <Input
             id="companyName"
@@ -102,15 +104,15 @@ const SignUp = () => {
             {...register("companyName", {
               required: "Company Name is required",
             })}
-            placeholder="Sparkle Clean Co."
+            placeholder={t("Your company")}
           />
           {errors.companyName && (
             <p
               id="companyName-error"
               role="alert"
-              className="mt-1 text-xs text-red-500"
+              className="mt-1 text-xs text-destructive"
             >
-              {errors.companyName.message}
+              {t(errors.companyName.message??"Check this field.")}
             </p>
           )}
         </div>
@@ -120,24 +122,25 @@ const SignUp = () => {
             htmlFor="email"
             className="mb-1.5 block text-sm font-medium text-foreground"
           >
-            Email
+            {t("Email")}
           </label>
           <Input
             type="email"
+            dir="ltr"
             id="email"
             aria-invalid={!!errors.email}
             aria-describedby={errors.email ? "email-error" : undefined}
             autoComplete="email"
             {...register("email", { required: "Email is required" })}
-            placeholder="alice@company.com"
+            placeholder="you@example.com"
           />
           {errors.email && (
             <p
               id="email-error"
               role="alert"
-              className="mt-1 text-xs text-red-500"
+              className="mt-1 text-xs text-destructive"
             >
-              {errors.email.message}
+              {t(errors.email.message??"Check this field.")}
             </p>
           )}
         </div>
@@ -147,10 +150,11 @@ const SignUp = () => {
             htmlFor="password"
             className="mb-1.5 block text-sm font-medium text-foreground"
           >
-            Password
+            {t("Password")}
           </label>
           <Input
             type="password"
+            dir="ltr"
             id="password"
             aria-invalid={!!errors.password}
             aria-describedby={errors.password ? "password-error" : undefined}
@@ -164,9 +168,9 @@ const SignUp = () => {
             <p
               id="password-error"
               role="alert"
-              className="mt-1 text-xs text-red-500"
+              className="mt-1 text-xs text-destructive"
             >
-              {errors.password.message}
+              {t(errors.password.message??"Check this field.")}
             </p>
           )}
         </div>
@@ -174,9 +178,9 @@ const SignUp = () => {
         {err && (
           <div
             role="alert"
-            className="rounded-lg border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-600"
+            className="v5-auth-error"
           >
-            {err}
+            {t(err)}
           </div>
         )}
 
@@ -185,9 +189,7 @@ const SignUp = () => {
           disabled={createManager.isPending}
           className="h-11 w-full rounded-lg"
         >
-          {createManager.isPending
-            ? "Creating..."
-            : "Create account & choose plan"}
+          {t(createManager.isPending ? "Creating…" : "Create account & choose plan")}
         </Button>
       </form>}
     </AuthShell>

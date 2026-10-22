@@ -1,0 +1,354 @@
+[
+  {
+    "name": "login",
+    "path": "/login",
+    "prototype": "login",
+    "width": 1366,
+    "lang": "en",
+    "geometry": {
+      "brandToTitle": 40
+    },
+    "overflow": false,
+    "errors": []
+  },
+  {
+    "name": "signup",
+    "path": "/signup",
+    "prototype": "login",
+    "width": 1366,
+    "lang": "en",
+    "geometry": {
+      "brandToTitle": 40
+    },
+    "overflow": false,
+    "errors": []
+  },
+  {
+    "name": "recovery",
+    "path": "/recover-owner-account",
+    "prototype": "recovery",
+    "width": 1366,
+    "lang": "en",
+    "geometry": {
+      "brandToTitle": 40
+    },
+    "overflow": false,
+    "errors": []
+  },
+  {
+    "name": "reset-missing",
+    "path": "/reset-owner-password",
+    "prototype": "recovery",
+    "width": 1366,
+    "lang": "en",
+    "geometry": {
+      "brandToTitle": 40
+    },
+    "overflow": false,
+    "errors": []
+  },
+  {
+    "name": "verify-missing",
+    "path": "/verify-owner-email",
+    "prototype": "verify",
+    "width": 1366,
+    "lang": "en",
+    "geometry": {
+      "brandToTitle": 40
+    },
+    "overflow": false,
+    "errors": []
+  },
+  {
+    "name": "reset-form",
+    "width": 1366,
+    "lang": "en",
+    "overflow": false,
+    "errors": []
+  },
+  {
+    "name": "verify-form",
+    "width": 1366,
+    "lang": "en",
+    "overflow": false,
+    "errors": []
+  },
+  {
+    "name": "security",
+    "width": 1366,
+    "lang": "en",
+    "overflow": false,
+    "errors": []
+  },
+  {
+    "name": "handoff",
+    "width": 1366,
+    "lang": "en",
+    "overflow": false,
+    "errors": []
+  },
+  {
+    "name": "login",
+    "path": "/login",
+    "prototype": "login",
+    "width": 1366,
+    "lang": "ur",
+    "geometry": {
+      "brandToTitle": 40
+    },
+    "overflow": false,
+    "errors": []
+  },
+  {
+    "name": "signup",
+    "path": "/signup",
+    "prototype": "login",
+    "width": 1366,
+    "lang": "ur",
+    "geometry": {
+      "brandToTitle": 40
+    },
+    "overflow": false,
+    "errors": []
+  },
+  {
+    "name": "recovery",
+    "path": "/recover-owner-account",
+    "prototype": "recovery",
+    "width": 1366,
+    "lang": "ur",
+    "geometry": {
+      "brandToTitle": 40
+    },
+    "overflow": false,
+    "errors": []
+  },
+  {
+    "name": "reset-missing",
+    "path": "/reset-owner-password",
+    "prototype": "recovery",
+    "width": 1366,
+    "lang": "ur",
+    "geometry": {
+      "brandToTitle": 40
+    },
+    "overflow": false,
+    "errors": []
+  },
+  {
+    "name": "verify-missing",
+    "path": "/verify-owner-email",
+    "prototype": "verify",
+    "width": 1366,
+    "lang": "ur",
+    "geometry": {
+      "brandToTitle": 40
+    },
+    "overflow": false,
+    "errors": []
+  },
+  {
+    "name": "reset-form",
+    "width": 1366,
+    "lang": "ur",
+    "overflow": false,
+    "errors": []
+  },
+  {
+    "name": "verify-form",
+    "width": 1366,
+    "lang": "ur",
+    "overflow": false,
+    "errors": []
+  },
+  {
+    "name": "security",
+    "width": 1366,
+    "lang": "ur",
+    "overflow": false,
+    "errors": []
+  },
+  {
+    "name": "handoff",
+    "width": 1366,
+    "lang": "ur",
+    "overflow": false,
+    "errors": []
+  },
+  {
+    "name": "login",
+    "path": "/login",
+    "prototype": "login",
+    "width": 390,
+    "lang": "en",
+    "geometry": {
+      "brandToTitle": 40
+    },
+    "overflow": false,
+    "errors": []
+  },
+  {
+    "name": "signup",
+    "path": "/signup",
+    "prototype": "login",
+    "width": 390,
+    "lang": "en",
+    "geometry": {
+      "brandToTitle": 40
+    },
+    "overflow": false,
+    "errors": []
+  },
+  {
+    "name": "recovery",
+    "path": "/recover-owner-account",
+    "prototype": "recovery",
+    "width": 390,
+    "lang": "en",
+    "geometry": {
+      "brandToTitle": 40
+    },
+    "overflow": false,
+    "errors": []
+  },
+  {
+    "name": "reset-missing",
+    "path": "/reset-owner-password",
+    "prototype": "recovery",
+    "width": 390,
+    "lang": "en",
+    "geometry": {
+      "brandToTitle": 40
+    },
+    "overflow": false,
+    "errors": []
+  },
+  {
+    "name": "verify-missing",
+    "path": "/verify-owner-email",
+    "prototype": "verify",
+    "width": 390,
+    "lang": "en",
+    "geometry": {
+      "brandToTitle": 40
+    },
+    "overflow": false,
+    "errors": []
+  },
+  {
+    "name": "reset-form",
+    "width": 390,
+    "lang": "en",
+    "overflow": false,
+    "errors": []
+  },
+  {
+    "name": "verify-form",
+    "width": 390,
+    "lang": "en",
+    "overflow": false,
+    "errors": []
+  },
+  {
+    "name": "security",
+    "width": 390,
+    "lang": "en",
+    "overflow": false,
+    "errors": []
+  },
+  {
+    "name": "handoff",
+    "width": 390,
+    "lang": "en",
+    "overflow": false,
+    "errors": []
+  },
+  {
+    "name": "login",
+    "path": "/login",
+    "prototype": "login",
+    "width": 390,
+    "lang": "ur",
+    "geometry": {
+      "brandToTitle": 40
+    },
+    "overflow": false,
+    "errors": []
+  },
+  {
+    "name": "signup",
+    "path": "/signup",
+    "prototype": "login",
+    "width": 390,
+    "lang": "ur",
+    "geometry": {
+      "brandToTitle": 40
+    },
+    "overflow": false,
+    "errors": []
+  },
+  {
+    "name": "recovery",
+    "path": "/recover-owner-account",
+    "prototype": "recovery",
+    "width": 390,
+    "lang": "ur",
+    "geometry": {
+      "brandToTitle": 40
+    },
+    "overflow": false,
+    "errors": []
+  },
+  {
+    "name": "reset-missing",
+    "path": "/reset-owner-password",
+    "prototype": "recovery",
+    "width": 390,
+    "lang": "ur",
+    "geometry": {
+      "brandToTitle": 40
+    },
+    "overflow": false,
+    "errors": []
+  },
+  {
+    "name": "verify-missing",
+    "path": "/verify-owner-email",
+    "prototype": "verify",
+    "width": 390,
+    "lang": "ur",
+    "geometry": {
+      "brandToTitle": 40
+    },
+    "overflow": false,
+    "errors": []
+  },
+  {
+    "name": "reset-form",
+    "width": 390,
+    "lang": "ur",
+    "overflow": false,
+    "errors": []
+  },
+  {
+    "name": "verify-form",
+    "width": 390,
+    "lang": "ur",
+    "overflow": false,
+    "errors": []
+  },
+  {
+    "name": "security",
+    "width": 390,
+    "lang": "ur",
+    "overflow": false,
+    "errors": []
+  },
+  {
+    "name": "handoff",
+    "width": 390,
+    "lang": "ur",
+    "overflow": false,
+    "errors": []
+  }
+]

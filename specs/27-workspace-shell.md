@@ -4,7 +4,7 @@
 **Depends on:** Spec 06
 **Model:** Heavy — `claude-opus-5-5` · `gpt-6-astra` · `gemini-3.1-pro-preview`
 **Issue:** #35
-**Owns:** `frontend/src/workspace-refresh.css`, `frontend/src/i18n/launchTranslations.ts`, `frontend/src/routes/launchPages.tsx`, `specs/inventory/27-workspace-shell.md`, `frontend/src/components/layout/Sidebar.tsx`, `frontend/src/components/common/OperationStatus.tsx`, `frontend/src/components/common/ScopeFilters.tsx`
+**Owns:** `frontend/src/workspace-refresh.css`, `frontend/src/i18n/launchTranslations.ts`, `specs/inventory/27-workspace-shell.md`, `frontend/src/components/layout/Sidebar.tsx`, `frontend/src/components/common/OperationStatus.tsx`, `frontend/src/components/common/ScopeFilters.tsx`
 **Reuses:** `frontend/src/components/common/LanguageChoice.tsx`, `frontend/src/components/common/PageHeader.tsx`, `frontend/src/i18n/LanguageProvider.tsx`, `DESIGN-SYSTEM.md#component-conventions`, `design/v5/overview.html`
 
 ## Goal
@@ -58,3 +58,5 @@ Translate approved shell/spacing/fonts/navigation into existing reusable compone
 - **2026-10-21 — Visual acceptance correction:** reopened for outstanding approved V5 acceptance. Historical functional checkmarks/logs are preserved; they do not certify visual fidelity. Current four-part status and evidence: docs/implementation/V5_IMPLEMENTATION.md. No prior visual requirement is newly verified by a build.
 
 - **2026-10-22 — Issue82 correction:** Shared V5 tokens, dimensions, actual company identity and grouped owner/manager navigation corrected. Mobile menu positioning/centered-dialog animation drift fixed; real rendered bounds checked, not inferred from accessibility tests. See docs/implementation/V5_IMPLEMENTATION.md for commands, counts, screenshots and intentional deviations. This log does not close the reopened full V5 acceptance criterion.
+
+- **2026-10-22 — Serial issue86 handoff:** public staff handoff composition in launchPages.tsx transfers to30; WorkspaceAudience/error/platform boundaries remain unchanged. Existing27 shell and38 approved distribution configuration are reused.
