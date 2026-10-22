@@ -71,7 +71,7 @@ describe('approved workspace shell and actual route role guards', () => {
   });
   it.each(['/dashboard', '/attendance', '/staff', '/subscription', '/managers'])('hands staff web access at %s to Android without mounting operational pages', async path => {
     mount('STAFF', path);
-    expect(await screen.findByRole('heading', { name: 'Use the Android app' })).toBeInTheDocument();
+    expect(await screen.findByRole('heading', { name: 'Your working day is in the app.' })).toBeInTheDocument();
     expect(screen.queryByRole('navigation', { name: 'Workspace navigation' })).not.toBeInTheDocument();
     expect(screen.queryByRole('button', { name: /download/i })).not.toBeInTheDocument();
   });
@@ -101,7 +101,7 @@ describe('navigation language, focus and feedback', () => {
   });
   it('restores a saved Urdu preference for staff handoff', async () => {
     mount('STAFF', '/dashboard', 'ur');
-    expect(await screen.findByRole('heading', { name: 'اینڈرائیڈ ایپ استعمال کریں' })).toBeInTheDocument();
+    expect(await screen.findByRole('heading', { name: 'آپ کا کام ایپ میں ہے۔' })).toBeInTheDocument();
     expect(document.documentElement.dir).toBe('rtl');
   });
   it('opens a named mobile navigation dialog and returns keyboard focus on close at 390px', async () => {

@@ -6,7 +6,6 @@ import useAuth from '@/hooks/useAuth';
 import { clearUser } from '@/store/slices/authSlice';
 import { useLanguage } from '@/i18n/context';
 import AuthShell from '@/components/common/AuthShell';
-import LanguageChoice from '@/components/common/LanguageChoice';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { changePassword, companySettings, completeOwnerLink, ownerStatus, requestRecovery, requestVerification, responseStatus, saveCompanySettings, type CompanySettings } from './api';
@@ -25,7 +24,7 @@ function useSecurityCompletion() {
 }
 function SecurityShell({title, description, children}: {title: string; description: string; children: ReactNode}) {
  const {t} = useLanguage();
- return <div className="workspace account-public"><AuthShell title={t(title)} subtitle={t(description)} footer={<Link to="/login">{t('Return to sign in')}</Link>}><div className="account-language"><LanguageChoice /></div>{children}</AuthShell></div>;
+ return <div className="workspace account-public"><AuthShell title={t(title)} subtitle={t(description)} footer={<Link to="/login">{t('Return to sign in')}</Link>}>{children}</AuthShell></div>;
 }
 function PasswordFields({current, submit, busy, label}: {current: boolean; submit: (currentPassword: string, newPassword: string) => Promise<void>; busy?: boolean; label: string}) {
  const {t} = useLanguage();
@@ -44,10 +43,10 @@ function PasswordFields({current, submit, busy, label}: {current: boolean; submi
   } finally {setPending(false);}
  }
  return <form className="account-form" onSubmit={save}>
-  {current && <label>{t('Current password')}<Input name="currentPassword" type="password" autoComplete="current-password" required maxLength={1024}/></label>}
-  <label>{t('New password')}<Input name="newPassword" type="password" autoComplete="new-password" required minLength={8} aria-describedby="password-help"/></label>
+  {current && <label>{t('Current password')}<Input name="currentPassword" type="password" dir="ltr" autoComplete="current-password" required maxLength={1024}/></label>}
+  <label>{t('New password')}<Input name="newPassword" type="password" dir="ltr" autoComplete="new-password" required minLength={8} aria-describedby="password-help"/></label>
   <p id="password-help" className="account-help">{t('Use at least 8 characters and at most 72 UTF-8 bytes. Choose a different password.')}</p>
-  <label>{t('Confirm new password')}<Input name="confirmPassword" type="password" autoComplete="new-password" required minLength={8}/></label>
+  <label>{t('Confirm new password')}<Input name="confirmPassword" type="password" dir="ltr" autoComplete="new-password" required minLength={8}/></label>
   {error && <p role="alert" className="account-error">{t(error)}</p>}
   <Button disabled={pending || busy} type="submit">{t(pending ? 'Saving password…' : label)}</Button>
  </form>;
@@ -67,7 +66,7 @@ export function OwnerRecoveryPage() {
   catch (err) {setError(responseStatus(err) === 503 ? 'Email recovery is unavailable. Contact your company owner or the configured support channel. Delivery has not been confirmed.' : responseStatus(err) === 429 ? 'Too many requests. Wait before trying again. Delivery has not been confirmed.' : 'The request could not be accepted. Check your connection and try again.');}
   finally {setPending(false);}
  }
- return <SecurityShell title="Owner password recovery" description="Recovery is for verified company owners. Managers and staff should ask their company owner about account access.">
+ return <SecurityShell title="Recover your owner account" description="Recovery is for verified company owners. Managers and staff should ask their company owner about account access.">
   {receipt ? <div role="status"><h2>{t('Request accepted for processing')}</h2><p>{t('Delivery is not confirmed. If this is an eligible verified owner account, a recovery request may be processed. No account details are disclosed.')}</p><p>{t('Check your inbox and spam folder. If no link arrives, contact the configured support channel.')}</p></div> : <form onSubmit={submit} className="account-form"><label>{t('Owner email')}<Input name="email" type="email" dir="ltr" autoComplete="email" required maxLength={254}/></label>{error && <p role="alert" className="account-error">{t(error)}</p>}<Button type="submit" disabled={pending}>{t(pending ? 'Requesting recovery…' : 'Request recovery link')}</Button></form>}
  </SecurityShell>;
 }
@@ -106,7 +105,7 @@ function OwnerVerification() {
  return <section className="account-section"><h2>{t('Owner email verification')}</h2>
   {status.isPending ? <p role="status">{t('Loading owner verification…')}</p> : status.isError ? <><p role="alert">{t('Owner verification status could not load.')}</p><Button variant="outline" onClick={() => status.refetch()}>{t('Retry')}</Button></> : status.data.emailVerified ? <p>{t('Owner email is verified.')}</p> : <>
    <p>{t('Owner email is not verified.')}</p>
-   {status.data.bootstrapRequired ? <p>{t('This legacy account needs identity-verified enrollment through the configured support channel. Signing in does not verify an email.')}</p> : !status.data.deliveryConfigured ? <p>{t('Verification email delivery is unavailable. Contact the configured support channel.')}</p> : receipt ? <p role="status">{t('Request accepted for processing. Delivery is not confirmed. Check your inbox and spam folder.')}</p> : <form onSubmit={submit} className="account-form"><label>{t('Current password')}<Input name="currentPassword" type="password" autoComplete="current-password" required maxLength={1024}/></label>{error && <p role="alert" className="account-error">{t(error)}</p>}<Button type="submit" variant="outline" disabled={pending}>{t(pending ? 'Requesting verification…' : 'Request verification link')}</Button></form>}
+   {status.data.bootstrapRequired ? <p>{t('This legacy account needs identity-verified enrollment through the configured support channel. Signing in does not verify an email.')}</p> : !status.data.deliveryConfigured ? <p>{t('Verification email delivery is unavailable. Contact the configured support channel.')}</p> : receipt ? <p role="status">{t('Request accepted for processing. Delivery is not confirmed. Check your inbox and spam folder.')}</p> : <form onSubmit={submit} className="account-form"><label>{t('Current password')}<Input name="currentPassword" type="password" dir="ltr" autoComplete="current-password" required maxLength={1024}/></label>{error && <p role="alert" className="account-error">{t(error)}</p>}<Button type="submit" variant="outline" disabled={pending}>{t(pending ? 'Requesting verification…' : 'Request verification link')}</Button></form>}
   </>}
  </section>;
 }

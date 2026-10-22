@@ -45,12 +45,12 @@ reading its old log. **Pending** includes screen/state checks still to perform.
 | setup | `/setup` and linked existing setup forms | Existing | Pending | Historical | Derived progress, forms, readiness, unavailable activation |
 | workforce | staff/manager access and transfer dialogs | Existing | Pending | Historical | Actual staff parent workspace and permission variants |
 | billing | `/subscription` | Existing | Pending | Historical | Catalog/provider unavailability is a supported divergence |
-| settings | `/settings`, `/account/security` | Existing | Pending | Historical | Owner organization vs manager own account |
-| login | `/login`, company registration `/signup` | Existing | Pending | Historical | Authentication composition; signup billing-navigation regression remains |
-| recovery | `/recover-owner-account`, `/reset-owner-password` | Existing | Pending | Historical | Neutral delivery, invalid/expired links, password form |
-| verify | `/verify-owner-email` | Existing | Pending | Historical | Explicit confirmation and invalid/expired state |
+| settings | `/settings`, `/account/security` | Existing | Own-security public shell corrected; organization pending | Current auth/security/persistence checks | Organization/company layout remains next group; restricted-account own security intentionally independent |
+| login | `/login`, company registration `/signup` | Existing + registration destination corrected | V5 public cards and real translated forms | Current235React + real owner/staff/registration browser checks | Paired EN/UR1366/390 inspected; real fields replace prototype identities (V5_AUTH.md) |
+| recovery | `/recover-owner-account`, `/reset-owner-password` | Existing retained | V5 public form implemented | Current unit/API negative and restricted-account flows | Paired EN/UR1366/390 inspected; successful delivered-link/provider qualification open |
+| verify | `/verify-owner-email` | Existing explicit POST retained | V5 public form implemented | Current unit + actual invalid-token400 | Paired EN/UR1366/390 inspected; positive issued-link/provider qualification open |
 | access | `WorkspaceGate` restricted account state | Existing | Pending | Historical | Suspended vs billing restriction; safe destinations |
-| handoff | STAFF role web handoff | Existing | Pending | Historical | Android information and unavailable download truth |
+| handoff | STAFF role web handoff | Existing + approved distribution guard reused | V5 public handoff implemented | Real staff login/logout + role-denial checks | Paired EN/UR1366/390 inspected; no native qualification claim |
 | help | `/help` | Existing | Pending | Historical | Support availability and forms |
 | information | `/service-information` | Existing | Pending | Historical | Configured facts, unavailable commercial/legal fields |
 | operator-login | `/platform/login`, callback | Safe-disabled without qualified IdP | Pending | Historical denial checks | Live positive sign-in blocked by missing qualified provider |
@@ -212,3 +212,7 @@ stopped. User Vite5173/backend8080 remain running. No merge/deployment.
 ## 2026-10-22 — Photo Reviews continuation
 
 Issue84, `implementation/v5-photo-review-workspace`, based correction commit265f694/PR83. Real V5 review workspace now implemented with paired evidence and separate functional/visual limits in [V5_REVIEWS.md](V5_REVIEWS.md). Historical completion records remain unchanged; spec36 remains In progress. Full V5 scope remains incomplete.
+
+## 2026-10-22 — Customer authentication continuation
+
+Issue86 on `implementation/v5-customer-auth`, basedd15e37f/PR85. Actual V5 public authentication/recovery/link/security/staff handoff and registration destination correction; see [V5_AUTH.md](V5_AUTH.md).21 scoped browser cases,64Node+235React,50 focused auth/account/role checks;79 PNGs and36 observations. No whole-product/provider/native qualification. Latest user explicitly requests stop after this checkpoint with a new-session handoff; organization settings has not been started.

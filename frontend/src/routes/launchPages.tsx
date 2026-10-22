@@ -1,11 +1,13 @@
 import type { ReactNode } from 'react';
 import { Link, Navigate, isRouteErrorResponse, useRouteError } from 'react-router-dom';
 import { useSelector } from 'react-redux';
-import { Smartphone, ShieldCheck } from 'lucide-react';
+import { ShieldCheck } from 'lucide-react';
 import type { RootState } from '@/store/store';
 import { useLanguage } from '@/i18n/context';
 import LanguageChoice from '@/components/common/LanguageChoice';
 import BrandLogo from '@/components/common/BrandLogo';
+import AuthShell from '@/components/common/AuthShell';
+import {serviceInformation} from '@/pages/Help/serviceInformation';
 import { Button } from '@/components/ui/button';
 import { useLogout } from '@/queries/auth';
 import '@/workspace.css';
@@ -22,17 +24,13 @@ function StaffWebHandoff() {
   const { t } = useLanguage();
   const user = useSelector((state: RootState) => state.auth.user);
   const logout = useLogout();
-  return <div className="workspace workspace-access-page">
-    <header><BrandLogo /><LanguageChoice /></header>
-    <main className="workspace-access-content">
-      <Smartphone size={32} aria-hidden="true" />
-      <h1>{t('Use the Android app')}</h1>
-      <p>{t('You are signed in as {name}.', { name: `\u2068${user?.name ?? ''}\u2069` })}</p>
-      <p>{t('Attendance and cleaning tasks are available in the Hygene Ops Android app provided by your company.')}</p>
-      <Button disabled={logout.isPending} onClick={() => logout.mutate()}>{t(logout.isPending ? 'Signing out…' : 'Sign out')}</Button>
-      {logout.isError && <p role="alert">{t('Sign out failed. Try again.')}</p>}
-    </main>
-  </div>;
+  const {android}=serviceInformation();
+  return <AuthShell title={t('Your working day is in the app.')} subtitle={t('Attendance and cleaning tasks are available in the Hygene Ops Android app provided by your company.')} footer={<Link to="/help#service-android">{t('Android app information')}</Link>}>
+    <p>{t('You are signed in as {name}.', {name:`\u2068${user?.name??''}\u2069`})}</p>
+    <div className="v5-auth-notice">{android?<><a className="v5-approved-download" href={android} rel="noreferrer">{t('Open approved Android distribution')}</a><p>{t('Use only the distribution approved by your company. A download link does not confirm device qualification.')}</p></>:<p>{t('Approved Android distribution is unavailable. Ask your company owner for the qualified app.')}</p>}</div>
+    <Button className="v5-handoff-signout" disabled={logout.isPending} onClick={()=>logout.mutate()}>{t(logout.isPending?'Signing out…':'Sign out')}</Button>
+    {logout.isError&&<p role="alert">{t('Sign out failed. Try again.')}</p>}
+  </AuthShell>;
 }
 
 export function WorkspaceRouteError() {

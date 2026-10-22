@@ -3,9 +3,9 @@
 **Status:** In progress
 **Depends on:** Spec 16, Spec 17, Spec 22, Spec 27, Spec 28
 **Model:** Standard — `claude-sonnet-5-5` · `gpt-6.1-sol` · `gemini-3.8-flash`
-**Issue:** https://github.com/Shumail-AbdulRehman/PRIV/issues/58
-**Owns:** `frontend/src/pages/Account/AccountPages.tsx`, `frontend/src/pages/Account/AccountPages.test.tsx`, `frontend/src/pages/Account/api.ts`, `frontend/src/pages/Account/linkToken.ts`, `frontend/src/pages/Account/linkToken.test.tsx`, `frontend/src/pages/Account/account.css`, `frontend/src/i18n/accountTranslations.ts`, `frontend/src/App.tsx`, `frontend/src/routes/workspaceRoutes.tsx`, `frontend/src/routes/launchPages.test.tsx`, `frontend/src/pages/Login/LoginPage.tsx`, `docs/implementation/ACCOUNT_UI.md`, `.impeccable/surfaces/frontend-src-pages-account-accountpages-tsx.md`, `specs/inventory/30-account-ui.md`
-**Reuses:** `frontend/src/components/common/AuthShell.tsx`, `frontend/src/pages/Login/LoginPage.tsx`, `DESIGN-SYSTEM.md#component-conventions`, `design/v5/recovery.html`
+**Issue:** #86
+**Owns:** `frontend/src/routes/launchPages.tsx`, `frontend/src/components/common/AuthShell.tsx`, `frontend/src/components/common/auth.css`, `frontend/src/pages/Signup/SignUpPage.tsx`, `frontend/src/pages/Login/LoginPage.test.tsx`, `docs/implementation/V5_AUTH.md`, `frontend/src/pages/Account/AccountPages.tsx`, `frontend/src/pages/Account/AccountPages.test.tsx`, `frontend/src/pages/Account/api.ts`, `frontend/src/pages/Account/linkToken.ts`, `frontend/src/pages/Account/linkToken.test.tsx`, `frontend/src/pages/Account/account.css`, `frontend/src/i18n/accountTranslations.ts`, `frontend/src/App.tsx`, `frontend/src/routes/workspaceRoutes.tsx`, `frontend/src/routes/launchPages.test.tsx`, `frontend/src/pages/Login/LoginPage.tsx`, `docs/implementation/ACCOUNT_UI.md`, `.impeccable/surfaces/frontend-src-pages-account-accountpages-tsx.md`, `specs/inventory/30-account-ui.md`
+**Reuses:** `frontend/src/pages/Help/serviceInformation.ts`, `frontend/src/components/common/AuthShell.tsx`, `frontend/src/pages/Login/LoginPage.tsx`, `DESIGN-SYSTEM.md#component-conventions`, `design/v5/recovery.html`
 
 ## Goal
 
@@ -62,3 +62,9 @@ Implement real reset/verify/self-password and owner Organization settings forms;
 - **2026-10-21** — Serialized ownership handed to38 before support/information route/nav/dictionary/checkout-availability integration; existing feature behavior preserved.
 
 - **2026-10-21 — Visual acceptance correction:** reopened for outstanding approved V5 acceptance. Historical functional checkmarks/logs are preserved; they do not certify visual fidelity. Current four-part status and evidence: docs/implementation/V5_IMPLEMENTATION.md. No prior visual requirement is newly verified by a build.
+
+- **2026-10-22 — Issue86 V5 correction:** serialized ownership of shared AuthShell/login/registration presentation and existing account security surfaces. Spec13 hands off SignUpPage presentation only; registration API/hook/atomicity stay unchanged. App GuestRoute owns the confirmed registration-to-billing race correction; explicit signup destination, no entitlement change. Spec40 consumes rendered public authentication/recovery/link/security states and persisted login/registration. Historical issue58/PR62 retained; overall acceptance remains In progress until verified.
+
+- **Issue86 scope continuation:** staff web handoff shares the V5 public shell; preserve WorkspaceAudience role exclusion, actual sign-out and38 approvedLink/serviceInformation distribution guard. No native or fake app-open route, prototype-only CTA or provider claim.
+
+- **2026-10-22 — V5 public-auth checkpoint:** AuthShell now matches actual journey gallery; all customer credential/owner-link/security forms and staff web handoff consume it.50 focused account/auth/role tests; whole64Node+235React; lint0/TS/build.21 real isolated browser cases pass, including the original registration destination regression and staff sign-in/out;79 screenshots,36 EN/UR desktop/phone observations without overflow/JS errors. Existing APIs, token scrub/explicit POST, failed session delivery, restricted own-security access and staff exclusion remain. Exact limits/deviations in V5_AUTH.md; provider-issued delivery and complete organization/settings visual acceptance are not certified. No backend/schema/dependency/production changes. Latest user requests stop after current checkpoint and complete new-session handoff.

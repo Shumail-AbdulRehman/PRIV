@@ -133,3 +133,7 @@ These owned surfaces are consumed by the flow table above or the clean verificat
 - **2026-10-22 — Review correction consumption:** actual browser flows consume `frontend/src/pages/Exceptions/ReviewDetail.tsx`, `frontend/src/pages/Exceptions/review-workspace.css`, and `docs/implementation/V5_REVIEWS.md`; the spec36 unit behavior harness remains `frontend/src/pages/Exceptions/ReviewWorkspace.test.tsx`. Review selection/closure retains actual authorization and evidence delivery.
 
 - **Issue84 consumers:** real queue/reason-filter flows exercise `backend/src/services/reviewList.service.ts`; persisted closure/conflict flows render `frontend/src/pages/Exceptions/DecisionForm.tsx`.
+
+- **Issue86 consumers:** actual login/signup/recovery routes consume `frontend/src/components/common/AuthShell.tsx`, `frontend/src/components/common/auth.css`, `frontend/src/pages/Login/LoginPage.test.tsx` behavior and `docs/implementation/V5_AUTH.md`; real registration flow verifies the existing30 GuestRoute handoff.
+
+- **Issue86 regression correction:** consumes30 GuestRoute fix and original persisted registration acceptance. E2E_DEFECTS historical failure retained with a dated verified correction; no whole-product pass inferred from scoped runs.

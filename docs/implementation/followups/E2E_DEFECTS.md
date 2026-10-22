@@ -19,3 +19,7 @@ Preserve atomic account creation, session-failed response handling, role authori
 - [static] Frontend lint/type/build and existing account/registration/navigation tests pass.
 
 Explicit non-scope: device/provider qualification belongs to40/external evidence; final whole release pass belongs to41. No production modifications.
+
+## 2026-10-22 — corrected under V5 issue86
+
+The historical failure above is retained. Spec30's GuestRoute now sends an authenticated ADMIN on `/signup` to canonical `/subscription`, agreeing with the signup hook's `/choose-plan` handoff. Other sign-in/role destinations and failed session delivery retain their contracts. The original unmodified persisted registration regression passes in the19-case customer/lifecycle/workspace run; the full original whole-product matrix is not newly certified by that subset. No billing entitlement, backend atomicity or provider activation was changed. Current evidence: docs/implementation/V5_AUTH.md.

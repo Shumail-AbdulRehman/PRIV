@@ -1,165 +1,34 @@
-import { useForm } from "react-hook-form";
-import type { LoginForm } from "./types";
-import { useState } from "react";
-import { useLogin } from "./queries";
-import { useLanguage } from "@/i18n/context";
-import { Link, useLocation } from "react-router-dom";
-import AuthShell from "@/components/common/AuthShell";
-import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
+import {useForm} from 'react-hook-form';
+import {useState} from 'react';
+import {Link,useLocation} from 'react-router-dom';
+import {useLogin} from './queries';
+import type {LoginForm} from './types';
+import {useLanguage} from '@/i18n/context';
+import AuthShell from '@/components/common/AuthShell';
+import {Button} from '@/components/ui/button';
+import {Input} from '@/components/ui/input';
 
-interface ApiError {
-  response?: {
-    data?: {
-      message?: string;
-    };
-  };
+export default function Login() {
+ const {t}=useLanguage(),location=useLocation();
+ const {register,handleSubmit,reset,formState:{errors}}=useForm<LoginForm>({defaultValues:{role:'Manager'}});
+ const [error,setError]=useState('');const login=useLogin();
+ function submit(data:LoginForm){
+  setError('');login.mutate(data,{onSuccess:()=>reset(),onError:(failure:unknown)=>{
+   const status=(failure as {response?:{status?:number}}).response?.status;
+   setError(status===400||status===401?'Email or password is incorrect.':status===429?'Too many sign-in attempts. Try again shortly.':status===403?'Sign-in is unavailable for this account. Contact your company owner.':'Sign-in could not finish. Check your connection and try again.');
+  }});
+ }
+ return <AuthShell title={t('Welcome back')} subtitle={t('Sign in to your Hygene Ops workspace.')} footer={<>
+  <Link to="/recover-owner-account">{t('Owner password recovery')}</Link>
+  <p>{t("Don't have an account?")} <Link to="/signup">{t('Sign up')}</Link></p>
+ </>}>
+  {location.state?.securityCompleted&&<p role="status">{t('Security details updated. Sign in again to continue.')}</p>}
+  <form onSubmit={handleSubmit(submit)} aria-busy={login.isPending}>
+   <div><label htmlFor="role">{t('Account type')}</label><select id="role" {...register('role',{required:'Please select a role'})} disabled={login.isPending}><option value="Manager">{t('Owner or manager')}</option><option value="Staff">{t('Staff')}</option></select></div>
+   <div><label htmlFor="email">{t('Email')}</label><Input id="email" type="email" dir="ltr" autoComplete="email" placeholder="you@example.com" aria-invalid={!!errors.email} aria-describedby={errors.email?'email-error':undefined} {...register('email',{required:'Email is required'})}/>{errors.email&&<p id="email-error" role="alert">{t(errors.email.message??'Email is required')}</p>}</div>
+   <div><label htmlFor="password">{t('Password')}</label><Input id="password" type="password" dir="ltr" autoComplete="current-password" aria-invalid={!!errors.password} aria-describedby={errors.password?'password-error':undefined} {...register('password',{required:'Password is required'})}/>{errors.password&&<p id="password-error" role="alert">{t(errors.password.message??'Password is required')}</p>}</div>
+   {error&&<p role="alert">{t(error)}</p>}
+   <Button type="submit" disabled={login.isPending}>{t(login.isPending?'Signing in…':'Sign in')}</Button>
+  </form>
+ </AuthShell>;
 }
-
-const Login = () => {
-  const {t} = useLanguage();
-  const location = useLocation();
-  const {
-    register,
-    handleSubmit,
-    reset,
-    formState: { errors },
-  } = useForm<LoginForm>();
-  const [err, setErr] = useState<string | null>(null);
-  const login = useLogin();
-
-  const onSubmit = (data: LoginForm) => {
-    setErr(null);
-    login.mutate(data, {
-      onSuccess: () => reset(),
-      onError: (error: unknown) => {
-        setErr(
-          (error as ApiError).response?.data?.message || "Something went wrong",
-        );
-      },
-    });
-  };
-
-  return (
-    <AuthShell
-      title="Welcome back"
-      subtitle="Sign in to your Hygene Ops workspace."
-      footer={
-        <p>
-          Don&apos;t have an account?{" "}
-          <Link
-            to="/signup"
-            className="font-medium text-primary hover:text-primary/80"
-          >
-            Sign up
-          </Link>
-        </p>
-      }
-    >
-      {location.state?.securityCompleted && <p role="status">{t('Security details updated. Sign in again to continue.')}</p>}
-      <p className="mb-4"><Link to="/recover-owner-account">{t('Owner password recovery')}</Link></p>
-      <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
-        <div>
-          <label
-            htmlFor="email"
-            className="mb-1.5 block text-sm font-medium text-foreground"
-          >
-            Email
-          </label>
-          <Input
-            type="email"
-            id="email"
-            aria-invalid={!!errors.email}
-            aria-describedby={errors.email ? "email-error" : undefined}
-            autoComplete="email"
-            {...register("email", { required: "Email is required" })}
-            placeholder="alice@sparkleclean.com"
-          />
-          {errors.email && (
-            <p
-              id="email-error"
-              role="alert"
-              className="mt-1 text-xs text-red-500"
-            >
-              {errors.email.message}
-            </p>
-          )}
-        </div>
-
-        <div>
-          <label
-            htmlFor="password"
-            className="mb-1.5 block text-sm font-medium text-foreground"
-          >
-            Password
-          </label>
-          <Input
-            type="password"
-            id="password"
-            aria-invalid={!!errors.password}
-            aria-describedby={errors.password ? "password-error" : undefined}
-            autoComplete="current-password"
-            {...register("password", { required: "Password is required" })}
-            placeholder="••••••••"
-          />
-          {errors.password && (
-            <p
-              id="password-error"
-              role="alert"
-              className="mt-1 text-xs text-red-500"
-            >
-              {errors.password.message}
-            </p>
-          )}
-        </div>
-
-        <div>
-          <label
-            htmlFor="role"
-            className="mb-1.5 block text-sm font-medium text-foreground"
-          >
-            Account type
-          </label>
-          <select
-            id="role"
-            aria-invalid={!!errors.role}
-            aria-describedby={errors.role ? "role-error" : undefined}
-            {...register("role", { required: "Please select a role" })}
-            className="flex h-11 w-full rounded-lg border border-border/80 bg-background/90 px-4 py-2 text-sm shadow-xs outline-none focus:border-primary/60 focus:ring-4 focus:ring-primary/10"
-          >
-            <option value="Manager">Administrator or manager</option>
-            <option value="Staff">Staff</option>
-          </select>
-          {errors.role && (
-            <p
-              id="role-error"
-              role="alert"
-              className="mt-1 text-xs text-red-500"
-            >
-              {errors.role.message}
-            </p>
-          )}
-        </div>
-
-        {err && (
-          <div
-            role="alert"
-            className="rounded-lg border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-600"
-          >
-            {err}
-          </div>
-        )}
-
-        <Button
-          type="submit"
-          disabled={login.isPending}
-          className="h-11 w-full rounded-lg"
-        >
-          {login.isPending ? "Signing in..." : "Sign in"}
-        </Button>
-      </form>
-    </AuthShell>
-  );
-};
-
-export default Login;
