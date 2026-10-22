@@ -49,11 +49,11 @@ it('restricted company settings do not hide independent own-password security',a
  mount(<CompanySettingsPage/>);await screen.findByText('Company settings are restricted. Your own account security remains available.');expect(screen.getByRole('link',{name:'Change your password'})).toHaveAttribute('href','/account/security');expect(screen.queryByText('private SQL')).not.toBeInTheDocument();
 });
 it('unavailable sender and legacy enrollment never offer a verification request or infer verification',async()=>{
- identity.deliveryConfigured=false;const first=mount(<CompanySettingsPage/>);await screen.findByText('Verification email delivery is unavailable. Contact the configured support channel.');expect(screen.queryByRole('button',{name:'Request verification link'})).not.toBeInTheDocument();first.unmount();
- identity.bootstrapRequired=true;mount(<CompanySettingsPage/>);await screen.findByText(/This legacy account needs identity-verified enrollment/);expect(screen.queryByRole('button',{name:'Request verification link'})).not.toBeInTheDocument();
+ identity.deliveryConfigured=false;const first=mount(<CompanySettingsPage/>);fireEvent.click(screen.getByRole('button',{name:'My account'}));await screen.findByText('Verification email delivery is unavailable. Contact the configured support channel.');expect(screen.queryByRole('button',{name:'Request verification link'})).not.toBeInTheDocument();first.unmount();
+ identity.bootstrapRequired=true;mount(<CompanySettingsPage/>);fireEvent.click(screen.getByRole('button',{name:'My account'}));await screen.findByText(/This legacy account needs identity-verified enrollment/);expect(screen.queryByRole('button',{name:'Request verification link'})).not.toBeInTheDocument();
 });
 it('verification requires current password and receipt says delivery unconfirmed',async()=>{
- mount(<CompanySettingsPage/>);await screen.findByRole('button',{name:'Request verification link'});
+ mount(<CompanySettingsPage/>);fireEvent.click(screen.getByRole('button',{name:'My account'}));await screen.findByRole('button',{name:'Request verification link'});
  expect(screen.getByLabelText('Current password')).toBeRequired();expect(m.post).not.toHaveBeenCalled();
  fireEvent.change(screen.getByLabelText('Current password'),{target:{value:'old password'}});fireEvent.click(screen.getByRole('button',{name:'Request verification link'}));
  await screen.findByText('Request accepted for processing. Delivery is not confirmed. Check your inbox and spam folder.');expect(m.post).toHaveBeenCalledWith('/owner-identity/email/request',{currentPassword:'old password'});expect(screen.queryByText('Owner email is verified.')).not.toBeInTheDocument();
@@ -96,9 +96,38 @@ it('Urdu recovery keeps LTR email and complete RTL labels and feedback',async()=
 });
 
 it('principal changes discard verification receipts and never reuse another owner status',async()=>{
- const {store}=mount(<CompanySettingsPage/>);await screen.findByRole('button',{name:'Request verification link'});
+ const {store}=mount(<CompanySettingsPage/>);fireEvent.click(screen.getByRole('button',{name:'My account'}));await screen.findByRole('button',{name:'Request verification link'});
  fireEvent.change(screen.getByLabelText('Current password'),{target:{value:'first owner password'}});fireEvent.click(screen.getByRole('button',{name:'Request verification link'}));await screen.findByText('Request accepted for processing. Delivery is not confirmed. Check your inbox and spam folder.');
  m.get.mockImplementation(async(url:string)=>{if(url==='/owner-identity/status')return new Promise(()=>undefined);return {data:{data:fixture}};});
  await act(async()=>{store.dispatch(setUser({id:8,role:'ADMIN',name:'Second synthetic owner',email:'second@example.invalid',companyId:99}));});
  expect(screen.queryByText('Request accepted for processing. Delivery is not confirmed. Check your inbox and spam folder.')).not.toBeInTheDocument();expect(screen.getByText('Loading owner verification…')).toBeInTheDocument();expect(screen.queryByLabelText('Current password')).not.toBeInTheDocument();
+});
+
+it('settings sections expose real profile and existing password form while retaining organization draft',async()=>{
+ mount(<CompanySettingsPage/>);const name=await screen.findByLabelText('Company name');
+ fireEvent.change(name,{target:{value:'Unsaved organization draft'}});
+ fireEvent.click(screen.getByRole('button',{name:'My account'}));
+ expect(screen.getByRole('heading',{name:'My account'})).toBeVisible();
+ expect(screen.getByText('Synthetic account')).toBeVisible();expect(screen.getByText('fixture@example.invalid')).toHaveAttribute('dir','ltr');
+ fireEvent.click(screen.getByRole('button',{name:'Security'}));
+ expect(screen.getByLabelText('New password')).toBeVisible();expect(screen.getByRole('heading',{name:'Session security'})).toBeVisible();
+ fireEvent.click(screen.getByRole('button',{name:'Organization'}));expect(screen.getByLabelText('Company name')).toHaveValue('Unsaved organization draft');
+});
+it('reload after conflict consumes the new saved version and replaces only after a successful reload',async()=>{
+ m.patch.mockRejectedValueOnce({response:{status:409}});mount(<CompanySettingsPage/>);
+ fireEvent.change(await screen.findByLabelText('Company name'),{target:{value:'Conflicting draft'}});fireEvent.click(screen.getByRole('button',{name:'Save company name'}));
+ await screen.findByRole('alert');
+ m.get.mockResolvedValueOnce({data:{data:{...fixture,name:'Other owner saved',accountVersion:4}}});
+ fireEvent.click(screen.getByRole('button',{name:'Reload saved settings'}));await waitFor(()=>expect(screen.getByLabelText('Company name')).toHaveValue('Other owner saved'));
+ fireEvent.change(screen.getByLabelText('Company name'),{target:{value:'Save after refresh'}});fireEvent.click(screen.getByRole('button',{name:'Save company name'}));
+ await screen.findByText('Company settings saved.');expect(m.patch).toHaveBeenLastCalledWith('/company/settings',{name:'Save after refresh',expectedVersion:4});
+});
+it('trimmed empty organization names are rejected without a mutation',async()=>{
+ mount(<CompanySettingsPage/>);fireEvent.change(await screen.findByLabelText('Company name'),{target:{value:'   '}});fireEvent.click(screen.getByRole('button',{name:'Save company name'}));
+ expect(await screen.findByRole('alert')).toHaveTextContent('Enter a company name between 2 and 160 characters.');expect(m.patch).not.toHaveBeenCalled();
+});
+it('Urdu settings tabs and profile facts use RTL with an isolated account email',async()=>{
+ mount(<CompanySettingsPage/>,'ADMIN','ur');expect(document.documentElement.dir).toBe('rtl');
+ fireEvent.click(screen.getByRole('button',{name:'میرا اکاؤنٹ'}));expect(screen.getByText('fixture@example.invalid')).toHaveAttribute('dir','ltr');expect(screen.getByRole('heading',{name:'میرا اکاؤنٹ'})).toBeVisible();
+ fireEvent.click(screen.getByRole('button',{name:'سکیورٹی'}));expect(screen.getByLabelText('موجودہ پاس ورڈ')).toHaveAttribute('dir','ltr');
 });
