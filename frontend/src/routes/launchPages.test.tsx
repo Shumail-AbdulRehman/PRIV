@@ -66,7 +66,7 @@ describe('approved workspace shell and actual route role guards', () => {
   });
   it('mounts actual owner settings from the registered workspace route', async () => {
     mount('ADMIN', '/settings');
-    expect(await screen.findByRole('heading', { name: 'Organization settings' })).toBeInTheDocument();
+    expect(await screen.findByRole('heading', { name: 'Settings' })).toBeInTheDocument();
     expect(await screen.findByLabelText('Company name')).toHaveValue('Synthetic saved company');
   });
   it.each(['/dashboard', '/attendance', '/staff', '/subscription', '/managers'])('hands staff web access at %s to Android without mounting operational pages', async path => {
