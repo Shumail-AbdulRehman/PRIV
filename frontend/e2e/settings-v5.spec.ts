@@ -43,7 +43,7 @@ test('settings loading forwards real request and manager denial keeps own securi
  await mkdir(out,{recursive:true});await page.setViewportSize({width:390,height:900});
  await page.route('**/api/company/settings',async route=>{if(route.request().method()==='GET')await new Promise(resolve=>setTimeout(resolve,1200));await route.continue();});
  await enter(page,'/settings');await expect(page.getByText('Loading company settings…',{exact:true})).toBeVisible();await page.screenshot({path:join(out,'app-organization-loading-390-en.png'),fullPage:true});await expect(page.getByLabel('Company name',{exact:true})).toBeVisible();await page.unroute('**/api/company/settings');
- await enter(page,'/settings','managerA');expect((await page.request.get(backend+'/api/company/settings')).status()).toBe(403);await expect(page.locator('input[name=name]')).toHaveCount(0);await page.screenshot({path:join(out,'app-manager-settings-denied-390-en.png'),fullPage:true});
+ await enter(page,'/settings','managerA');expect((await page.request.get(backend+'/api/company/settings')).status()).toBe(403);await expect(page).toHaveURL(/\/dashboard(?:[?#]|$)/);await expect(page.locator('input[name=name]')).toHaveCount(0);await page.screenshot({path:join(out,'app-manager-settings-redirect-loading-390-en.png'),fullPage:true});
  await page.goto('/account/security');await expect(page.getByLabel('Current password',{exact:true})).toBeVisible();await page.screenshot({path:join(out,'app-manager-own-security-390-en.png'),fullPage:true});
 });
 test('settings show actual unverified enrollment and labelled network failure with explicit retry',async({browser})=>{
