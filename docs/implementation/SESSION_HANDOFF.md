@@ -1,3 +1,55 @@
+# Latest checkpoint — Parallel V5 Settings / Help / Information — 2026-10-22
+
+**STOP at the user-requested checkpoint.** The user added: “alos add a checkpoint after that you tell me if i wnat to ocntinue and start a new ssion”. This parallel batch is saved. Offer a choice to continue here or start a new session; do not dispatch another UI group before that choice. Full V5 remains **INCOMPLETE**; specs30/38/40 remain In progress and41 is ineligible. Historical stops below are superseded only within this completed batch.
+
+## Current Git and review state
+
+- Actual root: `/home/shumail/bkacup-16-oct-bkpriv/bk-Priv/PRIV`, branch **`implementation/v5-parallel-final`**. Integrated source/documentation checkpoint5c3ab89; a final handoff commit follows. Inspect `git log -3 --oneline` for final HEAD.
+- Started from independently verified16264ae on implementation/v5-customer-auth/PR87. Prior stack PR83 → PR85 → PR87 stays open/draft/unmerged. No main assumption, reset, force push or deployment.
+- Agent A: `/tmp/hygene-v5-settings`, `implementation/v5-organization-settings`, issue88, finalede41ff; **OPEN/DRAFT PR91** https://github.com/Shumail-AbdulRehman/PRIV/pull/91, base implementation/v5-customer-auth/PR87.
+- Agent B: `/tmp/hygene-v5-help`, `implementation/v5-help-information`, issue89, final632ca25; **OPEN/DRAFT PR90** https://github.com/Shumail-AbdulRehman/PRIV/pull/90, same PR87 base. These are independent siblings; no artificial specification dependency.
+- Agent C: source-read-only QA, `/tmp/hygene-v5-qa`, verification/v5-parallel-qa,34d256d. Report/reference-only commit integrated.
+- Coordinator clean integration: `/tmp/hygene-v5-integrated`, implementation/v5-parallel-checkpoint,07797d9. Its committed tree was byte-identical to the root committed tree after reviewed explicit cherry-picks; user overlay remains root-only. Agents had isolated worktrees/exclusive files and started concurrently. No simultaneous shared-source edits.
+
+## Delivered in the actual application
+
+1. `/settings`: V5 Organization/My account/Security tabs and shareable section URLs; organization form/protected rail, actual principal facts/email status, inline existing own-password/session guidance. Real owner-only name/version APIs preserved. Trim validation, pending/save receipt, persisted conflict, explicit reload and failed-refresh draft retention verified. The unsupported prototype operational-contact editor is omitted per approved spec22.
+2. `/help`: V5 blue/white split contact/FAQ/recovery/service panels with actual support API, actual recovery/service links and honest configured-off/loading/error/retry. Public/restricted access remains outside tenant bootstrap; no fabricated company sidebar or unsupported ticket-submission form.
+3. `/service-information`: distinct centered V5 public card with actual configured/unavailable terms/privacy/closure/support/Android facts and existing factual photo guidance. English/Urdu and phone layouts inspected.
+4. Existing public auth, standalone/forced own-security, APIs, backend permissions, billing and credential/session rules retained. Corrected a real failed-refresh edge that unmounted the company draft. Existing heading-only regression selectors updated for approved Settings title without weakening their functional assertions.
+
+## Verification actually performed
+
+- Clean starting baseline:64Node+235React. Final combined clean checkout: **64Node+246React/19files pass**, no failures/skips. A independently23Account cases/242React whole; B20Help/239React whole.
+- Relevant backend companySettings/platformSupport/ownerIdentity: **164tests/3files pass**. No backend business source/schema/dependency/config changes.
+- Frontend full lint0; frontend TypeScript/production build pass. Guarded browser runner separately compiles backend, strict e2e project and frontend before private production assets. Final source compiled in final browser pass. Mechanical impeccable detector[] for changed UI.
+- Initial real React/API/migrated synthetic SQL run: **21cases pass52.2s** across settings-v5,help-v5,workspace,lifecycle. Includes persisted save/conflict, owner session reload/logout, registration/billing landing, password revocation, workforce/annotation history, private-media/tenant/role restrictions, setup, support navigation and suspended-owner security.
+- After meaningful failed-refresh fix/additional state coverage: **13settings/workspace cases pass24.9s**. This repeats a subset and adds one Settings case; do not claim34distinct tests.
+- **35Settings +22Help PNGs** and20base desktop/phone EN/UR observations, zero base overflow/JS errors; all57PNG widths match labels. Agent C independently inspected all12Settings/eightHelp-information core states plus meaningful extra states; no significant open captured-core layout/RTL defect. Additional24independent reference PNGs recorded by C.
+- New unavailable/legacy-unverified state uses temporary disposable SQL mutation restored in finally. Loading delays forward real requests. Network-abort errors are explicitly labelled frontend fault seams followed by actual API retry; no positive API response replaced. Empty credential fields, no trace/video/auth-state artifacts.
+- Manager settings image explicitly named redirect-loading; actual403 and canonical safe redirect proved, but Dashboard visual acceptance is not claimed. Wider credential pending/error visuals and real provider-positive states remain unverified.
+- Spec validator: **42specs/0errors/12existing justified warnings**. Current output docs/implementation/planning/validator.md; source consumers explicitly recorded in40.
+
+## Durable evidence and changed paths
+
+Read `V5_PARALLEL_CHECKPOINT.md`, `V5_SETTINGS.md`, `V5_HELP.md`, `V5_PARALLEL_QA.md` and current `V5_IMPLEMENTATION.md`29-entry ledger. Screenshots/manifests/provenance are in `v5-settings-evidence/`, `v5-help-evidence/`, `v5-parallel-qa-evidence/`. Capture harness: frontend/e2e/settings-v5.spec.ts and help-v5.spec.ts.
+
+Runtime changes: frontend/src/pages/Account/AccountPages.tsx,settings-v5.css; Help/HelpPage.tsx,help.css; i18n/accountTranslations.ts,serviceTranslations.ts; main.tsx public Help/Information route wrapper only. Related behavior tests, launchPages title test and workspace title assertions updated. Specs30/38/40, inventories30/38, AGENT-GUIDE, PROGRESS and implementation ledger/report docs updated. Design/v5 immutable; no new prototype.
+
+## Environment, cleanup and preservation
+
+- Existing Vite5173 PID40737 cwd root/frontend and backend8080 PID122972 cwd root/backend verified before edits; frontend defaults/api and proxy127.0.0.1:8080. Root now contains integrated source plus the preserved user overlay. Both existing user servers left running. No screenshots/tests used the restored local customer database56445.
+- Guarded tests used explicitly owned local PostgreSQL16 bootstrap127.0.0.1:56442/priv_e2e_test, fresh UUID child per run, private cwd/env/web assets and unused dynamic ports. No env copied to worktrees, no production access. Final independent read confirms **0generated child DBs**. Owned56442cluster STOPPED; QA5197static server STOPPED; temporary runner secrets/runtime cleaned. No native device connected.
+- All9original dirty tracked-file bytes were checked unchanged immediately after root integration. Eight unrelated source/config files remain byte-identical: CI,gitignore,DESIGN,backend package,manager controller/routes,manager translations,Dashboard. The original local-compatibility handoff append remains **unstaged**, preserved separately from this header. No blanket staging. Untracked design/skills/performance/investor inputs preserved. Baseline hashes/patch: /tmp/hygene-v5-parallel-preserved.json and /tmp/hygene-v5-parallel-start.patch.
+
+## Remaining work and next priority
+
+Core Settings/Help/Information shown above are implemented and visually verified with contract-driven deviations documented; this does not complete all-state/full-spec/full-product V5. Remaining owner/manager dashboards, Team/staff details/workforce dialogs, Locations/detail/forms, Attendance/context, Setup, Billing, restricted boundaries and broader Review states remain per ledger. Native actual-runtime acceptance blocked by no device; platform positive routes blocked by unqualified IdP. Mail delivery/valid delivered links, photo provider, actual configured legal/support/distribution/commercial qualification remain open. Do not bypass guards or fabricate product data to achieve screenshot parity.
+
+Recommended next independent group: **Team/staff detail/workforce (spec31)**, then Locations/Attendance/Setup/Billing; preserve the user's dirty Dashboard/performance implementation when eventually reconciling owner/manager charts. Read this checkpoint and ledger first; do not repeat completed auth/review/shared-shell/current core pages, discovery, backend specs or design prototypes. Continue only after the user's checkpoint choice.
+
+---
+
 # Latest checkpoint — V5 customer authentication — 2026-10-22
 
 **STOPPED AFTER THIS CHECKPOINT at the user's explicit request:** “after completeling this chkcpoint write a handof so i can make a new session”. Do not start another UI group in this session. A new session can resume the already approved V5 implementation when the user asks. Full V5 implementation is **INCOMPLETE**; spec30 remains In progress, spec40 incomplete, spec41 ineligible.
