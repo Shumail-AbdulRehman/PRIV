@@ -41,7 +41,7 @@ reading its old log. **Pending** includes screen/state checks still to perform.
 | team | `/staff`, `/staff/:id`, `/managers` | Existing | Pending | Historical | Staff register, details, owner manager tools |
 | attendance | `/attendance` | Existing | Pending | Historical | Register, filters, photos and details |
 | attendance-case | attendance detail/context dialog | Existing | Pending | Historical | Original facts, note, conflict and read-only states |
-| reviews | `/exceptions`, `/exceptions/:id` | Existing | Incomplete | Historical | Queue/evidence/decision composition; protected media, zoom, next, conflict |
+| reviews | `/exceptions`, `/exceptions/:id` | Existing + reason/draft correction | V5 core workspace implemented | Full suites + real API/SQL closure/filter/conflict checks | Paired EN/UR1366/390/1920 inspected; labelled image seam; broader closed/setup/held/large-queue/provider acceptance open (V5_REVIEWS.md) |
 | setup | `/setup` and linked existing setup forms | Existing | Pending | Historical | Derived progress, forms, readiness, unavailable activation |
 | workforce | staff/manager access and transfer dialogs | Existing | Pending | Historical | Actual staff parent workspace and permission variants |
 | billing | `/subscription` | Existing | Pending | Historical | Catalog/provider unavailability is a supported divergence |
@@ -75,7 +75,8 @@ reading its old log. **Pending** includes screen/state checks still to perform.
 - [x] Distinguish submitted from verified status; preserve semantic success/error colors.
 - [x] Correct native blue/white foundations in NativeWind/navigation/capture controls.
 - [ ] Complete screenshot correction/reinspection for all pages and variants.
-- [ ] Finish photo workspace queue/evidence/decision composition.
+- [x] Implement photo workspace queue/evidence/decision core composition.
+- [ ] Complete remaining review states and live retained-media acceptance; see V5_REVIEWS.md.
 - [ ] Finish customer/platform/form/table/chart parity page by page.
 - [ ] Verify native runtime camera/GPS/QR/upload/retry/Urdu on a real device/emulator.
 - [ ] Finish functional, authorization, state and responsive acceptance for every page.
@@ -207,3 +208,7 @@ Final isolated edge run:1passed, real backend,1366/390 EN/UR drawer/menu geometr
 corrected viewport screenshots directly inspected. The private child test databases
 were removed (0remaining); the owned56442test cluster and temporary5199preview were
 stopped. User Vite5173/backend8080 remain running. No merge/deployment.
+
+## 2026-10-22 — Photo Reviews continuation
+
+Issue84, `implementation/v5-photo-review-workspace`, based correction commit265f694/PR83. Real V5 review workspace now implemented with paired evidence and separate functional/visual limits in [V5_REVIEWS.md](V5_REVIEWS.md). Historical completion records remain unchanged; spec36 remains In progress. Full V5 scope remains incomplete.
