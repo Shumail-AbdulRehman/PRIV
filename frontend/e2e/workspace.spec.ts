@@ -15,11 +15,11 @@ test("owner signs in through React and persisted session survives reload/logout"
   await expect(page).toHaveURL(/dashboard/);
   await page.goto("/settings");
   await expect(
-    page.getByRole("heading", { name: "Organization settings" }),
+    page.getByRole("heading", { name: "Settings", exact: true }),
   ).toBeVisible();
   await page.reload();
   await expect(
-    page.getByRole("heading", { name: "Organization settings" }),
+    page.getByRole("heading", { name: "Settings", exact: true }),
   ).toBeVisible();
   await page
     .getByRole("button", { name: "Sign out", exact: true })
