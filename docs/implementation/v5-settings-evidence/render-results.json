@@ -1,0 +1,98 @@
+[
+  {
+    "section": "organization",
+    "width": 1366,
+    "lang": "en",
+    "overflow": false,
+    "errors": [],
+    "route": "/settings"
+  },
+  {
+    "section": "account",
+    "width": 1366,
+    "lang": "en",
+    "overflow": false,
+    "errors": [],
+    "route": "/settings?section=account"
+  },
+  {
+    "section": "security",
+    "width": 1366,
+    "lang": "en",
+    "overflow": false,
+    "errors": [],
+    "route": "/settings?section=security"
+  },
+  {
+    "section": "organization",
+    "width": 1366,
+    "lang": "ur",
+    "overflow": false,
+    "errors": [],
+    "route": "/settings"
+  },
+  {
+    "section": "account",
+    "width": 1366,
+    "lang": "ur",
+    "overflow": false,
+    "errors": [],
+    "route": "/settings?section=account"
+  },
+  {
+    "section": "security",
+    "width": 1366,
+    "lang": "ur",
+    "overflow": false,
+    "errors": [],
+    "route": "/settings?section=security"
+  },
+  {
+    "section": "organization",
+    "width": 390,
+    "lang": "en",
+    "overflow": false,
+    "errors": [],
+    "route": "/settings"
+  },
+  {
+    "section": "account",
+    "width": 390,
+    "lang": "en",
+    "overflow": false,
+    "errors": [],
+    "route": "/settings?section=account"
+  },
+  {
+    "section": "security",
+    "width": 390,
+    "lang": "en",
+    "overflow": false,
+    "errors": [],
+    "route": "/settings?section=security"
+  },
+  {
+    "section": "organization",
+    "width": 390,
+    "lang": "ur",
+    "overflow": false,
+    "errors": [],
+    "route": "/settings"
+  },
+  {
+    "section": "account",
+    "width": 390,
+    "lang": "ur",
+    "overflow": false,
+    "errors": [],
+    "route": "/settings?section=account"
+  },
+  {
+    "section": "security",
+    "width": 390,
+    "lang": "ur",
+    "overflow": false,
+    "errors": [],
+    "route": "/settings?section=security"
+  }
+]

@@ -17,3 +17,10 @@
 - `routes/launchPages.tsx` staff handoff: existing audience gate and logout retained; reuses38 `serviceInformation` approved Android link guard. This post-implementation correction is serialized on the completed38 base; the historical execution DAG is not being replayed.
 - `LoginPage.test.tsx`: real request payload/identity/cache behavior, translated validation, signup destination cooperation and failed session delivery. Existing AccountPages/launchPages tests retain owner/staff/role/security boundaries.
 - `docs/implementation/V5_AUTH.md`: implementation and four-part acceptance; spec40 consumes actual rendered evidence and original registration regression.
+
+## Issue88 V5 Organization/My account/Security
+
+- `AccountPages.tsx` CompanySettingsPage reuses existing settings/owner/password APIs and useSecurityCompletion; URL section choice, preserved organization draft and successful version refresh; no new contact mutation. Existing standalone OwnSecurityPage/forced-password/link/recovery behavior unchanged.
+- `settings-v5.css`: scoped approved settings panels, tabs, organization/security300px rail, responsive facts and48px controls using existing workspace semantic tokens; account.css retained.
+- `AccountPages.test.tsx`:23behavior cases including sections/real profile/RTL, trimmed-name validation, conflict/version refresh, pending receipt, inline password identity/cache revocation and failed-refetch draft preservation. Existing registered-route test updates only the approved Settings heading.
+- `docs/implementation/V5_SETTINGS.md` and `v5-settings-evidence/README.md`: actual source/contracts/deviations and integration provenance. Spec40 consumes `settings-v5.spec.ts` for real API/SQL and matching reference/application capture; coordinator owns final integration.35settingsPNG/12matrix observations inspected; final13settings/workspace cases pass, with explicitly labelled transport-abort and disposable unverified-status states. Provider delivery/full account acceptance remain unverified.
