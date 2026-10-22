@@ -6,6 +6,10 @@
 3. ARCHITECTURE.md, DESIGN-SYSTEM.md, INVENTORY.md and inventory fragments.
 4. Assigned spec; approved discovery/audit references only as needed.
 
+## Current checkpoint instruction — 2026-10-22
+
+The latest user explicitly authorized three native agents for the V5 Settings/Help/Information batch, then requested a checkpoint and a choice to continue here or in a new session. Parallel implementation uses isolated worktrees and exclusive files; QA stays source read-only. Finish this batch, save verification and handoff, then STOP. Earlier unlimited continuation/one-unit limitations are historical. Full V5/spec30/38/40 remains incomplete.
+
 ## One spec per session
 Default one focused unit; the user explicitly authorizes sequential units in this session. Finish verification and update handoff after each. Do not restart discovery/design or add a new prototype. Preserve pre-existing dirty changes documented in the survey.
 

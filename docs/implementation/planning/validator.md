@@ -1,4 +1,9 @@
-Validating /home/shumail/bkacup-16-oct-bkpriv/bk-Priv/PRIV/specs  (42 specs)
+# Parallel V5 checkpoint validator — 2026-10-22
+
+Command: `python3 .ai/plan-project/scripts/validate-specs.py specs`
+
+```text
+Validating /tmp/hygene-v5-integrated/specs  (42 specs)
 
 Parallel schedule  (10 waves · widest 9 · 42 specs)
   W0  00
@@ -33,8 +38,17 @@ Parallel schedule  (10 waves · widest 9 · 42 specs)
 37-native-workflows.md
   WARN   Depends on 09, 17, 20, 21 is already implied through another dependency
 
+40-e2e-suite.md
+  WARN   142 lines — over 130 usually means this should be two specs
+  WARN   creates 'docs/implementation/followups/E2E_DEFECTS.md' but no other spec mentions it — check it is not an endpoint or component with zero callers
+  WARN   creates 'frontend/package-lock.json' but no other spec mentions it — check it is not an endpoint or component with zero callers
+  WARN   creates 'frontend/package.json' but no other spec mentions it — check it is not an endpoint or component with zero callers
+
 41-verification-pass.md
   WARN   creates 'docs/implementation/VERIFICATION.md' but no other spec mentions it — check it is not an endpoint or component with zero callers
 
-42 specs · 0 error(s) · 8 warning(s)
+42 specs · 0 error(s) · 12 warning(s)
 Warnings are not blocking — justify each one in README.md under 'Known gaps', or fix it.
+```
+
+42specs/0errors/12existing justified warnings. All retained warnings are documented in specs/README.md. New settingsCSS/report are explicitly consumed by the existing spec40 harness. No new spec, design, API or dependency wave.
