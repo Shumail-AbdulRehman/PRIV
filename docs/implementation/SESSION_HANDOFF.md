@@ -1,3 +1,32 @@
+# Latest V5 Photo Reviews checkpoint — 2026-10-22
+
+Final checkpoint: clean-checkout frontend lint also passes; validator42specs/0errors/12justified warnings. No generated test DB remains; the owned56442 test cluster is stopped. User5173/8080 processes remain running. No next UI group has been edited.
+
+Implementation `d64e0ea` published as OPEN/DRAFT [PR85](https://github.com/Shumail-AbdulRehman/PRIV/pull/85), base `implementation/v5-visual-corrections`/PR83. Independent detached-worktree `/tmp/hygene-v5-review-clean-d64e0ea` passes backend/frontend builds and64Node+226React tests without user performance changes. Final six-case browser rerun passes in36.7s; final captures re-inspected.
+
+Current branch `implementation/v5-photo-review-workspace`, based265f694/PR83, issue84.
+Real `/exceptions` and `/exceptions/:id` share the V5 queue/evidence/task-record/decision
+workspace. Actual scoped filters, thumbnails/zoom/fit/enlargement, EN/UR responsive
+composition, protected image errors and notes/conflict navigation implemented.
+
+Verification:64Node+226React/18files; backend1441pass/7existing SQLskips; focused4backend
++28reviewReact; lint0; TypeScript/Vite build. Six guarded browser cases pass (five
+actual API/SQL cases, one explicitly labelled HTTP image seam).45 PNGs plus manifest
+in `v5-review-evidence`; final inspected phone detail hides queue controls and keeps
+evidence before decisions. Core evidence/decision composition corrected; broader
+closed/setup/held/large-queue and retained-provider visual acceptance remains open.
+See V5_REVIEWS.md for exact scope/provenance/deviations. Full V5 remains INCOMPLETE.
+
+All eight unrelated tracked diffs match `/tmp/hygene-v5-start.patch` byte-for-byte.
+Original handoff append remains unstaged. No production/provider enablement, merge,
+reset or force push. Device/operator-provider blockers remain as documented below.
+
+Next related group is customer authentication/recovery/signup (existing AuthShell,
+LoginPage, SignUpPage and spec30 account screens). Inspected only; no edits or new
+issue yet. Keep user dashboard/performance work intact and continue V5 sequentially.
+
+---
+
 # Active V5 correction checkpoint — 2026-10-22
 
 Source commit5313b73 passes clean detached-worktree frontend build and64Node+220React tests without copying the user performance work. Final real-backend edge geometry case passes for1366/390 EN/UR; menu/drawer screenshots were re-inspected.242PNG reference/app captures are committed, with capture coverage distinct from acceptance.0generated test DBs remain; owned56442cluster/temporary5199preview stopped; user5173/8080 left running.

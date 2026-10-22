@@ -8,7 +8,7 @@ they do not establish approved V5 visual implementation or verification. They ar
 retained without erasing their logs. The current four-part per-page ledger is in
 [the V5 implementation record](../docs/implementation/V5_IMPLEMENTATION.md).
 Spec40 remains in progress and41 remains ineligible. Current correction branch:
-`implementation/v5-visual-corrections`, issue82. No previous UI screen is newly
+`implementation/v5-photo-review-workspace`, issue84 (prior shell/Today correction issue82/PR83). No previous UI screen is newly
 marked visually verified merely because its existing tests pass.
 
 **Historical functional checkpoint (not V5 visual completion): Spec40 in progress** on `implementation/spec-40-launch-e2e`, issue79, draftPR81 https://github.com/Shumail-AbdulRehman/PRIV/pull/81 base39/dbbb51d. Decision00 and39of41execution/gate units remain Done;40is not complete and41is not eligible. Real persisted browser suite, guarded disposable DB and native templates implemented; full table/device/provider qualification remains incomplete and registration navigation has a confirmed failing regression. See `docs/implementation/E2E_RESULTS.md`. Latest user also requests fresh current-UI testing APK: independent build branch `build/hygeneops-android-testing-20261021`, draftPR80. Fresh testing APK completed and locally inspected: `frontend-mobile/build-output/HygeneOps-staff-2.1.7-ui-20261021.apk`, run39644524268 all3jobs passed; physical/provider qualification remains pending. No merge/deploy/provider activation; root dirty work preserved.
@@ -51,7 +51,7 @@ marked visually verified merely because its existing tests pass.
 | 33 | [Platform company workspace](33-platform-company-ui.md) | In progress | 24, 27 | Standard | #71 |PR72;11focused;57+176web;123backend; live auth gated |
 | 34 | [Platform sign-in and security workspace](34-platform-security-ui.md) | In progress | 19, 27 | Heavy | #59 |15focused; isolatedoperatorroutes; seeLog |
 | 35 | [Platform service audit and leads UI](35-platform-service-ui.md) | In progress | 25, 27 | Standard | #73 |PR74;22focused;57+198web;135backend; live auth gated |
-| 36 | [Truthful task and photo review UX](36-photo-review-ui.md) | In progress | 20, 21, 27 | Standard | #66 | PR67;22focused;17new backend; see Log |
+| 36 | [Truthful task and photo review UX](36-photo-review-ui.md) | In progress | 20, 21, 27 | Standard | #84 | Historical issue66/PR67 retained; V5 core correction/evidence in V5_REVIEWS.md; full acceptance incomplete |
 | 37 | [Native attendance/photo/account recovery](37-native-workflows.md) | In progress | 09, 17, 20, 21, 26 | Standard | #60 |101native/tsc/Expoexport; deviceunverified |
 | 38 | [Configured support and service information](38-service-information.md) | In progress | 27, 25 | Standard | #75 |PR76;16help+24billing;57+215web;109backend |
 | 39 | [Launch operations and active CI proof](39-release-operations.md) | Done | 03, 26 | Heavy | #77 |PR78;13readiness;10SQL+7invariants;all4CIjobs pass; release blocked |
@@ -143,3 +143,7 @@ marked visually verified merely because its existing tests pass.
   Paired real-app/V5 screenshots and current check results are recorded separately
   in V5_IMPLEMENTATION.md. Full V5 coverage remains incomplete pending every screen,
   state and native acceptance requirement. User changes preserved; no production action.
+
+- **2026-10-22 — V5 Photo Reviews implementation (issue84):** real queue/evidence/task record/decision workspace, EN/UR1366/390/1920; scoped API reason filter, protected thumbnails/zoom/fit/dialog, draft-preserving view navigation and stale conflict lock. Full backend1441pass/7existing SQLskips; web64Node+226React/18files; lint0/TypeScript/Vite build; six guarded browser cases pass including actual closure/filter/foreign-site denial/concurrent conflict and a separately labelled image HTTP presentation seam.45 paired/state PNGs and six zero-overflow/JS-error observations under v5-review-evidence. Screenshot inspection corrected inherited mobile decision-first ordering and removed selected-phone queue controls. Spec36 remains In progress: broader recorded closed/setup/held/large-queue/live retained-media acceptance remains open. Full V5/native/operator qualification incomplete. Existing eight tracked diffs unchanged; no production action.
+
+Implementation `d64e0ea` published as OPEN/DRAFT [PR85](https://github.com/Shumail-AbdulRehman/PRIV/pull/85), base `implementation/v5-visual-corrections`/PR83. Independent detached-worktree `/tmp/hygene-v5-review-clean-d64e0ea` passes backend/frontend builds and64Node+226React tests without user performance changes. Final six-case browser rerun passes in36.7s; final captures re-inspected.

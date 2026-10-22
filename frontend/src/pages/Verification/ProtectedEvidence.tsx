@@ -14,11 +14,13 @@ export default function ProtectedEvidence({
   privacyState,
   allowRestrictedReview = false,
   alt = "Verification evidence",
+  variant = "default",
 }: {
   assetId: string;
   privacyState?: string;
   allowRestrictedReview?: boolean;
   alt?: string;
+  variant?: "default" | "workspace" | "thumbnail";
 }) {
   const { t } = useLanguage();
   const [image, setImage] = useState<{ key: string; url: string } | null>(null);
@@ -30,7 +32,7 @@ export default function ProtectedEvidence({
   const reviewAllowed = held && allowRestrictedReview;
   const allowed = ["SAFE", "NOT_REQUIRED"].includes(privacyState ?? "") || reviewAllowed;
   const key = `${assetId}:${privacyState}`;
-  const root = useRef<HTMLDivElement>(null);
+  const root = useRef<HTMLElement>(null);
   const [visible, setVisible] = useState(false);
   useEffect(() => {
     if (!allowed || !root.current) return;
@@ -62,6 +64,9 @@ export default function ProtectedEvidence({
       if (url) URL.revokeObjectURL(url);
     };
   }, [assetId, key, allowed, retry, visible]);
+  if (variant === 'thumbnail') return <span ref={node=>{root.current=node;}} className="v5-evidence-thumbnail">
+    {!allowed ? <span>{t('Photo restricted')}</span> : failed?.key === key ? <span>{t('Photo unavailable')}</span> : image?.key === key ? <img src={image.url} alt={t(alt)} onError={()=>setFailed({key})}/> : <span>{t('Loading…')}</span>}
+  </span>;
   if (!allowed)
     return (
       <p className="ops-evidence-placeholder">
@@ -83,7 +88,7 @@ export default function ProtectedEvidence({
       </div>
     );
   return (
-    <div ref={root}>
+    <div ref={node=>{root.current=node;}}>
       {url ? (
         <div className="ops-protected-image">
           {reviewAllowed ? (
@@ -93,7 +98,14 @@ export default function ProtectedEvidence({
               )}
             </p>
           ) : null}
-          <button
+          {variant === 'workspace' && <div className="v5-evidence-toolbar">
+            <Button variant="ghost" aria-label={t('Zoom out')} disabled={zoom<=1} onClick={()=>setZoom(z=>Math.max(1,z-.5))}><ZoomOut size={16}/></Button>
+            <output aria-label={t('Photo zoom')}>{Math.round(zoom*100)}%</output>
+            <Button variant="ghost" aria-label={t('Zoom in')} disabled={zoom>=3} onClick={()=>setZoom(z=>Math.min(3,z+.5))}><ZoomIn size={16}/></Button>
+            <Button variant="ghost" onClick={()=>setZoom(1)}>{t('Fit')}</Button>
+            <Button variant="ghost" onClick={()=>{setZoom(1);setExpanded(true);}}><Expand size={16}/>{t('Enlarge photo')}</Button>
+          </div>}
+          {variant === 'workspace' ? <div className="v5-evidence-stage"><img alt={t(alt)} src={url} onError={()=>setFailed({key})} style={{width:`${zoom*100}%`,height:`${zoom*100}%`,maxWidth:'none'}}/></div> : <><button
             className="ops-image-button"
             onClick={() => {
               setZoom(1);
@@ -101,7 +113,7 @@ export default function ProtectedEvidence({
             }}
             aria-label={t("Enlarge photo")}
           >
-            <img alt={t(alt)} src={url} />
+            <img alt={t(alt)} src={url} onError={()=>setFailed({key})} />
           </button>
           <Button
             variant="ghost"
@@ -112,12 +124,14 @@ export default function ProtectedEvidence({
           >
             <Expand size={16} />
             {t("Enlarge photo")}
-          </Button>
+          </Button></>}
           <Dialog open={expanded} onOpenChange={setExpanded}>
             <DialogContent className="workspace ops-image-dialog sm:max-w-5xl">
               <DialogTitle>{t("Review photo")}</DialogTitle>
               <DialogDescription>{t(alt)}</DialogDescription>
               <div className="ops-zoom-toolbar">
+                <Button variant="outline" onClick={()=>setZoom(1)}>{t("Fit")}</Button>
+                <output aria-label={t("Photo zoom")}>{Math.round(zoom*100)}%</output>
                 <Button
                   aria-label={t("Zoom out")}
                   variant="outline"
@@ -141,6 +155,7 @@ export default function ProtectedEvidence({
                 <img
                   alt={t(alt)}
                   src={url}
+                  onError={()=>setFailed({key})}
                   style={{ width: `${zoom * 100}%`, maxWidth: "none" }}
                 />
               </div>

@@ -35,4 +35,17 @@ describe("review badge count", () => {
     await expect(countReviews(actor, {})).rejects.toMatchObject({ statusCode: 403 });
     expect(db.count).not.toHaveBeenCalled();
   });
+  it("keeps the optional reason predicate inside the same company and assigned-site scope", async () => {
+    await countReviews(actor, { reasonCode: "MISSING_EVIDENCE", q: "sink" });
+    const where = db.count.mock.calls[0][0].where;
+    expect(where.AND[0].AND[0]).toEqual({ companyId: 3, locationId: { in: [2] }, issues: { some: { reasonCode: "MISSING_EVIDENCE" } } });
+    expect(where.AND[0].AND[1].OR).toHaveLength(4);
+    expect(where.AND[1]).toEqual({ state: { in: ["OPEN", "MANAGER_REVIEW"] } });
+  });
+  it("rejects oversized reason filters before any database access", async () => {
+    await expect(countReviews(actor, { reasonCode: "x".repeat(81) })).rejects.toBeDefined();
+    expect(db.actor).not.toHaveBeenCalled();
+    expect(db.count).not.toHaveBeenCalled();
+  });
+
 });

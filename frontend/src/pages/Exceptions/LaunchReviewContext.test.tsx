@@ -28,7 +28,7 @@ function mount(content:React.ReactNode, lang='en') {
 }
 beforeEach(()=>{
  vi.clearAllMocks();localStorage.clear();detail=fixture();
- api.get.mockImplementation(async(url:string)=>({data:{data:url.endsWith('/next')?{nextId:null}:structuredClone(detail)}}));
+ api.get.mockImplementation(async(url:string)=>({data:{data:url.endsWith('/next')?{nextId:null}:url==='/verification-exceptions'?{cases:[structuredClone(detail)],page:1,pageSize:20,total:1,totalPages:1,locations:[],queueCounts:{}}:structuredClone(detail)}}));
  api.post.mockResolvedValue({data:{data:{}}});
 });
 it('separates received photos from unsubmitted work and verification',()=>{
@@ -77,7 +77,7 @@ it('preserves closure note on conflict and requires refresh',async()=>{
  await screen.findByText('This review changed. Refresh before saving. Your note is kept.');expect(screen.getByRole('textbox',{name:'Resolution note'})).toHaveValue('Synthetic conflict note');
 });
 it('renders denied parent read without retaining private review or fabricated empty state',async()=>{
- api.get.mockRejectedValue({response:{status:403}});mount(<ExceptionDetailPage/>);await waitFor(()=>expect(screen.getByRole('alert')).toBeInTheDocument());expect(screen.queryByText('Synthetic sink')).not.toBeInTheDocument();expect(screen.queryByRole('button',{name:'Resolve review'})).not.toBeInTheDocument();
+ api.get.mockRejectedValue({response:{status:403}});mount(<ExceptionDetailPage/>);await waitFor(()=>expect(screen.getAllByRole('alert').length).toBeGreaterThan(0));expect(screen.queryByText('Synthetic sink')).not.toBeInTheDocument();expect(screen.queryByRole('button',{name:'Resolve review'})).not.toBeInTheDocument();
 });
 it('never requests held evidence without authorized review mode',()=>{
  mount(<ProtectedEvidence assetId="private" privacyState="HOLD"/>);expect(screen.getByText(/Sensitive image restricted/)).toBeInTheDocument();expect(api.get).not.toHaveBeenCalled();
@@ -107,6 +107,5 @@ it('records a deliberate attributed performance issue only through the closure A
 
 it('shows queue submission, review closure and verified evidence as separate recorded facts',async()=>{
  detail.task!.staffSubmittedAt='2026-10-21T04:00:00Z';detail.state='RESOLVED';
- api.get.mockResolvedValue({data:{data:{cases:[detail],page:1,pageSize:20,total:1,totalPages:1,locations:[],queueCounts:{}}}});
- mount(<ExceptionInboxPage/>);await screen.findAllByText('Task submitted');expect(screen.getAllByText('Review closed').length).toBeGreaterThan(0);expect(screen.queryByText('Verified completion recorded')).not.toBeInTheDocument();expect(api.get).toHaveBeenCalledWith('/verification-exceptions',expect.objectContaining({params:expect.objectContaining({queue:'needs-me',page:'1'})}));
+ mount(<ExceptionInboxPage/>);await screen.findAllByText('Task submitted');expect(within(screen.getByRole('region',{name:'Review queue'})).getByText('Review handled')).toBeInTheDocument();expect(screen.getAllByText('Review closed').length).toBeGreaterThan(0);expect(screen.queryByText('Verified completion recorded')).not.toBeInTheDocument();expect(api.get).toHaveBeenCalledWith('/verification-exceptions',expect.objectContaining({params:expect.objectContaining({queue:'needs-me',page:'1'})}));
 });
