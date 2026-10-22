@@ -1,3 +1,99 @@
+# Latest checkpoint — V5 customer authentication — 2026-10-22
+
+**STOPPED AFTER THIS CHECKPOINT at the user's explicit request:** “after completeling this chkcpoint write a handof so i can make a new session”. Do not start another UI group in this session. A new session can resume the already approved V5 implementation when the user asks. Full V5 implementation is **INCOMPLETE**; spec30 remains In progress, spec40 incomplete, spec41 ineligible.
+
+## Saved Git state
+
+- Root: `/home/shumail/bkacup-16-oct-bkpriv/bk-Priv/PRIV`.
+- Branch: `implementation/v5-customer-auth`, based `d15e37f` on prior review branch/PR85.
+- Implementation commit: `68709b1` (`fix(ui): implement V5 customer authentication and recovery journeys`). A final documentation commit records this handoff; inspect HEAD with `git log -3 --oneline`.
+- Current issue86: https://github.com/Shumail-AbdulRehman/PRIV/issues/86.
+- OPEN/DRAFT PR87: https://github.com/Shumail-AbdulRehman/PRIV/pull/87, base `implementation/v5-photo-review-workspace`/PR85.
+- Prior correction stack: PR83 shared shell/Today → PR85 Photo Reviews → PR87 public auth. No PR merged, branch reset, force push or deployment.
+
+## What was actually implemented
+
+Approved V5 public journey composition is now in the real React app, with actual APIs:
+
+1. `/login`: centered brand/title/card, real owner/manager/staff credential controls, translated EN/UR validation, denial and pending state.
+2. `/signup`: real owner/company registration in the same approved public foundation, translated validation/receipt and preserved failed-session behavior.
+3. `/recover-owner-account`: approved recovery heading/layout; actual request, neutral receipt and unavailable delivery.
+4. `/reset-owner-password` and `/verify-owner-email`: shared public layout, missing/invalid links, existing reset/explicit confirmation; first-import fragment scrub, explicit POST, no action consumed on GET, session/cache clearing preserved.
+5. `/account/security`: shared public security form; remains reachable independently of company/billing restrictions and supports forced replacement. It is not full company settings visual acceptance.
+6. STAFF web handoff on protected destinations: V5 public handoff, actual identity/logout and existing approved Android distribution guard. No fake download, app-open route or native verification claim.
+7. Fixed the known registration redirect race in App GuestRoute: authenticated ADMIN on `/signup` now chooses canonical `/subscription`, agreeing with the signup hook's `/choose-plan`. Other role/login/welcome destinations remain. The original persisted regression passes without changed expectations or interception.
+
+AuthShell no longer mounts the older marketing navbar/sample-dashboard preview. BrandLogo, LanguageChoice, Tailwind/shadcn controls and existing blue/white tokens are reused. Language control sizing and link affordance were corrected after screenshot inspection. Password/email inputs remain LTR within Urdu.
+
+Important source observation: the actual V5 login/recovery gallery HTML loads `journeys.js`/`journeys.css` and renders centered public cards. Unused split-auth functions in `app.js` are not their rendered source of truth. Always open the actual prototype HTML before implementing a page.
+
+## Code and evidence to read
+
+- `docs/implementation/V5_AUTH.md`: scope, four independent acceptance facts, commands, deviations and remaining gates.
+- `docs/implementation/v5-auth-evidence/README.md`:79 actual/reference/state PNGs and provenance; `render-results.json` has36 observations.
+- `frontend/src/components/common/AuthShell.tsx`, `auth.css`.
+- `frontend/src/pages/Login/LoginPage.tsx`, `LoginPage.test.tsx`.
+- `frontend/src/pages/Signup/SignUpPage.tsx`; signup API/hook/atomicity contracts unchanged.
+- `frontend/src/pages/Account/AccountPages.tsx`, `account.css`, `i18n/accountTranslations.ts`.
+- `frontend/src/App.tsx` GuestRoute; `routes/launchPages.tsx` staff handoff; existing `pages/Help/serviceInformation.ts` approved distribution guard.
+- `frontend/e2e/customer-auth-v5.spec.ts`; existing lifecycle/workspace tests retained.
+- `docs/implementation/followups/E2E_DEFECTS.md`: historical registration failure preserved with dated current correction.
+- `specs/30-account-ui.md`, inventory30,13/27 serialized presentation ownership logs and40 browser consumption updated.
+- `docs/implementation/V5_IMPLEMENTATION.md`: complete29-entry V5-to-app inventory and remaining page/status checklist; read before choosing another group.
+
+## Verification actually performed
+
+- Whole web:64 Node utility tests +235 React tests/19files, zero failures.
+- Focused account/auth/role:50 tests/4files, zero failures.
+- Backend owner identity:60 tests/1file, zero failures; no backend business code/schema/dependency changed.
+- Frontend lint zero findings; frontend TypeScript and production build pass. Guarded runner separately compiles backend, browser-test types and frontend before building private web assets.
+-21 real React/API/SQL browser cases passed in36.7s across customer-auth, lifecycle and workspace specs. Covers current screenshot matrix, owner/staff login/logout, pending/rejected login, delivery503, persisted registration/password/session revocation, staff recovery, manager replacement, refresh concurrency, private media denial, original billing-landing regression, saved settings/conflicts, setup, role/tenant/site boundaries and restricted own-security.
+- Final five auth/capture cases passed again in23.4s after capture refinements.
+- Matching1366×900 and390×900 EN/UR reference/app renders;79 PNG widths checked against labels;36 recorded observations with no horizontal overflow or JS errors. Main public routes assert40px brand-to-title geometry.
+- No HTTP response replaced. One pending test delays then forwards the actual sign-in request; credential pixels are masked during capture. Other captures have empty password fields. No traces/video/saved auth state.
+- Reset/verify form captures use a shaped but **never-issued** fragment in volatile memory, scrubbed before render; explicit verification returns actual400. This tests form/invalid-link behavior and is NOT delivered-link success or authority bypass. No token is in navigation call logs or artifacts.
+- Independent clean worktree `/tmp/hygene-v5-auth-clean-68709b1` excludes the user's performance edits:64Node+235React, frontend TypeScript/production build and full frontend lint all pass. Implementation is verified without copying the dirty performance work.
+- Spec validator:42specs/0errors/12previously justified warnings. No new spec/design artifact or parallel agent dispatch.
+
+## Environment and safe test commands
+
+Vite5173 PID40737 serves this root `frontend`; backend8080 (last observed PID122972, watch restarts change PID) serves this root `backend`. Frontend defaults `/api`, proxy `http://127.0.0.1:8080`. Both cwd paths verified. User processes remain running. Backend uses the documented guarded restored **local** PG17 at56445/hygene_ops_local. Do not use that restored customer database for screenshot/test fixtures.
+
+Owned disposable test PG16 cluster `/tmp/hygene-spec40-postgres-data` at127.0.0.1:56442 is STOPPED after tests;0 generated `priv_e2e_test_*` databases remained. Temporary runner servers/assets/secrets were cleaned. To resume isolated browser verification:
+
+```bash
+/tmp/hygene-spec39-postgres-tools/usr/lib/postgresql/16/bin/pg_ctl -D /tmp/hygene-spec40-postgres-data -l /tmp/hygene-next-v5-postgres.log -o '-h 127.0.0.1 -p 56442 -k /tmp' start
+HYGENE_E2E_DATABASE_URL=postgresql://shumail@127.0.0.1:56442/priv_e2e_test HYGENE_E2E_BROWSER_PATH=/usr/bin/google-chrome npm run test:e2e --prefix frontend -- customer-auth-v5.spec.ts lifecycle.spec.ts workspace.spec.ts
+```
+
+The existing guarded runner creates/migrates a UUID child DB, seeds synthetic records, strips checkout env, serves its private runtime/web build and cleans everything. Never point it at production or restored customer data. Do not share frontend/dist with a running screenshot test. Normal test/build/lint commands are in AGENT-GUIDE.
+
+## Preserve these user changes
+
+Eight unrelated tracked source/config diffs remain byte-for-byte equal to `/tmp/hygene-v5-start.patch`:
+`.github/workflows/ci.yml`, `.gitignore`, `DESIGN.md`, `backend/package.json`,
+`backend/src/controllers/managerOperations.controller.ts`, `backend/src/routes/manager.route.ts`,
+`frontend/src/i18n/managerTranslations.ts`, `frontend/src/pages/Dashboard/DashboardPage.tsx`.
+
+The original five-line local compatibility-repair append in this handoff remains in the working file and UNSTAGED. It was not included in our commits. Do not blindly stage the whole handoff: preserve that append; use HEAD text plus only new checkpoint text in the index, as prior corrections did.
+
+Untracked skills/design/performance/plan/investor files remain preserved and unstaged, including backend companyPerformance files, frontend Dashboard performance.css/ts, performanceBrowser script, design/, `.agents/skills`, `.ai/`, `.impeccable/review/`, docs plan/performance and investor-video. Do not reset, clean, stash indiscriminately or include these in a UI correction commit.
+
+## Remaining work and next session
+
+Full V5 is still incomplete. The next suggested related group is **organization/settings**, not started. Inspect actual V5 `settings.html` role/tabs, `CompanySettingsPage`, `account.css`, `workspaceRoutes`, own-security behavior and current API permissions. Existing organization UI is still linear/older; prototype uses clear organization/my-account/security sections. Preserve owner-only organization reads and independent own-password access; do not broaden backend authorization just to copy prototype tabs. Continue with actual components/data and matching desktop/phone EN/UR screenshots.
+
+Then continue remaining owner/manager dashboards, team/staff details/access dialogs, locations/details/forms, attendance/context, setup, billing, help/information and other inventory entries. Preserve the user's Dashboard/performance implementation. Platform positive routes remain blocked by unqualified IdP; never bypass guards. Native ADB rechecked: no connected device/emulator. Native palette/export checks from earlier checkpoints do not qualify native visuals. Owner email delivery remains unconfigured (actual503); delivered valid-link success remains open. Broader Photo Reviews closed/setup/held/large-queue/retained-provider states also remain open.
+
+Passing tests/builds never proves visual completion. Keep four facts separate: functional implementation, visual implementation, functional verification, visual verification. Reopened UI specs remain incomplete until all required states/roles/screens pass; keep historical records. No design/v6, new HTML prototype, rediscovery, backend repeat, merge, deployment or production action.
+
+Known CSS pitfall from earlier V5 work: production optimization lowers `translate:none` while Tailwind individual translation can survive. Keep the existing edge sidebar/drawer override's `--tw-translate-x/y:0px`, transform/translate/animation resets and logical insets; verify actual production geometry after changes.
+
+Suggested first message in the new session:
+“Read docs/implementation/SESSION_HANDOFF.md and continue the approved design/v5 implementation from organization/settings. Preserve all dirty work, use the existing plan-project workflow, and verify real rendered screenshots. Do not create another design/prototype.”
+
+---
+
 # Latest V5 Photo Reviews checkpoint — 2026-10-22
 
 Final checkpoint: clean-checkout frontend lint also passes; validator42specs/0errors/12justified warnings. No generated test DB remains; the owned56442 test cluster is stopped. User5173/8080 processes remain running. No next UI group has been edited.

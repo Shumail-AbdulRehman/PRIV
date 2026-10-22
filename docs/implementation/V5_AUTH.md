@@ -94,3 +94,7 @@ Backend business code/schema/dependencies were not changed.
 User requests **stop after this checkpoint and write a handoff for a new session**.
 Do not start organization settings or another group in this session. Preserve all
 original dirty changes; no merge, reset, deployment or production database changes.
+
+## Saved checkpoint
+
+Implementation68709b1 is published in OPEN/DRAFT [PR87](https://github.com/Shumail-AbdulRehman/PRIV/pull/87), base PR85. Independent clean checkout passes frontend build/TypeScript/lint and64Node+235React tests. Backend owner-identity60 tests pass. Full new-session restart, dirty-file preservation and remaining scope are in [SESSION_HANDOFF.md](SESSION_HANDOFF.md). The owned test cluster is stopped with0 generated databases remaining; user5173/8080 remain running. No next UI group was started.
