@@ -1,5 +1,7 @@
 # Latest V5 Photo Reviews checkpoint — 2026-10-22
 
+Implementation `d64e0ea` published as OPEN/DRAFT [PR85](https://github.com/Shumail-AbdulRehman/PRIV/pull/85), base `implementation/v5-visual-corrections`/PR83. Independent detached-worktree `/tmp/hygene-v5-review-clean-d64e0ea` passes backend/frontend builds and64Node+226React tests without user performance changes. Final six-case browser rerun passes in36.7s; final captures re-inspected.
+
 Current branch `implementation/v5-photo-review-workspace`, based265f694/PR83, issue84.
 Real `/exceptions` and `/exceptions/:id` share the V5 queue/evidence/task-record/decision
 workspace. Actual scoped filters, thumbnails/zoom/fit/enlargement, EN/UR responsive

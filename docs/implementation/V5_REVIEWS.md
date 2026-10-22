@@ -84,3 +84,6 @@ Final capture/checkpoint results are recorded there and in the spec log.
 No production service/database, provider activation, merge, reset or force push.
 All eight unrelated tracked diffs remain byte-for-byte unchanged; original handoff
 append and unrelated untracked files are preserved and excluded from this correction.
+
+Implementation `d64e0ea` published as OPEN/DRAFT [PR85](https://github.com/Shumail-AbdulRehman/PRIV/pull/85), base `implementation/v5-visual-corrections`/PR83. Independent detached-worktree `/tmp/hygene-v5-review-clean-d64e0ea` passes backend/frontend builds and64Node+226React tests without user performance changes. Final six-case browser rerun passes in36.7s; final captures re-inspected.
+
