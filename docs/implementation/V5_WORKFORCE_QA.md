@@ -34,3 +34,7 @@ Meaningful supported differences: prototype reviewer strip omitted; real data/id
 Functional geometry, Escape/focus return, Team navigation and role/API denials are reported passing by Agent A's two guarded browser cases; this QA inspected their screenshots/manifest but did not independently rerun those cases. The manifest reports zero page overflow/JavaScript errors for the eight role/viewport/language base observations. Final generic dialog Urdu close-label/logical-position correction still requires A's focused rerun before final Spec27 closure; it does not block the stable shell layout contract. Page-specific V5 states and native/operator qualification are outside this shell conclusion.
 
 Specification31 actual-app rendered review is pending the implementation output. Reference capture alone is not acceptance.
+
+### Shared-target follow-up before final shell acceptance
+
+Q27-01: source/readable capture review identified trailing shared language-button minimums38px desktop/44px phone, below the closed-system44/48px floor. Agent A was asked to measure and normalize the hit areas in its owned shared stylesheet and rerun the shell gate. This does not block the stable layout contract consumed by Workforce, but final Spec27 acceptance must record its resolution. Existing Staff handoff signout has44px phone minimum in the separately owned auth stylesheet; record or transfer this small Spec30 follow-up rather than silently treating screenshot legibility as full target-size acceptance.
