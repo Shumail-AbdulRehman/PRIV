@@ -743,4 +743,12 @@ export const managerUrdu: Record<string, string> = {
   "Overdue work": "تاخیر شدہ کام",
   "Daily submitted task counts": "روزانہ جمع شدہ کاموں کی تعداد",
   "Needs attention for this day": "اس دن توجہ درکار ہے",
+  "Performance summary": "کارکردگی کا خلاصہ",
+  "Open photo reviews": "تصویروں کے کھلے جائزے",
+  "Submitted work is separate from verification.": "جمع شدہ کام تصدیق سے الگ ہے۔",
+  "Photo reviews": "تصویروں کے جائزے",
+  "Attendance follow-up": "حاضری کی پیروی",
+  "locations": "مقامات",
+  "verified": "تصدیق شدہ",
+  "accepted with exceptions": "استثنا کے ساتھ قبول شدہ",
 };

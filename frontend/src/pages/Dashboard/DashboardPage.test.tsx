@@ -65,3 +65,9 @@ it('keeps empty assigned scope distinct and translates the actual manager view i
   saved = { ...saved, sites: [] }; mount('MANAGER', 'ur'); await screen.findByRole('heading', { name: 'ابھی کوئی مقام تفویض نہیں' });
   expect(document.documentElement.dir).toBe('rtl'); expect(screen.queryByRole('link', { name: 'مقامات کا انتظام' })).not.toBeInTheDocument();
 });
+
+it('translates populated Urdu report and action labels, including verification guidance', async () => {
+ mount('ADMIN','ur');await screen.findByRole('region',{name:'کارکردگی کا خلاصہ'});
+ expect(screen.getByRole('link',{name:/تصویروں کے جائزے/})).toBeInTheDocument();expect(screen.getByRole('link',{name:/حاضری کی پیروی/})).toBeInTheDocument();
+ expect(screen.queryByText('Open photo reviews')).not.toBeInTheDocument();expect(screen.queryByText('Submitted work is separate from verification.')).not.toBeInTheDocument();
+});

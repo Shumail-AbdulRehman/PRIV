@@ -151,3 +151,5 @@ These owned surfaces are consumed by the flow table above or the clean verificat
 - The Setup form visual flow also consumes `frontend/src/pages/Area/setup-forms.css`.
 
 - Real Setup area-form capture/persistence consumes `frontend/src/pages/Area/AreaTemplateForm.tsx` and `frontend/src/pages/Area/LocationAreasTab.tsx`, preserving their mutation/archival contracts.
+
+- Site-history boundary verification consumes `frontend/src/pages/Location/locationStatsFilter.ts` and its calendar-boundary behavior tests.
