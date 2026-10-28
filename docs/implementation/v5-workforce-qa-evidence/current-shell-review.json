@@ -1,0 +1,218 @@
+{
+  "date": "2026-10-28",
+  "sourceApplicationCommit": "7965d06",
+  "currentHarnessCommit": "2ab7c96",
+  "runtimeWorktree": "/home/shumail/.local/share/hygene-ops/v5-worktrees-20261028/shell",
+  "scopedVisualGate": "pass",
+  "actualImagesDirectlyInspected": 32,
+  "referenceImages": 8,
+  "images": [
+    {
+      "name": "v5-owner-390-en.png",
+      "width": 390,
+      "height": 900
+    },
+    {
+      "name": "app-manager-security-390-en.png",
+      "width": 390,
+      "height": 900
+    },
+    {
+      "name": "v5-owner-1366-en.png",
+      "width": 1366,
+      "height": 900
+    },
+    {
+      "name": "app-localized-dialog-390-en.png",
+      "width": 390,
+      "height": 900
+    },
+    {
+      "name": "app-lazy-resource-fault-390-en.png",
+      "width": 390,
+      "height": 900
+    },
+    {
+      "name": "app-staff-handoff-390-en.png",
+      "width": 390,
+      "height": 900
+    },
+    {
+      "name": "v5-manager-1366-en.png",
+      "width": 1366,
+      "height": 900
+    },
+    {
+      "name": "app-owner-390-en.png",
+      "width": 390,
+      "height": 900
+    },
+    {
+      "name": "app-not-found-390-ur.png",
+      "width": 390,
+      "height": 900
+    },
+    {
+      "name": "v5-owner-1366-ur.png",
+      "width": 1366,
+      "height": 900
+    },
+    {
+      "name": "app-not-found-1366-ur.png",
+      "width": 1366,
+      "height": 900
+    },
+    {
+      "name": "app-owner-390-ur.png",
+      "width": 390,
+      "height": 900
+    },
+    {
+      "name": "app-not-found-1366-en.png",
+      "width": 1366,
+      "height": 900
+    },
+    {
+      "name": "app-manager-security-390-ur.png",
+      "width": 390,
+      "height": 900
+    },
+    {
+      "name": "app-lazy-resource-fault-1366-en.png",
+      "width": 1366,
+      "height": 900
+    },
+    {
+      "name": "app-staff-handoff-1366-en.png",
+      "width": 1366,
+      "height": 900
+    },
+    {
+      "name": "v5-manager-390-ur.png",
+      "width": 390,
+      "height": 900
+    },
+    {
+      "name": "app-localized-dialog-390-ur.png",
+      "width": 390,
+      "height": 900
+    },
+    {
+      "name": "v5-manager-390-en.png",
+      "width": 390,
+      "height": 900
+    },
+    {
+      "name": "app-manager-390-ur.png",
+      "width": 390,
+      "height": 900
+    },
+    {
+      "name": "app-localized-dialog-1366-en.png",
+      "width": 1366,
+      "height": 900
+    },
+    {
+      "name": "app-manager-390-en.png",
+      "width": 390,
+      "height": 900
+    },
+    {
+      "name": "app-owner-1366-ur.png",
+      "width": 1366,
+      "height": 900
+    },
+    {
+      "name": "app-lazy-resource-fault-1366-ur.png",
+      "width": 1366,
+      "height": 900
+    },
+    {
+      "name": "app-manager-security-1366-ur.png",
+      "width": 1366,
+      "height": 900
+    },
+    {
+      "name": "app-manager-menu-390-ur.png",
+      "width": 390,
+      "height": 900
+    },
+    {
+      "name": "app-lazy-resource-fault-390-ur.png",
+      "width": 390,
+      "height": 900
+    },
+    {
+      "name": "app-staff-handoff-390-ur.png",
+      "width": 390,
+      "height": 900
+    },
+    {
+      "name": "app-manager-1366-ur.png",
+      "width": 1366,
+      "height": 900
+    },
+    {
+      "name": "app-not-found-390-en.png",
+      "width": 390,
+      "height": 900
+    },
+    {
+      "name": "app-manager-1366-en.png",
+      "width": 1366,
+      "height": 900
+    },
+    {
+      "name": "app-manager-menu-390-en.png",
+      "width": 390,
+      "height": 900
+    },
+    {
+      "name": "app-staff-handoff-1366-ur.png",
+      "width": 1366,
+      "height": 900
+    },
+    {
+      "name": "app-localized-dialog-1366-ur.png",
+      "width": 1366,
+      "height": 900
+    },
+    {
+      "name": "app-owner-1366-en.png",
+      "width": 1366,
+      "height": 900
+    },
+    {
+      "name": "app-owner-menu-390-ur.png",
+      "width": 390,
+      "height": 900
+    },
+    {
+      "name": "app-owner-menu-390-en.png",
+      "width": 390,
+      "height": 900
+    },
+    {
+      "name": "v5-owner-390-ur.png",
+      "width": 390,
+      "height": 900
+    },
+    {
+      "name": "app-manager-security-1366-en.png",
+      "width": 1366,
+      "height": 900
+    },
+    {
+      "name": "v5-manager-1366-ur.png",
+      "width": 1366,
+      "height": 900
+    }
+  ],
+  "dimensionErrors": [],
+  "baseObservationCount": 8,
+  "baseOverflowCount": 0,
+  "basePageErrorCount": 0,
+  "functionalAttribution": "Agent A guarded runner; log inspected independently",
+  "browserOutcome": "3 passed (50.0s)",
+  "nativeProviderWholeProductAcceptance": false
+}
