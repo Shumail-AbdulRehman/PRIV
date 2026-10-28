@@ -23,7 +23,7 @@ beforeEach(() => { localStorage.clear(); sessionStorage.clear(); });
 
 it('missing qualified provider shows a disabled action with an explanation and no registration/password form', () => {
   mount();
-  expect(screen.getByRole('heading', { name: 'Platform sign in', level: 1 })).toBeInTheDocument();
+  expect(screen.getByRole('heading', { name: 'Platform operator sign-in', level: 1 })).toBeInTheDocument();
   expect(screen.getByRole('button', { name: 'Continue with identity provider' })).toBeDisabled();
   expect(screen.getByText('Platform sign in is not configured. Contact your platform administrator for access.')).toBeInTheDocument();
   expect(screen.queryByRole('textbox')).not.toBeInTheDocument();
@@ -103,13 +103,43 @@ it('cleanup failures stay explicit and retryable without reporting success', asy
   await screen.findByRole('status');
 });
 
+it('cleanup announces pending work, prevents repeated submission, and preserves company data', async () => {
+  const { queryClient } = mount('/platform/security');
+  queryClient.setQueryData(['tenant', 'locations'], { kept: true });
+  let finish!: () => void;
+  const cancellation = vi.spyOn(queryClient, 'cancelQueries').mockImplementationOnce(() => new Promise<void>(resolve => { finish = resolve; }));
+  fireEvent.click(screen.getByRole('button', { name: 'Clear platform session' }));
+  const pending = screen.getByRole('button', { name: 'Clearing…' });
+  expect(pending).toBeDisabled();
+  expect(pending).toHaveAttribute('aria-busy', 'true');
+  fireEvent.click(pending);
+  expect(cancellation).toHaveBeenCalledTimes(1);
+  expect(screen.queryByRole('status')).not.toBeInTheDocument();
+  finish();
+  await screen.findByRole('status');
+  expect(screen.getByRole('button', { name: 'Clear platform session' })).toBeEnabled();
+  expect(queryClient.getQueryData(['tenant', 'locations'])).toEqual({ kept: true });
+});
+
+it('public security and callback render complete Urdu guidance without provider controls', async () => {
+  const view = mount('/platform/security', 'ur');
+  expect(screen.getByRole('heading', { level: 1, name: 'پلیٹ فارم کی سیکیورٹی' })).toBeInTheDocument();
+  expect(screen.getByRole('button', { name: 'سیکیورٹی فراہم کنندہ کھولیں' })).toBeDisabled();
+  fireEvent.click(screen.getByRole('button', { name: 'پلیٹ فارم کا سیشن صاف کریں' }));
+  expect(await screen.findByRole('status')).toHaveTextContent('کمپنی کا سیشن برقرار ہے۔');
+  view.unmount();
+  mount('/platform/callback?code=untrusted&state=untrusted#access_token=untrusted', 'ur');
+  expect(await screen.findByRole('alert')).toHaveTextContent('پلیٹ فارم کا کوئی سیشن نہیں بنا۔');
+  expect(screen.queryByRole('textbox')).not.toBeInTheDocument();
+});
+
 it('complete Urdu interface follows persisted RTL language and switches without enabling access', async () => {
   mount('/platform/login', 'ur');
-  expect(screen.getByRole('heading', { name: 'پلیٹ فارم میں سائن ان' })).toBeInTheDocument();
+  expect(screen.getByRole('heading', { name: 'پلیٹ فارم آپریٹر کا داخلہ' })).toBeInTheDocument();
   expect(screen.getByRole('button', { name: 'شناخت فراہم کنندہ کے ذریعے جاری رکھیں' })).toBeDisabled();
   await waitFor(() => expect(document.documentElement.dir).toBe('rtl'));
   fireEvent.click(screen.getByRole('button', { name: 'English' }));
-  expect(screen.getByRole('heading', { name: 'Platform sign in' })).toBeInTheDocument();
+  expect(screen.getByRole('heading', { name: 'Platform operator sign-in' })).toBeInTheDocument();
   expect(document.documentElement.dir).toBe('ltr');
 });
 
@@ -118,5 +148,5 @@ it('the operator boundary never mounts protected children without a qualified pr
   const router = createMemoryRouter([{ path: '*', element: <OperatorBoundary><div>Restricted platform records</div></OperatorBoundary> }]);
   render(<QueryClientProvider client={queryClient}><LanguageProvider><RouterProvider router={router} /></LanguageProvider></QueryClientProvider>);
   expect(screen.queryByText('Restricted platform records')).not.toBeInTheDocument();
-  expect(screen.getByRole('heading', { name: 'Platform sign in' })).toBeInTheDocument();
+  expect(screen.getByRole('heading', { name: 'Platform operator sign-in' })).toBeInTheDocument();
 });

@@ -1,5 +1,10 @@
 /** Feature-local dictionary: the tenant translation registration stays untouched. */
 export const operatorUrdu: Record<string, string> = {
+  'Platform operator sign-in': 'پلیٹ فارم آپریٹر کا داخلہ',
+  'Only provisioned operators can access customer-account administration. Company owners use a separate sign-in.': 'صرف مجاز بنائے گئے آپریٹر کسٹمر اکاؤنٹ کا انتظام کر سکتے ہیں۔ کمپنی مالکان کا داخلہ الگ ہے۔',
+  'Restricted operator identity': 'محدود آپریٹر شناخت',
+  'Protect privileged business-account access.': 'کاروباری اکاؤنٹس تک خصوصی رسائی محفوظ کریں۔',
+  'Clear only the platform data held in this browser.': 'صرف اس براؤزر میں موجود پلیٹ فارم کا ڈیٹا صاف کریں۔',
   'Platform sign in': 'پلیٹ فارم میں سائن ان',
   'Platform security': 'پلیٹ فارم کی سیکیورٹی',
   'Platform operations': 'پلیٹ فارم کی کارروائیاں',
