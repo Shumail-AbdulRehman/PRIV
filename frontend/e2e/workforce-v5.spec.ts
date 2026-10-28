@@ -34,12 +34,16 @@ test('V5 Team detail and manager workspaces render actual scoped data across des
     await enter(page, '/staff', 'ownerA', lang);
     await expect(exactPerson(page, 'E2E staff transfer')).toBeVisible();
     await capture(page, `app-team-${width}-${lang}`);
+    await page.locator('.workforce-directory').evaluate(element => element.scrollIntoView({ block: 'start' }));
+    await capture(page, `app-team-directory-${width}-${lang}`);
     const ref = await context.newPage();
     await ref.goto('file://' + join(root, 'design/v5/team.html') + '?lang=' + lang);
     await capture(ref, `v5-team-${width}-${lang}`);
     await page.goto(`/staff/${fixture.staff.transfer.id}`);
     await expect(page.getByRole('heading', { name: 'E2E staff transfer', exact: true })).toBeVisible();
     await capture(page, `app-detail-${width}-${lang}`);
+    await page.locator('.workforce-detail-tabs').evaluate(element => element.scrollIntoView({ block: 'start' }));
+    await capture(page, `app-detail-overview-${width}-${lang}`);
     for (const [tab, translated] of [['Attendance', 'حاضری'], ['Task history', 'کام کی تاریخ'], ['Cleaning schedule', 'صفائی کا شیڈول']]) {
       await page.getByRole('button', { name: lang === 'ur' ? translated : tab, exact: true }).click();
       await capture(page, `app-detail-${tab.toLowerCase().replaceAll(' ', '-')}-${width}-${lang}`);
@@ -47,6 +51,8 @@ test('V5 Team detail and manager workspaces render actual scoped data across des
     await page.goto('/managers');
     await expect(exactPerson(page, 'E2E manager A')).toBeVisible();
     await capture(page, `app-managers-${width}-${lang}`);
+    await page.locator('.workforce-directory').evaluate(element => element.scrollIntoView({ block: 'start' }));
+    await capture(page, `app-manager-directory-${width}-${lang}`);
     await ref.goto('file://' + join(root, 'design/v5/workforce.html') + '?lang=' + lang);
     await capture(ref, `v5-workforce-${width}-${lang}`);
     observations.push({ width, lang, routes: ['/staff', `/staff/${fixture.staff.transfer.id}`, '/managers'], overflow: false, errors: [...errors], provenance: 'Actual API and synthetic SQL. Detail uses V5 conventions because prototype detail is a placeholder.' });

@@ -23,6 +23,8 @@ test('V5 attendance register and context render actual records in desktop phone 
     await enter(page, '/attendance', 'ownerA', lang);
     await expect(page.getByText('E2E staff openShift', { exact: true }).filter({ visible: true }).first()).toBeVisible();
     await capture(page, `app-attendance-${width}-${lang}`);
+    await page.locator('.attendance-register').evaluate(element => element.scrollIntoView({ block: 'start' }));
+    await capture(page, `app-attendance-register-${width}-${lang}`);
     const ref = await context.newPage(); await ref.goto('file://' + join(root, 'design/v5/attendance.html') + '?lang=' + lang);
     await capture(ref, `v5-attendance-${width}-${lang}`);
     await page.getByRole('button', { name: lang === 'ur' ? 'حاضری کا سیاق' : 'Attendance context', exact: true }).filter({ visible: true }).first().click();
@@ -37,6 +39,35 @@ test('V5 attendance register and context render actual records in desktop phone 
     expect(errors).toEqual([]); await context.close();
   }
   await writeFile(join(out, 'render-results.json'), JSON.stringify(observations, null, 2));
+});
+
+test('attendance loading and error preserve the filter frame and manager context stays authorized', async ({ browser }) => {
+  test.setTimeout(90000);
+  for (const lang of ['en', 'ur']) {
+    const context = await browser.newContext({ viewport: { width: 390, height: 900 } });
+    const page = await context.newPage(); let release!: () => void;
+    const heldRead = new Promise<void>(resolve => { release = resolve; });
+    await page.route('**/api/attendance/**', async route => {
+      if (new URL(route.request().url()).pathname === '/api/attendance/') await heldRead;
+      await route.continue();
+    });
+    await enter(page, '/attendance', 'managerA', lang);
+    await expect(page.locator('.attendance-summary')).toHaveAttribute('aria-busy', 'true');
+    await capture(page, `app-attendance-forwarded-loading-390-${lang}`); release();
+    await expect(page.getByText('E2E staff openShift', { exact: true }).filter({ visible: true }).first()).toBeVisible();
+    await page.unroute('**/api/attendance/**');
+    await page.route('**/api/attendance/**', route => new URL(route.request().url()).pathname === '/api/attendance/' ? route.abort('failed') : route.continue());
+    await page.reload(); await expect(page.locator('.attendance-register [role=alert]')).toBeVisible();
+    await expect(page.locator('.attendance-summary strong')).toHaveText(['—', '—', '—', '—']);
+    await capture(page, `app-attendance-transport-error-390-${lang}`);
+    await page.unroute('**/api/attendance/**');
+    await page.getByRole('button', { name: lang === 'ur' ? 'دوبارہ کوشش کریں' : 'Retry', exact: true }).click();
+    await expect(page.getByText('E2E staff openShift', { exact: true }).filter({ visible: true }).first()).toBeVisible();
+    await page.getByRole('button', { name: lang === 'ur' ? 'حاضری کا سیاق' : 'Attendance context', exact: true }).filter({ visible: true }).first().click();
+    await expect(page.getByRole('dialog').getByLabel(lang === 'ur' ? 'وجہ (لازمی)' : 'Reason (required)')).toBeVisible();
+    await capture(page, `app-context-manager-390-${lang}`);
+    await context.close();
+  }
 });
 
 test('attendance filters use scoped API and empty date results without admitting foreign locations', async ({ page }) => {
