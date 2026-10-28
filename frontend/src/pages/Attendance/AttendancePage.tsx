@@ -1,482 +1,130 @@
-import AttendanceContext from "@/pages/Attendance/AttendanceContext";
-import ProtectedAttendancePhoto, { type AttendancePhoto } from "@/components/common/ProtectedAttendancePhoto";
-import OperationsState from "../Manager/OperationsState";
-import { useState } from "react";
-import { useGetAttendance } from "./queries";
-import { useGetStaff } from "../Staff/queries";
-import PageHeader from "@/components/common/PageHeader";
-import DataTable from "@/components/common/DataTable";
-import StatusBadge from "@/components/common/StatusBadge";
-import LoadingSpinner from "@/components/common/LoadingSpinner";
-import type { Column } from "@/components/common/DataTable";
-import { CalendarCheck, Filter } from "lucide-react";
-import StatCard from "@/components/common/StatCard";
-import FilterBar from "@/components/common/FilterBar";
-import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import { getAttendanceDisplayStatus } from "@/lib/attendance";
-import { formatInTimeZone } from "date-fns-tz";
+import { useState, type FormEvent } from 'react';
+import { Link } from 'react-router-dom';
+import { CalendarCheck, RefreshCw } from 'lucide-react';
+import { formatInTimeZone } from 'date-fns-tz';
+import { useLanguage } from '@/i18n/context';
+import PageHeader from '@/components/common/PageHeader';
+import DataTable, { type Column } from '@/components/common/DataTable';
+import StatusBadge from '@/components/common/StatusBadge';
+import ProtectedAttendancePhoto, { type AttendancePhoto } from '@/components/common/ProtectedAttendancePhoto';
+import { Button } from '@/components/ui/button';
+import { getAttendanceDisplayStatus } from '@/lib/attendance';
+import { useGetLocations } from '../Location/queries';
+import { useGetStaff } from '../Staff/queries';
+import OperationsState from '../Manager/OperationsState';
+import AttendanceContext from './AttendanceContext';
+import { useGetAttendance } from './queries';
+import type { AttendanceFilters } from './api';
+import './attendance-v5.css';
 
 interface AttendanceRecord {
-  id: number;
-  staffId: number;
-  locationId: number;
-  date: string;
-  expectedStart: string;
-  expectedEnd: string;
-  checkInTime: string | null;
-  checkOutTime: string | null;
-  status: string;
-  isLateCheckIn: boolean;
-  lateMinutes: number | null;
-  checkInImage: string | null;
-  checkOutImage: string | null;
-  checkInPhoto?: AttendancePhoto;
-  checkOutPhoto?: AttendancePhoto;
+  id: number; staffId: number; locationId: number; date: string;
+  expectedStart: string; expectedEnd: string; checkInTime: string | null; checkOutTime: string | null;
+  status: string; isLateCheckIn: boolean; lateMinutes: number | null;
+  checkInPhoto?: AttendancePhoto; checkOutPhoto?: AttendancePhoto;
   staff: { id: number; name: string; email: string };
-  location: { id: number; name: string; timezone: string };
+  location: { id: number; name: string; timezone?: string };
 }
-
-interface StaffOption {
-  id: number;
-  name: string;
-}
-
-const fmtDate = (d: string) => {
-  const date = new Date(d);
-  return `${String(date.getUTCDate()).padStart(2, "0")} ${date.toLocaleDateString(
-    "en-US",
-    {
-      month: "short",
-      year: "numeric",
-      timeZone: "UTC",
-    },
-  )}`;
-};
-
-const fmtTime = (d: string | null, timeZone = "UTC") => {
-  if (!d) return "—";
-  return formatInTimeZone(new Date(d), timeZone, "HH:mm");
-};
-
-const fmtTimeWithTz = (d: string | null, timeZone = "UTC") => {
-  if (!d) return "—";
-  return formatInTimeZone(new Date(d), timeZone, "HH:mm (zzz)");
-};
-
-const inputCls =
-  "h-11 rounded-lg border border-border/80 bg-background/90 px-4 py-2 text-sm shadow-xs outline-none focus:border-primary/60 focus:ring-4 focus:ring-primary/10";
-
-const toDateInputValue = (date: Date) =>
-  `${date.getUTCFullYear()}-${String(date.getUTCMonth() + 1).padStart(2, "0")}-${String(date.getUTCDate()).padStart(2, "0")}`;
-
-const getCurrentMonthValue = () => {
-  const now = new Date();
-  return `${now.getUTCFullYear()}-${String(now.getUTCMonth() + 1).padStart(2, "0")}`;
-};
-
-const getMonthOptions = (count = 12) => {
-  const options: { value: string; label: string }[] = [];
-  const cursor = new Date();
-
-  for (let index = 0; index < count; index += 1) {
-    const value = `${cursor.getUTCFullYear()}-${String(cursor.getUTCMonth() + 1).padStart(2, "0")}`;
-    const label = cursor.toLocaleDateString("en-US", {
-      month: "long",
-      year: "numeric",
-      timeZone: "UTC",
-    });
-    options.push({ value, label });
-    cursor.setUTCMonth(cursor.getUTCMonth() - 1);
-  }
-
-  return options;
-};
+interface Site { id: number; name: string; timezone: string }
+interface StaffOption { id: number; name: string; locationId?: number | null }
+const calendarDate = (date = new Date(), timezone = 'UTC') => formatInTimeZone(date, timezone, 'yyyy-MM-dd');
 
 export default function AttendancePage() {
-  const todayValue = toDateInputValue(new Date());
-  const [selectedQuickFilter, setSelectedQuickFilter] = useState<
-    "today" | "yesterday" | "this-month" | null
-  >("today");
-  const [staffFilter, setStaffFilter] = useState<string>("");
-  const [month, setMonth] = useState(getCurrentMonthValue());
-  const [dateFrom, setDateFrom] = useState(todayValue);
-  const [dateTo, setDateTo] = useState(todayValue);
-  const [appliedFilters, setAppliedFilters] = useState<{
-    staffId?: number;
-    from?: string;
-    to?: string;
-  }>({
-    from: todayValue,
-    to: todayValue,
-  });
-  const monthOptions = getMonthOptions();
-
-  const attendanceQuery = useGetAttendance(appliedFilters);
-  const { data, isLoading } = attendanceQuery;
+  const { t, language } = useLanguage();
+  const [location, setLocation] = useState('');
+  const [staff, setStaff] = useState('');
+  const [from, setFrom] = useState(() => calendarDate());
+  const [to, setTo] = useState(() => calendarDate());
+  const [month, setMonth] = useState(() => calendarDate().slice(0, 7));
+  const [validation, setValidation] = useState('');
+  const [applied, setApplied] = useState<AttendanceFilters>(() => ({ from: calendarDate(), to: calendarDate() }));
+  const locationsQuery = useGetLocations();
   const staffQuery = useGetStaff();
-
-  if (isLoading) return <LoadingSpinner fullScreen />;
-
-  const records: AttendanceRecord[] = data?.data ?? [];
+  const query = useGetAttendance(applied);
+  const sites = (locationsQuery.data?.data ?? []) as Site[];
   const allStaff = (staffQuery.data?.data ?? []) as StaffOption[];
-  const displayStatuses = records.map((record) =>
-    getAttendanceDisplayStatus(record, new Date(), record.location.timezone),
-  );
+  const records = ((query.data?.data ?? []) as AttendanceRecord[]).map(record => ({
+    ...record,
+    location: { ...record.location, timezone: record.location.timezone ?? sites.find(site => site.id === record.locationId)?.timezone },
+  }));
+  const selectedSite = sites.find(site => String(site.id) === location);
+  const appliedSite = sites.find(site => site.id === applied.locationId);
+  const appliedStaff = allStaff.find(person => person.id === applied.staffId);
+  const now = new Date();
+  const checkedIn = records.filter(record => record.checkInTime).length;
+  const checkedOut = records.filter(record => record.checkOutTime).length;
+  const late = records.filter(record => record.isLateCheckIn || record.status === 'LATE').length;
+  const hasRecords = !!query.data && !query.isError;
+  const dateLabel = (value?: string) => value ? new Intl.DateTimeFormat(language === 'ur' ? 'ur-PK' : 'en-PK', { timeZone: 'UTC', dateStyle: 'medium' }).format(new Date(value + 'T00:00:00Z')) : t('Any date');
+  const time = (value: string | null, timezone?: string) => value ? formatInTimeZone(new Date(value), timezone ?? 'UTC', 'HH:mm') : t('Not recorded');
+  const capture = (record: AttendanceRecord) => ({ ...record, location: { ...record.location, timezone: record.location.timezone ?? 'UTC' } });
 
-  const presentCount = displayStatuses.filter(
-    (status) => status === "CHECKED_IN" || status === "CHECKED_OUT",
-  ).length;
-  const absentCount = displayStatuses.filter(
-    (status) => status === "ABSENT",
-  ).length;
-  const lateCount = displayStatuses.filter(
-    (status) => status === "LATE",
-  ).length;
-  const shiftNotStartedCount = displayStatuses.filter(
-    (status) => status === "SHIFT_NOT_STARTED",
-  ).length;
-
-  const applyFilters = () => {
-    setAppliedFilters({
-      staffId: staffFilter ? Number(staffFilter) : undefined,
-      from: dateFrom || undefined,
-      to: dateTo || undefined,
-    });
-    setSelectedQuickFilter(null);
-  };
-
-  const applyMonthFilter = () => {
-    const [year, monthIndex] = month.split("-").map(Number);
-    if (!year || !monthIndex) return;
-
-    const startDate = new Date(Date.UTC(year, monthIndex - 1, 1));
-    const endDate = new Date(Date.UTC(year, monthIndex, 0));
-
-    const from = toDateInputValue(startDate);
-    const to = toDateInputValue(endDate);
-
-    setDateFrom(from);
-    setDateTo(to);
-    setAppliedFilters({
-      staffId: staffFilter ? Number(staffFilter) : undefined,
-      from,
-      to,
-    });
-    setSelectedQuickFilter("this-month");
-  };
-
-  const applyQuickRange = (type: "today" | "yesterday" | "this-month") => {
-    if (type === "today") {
-      const today = toDateInputValue(new Date());
-      setDateFrom(today);
-      setDateTo(today);
-      setAppliedFilters({
-        staffId: staffFilter ? Number(staffFilter) : undefined,
-        from: today,
-        to: today,
-      });
-      setSelectedQuickFilter("today");
-      return;
+  function apply(event?: FormEvent, range?: { from: string; to: string }) {
+    event?.preventDefault();
+    const start = range?.from ?? from, end = range?.to ?? to;
+    if (!start || !end || start > end) { setValidation('Choose a valid date range. From must be on or before To.'); return; }
+    setValidation(''); setFrom(start); setTo(end);
+    setApplied({ locationId: location ? Number(location) : undefined, staffId: staff ? Number(staff) : undefined, from: start, to: end });
+  }
+  function quick(type: 'today' | 'yesterday' | 'month') {
+    if (type === 'month') {
+      const [year, number] = month.split('-').map(Number);
+      if (!year || !number || number > 12) return;
+      apply(undefined, { from: `${month}-01`, to: calendarDate(new Date(Date.UTC(year, number, 0))) });
+    } else {
+      const date = calendarDate(now, selectedSite?.timezone);
+      const day = new Date(date + 'T12:00:00Z');
+      if (type === 'yesterday') day.setUTCDate(day.getUTCDate() - 1);
+      const value = calendarDate(day); apply(undefined, { from: value, to: value });
     }
-
-    if (type === "yesterday") {
-      const yesterday = new Date();
-      yesterday.setUTCDate(yesterday.getUTCDate() - 1);
-      const value = toDateInputValue(yesterday);
-      setDateFrom(value);
-      setDateTo(value);
-      setAppliedFilters({
-        staffId: staffFilter ? Number(staffFilter) : undefined,
-        from: value,
-        to: value,
-      });
-      setSelectedQuickFilter("yesterday");
-      return;
-    }
-
-    applyMonthFilter();
-  };
-
-  const clearFilters = () => {
-    const currentMonth = getCurrentMonthValue();
-    const today = toDateInputValue(new Date());
-    setMonth(currentMonth);
-    setDateFrom(today);
-    setDateTo(today);
-    setStaffFilter("");
-    setAppliedFilters({
-      from: today,
-      to: today,
-    });
-    setSelectedQuickFilter("today");
-  };
-
+  }
+  function reset() {
+    const date = calendarDate(); setLocation(''); setStaff(''); setFrom(date); setTo(date); setMonth(date.slice(0, 7)); setValidation('');
+    setApplied({ from: date, to: date });
+  }
+  const staffCell = (record: AttendanceRecord) => <div className="attendance-person"><span className="workspace-avatar" aria-hidden="true">{record.staff.name.split(' ').map(word => word[0]).join('').slice(0, 2)}</span><div><Link to={`/staff/${record.staff.id}`}><bdi>{record.staff.name}</bdi></Link><small><bdi>{record.location.name}</bdi> · <bdi>{dateLabel(record.date.slice(0, 10))}</bdi></small></div></div>;
+  const shiftCell = (record: AttendanceRecord) => <div><bdi>{time(record.expectedStart, record.location.timezone)} – {time(record.expectedEnd, record.location.timezone)}</bdi><small>{record.location.timezone ?? t('UTC · location timezone unavailable')}</small></div>;
+  const timeCell = (record: AttendanceRecord) => <div><span>{t('Check-in')}: <bdi>{time(record.checkInTime, record.location.timezone)}</bdi></span><small>{t('Check-out')}: <bdi>{time(record.checkOutTime, record.location.timezone)}</bdi></small></div>;
+  const statusCell = (record: AttendanceRecord) => <div><StatusBadge status={getAttendanceDisplayStatus(record, now, record.location.timezone ?? 'UTC')} />{record.isLateCheckIn && record.status !== 'LATE' ? <small>{t('Late arrival')}</small> : null}{record.lateMinutes ? <small>{t('{minutes} minutes late', { minutes: record.lateMinutes })}</small> : null}</div>;
+  const actions = (record: AttendanceRecord) => <div className="attendance-row-actions"><AttendanceContext attendance={capture(record)} staffName={record.staff.name} /><details className="attendance-photo-options"><summary>{t('Photos')}</summary><div><ProtectedAttendancePhoto attendanceId={record.id} kind="check-in" photo={record.checkInPhoto} /><ProtectedAttendancePhoto attendanceId={record.id} kind="check-out" photo={record.checkOutPhoto} /></div></details></div>;
   const columns: Column<AttendanceRecord>[] = [
-    {
-      key: "staff",
-      header: "Staff",
-      sortValue: (r) => r.staff.name,
-      render: (r) => (
-        <div className="flex items-center gap-3">
-          <div className="flex h-8 w-8 items-center justify-center rounded-full bg-blue-50 text-xs font-bold text-blue-700">
-            {r.staff.name
-              .split(" ")
-              .map((w) => w[0])
-              .join("")
-              .slice(0, 2)
-              .toUpperCase()}
-          </div>
-          <span className="font-medium text-gray-800">{r.staff.name}</span>
-        </div>
-      ),
-    },
-    {
-      key: "location",
-      header: "Location",
-      sortValue: (r) => r.location.name,
-      render: (r) => <span className="text-gray-500">{r.location.name}</span>,
-    },
-    {
-      key: "date",
-      header: "Date",
-      sortValue: (r) => r.date,
-      render: (r) => <span className="text-gray-600">{fmtDate(r.date)}</span>,
-    },
-    {
-      key: "shift",
-      header: "Expected Shift",
-      render: (r) => (
-        <span className="text-gray-600">
-          {fmtTimeWithTz(r.expectedStart, r.location.timezone)} –{" "}
-          {fmtTimeWithTz(r.expectedEnd, r.location.timezone)}
-        </span>
-      ),
-    },
-    {
-      key: "checkIn",
-      header: "Check In",
-      render: (r) => (
-        <span
-          className={
-            r.isLateCheckIn ? "font-medium text-amber-600" : "text-emerald-600"
-          }
-        >
-          {fmtTime(r.checkInTime, r.location.timezone)}
-        </span>
-      ),
-    },
-    {
-      key: "checkOut",
-      header: "Check Out",
-      render: (r) => (
-        <span className="text-gray-600">
-          {fmtTime(r.checkOutTime, r.location.timezone)}
-        </span>
-      ),
-    },
-    {
-      key: "status",
-      header: "Status",
-      sortValue: (r) =>
-        getAttendanceDisplayStatus(r, new Date(), r.location.timezone),
-      render: (r) => (
-        <StatusBadge
-          status={getAttendanceDisplayStatus(
-            r,
-            new Date(),
-            r.location.timezone,
-          )}
-        />
-      ),
-    },
-    {
-      key: "lateMin",
-      header: "Late",
-      render: (r) =>
-        r.lateMinutes ? (
-          <span className="font-medium text-amber-600">+{r.lateMinutes}m</span>
-        ) : (
-          <span className="text-gray-400">—</span>
-        ),
-    },
-    {
-      key: "context",
-      header: "Attendance context",
-      render: (r) => <AttendanceContext attendance={r} staffName={r.staff.name} />,
-    },
-    {
-      key: "checkInImg",
-      header: "Check-In Photo",
-      render: (r) => <ProtectedAttendancePhoto attendanceId={r.id} kind="check-in" photo={r.checkInPhoto} />,
-    },
-    {
-      key: "checkOutImg",
-      header: "Check-Out Photo",
-      render: (r) => <ProtectedAttendancePhoto attendanceId={r.id} kind="check-out" photo={r.checkOutPhoto} />,
-    },
+    { key: 'staff', header: 'Staff member', sortValue: record => record.staff.name, render: staffCell },
+    { key: 'shift', header: 'Shift', render: shiftCell },
+    { key: 'check-in', header: 'Check-in / out', render: timeCell },
+    { key: 'status', header: 'Status', sortValue: record => getAttendanceDisplayStatus(record, now, record.location.timezone ?? 'UTC'), render: statusCell },
+    { key: 'actions', header: 'Photo & context', render: actions },
   ];
-
-  return (
-    <div className="space-y-6">
-      <PageHeader
-        title="Attendance"
-        subtitle="Track check-ins, check-outs, late arrivals, and absences across the team."
-      />
-
-      <div className="grid grid-cols-2 gap-4 xl:grid-cols-4">
-        <StatCard
-          label="Present"
-          value={presentCount}
-          icon={CalendarCheck}
-          tone="emerald"
-        />
-        <StatCard
-          label="Absent"
-          value={absentCount}
-          icon={CalendarCheck}
-          tone="amber"
-        />
-        <StatCard label="Late" value={lateCount} icon={Filter} />
-        <StatCard
-          label="Shift Not Started"
-          value={shiftNotStartedCount}
-          icon={CalendarCheck}
-          tone="slate"
-        />
+  const metrics = [
+    ['Scheduled shifts', records.length, 'Recorded for the applied dates'],
+    ['Checked in', checkedIn, 'Includes late arrivals'],
+    ['Late arrivals', late, 'Recorded against the shift'],
+    ['Checked out', checkedOut, 'Captured checkouts'],
+  ] as const;
+  return <div className="attendance-v5">
+    <PageHeader title="Attendance" subtitle="Know who is on site. Follow every check-in with confidence." />
+    <form className="attendance-filter-panel" onSubmit={apply}>
+      <div className="attendance-primary-filters">
+        <label>{t('Location')}<select aria-label={t('Location')} value={location} onChange={event => { setLocation(event.target.value); setStaff(''); }} disabled={locationsQuery.isPending || locationsQuery.isError}><option value="">{t('All locations')}</option>{sites.map(site => <option key={site.id} value={site.id}>{site.name}</option>)}</select></label>
+        <label>{t('From')}<input aria-label={t('From date')} type="date" value={from} required onChange={event => setFrom(event.target.value)} /></label>
+        <label>{t('To')}<input aria-label={t('To date')} type="date" value={to} required onChange={event => setTo(event.target.value)} /></label>
+        <Button type="submit">{t('Apply filters')}</Button>
       </div>
-
-      <FilterBar className="xl:grid-cols-[minmax(0,1fr)_auto_auto_auto]">
-        <div className="xl:col-span-4">
-          <label className="mb-2 block text-xs font-medium text-muted-foreground">
-            Quick filters
-          </label>
-          <div className="flex flex-wrap gap-2">
-            <Button
-              variant="outline"
-              className="rounded-lg"
-              aria-pressed={selectedQuickFilter === "today"}
-              onClick={() => applyQuickRange("today")}
-            >
-              Today
-            </Button>
-            <Button
-              variant="outline"
-              className="rounded-lg"
-              aria-pressed={selectedQuickFilter === "yesterday"}
-              onClick={() => applyQuickRange("yesterday")}
-            >
-              Yesterday
-            </Button>
-            <Button
-              variant="outline"
-              className="rounded-lg"
-              aria-pressed={selectedQuickFilter === "this-month"}
-              onClick={() => applyQuickRange("this-month")}
-            >
-              This Month
-            </Button>
-          </div>
-        </div>
-        <div>
-          <label className="mb-1.5 block text-xs font-medium text-muted-foreground">
-            Staff
-          </label>
-          <select
-            aria-label="Staff"
-            value={staffFilter}
-            onChange={(e) => setStaffFilter(e.target.value)}
-            className={inputCls}
-          >
-            <option value="">All Staff</option>
-            {allStaff.map((s) => (
-              <option key={s.id} value={s.id}>
-                {s.name}
-              </option>
-            ))}
-          </select>
-        </div>
-        <div>
-          <label className="mb-1.5 block text-xs font-medium text-muted-foreground">
-            Month
-          </label>
-          <select
-            aria-label="Month"
-            value={month}
-            onChange={(e) => setMonth(e.target.value)}
-            className={inputCls}
-          >
-            {monthOptions.map((option) => (
-              <option key={option.value} value={option.value}>
-                {option.label}
-              </option>
-            ))}
-          </select>
-        </div>
-        <div className="flex items-end">
-          <Button
-            onClick={applyMonthFilter}
-            variant="outline"
-            className="h-11 w-full rounded-lg xl:w-auto"
-          >
-            Apply month
-          </Button>
-        </div>
-        <div>
-          <label className="mb-1.5 block text-xs font-medium text-muted-foreground">
-            From
-          </label>
-          <Input
-            type="date"
-            aria-label="From date"
-            value={dateFrom}
-            onChange={(e) => setDateFrom(e.target.value)}
-          />
-        </div>
-        <div>
-          <label className="mb-1.5 block text-xs font-medium text-muted-foreground">
-            To
-          </label>
-          <Input
-            type="date"
-            aria-label="To date"
-            value={dateTo}
-            onChange={(e) => setDateTo(e.target.value)}
-          />
-        </div>
-        <div className="flex items-end">
-          <div className="flex w-full gap-2 xl:w-auto">
-            <Button
-              onClick={clearFilters}
-              variant="outline"
-              className="h-11 flex-1 rounded-lg xl:w-auto"
-            >
-              Reset
-            </Button>
-            <Button
-              onClick={applyFilters}
-              className="h-11 flex-1 rounded-lg xl:w-auto"
-            >
-              <Filter className="h-3.5 w-3.5" /> Apply filters
-            </Button>
-          </div>
-        </div>
-      </FilterBar>
-
-      <OperationsState
-        error={attendanceQuery.error}
-        retry={() => void attendanceQuery.refetch()}
-      />
-      {!attendanceQuery.isError ? (
-        <DataTable
-          pageSize={20}
-          columns={columns}
-          data={records}
-          rowKey={(r) => r.id}
-          emptyIcon={<CalendarCheck className="h-12 w-12" />}
-          emptyMessage="No attendance records found for the selected filters."
-        />
-      ) : null}
-    </div>
-  );
+      {validation ? <p role="alert" className="attendance-filter-error">{t(validation)}</p> : null}
+      {locationsQuery.isError ? <div role="alert" className="attendance-option-error"><span>{t('Locations could not load. Existing attendance is still available.')}</span><Button type="button" variant="outline" onClick={() => void locationsQuery.refetch()}>{t('Retry locations')}</Button></div> : null}
+      <div className="attendance-applied-scope"><p><bdi>{appliedSite?.name ?? t('All locations')}</bdi> · <bdi>{dateLabel(applied.from)}{applied.to !== applied.from ? ` – ${dateLabel(applied.to)}` : ''}</bdi>{appliedSite ? <> · <bdi>{appliedSite.timezone}</bdi></> : null}{appliedStaff ? <> · <bdi>{appliedStaff.name}</bdi></> : null}</p><Button type="button" variant="outline" onClick={() => quick('today')}>{t('Today')}</Button></div>
+      <p className="attendance-calendar-help">{t(appliedSite ? 'Dates and times follow the selected location’s calendar.' : 'Dates follow each location’s calendar. Choose a location to use its current day.')}</p>
+      <details className="attendance-more-filters"><summary>{t('More filters')}</summary><div>
+        <label>{t('Staff')}<select aria-label={t('Staff')} value={staff} disabled={staffQuery.isPending || staffQuery.isError} onChange={event => setStaff(event.target.value)}><option value="">{t('All Staff')}</option>{allStaff.filter(person => !location || String(person.locationId) === location).map(person => <option key={person.id} value={person.id}>{person.name}</option>)}</select></label>
+        <label>{t('Month')}<input type="month" aria-label={t('Month')} value={month} onChange={event => setMonth(event.target.value)} /></label>
+        <Button type="button" variant="outline" onClick={() => quick('month')}>{t('Apply month')}</Button><Button type="button" variant="outline" onClick={() => quick('yesterday')}>{t('Yesterday')}</Button><Button type="button" variant="outline" onClick={reset}>{t('Reset')}</Button>
+      </div>{staffQuery.isError ? <p role="alert">{t('Staff filter could not load.')} <Button type="button" variant="outline" onClick={() => void staffQuery.refetch()}>{t('Retry')}</Button></p> : null}</details>
+    </form>
+    <div className="attendance-summary" aria-label={t('Attendance summary')} aria-busy={query.isPending}>{metrics.map(([label, value, hint]) => <div key={label}><span>{t(label)}</span><strong>{hasRecords ? value : '—'}</strong><p>{t(hint)}</p></div>)}</div>
+    <section className="attendance-register" aria-labelledby="attendance-register-title">
+      <header><div><h2 id="attendance-register-title">{t('Attendance records')}</h2><p>{t('Photos are available only to authorized accounts.')}</p></div><Button type="button" variant="outline" onClick={() => void query.refetch()} disabled={query.isFetching}><RefreshCw size={16} aria-hidden="true" />{t(query.isFetching ? 'Refreshing…' : 'Refresh')}</Button></header>
+      <OperationsState loading={query.isPending} error={query.error} retry={() => void query.refetch()} />
+      {hasRecords ? <DataTable pageSize={20} columns={columns} data={records} rowKey={record => record.id} emptyIcon={<CalendarCheck size={32} />} emptyMessage="No attendance records found for the selected filters." mobileRender={record => <><div className="attendance-mobile-person">{staffCell(record)}{statusCell(record)}</div><dl><div><dt>{t('Shift')}</dt><dd>{shiftCell(record)}</dd></div><div><dt>{t('Check-in / out')}</dt><dd>{timeCell(record)}</dd></div></dl>{actions(record)}</>} /> : null}
+      <footer><span>{t('Overnight shifts remain tied to their scheduled local date.')}</span><span>{hasRecords ? t('{count} recorded shifts', { count: records.length }) : t('Attendance totals are unavailable until records load.')}</span></footer>
+    </section>
+  </div>;
 }
