@@ -39,7 +39,7 @@ beforeEach(() => {
 });
 it.each(['/platform/service', '/platform/audit', '/platform/inquiries'])('actual guarded route %s rejects tenant/storage role claims without requests', path => {
   localStorage.setItem('operator', JSON.stringify({ role: 'ADMIN', kind: 'PLATFORM_OPERATOR' })); mount(path, true);
-  expect(screen.getByRole('heading', { name: 'Platform sign in' })).toBeInTheDocument(); expect(screen.queryByText('Service diagnostics')).not.toBeInTheDocument(); expect(mock.request).not.toHaveBeenCalled();
+  expect(screen.getByRole('heading', { name: 'Platform operator sign-in' })).toBeInTheDocument(); expect(screen.queryByText('Service diagnostics')).not.toBeInTheDocument(); expect(mock.request).not.toHaveBeenCalled();
 });
 it('database unavailable and null timestamps do not become healthy or successful delivery', async () => {
   mount(); await screen.findByText('Database unavailable'); expect(screen.getByText('Not checked')).toBeInTheDocument(); expect(screen.getAllByText('Not observed')).toHaveLength(3);
