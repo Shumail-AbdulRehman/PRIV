@@ -7,6 +7,7 @@ import { beforeEach, expect, it, vi } from 'vitest';
 import authReducer, { setUser, type AuthUser } from '@/store/slices/authSlice';
 import { LanguageProvider } from '@/i18n/LanguageProvider';
 import StaffPage from './StaffPage';
+import StaffCreateDialog from './StaffCreateDialog';
 import StaffEditDialog from './StaffEditDialog';
 import StaffDetailPage from './StaffDetailPage';
 const m=vi.hoisted(()=>({edit:vi.fn(),create:vi.fn(),staff:{},locations:{},detail:{},detailArgs:vi.fn()}));
@@ -126,4 +127,15 @@ it('Urdu directory and detail sections translate while preserving user identity 
  expect(within(sections).getByRole('button',{name:'کام کی تاریخ'})).toBeInTheDocument();
  fireEvent.click(within(sections).getByRole('button',{name:'حاضری'}));
  expect(screen.getByText('اس دورانیے میں حاضری کا کوئی ریکارڈ نہیں۔')).toBeInTheDocument();
+});
+
+it('inline hiring changes scope without retaining a prior site password or draft',()=>{
+ const onOpenChange=vi.fn();const view=mount(<StaffCreateDialog open inline location={site} locations={[site]} onOpenChange={onOpenChange}/>);
+ fireEvent.change(screen.getByLabelText('Full Name'),{target:{value:'Old site draft'}});
+ fireEvent.change(screen.getByLabelText('Password'),{target:{value:'private old draft'}});
+ const next={...site,id:30,name:'New site'};
+ view.rerenderNode(<StaffCreateDialog open inline location={next} locations={[site,next]} onOpenChange={onOpenChange}/>);
+ expect(screen.getByLabelText('Full Name')).toHaveValue('');expect(screen.getByLabelText('Password')).toHaveValue('');
+ expect(screen.getByRole('combobox',{name:/^Location$/})).toHaveValue('30');
+ expect(m.create).not.toHaveBeenCalled();
 });
