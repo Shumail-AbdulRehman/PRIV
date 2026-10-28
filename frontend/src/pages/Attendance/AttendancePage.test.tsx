@@ -86,6 +86,8 @@ it('renders complete Urdu register controls and RTL without translating configur
  mount('ur'); expect(document.documentElement.dir).toBe('rtl');
  expect(screen.getByRole('heading', { name: 'حاضری کے ریکارڈ' })).toBeInTheDocument();
  expect(screen.getByLabelText('آغاز کی تاریخ')).toBeInTheDocument();
+ expect(screen.getAllByText(/آمد:/).length).toBeGreaterThan(0);
+ expect(screen.getAllByText(/روانگی:/).length).toBeGreaterThan(0);
  expect(screen.getByRole('button', { name: 'فلٹر لگائیں' })).toBeInTheDocument();
  expect(screen.getAllByText('Synthetic late worker').length).toBeGreaterThan(0);
 });

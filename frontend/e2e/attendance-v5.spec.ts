@@ -8,6 +8,8 @@ const root = fileURLToPath(new URL('../../', import.meta.url));
 const out = join(root, 'docs/implementation/v5-attendance-evidence');
 test.use({ trace: 'off', screenshot: 'off', video: 'off' });
 async function capture(page: Page, name: string) {
+  const width = /-(1366|390)-/.exec(name)?.[1];
+  if (width && page.viewportSize()?.width !== Number(width)) await page.setViewportSize({ width: Number(width), height: 900 });
   await mkdir(out, { recursive: true }); await page.evaluate(() => document.fonts.ready);
   expect(await page.evaluate(() => document.documentElement.scrollWidth > innerWidth + 1)).toBe(false);
   const dialog = page.getByRole('dialog').filter({ visible: true });
@@ -121,4 +123,38 @@ test('attendance context transport error retains draft and exact request retry r
   await page.unroute('**/api/attendance/*/annotations'); await dialog.getByRole('button', { name: 'Retry same request', exact: true }).click();
   await expect(dialog.getByText('Context recorded. Original attendance is unchanged.')).toBeVisible();
   expect((await sql('SELECT COUNT(*)::int AS n FROM "AttendanceAnnotation" WHERE "attendanceId"=$1 AND reason=$2', [fixture.attendance.openShift, 'V5 draft through transport failure']))[0].n).toBe(1);
+});
+
+test('actual context request conflict preserves the reason and explicit review saves a new note', async ({ browser }) => {
+  test.setTimeout(90000);
+  const id = fixture.attendance.deactivate;
+  for (const width of [1366, 390]) for (const lang of ['en', 'ur']) {
+    const context = await browser.newContext({ viewport: { width, height: 900 } }); const page = await context.newPage();
+    await enter(page, `/staff/${fixture.staff.deactivate.id}?tab=attendance`, 'ownerA', lang);
+    await page.getByRole('button', { name: lang === 'ur' ? 'حاضری کا سیاق' : 'Attendance context', exact: true }).filter({ visible: true }).first().click();
+    const dialog = page.getByRole('dialog'); const reason = dialog.getByLabel(lang === 'ur' ? 'وجہ (لازمی)' : 'Reason (required)');
+    const draft = `V5 conflict draft ${width} ${lang}`;
+    await reason.fill(draft); let conflict = true;
+    await page.route(`**/api/attendance/${id}/annotations`, async route => {
+      if (route.request().method() === 'POST' && conflict) {
+        conflict = false;
+        // Create an actual competing persisted request with the same ID. Both
+        // writes use this authorized synthetic owner; no response is replaced.
+        const body = route.request().postDataJSON();
+        const concurrent = await page.request.post(route.request().url(), { data: { ...body, reason: `Concurrent saved note ${width} ${lang}` } });
+        expect(concurrent.status()).toBe(201);
+      }
+      await route.continue();
+    });
+    const failed = page.waitForResponse(r => r.url().endsWith(`/attendance/${id}/annotations`) && r.request().method() === 'POST');
+    await dialog.getByRole('button', { name: lang === 'ur' ? 'نوٹ درج کریں' : 'Record note', exact: true }).click();
+    expect((await failed).status()).toBe(409); await expect(reason).toHaveValue(draft);
+    await capture(page, `app-context-conflict-${width}-${lang}`);
+    await dialog.getByRole('button', { name: lang === 'ur' ? 'تضاد دیکھیں اور مسودہ درست کریں' : 'Review conflict and edit draft', exact: true }).click();
+    await expect(reason).not.toHaveAttribute('readonly');
+    await dialog.getByRole('button', { name: lang === 'ur' ? 'نوٹ درج کریں' : 'Record note', exact: true }).click();
+    await expect(dialog.getByRole('status')).toContainText(lang === 'ur' ? 'درج ہو گیا' : 'Context recorded');
+    expect((await sql('SELECT COUNT(*)::int AS n FROM "AttendanceAnnotation" WHERE "attendanceId"=$1 AND reason=$2', [id, draft]))[0].n).toBe(1);
+    await context.close();
+  }
 });
