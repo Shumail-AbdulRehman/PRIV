@@ -1,6 +1,6 @@
 # Current continuation checkpoint — 2026-10-29
 
-**Spec28 meets its applicable web acceptance. Full V5 remains incomplete;10specifications remain.** Latest user says continue; historical STOPs below do not cancel that authorization. Canonical Spec28 source is `implementation/v5-setup-locations` in `/home/shumail/.local/share/hygene-ops/v5-continuation-20261028/setup`, descended from verified8ff718e. Root user work is preserved; final combined integration/publication is being recorded after this checkpoint.
+**Spec28 meets its applicable web acceptance. Full V5 remains incomplete;10specifications remain.** Latest user says continue; historical STOPs below do not cancel that authorization. Canonical Spec28 source is `implementation/v5-setup-locations` in `/home/shumail/.local/share/hygene-ops/v5-continuation-20261028/setup`, descended from verified8ff718e. Current OPEN/DRAFT PR97: https://github.com/Shumail-AbdulRehman/PRIV/pull/97, base implementation/v5-workforce-final. Root user work is preserved; final combined integration is recorded in the integration checkpoint.
 
 ## Delivered and verified
 
