@@ -1,0 +1,86 @@
+.workspace .performance-page {gap:24px}
+.workspace .perf-header {margin:0}
+.workspace .perf-toolbar {display:flex;align-items:center;gap:16px;flex-wrap:wrap}
+.workspace .perf-period {display:inline-flex;border:1px solid var(--border);border-radius:7px;background:var(--card);padding:4px;gap:4px}
+.workspace .perf-period button {min-height:44px;padding:8px 14px;border-radius:5px;font-size:14px;font-weight:550;color:var(--muted-foreground);cursor:pointer}
+.workspace .perf-period button[aria-pressed=true] {color:var(--primary);background:var(--accent)}
+.workspace .perf-period button:focus-visible,.workspace .perf-table-tools input:focus-visible,.workspace .performance-page summary:focus-visible {outline:3px solid var(--primary);outline-offset:3px}
+.workspace .perf-range {color:var(--muted-foreground);font-size:13px}
+.workspace .perf-toolbar > [data-slot=button] {margin-inline-start:auto}
+.workspace .perf-metrics {display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:0;border:1px solid var(--border);background:var(--card);border-radius:10px;overflow:hidden}
+.workspace .perf-metrics article {border-inline-end:1px solid var(--border);padding:20px;min-width:0}
+.workspace .perf-metrics article > span {font-size:13px;color:var(--muted-foreground)}
+.workspace .perf-metrics article > strong {display:block;font-size:30px;line-height:1.3;font-weight:650;letter-spacing:-.035em;margin-block:10px 6px;font-variant-numeric:tabular-nums}
+.workspace .perf-metrics strong > small {font-size:19px;font-weight:400;color:var(--muted-foreground)}
+.workspace .perf-metrics p,.workspace .perf-metrics article > small {font-size:13px;color:var(--muted-foreground);line-height:1.6}
+.workspace .perf-metrics article > small {display:block;margin-block-start:6px}
+.workspace .perf-panel {background:var(--card);border:1px solid var(--border);border-radius:10px;min-width:0;overflow:hidden}
+.workspace .perf-main-grid {display:grid;grid-template-columns:minmax(0,1.6fr) minmax(280px,1fr);gap:24px;align-items:stretch}
+.workspace .perf-manager-grid {grid-template-columns:repeat(2,minmax(0,1fr))}
+.workspace .perf-panel-heading {padding:20px;display:flex;justify-content:space-between;gap:16px;align-items:start}
+.workspace .perf-panel-heading h2 {font-size:19px;line-height:1.4;font-weight:600}
+.workspace .perf-panel-heading p {font-size:13px;color:var(--muted-foreground);margin-block-start:6px;line-height:1.6}
+.workspace .perf-panel-heading > a {font-size:14px;min-height:44px;display:flex;align-items:center;color:var(--primary)}
+.workspace .perf-legend {display:flex;gap:20px;padding-inline:20px;color:var(--muted-foreground);font-size:13px}
+.workspace .perf-legend span {display:flex;align-items:center;gap:8px}
+.workspace .perf-legend i {width:8px;height:8px;border-radius:50%;background:var(--primary)}
+.workspace .perf-legend i.is-submission {background:var(--primary);opacity:.65}
+.workspace .perf-trend-canvas {height:220px;margin:12px 20px 24px 12px;min-width:0}
+.workspace .perf-chart-caption {margin:0 20px 20px;font-size:13px;color:var(--muted-foreground);line-height:1.6}
+.workspace .perf-data-disclosure {padding:0 20px 12px}
+.workspace .perf-data-disclosure summary {display:flex;align-items:center;gap:8px;min-height:44px;font-size:14px;color:var(--primary);cursor:pointer;list-style:none}
+.workspace .perf-data-scroll {max-height:260px;overflow:auto}
+.workspace .perf-data-scroll table {width:100%;font-size:13px;border-collapse:collapse}
+.workspace .perf-data-scroll td,.workspace .perf-data-scroll th {padding:10px 8px;text-align:start;border-bottom:1px solid var(--border);white-space:nowrap}
+.workspace .perf-attention-list a {display:flex;gap:12px;align-items:center;padding:16px 20px;border-top:1px solid var(--border);min-height:72px}
+.workspace .perf-attention-list a > span {flex:1;min-width:0}
+.workspace .perf-attention-list strong {font-size:14px;font-weight:550}
+.workspace .perf-attention-list small {display:block;color:var(--muted-foreground);font-size:13px;margin-block-start:4px;line-height:1.6}
+.workspace .perf-attention-list b {font-weight:600;color:var(--warning-ink);background:var(--warning-fill);border-radius:5px;padding:4px 8px}
+.workspace .perf-attention-list svg {flex-shrink:0;color:var(--primary)}
+.workspace .perf-attention-footer {padding:12px 20px;border-top:1px solid var(--border)}
+.workspace .perf-attention-footer a {display:flex;align-items:center;gap:8px;min-height:44px;color:var(--primary);font-size:14px}
+.workspace .perf-table-tools {display:flex;align-items:center;justify-content:space-between;gap:16px;padding:12px 20px;border-block:1px solid var(--border)}
+.workspace .perf-table-tools label {display:flex;gap:8px;align-items:center;min-width:0;flex:1;color:var(--muted-foreground)}
+.workspace .perf-table-tools input {min-width:0;width:100%;max-width:300px;background:transparent;min-height:44px;color:var(--ink);font-size:14px}
+.workspace .perf-table-tools select {max-width:48%;min-height:44px;padding:8px;border:1px solid var(--border);border-radius:7px;background:var(--card);font-size:13px}
+.workspace .perf-location-table {width:100%;border-collapse:collapse;text-align:start;font-size:13px}
+.workspace .perf-location-table th {padding:12px 16px;text-align:start;font-size:12px;color:var(--muted-foreground);background:var(--background);font-weight:550}
+.workspace .perf-location-table td {padding:16px;border-top:1px solid var(--border);vertical-align:middle}
+.workspace .perf-location-table td:first-child strong {font-size:14px;font-weight:550;overflow-wrap:anywhere}
+.workspace .perf-location-table td small {display:block;color:var(--muted-foreground);margin-block-start:4px;font-size:12px}
+.workspace .perf-location-table progress {display:block;width:100%;height:5px;appearance:none;border:0;margin-block-start:8px;border-radius:5px;background:var(--accent);overflow:hidden;accent-color:var(--primary)}
+.workspace .perf-location-table progress::-webkit-progress-bar {background:var(--accent)}
+.workspace .perf-location-table progress::-webkit-progress-value {background:var(--primary)}
+.workspace .perf-location-table progress::-moz-progress-bar {background:var(--primary)}
+.workspace .perf-site-status {display:inline-flex;border-radius:5px;padding:5px 8px;background:var(--accent);color:var(--primary);font-size:12px;line-height:1.5}
+.workspace .perf-site-status[data-status=ATTENTION] {background:var(--warning-fill);color:var(--warning-ink)}
+.workspace .perf-site-status[data-status=ON_TRACK] {background:var(--success-fill);color:var(--success-ink)}
+.workspace .perf-row-link {display:grid;place-items:center;width:44px;height:44px;border:1px solid var(--border);border-radius:7px;color:var(--primary)}
+.workspace .perf-table-footer {display:flex;justify-content:space-between;gap:12px;flex-wrap:wrap;padding:16px 20px;border-top:1px solid var(--border);font-size:13px;color:var(--muted-foreground)}
+.workspace .perf-table-footer a {color:var(--primary)}
+.workspace .perf-additional > summary {display:flex;justify-content:space-between;gap:12px;min-height:48px;padding:16px 20px;cursor:pointer;font-size:14px;list-style:none}
+.workspace .perf-additional-content {padding:0 20px 20px}
+.workspace .perf-additional dl {display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:16px;margin-block-end:20px;font-size:14px}
+.workspace .perf-additional dt {color:var(--muted-foreground);font-size:13px}
+.workspace .perf-additional dd {margin-block-start:6px;font-weight:600}
+.workspace .perf-additional p {display:flex;align-items:start;gap:8px;font-size:13px;color:var(--muted-foreground);line-height:1.7;margin-block-start:12px}
+.workspace .perf-additional p svg {flex-shrink:0;margin-block-start:4px}
+.workspace .perf-chart-empty,.workspace .perf-empty-workspace {padding:32px;min-height:220px;text-align:center;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:12px;color:var(--muted-foreground)}
+.workspace .perf-empty-workspace {border:1px solid var(--border);border-radius:10px;background:var(--card)}
+.workspace .perf-empty-workspace h2 {font-size:19px;color:var(--ink)}
+.workspace .perf-empty-workspace p {max-width:50ch}
+.workspace .dashboard-updated {display:flex;justify-content:space-between;gap:12px;flex-wrap:wrap;font-size:13px;color:var(--muted-foreground);line-height:1.6}
+.workspace .dashboard-updated a {display:flex;gap:8px;align-items:center;color:var(--primary);min-height:44px}
+[dir=rtl] .perf-attention svg,[dir=rtl] .perf-row-link svg,[dir=rtl] .dashboard-updated a svg {transform:rotate(180deg)}
+@media(max-width:1100px) {.workspace .perf-metrics {grid-template-columns:repeat(2,minmax(0,1fr))}.workspace .perf-main-grid {grid-template-columns:minmax(0,1fr)}}
+@media(max-width:620px) {.workspace .performance-page {gap:16px}.workspace .perf-toolbar {gap:12px}.workspace .perf-period {flex:1}.workspace .perf-period button {flex:1;min-height:44px;padding:8px}.workspace .perf-range {order:3;width:100%}.workspace .perf-metrics {gap:12px}.workspace .perf-metrics article {padding:16px 12px}.workspace .perf-metrics article > strong {font-size:26px}.workspace .perf-metrics article > small {font-size:12px}.workspace .perf-panel-heading {padding:16px;flex-wrap:wrap}.workspace .perf-trend-canvas {margin-inline:4px 12px}.workspace .perf-table-tools {padding:12px;flex-wrap:wrap}.workspace .perf-table-tools select {max-width:100%}.workspace .perf-table-scroll {overflow:visible}.workspace .perf-location-table thead {display:none}.workspace .perf-location-table,.workspace .perf-location-table tbody {display:block}.workspace .perf-location-table tr {display:grid;grid-template-columns:minmax(0,1fr) auto;padding:16px;border-top:1px solid var(--border);gap:12px}.workspace .perf-location-table td {display:block;padding:0;border:0;min-width:0}.workspace .perf-location-table td:first-child {grid-column:1}.workspace .perf-location-table td[data-label] {grid-column:1 / -1;display:grid;grid-template-columns:minmax(100px,1fr) 1fr;gap:6px 12px}.workspace .perf-location-table td[data-label]::before {content:attr(data-label);font-size:12px;color:var(--muted-foreground)}.workspace .perf-location-table td small,.workspace .perf-location-table progress {grid-column:2}.workspace .perf-location-table td:last-child {grid-column:2;grid-row:1}.workspace .perf-additional dl {grid-template-columns:repeat(2,minmax(0,1fr))}.workspace .perf-manager-grid {grid-template-columns:minmax(0,1fr)}}
+
+.workspace .perf-metrics article:last-child {border-inline-end:0}
+.workspace .perf-attention-list .perf-signal-icon {width:36px;height:36px;padding:8px;border-radius:7px;background:var(--warning-fill);color:var(--warning-ink)}
+.workspace .perf-attention {display:flex;flex-direction:column}
+.workspace .perf-attention-footer {margin-block-start:auto}
+@media(max-width:1100px) {.workspace .perf-metrics article:nth-child(2) {border-inline-end:0}.workspace .perf-metrics article:nth-child(n+3) {border-top:1px solid var(--border)}}
+@media(max-width:620px) {.workspace .perf-metrics {gap:0}.workspace .perf-metrics article:nth-child(odd) {border-inline-end:1px solid var(--border)}}
+
+@media(max-width:620px) {.workspace .performance-page button,.workspace .performance-page input,.workspace .performance-page select,.workspace .performance-page [data-slot=button],.workspace .performance-page .perf-row-link {min-height:48px}.workspace .perf-row-link {width:48px;height:48px}}

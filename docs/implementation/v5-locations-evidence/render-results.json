@@ -1,0 +1,218 @@
+[
+  {
+    "tab": "overview",
+    "width": 1366,
+    "lang": "en",
+    "overflow": false,
+    "errors": [],
+    "route": "http://127.0.0.1:42425/locations/1?tab=overview",
+    "source": "actual React/API, migrated synthetic SQL"
+  },
+  {
+    "tab": "staff",
+    "width": 1366,
+    "lang": "en",
+    "overflow": false,
+    "errors": [],
+    "route": "http://127.0.0.1:42425/locations/1?tab=staff",
+    "source": "actual React/API, migrated synthetic SQL"
+  },
+  {
+    "tab": "templates",
+    "width": 1366,
+    "lang": "en",
+    "overflow": false,
+    "errors": [],
+    "route": "http://127.0.0.1:42425/locations/1?tab=templates",
+    "source": "actual React/API, migrated synthetic SQL"
+  },
+  {
+    "tab": "areas",
+    "width": 1366,
+    "lang": "en",
+    "overflow": false,
+    "errors": [],
+    "route": "http://127.0.0.1:42425/locations/1?tab=areas",
+    "source": "actual React/API, migrated synthetic SQL"
+  },
+  {
+    "tab": "instances",
+    "width": 1366,
+    "lang": "en",
+    "overflow": false,
+    "errors": [],
+    "route": "http://127.0.0.1:42425/locations/1?tab=instances",
+    "source": "actual React/API, migrated synthetic SQL"
+  },
+  {
+    "tab": "schedule",
+    "width": 1366,
+    "lang": "en",
+    "overflow": false,
+    "errors": [],
+    "route": "http://127.0.0.1:42425/locations/1?tab=schedule",
+    "source": "actual React/API, migrated synthetic SQL"
+  },
+  {
+    "tab": "overview",
+    "width": 1366,
+    "lang": "ur",
+    "overflow": false,
+    "errors": [],
+    "route": "http://127.0.0.1:42425/locations/1?tab=overview",
+    "source": "actual React/API, migrated synthetic SQL"
+  },
+  {
+    "tab": "staff",
+    "width": 1366,
+    "lang": "ur",
+    "overflow": false,
+    "errors": [],
+    "route": "http://127.0.0.1:42425/locations/1?tab=staff",
+    "source": "actual React/API, migrated synthetic SQL"
+  },
+  {
+    "tab": "templates",
+    "width": 1366,
+    "lang": "ur",
+    "overflow": false,
+    "errors": [],
+    "route": "http://127.0.0.1:42425/locations/1?tab=templates",
+    "source": "actual React/API, migrated synthetic SQL"
+  },
+  {
+    "tab": "areas",
+    "width": 1366,
+    "lang": "ur",
+    "overflow": false,
+    "errors": [],
+    "route": "http://127.0.0.1:42425/locations/1?tab=areas",
+    "source": "actual React/API, migrated synthetic SQL"
+  },
+  {
+    "tab": "instances",
+    "width": 1366,
+    "lang": "ur",
+    "overflow": false,
+    "errors": [],
+    "route": "http://127.0.0.1:42425/locations/1?tab=instances",
+    "source": "actual React/API, migrated synthetic SQL"
+  },
+  {
+    "tab": "schedule",
+    "width": 1366,
+    "lang": "ur",
+    "overflow": false,
+    "errors": [],
+    "route": "http://127.0.0.1:42425/locations/1?tab=schedule",
+    "source": "actual React/API, migrated synthetic SQL"
+  },
+  {
+    "tab": "overview",
+    "width": 390,
+    "lang": "en",
+    "overflow": false,
+    "errors": [],
+    "route": "http://127.0.0.1:42425/locations/1?tab=overview",
+    "source": "actual React/API, migrated synthetic SQL"
+  },
+  {
+    "tab": "staff",
+    "width": 390,
+    "lang": "en",
+    "overflow": false,
+    "errors": [],
+    "route": "http://127.0.0.1:42425/locations/1?tab=staff",
+    "source": "actual React/API, migrated synthetic SQL"
+  },
+  {
+    "tab": "templates",
+    "width": 390,
+    "lang": "en",
+    "overflow": false,
+    "errors": [],
+    "route": "http://127.0.0.1:42425/locations/1?tab=templates",
+    "source": "actual React/API, migrated synthetic SQL"
+  },
+  {
+    "tab": "areas",
+    "width": 390,
+    "lang": "en",
+    "overflow": false,
+    "errors": [],
+    "route": "http://127.0.0.1:42425/locations/1?tab=areas",
+    "source": "actual React/API, migrated synthetic SQL"
+  },
+  {
+    "tab": "instances",
+    "width": 390,
+    "lang": "en",
+    "overflow": false,
+    "errors": [],
+    "route": "http://127.0.0.1:42425/locations/1?tab=instances",
+    "source": "actual React/API, migrated synthetic SQL"
+  },
+  {
+    "tab": "schedule",
+    "width": 390,
+    "lang": "en",
+    "overflow": false,
+    "errors": [],
+    "route": "http://127.0.0.1:42425/locations/1?tab=schedule",
+    "source": "actual React/API, migrated synthetic SQL"
+  },
+  {
+    "tab": "overview",
+    "width": 390,
+    "lang": "ur",
+    "overflow": false,
+    "errors": [],
+    "route": "http://127.0.0.1:42425/locations/1?tab=overview",
+    "source": "actual React/API, migrated synthetic SQL"
+  },
+  {
+    "tab": "staff",
+    "width": 390,
+    "lang": "ur",
+    "overflow": false,
+    "errors": [],
+    "route": "http://127.0.0.1:42425/locations/1?tab=staff",
+    "source": "actual React/API, migrated synthetic SQL"
+  },
+  {
+    "tab": "templates",
+    "width": 390,
+    "lang": "ur",
+    "overflow": false,
+    "errors": [],
+    "route": "http://127.0.0.1:42425/locations/1?tab=templates",
+    "source": "actual React/API, migrated synthetic SQL"
+  },
+  {
+    "tab": "areas",
+    "width": 390,
+    "lang": "ur",
+    "overflow": false,
+    "errors": [],
+    "route": "http://127.0.0.1:42425/locations/1?tab=areas",
+    "source": "actual React/API, migrated synthetic SQL"
+  },
+  {
+    "tab": "instances",
+    "width": 390,
+    "lang": "ur",
+    "overflow": false,
+    "errors": [],
+    "route": "http://127.0.0.1:42425/locations/1?tab=instances",
+    "source": "actual React/API, migrated synthetic SQL"
+  },
+  {
+    "tab": "schedule",
+    "width": 390,
+    "lang": "ur",
+    "overflow": false,
+    "errors": [],
+    "route": "http://127.0.0.1:42425/locations/1?tab=schedule",
+    "source": "actual React/API, migrated synthetic SQL"
+  }
+]

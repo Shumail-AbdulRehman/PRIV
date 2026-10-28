@@ -6,6 +6,8 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from "@/components/ui/dialog";
+import { setupErrorKey, useSetupFormText } from '@/pages/Area/areaFormText';
+import '@/pages/Area/setup-forms.css';
 import { useAreas } from "@/pages/Area/queries";
 import InventorySelector from "@/pages/Area/InventorySelector";
 import { inventorySummary, validateInventorySelection } from "@/pages/Area/types";
@@ -45,9 +47,10 @@ function errorDetails(error: unknown): { message: string; field?: string } {
 
 export default function TaskScheduleWizard({ locationId, locationName, timeZone, staffOptions, open, onOpenChange, onCreated }: Props) {
   const qc = useQueryClient();
+  const t = useSetupFormText();
   const areasQuery = useAreas(locationId);
   const areas = areasQuery.data?.filter(area => area.status === "ACTIVE") ?? [];
-  const [form, setForm] = useState<TemplateCreateForm>(() => blankCreateForm());
+  const [form, setForm] = useState<TemplateCreateForm>(() => ({ ...blankCreateForm(), effectiveDate: formatInTimeZone(new Date(), timeZone, "yyyy-MM-dd") }));
   const [step, setStep] = useState<ScheduleStep>(0);
   const [phase, setPhase] = useState<Phase>("editing");
   const [error, setError] = useState<string | null>(null);
@@ -62,7 +65,7 @@ export default function TaskScheduleWizard({ locationId, locationName, timeZone,
   const chosenStaff = staffOptions.find((staff) => String(staff.id) === form.staffId);
 
   const reset = () => {
-    setForm(blankCreateForm());
+    setForm({ ...blankCreateForm(), effectiveDate: formatInTimeZone(new Date(), timeZone, "yyyy-MM-dd") });
     setStep(0);
     setPhase("editing");
     setError(null);
@@ -79,7 +82,7 @@ export default function TaskScheduleWizard({ locationId, locationName, timeZone,
 
   const focusFirst = () => requestAnimationFrame(() => firstField.current?.focus());
   const validate = (which: ScheduleStep) => {
-    const problem = validateScheduleStep(form, which) ?? (which === 0 ? chosenArea ? validateInventorySelection(chosenArea, form.inventorySelection, form.selectedItems) : "Choose an active area from the latest inventory." : null);
+    const problem = (which === 0 && areasQuery.isError ? "Area inventory could not load. Retry before continuing." : null) ?? validateScheduleStep(form, which) ?? (which === 0 ? chosenArea ? validateInventorySelection(chosenArea, form.inventorySelection, form.selectedItems) : "Choose an active area from the latest inventory." : null);
     if (problem) {
       setError(problem);
       setStep(which);
@@ -87,7 +90,7 @@ export default function TaskScheduleWizard({ locationId, locationName, timeZone,
       return false;
     }
     if (which === 2 && form.effectiveDate < siteToday) {
-      setError(`Choose ${siteToday} or a later date for ${locationName}.`);
+      setError(t('Choose {date} or a later date for {location}.', { date: siteToday, location: locationName }));
       setStep(2);
       focusFirst();
       return false;
@@ -119,7 +122,7 @@ export default function TaskScheduleWizard({ locationId, locationName, timeZone,
       await assignStaffToTaskTemplate(templateId, staffId);
       invalidateSaved();
       finish("manual");
-    } catch (err) {
+    } catch {
       // A timeout may have happened after the server saved the assignment.
       try {
         const current = await getTaskTemplate(templateId);
@@ -130,7 +133,7 @@ export default function TaskScheduleWizard({ locationId, locationName, timeZone,
         }
       } catch { /* The saved schedule still exists; its assignment is uncertain. */ }
       setPhase("assignment-failed");
-      setError(`Schedule created. Staff assignment could not be confirmed. ${errorDetails(err).message}`);
+      setError(t('Schedule created. Staff assignment could not be confirmed.'));
     } finally {
       assignmentInFlight.current = false;
     }
@@ -170,11 +173,11 @@ export default function TaskScheduleWizard({ locationId, locationName, timeZone,
         const definitive = Boolean((err as { response?: { status?: number } }).response?.status && (err as { response: { status: number } }).response.status < 500);
         if (definitive) {
           setPhase("editing");
-          setError(detail.message);
+          setError(setupErrorKey(err, 'Could not save the schedule. Check the fields and try again.'));
           if ((err as {response?: {status?: number}}).response?.status === 409) {
-            await areasQuery.refetch();
+            const refreshed = await areasQuery.refetch();
             setStep(0);
-            setError(`${detail.message} Inventory refreshed. Review the selected fixtures before retrying. Your draft is preserved.`);
+            setError(refreshed.isError ? 'Inventory could not refresh. Your draft is preserved. Retry loading areas.' : 'Inventory refreshed. Review the selected fixtures before retrying. Your draft is preserved.');
           }
           const field = detail.field ?? "";
           if (/area|inventory|selected|title|description/.test(field)) setStep(0);
@@ -182,7 +185,7 @@ export default function TaskScheduleWizard({ locationId, locationName, timeZone,
           else if (/shift|date|recurr/.test(field)) setStep(2);
         } else {
           setPhase("unknown");
-          setError(`Creation could not be confirmed. Check this location's schedule list before trying again. ${detail.message}`);
+          setError('Creation could not be confirmed. Check this location’s schedule list before trying again.');
         }
       }
     } finally {
@@ -192,46 +195,48 @@ export default function TaskScheduleWizard({ locationId, locationName, timeZone,
 
   return (
     <Dialog open={open} onOpenChange={changeOpen}>
-      <DialogContent className="max-h-[min(90dvh,800px)] overflow-y-auto bg-card text-foreground sm:max-w-2xl" showCloseButton={!busy} onEscapeKeyDown={(event) => { if (busy) event.preventDefault(); }} onPointerDownOutside={(event) => { if (busy) event.preventDefault(); }}>
+      <DialogContent className="setup-form-dialog schedule-v5" showCloseButton={!busy} onEscapeKeyDown={event => { if (busy) event.preventDefault(); }} onPointerDownOutside={event => { if (busy) event.preventDefault(); }} aria-busy={busy}>
         <DialogHeader>
-          <p className="text-xs font-semibold uppercase tracking-[0.14em] text-primary">{locationName} · {timeZone}</p>
-          <DialogTitle>Create cleaning schedule</DialogTitle>
-          <DialogDescription>Set up the work, team, and time before saving.</DialogDescription>
+          <DialogTitle>{t('Create cleaning schedule')}</DialogTitle>
+          <DialogDescription>{t('Set up the work, team, and time before saving.')}</DialogDescription>
+          <p className="setup-form-site"><bdi>{locationName}</bdi> · <bdi>{timeZone}</bdi></p>
         </DialogHeader>
-        <ol className="grid grid-cols-4 gap-1 border-b border-border pb-4 text-xs" aria-label="Schedule creation steps">
-          {labels.map((label, index) => <li key={label} aria-current={step === index ? "step" : undefined} className={`rounded-md px-2 py-2 text-center ${step === index ? "bg-primary/10 font-semibold text-primary" : "text-muted-foreground"}`}>{index + 1}. {label}</li>)}
+        <ol className="setup-form-steps" aria-label={t('Schedule creation steps')}>
+          {labels.map((label, index) => <li key={label} aria-current={step === index ? 'step' : undefined}>{index + 1}. {t(label)}</li>)}
         </ol>
-        {phase === "assignment-failed" ? (
+        {phase === 'assignment-failed' ? (
           <div className="space-y-4" role="alert">
-            <p className="font-semibold">Schedule saved as #{savedId.current}</p>
-            <p className="text-sm text-amber-800">{error}</p>
-            <div className="flex flex-wrap gap-2"><Button disabled={busy} onClick={() => { if (savedId.current && form.staffId) void assign(savedId.current, Number(form.staffId)); }}>Retry assignment</Button><Button variant="outline" onClick={() => finish("manual-failed-kept")}>Keep schedule and finish</Button></div>
+            <p className="font-semibold">{t('Schedule saved as #{id}', { id: savedId.current ?? '' })}</p>
+            <p className="setup-form-warning">{error && t(error)}</p>
+            <div className="flex flex-wrap gap-2"><Button type="button" disabled={busy} onClick={() => { if (savedId.current && form.staffId) void assign(savedId.current, Number(form.staffId)); }}>{t('Retry assignment')}</Button><Button type="button" variant="outline" onClick={() => finish('manual-failed-kept')}>{t('Keep schedule and finish')}</Button></div>
           </div>
-        ) : phase === "unknown" ? (
-          <div className="space-y-4" role="alert"><p className="text-sm text-amber-800">{error}</p><Button variant="outline" onClick={() => changeOpen(false)}>Close and check schedule list</Button></div>
+        ) : phase === 'unknown' ? (
+          <div className="space-y-4" role="alert"><p className="setup-form-warning">{error && t(error)}</p><Button type="button" variant="outline" onClick={() => changeOpen(false)}>{t('Close and check schedule list')}</Button></div>
         ) : (
           <>
+            <fieldset disabled={busy} aria-describedby={error ? 'schedule-error' : undefined}>
             {step === 0 && <div className="space-y-4">
-              <div><label htmlFor="schedule-title" className={labelClass}>Task title</label><Input id="schedule-title" ref={firstField} value={form.title} onChange={(e) => setForm({ ...form, title: e.target.value })} placeholder="Clean the lobby" /></div>
-              <div><label htmlFor="schedule-description" className={labelClass}>Instructions (optional)</label><Textarea id="schedule-description" value={form.description} onChange={(e) => setForm({ ...form, description: e.target.value })} placeholder="What should the team do?" /></div>
-              <label className={labelClass} htmlFor="schedule-area">Area template</label><select id="schedule-area" className={fieldClass} value={form.areaId} onChange={event => setForm({...form, areaId:event.target.value, selectedItems:[]})}><option value="">Choose one area</option>{areas.map(area => <option key={area.id} value={area.id}>{area.name}</option>)}</select>
-              {areasQuery.isPending && <p role="status" className="text-sm">Loading inventory…</p>}
-              {areasQuery.isError && <Button variant="outline" onClick={()=>void areasQuery.refetch()}>Retry loading areas</Button>}
-              {!areasQuery.isPending && !areas.length && <p className="text-sm">Set up and activate an area first. <Link to={`/locations/${locationId}?tab=areas&newArea=1`} className="text-primary underline">Add area</Link></p>}
-              {chosenArea && <InventorySelector area={chosenArea} mode={form.inventorySelection} selected={form.selectedItems} onChange={(inventorySelection,selectedItems)=>setForm({...form,inventorySelection,selectedItems})}/>}
-
+              <div><label htmlFor="schedule-title" className={labelClass}>{t('Task title')}</label><Input id="schedule-title" ref={firstField} value={form.title} onChange={event => setForm({ ...form, title: event.target.value })} placeholder={t('Clean the lobby')} aria-describedby={error ? 'schedule-error' : undefined} /></div>
+              <div><label htmlFor="schedule-description" className={labelClass}>{t('Instructions (optional)')}</label><Textarea id="schedule-description" value={form.description} onChange={event => setForm({ ...form, description: event.target.value })} placeholder={t('What should the team do?')} /></div>
+              <div><label className={labelClass} htmlFor="schedule-area">{t('Area template')}</label><select id="schedule-area" className={fieldClass} value={form.areaId} aria-describedby={error ? 'schedule-error' : undefined} onChange={event => setForm({ ...form, areaId: event.target.value, selectedItems: [] })}><option value="">{t('Choose one area')}</option>{areas.map(area => <option key={area.id} value={area.id}>{area.name}</option>)}</select></div>
+              {areasQuery.isPending && <p role="status">{t('Loading inventory…')}</p>}
+              {areasQuery.isError && <div role="alert"><p>{t('Area inventory could not load. Retry before continuing.')}</p><Button type="button" variant="outline" onClick={() => void areasQuery.refetch()}>{t('Retry loading areas')}</Button></div>}
+              {!areasQuery.isPending && !areasQuery.isError && !areas.length && <p className="setup-form-help">{t('Set up and activate an area first.')} <Link to={`/locations/${locationId}?tab=areas&newArea=1`} className="text-primary underline">{t('Add area')}</Link></p>}
+              {chosenArea && <InventorySelector area={chosenArea} mode={form.inventorySelection} selected={form.selectedItems} onChange={(inventorySelection, selectedItems) => setForm({ ...form, inventorySelection, selectedItems })} />}
             </div>}
-            {step === 1 && <div className="space-y-4"><p className="text-sm text-muted-foreground">Automatic assignment remains available. You can choose a specific person who works at this location.</p><label htmlFor="schedule-staff" className={labelClass}>Assign staff</label><select id="schedule-staff" className={fieldClass} value={form.staffId} onChange={(e) => setForm({ ...form, staffId: e.target.value })}><option value="">Use automatic assignment</option>{staffOptions.filter((staff) => staff.isActive).map((staff) => <option key={staff.id} value={staff.id}>{staff.name}</option>)}</select></div>}
+            {step === 1 && <div className="space-y-4"><p className="setup-form-help">{t('Automatic assignment remains available. You can choose a specific person who works at this location.')}</p><label htmlFor="schedule-staff" className={labelClass}>{t('Assign staff')}</label><select id="schedule-staff" className={fieldClass} value={form.staffId} onChange={event => setForm({ ...form, staffId: event.target.value })}><option value="">{t('Use automatic assignment')}</option>{staffOptions.filter(staff => staff.isActive).map(staff => <option key={staff.id} value={staff.id}>{staff.name}</option>)}</select></div>}
             {step === 2 && <div className="grid gap-4 sm:grid-cols-2">
-              <div><label htmlFor="schedule-repeat" className={labelClass}>Repeat</label><select id="schedule-repeat" className={fieldClass} value={form.recurringType} onChange={(e) => setForm({ ...form, recurringType: e.target.value as "DAILY" | "ONCE", recurringEndDate: "" })}><option value="DAILY">Daily</option><option value="ONCE">Once</option></select></div>
-              <div><label htmlFor="schedule-date" className={labelClass}>Effective date</label><Input id="schedule-date" ref={firstField} type="date" min={siteToday} value={form.effectiveDate} onChange={(e) => setForm({ ...form, effectiveDate: e.target.value })} /></div>
-              <div><label htmlFor="schedule-start" className={labelClass}>Start time ({timeZone})</label><Input id="schedule-start" type="time" value={form.shiftStart} onChange={(e) => setForm({ ...form, shiftStart: e.target.value })} /></div>
-              <div><label htmlFor="schedule-end" className={labelClass}>End time ({timeZone})</label><Input id="schedule-end" type="time" value={form.shiftEnd} onChange={(e) => setForm({ ...form, shiftEnd: e.target.value })} /></div>
-              {form.recurringType === "DAILY" && <div className="sm:col-span-2"><label htmlFor="schedule-repeat-end" className={labelClass}>Repeat until (optional)</label><Input id="schedule-repeat-end" type="date" min={form.effectiveDate} value={form.recurringEndDate} onChange={(e) => setForm({ ...form, recurringEndDate: e.target.value })} /></div>}
+              <div><label htmlFor="schedule-repeat" className={labelClass}>{t('Repeat')}</label><select id="schedule-repeat" className={fieldClass} value={form.recurringType} onChange={event => setForm({ ...form, recurringType: event.target.value as 'DAILY' | 'ONCE', recurringEndDate: '' })}><option value="DAILY">{t('Daily')}</option><option value="ONCE">{t('Once')}</option></select></div>
+              <div><label htmlFor="schedule-date" className={labelClass}>{t('Effective date')}</label><Input id="schedule-date" ref={firstField} type="date" dir="ltr" min={siteToday} value={form.effectiveDate} onChange={event => setForm({ ...form, effectiveDate: event.target.value })} aria-describedby={error ? 'schedule-error' : undefined} /></div>
+              <div><label htmlFor="schedule-start" className={labelClass}>{t('Start time')} (<bdi>{timeZone}</bdi>)</label><Input id="schedule-start" type="time" dir="ltr" value={form.shiftStart} onChange={event => setForm({ ...form, shiftStart: event.target.value })} /></div>
+              <div><label htmlFor="schedule-end" className={labelClass}>{t('End time')} (<bdi>{timeZone}</bdi>)</label><Input id="schedule-end" type="time" dir="ltr" value={form.shiftEnd} onChange={event => setForm({ ...form, shiftEnd: event.target.value })} /></div>
+              {form.recurringType === 'DAILY' && <div className="sm:col-span-2"><label htmlFor="schedule-repeat-end" className={labelClass}>{t('Repeat until (optional)')}</label><Input id="schedule-repeat-end" type="date" dir="ltr" min={form.effectiveDate} value={form.recurringEndDate} onChange={event => setForm({ ...form, recurringEndDate: event.target.value })} /></div>}
+              <p className="setup-form-help sm:col-span-2">{t('Daily schedules include every day, including weekends. Dates and times follow this location’s timezone.')}</p>
             </div>}
-            {step === 3 && <dl className="grid grid-cols-[auto_1fr] gap-x-6 gap-y-3 text-sm"><dt className="text-muted-foreground">Task</dt><dd>{form.title.trim()}</dd><dt className="text-muted-foreground">Location</dt><dd>{locationName}</dd><dt className="text-muted-foreground">Area template</dt><dd>{chosenArea?.name}</dd><dt className="text-muted-foreground">Fixtures</dt><dd>{form.inventorySelection === "ALL" ? "All active items" : `${form.selectedItems.length} selected items`}. {summary && `${summary.mandatory} mandatory fixtures, ${summary.optional} optional fixtures, ${summary.requiredViews} required photos.`} Mandatory items require every mandatory evidence view to pass.</dd><dt className="text-muted-foreground">Team</dt><dd>{chosenStaff?.name ?? "Use automatic assignment"}</dd><dt className="text-muted-foreground">Schedule</dt><dd>{form.recurringType === "DAILY" ? "Daily" : "Once"} from {form.effectiveDate}{form.recurringEndDate ? ` until ${form.recurringEndDate}` : ""}, {form.shiftStart}–{form.shiftEnd} ({timeZone})</dd></dl>}
-            {error && <p role="alert" className="rounded-lg border border-rose-200 bg-rose-50 p-3 text-sm text-rose-800">{error}</p>}
-            <div className="sticky bottom-0 flex flex-wrap justify-between gap-2 border-t border-border bg-card pt-4"><Button variant="outline" disabled={busy} onClick={() => step === 0 ? changeOpen(false) : setStep((step - 1) as ScheduleStep)}>{step === 0 ? "Cancel" : <><ArrowLeft size={15} /> Back</>}</Button>{step < 3 ? <Button onClick={goNext} disabled={busy}>Next <ArrowRight size={15} /></Button> : <Button onClick={() => void submit()} disabled={busy}>{busy ? (phase === "creating" ? "Creating…" : "Assigning…") : "Create schedule"}</Button>}</div>
+            {step === 3 && <div className="space-y-4"><dl className="setup-form-facts"><dt>{t('Task')}</dt><dd><bdi>{form.title.trim()}</bdi></dd><dt>{t('Location')}</dt><dd><bdi>{locationName}</bdi></dd><dt>{t('Area template')}</dt><dd><bdi>{chosenArea?.name}</bdi></dd><dt>{t('Fixtures')}</dt><dd>{form.inventorySelection === 'ALL' ? t('All active items') : t('{count} selected items', { count: form.selectedItems.length })}. {summary && t('{mandatory} mandatory fixtures, {optional} optional fixtures, {photos} required photos.', { ...summary, photos: summary.requiredViews })} {t('Mandatory items require every mandatory evidence view to pass.')}</dd><dt>{t('Team')}</dt><dd>{chosenStaff ? <bdi>{chosenStaff.name}</bdi> : t('Use automatic assignment')}</dd><dt>{t('Schedule')}</dt><dd>{t('{repeat} from {start}', { repeat: t(form.recurringType === 'DAILY' ? 'Daily' : 'Once'), start: form.effectiveDate })}{form.recurringEndDate ? <> · {t('Until {date}', { date: form.recurringEndDate })}</> : null} · <bdi>{form.shiftStart}–{form.shiftEnd} ({timeZone})</bdi></dd></dl><p className="setup-form-help">{t('A task QR is available only after an occurrence exists. Previewing a future slot does not generate a task.')}</p></div>}
+            </fieldset>
+            {error && <p id="schedule-error" role="alert" className="setup-form-error">{t(error)}</p>}
+            <div className="setup-form-actions"><Button type="button" variant="outline" disabled={busy} onClick={() => step === 0 ? changeOpen(false) : setStep((step - 1) as ScheduleStep)}>{step === 0 ? t('Cancel') : <><ArrowLeft size={15} aria-hidden="true" />{t('Back')}</>}</Button>{step < 3 ? <Button type="button" onClick={goNext} disabled={busy || (step === 0 && (areasQuery.isPending || areasQuery.isError))}>{t('Next')}<ArrowRight size={15} aria-hidden="true" /></Button> : <Button type="button" onClick={() => void submit()} disabled={busy} aria-busy={busy}>{t(busy ? (phase === 'creating' ? 'Creating…' : 'Assigning…') : 'Create schedule')}</Button>}</div>
           </>
         )}
       </DialogContent>

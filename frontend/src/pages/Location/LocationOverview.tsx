@@ -1,209 +1,43 @@
-import { Link } from "react-router-dom";
-import { ArrowRight, Layers, Plus } from "lucide-react";
-import { useLanguage } from "@/i18n/context";
-import { useAreas } from "../Area/queries";
-import { nonRetiredFixtureCount } from "../Area/types";
-import {
-  useOperations,
-  type OperationOverview,
-  type OperationsPage,
-  type OperationStaff,
-} from "../Manager/operations";
-import OperationsState from "../Manager/OperationsState";
-import type { UseQueryResult } from "@tanstack/react-query";
-import AttentionList from "@/components/common/AttentionList";
-import DataTable from "@/components/common/DataTable";
-import StatusBadge from "@/components/common/StatusBadge";
-import OperationStatus from "@/components/common/OperationStatus";
-import { Button } from "@/components/ui/button";
+import { Link } from 'react-router-dom';
+import type { UseQueryResult } from '@tanstack/react-query';
+import { useAreas } from '../Area/queries';
+import type { OperationOverview } from '../Manager/operations';
+import { dailyLink, reviewLink } from '../Manager/operations';
+import OperationsState from '../Manager/OperationsState';
+import AttentionList from '@/components/common/AttentionList';
+import { Button } from '@/components/ui/button';
+import { useLocationLanguage } from './locationTranslations';
+import type { LocationStaff } from './types';
+import { formatInTimeZone } from 'date-fns-tz';
 
-export default function LocationOverview({
-  locationId,
-  onTab,
-  overview,
-}: {
-  locationId: number;
-  onTab: (tab: "areas" | "staff") => void;
-  overview: UseQueryResult<OperationOverview, Error>;
+export default function LocationOverview({location,onTab,overview}:{
+ location:{id:number;timezone:string;radiusMeters:number;staff:LocationStaff[]};
+ onTab:(tab:'areas'|'staff')=>void;
+ overview:UseQueryResult<OperationOverview,Error>;
 }) {
-  const { t } = useLanguage();
-  const params = new URLSearchParams({
-    locationId: String(locationId),
-    date: "today",
-  });
-  const staff = useOperations<OperationsPage<OperationStaff>>("staff", {
-    locationId: String(locationId),
-    date: "today",
-    pageSize: "4",
-  });
-  const areas = useAreas(locationId);
-  return (
-    <div className="detail-overview">
-      <div className="location-overview-columns">
-        <section className="ops-panel">
-          <div className="ops-panel-heading">
-            <div>
-              <h2>{t("Areas in this location")}</h2>
-              <p>{t("Rooms, fixtures, and active cleaning schedules")}</p>
-            </div>
-            <Button variant="ghost" onClick={() => onTab("areas")}>
-              {t("View all")}
-              <ArrowRight size={14} />
-            </Button>
-          </div>
-          <OperationsState
-            loading={areas.isPending}
-            layout="area-table"
-            error={areas.error}
-            retry={() => void areas.refetch()}
-          />
-          {areas.data && !areas.isError ? (
-            <DataTable
-              data={areas.data
-                .filter((a) => a.status !== "ARCHIVED")
-                .slice(0, 4)}
-              rowKey={(a) => a.id}
-              emptyMessage="Add an area and its fixtures to set up cleaning work."
-              columns={[
-                {
-                  key: "area",
-                  header: "Area",
-                  render: (a) => (
-                    <div className="table-identity">
-                      <Layers size={18} />
-                      <strong>{a.name}</strong>
-                    </div>
-                  ),
-                },
-                {
-                  key: "fixtures",
-                  header: "Fixtures",
-                  render: (a) => nonRetiredFixtureCount(a),
-                },
-                {
-                  key: "schedules",
-                  header: "Schedules",
-                  render: (a) => a.activeScheduleCount ?? "—",
-                },
-                {
-                  key: "status",
-                  header: "Status",
-                  render: (a) => <StatusBadge status={a.status} />,
-                },
-                {
-                  key: "action",
-                  header: "Action",
-                  render: (a) => (
-                    <Button asChild variant="outline">
-                      <Link to={"/locations/" + locationId + "?tab=areas&area=" + a.id}>
-                        {t("Open")}
-                        <ArrowRight size={14} />
-                      </Link>
-                    </Button>
-                  ),
-                },
-              ]}
-            />
-          ) : null}
-          <div className="panel-footer">
-            <Button asChild variant="ghost">
-              <Link to={"/locations/" + locationId + "?tab=areas&newArea=1"}>
-                <Plus size={14} />
-                {t("Add area template")}
-              </Link>
-            </Button>
-            <button onClick={() => onTab("areas")}>
-              {t("View all areas")}
-              <ArrowRight size={14} />
-            </button>
-          </div>
-        </section>
-        {overview.data && !overview.isError ? (
-          <AttentionList data={overview.data} params={params} limit={3} />
-        ) : null}
-      </div>
-      <section className="ops-panel">
-        <div className="ops-panel-heading">
-          <div>
-            <h2>{t("Team today")}</h2>
-            <p>{t("Attendance for this location’s scheduled shifts")}</p>
-          </div>
-          <Button variant="ghost" onClick={() => onTab("staff")}>
-            {t("View all staff")}
-            <ArrowRight size={14} />
-          </Button>
-        </div>
-        <OperationsState
-          loading={staff.isPending}
-          layout="staff-preview"
-          error={staff.error}
-          retry={() => void staff.refetch()}
-        />
-        {staff.data && !staff.isError ? (
-          <div className="staff-preview-grid">
-            {staff.data.rows.length ? (
-              staff.data.rows.map((s) => (
-                <Link
-                  className="staff-preview"
-                  key={s.id}
-                  to={
-                    "/staff/" +
-                    s.id +
-                    "?dateFrom=" +
-                    s.localDate +
-                    "&dateTo=" +
-                    s.localDate +
-                    "&focus=today"
-                  }
-                >
-                  <span className="workspace-avatar">
-                    {s.name
-                      .split(" ")
-                      .map((w) => w[0])
-                      .join("")
-                      .slice(0, 2)}
-                  </span>
-                  <div>
-                    <strong>{s.name}</strong>
-                    <OperationStatus
-                      state={
-                        s.attendance?.checkInTime
-                          ? s.attendance.status
-                          : s.attendance?.status === "ABSENT" &&
-                              Date.parse(s.attendance.expectedStart) <=
-                                Date.parse(staff.data!.asOf)
-                            ? "ABSENT"
-                            : "PENDING"
-                      }
-                      label={
-                        s.attendance?.checkOutTime
-                          ? "Checked out"
-                          : s.attendance?.checkInTime
-                            ? s.attendance.status === "LATE"
-                              ? "Late check-in"
-                              : s.attendance.status === "MISSED_CHECKOUT"
-                                ? "Missed checkout"
-                                : "Present"
-                            : s.attendance &&
-                                Date.parse(s.attendance.expectedStart) >
-                                  Date.parse(staff.data!.asOf)
-                              ? "Shift not started"
-                              : s.attendance
-                                ? "Not checked in"
-                                : "No attendance record"
-                      }
-                    />
-                  </div>
-                </Link>
-              ))
-            ) : (
-              <p className="text-sm text-muted-foreground">
-                {t("No staff assigned to this location.")}
-              </p>
-            )}
-          </div>
-        ) : null}
-      </section>
-    </div>
-  );
+ const {t}=useLocationLanguage();
+ const areas=useAreas(location.id);
+ const params=new URLSearchParams({locationId:String(location.id),date:'today'});
+ const facts=overview.isError?undefined:overview.data;
+ const metrics=facts?.metrics;
+ const activeAreas=areas.isError?undefined:areas.data?.filter(area=>area.status!=='ARCHIVED').length;
+ const shifts=[...new Set(location.staff.filter(person=>person.isActive&&person.shiftStart&&person.shiftEnd).map(person=>formatInTimeZone(new Date(person.shiftStart!),location.timezone,'HH:mm')+'–'+formatInTimeZone(new Date(person.shiftEnd!),location.timezone,'HH:mm')))];
+ return <div className="location-overview-v5">
+  <OperationsState loading={overview.isPending} skeleton="metrics" error={overview.error} retry={()=>void overview.refetch()}/>
+  {metrics&&facts?<section className="location-metrics-v5" aria-label={t('Daily summary')}>
+   <Link to={dailyLink(params,{tab:'staff'})}><span>{t('Staff today')}</span><strong>{metrics.scheduled}</strong><p>{t('{present} checked in · {missing} not checked in',{present:metrics.present,missing:Math.max(0,metrics.scheduled-metrics.present)})}</p><small>{t('Site-local day')}</small></Link>
+   <Link to={dailyLink(params,{tab:'tasks'})}><span>{t('Tasks submitted')}</span><strong dir="ltr">{metrics.submitted}<small> / {metrics.totalTasks}</small></strong><p>{t('{progress} in progress · {overdue} overdue',{progress:facts.chart.inProgress,overdue:facts.chart.overdue})}</p><small>{t('Submission is not verification')}</small></Link>
+   <Link to={reviewLink(params)}><span>{t('Photo reviews')}</span><strong>{metrics.reviewCount}</strong><p>{t('Waiting for a decision')}</p><small>{t('View reviews')}</small></Link>
+   <button type="button" onClick={()=>onTab('areas')}><span>{t('Area templates')}</span><strong>{activeAreas??'—'}</strong><p>{t(areas.isError?'Area templates are unavailable.':'Reusable cleaning requirements')}</p><small>{t('Immutable task snapshots')}</small></button>
+  </section>:null}
+  {areas.isError?<OperationsState error={areas.error} retry={()=>void areas.refetch()}/>:null}
+  <div className="location-details-grid-v5">
+   {facts?<div className="location-attention-v5"><div className="location-attention-heading"><h2>{t('Today at this location')}</h2><p>{t('Start with the exceptions, then check the schedule.')}</p></div><AttentionList data={facts} params={params} limit={3}/></div>:null}
+   <section className="ops-panel location-facts-v5"><div className="ops-panel-heading"><div><h2>{t('Location details')}</h2><p>{t('The facts used by attendance and scheduling.')}</p></div></div><div className="location-facts-body"><dl>
+    <div><dt>{t('Timezone')}</dt><dd><bdi>{location.timezone}</bdi></dd></div>
+    <div><dt>{t('Check-in radius')}</dt><dd><bdi>{location.radiusMeters} m</bdi></dd></div>
+    <div><dt>{t('Staff shifts')}</dt><dd>{shifts.length===1?<bdi>{shifts[0]}</bdi>:t(shifts.length?'Shift times vary by worker':'No shift configured')}</dd></div>
+   </dl><p>{t('Attendance uses the saved geofence and reported device location.')}</p><Button variant="ghost" onClick={()=>onTab('staff')}>{t('Open team and shifts')}</Button></div></section>
+  </div>
+ </div>;
 }

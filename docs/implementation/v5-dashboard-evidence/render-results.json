@@ -1,0 +1,58 @@
+[
+  {
+    "who": "ownerA",
+    "width": 1366,
+    "lang": "en",
+    "errors": [],
+    "source": "actual API and persisted synthetic SQL"
+  },
+  {
+    "who": "ownerA",
+    "width": 1366,
+    "lang": "ur",
+    "errors": [],
+    "source": "actual API and persisted synthetic SQL"
+  },
+  {
+    "who": "ownerA",
+    "width": 390,
+    "lang": "en",
+    "errors": [],
+    "source": "actual API and persisted synthetic SQL"
+  },
+  {
+    "who": "ownerA",
+    "width": 390,
+    "lang": "ur",
+    "errors": [],
+    "source": "actual API and persisted synthetic SQL"
+  },
+  {
+    "who": "managerA",
+    "width": 1366,
+    "lang": "en",
+    "errors": [],
+    "source": "actual API and persisted synthetic SQL"
+  },
+  {
+    "who": "managerA",
+    "width": 1366,
+    "lang": "ur",
+    "errors": [],
+    "source": "actual API and persisted synthetic SQL"
+  },
+  {
+    "who": "managerA",
+    "width": 390,
+    "lang": "en",
+    "errors": [],
+    "source": "actual API and persisted synthetic SQL"
+  },
+  {
+    "who": "managerA",
+    "width": 390,
+    "lang": "ur",
+    "errors": [],
+    "source": "actual API and persisted synthetic SQL"
+  }
+]

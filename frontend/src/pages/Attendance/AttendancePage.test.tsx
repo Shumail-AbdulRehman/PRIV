@@ -15,9 +15,9 @@ const rows = [
  { id: 1, staffId: 7, locationId: 4, date: '2026-10-28T00:00:00Z', expectedStart: '2026-10-28T03:00:00Z', expectedEnd: '2026-10-28T11:00:00Z', checkInTime: '2026-10-28T03:10:00Z', checkOutTime: '2026-10-28T11:00:00Z', status: 'CHECKED_OUT', isLateCheckIn: true, lateMinutes: 10, staff: { id: 7, name: 'Synthetic late worker', email: 'late@example.invalid' }, location: { id: 4, name: 'Synthetic Karachi' } },
  { id: 2, staffId: 8, locationId: 4, date: '2026-10-28T00:00:00Z', expectedStart: '2026-10-28T03:00:00Z', expectedEnd: '2026-10-28T11:00:00Z', checkInTime: null, checkOutTime: null, status: 'ABSENT', isLateCheckIn: false, lateMinutes: null, staff: { id: 8, name: 'Synthetic absent worker', email: 'absent@example.invalid' }, location: { id: 4, name: 'Synthetic Karachi' } },
 ];
-function mount(language = 'en') {
+function mount(language = 'en', path = '/attendance') {
  localStorage.setItem('hygene-ops.language', language);
- return render(<MemoryRouter><LanguageProvider><div className="workspace"><AttendancePage /></div></LanguageProvider></MemoryRouter>);
+ return render(<MemoryRouter initialEntries={[path]}><LanguageProvider><div className="workspace"><AttendancePage /></div></LanguageProvider></MemoryRouter>);
 }
 beforeEach(() => {
  vi.clearAllMocks(); localStorage.clear();
@@ -94,4 +94,14 @@ it('renders complete Urdu register controls and RTL without translating configur
 it('passes locationId to the existing authorized API rather than filtering a tenant-wide browser result', async () => {
  await getStaffAttendance({ locationId: 4, staffId: 7, from: '2026-10-28', to: '2026-10-29' });
  expect(mocks.get).toHaveBeenCalledWith('/attendance/', { params: { locationId: 4, staffId: 7, from: '2026-10-28', to: '2026-10-29' } });
+});
+
+it('consumes dashboard site and date links as actual API filters without losing the applied range', () => {
+ mount('en', '/attendance?locationId=4&from=2026-10-20&to=2026-10-21');
+ expect(mocks.attendance.mock.calls.at(-1)?.[0]).toEqual({locationId:4,staffId:undefined,from:'2026-10-20',to:'2026-10-21'});
+ expect(screen.getByLabelText('Location')).toHaveValue('4'); expect(screen.getByLabelText('From date')).toHaveValue('2026-10-20');
+});
+it('rejects invalid deep-link IDs and impossible or reversed calendar ranges before requesting records', () => {
+ mount('en', '/attendance?locationId=-4&staffId=0&from=2026-02-30&to=2026-02-01');
+ expect(mocks.attendance.mock.calls.at(-1)?.[0]).toEqual({locationId:undefined,staffId:undefined,from:'2026-10-28',to:'2026-10-28'});
 });

@@ -20,3 +20,7 @@ UI inherits the approved design/v5 blue/white workspace tokens, buttons, typogra
 - Actual React renders at1440 and390px, English and Urdu, plus manager-empty/read-only/error/loading fixtures: no horizontal overflow or browser JS errors. Captures are synthetic API-intercepted component/render evidence, not40 integrated persistence E2E. The Impeccable detector returned no findings. Independent finish review and documentation results are recorded in the spec Log.
 
 Live mail, billing, photo qualification, Android devices and full production release proof remain external39/40 gates. This setup read boundary does not claim them.
+
+## 2026-10-29 V5 continuation (verification in progress)
+
+Spec28 continues from verified8ff718e in persistent `v5-continuation-20261028` worktrees. Approved Setup and owner/manager dashboard compositions are implemented against existing APIs. The user's previously dirty performance service/client is preserved in isolated checkpointb69a532; root originals remain untouched. Locations is independently implemented in its own worktree and awaits integration. Final acceptance evidence and limits are recorded in V5_SETUP.md / V5_LOCATIONS.md when inspected; this paragraph does not mark the spec Done.

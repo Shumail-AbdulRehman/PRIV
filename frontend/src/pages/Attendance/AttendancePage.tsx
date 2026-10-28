@@ -1,5 +1,5 @@
 import { useState, type FormEvent } from 'react';
-import { Link } from 'react-router-dom';
+import { Link, useSearchParams } from 'react-router-dom';
 import { CalendarCheck, RefreshCw } from 'lucide-react';
 import { formatInTimeZone } from 'date-fns-tz';
 import { useLanguage } from '@/i18n/context';
@@ -29,15 +29,27 @@ interface Site { id: number; name: string; timezone: string }
 interface StaffOption { id: number; name: string; locationId?: number | null }
 const calendarDate = (date = new Date(), timezone = 'UTC') => formatInTimeZone(date, timezone, 'yyyy-MM-dd');
 
+type InitialFilters = AttendanceFilters & { from: string; to: string };
+function readInitialFilters(params: URLSearchParams): InitialFilters {
+  const positiveId = (key: string) => { const raw = params.get(key) ?? ''; const value = Number(raw); return /^\d+$/.test(raw) && Number.isSafeInteger(value) && value > 0 ? value : undefined; };
+  const validDate = (value: string | null): value is string => !!value && /^\d{4}-\d{2}-\d{2}$/.test(value) && Number.isFinite(Date.parse(value)) && new Date(value).toISOString().slice(0, 10) === value;
+  const start = params.get('from'), end = params.get('to');
+  const range = validDate(start) && validDate(end) && start <= end ? { from: start, to: end } : { from: calendarDate(), to: calendarDate() };
+  return { ...range, locationId: positiveId('locationId'), staffId: positiveId('staffId') };
+}
 export default function AttendancePage() {
+  const [params] = useSearchParams();
+  return <AttendanceRegister key={params.toString()} initial={readInitialFilters(params)} />;
+}
+function AttendanceRegister({ initial }: { initial: InitialFilters }) {
   const { t, language } = useLanguage();
-  const [location, setLocation] = useState('');
-  const [staff, setStaff] = useState('');
-  const [from, setFrom] = useState(() => calendarDate());
-  const [to, setTo] = useState(() => calendarDate());
-  const [month, setMonth] = useState(() => calendarDate().slice(0, 7));
+  const [location, setLocation] = useState(initial.locationId ? String(initial.locationId) : '');
+  const [staff, setStaff] = useState(initial.staffId ? String(initial.staffId) : '');
+  const [from, setFrom] = useState(initial.from);
+  const [to, setTo] = useState(initial.to);
+  const [month, setMonth] = useState(initial.from.slice(0, 7));
   const [validation, setValidation] = useState('');
-  const [applied, setApplied] = useState<AttendanceFilters>(() => ({ from: calendarDate(), to: calendarDate() }));
+  const [applied, setApplied] = useState<AttendanceFilters>(initial);
   const locationsQuery = useGetLocations();
   const staffQuery = useGetStaff();
   const query = useGetAttendance(applied);

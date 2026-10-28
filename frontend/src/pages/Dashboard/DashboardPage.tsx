@@ -1,270 +1,63 @@
-import { Link, useSearchParams } from "react-router-dom";
-import { useSelector } from "react-redux";
-import type { RootState } from "@/store/store";
-import { ArrowRight, Building2, CalendarDays, RefreshCw } from "lucide-react";
-import { useLanguage } from "@/i18n/context";
-import { Button } from "@/components/ui/button";
-import ScopeFilters from "@/components/common/ScopeFilters";
-import DataTable from "@/components/common/DataTable";
-import OperationalSummary from "@/components/common/OperationalSummary";
-import WorkProgress from "@/components/common/WorkProgress";
-import AttentionList from "@/components/common/AttentionList";
-import OperationStatus from "@/components/common/OperationStatus";
-import TaskWorker from "@/components/common/TaskWorker";
-import {
-  useOperations,
-  scopeParams,
-  dailyLink,
-  locationTaskLink,
-  workLabel,
-  localTime,
-  type OperationOverview,
-} from "../Manager/operations";
-import OwnerTrends from "../Manager/OwnerTrends";
-import OperationsState from "../Manager/OperationsState";
+import { useState } from 'react';
+import { Link, useSearchParams } from 'react-router-dom';
+import { useSelector } from 'react-redux';
+import { ArrowRight, Building2, Check, ChevronDown, CircleHelp, RefreshCw, Search, Users, Camera, Clock } from 'lucide-react';
+import { Area, Bar, BarChart, CartesianGrid, ComposedChart, Line, ResponsiveContainer, Tooltip, XAxis, YAxis } from 'recharts';
+import type { RootState } from '@/store/store';
+import { useLanguage } from '@/i18n/context';
+import { Button } from '@/components/ui/button';
+import ScopeFilters from '@/components/common/ScopeFilters';
+import OperationsState from '../Manager/OperationsState';
+import { dailyLink, localTime, scopeParams } from '../Manager/operations';
+import { useCompanyPerformance, statusLabel } from './performance';
+import './performance.css';
 
 export default function DashboardPage() {
   const { t, language } = useLanguage();
-  const owner = useSelector((s: RootState) => s.auth.user?.role === "ADMIN");
-  const [params] = useSearchParams();
-  const query = useOperations<OperationOverview>(
-    "overview",
-    scopeParams(params),
-  );
+  const owner = useSelector((s: RootState) => s.auth.user?.role === 'ADMIN');
+  const [params, setParams] = useSearchParams();
+  const period = params.get('period') === '30' ? '30' : '7';
+  const query = useCompanyPerformance({ ...scopeParams(params), period });
   const data = query.data;
-  const historical = !!params.get("date") && params.get("date") !== "today";
-  const comparison = data ? (
-    <section className="ops-panel overview-comparison">
-      <div className="ops-panel-heading">
-        <div>
-          <h2>
-            {t(historical ? "Locations for this day" : "Locations today")}
-          </h2>
-          <p>{t("Attendance and submitted work at each site")}</p>
+  const [search, setSearch] = useState('');
+  const [sort, setSort] = useState('name');
+  const percent = (value: number | null) => value === null ? t('No data') : `${value.toLocaleString(language === 'ur' ? 'ur-PK' : 'en-PK', { maximumFractionDigits: 1 })}%`;
+  const shortDate = (value: string | null) => value ? new Intl.DateTimeFormat(language === 'ur' ? 'ur-PK' : 'en-GB', { day: 'numeric', month: 'short', timeZone: 'UTC' }).format(new Date(`${value}T12:00:00Z`)) : '—';
+  const summary = data?.summary;
+  const filtered = data?.sites.filter(site => site.location.name.toLocaleLowerCase().includes(search.toLocaleLowerCase())).sort((a, b) => sort === 'name' ? a.location.name.localeCompare(b.location.name) : sort === 'attendance' ? (b.attendanceRate ?? -1) - (a.attendanceRate ?? -1) : sort === 'submission' ? (b.submissionRate ?? -1) - (a.submissionRate ?? -1) : b.today.overdue + b.today.missing + b.today.reviews - (a.today.overdue + a.today.missing + a.today.reviews)) ?? [];
+  const signals = data?.sites.reduce((sum, site) => ({ overdue: sum.overdue + site.today.overdue, missing: sum.missing + site.today.missing, reviews: sum.reviews + site.today.reviews }), { overdue: 0, missing: 0, reviews: 0 });
+  const reviewLink = '/exceptions?' + new URLSearchParams({ ...(params.get('locationId') ? { locationId: params.get('locationId')! } : {}), period: 'all' });
+  const attendanceLink = '/attendance?' + new URLSearchParams({ ...(params.get('locationId') ? { locationId: params.get('locationId')! } : {}), ...(data?.dateTo ? { from: data.dateTo, to: data.dateTo } : {}) });
+  const figures = data ? <details className="perf-data-disclosure"><summary>{t('View daily figures')}<ChevronDown size={14} aria-hidden="true" /></summary><div className="perf-data-scroll" tabIndex={0} role="region" aria-label={t('Daily figures')}><table><thead><tr><th>{t('Date')}</th><th>{t('Attendance')}</th><th>{t('Work submitted')}</th></tr></thead><tbody>{data.series.map(point => <tr key={point.offset}><td><bdi>{shortDate(point.date)}</bdi></td><td><bdi dir="ltr">{point.present} / {point.scheduledShifts} ({percent(point.attendanceRate)})</bdi></td><td><bdi dir="ltr">{point.submitted} / {point.tasks} ({percent(point.submissionRate)})</bdi></td></tr>)}</tbody></table></div></details> : null;
+  return <div className="ops-page performance-page">
+    <header className="ops-header perf-header"><div><h1>{t(owner ? 'Company performance' : 'Location overview')}</h1><p>{t(owner ? 'See what is working. Know where to focus next.' : 'Historical performance for your assigned sites; daily actions stay in Today.')}</p></div>{owner ? <ScopeFilters locations={data?.locations ?? []} localDate={data?.dateTo ?? undefined} /> : <Button asChild><Link to={dailyLink(params)}>{t('Open Today')}<ArrowRight size={16} aria-hidden="true" /></Link></Button>}</header>
+    <div className="perf-toolbar"><div className="perf-period" role="group" aria-label={t('Reporting period')}>{['7', '30'].map(value => <button key={value} type="button" aria-pressed={period === value} onClick={() => setParams(previous => { const next = new URLSearchParams(previous); next.set('period', value); return next; })}>{t(value === '7' ? 'Last 7 days' : 'Last 30 days')}</button>)}</div><span className="perf-range"><bdi>{data ? `${shortDate(data.dateFrom)} – ${shortDate(data.dateTo)}` : t('Loading performance…')}</bdi></span>{!owner ? <ScopeFilters locations={data?.locations ?? []} localDate={data?.dateTo ?? undefined} /> : null}<Button variant="outline" disabled={query.isFetching} onClick={() => void query.refetch()} aria-label={t('Refresh performance')}><RefreshCw size={15} aria-hidden="true" />{t('Refresh')}</Button></div>
+    <OperationsState loading={query.isPending} layout="owner-overview" error={query.error} retry={() => void query.refetch()} />
+    {data && !query.isError && summary ? <>
+      {!data.sites.length ? <section className="perf-empty-workspace"><Building2 size={32} aria-hidden="true" /><h2>{t(owner ? 'Your company at a glance starts here' : 'No assigned locations yet')}</h2><p>{t(owner ? 'Add a location and schedule your team to see attendance and work performance.' : 'Ask your company owner to assign a location to your account.')}</p>{owner ? <Button asChild><Link to="/setup">{t('Get your company ready')}<ArrowRight size={16} aria-hidden="true" /></Link></Button> : null}</section> : <>
+        {owner ? <section className="perf-metrics" aria-label={t('Performance summary')}>
+          <article><span>{t('Attendance')}</span><strong>{percent(summary.attendanceRate)}</strong><p><bdi dir="ltr">{summary.present} / {summary.scheduledShifts}</bdi> {t('scheduled shifts attended')}</p><small>{summary.attendanceChange === null ? t('No previous data') : `${summary.attendanceChange > 0 ? '+' : ''}${summary.attendanceChange} ${t('pp vs previous period')}`}</small></article>
+          <article><span>{t('Work submitted')}</span><strong>{percent(summary.submissionRate)}</strong><p><bdi dir="ltr">{summary.submitted} / {summary.tasks}</bdi> {t('scheduled tasks submitted')}</p><small>{summary.submissionChange === null ? t('No previous data') : `${summary.submissionChange > 0 ? '+' : ''}${summary.submissionChange} ${t('pp vs previous period')}`}</small></article>
+          <article><span>{t('Locations with activity')}</span><strong><bdi dir="ltr">{summary.activeLocations}<small> / {summary.totalLocations}</small></bdi></strong><p>{summary.totalStaff} {t('active team members')}</p><small>{t('Locations with scheduled shifts or tasks')}</small></article>
+          <article><span>{t('Open photo reviews')}</span><strong>{summary.reviews}</strong><p>{t('Open reviews for work in this period')}</p><small>{t('Submitted work is separate from verification.')}</small></article>
+        </section> : null}
+        <div className={'perf-main-grid' + (!owner ? ' perf-manager-grid' : '')}>
+          <section className="perf-panel perf-trend"><div className="perf-panel-heading"><div><h2>{t(owner ? 'Consistency over time' : 'Work submitted')}</h2><p>{t(owner ? 'Daily attendance and submitted work as a share of the schedule.' : 'Scheduled tasks in the reporting period')}</p></div>{!owner ? <strong className="perf-manager-total"><bdi dir="ltr">{summary.submitted} / {summary.tasks}</bdi></strong> : null}</div>
+            {owner ? <div className="perf-legend"><span><i className="is-attendance" />{t('Attendance')}</span><span><i className="is-submission" />{t('Work submitted')}</span></div> : null}
+            {summary.scheduledShifts || summary.tasks ? <div className="perf-trend-canvas" dir="ltr" role="img" aria-label={t(owner ? 'Daily attendance and work submission percentages' : 'Daily submitted task counts')}><ResponsiveContainer width="100%" height="100%">{owner ? <ComposedChart data={data.series} margin={{ top: 12, right: 12, bottom: 0, left: -16 }} accessibilityLayer><CartesianGrid vertical={false} stroke="var(--border)" strokeDasharray="3 5" /><XAxis dataKey="date" tickFormatter={value => shortDate(String(value))} axisLine={false} tickLine={false} minTickGap={24} tick={{ fill: 'var(--muted-foreground)', fontSize: 12 }} dy={10} /><YAxis domain={[0, 100]} ticks={[0, 25, 50, 75, 100]} tickFormatter={value => `${value}%`} axisLine={false} tickLine={false} tick={{ fill: 'var(--muted-foreground)', fontSize: 12 }} /><Tooltip labelFormatter={value => shortDate(String(value))} formatter={value => `${value}%`} contentStyle={{ border: '1px solid var(--border)', borderRadius: 7, fontSize: 13 }} />{owner ? <Area name={t('Attendance')} dataKey="attendanceRate" type="monotone" stroke="var(--primary)" strokeWidth={2.5} fill="var(--accent)" connectNulls={false} isAnimationActive={false} /> : null}<Line name={t('Work submitted')} dataKey="submissionRate" type="monotone" stroke="var(--primary)" strokeWidth={2.5} strokeDasharray={owner ? '5 4' : undefined} connectNulls={false} isAnimationActive={false} /></ComposedChart>: <BarChart data={data.series} margin={{ top: 12, right: 12, bottom: 0, left: -16 }} accessibilityLayer><CartesianGrid vertical={false} stroke="var(--border)" /><XAxis dataKey="date" tickFormatter={value => shortDate(String(value))} axisLine={false} tickLine={false} tick={{ fill: 'var(--muted-foreground)', fontSize: 12 }} /><YAxis allowDecimals={false} axisLine={false} tickLine={false} tick={{ fill: 'var(--muted-foreground)', fontSize: 12 }} /><Tooltip labelFormatter={value => shortDate(String(value))} /><Bar dataKey="submitted" name={t('Work submitted')} fill="var(--primary)" radius={[4,4,0,0]} maxBarSize={36} isAnimationActive={false} /></BarChart>}</ResponsiveContainer></div> : <div className="perf-chart-empty"><h3>{t('No performance data in this period')}</h3><p>{t('Charts will appear when scheduled work is recorded.')}</p></div>}
+            {figures}<p className="perf-chart-caption">{t('Gaps mean no scheduled records.')} {t('Submitted work is separate from verification.')}</p>
+          </section>
+          <aside className="perf-panel perf-attention" aria-labelledby="performance-attention"><div className="perf-panel-heading"><div><h2 id="performance-attention">{t(owner ? (params.get('date') && params.get('date') !== 'today' ? 'Needs attention for this day' : 'Needs attention today') : 'Assigned-site actions')}</h2><p>{t('Dates follow each location’s timezone.')}</p></div></div><div className="perf-attention-list">
+            {owner ? <Link to={dailyLink(params, { tab: 'tasks', status: 'overdue' })}><Clock size={18} className="perf-signal-icon" aria-hidden="true" /><span><strong>{t('Overdue work')}</strong><small>{t('Review daily work and assignment')}</small></span><b>{signals?.overdue}</b><ArrowRight size={16} aria-hidden="true" /></Link> : null}
+            <Link to={reviewLink}><Camera size={18} className="perf-signal-icon" aria-hidden="true" /><span><strong>{t('Photo reviews')}</strong><small>{t('Inspect received evidence and record a decision.')}</small></span>{owner ? <b>{signals?.reviews}</b> : null}<ArrowRight size={16} aria-hidden="true" /></Link>
+            <Link to={attendanceLink}><Users size={18} className="perf-signal-icon" aria-hidden="true" /><span><strong>{t('Attendance follow-up')}</strong><small>{t('Review captured attendance and add context.')}</small></span>{owner ? <b>{signals?.missing}</b> : null}<ArrowRight size={16} aria-hidden="true" /></Link>
+          </div><div className="perf-attention-footer"><Link to={dailyLink(params)}>{t('Open Today')}<ArrowRight size={16} aria-hidden="true" /></Link></div></aside>
         </div>
-        <Link className="ops-text-link" to="/locations">
-          {t("View all locations")}
-          <ArrowRight size={15} />
-        </Link>
-      </div>
-      <DataTable
-        data={data.comparison}
-        rowKey={(r) => r.location.id}
-        emptyMessage="No locations assigned to this workspace."
-        columns={[
-          {
-            key: "location",
-            header: "Location",
-            render: (r) => (
-              <div className="table-identity">
-                <Building2 size={18} />
-                <strong>{r.location.name}</strong>
-              </div>
-            ),
-          },
-          {
-            key: "staff",
-            header: "Staff present",
-            render: (r) => (
-              <div className="table-progress">
-                <small>
-                  {r.present} {t("of")} {r.scheduled}
-                </small>
-                {r.scheduled > 0 ? (
-                  <progress
-                    aria-label={t("Staff present")}
-                    max={r.scheduled}
-                    value={r.present}
-                  />
-                ) : null}
-              </div>
-            ),
-          },
-          {
-            key: "tasks",
-            header: "Work submitted",
-            render: (r) => (
-              <div className="table-progress is-blue">
-                <small>
-                  {r.submitted} {t("of")} {r.tasks}
-                </small>
-                {r.tasks > 0 ? (
-                  <progress
-                    aria-label={t("Work submitted")}
-                    max={r.tasks}
-                    value={r.submitted}
-                  />
-                ) : null}
-              </div>
-            ),
-          },
-          {
-            key: "review",
-            header: "Reviews",
-            render: (r) => (
-              <OperationStatus
-                state={r.reviews ? "REVIEW_REQUIRED" : "PASSED"}
-                label={
-                  r.reviews
-                    ? String(r.reviews) + " " + t("reviews")
-                    : "No open reviews"
-                }
-              />
-            ),
-          },
-          {
-            key: "action",
-            header: "Action",
-            render: (r) => (
-              <Button asChild variant="outline">
-                <Link
-                  to={dailyLink(params, { locationId: String(r.location.id) })}
-                >
-                  {t("View")}
-                  <ArrowRight size={14} />
-                </Link>
-              </Button>
-            ),
-          },
-        ]}
-      />
-      {data.selected.length > 4 ? (
-        <div className="panel-footer">
-          <span>{t("Showing {count} locations", { count: 4 })}</span>
-          <Link to="/locations">
-            {t("View all locations")}
-            <ArrowRight size={14} />
-          </Link>
-        </div>
-      ) : null}
-    </section>
-  ) : null;
-  const recent = data ? (
-    <section className="ops-panel overview-recent overview-wide-tasks">
-      <div className="ops-panel-heading">
-        <div>
-          <h2>{t(historical ? "Tasks for this day" : "Today’s tasks")}</h2>
-          <p>{t("Scheduled work and its next action")}</p>
-        </div>
-        <Link
-          className="ops-text-link"
-          to={dailyLink(params, { tab: "tasks" })}
-        >
-          {t("View all tasks")}
-          <ArrowRight size={15} />
-        </Link>
-      </div>
-      {data.tasks.length ? (
-        data.tasks.slice(0, 4).map((task) => (
-          <Link
-            className="ops-task-preview"
-            key={task.id}
-            to={locationTaskLink(task)}
-          >
-            <div>
-              <strong>{task.areaNameSnapshot ?? task.title}</strong>
-              <TaskWorker task={task} />
-            </div>
-            <p className="overview-task-location">{task.location.name}</p>
-            <span>
-              <OperationStatus
-                state={task.staffSubmittedAt ? "PASSED" : task.rawStatus}
-                label={workLabel(task)}
-              />
-              <ArrowRight size={14} />
-            </span>
-          </Link>
-        ))
-      ) : (
-        <p className="ops-empty">{t("No scheduled work for this day.")}</p>
-      )}
-    </section>
-  ) : null;
-  return (
-    <div className="ops-page">
-      <header className="ops-header">
-        <div>
-          <span className="ops-eyebrow">
-            <CalendarDays size={13} />
-            {t(owner ? "Across your company" : "Your assigned locations")}
-          </span>
-          <h1>
-            {t(
-              owner
-                ? "Company overview"
-                : historical
-                  ? "Operations overview"
-                  : "Today’s work",
-            )}
-          </h1>
-          <p>
-            {t(
-              owner
-                ? "A clear view of work across your locations."
-                : "Your team, cleaning progress, and what needs a decision.",
-            )}
-          </p>
-        </div>
-        <ScopeFilters locations={data?.locations ?? []} />
-      </header>
-      <OperationsState
-        loading={query.isPending}
-        layout={owner ? "owner-overview" : "manager-overview"}
-        error={query.error}
-        retry={() => void query.refetch()}
-      />
-      {data && !query.isError ? (
-        <>
-          <OperationalSummary data={data} params={params} />
-          <div className="overview-flow">
-            <div className="overview-primary">
-              {owner ? (
-                <>
-                  <WorkProgress data={data} params={params} />
-                  <AttentionList data={data} params={params} />
-                </>
-              ) : (
-                <>
-                  <AttentionList data={data} params={params} />
-                  <WorkProgress data={data} params={params} />
-                </>
-              )}
-            </div>
-            {comparison}
-            {owner ? (
-              <OwnerTrends
-                locations={data.selected}
-                asOf={data.asOf}
-                date={params.get("date") ?? "today"}
-              />
-            ) : null}
-            {recent}
-          </div>
-          <footer className="dashboard-updated">
-            <span>
-              {t("Updated {time}", {
-                time: localTime(
-                  data.asOf,
-                  data.selected[0]?.timezone ?? "Asia/Karachi",
-                  language,
-                  true,
-                ),
-              })}
-            </span>
-            <Button
-              variant="ghost"
-              disabled={query.isFetching}
-              onClick={() => void query.refetch()}
-            >
-              <RefreshCw
-                size={14}
-                className={query.isFetching ? "animate-spin" : ""}
-              />
-              {t("Refresh")}
-            </Button>
-          </footer>
-        </>
-      ) : null}
-    </div>
-  );
+        {owner ? <section className="perf-panel perf-location-panel"><div className="perf-panel-heading"><div><h2>{t('Every location, in focus')}</h2><p>{t('Period totals alongside the latest status on the selected day.')}</p></div><Link to="/locations">{t('Manage locations')}</Link></div><div className="perf-table-tools"><label><Search size={16} aria-hidden="true" /><input aria-label={t('Find a location')} placeholder={t('Find a location…')} value={search} onChange={event => setSearch(event.target.value)} /></label><select aria-label={t('Sort locations')} value={sort} onChange={event => setSort(event.target.value)}><option value="name">{t('Name A–Z')}</option><option value="attendance">{t('Attendance rate')}</option><option value="submission">{t('Work submission rate')}</option><option value="attention">{t('Needs attention first')}</option></select></div>
+          <div className="perf-table-scroll"><table className="perf-location-table"><thead><tr>{['Location', 'Attendance', 'Work submitted', 'Status on selected day', 'Open reviews', 'Action'].map(label => <th key={label} scope="col">{t(label)}</th>)}</tr></thead><tbody>{filtered.map(site => <tr key={site.location.id}><td><Link to={`/locations/${site.location.id}`}><strong>{site.location.name}</strong></Link><small>{site.staff} {t('active staff')}</small></td><td data-label={t('Attendance')}><strong>{percent(site.attendanceRate)}</strong><small><bdi dir="ltr">{site.present} / {site.scheduledShifts}</bdi> {t('shifts')}</small>{site.scheduledShifts ? <progress value={site.present} max={site.scheduledShifts} aria-label={`${site.location.name}: ${t('Attendance')}`} /> : null}</td><td data-label={t('Work submitted')}><strong>{percent(site.submissionRate)}</strong><small><bdi dir="ltr">{site.submitted} / {site.tasks}</bdi> {t('tasks')}</small>{site.tasks ? <progress className="is-submission" value={site.submitted} max={site.tasks} aria-label={`${site.location.name}: ${t('Work submitted')}`} /> : null}</td><td data-label={t('Status on selected day')}><span className="perf-site-status" data-status={site.today.status}>{t(statusLabel[site.today.status])}</span></td><td data-label={t('Open reviews')}>{site.reviews}</td><td><Link className="perf-row-link" aria-label={`${t('View daily records')}: ${site.location.name}`} to={dailyLink(params, { locationId: String(site.location.id) })}><ArrowRight size={17} aria-hidden="true" /></Link></td></tr>)}{!filtered.length ? <tr><td colSpan={6}><p>{t('No matching locations.')}</p><Button variant="ghost" onClick={() => setSearch('')}>{t('Clear search')}</Button></td></tr> : null}</tbody></table></div><footer className="perf-table-footer"><span>{filtered.length} {t('locations')} · {t('Weighted company totals')}</span><Link to={dailyLink(params)}>{t('Open Today')}</Link></footer></section> : null}
+        <details className="perf-panel perf-additional"><summary>{t('Work status and calculation notes')}<ChevronDown size={16} aria-hidden="true" /></summary><div className="perf-additional-content"><dl>{[['Work submitted', summary.submitted], ['In progress', summary.inProgress], ['Not started', summary.notStarted], ['Overdue', summary.overdue], ['verified', summary.verified], ['accepted with exceptions', summary.accepted]].map(([label, value]) => <div key={label}><dt>{t(String(label))}</dt><dd>{value}</dd></div>)}</dl><p><CircleHelp size={16} aria-hidden="true" />{t('Attendance counts checked-in shifts, including late arrivals. Rates include all scheduled records, including upcoming shifts today. Overnight work is counted once on its scheduled local date. Submitted work is separate from verification.')}</p><p><Check size={16} aria-hidden="true" />{t('Rates with no scheduled records are marked No data. Exact figures are listed below.')}</p></div></details>
+      </>}
+      <footer className="dashboard-updated"><span>{t('Updated {time}', { time: localTime(data.asOf, data.selected[0]?.timezone ?? 'Asia/Karachi', language, true) })} · {t('Dates follow each location’s timezone.')}</span><Link to={dailyLink(params)}>{t('Go to daily operations')}<ArrowRight size={14} aria-hidden="true" /></Link></footer>
+    </> : null}
+  </div>;
 }

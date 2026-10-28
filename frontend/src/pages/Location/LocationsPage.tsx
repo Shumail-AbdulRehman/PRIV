@@ -4,10 +4,10 @@ import StatusBadge from "@/components/common/StatusBadge";
 import OperationStatus from "@/components/common/OperationStatus";
 import OperationsState from "../Manager/OperationsState";
 import { useOperations, type OperationOverview } from "../Manager/operations";
-import { useLanguage } from "@/i18n/context";
+import { useLocationLanguage } from "./locationTranslations";
+import "./location-v5.css";
 import { Link, useSearchParams } from "react-router-dom";
 import type { LocationWithCounts } from "./types";
-import LoadingSpinner from "@/components/common/LoadingSpinner";
 import PageHeader from "@/components/common/PageHeader";
 import EmptyState from "@/components/common/EmptyState";
 import {
@@ -15,21 +15,18 @@ import {
   Plus,
   Search,
   Building2,
-  Users,
-  ClipboardList,
   ArrowRight,
   Layers,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import StatCard from "@/components/common/StatCard";
 import { useState } from "react";
 import LocationFormDialog from "./LocationFormDialog";
 import { useSelector } from "react-redux";
 import type { RootState } from "@/store/store";
 
 export default function LocationsPage() {
-  const { t } = useLanguage();
+  const { t } = useLocationLanguage();
   const [search, setSearch] = useState("");
   const [statusFilter, setStatusFilter] = useState("active");
   const [success, setSuccess] = useState("");
@@ -42,7 +39,7 @@ export default function LocationsPage() {
   const [params,setParams]=useSearchParams();
   const dialogOpen=params.get('create')==='1';
   const setDialogOpen=(open:boolean)=>setParams(previous=>{const result=new URLSearchParams(previous);if(open)result.set('create','1');else result.delete('create');return result;},{replace:true});
-  if (getLocations.isPending) return <LoadingSpinner fullScreen />;
+  if (getLocations.isPending) return <div className="location-v5"><PageHeader title="Locations"/><OperationsState loading skeleton="metrics"/><OperationsState loading/></div>;
 
   if (getLocations.isError)
     return (
@@ -81,10 +78,10 @@ export default function LocationsPage() {
   );
 
   return (
-    <div className="space-y-6">
+    <div className="location-v5 location-directory-v5">
       <PageHeader
         title="Locations"
-        subtitle="See your sites, teams, and today’s cleaning work."
+        subtitle={t("See your sites, teams, and today’s cleaning work.")}
         action={
           isAdmin ? (
             <Button onClick={() => setDialogOpen(true)}>
@@ -112,25 +109,12 @@ export default function LocationsPage() {
           {t(success)}
         </p>
       ) : null}
-      <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-3">
-        <StatCard
-          label="Active locations"
-          value={locations.filter((loc) => loc.isActive).length}
-          icon={MapPin}
-        />
-        <StatCard
-          label="Assigned staff"
-          value={totalStaff}
-          icon={Users}
-          tone="sky"
-        />
-        <StatCard
-          label="Cleaning schedules"
-          value={totalTemplates}
-          icon={ClipboardList}
-          tone="emerald"
-        />
-      </div>
+      <dl className="location-directory-metrics-v5">
+       <div><dt>{t('Active locations')}</dt><dd>{locations.filter(loc=>loc.isActive).length}</dd></div>
+       <div><dt>{t('Assigned staff')}</dt><dd>{totalStaff}</dd></div>
+       <div><dt>{t('Cleaning schedules')}</dt><dd>{totalTemplates}</dd></div>
+      </dl>
+      <section className="ops-panel location-register-v5"><div className="ops-panel-heading"><div><h2>{t('Location register')}</h2><p>{t('Saved sites in your workspace')}</p></div><span className="location-register-count">{locations.length}</span></div>
       <div className="ops-toolbar">
         <label className="ops-search">
           <span className="flex items-center gap-2">
@@ -155,6 +139,7 @@ export default function LocationsPage() {
           </select>
         </label>
       </div>
+      {operations.isPending ? <p className="workspace-footnote" role="status">{t("Checking today’s work…")}</p> : null}
       {operations.isError ? (
         <p className="workspace-footnote">
           {t("Today’s attendance and task totals are unavailable.")}{" "}
@@ -172,6 +157,7 @@ export default function LocationsPage() {
           pageSize={20}
           rowKey={(loc) => loc.id}
           emptyMessage="No locations match these filters."
+          mobileRender={loc=>{const row=daily.get(loc.id);return <div className="location-mobile-v5"><div className="location-mobile-title"><Building2 size={20}/><div><h3>{loc.name}</h3><p>{loc.address}</p></div><StatusBadge status={loc.isActive?'ACTIVE':'INACTIVE'}/></div><dl><div><dt>{t('Staff present')}</dt><dd><bdi dir="ltr">{row?`${row.present} / ${row.scheduled}`:'—'}</bdi></dd></div><div><dt>{t('Submitted / due')}</dt><dd><bdi dir="ltr">{row?`${row.submitted} / ${row.tasks}`:'—'}</bdi></dd></div><div><dt>{t('Waiting for review')}</dt><dd>{row?.reviews??'—'}</dd></div></dl><Button asChild variant="outline"><Link to={'/locations/'+loc.id}>{t('Open')}<ArrowRight size={14}/></Link></Button></div>;}}
           columns={[
             {
               key: "location",
@@ -267,7 +253,7 @@ export default function LocationsPage() {
               key: "action",
               header: "Action",
               render: (loc) => (
-                <Button asChild>
+                <Button asChild variant="outline">
                   <Link to={"/locations/" + loc.id}>
                     {t("Open")}
                     <ArrowRight size={14} />
@@ -294,6 +280,8 @@ export default function LocationsPage() {
           }
         />
       )}
+      {locations.length&&!visible.length?<Button variant="outline" onClick={()=>{setSearch('');setStatusFilter('active');}}>{t('Clear filters')}</Button>:null}
+      </section>
       <div className="directory-guide">
         <Layers size={23} />
         <div>

@@ -1,0 +1,57 @@
+/* Approved V5 setup dialogs; retain the real inventory and schedule workflows. */
+.setup-form-dialog { width:calc(100% - 32px); max-width:620px; max-height:calc(100dvh - 40px); padding:24px; border:1px solid var(--border); border-radius:12px; gap:20px; background:var(--card); color:var(--foreground); }
+.setup-form-dialog [data-slot=dialog-header] { gap:8px; padding-inline-end:32px; }
+.setup-form-dialog [data-slot=dialog-title] { font-family:inherit; font-size:20px; font-weight:650; line-height:1.4; }
+.setup-form-dialog [data-slot=dialog-description] { line-height:1.6; }
+.setup-form-dialog .setup-form-site { color:var(--muted-foreground); font-size:13px; overflow-wrap:anywhere; }
+.setup-form-dialog input:not([type=checkbox]), .setup-form-dialog select, .setup-form-dialog textarea { min-height:44px; border:1px solid var(--border); border-radius:7px; background:var(--card); padding:10px 12px; font-size:14px; box-shadow:none; }
+.setup-form-dialog textarea { min-height:88px; }
+.setup-form-dialog label { font-weight:550; }
+.setup-form-dialog fieldset { min-width:0; }
+.setup-form-dialog [data-slot=button], .setup-inventory-editor [data-slot=button] { min-height:44px; height:auto; white-space:normal; }
+.setup-form-dialog .setup-form-error, .setup-inventory-editor .setup-form-error { padding:12px 16px; border:1px solid var(--border); border-radius:7px; color:var(--danger-ink); background:var(--danger-fill); font-size:14px; line-height:1.6; }
+.setup-form-dialog .setup-form-warning { color:var(--warning-ink); background:var(--warning-fill); padding:12px 16px; border-radius:7px; }
+.setup-form-dialog .setup-form-steps { display:grid; grid-template-columns:repeat(4,minmax(0,1fr)); gap:4px; padding-block-end:16px; border-block-end:1px solid var(--border); font-size:13px; }
+.setup-form-steps li { text-align:center; padding:8px 4px; border-radius:5px; color:var(--muted-foreground); }
+.setup-form-steps li[aria-current=step] { color:var(--primary); background:var(--accent); font-weight:600; }
+.setup-form-dialog .setup-form-facts { display:grid; grid-template-columns:120px minmax(0,1fr); gap:12px 20px; font-size:14px; }
+.setup-form-facts dt { color:var(--muted-foreground); }
+.setup-form-facts dd { overflow-wrap:anywhere; }
+.setup-form-dialog .setup-form-actions { display:flex; justify-content:space-between; flex-wrap:wrap; gap:12px; padding-block-start:16px; border-block-start:1px solid var(--border); background:var(--card); }
+.setup-form-dialog .setup-form-help, .setup-inventory-selector .setup-form-help { color:var(--muted-foreground); font-size:13px; line-height:1.6; }
+.setup-inventory-selector { min-width:0; }
+.setup-inventory-selector select { width:100%; min-height:44px; padding:10px 12px; border:1px solid var(--border); border-radius:7px; background:var(--card); }
+.setup-inventory-selector .setup-inventory-item { display:flex; flex-wrap:wrap; align-items:center; justify-content:space-between; gap:8px 16px; padding-block:8px; border-block-end:1px solid var(--border); }
+.setup-inventory-item label { display:flex; align-items:center; min-height:44px; gap:12px; font-size:14px; }
+.setup-inventory-item label:first-child { flex:1; min-width:0; }
+.setup-inventory-item label span { overflow-wrap:anywhere; }
+.setup-inventory-item input[type=checkbox] { width:20px; height:20px; flex-shrink:0; accent-color:var(--primary); }
+.setup-inventory-item small { display:block; margin-block-start:4px; color:var(--muted-foreground); font-weight:400; }
+.setup-inventory-item .setup-mandatory-choice { font-size:13px; font-weight:400; }
+.setup-inventory-editor { display:grid; gap:12px; padding-block-start:16px; border-block-start:1px solid var(--border); min-width:0; }
+.setup-inventory-editor [role=status] { color:var(--success-ink); font-size:14px; }
+.setup-form-dialog :focus-visible, .setup-inventory-selector :focus-visible, .setup-inventory-editor :focus-visible { outline:3px solid var(--primary); outline-offset:3px; }
+[dir=rtl] .setup-form-actions svg { transform:rotate(180deg); }
+[dir=rtl] .setup-form-dialog p, [dir=rtl] .setup-inventory-selector p, [dir=rtl] .setup-form-facts { line-height:1.85; }
+@media(max-width:620px) {
+ .setup-form-dialog { width:calc(100% - 24px); max-height:calc(100dvh - 24px); padding:20px; }
+ .setup-form-dialog input:not([type=checkbox]), .setup-form-dialog select, .setup-form-dialog textarea { min-height:48px; font-size:16px; }
+ .setup-form-dialog [data-slot=button], .setup-inventory-editor [data-slot=button], .setup-inventory-selector select, .setup-inventory-item label { min-height:48px; }
+ .setup-form-dialog .setup-form-facts { grid-template-columns:1fr; gap:4px; }
+ .setup-form-facts dd { margin-block-end:12px; }
+ .setup-form-dialog .setup-form-actions > [data-slot=button] { flex:1; }
+ .setup-form-dialog .area-template-counts { grid-template-columns:repeat(2,minmax(0,1fr)); }
+}
+.setup-form-dialog .area-template-counts { display:grid; grid-template-columns:repeat(3,minmax(0,1fr)); gap:16px; }
+.setup-form-dialog.area-template-editor label, .setup-form-dialog label:has(>input:not([type=checkbox])), .setup-form-dialog label:has(>textarea) { display:grid; gap:8px; }
+.setup-form-dialog .area-template-fixture { display:flex; flex-wrap:wrap; align-items:center; gap:12px; padding-block:16px; border-block-end:1px solid var(--border); }
+.setup-form-dialog .area-template-fixture > div:first-child { flex:1; min-width:0; }
+.setup-form-dialog .area-template-fixture strong { overflow-wrap:anywhere; }
+.setup-form-dialog .area-template-fixture p { margin-block-start:4px; font-size:13px; color:var(--muted-foreground); }
+.setup-form-dialog .area-template-fixture-edit, .setup-form-dialog .area-template-add { display:grid; grid-template-columns:minmax(0,1fr) minmax(120px,.6fr); gap:12px; width:100%; }
+.setup-form-dialog .area-template-fixture-edit > div { grid-column:1 / -1; }
+@media(max-width:620px) {
+ .setup-form-dialog .area-template-counts { grid-template-columns:repeat(2,minmax(0,1fr)); }
+ .setup-form-dialog .area-template-fixture-edit, .setup-form-dialog .area-template-add { grid-template-columns:minmax(0,1fr); }
+ .setup-form-dialog .area-template-fixture > div:first-child { flex-basis:100%; }
+}

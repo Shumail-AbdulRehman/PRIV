@@ -1,0 +1,560 @@
+{
+  "sourceRevision": "e212e40c8bf3062e621fa708a29790e9f1a90ba4",
+  "date": "2026-10-29",
+  "source": "actual private production React/API and disposable synthetic PostgreSQL; immutable V5 references",
+  "capture": "settled animation frames; no traces/video/auth state",
+  "images": [
+    {
+      "file": "app-areas-1366-en.png",
+      "width": 1366,
+      "height": 900,
+      "sha256": "a36708c711f5398318f8585050b41e68baca642d8c728bee2fbdf54c6b0444c6",
+      "kind": "actual",
+      "supplementalFullPage": false
+    },
+    {
+      "file": "app-areas-1366-ur.png",
+      "width": 1366,
+      "height": 900,
+      "sha256": "d19d1fc19d21b23eb0871202e93403a9b9add7b8ba7ec550733edb61711ef412",
+      "kind": "actual",
+      "supplementalFullPage": false
+    },
+    {
+      "file": "app-areas-390-en.png",
+      "width": 390,
+      "height": 1193,
+      "sha256": "a2a1db2dd0341fd48dbee7f03701c1c68154479932d08f8adb6c7e616ed24fe3",
+      "kind": "actual",
+      "supplementalFullPage": true
+    },
+    {
+      "file": "app-areas-390-ur.png",
+      "width": 390,
+      "height": 1238,
+      "sha256": "7a54191e9ce3d0a8b4467a0724e9fb4cc4a753d33a840d95cf19e87365047c2a",
+      "kind": "actual",
+      "supplementalFullPage": true
+    },
+    {
+      "file": "app-create-390-en.png",
+      "width": 390,
+      "height": 1404,
+      "sha256": "d901e3a104dd47497902d0d903778477bd9526406d3af8b30dbb6c18ec312059",
+      "kind": "actual",
+      "supplementalFullPage": true
+    },
+    {
+      "file": "app-create-390-ur.png",
+      "width": 390,
+      "height": 1358,
+      "sha256": "3cd81e32f0920fb6b86069c49ad1d7fa194cad6fa4772d44a0c0f9acd993c9fa",
+      "kind": "actual",
+      "supplementalFullPage": true
+    },
+    {
+      "file": "app-create-capacity-390-ur.png",
+      "width": 390,
+      "height": 1358,
+      "sha256": "85540365ca942f94807fcca7ff30cf9b0cf71fab535e6437a69f27d046ca9188",
+      "kind": "actual",
+      "supplementalFullPage": true
+    },
+    {
+      "file": "app-create-details-390-ur.png",
+      "width": 390,
+      "height": 1358,
+      "sha256": "a3e8c2b6694b406d6482a7f20b3c4ad02d88fb4fc6d6fbd1e0a7da70051b9c88",
+      "kind": "actual",
+      "supplementalFullPage": true
+    },
+    {
+      "file": "app-created-persisted-390-ur.png",
+      "width": 390,
+      "height": 1136,
+      "sha256": "3d580307cdf863880eceee4961891c27d5111e0456b2ed634fe8c4ab5ef865b4",
+      "kind": "actual",
+      "supplementalFullPage": true
+    },
+    {
+      "file": "app-detail-network-error-390-en.png",
+      "width": 390,
+      "height": 900,
+      "sha256": "2f87d07c2440c8df4609887e6fda8291598a32f42c67bb7e018b0fe6ee740d6b",
+      "kind": "actual",
+      "supplementalFullPage": false
+    },
+    {
+      "file": "app-detail-network-error-390-ur.png",
+      "width": 390,
+      "height": 900,
+      "sha256": "52f078d934ac15572b7d75e5263ce5170afeb21d2540b7a7c341ac195f188928",
+      "kind": "actual",
+      "supplementalFullPage": false
+    },
+    {
+      "file": "app-edit-1366-en.png",
+      "width": 1366,
+      "height": 995,
+      "sha256": "4f10c2fecbaf8952cf193f7eb1eca2420cc7187f34bff655eb16a28ac0bacdf7",
+      "kind": "actual",
+      "supplementalFullPage": true
+    },
+    {
+      "file": "app-edit-schedule-1366-en.png",
+      "width": 1366,
+      "height": 900,
+      "sha256": "80146ccb2cca9cadbe3a2b9e9d59108553e7bf1b8a75c72a6111880e5f04c239",
+      "kind": "actual",
+      "supplementalFullPage": false
+    },
+    {
+      "file": "app-edit-schedule-1366-ur.png",
+      "width": 1366,
+      "height": 900,
+      "sha256": "2d257fe1752892a6e9b31793bd4fc8b945dab0fa3d80aef059579cbdae188e16",
+      "kind": "actual",
+      "supplementalFullPage": false
+    },
+    {
+      "file": "app-edit-schedule-390-en.png",
+      "width": 390,
+      "height": 968,
+      "sha256": "c7d1defd20ca3e3772df149f009f613d14b4234113f2182317608c9fe7266b3a",
+      "kind": "actual",
+      "supplementalFullPage": true
+    },
+    {
+      "file": "app-edit-schedule-390-ur.png",
+      "width": 390,
+      "height": 956,
+      "sha256": "c0937a3fcf7a289bbfab41622533aec566871e1123c07b0117d1dd3c19c6518d",
+      "kind": "actual",
+      "supplementalFullPage": true
+    },
+    {
+      "file": "app-edit-schedule-network-error-390-ur.png",
+      "width": 390,
+      "height": 956,
+      "sha256": "b8e01c2d2de1002726e06835b6c39504271f4a793064380efe0271a0b6d1f705",
+      "kind": "actual",
+      "supplementalFullPage": true
+    },
+    {
+      "file": "app-history-local-today-1366-en.png",
+      "width": 1366,
+      "height": 900,
+      "sha256": "9ea4948da202029e0bd6932d0b7a4e74154e4b554c012e88e15c5dec6a56b962",
+      "kind": "actual",
+      "supplementalFullPage": false
+    },
+    {
+      "file": "app-instances-1366-en.png",
+      "width": 1366,
+      "height": 1455,
+      "sha256": "65f16a3ec117723ea45421fc5d8b9778d635c3464c050277d7ba38936f470b3d",
+      "kind": "actual",
+      "supplementalFullPage": true
+    },
+    {
+      "file": "app-instances-1366-ur.png",
+      "width": 1366,
+      "height": 1458,
+      "sha256": "45c246212849e6e5020a81cb7b7b1324c1150b0d2b8fdc6d045a2f62db5aa1d7",
+      "kind": "actual",
+      "supplementalFullPage": true
+    },
+    {
+      "file": "app-instances-390-en.png",
+      "width": 390,
+      "height": 2885,
+      "sha256": "46e9e007b5eee212caf1824fc9ad326103eb8a273bbaa72a19d08b0960d19340",
+      "kind": "actual",
+      "supplementalFullPage": true
+    },
+    {
+      "file": "app-instances-390-ur.png",
+      "width": 390,
+      "height": 2933,
+      "sha256": "521da788d5bcfc9bb7f4a79ad67078449cb4cf3ace061d3631c0b87f92c262eb",
+      "kind": "actual",
+      "supplementalFullPage": true
+    },
+    {
+      "file": "app-loading-390-en.png",
+      "width": 390,
+      "height": 900,
+      "sha256": "18ecd13f579025f2024e2dcd24d53a18857be3b8eab73ceb7158ab91a14a3356",
+      "kind": "actual",
+      "supplementalFullPage": false
+    },
+    {
+      "file": "app-loading-390-ur.png",
+      "width": 390,
+      "height": 900,
+      "sha256": "6e11b87e0ead9972826b12f0748555bb2ed09e854256b3efb12be3469c40e36f",
+      "kind": "actual",
+      "supplementalFullPage": false
+    },
+    {
+      "file": "app-location-create-unknown-390-en.png",
+      "width": 390,
+      "height": 900,
+      "sha256": "556c87bad1eac40e7b6ae2147d101d2cf1795eed08756602cc4c7799ecc2ac32",
+      "kind": "actual",
+      "supplementalFullPage": false
+    },
+    {
+      "file": "app-location-saving-390-en.png",
+      "width": 390,
+      "height": 900,
+      "sha256": "5df84f716e0dc59b23e309d0d287c2088cf49f4da0fbb4ee8c3aeacb83113ffa",
+      "kind": "actual",
+      "supplementalFullPage": false
+    },
+    {
+      "file": "app-manager-denied-390-en.png",
+      "width": 390,
+      "height": 900,
+      "sha256": "e81c4c38a9674307b1531ab1735ce4e7c0335ddf1cdf19efb17b2997733d1558",
+      "kind": "actual",
+      "supplementalFullPage": false
+    },
+    {
+      "file": "app-manager-empty-390-en.png",
+      "width": 390,
+      "height": 997,
+      "sha256": "7e1cd3b30adc8b8da15dfa330e26112004e72e8a1213780e7c15356301c3ba8c",
+      "kind": "actual",
+      "supplementalFullPage": true
+    },
+    {
+      "file": "app-overview-1366-en.png",
+      "width": 1366,
+      "height": 995,
+      "sha256": "a263211b00e15f3d337157381dcdc04a99f3042bd649471a3d599c5f8f49b0bc",
+      "kind": "actual",
+      "supplementalFullPage": true
+    },
+    {
+      "file": "app-overview-1366-ur.png",
+      "width": 1366,
+      "height": 1019,
+      "sha256": "039731a01924eb306e7ce5c12daa658de96a1954a5d4d02ccda7f565f74a6903",
+      "kind": "actual",
+      "supplementalFullPage": true
+    },
+    {
+      "file": "app-overview-390-en.png",
+      "width": 390,
+      "height": 1669,
+      "sha256": "86f2cdfa75bc7117b08301397fb1fb19ce6808b4d905a4b7619131c84d9a19bb",
+      "kind": "actual",
+      "supplementalFullPage": true
+    },
+    {
+      "file": "app-overview-390-ur.png",
+      "width": 390,
+      "height": 1669,
+      "sha256": "e759805b76eeb93db6f7bbd8f24598525dadc22582ec805f419a62b9e36acb90",
+      "kind": "actual",
+      "supplementalFullPage": true
+    },
+    {
+      "file": "app-register-1366-en.png",
+      "width": 1366,
+      "height": 923,
+      "sha256": "c7b4809ec6a7325fd8557657dfb8b9f1594846355b822defb6dd567873a0a4c0",
+      "kind": "actual",
+      "supplementalFullPage": true
+    },
+    {
+      "file": "app-register-1366-ur.png",
+      "width": 1366,
+      "height": 944,
+      "sha256": "f5eadaff891b0a49acd1b2867c7b2d4b109ceeb8b625282ff2f30262b27d6d9e",
+      "kind": "actual",
+      "supplementalFullPage": true
+    },
+    {
+      "file": "app-register-390-en.png",
+      "width": 390,
+      "height": 1404,
+      "sha256": "a48e979925df17f182b2bfd1e2dc63835827e596f4d91c723c258221ecea4cda",
+      "kind": "actual",
+      "supplementalFullPage": true
+    },
+    {
+      "file": "app-register-390-ur.png",
+      "width": 390,
+      "height": 1358,
+      "sha256": "a67380833f8e7908a41c46b34bbe243b0abeca3acd31c4a66bae791cd3bb3740",
+      "kind": "actual",
+      "supplementalFullPage": true
+    },
+    {
+      "file": "app-saved-1366-en.png",
+      "width": 1366,
+      "height": 995,
+      "sha256": "73cb9e4884cae1aeb8c027d1a06164b67ef67cede1347b13d58e870b695b07f4",
+      "kind": "actual",
+      "supplementalFullPage": true
+    },
+    {
+      "file": "app-schedule-1366-en.png",
+      "width": 1366,
+      "height": 1604,
+      "sha256": "bedfc9255c41def3379aa8f4b87f53bda0b24937daa4dc82a6429d522e467e7b",
+      "kind": "actual",
+      "supplementalFullPage": true
+    },
+    {
+      "file": "app-schedule-1366-ur.png",
+      "width": 1366,
+      "height": 1608,
+      "sha256": "3da8390a6afb7b8be6e71574f44561c010380930ad71ea60e67abf777cbf3a0a",
+      "kind": "actual",
+      "supplementalFullPage": true
+    },
+    {
+      "file": "app-schedule-390-en.png",
+      "width": 390,
+      "height": 2099,
+      "sha256": "108fb3d803593031d3ed3f94f22e8c005f1690abbe06103c6a25a30b658c1fb2",
+      "kind": "actual",
+      "supplementalFullPage": true
+    },
+    {
+      "file": "app-schedule-390-ur.png",
+      "width": 390,
+      "height": 1955,
+      "sha256": "6e35c0e317b3cd11007fc52dc4ddfcd52778d1d01966532504d5e46a7a8bedd3",
+      "kind": "actual",
+      "supplementalFullPage": true
+    },
+    {
+      "file": "app-staff-1366-en.png",
+      "width": 1366,
+      "height": 973,
+      "sha256": "f897aae11f1419280053ab89b602851c211c25734763e158da85f4b5c5af37fc",
+      "kind": "actual",
+      "supplementalFullPage": true
+    },
+    {
+      "file": "app-staff-1366-ur.png",
+      "width": 1366,
+      "height": 975,
+      "sha256": "1ebaf00538f083b73c8a4dab8338968b39b39fca6caaa28699aef66e3e761ff4",
+      "kind": "actual",
+      "supplementalFullPage": true
+    },
+    {
+      "file": "app-staff-390-en.png",
+      "width": 390,
+      "height": 2522,
+      "sha256": "3823c296286bc0476f061bfc027dcd4dc1f6d583ad7b9d43a9a0a15a78311db1",
+      "kind": "actual",
+      "supplementalFullPage": true
+    },
+    {
+      "file": "app-staff-390-ur.png",
+      "width": 390,
+      "height": 2530,
+      "sha256": "0b75006b39f41fbed95bd3202e645a1953965cd8e568540f825c83067fd6747b",
+      "kind": "actual",
+      "supplementalFullPage": true
+    },
+    {
+      "file": "app-templates-1366-en.png",
+      "width": 1366,
+      "height": 900,
+      "sha256": "343898f92aa4f937cfdf7cf317c494e1f1195901c7124b9c5509468435b7334f",
+      "kind": "actual",
+      "supplementalFullPage": false
+    },
+    {
+      "file": "app-templates-1366-ur.png",
+      "width": 1366,
+      "height": 900,
+      "sha256": "e862cfac99bd7f83118e5a254ca1b50864fd03d83aa456852b40b240a224bbb0",
+      "kind": "actual",
+      "supplementalFullPage": false
+    },
+    {
+      "file": "app-templates-390-en.png",
+      "width": 390,
+      "height": 900,
+      "sha256": "80aa7603342c5abd782528ae025dfa171249ad147ba76df7148ce2a6566acbe2",
+      "kind": "actual",
+      "supplementalFullPage": false
+    },
+    {
+      "file": "app-templates-390-ur.png",
+      "width": 390,
+      "height": 900,
+      "sha256": "2b43d9b1cf86258fff6f2e2c4e09f2d3a09f3eefb44674426dd26cdc75225c0c",
+      "kind": "actual",
+      "supplementalFullPage": false
+    },
+    {
+      "file": "v5-areas-1366-en.png",
+      "width": 1366,
+      "height": 900,
+      "sha256": "6a92c39b262a5210b7db83dce2ffdeed5ac234829192dd6e2d566a5769c28bdd",
+      "kind": "reference",
+      "supplementalFullPage": false
+    },
+    {
+      "file": "v5-areas-1366-ur.png",
+      "width": 1366,
+      "height": 900,
+      "sha256": "4d50a982524acce60deddac04e0b55a4c8667a4f313215173a421f4402138f12",
+      "kind": "reference",
+      "supplementalFullPage": false
+    },
+    {
+      "file": "v5-areas-390-en.png",
+      "width": 390,
+      "height": 900,
+      "sha256": "a3663a8ce62fc3c61419a2a4f7d25796912cd09795abf56697c5b0fba1648183",
+      "kind": "reference",
+      "supplementalFullPage": false
+    },
+    {
+      "file": "v5-areas-390-ur.png",
+      "width": 390,
+      "height": 900,
+      "sha256": "c5e3b1c34b647708839e336e593e33fb6f714785fed6e2867e7bb24b813fa250",
+      "kind": "reference",
+      "supplementalFullPage": false
+    },
+    {
+      "file": "v5-history-1366-en.png",
+      "width": 1366,
+      "height": 900,
+      "sha256": "f8b87a66e862532ec5b551690f7173590a74b3b6291e91426dc284eea02885b4",
+      "kind": "reference",
+      "supplementalFullPage": false
+    },
+    {
+      "file": "v5-history-1366-ur.png",
+      "width": 1366,
+      "height": 900,
+      "sha256": "44e464b1cb26f1acebe7fccf461891a99600ca2d28309106a855c3a547564e53",
+      "kind": "reference",
+      "supplementalFullPage": false
+    },
+    {
+      "file": "v5-history-390-en.png",
+      "width": 390,
+      "height": 900,
+      "sha256": "8015c92369e776794274159f5cbb184fe01b13db02a8cec70a759df17c8712c6",
+      "kind": "reference",
+      "supplementalFullPage": false
+    },
+    {
+      "file": "v5-history-390-ur.png",
+      "width": 390,
+      "height": 900,
+      "sha256": "ec131cdbb07291d04086569b0c272235b8d21c664b3878689bdc5539fa83daeb",
+      "kind": "reference",
+      "supplementalFullPage": false
+    },
+    {
+      "file": "v5-overview-1366-en.png",
+      "width": 1366,
+      "height": 1001,
+      "sha256": "615c5c2b97fa3ab18ca162f9ebeeee1624a624ffd42a26e5c8b8fb697e151c9e",
+      "kind": "reference",
+      "supplementalFullPage": true
+    },
+    {
+      "file": "v5-overview-1366-ur.png",
+      "width": 1366,
+      "height": 1060,
+      "sha256": "d2761951dcf473ec84ee6d89c4c1703d24cb9437a260f84482fd130b86113ae0",
+      "kind": "reference",
+      "supplementalFullPage": true
+    },
+    {
+      "file": "v5-overview-390-en.png",
+      "width": 390,
+      "height": 1747,
+      "sha256": "34ae4a689f280b7af61b495d60cfe7a9d44887ac3b86f498a2c50587f2704e8c",
+      "kind": "reference",
+      "supplementalFullPage": true
+    },
+    {
+      "file": "v5-overview-390-ur.png",
+      "width": 390,
+      "height": 1846,
+      "sha256": "26567471cc44d9161199104058a32205edc46d5e9e4286cfaf1ab31ca49a40ac",
+      "kind": "reference",
+      "supplementalFullPage": true
+    },
+    {
+      "file": "v5-schedule-1366-en.png",
+      "width": 1366,
+      "height": 900,
+      "sha256": "eba3c3e4e842d669dd74055a35c44c75b7cf0e9ccbab8d017f487bc469511d31",
+      "kind": "reference",
+      "supplementalFullPage": false
+    },
+    {
+      "file": "v5-schedule-1366-ur.png",
+      "width": 1366,
+      "height": 900,
+      "sha256": "6be8e36b29caa89b65eaec9acebc1bb851835e029592d16781b053441eb5fb44",
+      "kind": "reference",
+      "supplementalFullPage": false
+    },
+    {
+      "file": "v5-schedule-390-en.png",
+      "width": 390,
+      "height": 1199,
+      "sha256": "e0e1efc124f3f2eb23601be0533011c2d3b1f2c2c40a12e54b2fca5aab9713e8",
+      "kind": "reference",
+      "supplementalFullPage": true
+    },
+    {
+      "file": "v5-schedule-390-ur.png",
+      "width": 390,
+      "height": 1263,
+      "sha256": "0b69b8e68a7005f1865f09f650ce7598c75af3a9e630e2c8504c2a97120670d4",
+      "kind": "reference",
+      "supplementalFullPage": true
+    },
+    {
+      "file": "v5-team-1366-en.png",
+      "width": 1366,
+      "height": 917,
+      "sha256": "b7ad6b816e78ea844fb5a19965866373bf4bdcefda0a658aa5787aae3442d0a5",
+      "kind": "reference",
+      "supplementalFullPage": true
+    },
+    {
+      "file": "v5-team-1366-ur.png",
+      "width": 1366,
+      "height": 976,
+      "sha256": "a9608ce1e1a3123d42bb72d5e58f1494d218fe9eae2838a8ba35212029e6b9cf",
+      "kind": "reference",
+      "supplementalFullPage": true
+    },
+    {
+      "file": "v5-team-390-en.png",
+      "width": 390,
+      "height": 1522,
+      "sha256": "d5ca72ff8db8d020893c3d6c299317f315d7d443bc04299fbb67d98366bd0c8d",
+      "kind": "reference",
+      "supplementalFullPage": true
+    },
+    {
+      "file": "v5-team-390-ur.png",
+      "width": 390,
+      "height": 1619,
+      "sha256": "d2a636635e346b00e21e8d74247881c5ac1ed010c803aaf2c105edcdef492c19",
+      "kind": "reference",
+      "supplementalFullPage": true
+    }
+  ]
+}
