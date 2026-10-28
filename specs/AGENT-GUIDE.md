@@ -8,7 +8,7 @@
 
 ## Current checkpoint instruction — 2026-10-28
 
-User resumed the approved V5 implementation after stopping agents26Oct. Continue existing specs with three native agents in isolated persistent worktrees; coordinator owns shared progress/handoff. Historical STOP/one-unit limitations are superseded by the current authorization. Root Dashboard/backend/performance changes remain user-owned. The environment removed uncommitted /tmp worktrees while stopped: reconstructed sources must be committed and freshly verified; historical lost-source checks never establish current acceptance. Use persistent worktrees under ~/.local/share/hygene-ops/v5-worktrees-20261028, commit coherent work early, no production actions or PR merges.
+The resumed V5 batch is saved:27/29/31meet applicable web acceptance; full V5/native/provider/production certification is incomplete. Review current SESSION_HANDOFF before choosing next work. Next eligible28consumes12/14/15/27; preserve dirty user performance work. Three agents initially worked in exclusive persistent worktrees, then became unavailable; coordinator completed final corrections/review. Do not reactivate historical STOPs, restart discovery/design, or treat old /tmp checks as current. Existing scope remains authorized, no production actions or PR merges.
 
 ## One spec per session
 Default one focused unit; the user explicitly authorizes sequential units in this session. Finish verification and update handoff after each. Do not restart discovery/design or add a new prototype. Preserve pre-existing dirty changes documented in the survey.

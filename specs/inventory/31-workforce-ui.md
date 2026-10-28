@@ -13,3 +13,11 @@
 Verification: targeted18; exact full web57 Node +120 components/11 files; full frontend lint, TypeScript/build; backend focused50/3 and build; actual SQL workforce and credential proofs all pass. Coordinator separately verifies whole backend/combined code. Shared baseline native import fix26000a7 is on common prerequisite37, with101 native tests and native tsc passing; no31 dependency on36.
 
 No new model, migration, package or backend business rule. Synthetic browser captures are presentation checks with intercepted APIs, not whole-product E2E or production proof. Full real browser/device integration remains40.
+
+## Current V5 web correction — 2026-10-28
+
+- StaffEditDialog.tsx is reused by directory/detail; person/principal key clears drafts and late feedback. Existing hook/API/name/contact/shift contract retained; site transfers stay in accountable actions.
+- StaffCreateDialog inline variant reuses real Location modal contract; current scope key clears old credentials. Capacity/subscription/permission/conflict are distinct sanitized failures, with associated client errors and preserved drafts.
+- workforce-v5.css owns Team/detail/Managers blue-white frames, four supported directory metrics, custom mobile records, semantic charts and bounded dialogs. StaffDetail actualtotalInstances replaces incorrect templatecount; Attendancecontext is an action outside collapsed fields.
+- WorkforceActions retained exact server paths, role/site/epoch and one-use boundaries; real contextrefresh preserves reason/destination; unique reasonlabel remains stable after typing/errors.
+- Current34Staff-focused regressions and64Node+274React combined suite pass; actual integrated/SQL proof, viewport screenshots and final scope limits in V5_WORKFORCE.md. Historical counts/fixture-only records above are retained history.

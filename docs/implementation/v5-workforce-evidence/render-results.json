@@ -1,0 +1,50 @@
+[
+  {
+    "width": 1366,
+    "lang": "en",
+    "routes": [
+      "/staff",
+      "/staff/1",
+      "/managers"
+    ],
+    "overflow": false,
+    "errors": [],
+    "provenance": "Actual API and synthetic SQL. Detail uses V5 conventions because prototype detail is a placeholder."
+  },
+  {
+    "width": 1366,
+    "lang": "ur",
+    "routes": [
+      "/staff",
+      "/staff/1",
+      "/managers"
+    ],
+    "overflow": false,
+    "errors": [],
+    "provenance": "Actual API and synthetic SQL. Detail uses V5 conventions because prototype detail is a placeholder."
+  },
+  {
+    "width": 390,
+    "lang": "en",
+    "routes": [
+      "/staff",
+      "/staff/1",
+      "/managers"
+    ],
+    "overflow": false,
+    "errors": [],
+    "provenance": "Actual API and synthetic SQL. Detail uses V5 conventions because prototype detail is a placeholder."
+  },
+  {
+    "width": 390,
+    "lang": "ur",
+    "routes": [
+      "/staff",
+      "/staff/1",
+      "/managers"
+    ],
+    "overflow": false,
+    "errors": [],
+    "provenance": "Actual API and synthetic SQL. Detail uses V5 conventions because prototype detail is a placeholder."
+  }
+]

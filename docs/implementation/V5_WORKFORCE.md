@@ -1,41 +1,46 @@
-# V5 Team and Workforce continuation — 2026-10-28
+# V5 Team, Workforce and Attendance checkpoint — 2026-10-28
 
-Status: current implementation/verification in progress; no full V5 acceptance.
+Specs **27, 29 and 31 meet their applicable web acceptance criteria**. Full V5, native/provider qualification, Spec40 and final release certification remain incomplete. The combined tracker has31Done (including decision00),10In progress and1Not started:11specs remain.
 
-## Source and ownership
+## Delivered in the application
 
-Latest dependency-complete base `d2c426b`, root branch `implementation/v5-parallel-final`; includes latest Settings/Help sibling corrections. Current inspected tracker:42specs,28Done (00–26,39),13In progress (27–38,40),41Not started. Historical UI completions were reopened for V5 acceptance.
+- Shared shell: translated logical dialog Close controls,44px desktop/48px phone targets, verified owner/manager navigation, focus, denial, staff handoff and safe recovery.
+- Team: four supported directory metrics, real search/location filters, inline hiring, reusable name/contact/shift editing, separate empty/no-match/error/loading states and preserved drafts.
+- Staff Detail: V5 profile, applied date filters, real execution counts, translated reports/charts, schedule/task/attendance tabs and a persistent phone Attendance context action.
+- Workforce: reasoned transfer, deactivation/archive and current-password one-use recovery; actual conflict/context refresh, scoped draft/secret isolation, owner manager assignment editing and explicit release-then-assign handover. No general restore or manager/owner password reset was added.
+- Attendance: V5 register/filter/summary/mobile layout; existing authorized location/from/to API contract; retained secondary month/staff/quick filters; site calendar and explicit timezone fallback.
+- Context: original captured facts and protected-photo availability remain separate from attributed immutable notes/history, acknowledgements, exact retries and explicit409review.
 
-Persistent isolated worktrees are under `/home/shumail/.local/share/hygene-ops/v5-worktrees-20261028/`: coordinator (`implementation/v5-workforce-checkpoint`), shell (`implementation/v5-shell-acceptance`), workforce (`implementation/v5-team-workforce`), qa (`verification/v5-team-workforce`). A owns27sharedshell, B owns31Staff/Managers/dictionary, C source-read-only report/reference evidence; coordinator owns shared records and workforce integrated browser harness. Existing issues35/65 and historical drafts retained, never merged.
+## Reference fidelity and accepted differences
 
-User stopped all agents26Oct, then resumed28Oct. Environment removed /tmp worktrees and uncommitted implementation while stopped. QA commits313a10b through b7b2b49 survived; db6f10a records historical-only limits and revalidates38referencePNGdimensions/11sourcehashes. A/B reconstruct in persistent worktrees and commit early. No old app screenshots/tests are current acceptance until rerun. Original9rootdirtytracked files/untracked work preserved; persistent hashes/patch in parent directory. No root blanket staging.
+Actual approved TeamHTML uses legacy.js/app.js/bridge.js; Workforce and Attendance-case use journeys.js/css. Team's daily attendance/task metrics are unavailable in the directory API, so real active/assigned/location/unassigned counts replace fictional totals. Staff Detail is a placeholder destination in the prototype: its production composition follows V5 conventions and preserves real reports/history. Managers remains the real owner assignment destination. Attendance context retains the existing accessible dialog rather than adding a new route; its facts/history/editor hierarchy and phone stack follow V5. Secondary working filters and necessary policy/attribution text add height. Reviewer bars, fake identities, sample mutations and unsupported policies never ship.
 
-## Dependencies and runtime
+Paired reference/application evidence uses1366×900 and390×900 EN/UR; supplemental full-page files support lower-content inspection. Every filename width was checked. The independent QA agent supplied reference captures and initial findings; after its usage limit, the coordinator inspected corrected final screens and closed the recorded findings. Final review must not be attributed to that agent.
 
-Backend11cf25742 and composedcredential17/26at7368750 are actual baseancestors. Existing27shell source/basevisual contract already available; A completes fresh shared27acceptance before dependent31canbe fullyaccepted. No dependency bypass or extraedge.28/29 eligibleafter27;32 depends28.40 and41 remain incomplete/ineligible.
+## Verification
 
-Current8080serves **different checkout** `/home/shumail/bk-Priv/PRIV/backend/dist/app.js`; left untouched and never tested. No5173. Frontenddefault `/api`, devproxy8080 would mismatch. Owned freshPG17 cluster under persistent `runtime/data`, loopback56442 bootstrap `priv_e2e_test`; existing guardedrunner migrates18SQLfiles intoUUIDchildDBs and builds matchedsource API/frontend with dynamicexplicit API URL/privatewebassets and sanitizedenv. Dedicated `hygene_workforce_test` independently migrated for SQLproofs. No production/restoredcustomer data,provideractivation,secret/traces/authstate/credentialpixels in artifacts.
+- Current whole web: **64Node +274React tests /21files**, no failures. Full frontend lint0; frontend, backend and browser TypeScript plus production builds pass.
+- Focused Staff tests34; Attendance tests20. Final changed-page/context checks27 and translated-copy checks8 pass; these overlap earlier counts.
+- Relevant backend workforce/credential/history authorization:48tests /3files. Actual isolated workforce lifecycle and credential SQL proofs pass, including races, open-shift denial, historical rows, session/push epochs, one-use consumption and secret-free audit.
+- **33-case integrated milestone passed in3.0minutes** across actual React/API/disposable SQL. Covers persisted hire/edit, transfer/offboarding/recovery/handover, notes/history, registration destination, settings conflicts, role/site/tenant denial, suspension, billing/support safe states and session recovery.
+- After the final layout correction,7rendered cases passed in2.6minutes. The subsequent state run passed7cases and exposed a mobile context action inside collapsed fields; that source issue was fixed and2focused cases passed in1.5minutes. The genuine409review case additionally passed independently on Spec29's branch. These are overlapping scoped runs, not a claim of a single complete whole-product suite.
+- Real capacity403/noinsert and preserved draft are distinct from the successful hire fixture with available quota. Quota/provider guards were retained. The conflicting annotation request is created through a real authorized API call before forwarding the browser request; no positive HTTP response is replaced. Loading forwards actual reads; network/chunk aborts are labelled frontend fault seams.
+- Spec validator:42specs,0errors,12previously documented warnings. Mechanical UI detector returns[]. No native or provider success is inferred.
 
-## Reference truth and deviations
+## Provenance and Git safety
 
-TeamHTML loads legacy.js/app.js/bridge.js; Workforce loads journeys.js/css. Teamhas4summarycells,expandableinlinehire,filterabledirectory. ActualstaffAPI returns activeaccountsonly and lacks dailyattendance/taskcounts; use supportedactive/assigned/location/unassigneddirectorymetrics. Never invent inactivefilter/dailytotals. Prototype staffdetail is explicitly aplaceholder; realdetailinherits approvedV5 conventions with actualreports/history/schedule/evidence, not pixelparity against nonexistentdetail. Managerhandover retains explicit deactivate/release then active replacementassignment; no fakeatomictransition or managerpasswordreset.
+Started at dependency-complete d2c426b on implementation/v5-parallel-final, including the latest Settings/Help checkpoint. User stopped agents26Oct and resumed28Oct; the environment removed uncommitted /tmp worktrees. Committed QA inputs survived. Reconstructed source was committed early in persistent worktrees under `/home/shumail/.local/share/hygene-ops/v5-worktrees-20261028/`.
 
-## Current evidence
+The coordinator owns shared records and final integration. Shell, Workforce and Attendance have separate review branches; source and rendered checks establish the actual dependency contracts. Existing draft stacks remain unmerged. Root's9original tracked modifications and unrelated untracked design/skills/performance/investor inputs were preserved; hashes/patch are saved in the persistent parent directory. No blanket staging, reset, force push, schema migration or production operation.
 
-Pending reconstructed-source checks and rendered integration. Prior26Oct48focusedbackend and lifecycle/credentialSQL passes are historical; rerun results follow. SourceQArefs remain valid by hashes. Full31acceptance not claimed.
+Existing8080serves a different checkout (`/home/shumail/bk-Priv/PRIV/backend/dist/app.js`) and was left untouched. Tests used a freshly initialized owned PostgreSQL17 cluster, loopback56442,18existing migrations in disposable UUID child databases, matched backend/frontend revisions, sanitized environment and private web assets. No production/restored customer database was used. Device enumeration on28Oct found0devices.
 
-## External blockers
+## Remaining scope
 
-OperatorIdP/MFA,qualifiedphoto/privacy,Paddle,deliveredowneremail/validissuedlinks,approvedlegal/support/distribution,productioninfrastructure/backup and actualAndroidremain unqualified/unavailable. BrowserSQLcannot qualify providers/native. These do not block supportedworkforcewebUI.
+Next eligible work is Spec28: setup/location composition and careful reconciliation of the user's Dashboard/performance work. Specs30/32 depend on28. Broader review/account/help states, operator identity, qualified photo processing/privacy, Paddle, delivered owner email, approved legal/support/distribution facts, physical Android and production infrastructure/backup certification remain incomplete or externally blocked. Spec41 remains ineligible while40is incomplete.
 
-## Shared shell accepted — 2026-10-28
+Evidence and detail: V5_WORKFORCE_QA.md, V5_ATTENDANCE_QA.md; v5-shell-evidence, v5-workforce-evidence and v5-attendance-evidence manifests. Passing this batch does not certify all V5 pages or a production release.
 
-Current source7965d06/2ab7c96:26targeted/64Node+250React/19files,lint0,TypeScript/productionbuildpass. Freshguardedbrowser3passed50.0s,40PNGs/8baseobservations nooverflow/pageerrors. QAindependentlyinspectedall32actualstatesand8references: roles/navigation/menugeometry/focus,actualcompanyidentity,44/48touchsizes,notfound/fatalreload,ownsecurity/STAFFhandoff,localizedClose. Noopensignificantshellfinding;27webDone,featurepages/native37/provider/fullV5remainseparate. Spec29nexteligibleafter23/08/27;independentAttendanceworkstartswithoutStaffownership.
+## Published review checkpoint
 
-Current rerunbackend48targetedpasses;isolatedSQLworkforce+credentialproofspass.
-
-## Current integrated functional correction
-
-Main coordinator recovered the two implementation agents’ last scoped edits after their turns became unavailable; all retained work is preserved in Git. Actual Reason control kept its draft after409but implicit label text included the textarea’s typed value, breaking exact accessible lookup. Explicit unique label/id binding fixes the source without weakening regression assertions. Hiring403was genuine: syntheticCompanyAhas6activestaffunderSTARTERlimit3. PositivehireusesCompanyBwithavailablecapacity; separate actual403caseprovesnoinsert+preserveddraft+honestcapacityguidance. No quota/provider guard changed.
-
-Recorded QA corrections: complete Urdu stat/dialog/action labels; LTR chart geometry with Urdu labels;15px directory identity; custom existing DataTable mobile render removes duplicate detail controls; Scheduledtasks uses actual totalInstances rather than schedule templates; cached failed refresh retains dialogs; foreign404shows safe unavailable state; creation/edit drafts bound to principal/person/site and late feedback ignored. Final current54focusedcasespass; full64Node+274React/21filespass,lint0/TypeScriptpasses. Integratedbrowser/visualacceptancependingrerun.
+OPEN/DRAFT [PR92](https://github.com/Shumail-AbdulRehman/PRIV/pull/92), [PR93](https://github.com/Shumail-AbdulRehman/PRIV/pull/93) and [PR94](https://github.com/Shumail-AbdulRehman/PRIV/pull/94). Attendance and Workforce are independent siblings on the accepted shared shell. Independent Attendance409case and scoped Workforce production build pass. Existing drafts remain unmerged. Combined source/handoff is preserved separately so future work starts from both siblings.
