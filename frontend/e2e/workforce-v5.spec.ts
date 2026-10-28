@@ -13,7 +13,10 @@ async function capture(page: Page, name: string) {
   expect(await page.evaluate(() => document.documentElement.scrollWidth > innerWidth + 1)).toBe(false);
   const dialog = page.getByRole('dialog').filter({ visible: true });
   if (await dialog.count()) await expect(dialog.first()).toHaveCSS('opacity', '1');
-  await page.screenshot({ path: join(out, name + '.png'), fullPage: true, animations: 'disabled' });
+  await page.screenshot({ path: join(out, name + '.png'), animations: 'disabled' });
+  if (name.startsWith('app-') && !await dialog.count() && await page.evaluate(() => document.documentElement.scrollHeight > innerHeight + 1)) {
+    await page.screenshot({ path: join(out, name + '-full.png'), fullPage: true, animations: 'disabled' });
+  }
 }
 const exactPerson = (page: Page, name: string) => page.getByText(name, { exact: true }).filter({ visible: true }).first();
 const access = async (page: Page, lang: string) => {
@@ -82,10 +85,10 @@ test('Team search location and manager boundaries use actual API reads', async (
   await expect(locations.locator(`option[value="${fixture.site.B}"]`)).toHaveCount(0);
   const directory = await page.request.get(backend + '/api/staff/'); expect(directory.status()).toBe(200);
   expect(JSON.stringify(await directory.json())).not.toContain(fixture.staff.foreign.email);
-  await page.getByRole('textbox', { name: 'Search team', exact: true }).fill('unmatched-V5-synthetic-person');
+  await page.getByRole('searchbox', { name: 'Search team', exact: true }).fill('unmatched-V5-synthetic-person');
   await expect(page.getByText('E2E staff transfer', { exact: true })).toHaveCount(0);
   await capture(page, 'app-team-no-matches-1366-en');
-  await page.getByRole('textbox', { name: 'Search team', exact: true }).fill('');
+  await page.getByRole('searchbox', { name: 'Search team', exact: true }).fill('');
   await locations.selectOption(String(fixture.site.A)); await expect(page).toHaveURL(new RegExp('locationId=' + fixture.site.A));
   expect((await page.request.get(backend + `/api/staff/details/${fixture.staff.foreign.id}`)).status()).toBe(404);
   await page.goto(`/staff/${fixture.staff.foreign.id}`); await expect(page.getByRole('alert').first()).toBeVisible();
