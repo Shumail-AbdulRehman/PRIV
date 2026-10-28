@@ -6,6 +6,8 @@ import { useLanguage } from '@/i18n/context';
 import { invalidateWorkspace } from '@/lib/invalidateWorkspace';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
+import { Textarea } from '@/components/ui/textarea';
+import './workforce-v5.css';
 import { Dialog, DialogContent, DialogTitle, DialogDescription } from '@/components/ui/dialog';
 
 type Action = 'deactivate' | 'archive' | 'transfer' | 'handoff';
@@ -14,23 +16,30 @@ export interface WorkforceSite { id: number; name: string; isActive?: boolean }
 type Props = { person: WorkforceRecord; locations?: WorkforceSite[]; entity?: 'staff' | 'manager' };
 export default function WorkforceActions(props: Props) {
  const { user } = useAuth();
- const identity = `${user?.companyId}:${user?.role}:${user?.id}:${props.person.id}:${props.person.locationId}:${props.person.isActive}:${props.locations?.map(site => site.id).join(",")}`;
- return <ScopedWorkforceActions key={identity} {...props} />;
+ const identity=`${user?.companyId}:${user?.role}:${user?.id}:${props.person.id}:${props.entity??'staff'}`;
+ return <DraftWorkforceActions key={identity} {...props}/>;
 }
-function ScopedWorkforceActions({ person, locations = [], entity = 'staff' }: {
- person: WorkforceRecord; locations?: WorkforceSite[]; entity?: 'staff' | 'manager';
-}) {
- const { user } = useAuth(); const { t, language } = useLanguage(); const qc = useQueryClient();
- const inFlight=useRef(false);
- const [open,setOpen]=useState(false); const [action,setAction]=useState<Action>('deactivate');
- const [reason,setReason]=useState(''); const [destination,setDestination]=useState('');
- const [password,setPassword]=useState(''); const [busy,setBusy]=useState(false);
- const [error,setError]=useState(''); const [saved,setSaved]=useState(false);
- const [handoff,setHandoff]=useState<{token:string;expiresAt:string}|null>(null);
+function DraftWorkforceActions(props:Props){
+ const [open,setOpen]=useState(false);const [action,setAction]=useState<Action>('deactivate');const [reason,setReason]=useState('');const [destination,setDestination]=useState('');
+ // Draft survives a scope refresh; secrets remain bound to the exact scope.
+ const scope=`${props.person.locationId}:${props.person.isActive}:${props.locations?.map(site=>`${site.id}:${site.isActive}`).join(',')}`;
+ return <ScopedWorkforceActions key={scope} {...props} open={open} setOpen={setOpen} action={action} setAction={setAction} reason={reason} setReason={setReason} destination={destination} setDestination={setDestination}/>;
+}
+type DraftProps=Props&{open:boolean;setOpen:(value:boolean)=>void;action:Action;setAction:(value:Action)=>void;reason:string;setReason:(value:string)=>void;destination:string;setDestination:(value:string)=>void};
+function ScopedWorkforceActions({person,locations=[],entity='staff',open,setOpen,action,setAction,reason,setReason,destination,setDestination}:DraftProps){
+ const {user}=useAuth();const {t,language}=useLanguage();const qc=useQueryClient();const inFlight=useRef(false);
+ const [password,setPassword]=useState('');const [busy,setBusy]=useState(false);const [refreshing,setRefreshing]=useState(false);
+ const [error,setError]=useState('');const [saved,setSaved]=useState(false);const [handoff,setHandoff]=useState<{token:string;expiresAt:string}|null>(null);
  const permitted=user?.role==='ADMIN'||(user?.role==='MANAGER'&&entity==='staff'&&person.locationId!=null&&locations.some(l=>l.id===person.locationId));
  if(!permitted || person.role==='ADMIN')return null;
  const sites=locations.filter(l=>l.isActive!==false&&l.id!==person.locationId);
- const close=()=>{if(busy)return;setOpen(false);setHandoff(null);setPassword('');setReason('');setError('');setDestination('');setAction('deactivate');};
+ const close=()=>{if(busy||refreshing)return;setOpen(false);setHandoff(null);setPassword('');setReason('');setError('');setDestination('');setAction('deactivate');};
+ const refresh=async()=>{
+  if(busy||refreshing)return;setRefreshing(true);
+  try{await Promise.all([qc.refetchQueries({queryKey:['staff'],type:'active'},{throwOnError:true}),qc.refetchQueries({queryKey:['getLocations'],type:'active'},{throwOnError:true}),qc.refetchQueries({queryKey:['getManagers'],type:'active'},{throwOnError:true})]);setError('Access context refreshed. Review the selected action and your draft before confirming.');}
+  catch{setError('The record could not be refreshed. Your draft is kept. Try again when connected.');}
+  finally{setRefreshing(false);}
+ };
  const save=async(e:React.FormEvent)=>{
   e.preventDefault();if(inFlight.current||!reason.trim()||!person.isActive)return;
   if(action==='transfer'&&!sites.some(l=>String(l.id)===destination))return;
@@ -63,7 +72,7 @@ function ScopedWorkforceActions({ person, locations = [], entity = 'staff' }: {
   {person.isActive?<Button variant="outline" className="min-h-12!" onClick={()=>{setSaved(false);setOpen(true);}}>{t(entity==='manager'?'Manage access':'Staff access')}</Button>:<span>{t('Archived / inactive')}</span>}
   {saved&&!open?<span role="status">{t('Access change saved. History preserved.')}</span>:null}
   <Dialog open={open} onOpenChange={value=>{if(!value)close();}}>
-   <DialogContent className="bg-card max-h-[90dvh] overflow-y-auto" showCloseButton={!busy} onEscapeKeyDown={e=>{if(busy)e.preventDefault();}} onInteractOutside={e=>{if(busy)e.preventDefault();}}>
+   <DialogContent className="workforce-dialog bg-card max-h-[90dvh] overflow-y-auto" showCloseButton={!busy&&!refreshing} onEscapeKeyDown={e=>{if(busy||refreshing)e.preventDefault();}} onInteractOutside={e=>{if(busy||refreshing)e.preventDefault();}}>
     <DialogTitle>{t(entity==='manager'?'Manager access':'Staff access')} · {person.name}</DialogTitle>
     <DialogDescription>{t('Attendance, tasks and evidence are preserved. Access changes revoke existing sessions. No general restore is available.')}</DialogDescription>
     {handoff?<div className="space-y-4">
@@ -72,7 +81,7 @@ function ScopedWorkforceActions({ person, locations = [], entity = 'staff' }: {
      <p>{t('Expires at')}: {new Date(handoff.expiresAt).toLocaleString(language==='ur'?'ur-PK':'en-PK')}</p>
      <p>{t('Closing this dialog clears the code. It cannot be displayed again.')}</p>
      <Button className="min-h-12!" onClick={close}>{t('Close and clear code')}</Button>
-    </div>:<form onSubmit={save} className="space-y-4">
+    </div>:<form onSubmit={save} className="workforce-form">
      <label className="block">{t('Action')}<select className="w-full min-h-12! rounded-lg border border-border bg-background px-3" value={action} disabled={busy} onChange={e=>{setAction(e.target.value as Action);setPassword('');setError('');}}>
       <option value="deactivate">{t(entity==='manager'?'Deactivate and release sites':'Deactivate access')}</option>
       <option value="archive">{t('Archive and preserve history')}</option>
@@ -80,10 +89,10 @@ function ScopedWorkforceActions({ person, locations = [], entity = 'staff' }: {
      </select></label>
      {entity==='manager'?<p>{t('For a handover, deactivate this manager first. After the sites are released, edit the active replacement manager and assign those sites. The previous manager loses access immediately.')}</p>:null}
      {action==='transfer'?<><label className="block">{t('Destination site')}<select className="w-full min-h-12! rounded-lg border border-border bg-background px-3" required value={destination} disabled={busy} onChange={e=>setDestination(e.target.value)}><option value="">{t('Select assigned site')}</option>{sites.map(l=><option key={l.id} value={l.id}>{l.name}</option>)}</select></label><p>{t('An open shift must be checked out first. Recorded attendance stays at its original site; incomplete assignments are released.')}</p></>:null}
-     <label className="block">{t('Reason')}<Input className="min-h-12!" required maxLength={1000} value={reason} disabled={busy} onChange={e=>setReason(e.target.value)}/></label>
-     {action==='handoff'?<label className="block">{t('Your current password')}<Input className="min-h-12!" type="password" autoComplete="current-password" required value={password} disabled={busy} onChange={e=>setPassword(e.target.value)}/></label>:null}
-     {error?<p role="alert" className="text-destructive">{t(error)}</p>:null}
-     <div className="flex flex-wrap gap-3"><Button type="button" variant="outline" className="min-h-12!" disabled={busy} onClick={close}>{t('Cancel')}</Button><Button className="min-h-12!" type="submit" disabled={busy||!reason.trim()||(action==='transfer'&&!destination)||(action==='handoff'&&!password)}>{t(busy?'Saving…':'Confirm access change')}</Button></div>
+     <label className="block">{t('Reason')}<Textarea rows={3} required maxLength={1000} value={reason} disabled={busy||refreshing} onChange={e=>setReason(e.target.value)}/></label>
+     {action==='handoff'?<label className="block">{t('Your current password')}<Input className="min-h-12!" type="password" dir="ltr" autoComplete="current-password" required value={password} disabled={busy} onChange={e=>setPassword(e.target.value)}/></label>:null}
+     {error?<div className="workforce-error"><p role="alert">{t(error)}</p><Button type="button" variant="outline" disabled={busy||refreshing} onClick={()=>void refresh()}>{t(refreshing?'Refreshing…':'Refresh access context')}</Button></div>:null}
+     <div className="workforce-form-actions"><Button type="button" variant="outline" className="min-h-12!" disabled={busy||refreshing} onClick={close}>{t('Cancel')}</Button><Button className="min-h-12!" type="submit" disabled={busy||refreshing||!person.isActive||!reason.trim()||(action==='transfer'&&!destination)||(action==='handoff'&&!password)}>{t(busy?'Saving…':'Confirm access change')}</Button></div>
     </form>}
    </DialogContent>
   </Dialog>

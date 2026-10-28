@@ -1,5 +1,6 @@
+import '../Staff/workforce-v5.css';
 import { useLanguage } from "@/i18n/context";
-import { useState } from "react";
+import { useRef, useState } from "react";
 import { useForm } from "react-hook-form";
 import type { SubmitHandler } from "react-hook-form";
 import { MapPin } from "lucide-react";
@@ -35,6 +36,7 @@ export default function ManagerFormDialog({
 }: ManagerFormDialogProps) {
   const { t } = useLanguage();
   const isEdit = !!manager;
+  const inFlight=useRef(false);
   const createManager = useCreateManager();
   const updateManager = useUpdateManager();
   const [serverError, setServerError] = useState<string | null>(null);
@@ -55,6 +57,8 @@ export default function ManagerFormDialog({
   const isPending = createManager.isPending || updateManager.isPending;
 
   const onSubmit: SubmitHandler<ManagerFormValues> = async (data) => {
+    if(inFlight.current)return;
+    inFlight.current=true;
     setServerError(null);
     const locationIds = data.locationIds.map(Number);
 
@@ -63,15 +67,15 @@ export default function ManagerFormDialog({
         await updateManager.mutateAsync({
           id: manager.id,
           data: {
-            name: data.name,
-            email: data.email,
+            name:data.name.trim(),
+            email:data.email.trim(),
             locationIds,
           },
         });
       } else {
         await createManager.mutateAsync({
-          name: data.name,
-          email: data.email,
+          name:data.name.trim(),
+          email:data.email.trim(),
           password: data.password,
           locationIds,
         });
@@ -86,21 +90,21 @@ export default function ManagerFormDialog({
           ? 'You do not have access to this action. Refresh your assigned sites.'
           : 'The action could not be confirmed. Refresh the record before retrying. Your draft is kept.'));
 
-    }
+    } finally { inFlight.current=false; }
   };
 
   return (
-    <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="border-border/70 bg-card text-card-foreground sm:max-w-xl max-h-[90dvh] overflow-y-auto">
+    <Dialog open={open} onOpenChange={value=>{if(!isPending&&!inFlight.current)onOpenChange(value);}}>
+      <DialogContent className="workforce-dialog bg-card sm:max-w-xl" showCloseButton={!isPending} onEscapeKeyDown={e=>{if(isPending)e.preventDefault();}} onInteractOutside={e=>{if(isPending)e.preventDefault();}}>
         <DialogHeader>
           <DialogTitle>{t(isEdit ? "Edit manager" : "Add manager")}</DialogTitle>
           <DialogDescription>{t("Access follows assigned locations")}</DialogDescription>
         </DialogHeader>
-        <form onSubmit={handleSubmit(onSubmit)} className="space-y-4 pt-2">
+        <form onSubmit={handleSubmit(onSubmit)} className="workforce-form">
           {serverError && (
             <p
               role="alert"
-              className="rounded-lg border border-red-200 bg-red-50 px-3 py-2 text-sm text-red-600"
+              className="workforce-error"
             >
               {serverError}
             </p>
@@ -115,7 +119,7 @@ export default function ManagerFormDialog({
             </label>
             <Input
               className="min-h-12!"
-              id="manager-name"
+              id="manager-name" disabled={isPending} autoComplete="name"
               {...register("name", {
                 required: "Name is required",
                 minLength: {
@@ -126,7 +130,7 @@ export default function ManagerFormDialog({
               placeholder="Ayesha Khan"
             />
             {errors.name && (
-              <p role="alert" className="mt-1 text-xs text-red-500">
+              <p role="alert" className="mt-1 text-xs workforce-danger">
                 {t(String(errors.name.message))}
               </p>
             )}
@@ -141,13 +145,13 @@ export default function ManagerFormDialog({
             </label>
             <Input
               className="min-h-12!"
-              id="manager-email"
+              id="manager-email" disabled={isPending} dir="ltr" autoComplete="email"
               type="email"
               {...register("email", { required: "Email is required" })}
               placeholder="manager@company.com"
             />
             {errors.email && (
-              <p role="alert" className="mt-1 text-xs text-red-500">
+              <p role="alert" className="mt-1 text-xs workforce-danger">
                 {t(String(errors.email.message))}
               </p>
             )}
@@ -155,7 +159,7 @@ export default function ManagerFormDialog({
 
           {!isEdit ? <div>
             <label htmlFor="manager-password" className="mb-1.5 block text-sm font-medium text-foreground">{t("Password")}</label>
-            <Input className="min-h-12!" id="manager-password" type="password" autoComplete="new-password" {...register("password", { required: "Password is required", minLength: { value: 8, message: "Use at least 8 characters" } })} />
+            <Input className="min-h-12!" id="manager-password" disabled={isPending} dir="ltr" type="password" autoComplete="new-password" {...register("password", { required: "Password is required", minLength: { value: 8, message: "Use at least 8 characters" } })} />
             {errors.password ? <p role="alert" className="text-destructive">{t(String(errors.password.message))}</p> : null}
           </div> : <p className="text-sm text-muted-foreground">{t("Managers change their own password in Account security. Owner password replacement is unavailable.")}</p>}
 
@@ -175,13 +179,13 @@ export default function ManagerFormDialog({
                     className={`flex min-h-12! items-center gap-3 rounded-xl px-3 py-2 text-sm transition-colors duration-150 ${
                       takenBy
                         ? "cursor-not-allowed opacity-60"
-                        : "cursor-pointer text-foreground hover:bg-white"
+                        : "cursor-pointer text-foreground hover:bg-accent"
                     }`}
                   >
                     <input
                       type="checkbox"
                       value={loc.id}
-                      disabled={!!takenBy}
+                      disabled={!!takenBy||isPending}
                       {...register("locationIds", {
                         validate: (value) =>
                           value.length >= 1 || "Assign at least one location",
@@ -191,7 +195,7 @@ export default function ManagerFormDialog({
                     <MapPin className="h-4 w-4 shrink-0 text-muted-foreground" />
                     <span className="text-foreground">{loc.name}</span>
                     {takenBy && (
-                      <span className="ml-auto text-xs text-muted-foreground">
+                      <span className="ms-auto text-xs text-muted-foreground">
                         {t("Assigned to {name}", { name: takenBy })}
                       </span>
                     )}
@@ -200,18 +204,18 @@ export default function ManagerFormDialog({
               })}
             </div>
             {errors.locationIds && (
-              <p role="alert" className="mt-1 text-xs text-red-500">
+              <p role="alert" className="mt-1 text-xs workforce-danger">
                 {t(String(errors.locationIds.message))}
               </p>
             )}
           </fieldset>
 
-          <div className="flex gap-3 pt-2">
+          <div className="workforce-form-actions">
             <Button
               type="button"
               variant="outline"
               className="flex-1 rounded-lg min-h-12!"
-              onClick={() => onOpenChange(false)}
+              disabled={isPending} onClick={()=>onOpenChange(false)}
             >
               {t("Cancel")}
             </Button>

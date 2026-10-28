@@ -72,3 +72,11 @@ it('manager hire requires an assigned site and never submits unassigned staff',a
 it('replacement manager edit saves site assignment without password replacement',async()=>{
  mount(<ManagerFormDialog open onOpenChange={()=>{}} locations={sites} manager={{id:8,name:'Replacement manager',createdAt:'2026-10-21T00:00:00Z',email:'replacement@example.invalid',isActive:true,locations:[{id:20,name:"Assigned source",isActive:true}]}}/>);expect(screen.queryByLabelText('Password')).not.toBeInTheDocument();fireEvent.click(screen.getByLabelText(/Assigned destination/));fireEvent.click(screen.getByRole('button',{name:'Save changes'}));await waitFor(()=>expect(m.managerUpdate).toHaveBeenCalledTimes(1));expect(m.managerUpdate.mock.calls[0][0]).toEqual({id:8,data:{name:'Replacement manager',email:'replacement@example.invalid',locationIds:[20,30]}});
 });
+it('conflict refresh re-reads active access context without losing reason or destination',async()=>{
+ m.post.mockRejectedValue({response:{status:409}});const {query}=mount(<WorkforceActions person={worker} locations={sites}/>);
+ const refresh=vi.spyOn(query,'refetchQueries');start('transfer');fireEvent.change(screen.getByLabelText('Destination site'),{target:{value:'30'}});fireEvent.click(screen.getByRole('button',{name:'Confirm access change'}));await screen.findByRole('alert');
+ fireEvent.click(screen.getByRole('button',{name:'Refresh access context'}));
+ await waitFor(()=>expect(refresh).toHaveBeenCalledWith({queryKey:['staff'],type:'active'},{throwOnError:true}));
+ await screen.findByText('Access context refreshed. Review the selected action and your draft before confirming.');
+ expect(screen.getByLabelText('Reason')).toHaveValue('Synthetic reason');expect(screen.getByLabelText('Destination site')).toHaveValue('30');expect(m.post).toHaveBeenCalledTimes(1);
+});
