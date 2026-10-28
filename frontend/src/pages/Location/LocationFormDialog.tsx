@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useRef, useState, type FormEvent } from "react";
 import { useForm, useWatch } from "react-hook-form";
 import {
   Check,
@@ -202,9 +202,11 @@ function LocationForm({
     : failure?.response?.status===403
      ? 'You do not have access to this action. Refresh your workspace before trying again.'
      : 'Location could not be saved. Check the details and try again. Your draft is kept.';
-  const submit = handleSubmit(async (data) => {
-    if(submitting.current||uncertain)return;
-    submitting.current=true;setPending(true);onSaving(true);
+  const submit = (event:FormEvent<HTMLFormElement>) => {
+    if(submitting.current||uncertain){event.preventDefault();return;}
+    submitting.current=true;
+    void handleSubmit(async (data) => {
+    setPending(true);onSaving(true);
     stopLocating();
     const payload = {
       ...data,
@@ -221,7 +223,8 @@ function LocationForm({
       const status=(error as {response?:{status?:number}})?.response?.status;
       if(!location&&(!status||status>=500))setUncertain(true);
     } finally {submitting.current=false;setPending(false);onSaving(false);}
-  });
+    },()=>{submitting.current=false;})(event);
+  };
   return (
     <form onSubmit={submit} className="location-editor">
       <div className="location-editor-body">
