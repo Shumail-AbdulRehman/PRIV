@@ -1,0 +1,1296 @@
+{
+  "date": "2026-10-28",
+  "integrated_source": "b4bf895084bf3bf132a7618f583a4ae80ae434c2",
+  "synthetic_only": true,
+  "positive_http_responses_replaced": false,
+  "images": [
+    {
+      "file": "app-access-archive-1366-en.png",
+      "width": 1366,
+      "height": 900,
+      "sha256": "66959be625162f403cba2654afda336b96bf6ef9e2a93c64f801561d04853a3c",
+      "kind": "application",
+      "capture": "viewport"
+    },
+    {
+      "file": "app-access-archive-1366-ur.png",
+      "width": 1366,
+      "height": 900,
+      "sha256": "e8f5a8c020d6988a1a4f7591bab685ca38556ac1e4270260c80d9bef8ea3b0a3",
+      "kind": "application",
+      "capture": "viewport"
+    },
+    {
+      "file": "app-access-archive-390-en.png",
+      "width": 390,
+      "height": 900,
+      "sha256": "b99831c5fe325f0cf2a5e3a569e10a5657d9f807ad81f318de7a58bce77e111d",
+      "kind": "application",
+      "capture": "viewport"
+    },
+    {
+      "file": "app-access-archive-390-ur.png",
+      "width": 390,
+      "height": 900,
+      "sha256": "aaee58b4c870b4febfe57b0ed7c61abc271b462ff1edaec9ec19606086eae651",
+      "kind": "application",
+      "capture": "viewport"
+    },
+    {
+      "file": "app-access-conflict-1366-en.png",
+      "width": 1366,
+      "height": 900,
+      "sha256": "fd6e8730013663a203e99b332e786469f9811272039a512ee7a2eb238cf7a78d",
+      "kind": "application",
+      "capture": "viewport"
+    },
+    {
+      "file": "app-access-conflict-1366-ur.png",
+      "width": 1366,
+      "height": 900,
+      "sha256": "e101a04bd9ba68796ffc2e9d8bc511d7ba4a6361fc8b1c2e9a15d4253d19b656",
+      "kind": "application",
+      "capture": "viewport"
+    },
+    {
+      "file": "app-access-conflict-390-en.png",
+      "width": 390,
+      "height": 900,
+      "sha256": "958b5517cd52e68f510c517d686797494b092acef0e48f2b4382cb16d6491099",
+      "kind": "application",
+      "capture": "viewport"
+    },
+    {
+      "file": "app-access-conflict-390-ur.png",
+      "width": 390,
+      "height": 900,
+      "sha256": "6b86b913f75949981ec373951481e6047019c82bbeaf4a6bc3dcaefd72b478b1",
+      "kind": "application",
+      "capture": "viewport"
+    },
+    {
+      "file": "app-access-deactivate-1366-en.png",
+      "width": 1366,
+      "height": 900,
+      "sha256": "e121f23301c905cd16205e991665d7741efddc5ac184ff4aaed0418d3125041e",
+      "kind": "application",
+      "capture": "viewport"
+    },
+    {
+      "file": "app-access-deactivate-1366-ur.png",
+      "width": 1366,
+      "height": 900,
+      "sha256": "99e33243bcf6024bd750a1eee142c715ffc102bf622527eb8cdd0b6b6fb44260",
+      "kind": "application",
+      "capture": "viewport"
+    },
+    {
+      "file": "app-access-deactivate-390-en.png",
+      "width": 390,
+      "height": 900,
+      "sha256": "75519d2c6c097b8a18d37db24a81e0f816ebee078b945fd6a0198f78047cb195",
+      "kind": "application",
+      "capture": "viewport"
+    },
+    {
+      "file": "app-access-deactivate-390-ur.png",
+      "width": 390,
+      "height": 900,
+      "sha256": "9f6190e8464f4469c194d9a8d79f04362f58d5d3a22267c773a75bd234c5f615",
+      "kind": "application",
+      "capture": "viewport"
+    },
+    {
+      "file": "app-access-handoff-1366-en.png",
+      "width": 1366,
+      "height": 900,
+      "sha256": "cc12890becf5b91599118ee91716bc998ac092bf4560260266ee82a02599ea07",
+      "kind": "application",
+      "capture": "viewport"
+    },
+    {
+      "file": "app-access-handoff-1366-ur.png",
+      "width": 1366,
+      "height": 900,
+      "sha256": "afa4b0e85541a10501a6771cda8b86eda86fa6350f287188ba033c9649f2fac6",
+      "kind": "application",
+      "capture": "viewport"
+    },
+    {
+      "file": "app-access-handoff-390-en.png",
+      "width": 390,
+      "height": 900,
+      "sha256": "b576cb4bd4d100c7deb1a6b3053c48f2d2332c528af39e4eaf960ffb668f470d",
+      "kind": "application",
+      "capture": "viewport"
+    },
+    {
+      "file": "app-access-handoff-390-ur.png",
+      "width": 390,
+      "height": 900,
+      "sha256": "1b2d686bcb200d2eea86dad62b62717473943ee1b13f4fe59a1883156fdfcf81",
+      "kind": "application",
+      "capture": "viewport"
+    },
+    {
+      "file": "app-access-refreshed-draft-1366-en.png",
+      "width": 1366,
+      "height": 900,
+      "sha256": "afb4987d5ff346a89c360192581736615a8f6d9f0f9b630249780e2dfe79ce37",
+      "kind": "application",
+      "capture": "viewport"
+    },
+    {
+      "file": "app-access-refreshed-draft-1366-ur.png",
+      "width": 1366,
+      "height": 900,
+      "sha256": "15a09c57319b0a8ea5aa216e4a89354fd3b6d2cee15dc26945aa3a887e79392f",
+      "kind": "application",
+      "capture": "viewport"
+    },
+    {
+      "file": "app-access-refreshed-draft-390-en.png",
+      "width": 390,
+      "height": 900,
+      "sha256": "011aa2ea92ad9ec565e8d8a9d4b68dcc01dd8f1d95cd826867c967047c774694",
+      "kind": "application",
+      "capture": "viewport"
+    },
+    {
+      "file": "app-access-refreshed-draft-390-ur.png",
+      "width": 390,
+      "height": 900,
+      "sha256": "280154e489a9dd6cff2d4e0a3b7499bdd1bdbeeacee9fc4be342b8e6e30083f1",
+      "kind": "application",
+      "capture": "viewport"
+    },
+    {
+      "file": "app-access-transfer-1366-en.png",
+      "width": 1366,
+      "height": 900,
+      "sha256": "c2d9ccaa21c63178e300819e6975545f1e11c02f04293896692c4b35c3543edd",
+      "kind": "application",
+      "capture": "viewport"
+    },
+    {
+      "file": "app-access-transfer-1366-ur.png",
+      "width": 1366,
+      "height": 900,
+      "sha256": "8656d60b346c9c2ddf6fadd45e9caa8965b3fad2b5ccf774e64134b237d3bc4f",
+      "kind": "application",
+      "capture": "viewport"
+    },
+    {
+      "file": "app-access-transfer-390-en.png",
+      "width": 390,
+      "height": 900,
+      "sha256": "28bfbfadef7fc723da91cc48e184573143f843fde6d6081c8307e1224e74148e",
+      "kind": "application",
+      "capture": "viewport"
+    },
+    {
+      "file": "app-access-transfer-390-ur.png",
+      "width": 390,
+      "height": 900,
+      "sha256": "cc3d6b9070ac667a4f1dba32a59f36ae27e364ee88ac70d0a801aa417422d60d",
+      "kind": "application",
+      "capture": "viewport"
+    },
+    {
+      "file": "app-detail-1366-en-full.png",
+      "width": 1366,
+      "height": 1742,
+      "sha256": "efaf311f0ed4b0da5afa1b722fb7225612aba32eda2032362059e5b0c42f1cd2",
+      "kind": "application",
+      "capture": "supplemental full page"
+    },
+    {
+      "file": "app-detail-1366-en.png",
+      "width": 1366,
+      "height": 900,
+      "sha256": "cee795f15756fe237fff1572a9f3117341843e7ab91baa7891d229f5844efd7c",
+      "kind": "application",
+      "capture": "viewport"
+    },
+    {
+      "file": "app-detail-1366-ur-full.png",
+      "width": 1366,
+      "height": 1784,
+      "sha256": "75b9a4edef480e967a396e695abd26e3960ca1049f8184a35a4481bff8b98f14",
+      "kind": "application",
+      "capture": "supplemental full page"
+    },
+    {
+      "file": "app-detail-1366-ur.png",
+      "width": 1366,
+      "height": 900,
+      "sha256": "ccb3ac8eeb373e0e9918c338606f287b6b8dc6179a5a2d4caf515664c2b492e5",
+      "kind": "application",
+      "capture": "viewport"
+    },
+    {
+      "file": "app-detail-390-en-full.png",
+      "width": 390,
+      "height": 2950,
+      "sha256": "be974aed475f8468b10cd4b41316e22ea1ea7119c01ad1b01eb5be8f8f924f01",
+      "kind": "application",
+      "capture": "supplemental full page"
+    },
+    {
+      "file": "app-detail-390-en.png",
+      "width": 390,
+      "height": 900,
+      "sha256": "30f3e3ee07beeaa372bd8a6ce97b371e847e5cc7119b58e798e2a69968654a3b",
+      "kind": "application",
+      "capture": "viewport"
+    },
+    {
+      "file": "app-detail-390-ur-full.png",
+      "width": 390,
+      "height": 2952,
+      "sha256": "0e79c152edf7d8b15e62d321c5f49cdda3dd7aa86bce8b788b9a92ef4bce973e",
+      "kind": "application",
+      "capture": "supplemental full page"
+    },
+    {
+      "file": "app-detail-390-ur.png",
+      "width": 390,
+      "height": 900,
+      "sha256": "93c4eb5bee10e38497db0a6fb6e18b569cc31a162c3f4bb5820a11e55cd36684",
+      "kind": "application",
+      "capture": "viewport"
+    },
+    {
+      "file": "app-detail-attendance-1366-en-full.png",
+      "width": 1366,
+      "height": 1047,
+      "sha256": "62c3b8b189d57d5e2bd767387d7083825f880ec18bb0f8bf974cbee8ca32820f",
+      "kind": "application",
+      "capture": "supplemental full page"
+    },
+    {
+      "file": "app-detail-attendance-1366-en.png",
+      "width": 1366,
+      "height": 900,
+      "sha256": "1519774048d961fa99f6cbf3f8a9b1d5cd66da002649c03f78ebbe55c878a380",
+      "kind": "application",
+      "capture": "viewport"
+    },
+    {
+      "file": "app-detail-attendance-1366-ur-full.png",
+      "width": 1366,
+      "height": 1077,
+      "sha256": "93b57444db7dfcdd2d0a64fe4297f2f6ccf02b949fe59d3b96906c1cbae4f8c4",
+      "kind": "application",
+      "capture": "supplemental full page"
+    },
+    {
+      "file": "app-detail-attendance-1366-ur.png",
+      "width": 1366,
+      "height": 900,
+      "sha256": "e3049cabd5e2cf7d73801890b03563f2fd56688c766dcf2638d0389ac390bfcb",
+      "kind": "application",
+      "capture": "viewport"
+    },
+    {
+      "file": "app-detail-attendance-390-en-full.png",
+      "width": 390,
+      "height": 1924,
+      "sha256": "d810cd51796d884d135cd4e703c3e8aa1c1e91c997b58064af63ad3ed4379c6e",
+      "kind": "application",
+      "capture": "supplemental full page"
+    },
+    {
+      "file": "app-detail-attendance-390-en.png",
+      "width": 390,
+      "height": 900,
+      "sha256": "8b09b4fa7f087699c6b26434bf84313253d87fabc52de479ee3183954fb538db",
+      "kind": "application",
+      "capture": "viewport"
+    },
+    {
+      "file": "app-detail-attendance-390-ur-full.png",
+      "width": 390,
+      "height": 1895,
+      "sha256": "f3d63e173d365ed3bc91ec2981188d27d3ffbab2359223ddbc71089dafa61452",
+      "kind": "application",
+      "capture": "supplemental full page"
+    },
+    {
+      "file": "app-detail-attendance-390-ur.png",
+      "width": 390,
+      "height": 900,
+      "sha256": "2ba5ec6d2e7936cb2f0a95ea1b01dd303a2195bb9decccba013a50b67af1251e",
+      "kind": "application",
+      "capture": "viewport"
+    },
+    {
+      "file": "app-detail-cleaning-schedule-1366-en-full.png",
+      "width": 1366,
+      "height": 1019,
+      "sha256": "d0a1cb08c785035fae71aa1ef85aaba9af2f1cb8084adbf03ffbeef32b029b0f",
+      "kind": "application",
+      "capture": "supplemental full page"
+    },
+    {
+      "file": "app-detail-cleaning-schedule-1366-en.png",
+      "width": 1366,
+      "height": 900,
+      "sha256": "7ea9d5c1dc0881153bf66440dfe704a3d041179fc63e8b3315f0a4e8e85ac42f",
+      "kind": "application",
+      "capture": "viewport"
+    },
+    {
+      "file": "app-detail-cleaning-schedule-1366-ur-full.png",
+      "width": 1366,
+      "height": 1033,
+      "sha256": "d1a09a950b26f859c869064b3a47c508ea4377d9ce35312ec7d4e69e2408cc40",
+      "kind": "application",
+      "capture": "supplemental full page"
+    },
+    {
+      "file": "app-detail-cleaning-schedule-1366-ur.png",
+      "width": 1366,
+      "height": 900,
+      "sha256": "085fbffeed736d21771d3ead90124035a3036b6ed2a2e582f7e87d14a0a40e8f",
+      "kind": "application",
+      "capture": "viewport"
+    },
+    {
+      "file": "app-detail-cleaning-schedule-390-en-full.png",
+      "width": 390,
+      "height": 1658,
+      "sha256": "d57f9dd7b80f9a12f43b981184034d2ddfc37a66205914fbce889ab9114f80bc",
+      "kind": "application",
+      "capture": "supplemental full page"
+    },
+    {
+      "file": "app-detail-cleaning-schedule-390-en.png",
+      "width": 390,
+      "height": 900,
+      "sha256": "50da30404c862b0e71463402508302b23821014cb43093f8913d47db36c519ff",
+      "kind": "application",
+      "capture": "viewport"
+    },
+    {
+      "file": "app-detail-cleaning-schedule-390-ur-full.png",
+      "width": 390,
+      "height": 1618,
+      "sha256": "c6e1f88ef955997745a32b17b2d2fe069a4cf209d9462500ba8c604d8058eb77",
+      "kind": "application",
+      "capture": "supplemental full page"
+    },
+    {
+      "file": "app-detail-cleaning-schedule-390-ur.png",
+      "width": 390,
+      "height": 900,
+      "sha256": "1cad1b6f2f6366fe54c7d6b286305b17b7961f7ef92e7bc39359e1948f77f141",
+      "kind": "application",
+      "capture": "viewport"
+    },
+    {
+      "file": "app-detail-foreign-denied-1366-en.png",
+      "width": 1366,
+      "height": 900,
+      "sha256": "0cf92e1d773fa9515e0f5bffd341a4c7d75dce8d58cbb60dad5fad4962bfcf02",
+      "kind": "application",
+      "capture": "viewport"
+    },
+    {
+      "file": "app-detail-overview-1366-en-full.png",
+      "width": 1366,
+      "height": 1742,
+      "sha256": "2683906b1eb42159cd29027aac42f86c3704347ecc1ccc6e090818d27957ec56",
+      "kind": "application",
+      "capture": "supplemental full page"
+    },
+    {
+      "file": "app-detail-overview-1366-en.png",
+      "width": 1366,
+      "height": 900,
+      "sha256": "1d4026404039c58a932ae79f43b61b601f234d33f83f46d74d358651cb9bc963",
+      "kind": "application",
+      "capture": "viewport"
+    },
+    {
+      "file": "app-detail-overview-1366-ur-full.png",
+      "width": 1366,
+      "height": 1784,
+      "sha256": "c3371709f9f87928e18ac6ec9d723f1373e0ace06a6bd1f9c4b8518fbbcceb25",
+      "kind": "application",
+      "capture": "supplemental full page"
+    },
+    {
+      "file": "app-detail-overview-1366-ur.png",
+      "width": 1366,
+      "height": 900,
+      "sha256": "80ed073d7274f9a487fccf3eea18497b5243d21c204fe5d6a3f22b3c2dad2709",
+      "kind": "application",
+      "capture": "viewport"
+    },
+    {
+      "file": "app-detail-overview-390-en-full.png",
+      "width": 390,
+      "height": 2950,
+      "sha256": "5d17785b5da7390f068a1832faa87ecf297af6a4ed8b3f4a94ff29e7020fe189",
+      "kind": "application",
+      "capture": "supplemental full page"
+    },
+    {
+      "file": "app-detail-overview-390-en.png",
+      "width": 390,
+      "height": 900,
+      "sha256": "3003d5dbdd77f2b663e15d49c013fb474dbc20cbf8931d8d34dcad5099fc920a",
+      "kind": "application",
+      "capture": "viewport"
+    },
+    {
+      "file": "app-detail-overview-390-ur-full.png",
+      "width": 390,
+      "height": 2952,
+      "sha256": "b31cb87e7e8b68704b2c852d6492129ebfc352da2f0a0ced8df4b1b007e52a5a",
+      "kind": "application",
+      "capture": "supplemental full page"
+    },
+    {
+      "file": "app-detail-overview-390-ur.png",
+      "width": 390,
+      "height": 900,
+      "sha256": "104c09ed59d6a946653fa4a62f8518afc4dffce5fcfbef79b1dc947a0fca216b",
+      "kind": "application",
+      "capture": "viewport"
+    },
+    {
+      "file": "app-detail-task-history-1366-en-full.png",
+      "width": 1366,
+      "height": 1030,
+      "sha256": "6c332060912506774b0edd65454fb8e79b2f6c19baf429ca987ff1d302b979fc",
+      "kind": "application",
+      "capture": "supplemental full page"
+    },
+    {
+      "file": "app-detail-task-history-1366-en.png",
+      "width": 1366,
+      "height": 900,
+      "sha256": "cc8f5e46b3cb8bfa568d72d7401d4f3a87ed2388a7a4b891aa4b9378101811df",
+      "kind": "application",
+      "capture": "viewport"
+    },
+    {
+      "file": "app-detail-task-history-1366-ur-full.png",
+      "width": 1366,
+      "height": 1044,
+      "sha256": "2fe59976440ab7a0542ce949597aa32c1df45847a1ff8612727c096966fd59ec",
+      "kind": "application",
+      "capture": "supplemental full page"
+    },
+    {
+      "file": "app-detail-task-history-1366-ur.png",
+      "width": 1366,
+      "height": 900,
+      "sha256": "2974eb8b532f4851c4ec9ea36217a25f29b0e2cd97b7a03a1e6f4546aeddb54d",
+      "kind": "application",
+      "capture": "viewport"
+    },
+    {
+      "file": "app-detail-task-history-390-en-full.png",
+      "width": 390,
+      "height": 1857,
+      "sha256": "ec0ad691e484471ebfbb134b6ee2a58abfc21b7ba736aabc34a0139a5c7faece",
+      "kind": "application",
+      "capture": "supplemental full page"
+    },
+    {
+      "file": "app-detail-task-history-390-en.png",
+      "width": 390,
+      "height": 900,
+      "sha256": "070a3aabde7652f46180e0365097d721116acb2965a6d49aeccbcb6256d752f4",
+      "kind": "application",
+      "capture": "viewport"
+    },
+    {
+      "file": "app-detail-task-history-390-ur-full.png",
+      "width": 390,
+      "height": 1807,
+      "sha256": "5acefd4aa87dbd5022cab4f458510690ed83675a1c111993abbf875d0a89c84f",
+      "kind": "application",
+      "capture": "supplemental full page"
+    },
+    {
+      "file": "app-detail-task-history-390-ur.png",
+      "width": 390,
+      "height": 900,
+      "sha256": "bb69fc828fd6860d6439fe3c9c90c870b3f5249cdd3aa325db649de7a43b4e55",
+      "kind": "application",
+      "capture": "viewport"
+    },
+    {
+      "file": "app-hire-capacity-denied-1366-en-full.png",
+      "width": 1366,
+      "height": 2194,
+      "sha256": "fa877a212334dbf73171ba926e632afa2ccd6640148578292e9850fa497d1e57",
+      "kind": "application",
+      "capture": "supplemental full page"
+    },
+    {
+      "file": "app-hire-capacity-denied-1366-en.png",
+      "width": 1366,
+      "height": 900,
+      "sha256": "039771d6a5a157287b8097f2a0e8e66e8fc1f5bda7f46a2c3534831cbfba1a06",
+      "kind": "application",
+      "capture": "viewport"
+    },
+    {
+      "file": "app-hire-validation-1366-en-full.png",
+      "width": 1366,
+      "height": 2171,
+      "sha256": "1d270dfd068eb52bb1ed78e3cc60ae3937785fc478259e14224780b81b2c1a94",
+      "kind": "application",
+      "capture": "supplemental full page"
+    },
+    {
+      "file": "app-hire-validation-1366-en.png",
+      "width": 1366,
+      "height": 900,
+      "sha256": "3075c6b2dfc7a7ce00ff828b09dc14ce7670fc055dc4ed6d03cc9dbb4c13fb08",
+      "kind": "application",
+      "capture": "viewport"
+    },
+    {
+      "file": "app-hire-validation-1366-ur-full.png",
+      "width": 1366,
+      "height": 2193,
+      "sha256": "ef4143cc9841b729ebdb5f00f69279c08df7512b489c8d4a230d161da2a8c7a2",
+      "kind": "application",
+      "capture": "supplemental full page"
+    },
+    {
+      "file": "app-hire-validation-1366-ur.png",
+      "width": 1366,
+      "height": 900,
+      "sha256": "16560d2361bf6ee3812e2f40b397eae058e266dac57a409b5ddd959844b23984",
+      "kind": "application",
+      "capture": "viewport"
+    },
+    {
+      "file": "app-hire-validation-390-en-full.png",
+      "width": 390,
+      "height": 4041,
+      "sha256": "3e6a0677875aedeee4d71534b656ce529a99684412b1a9d186981f9b0e34aea9",
+      "kind": "application",
+      "capture": "supplemental full page"
+    },
+    {
+      "file": "app-hire-validation-390-en.png",
+      "width": 390,
+      "height": 900,
+      "sha256": "b3ef139bf2be871e1d51bb88d5c0f10aebebc8e16610bc22f3ecfe6884ae73f7",
+      "kind": "application",
+      "capture": "viewport"
+    },
+    {
+      "file": "app-hire-validation-390-ur-full.png",
+      "width": 390,
+      "height": 4097,
+      "sha256": "4568857cdb8de5c0a6d217e4c32a80f0937a0eae867ed670935abf7cc0d48f42",
+      "kind": "application",
+      "capture": "supplemental full page"
+    },
+    {
+      "file": "app-hire-validation-390-ur.png",
+      "width": 390,
+      "height": 900,
+      "sha256": "9cfb183fabe08aa7fd68ded06c539fbd820441b33058871a57b437b5d70817c0",
+      "kind": "application",
+      "capture": "viewport"
+    },
+    {
+      "file": "app-manager-archive-1366-en.png",
+      "width": 1366,
+      "height": 900,
+      "sha256": "c1eedbf48a9a97e7008fe1cf2a8efc49c7a249472e8c65f162d16763073ecbca",
+      "kind": "application",
+      "capture": "viewport"
+    },
+    {
+      "file": "app-manager-archive-1366-ur.png",
+      "width": 1366,
+      "height": 900,
+      "sha256": "8d7aca88f7b7a35e9c8a925326c7e489731c3f86c6a2642ff0941082d554be42",
+      "kind": "application",
+      "capture": "viewport"
+    },
+    {
+      "file": "app-manager-archive-390-en.png",
+      "width": 390,
+      "height": 900,
+      "sha256": "5b787a9e0e3c5db6214992bb3fd1c9a7e483ca97c4e4f2bebd87b6a6299de028",
+      "kind": "application",
+      "capture": "viewport"
+    },
+    {
+      "file": "app-manager-archive-390-ur.png",
+      "width": 390,
+      "height": 900,
+      "sha256": "77e565cb929cf4fe5fb26101024dda77e46aadfabf0d277b107b06315c6c8c0a",
+      "kind": "application",
+      "capture": "viewport"
+    },
+    {
+      "file": "app-manager-create-1366-en.png",
+      "width": 1366,
+      "height": 900,
+      "sha256": "f9c0c806eabc5679ed130fece513e372bfc0aa30ad00ce612660406c2f660879",
+      "kind": "application",
+      "capture": "viewport"
+    },
+    {
+      "file": "app-manager-create-1366-ur.png",
+      "width": 1366,
+      "height": 900,
+      "sha256": "fe1938c07fecd891418613c275a729dc4a46a6f7be82f145e6ca857feec1e033",
+      "kind": "application",
+      "capture": "viewport"
+    },
+    {
+      "file": "app-manager-create-390-en.png",
+      "width": 390,
+      "height": 900,
+      "sha256": "00b0283b78aa6591a350282ae983398d3c44686930c088769fd57981876ed767",
+      "kind": "application",
+      "capture": "viewport"
+    },
+    {
+      "file": "app-manager-create-390-ur.png",
+      "width": 390,
+      "height": 900,
+      "sha256": "18a8ffb7cd02fb6f46809d66a499defc2da5bb442c27add844e4cb180ee1c642",
+      "kind": "application",
+      "capture": "viewport"
+    },
+    {
+      "file": "app-manager-deactivate-1366-en.png",
+      "width": 1366,
+      "height": 900,
+      "sha256": "3737805583526d7dd0b83e7df43d0edfd50f50ff7e7b7fb3a0091a13cd57b6e2",
+      "kind": "application",
+      "capture": "viewport"
+    },
+    {
+      "file": "app-manager-deactivate-1366-ur.png",
+      "width": 1366,
+      "height": 900,
+      "sha256": "3c41c96b0d749c7b8f5a27fc2ec7054bb69d81d40740ac7d95dcdd36b0292cff",
+      "kind": "application",
+      "capture": "viewport"
+    },
+    {
+      "file": "app-manager-deactivate-390-en.png",
+      "width": 390,
+      "height": 900,
+      "sha256": "a86363ec27cfbc3a1a06159d6b7d35d6dda0b02456d56dfaad859ff4ff15cdff",
+      "kind": "application",
+      "capture": "viewport"
+    },
+    {
+      "file": "app-manager-deactivate-390-ur.png",
+      "width": 390,
+      "height": 900,
+      "sha256": "29642e2dffbd2c347fed4372afcc819903a25e79db7145737994e1c423a65e91",
+      "kind": "application",
+      "capture": "viewport"
+    },
+    {
+      "file": "app-manager-directory-1366-en-full.png",
+      "width": 1366,
+      "height": 1008,
+      "sha256": "b3c7419e5d36f64246058eed02211bc9057fa259f6d6f8acb25ae623f8a6da8a",
+      "kind": "application",
+      "capture": "supplemental full page"
+    },
+    {
+      "file": "app-manager-directory-1366-en.png",
+      "width": 1366,
+      "height": 900,
+      "sha256": "0945ce4ff21c7e9799143202e440e11707f316809f14cd1bdaa83bb47ebe1159",
+      "kind": "application",
+      "capture": "viewport"
+    },
+    {
+      "file": "app-manager-directory-1366-ur-full.png",
+      "width": 1366,
+      "height": 1041,
+      "sha256": "3b5037abf38e4c31cd2dea539196d9acc6c9e261338720d6622e901590424bef",
+      "kind": "application",
+      "capture": "supplemental full page"
+    },
+    {
+      "file": "app-manager-directory-1366-ur.png",
+      "width": 1366,
+      "height": 900,
+      "sha256": "4cd50d52b2f5293d4a591cd43f3bacd8d9b5729e4591b2fb70cb144419ebcc3a",
+      "kind": "application",
+      "capture": "viewport"
+    },
+    {
+      "file": "app-manager-directory-390-en-full.png",
+      "width": 390,
+      "height": 1865,
+      "sha256": "49344e939fbb144ad2f9a67d0f51642217a1c668f9b5422dd8f80e0701586332",
+      "kind": "application",
+      "capture": "supplemental full page"
+    },
+    {
+      "file": "app-manager-directory-390-en.png",
+      "width": 390,
+      "height": 900,
+      "sha256": "191657909fb67c7c201b27ae35b8b2e7879821af5c207e94cb151fe23899d109",
+      "kind": "application",
+      "capture": "viewport"
+    },
+    {
+      "file": "app-manager-directory-390-ur-full.png",
+      "width": 390,
+      "height": 1870,
+      "sha256": "439a8a87daaa63e21d9914cb2eb986565b47e7b44d3a4f6fa50cf4a4b5245d7d",
+      "kind": "application",
+      "capture": "supplemental full page"
+    },
+    {
+      "file": "app-manager-directory-390-ur.png",
+      "width": 390,
+      "height": 900,
+      "sha256": "b75ab405cfd7c5b822731fe7341597b07562234dc3231b2d3f469fa9838e30f8",
+      "kind": "application",
+      "capture": "viewport"
+    },
+    {
+      "file": "app-manager-edit-1366-en.png",
+      "width": 1366,
+      "height": 900,
+      "sha256": "88c84b1044640e336526e10136614b795511295eda6a4faa88327ac142274e2d",
+      "kind": "application",
+      "capture": "viewport"
+    },
+    {
+      "file": "app-manager-edit-1366-ur.png",
+      "width": 1366,
+      "height": 900,
+      "sha256": "4d04d910e28c9f2fb89f446ff43115c6bac568a704f294679f5f2c2f94bf1a78",
+      "kind": "application",
+      "capture": "viewport"
+    },
+    {
+      "file": "app-manager-edit-390-en.png",
+      "width": 390,
+      "height": 900,
+      "sha256": "d02f27337e1d3f6e6c005d1fa38b18b2a297da9f3e215bd187eed3bda815674c",
+      "kind": "application",
+      "capture": "viewport"
+    },
+    {
+      "file": "app-manager-edit-390-ur.png",
+      "width": 390,
+      "height": 900,
+      "sha256": "caa1fa6b0473e6125f64c46897463d4601953b1313cae82b5c51d6d0f549134d",
+      "kind": "application",
+      "capture": "viewport"
+    },
+    {
+      "file": "app-manager-validation-1366-en.png",
+      "width": 1366,
+      "height": 900,
+      "sha256": "486ae45563cbb68ed5a6cdb84345b6c144926c716316d5981401f63062580480",
+      "kind": "application",
+      "capture": "viewport"
+    },
+    {
+      "file": "app-manager-validation-1366-ur.png",
+      "width": 1366,
+      "height": 900,
+      "sha256": "14a09091613347113d169b504c25c9131383ca0043b39931a9cf9f7da4447d13",
+      "kind": "application",
+      "capture": "viewport"
+    },
+    {
+      "file": "app-manager-validation-390-en.png",
+      "width": 390,
+      "height": 900,
+      "sha256": "72510c32afe855136cd06a67bfc0e409ee2123f0d1535f1d6053e003e7eb7114",
+      "kind": "application",
+      "capture": "viewport"
+    },
+    {
+      "file": "app-manager-validation-390-ur.png",
+      "width": 390,
+      "height": 900,
+      "sha256": "4ab557ad6dc110cb175ba23e83c831fc483c2d797ed561d7d840219ef09bffe0",
+      "kind": "application",
+      "capture": "viewport"
+    },
+    {
+      "file": "app-managers-1366-en-full.png",
+      "width": 1366,
+      "height": 1008,
+      "sha256": "c84192003c0336739da40a731870b82f9b14c6374a64a23d8749d66c16cb8769",
+      "kind": "application",
+      "capture": "supplemental full page"
+    },
+    {
+      "file": "app-managers-1366-en.png",
+      "width": 1366,
+      "height": 900,
+      "sha256": "703c8332bb39c91c1e58b8c8da3f7bb156542cd3de579f37464cd55e30cc8bae",
+      "kind": "application",
+      "capture": "viewport"
+    },
+    {
+      "file": "app-managers-1366-ur-full.png",
+      "width": 1366,
+      "height": 1041,
+      "sha256": "dc6a6a4d7fb75341401bcd117eef4f0c4dc7d2a4974216db6a9831f058a99a41",
+      "kind": "application",
+      "capture": "supplemental full page"
+    },
+    {
+      "file": "app-managers-1366-ur.png",
+      "width": 1366,
+      "height": 900,
+      "sha256": "dacfce9435dbc31637a77862efe43e9822221eafc2bad2cb4a31636e4d9e52f1",
+      "kind": "application",
+      "capture": "viewport"
+    },
+    {
+      "file": "app-managers-390-en-full.png",
+      "width": 390,
+      "height": 1865,
+      "sha256": "e2adef8af608c5dca228d404302c57beb908f5fbd9648624272399935fd72523",
+      "kind": "application",
+      "capture": "supplemental full page"
+    },
+    {
+      "file": "app-managers-390-en.png",
+      "width": 390,
+      "height": 900,
+      "sha256": "8875d4e9eabe4bf1decbbb8c7ce1446744992dbe881c57745d413fdf6128a113",
+      "kind": "application",
+      "capture": "viewport"
+    },
+    {
+      "file": "app-managers-390-ur-full.png",
+      "width": 390,
+      "height": 1870,
+      "sha256": "333918e03187d36fe50c745c6b2123b69795818854162706bc87a4c35efd147b",
+      "kind": "application",
+      "capture": "supplemental full page"
+    },
+    {
+      "file": "app-managers-390-ur.png",
+      "width": 390,
+      "height": 900,
+      "sha256": "b99ed81c255d332c5552170a1383aca546c2e43270e91ccf76c8358cd4e7f427",
+      "kind": "application",
+      "capture": "viewport"
+    },
+    {
+      "file": "app-staff-edit-1366-en.png",
+      "width": 1366,
+      "height": 900,
+      "sha256": "346c0fb48e63547a76b83be5c9baa3353c72c9ce336878adca308e1f0d4c1754",
+      "kind": "application",
+      "capture": "viewport"
+    },
+    {
+      "file": "app-staff-edit-1366-ur.png",
+      "width": 1366,
+      "height": 900,
+      "sha256": "64a361b6c430ef2e60c05390d5c7e38f7b24586834445ca9eea1acc8490f25e5",
+      "kind": "application",
+      "capture": "viewport"
+    },
+    {
+      "file": "app-staff-edit-390-en.png",
+      "width": 390,
+      "height": 900,
+      "sha256": "27b67b67e199c432710a76d59596f042026dc343908ed1d5a9eaf5b272291c1f",
+      "kind": "application",
+      "capture": "viewport"
+    },
+    {
+      "file": "app-staff-edit-390-ur.png",
+      "width": 390,
+      "height": 900,
+      "sha256": "f6c98c27160f26cbed6642abcc3ac578c3cbb35c854bc022ee8b7ec4b7333173",
+      "kind": "application",
+      "capture": "viewport"
+    },
+    {
+      "file": "app-team-1366-en-full.png",
+      "width": 1366,
+      "height": 1505,
+      "sha256": "395b2775b0801f60ecb1e3963bfec1fcda14317c1cacfeca3b5c15173035144f",
+      "kind": "application",
+      "capture": "supplemental full page"
+    },
+    {
+      "file": "app-team-1366-en.png",
+      "width": 1366,
+      "height": 900,
+      "sha256": "0c23a8b42719587d868308e297ccf1985aa498599d56be745ba0f21601c34cca",
+      "kind": "application",
+      "capture": "viewport"
+    },
+    {
+      "file": "app-team-1366-ur-full.png",
+      "width": 1366,
+      "height": 1515,
+      "sha256": "afc812777e7817887ec6e47956922cf68e777928d8889ee8c32efd261209b7bf",
+      "kind": "application",
+      "capture": "supplemental full page"
+    },
+    {
+      "file": "app-team-1366-ur.png",
+      "width": 1366,
+      "height": 900,
+      "sha256": "48e028945efa9794db2cbb2f4264d4de48582e8d1280af90df8680ff9ba01b42",
+      "kind": "application",
+      "capture": "viewport"
+    },
+    {
+      "file": "app-team-390-en-full.png",
+      "width": 390,
+      "height": 3122,
+      "sha256": "b03c22175897801b2492b563f2df1d27f0146577d291c7f67e5e1f7f1e609ead",
+      "kind": "application",
+      "capture": "supplemental full page"
+    },
+    {
+      "file": "app-team-390-en.png",
+      "width": 390,
+      "height": 900,
+      "sha256": "bbf799a97c8b311f8644c4cf1b2c7ac84cbaafff4ff2da4bcdaccb101e12f2ea",
+      "kind": "application",
+      "capture": "viewport"
+    },
+    {
+      "file": "app-team-390-ur-full.png",
+      "width": 390,
+      "height": 3165,
+      "sha256": "1e70411dc5b05f9434deb76d73c59a6e47a96e6a28d6da336111256d191d2f4c",
+      "kind": "application",
+      "capture": "supplemental full page"
+    },
+    {
+      "file": "app-team-390-ur.png",
+      "width": 390,
+      "height": 900,
+      "sha256": "351def42f02f3f3375767ee251250ba5f34ab4112039c666fdb995e96bb5ebfb",
+      "kind": "application",
+      "capture": "viewport"
+    },
+    {
+      "file": "app-team-directory-1366-en-full.png",
+      "width": 1366,
+      "height": 1505,
+      "sha256": "ad048197bf1befa4d62fce98f97d981c1359c3bb6383c09b1fbfce724459065b",
+      "kind": "application",
+      "capture": "supplemental full page"
+    },
+    {
+      "file": "app-team-directory-1366-en.png",
+      "width": 1366,
+      "height": 900,
+      "sha256": "5a31eeb5128b28cf9de50411ba087fe471b1abbf63a3717c010ec37a1b469a0b",
+      "kind": "application",
+      "capture": "viewport"
+    },
+    {
+      "file": "app-team-directory-1366-ur-full.png",
+      "width": 1366,
+      "height": 1515,
+      "sha256": "b8704e62f4a61223ebfdf189f8f1236a54de547f953f2ac50152cc76ec56b18d",
+      "kind": "application",
+      "capture": "supplemental full page"
+    },
+    {
+      "file": "app-team-directory-1366-ur.png",
+      "width": 1366,
+      "height": 900,
+      "sha256": "7fea0e21f0c5cdc631e0465eb70305e385bb2970a348749ce2303c3578c21d73",
+      "kind": "application",
+      "capture": "viewport"
+    },
+    {
+      "file": "app-team-directory-390-en-full.png",
+      "width": 390,
+      "height": 3122,
+      "sha256": "c14220ac709d351719440ced419a9d7d630f2f19d18857828a7f993ff4118dab",
+      "kind": "application",
+      "capture": "supplemental full page"
+    },
+    {
+      "file": "app-team-directory-390-en.png",
+      "width": 390,
+      "height": 900,
+      "sha256": "d4df091a63e8efcb02bbbd7a9737e535620d55ea20bf474a62663206b1488e5c",
+      "kind": "application",
+      "capture": "viewport"
+    },
+    {
+      "file": "app-team-directory-390-ur-full.png",
+      "width": 390,
+      "height": 3165,
+      "sha256": "3c2c1c0e1f3193fb01faa940f381a51927aa1f5d582fc32b3993985bf5516e83",
+      "kind": "application",
+      "capture": "supplemental full page"
+    },
+    {
+      "file": "app-team-directory-390-ur.png",
+      "width": 390,
+      "height": 900,
+      "sha256": "040bf26e8e153f042c0cb6e9fab7e22812e3da02b64b88b133452049cf3ac7c6",
+      "kind": "application",
+      "capture": "viewport"
+    },
+    {
+      "file": "app-team-empty-1366-en-full.png",
+      "width": 1366,
+      "height": 1139,
+      "sha256": "f6be0e02fbf6e0d5a4df0ea2c541f64bc37167e184aad824f8f4d84621af4033",
+      "kind": "application",
+      "capture": "supplemental full page"
+    },
+    {
+      "file": "app-team-empty-1366-en.png",
+      "width": 1366,
+      "height": 900,
+      "sha256": "dcef082c9ee80459ce0f2f603935a5ebca5e65390790a9a21838d8472f0c38ed",
+      "kind": "application",
+      "capture": "viewport"
+    },
+    {
+      "file": "app-team-empty-1366-ur-full.png",
+      "width": 1366,
+      "height": 1150,
+      "sha256": "f613870dfe4e05bf63515f5a75037911cb6384635edf2943f0553b5c12be6161",
+      "kind": "application",
+      "capture": "supplemental full page"
+    },
+    {
+      "file": "app-team-empty-1366-ur.png",
+      "width": 1366,
+      "height": 900,
+      "sha256": "3f012f7ff4161adf74c9fd31ed1682cbff9a72139343386efd4d36d4b0c40c4e",
+      "kind": "application",
+      "capture": "viewport"
+    },
+    {
+      "file": "app-team-empty-390-en-full.png",
+      "width": 390,
+      "height": 1750,
+      "sha256": "747c344b1b2c8026958e1517fe334bbfe29ab2bfff3c953ac9c49277642b99ac",
+      "kind": "application",
+      "capture": "supplemental full page"
+    },
+    {
+      "file": "app-team-empty-390-en.png",
+      "width": 390,
+      "height": 900,
+      "sha256": "84a5d305093dad485ef39f84637c3e2124814ec0becd2b40d838505169ccdeff",
+      "kind": "application",
+      "capture": "viewport"
+    },
+    {
+      "file": "app-team-empty-390-ur-full.png",
+      "width": 390,
+      "height": 1716,
+      "sha256": "402d97178242a8191cd725e9cbfe7dae2ac74827e02e0b5223ee22fe24827835",
+      "kind": "application",
+      "capture": "supplemental full page"
+    },
+    {
+      "file": "app-team-empty-390-ur.png",
+      "width": 390,
+      "height": 900,
+      "sha256": "8bd444723bed8e60ee9f9f1a76f0d17072c8c9c45ff777630315ea71ab421213",
+      "kind": "application",
+      "capture": "viewport"
+    },
+    {
+      "file": "app-team-forwarded-loading-390-en.png",
+      "width": 390,
+      "height": 900,
+      "sha256": "6e7e279b11090f9a2a22d7615cc0d457665c2b12296eb52d2e2856370d116602",
+      "kind": "application",
+      "capture": "viewport"
+    },
+    {
+      "file": "app-team-forwarded-loading-390-ur.png",
+      "width": 390,
+      "height": 900,
+      "sha256": "1858dcdd51d8e2a0b3816fca0a56673780fb80b5eff95b5eaba236e84b8ffce1",
+      "kind": "application",
+      "capture": "viewport"
+    },
+    {
+      "file": "app-team-hire-1366-en-full.png",
+      "width": 1366,
+      "height": 2035,
+      "sha256": "03d2ac9c86076e4472d69e5623bf1403a4fe66d11387c79303c011f8ac2672f1",
+      "kind": "application",
+      "capture": "supplemental full page"
+    },
+    {
+      "file": "app-team-hire-1366-en.png",
+      "width": 1366,
+      "height": 900,
+      "sha256": "aa004cac1d683c488c6d35ed81e1c6a9deae7a0e93f775f615c3c55c8ff193ab",
+      "kind": "application",
+      "capture": "viewport"
+    },
+    {
+      "file": "app-team-hire-1366-ur-full.png",
+      "width": 1366,
+      "height": 2079,
+      "sha256": "47c860906225d428a7d7049ee869c998b7927a4db8d0798c9ca1acfc3d270c1f",
+      "kind": "application",
+      "capture": "supplemental full page"
+    },
+    {
+      "file": "app-team-hire-1366-ur.png",
+      "width": 1366,
+      "height": 900,
+      "sha256": "435921cdf9fd015647873f83676879b9c6e9de1063e2728b433b54f4d8ead32b",
+      "kind": "application",
+      "capture": "viewport"
+    },
+    {
+      "file": "app-team-hire-390-en-full.png",
+      "width": 390,
+      "height": 3890,
+      "sha256": "591bfc0041630804a84230874ec025c204f2dcb08f3b9b20d63daa521e97a82c",
+      "kind": "application",
+      "capture": "supplemental full page"
+    },
+    {
+      "file": "app-team-hire-390-en.png",
+      "width": 390,
+      "height": 900,
+      "sha256": "09f4e7222041c018cd2ce91db8f4a992fb109548fab524ffca6e74149915e9ea",
+      "kind": "application",
+      "capture": "viewport"
+    },
+    {
+      "file": "app-team-hire-390-ur-full.png",
+      "width": 390,
+      "height": 3947,
+      "sha256": "64506564eaaf1ec3776db1b7d7f15f038896ba45f01c635d3f4350d82648cefd",
+      "kind": "application",
+      "capture": "supplemental full page"
+    },
+    {
+      "file": "app-team-hire-390-ur.png",
+      "width": 390,
+      "height": 900,
+      "sha256": "cb993902797bf01375c4f86fb32080e380952319cb1e1b5df52bb5ab6fee1750",
+      "kind": "application",
+      "capture": "viewport"
+    },
+    {
+      "file": "app-team-network-abort-390-en.png",
+      "width": 390,
+      "height": 900,
+      "sha256": "47abf693979e5c00ff9a465ad872654662c15b440c35687bcec1b8da552db35f",
+      "kind": "application",
+      "capture": "viewport"
+    },
+    {
+      "file": "app-team-network-abort-390-ur.png",
+      "width": 390,
+      "height": 900,
+      "sha256": "7830f9f3c7ee6930dea1aea732b0441963a56f2729730cbd6e55039e65b15783",
+      "kind": "application",
+      "capture": "viewport"
+    },
+    {
+      "file": "app-team-no-matches-1366-en-full.png",
+      "width": 1366,
+      "height": 1074,
+      "sha256": "bd3a8b94966152fb5fecb837127871ebee175d7de92b915c4b644003b4c3ce72",
+      "kind": "application",
+      "capture": "supplemental full page"
+    },
+    {
+      "file": "app-team-no-matches-1366-en.png",
+      "width": 1366,
+      "height": 900,
+      "sha256": "898c7748290793ad3db059c44f7be531d92a7be2821b611af0b21b5cfae0853c",
+      "kind": "application",
+      "capture": "viewport"
+    },
+    {
+      "file": "v5-team-1366-en.png",
+      "width": 1366,
+      "height": 900,
+      "sha256": "fbbd2a3ac25173ed21817b63bc1b249df59c978a8a9db5b4e436fe2451a6e2b1",
+      "kind": "reference",
+      "capture": "viewport"
+    },
+    {
+      "file": "v5-team-1366-ur.png",
+      "width": 1366,
+      "height": 900,
+      "sha256": "3d830f47caf1f2df300b9762b30acb21e6aae419bb8bfb9cba9bad4440a63284",
+      "kind": "reference",
+      "capture": "viewport"
+    },
+    {
+      "file": "v5-team-390-en.png",
+      "width": 390,
+      "height": 900,
+      "sha256": "09351137a5f87c2a4473efb76e73961c9697794482b059c5e8ccf8c2500ed07c",
+      "kind": "reference",
+      "capture": "viewport"
+    },
+    {
+      "file": "v5-team-390-ur.png",
+      "width": 390,
+      "height": 900,
+      "sha256": "77ea120bf8e44e5b1ec10c4f6d04c925e9250d495b70b02c74727a077d475cb2",
+      "kind": "reference",
+      "capture": "viewport"
+    },
+    {
+      "file": "v5-workforce-1366-en.png",
+      "width": 1366,
+      "height": 900,
+      "sha256": "b2d5a96ffad4ee184a203659ceb05fc695468715f5d8f0e57d8e743d9ad743f9",
+      "kind": "reference",
+      "capture": "viewport"
+    },
+    {
+      "file": "v5-workforce-1366-ur.png",
+      "width": 1366,
+      "height": 900,
+      "sha256": "944d2645e647ff48cc4f3af60aeb95a25e83f0d2df0ab0d1edda286536fffd37",
+      "kind": "reference",
+      "capture": "viewport"
+    },
+    {
+      "file": "v5-workforce-390-en.png",
+      "width": 390,
+      "height": 900,
+      "sha256": "2d3c4ed67a3d6fce4334774bf1bf151c148dcfc55c9e081a594f5f6de5a4c1d1",
+      "kind": "reference",
+      "capture": "viewport"
+    },
+    {
+      "file": "v5-workforce-390-ur.png",
+      "width": 390,
+      "height": 900,
+      "sha256": "0634e8e999d8cb52b14310bcab30b79866a91ff2c75e77371814f74a4b9368ae",
+      "kind": "reference",
+      "capture": "viewport"
+    }
+  ]
+}

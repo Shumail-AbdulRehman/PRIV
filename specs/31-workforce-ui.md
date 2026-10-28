@@ -1,6 +1,6 @@
 # Spec 31 — Workforce access and transfer UI
 
-**Status:** In progress
+**Status:** Done
 **Depends on:** Spec 11, Spec 17, Spec 27
 **Model:** Standard — `claude-sonnet-5-5` · `gpt-6.1-sol` · `gemini-3.8-flash`
 **Issue:** #65
@@ -37,7 +37,7 @@ Wire safe deactivation/archive, open-shift transfer conflict, manager-site hando
 
 ## Done when
 
-- [ ] Approved V5 layout and interactions are implemented and paired actual-app/reference screenshots are inspected at desktop/phone EN/UR; state/permission deviations are recorded. Native acceptance requires a native runtime. [static]
+- [x] Approved V5 layout and interactions are implemented and paired actual-app/reference screenshots are inspected at desktop/phone EN/UR; state/permission deviations are recorded. Native acceptance requires a native runtime. [static]
 - [x] `npm run test:components --prefix frontend -- src/pages/Staff/WorkforceActions.test.tsx` passes: Manager cannot select unassigned site/reset owner; conflict keeps draft; one-use credential never saved in browser; mutation errors shown. [unit]
 - [x] `npm test --prefix frontend` passes the whole affected unit suite; record count. [unit]
 - [x] Only scoped paths changed; relevant denial/empty/error/config-unavailable states inspected. [static]
@@ -61,3 +61,5 @@ Wire safe deactivation/archive, open-shift transfer conflict, manager-site hando
 - **2026-10-21 — Visual acceptance correction:** reopened for outstanding approved V5 acceptance. Historical functional checkmarks/logs are preserved; they do not certify visual fidelity. Current four-part status and evidence: docs/implementation/V5_IMPLEMENTATION.md. No prior visual requirement is newly verified by a build.
 
 - **2026-10-28 — V5 continuation:** previous shared-shell source/render gate passed before dependent work; reconstructing the interrupted uncommitted31batch on a durable isolated worktree. Exclusive Staff/Managers/dictionary ownership includes reusable StaffEditDialog, page CSS and behavior tests above; coordinator owns progress/handoff and integrated screenshot harness. Retain11/17 API contracts and native/provider gates. Historical screenshots do not accept the reconstructed source; fresh integration and paired visual review remain required.
+
+- **2026-10-28 — Current approved V5 web acceptance:** real React composition and interactions accepted at1366/390 EN/UR, with recorded contract-driven deviations. Actual API/disposable migrated SQL,48backend tests and both workforce/credential SQL proofs pass. Current web64Node+274React, focused checks, lint0, TypeScript/build pass. A33-case integration milestone and subsequent focused rendered/state corrections pass; overlapping counts are recorded in V5_WORKFORCE.md. Independent QA findings were corrected and finally inspected by the coordinator after agent availability ended. Evidence: V5_WORKFORCE_QA.md, V5_ATTENDANCE_QA.md and their manifests. Web Done; native37, providers, full40/41 and production release remain separate and incomplete. No backend policy or production change.
