@@ -8,6 +8,8 @@ const root = fileURLToPath(new URL('../../', import.meta.url));
 const out = join(root, 'docs/implementation/v5-workforce-evidence');
 test.use({ trace: 'off', screenshot: 'off', video: 'off' });
 async function capture(page: Page, name: string) {
+  const width = /-(1366|390)-/.exec(name)?.[1];
+  if (width && page.viewportSize()?.width !== Number(width)) await page.setViewportSize({ width: Number(width), height: 900 });
   await mkdir(out, { recursive: true });
   await page.evaluate(() => document.fonts.ready);
   expect(await page.evaluate(() => document.documentElement.scrollWidth > innerWidth + 1)).toBe(false);
@@ -46,6 +48,7 @@ test('V5 Team detail and manager workspaces render actual scoped data across des
     await capture(page, `app-detail-overview-${width}-${lang}`);
     for (const [tab, translated] of [['Attendance', 'حاضری'], ['Task history', 'کام کی تاریخ'], ['Cleaning schedule', 'صفائی کا شیڈول']]) {
       await page.getByRole('button', { name: lang === 'ur' ? translated : tab, exact: true }).click();
+      if (tab === 'Attendance') await expect(page.getByRole('button', { name: lang === 'ur' ? 'حاضری کا سیاق' : 'Attendance context', exact: true }).filter({ visible: true }).first()).toBeVisible();
       await capture(page, `app-detail-${tab.toLowerCase().replaceAll(' ', '-')}-${width}-${lang}`);
     }
     await page.goto('/managers');
@@ -81,7 +84,12 @@ test('V5 access forms and actual open-shift conflict preserve reason and destina
     await expect(dialog.getByRole('alert')).toBeVisible(); await expect(reason).toHaveValue('V5 open-shift conflict draft');
     await expect(dialog.getByRole('combobox').nth(1)).toHaveValue(String(fixture.site.B));
     expect((await sql('SELECT "locationId" FROM "Staff" WHERE id=$1', [fixture.staff.openShift.id]))[0].locationId).toBe(fixture.site.A);
-    await capture(page, `app-access-conflict-${width}-${lang}`); await context.close();
+    await capture(page, `app-access-conflict-${width}-${lang}`);
+    await dialog.getByRole('button', { name: lang === 'ur' ? 'رسائی کی تفصیل تازہ کریں' : 'Refresh access context', exact: true }).click();
+    await expect(dialog.getByRole('alert')).toContainText(lang === 'ur' ? 'تازہ ہو گئی' : 'Access context refreshed');
+    await expect(reason).toHaveValue('V5 open-shift conflict draft');
+    await expect(dialog.getByRole('combobox').nth(1)).toHaveValue(String(fixture.site.B));
+    await capture(page, `app-access-refreshed-draft-${width}-${lang}`); await context.close();
   }
 });
 

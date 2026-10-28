@@ -401,7 +401,7 @@ const StaffDetailPage: React.FC = () => {
         },
       },
       {
-        key: "context",
+        key: "actions",
         header: "Attendance context",
         render: (attendance) => <AttendanceContext attendance={attendance} />,
       },
