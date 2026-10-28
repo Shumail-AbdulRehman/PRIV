@@ -9,7 +9,7 @@ export type PerformanceCounts = {
   verified:number;accepted:number;inProgress:number;overdue:number;notStarted:number;reviews:number;
   attendanceRate:number|null;submissionRate:number|null;
 };
-export type SitePerformance = PerformanceCounts & {location:LocationScope;staff:number;today:PerformanceCounts & {status:'ATTENTION'|'IN_PROGRESS'|'ON_TRACK'|'NO_ACTIVITY'}};
+export type SitePerformance = PerformanceCounts & {location:LocationScope;staff:number;today:Omit<PerformanceCounts,'attendanceRate'|'submissionRate'> & {status:'ATTENTION'|'IN_PROGRESS'|'ON_TRACK'|'NO_ACTIVITY'}};
 export type CompanyPerformance = OperationsBase & {
   period:number;dateFrom:string|null;dateTo:string|null;
   summary:PerformanceCounts & {previous:PerformanceCounts;attendanceChange:number|null;submissionChange:number|null;totalLocations:number;activeLocations:number;totalStaff:number};
