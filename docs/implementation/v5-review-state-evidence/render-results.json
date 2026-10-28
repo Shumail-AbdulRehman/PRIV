@@ -1,0 +1,258 @@
+[
+  {
+    "name": "setup",
+    "width": 1366,
+    "height": 900,
+    "language": "en",
+    "overflow": false,
+    "provenance": "real API + synthetic persisted SQL"
+  },
+  {
+    "name": "setup",
+    "width": 1366,
+    "height": 900,
+    "language": "ur",
+    "overflow": false,
+    "provenance": "real API + synthetic persisted SQL"
+  },
+  {
+    "name": "setup",
+    "width": 390,
+    "height": 900,
+    "language": "en",
+    "overflow": false,
+    "provenance": "real API + synthetic persisted SQL"
+  },
+  {
+    "name": "setup",
+    "width": 390,
+    "height": 900,
+    "language": "ur",
+    "overflow": false,
+    "provenance": "real API + synthetic persisted SQL"
+  },
+  {
+    "name": "closed",
+    "width": 1366,
+    "height": 900,
+    "language": "en",
+    "overflow": false,
+    "provenance": "real API + synthetic persisted SQL"
+  },
+  {
+    "name": "closed",
+    "width": 1366,
+    "height": 900,
+    "language": "ur",
+    "overflow": false,
+    "provenance": "real API + synthetic persisted SQL"
+  },
+  {
+    "name": "closed",
+    "width": 390,
+    "height": 900,
+    "language": "en",
+    "overflow": false,
+    "provenance": "real API + synthetic persisted SQL"
+  },
+  {
+    "name": "closed",
+    "width": 390,
+    "height": 900,
+    "language": "ur",
+    "overflow": false,
+    "provenance": "real API + synthetic persisted SQL"
+  },
+  {
+    "name": "held-unavailable",
+    "width": 1366,
+    "height": 900,
+    "language": "en",
+    "overflow": false,
+    "provenance": "real API + synthetic persisted SQL"
+  },
+  {
+    "name": "held-site-denied",
+    "width": 1366,
+    "height": 900,
+    "language": "en",
+    "overflow": false,
+    "provenance": "real API + synthetic persisted SQL"
+  },
+  {
+    "name": "held-unavailable",
+    "width": 1366,
+    "height": 900,
+    "language": "ur",
+    "overflow": false,
+    "provenance": "real API + synthetic persisted SQL"
+  },
+  {
+    "name": "held-site-denied",
+    "width": 1366,
+    "height": 900,
+    "language": "ur",
+    "overflow": false,
+    "provenance": "real API + synthetic persisted SQL"
+  },
+  {
+    "name": "held-unavailable",
+    "width": 390,
+    "height": 900,
+    "language": "en",
+    "overflow": false,
+    "provenance": "real API + synthetic persisted SQL"
+  },
+  {
+    "name": "held-site-denied",
+    "width": 390,
+    "height": 900,
+    "language": "en",
+    "overflow": false,
+    "provenance": "real API + synthetic persisted SQL"
+  },
+  {
+    "name": "held-unavailable",
+    "width": 390,
+    "height": 900,
+    "language": "ur",
+    "overflow": false,
+    "provenance": "real API + synthetic persisted SQL"
+  },
+  {
+    "name": "held-site-denied",
+    "width": 390,
+    "height": 900,
+    "language": "ur",
+    "overflow": false,
+    "provenance": "real API + synthetic persisted SQL"
+  },
+  {
+    "name": "large-queue-page1",
+    "width": 1366,
+    "height": 900,
+    "language": "en",
+    "overflow": false,
+    "provenance": "real API + synthetic persisted SQL"
+  },
+  {
+    "name": "large-queue-page2",
+    "width": 1366,
+    "height": 900,
+    "language": "en",
+    "overflow": false,
+    "provenance": "real API + synthetic persisted SQL"
+  },
+  {
+    "name": "large-queue-page1",
+    "width": 1366,
+    "height": 900,
+    "language": "ur",
+    "overflow": false,
+    "provenance": "real API + synthetic persisted SQL"
+  },
+  {
+    "name": "large-queue-page2",
+    "width": 1366,
+    "height": 900,
+    "language": "ur",
+    "overflow": false,
+    "provenance": "real API + synthetic persisted SQL"
+  },
+  {
+    "name": "large-queue-page1",
+    "width": 390,
+    "height": 900,
+    "language": "en",
+    "overflow": false,
+    "provenance": "real API + synthetic persisted SQL"
+  },
+  {
+    "name": "large-queue-page2",
+    "width": 390,
+    "height": 900,
+    "language": "en",
+    "overflow": false,
+    "provenance": "real API + synthetic persisted SQL"
+  },
+  {
+    "name": "large-queue-page1",
+    "width": 390,
+    "height": 900,
+    "language": "ur",
+    "overflow": false,
+    "provenance": "real API + synthetic persisted SQL"
+  },
+  {
+    "name": "large-queue-page2",
+    "width": 390,
+    "height": 900,
+    "language": "ur",
+    "overflow": false,
+    "provenance": "real API + synthetic persisted SQL"
+  },
+  {
+    "name": "loading",
+    "width": 1366,
+    "height": 900,
+    "language": "en",
+    "overflow": false,
+    "provenance": "delayed real API request; no positive response replaced"
+  },
+  {
+    "name": "network-error",
+    "width": 1366,
+    "height": 900,
+    "language": "en",
+    "overflow": false,
+    "provenance": "labelled network-abort fault seam; no positive response replaced"
+  },
+  {
+    "name": "loading",
+    "width": 1366,
+    "height": 900,
+    "language": "ur",
+    "overflow": false,
+    "provenance": "delayed real API request; no positive response replaced"
+  },
+  {
+    "name": "network-error",
+    "width": 1366,
+    "height": 900,
+    "language": "ur",
+    "overflow": false,
+    "provenance": "labelled network-abort fault seam; no positive response replaced"
+  },
+  {
+    "name": "loading",
+    "width": 390,
+    "height": 900,
+    "language": "en",
+    "overflow": false,
+    "provenance": "delayed real API request; no positive response replaced"
+  },
+  {
+    "name": "network-error",
+    "width": 390,
+    "height": 900,
+    "language": "en",
+    "overflow": false,
+    "provenance": "labelled network-abort fault seam; no positive response replaced"
+  },
+  {
+    "name": "loading",
+    "width": 390,
+    "height": 900,
+    "language": "ur",
+    "overflow": false,
+    "provenance": "delayed real API request; no positive response replaced"
+  },
+  {
+    "name": "network-error",
+    "width": 390,
+    "height": 900,
+    "language": "ur",
+    "overflow": false,
+    "provenance": "labelled network-abort fault seam; no positive response replaced"
+  }
+]
