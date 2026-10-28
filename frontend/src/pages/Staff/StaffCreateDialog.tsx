@@ -1,4 +1,4 @@
-import { useRef } from 'react';
+import { useEffect, useRef } from 'react';
 import './workforce-v5.css';
 import useAuth from "@/hooks/useAuth";
 import { useLanguage } from "@/i18n/context";
@@ -26,26 +26,26 @@ interface CreateStaffForm {
   shiftEnd: string;
 }
 
-export default function StaffCreateDialog({
-  open,
-  onOpenChange,
-  locations = [],
-  location,
-  onSaved,
-  inline = false,
-}: {
-  open: boolean;
-  onOpenChange: (open: boolean) => void;
-  locations?: LocationOption[];
-  location?: LocationOption;
-  onSaved?: () => void;
-  inline?: boolean;
-}) {
+type StaffCreateProps = {
+  open:boolean;
+  onOpenChange:(open:boolean)=>void;
+  locations?:LocationOption[];
+  location?:LocationOption;
+  onSaved?:()=>void;
+  inline?:boolean;
+};
+export default function StaffCreateDialog(props:StaffCreateProps){
+  const {user}=useAuth();
+  return <ScopedStaffCreateDialog key={`${user?.companyId}:${user?.role}:${user?.id}:${props.location?.id??'directory'}`} {...props}/>;
+}
+function ScopedStaffCreateDialog({open,onOpenChange,locations=[],location,onSaved,inline=false}:StaffCreateProps){
   const { t } = useLanguage();
   const { user } = useAuth();
   const managerHire = user?.role === "MANAGER";
   const createStaff = useCreateStaff();
   const inFlight = useRef(false);
+  const mounted=useRef(true);
+  useEffect(()=>{mounted.current=true;return()=>{mounted.current=false;};},[]);
   const {
     register,
     handleSubmit,
@@ -94,6 +94,7 @@ export default function StaffCreateDialog({
       {
         onSettled: () => { inFlight.current = false; },
         onSuccess: () => {
+          if(!mounted.current)return;
           reset();
           onOpenChange(false);
           onSaved?.();
