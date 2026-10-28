@@ -1,0 +1,82 @@
+[
+  {
+    "role": "owner",
+    "width": 1366,
+    "lang": "en",
+    "route": "/today-status",
+    "provenance": "synthetic persisted SQL, actual matching API/React",
+    "overflow": false,
+    "errors": [],
+    "menu": "desktop current-route sidebar passed"
+  },
+  {
+    "role": "owner",
+    "width": 1366,
+    "lang": "ur",
+    "route": "/today-status",
+    "provenance": "synthetic persisted SQL, actual matching API/React",
+    "overflow": false,
+    "errors": [],
+    "menu": "desktop current-route sidebar passed"
+  },
+  {
+    "role": "owner",
+    "width": 390,
+    "lang": "en",
+    "route": "/today-status",
+    "provenance": "synthetic persisted SQL, actual matching API/React",
+    "overflow": false,
+    "errors": [],
+    "menu": "geometry, role links, Escape focus return and Team navigation passed"
+  },
+  {
+    "role": "owner",
+    "width": 390,
+    "lang": "ur",
+    "route": "/today-status",
+    "provenance": "synthetic persisted SQL, actual matching API/React",
+    "overflow": false,
+    "errors": [],
+    "menu": "geometry, role links, Escape focus return and Team navigation passed"
+  },
+  {
+    "role": "manager",
+    "width": 1366,
+    "lang": "en",
+    "route": "/today-status",
+    "provenance": "synthetic persisted SQL, actual matching API/React",
+    "overflow": false,
+    "errors": [],
+    "menu": "desktop current-route sidebar passed"
+  },
+  {
+    "role": "manager",
+    "width": 1366,
+    "lang": "ur",
+    "route": "/today-status",
+    "provenance": "synthetic persisted SQL, actual matching API/React",
+    "overflow": false,
+    "errors": [],
+    "menu": "desktop current-route sidebar passed"
+  },
+  {
+    "role": "manager",
+    "width": 390,
+    "lang": "en",
+    "route": "/today-status",
+    "provenance": "synthetic persisted SQL, actual matching API/React",
+    "overflow": false,
+    "errors": [],
+    "menu": "geometry, role links, Escape focus return and Team navigation passed"
+  },
+  {
+    "role": "manager",
+    "width": 390,
+    "lang": "ur",
+    "route": "/today-status",
+    "provenance": "synthetic persisted SQL, actual matching API/React",
+    "overflow": false,
+    "errors": [],
+    "menu": "geometry, role links, Escape focus return and Team navigation passed"
+  }
+]
