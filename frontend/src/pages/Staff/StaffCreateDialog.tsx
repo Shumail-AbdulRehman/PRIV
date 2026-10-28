@@ -1,3 +1,5 @@
+import { useRef } from 'react';
+import './workforce-v5.css';
 import useAuth from "@/hooks/useAuth";
 import { useLanguage } from "@/i18n/context";
 import { useForm } from "react-hook-form";
@@ -7,6 +9,7 @@ import {
   DialogContent,
   DialogHeader,
   DialogTitle,
+  DialogDescription,
 } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -29,17 +32,20 @@ export default function StaffCreateDialog({
   locations = [],
   location,
   onSaved,
+  inline = false,
 }: {
   open: boolean;
   onOpenChange: (open: boolean) => void;
   locations?: LocationOption[];
   location?: LocationOption;
   onSaved?: () => void;
+  inline?: boolean;
 }) {
   const { t } = useLanguage();
   const { user } = useAuth();
   const managerHire = user?.role === "MANAGER";
   const createStaff = useCreateStaff();
+  const inFlight = useRef(false);
   const {
     register,
     handleSubmit,
@@ -54,30 +60,20 @@ export default function StaffCreateDialog({
       : locations.find((l) => l.id === id)?.timezone) ?? "UTC";
   const inputCls =
     "flex min-h-12! w-full rounded-lg border border-border/80 bg-background/90 px-4 py-2 text-sm outline-none focus:border-primary/60 focus:ring-4 focus:ring-primary/10";
-  const extractError = (error: unknown) => {
-    const e = error as {
-      response?: { data?: { message?: string; errors?: { message: string }[] } };
-      message?: string;
-    };
-    return (
-      e.response?.data?.message ??
-      e.response?.data?.errors?.map((issue) => issue.message).join(", ") ??
-      e.message ??
-      "Could not add staff. Try again."
-    );
-  };
   const onCreateSubmit = (formData: CreateStaffForm) => {
+    if (inFlight.current) return;
     const selected = location?.id ?? Number(formData.locationId);
     if (managerHire && !locations.some(site => site.id === selected)) return;
     const tz = tzForLocation(
       location?.id ??
         (formData.locationId ? Number(formData.locationId) : null),
     );
+    inFlight.current = true;
     createStaff.mutate(
       {
-        name: formData.name,
-        email: formData.email,
-        phone: formData.phone,
+        name: formData.name.trim(),
+        email: formData.email.trim(),
+        phone: formData.phone.trim(),
         password: formData.password,
         locationId:
           location?.id ??
@@ -96,6 +92,7 @@ export default function StaffCreateDialog({
           : undefined,
       },
       {
+        onSettled: () => { inFlight.current = false; },
         onSuccess: () => {
           reset();
           onOpenChange(false);
@@ -105,15 +102,10 @@ export default function StaffCreateDialog({
     );
   };
 
-  return (
-    <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="border-border/70 bg-card text-card-foreground sm:max-w-xl max-h-[90dvh] overflow-y-auto">
-        <DialogHeader>
-          <DialogTitle>{t("Add team member")}</DialogTitle>
-        </DialogHeader>
+  const body = (
         <form
           onSubmit={handleSubmit(onCreateSubmit)}
-          className="space-y-4 pt-2"
+          className="workforce-form"
         >
           <div>
             <label
@@ -125,10 +117,10 @@ export default function StaffCreateDialog({
             <Input
               id="staff-create-name"
               {...register("name", { required: "Name is required" })}
-              placeholder="Ali Raza"
+              autoComplete="name"
             />
             {errors.name && (
-              <p className="mt-1 text-xs text-red-500">{errors.name.message}</p>
+              <p className="mt-1 text-xs workforce-danger">{t(String(errors.name.message))}</p>
             )}
           </div>
           <div>
@@ -142,11 +134,11 @@ export default function StaffCreateDialog({
               type="email"
               id="staff-create-email"
               {...register("email", { required: "Email is required" })}
-              placeholder="ali@company.com"
+              dir="ltr" autoComplete="email"
             />
             {errors.email && (
-              <p className="mt-1 text-xs text-red-500">
-                {errors.email.message}
+              <p className="mt-1 text-xs workforce-danger">
+                {t(String(errors.email.message))}
               </p>
             )}
           </div>
@@ -171,11 +163,11 @@ export default function StaffCreateDialog({
                   message: "Phone number must be at most 20 characters",
                 },
               })}
-              placeholder="+92 300 1234567"
+              dir="ltr" autoComplete="tel"
             />
             {errors.phone && (
-              <p className="mt-1 text-xs text-red-500">
-                {errors.phone.message}
+              <p className="mt-1 text-xs workforce-danger">
+                {t(String(errors.phone.message))}
               </p>
             )}
           </div>
@@ -190,13 +182,13 @@ export default function StaffCreateDialog({
               type="password"
               id="staff-create-password"
               {...register("password", {
-                required: "Password is required",
+                required: "Password is required", minLength: {value: 8, message:"Use at least 8 characters"},
               })}
-              placeholder="••••••••"
+              dir="ltr" autoComplete="new-password"
             />
             {errors.password && (
-              <p className="mt-1 text-xs text-red-500">
-                {errors.password.message}
+              <p className="mt-1 text-xs workforce-danger">
+                {t(String(errors.password.message))}
               </p>
             )}
           </div>
@@ -231,15 +223,15 @@ export default function StaffCreateDialog({
                 {t("Shift Start")}
               </label>
               <Input
-                type="time"
+                type="time" dir="ltr"
                 id="staff-create-shiftStart"
                 {...register("shiftStart", {
                   required: "Shift start is required",
                 })}
               />
               {errors.shiftStart && (
-                <p className="mt-1 text-xs text-red-500">
-                  {errors.shiftStart.message}
+                <p className="mt-1 text-xs workforce-danger">
+                  {t(String(errors.shiftStart.message))}
                 </p>
               )}
             </div>
@@ -251,30 +243,33 @@ export default function StaffCreateDialog({
                 {t("Shift End")}
               </label>
               <Input
-                type="time"
+                type="time" dir="ltr"
                 id="staff-create-shiftEnd"
                 {...register("shiftEnd", {
                   required: "Shift end is required",
                 })}
               />
               {errors.shiftEnd && (
-                <p className="mt-1 text-xs text-red-500">
-                  {errors.shiftEnd.message}
+                <p className="mt-1 text-xs workforce-danger">
+                  {t(String(errors.shiftEnd.message))}
                 </p>
               )}
             </div>
           </div>
           {createStaff.isError ? (
             <p role="alert" className="operations-notice">
-              {extractError(createStaff.error)}
+              {t((createStaff.error as {response?:{status?:number}})?.response?.status === 409 ? 'The email is already in use or the available capacity changed. Your draft is kept.' : 'Could not add staff. Check the details and try again. Your draft is kept.')}
             </p>
           ) : null}
-          <div className="flex gap-3 pt-2">
+          <p className="workforce-help">{t('Times use the assigned site’s timezone. Share initial credentials directly with the staff member.')}</p>
+          <div className="workforce-form-actions">
             <Button
               type="button"
               variant="outline"
               className="flex-1 rounded-lg"
+              disabled={createStaff.isPending}
               onClick={() => {
+                if(inFlight.current)return;
                 reset();
                 onOpenChange(false);
               }}
@@ -290,7 +285,8 @@ export default function StaffCreateDialog({
             </Button>
           </div>
         </form>
-      </DialogContent>
-    </Dialog>
   );
+  if (!open) return null;
+  if (inline) return <section className="workforce-panel workforce-inline-form" aria-labelledby="staff-create-title"><h2 id="staff-create-title">{t('Add team member')}</h2><p className="workforce-help">{t('Set up a real staff account and its working shift.')}</p>{body}</section>;
+  return <Dialog open={open} onOpenChange={value=>{if(!createStaff.isPending&&!inFlight.current)onOpenChange(value);}}><DialogContent className="workforce-dialog bg-card sm:max-w-xl" showCloseButton={!createStaff.isPending} onEscapeKeyDown={e=>{if(createStaff.isPending)e.preventDefault();}} onInteractOutside={e=>{if(createStaff.isPending)e.preventDefault();}}><DialogHeader><DialogTitle>{t('Add team member')}</DialogTitle><DialogDescription>{t('Set up a real staff account and its working shift.')}</DialogDescription></DialogHeader>{body}</DialogContent></Dialog>;
 }
