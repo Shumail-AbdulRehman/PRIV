@@ -116,3 +116,5 @@ Source checkpoints f589992→0b94928→4cf5e76→10fb4a4. Spec36 stays In progre
 no provider image bytes, real privacy/photo qualification or native device acceptance
 is claimed. A persisted HOLD synthetic record is not a successful provider fixture.
 Shared tracker/handoff and Spec40 ownership are integrated only by the coordinator.
+
+Recorded-state continuation published as OPEN/DRAFT [PR96](https://github.com/Shumail-AbdulRehman/PRIV/pull/96), base `implementation/v5-workforce-final`/8ff718e; issue84 remains open. No earlier draft branch was rewritten or merged. The persistent review worktree contains only the intentional untracked approved-design symlink beyond the published source/evidence.
