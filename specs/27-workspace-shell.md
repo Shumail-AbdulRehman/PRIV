@@ -1,10 +1,10 @@
 # Spec 27 — Approved v5 shared shell and route composition
 
-**Status:** In progress
+**Status:** Done
 **Depends on:** Spec 06
 **Model:** Heavy — `claude-opus-5-5` · `gpt-6-astra` · `gemini-3.1-pro-preview`
 **Issue:** #35
-**Owns:** `frontend/src/workspace-refresh.css`, `frontend/src/i18n/launchTranslations.ts`, `specs/inventory/27-workspace-shell.md`, `frontend/src/components/layout/Sidebar.tsx`, `frontend/src/components/common/OperationStatus.tsx`, `frontend/src/components/common/ScopeFilters.tsx`
+**Owns:** `frontend/src/components/ui/dialog.tsx`, `frontend/src/routes/launchPages.test.tsx`, `docs/implementation/v5-shell-evidence/`, `frontend/src/workspace-refresh.css`, `frontend/src/i18n/launchTranslations.ts`, `specs/inventory/27-workspace-shell.md`, `frontend/src/components/layout/Sidebar.tsx`, `frontend/src/components/common/OperationStatus.tsx`, `frontend/src/components/common/ScopeFilters.tsx`
 **Reuses:** `frontend/src/components/common/LanguageChoice.tsx`, `frontend/src/components/common/PageHeader.tsx`, `frontend/src/i18n/LanguageProvider.tsx`, `DESIGN-SYSTEM.md#component-conventions`, `design/v5/overview.html`
 
 ## Goal
@@ -37,7 +37,7 @@ Translate approved shell/spacing/fonts/navigation into existing reusable compone
 
 ## Done when
 
-- [ ] Approved V5 layout and interactions are implemented and paired actual-app/reference screenshots are inspected at desktop/phone EN/UR; state/permission deviations are recorded. Native acceptance requires a native runtime. [static]
+- [x] Shared web shell V5 layout/interactions and paired actual-app/reference screenshots are inspected at desktop/phone EN/UR; role/state deviations are recorded. Feature-page acceptance belongs to its owning spec; native acceptance remains Spec37 and requires a native runtime. [static]
 - [x] `npm run test:components --prefix frontend -- src/routes/launchPages.test.tsx` passes: EN/UR/RTL role-correct navigation, keyboard focus, mobile menu semantics and forbidden routes covered by component tests; inspect the real rendered390px layout separately. [unit]
 - [x] `npm test --prefix frontend` passes the whole affected unit suite; record count. [unit]
 - [x] Only scoped paths changed; relevant denial/empty/error/config-unavailable states inspected. [static]
@@ -60,3 +60,7 @@ Translate approved shell/spacing/fonts/navigation into existing reusable compone
 - **2026-10-22 — Issue82 correction:** Shared V5 tokens, dimensions, actual company identity and grouped owner/manager navigation corrected. Mobile menu positioning/centered-dialog animation drift fixed; real rendered bounds checked, not inferred from accessibility tests. See docs/implementation/V5_IMPLEMENTATION.md for commands, counts, screenshots and intentional deviations. This log does not close the reopened full V5 acceptance criterion.
 
 - **2026-10-22 — Serial issue86 handoff:** public staff handoff composition in launchPages.tsx transfers to30; WorkspaceAudience/error/platform boundaries remain unchanged. Existing27 shell and38 approved distribution configuration are reused.
+
+- **2026-10-28 — Shared-shell acceptance correction:** Reconstructed lost uncommitted26October source into a persistent isolated worktree, committed7965d06 before current verification. Reused actual language context to translate shared top/footer Close, logical end positioning; source-backed44desktop/48phone language/shared action/handoff targets, existing72px minimum header retained. Scoped test ownership30→27 and dialog ownership authorized serially; no backend/schema/provider/design changes. Current26targeted,64Node+250React whole suite, lint0, TypeScript/Vite build pass; matching backend/browser TypeScript compiled by guarded runner. Three actual React/API/migrated synthetic SQL cases pass50.0s with40fresh paired/state PNGs and8zero-overflow/JSerror base observations at1366/390EN/UR. Actual manager403/own-security, STAFFconfigured-off handoff, menu role/geometry/Escape/focus/navigation, safe404 and labelled lazy-chunk abort/reload verified. First dialog target assertion measured during zoom;2ab7c96 waits settled final bounds without weakening targets. Native/provider/featurepage acceptance remains outside shared web shell. Evidence/provenance/deviations: docs/implementation/v5-shell-evidence/README.md. Coordinator owns final Done/progress gate after independent fresh capture review.
+
+- **2026-10-28 — Independent final acceptance:** AgentC inspected all32current actual images plus8reference images, matching40PNGdimensions/eightbaseobservations and3passed50srun. Shared shell geometry/type/blue-white/currentcompany/ENUR/rolelinks/focus/target/errorstates pass; no significant open shared-boundary finding.27Done applies to the scoped web shell only, preserving feature/native/provider gates and full-product incompleteness.

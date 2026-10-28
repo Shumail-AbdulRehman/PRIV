@@ -1976,9 +1976,18 @@ th[aria-sort="descending"] .table-sort svg {
 .workspace-company-crumb { display:flex; align-items:center; gap:12px; }
 .workspace-breadcrumb > a { color:var(--ink); font-weight:600; }
 .workspace-content { padding-block-start:28px; }
-.language-choice button { min-height:38px; }
+.workspace .language-choice button { min-height:44px; }
+.workspace-topbar { padding-block:8px; }
 .workspace-dialog [data-slot="dialog-close"] { min-height:44px; min-width:44px; }
-@media(max-width:650px) { .workspace-company-crumb { display:none; } .workspace-content { padding-block-start:24px; } }
+@media(max-width:650px) {
+  .workspace-company-crumb { display:none; }
+  .workspace-content { padding-block-start:24px; }
+  .workspace .language-choice button,
+  .workspace [data-slot="button"],
+  .workspace-dialog [data-slot="button"] { min-height:48px; }
+  .workspace-dialog [data-slot="dialog-close"] { min-height:48px; min-width:48px; }
+  .workspace.v5-auth-page .v5-handoff-signout { min-height:48px; }
+}
 /* Edge navigation must not inherit the centered dialog's position/zoom animation. */
 .workspace-mobile-sidebar[data-slot="dialog-content"] {
   inset-block:0;
