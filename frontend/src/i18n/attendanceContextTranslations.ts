@@ -1,4 +1,6 @@
 export const attendanceContextUrdu: Record<string, string> = {
+  "Check-in": "آمد",
+  "Check-out": "روانگی",
   'Attendance context':'حاضری کا سیاق',
   'Notes add context. Original attendance, photos and paid hours are not changed.':'نوٹس سیاق فراہم کرتے ہیں۔ اصل حاضری، تصاویر اور اجرت کے اوقات تبدیل نہیں ہوتے۔',
   'Original captured facts':'اصل محفوظ حقائق',
