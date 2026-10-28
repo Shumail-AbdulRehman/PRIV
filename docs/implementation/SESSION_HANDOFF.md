@@ -1,26 +1,45 @@
-# Current continuation checkpoint — 2026-10-29
+# Verified continuation checkpoint — 2026-10-29
 
-**Spec28 meets its applicable web acceptance. Full V5 remains incomplete;10specifications remain.** Latest user says continue; historical STOPs below do not cancel that authorization. Canonical Spec28 source is `implementation/v5-setup-locations` in `/home/shumail/.local/share/hygene-ops/v5-continuation-20261028/setup`, descended from verified8ff718e. Root user work is preserved; final combined integration/publication is being recorded after this checkpoint.
+**Spec28 meets applicable web acceptance. Full V5 remains incomplete:10specifications remain.** Latest user authorized continuation; this is a clean verified handoff, not a cancellation. Next eligible work is32Billing.
 
-## Delivered and verified
+## Canonical source and review state
 
-- Real V5 Setup, owner/manager performance, Locations list/detail/six tabs, location editor and area/inventory/schedule dialogs. Actual backend facts, EN/UR/RTL, phone layouts and loading/empty/error/unknown/readonly states are implemented. Supplied user performance work was copied byte-for-byte atb69a532 before refinement; original root inputs remain preserved.
-- Source e212e40. Whole frontend64Node+318React/27files, lint0, TS/production build pass. Backend21focused and1441whole tests pass with7existing skips; isolated actual performanceSQL proof passes.16actual integrated browser cases pass(2.2min);3overlapping recaptures correct auxiliary viewport dimensions.165PNG artifacts include references/fullpages; manifests record exact dimensions/hashes. See V5_SETUP.md / V5_LOCATIONS.md / V5_SETUP_FORMS.md.
-- No prototype/new design version, schema/business-policy rewrite, production operation, provider activation, force push or merge.
+Root publication branch: `implementation/v5-continuation-final` at `/home/shumail/bkacup-16-oct-bkpriv/bk-Priv/PRIV`. Combined source is saved on `implementation/v5-continuation-checkpoint` in `/home/shumail/.local/share/hygene-ops/v5-continuation-20261028/integrated`. Inspect Git for final documentation HEAD. The committed source is integrated from independent scopes by explicit cherry-picks; no PR was merged.
 
-## Independent partial work and review
+- Spec28: `implementation/v5-setup-locations`, OPEN/DRAFT [PR97](https://github.com/Shumail-AbdulRehman/PRIV/pull/97), based `implementation/v5-workforce-final`. Issue55 and historicalPR56 retained. Setup/Locations/performance meet approved web scope. Source e212e40; later commits record accepted evidence and publication.
+- Operator34: `implementation/v5-operator-boundary`,7f0d059, OPEN/DRAFT [PR95](https://github.com/Shumail-AbdulRehman/PRIV/pull/95), same independent base. V5 login/security/callback safe boundaries implemented and verified;34stays In progress without qualified positive IdP/MFA/security.
+- Review36: `implementation/v5-review-states`,de9d602, OPEN/DRAFT [PR96](https://github.com/Shumail-AbdulRehman/PRIV/pull/96), same independent base. Setup/closed/held/paging/loading/error states completed at safe scope;36stays In progress for actual retained-media/provider/native qualification.
+- Prior draftPR92/93/94 and earlier Settings/Help/auth/review stacks remain open/unmerged. No reset, force push, deployment, production mutation, provider activation or destructive production migration.
 
-Operator34: `implementation/v5-operator-boundary`, final7f0d059, OPEN/DRAFT PR95 https://github.com/Shumail-AbdulRehman/PRIV/pull/95, base implementation/v5-workforce-final. Required separate identity remains disabled without qualified IdP;17focused/64Node+276React/3browser cases, lint/TS/build and40PNG artifacts.34stays In progress.
+## Delivered
 
-Review36: `implementation/v5-review-states`, finalde9d602, OPEN/DRAFT PR96 https://github.com/Shumail-AbdulRehman/PRIV/pull/96, same independent base. Truthful setup/no-task state, saved closure/actor/time/next-pending, stale-count error and Urdu labels.36focused/64Node+282React/5browser cases, lint/TS/build and40PNG artifacts.36stays In progress for retained private-image/provider/native qualification. These counts are branch-specific and overlap earlier tests.
+Actual V5 Setup checklist/account rail; owner divided metrics/trend/attention/location register; manager historical submitted-work chart/actions; Locations register/detail/six tabs; location editor; persisted area/inventory/schedule Dialog workflows. All use actual scoped APIs/data with responsive EN/UR/RTL. No HTML prototype or DesignV6.
 
-Agents hit usage limits. Persistent source was recovered and coordinator finished Spec28 corrections; no historical/lost-source test was treated as fresh acceptance. Locations source e85ca78/283edbd/b4254cd and forms7455545 were explicitly integrated into28 with exclusive file ownership.
+Corrections include backend-supported overdue links, Attendance site/date deep links, site-local history across midnight/DST, honest zero-vs-no-data/error states, RTL ratios, editor translations, guarded pending/unknown creation, mandatory inventory/version rules and honest partial schedule/assignment saves. Area+schedule creation reaches4/4 after reload in all four language/viewport combinations. Backend policy, history, quota and existing media/assignment/QR seams remain authoritative.
 
-## Safety and next work
+Main changed source: frontend/src/pages/{Setup,Dashboard,Location,Area,Task/components}, frontend/src/pages/Attendance/AttendancePage.tsx and its test, managerTranslations.ts; supplied performance service/tests and existing manager controller/route integration. Independent34/36paths remain in Platform/Exceptions and their local styles/copy/tests. Exact ownership and files are in each specification and per-unit inventory; screenshot filenames/hashes are in evidence manifests.
 
-Test infrastructure is owned localPG17 loopback56442 and guarded UUID disposable child databases with18existing migrations, synthetic data and matched private frontend/API assets. Existing8080belongs to another checkout and stays untouched. No root .env copied to worktrees. Final cleanup/integration status follows in the final checkpoint update.
+## Verification actually completed
 
-Tracker:32Done(includingdecision00),9Inprogress,1Notstarted. **Next eligible:32Billing**, consuming completed15/27/28.30also now has28, but broader owner-mail/delivered-link acceptance remains external. Do not bypass provider/media/IdP/native/legal/production release gates;41remains ineligible. Preserve original unrelated CI/gitignore/DESIGN/backend package changes and local handoff append.
+- Spec28:64Node+318React/27files pass; lint0; frontend TS/production build13.28s.21focused backend tests and1441whole tests pass, with7existing database-dependent skips explicitly retained. Actual isolated performanceSQL proof passes weighted/no-data/period/DST/overnight/site-role-tenant boundaries.
+- Spec28 actual React/privateAPI/disposableSQL browser:16/16pass in2.2min.3overlapping recaptures correct explicit desktop dimensions; these are repeated cases.165PNG artifacts(34dashboard,24setup,69Locations,38forms), including references and full-page/state supplements. Paired1366×900/390×900 ENUR and significant form/state interactions inspected; animation frames settled before final capture. Contract-driven differences documented in V5_SETUP.md, V5_LOCATIONS.md, V5_SETUP_FORMS.md. No source acceptance inferred from image count alone.
+- Combined28+34+36: **64Node+328React/27files**, no failures. Whole lint0; guarded backend TS, strict E2E TS, frontend TS and private production build pass. **24/24actual browser cases pass** across lifecycle/workspace/operator/review-state. Initial combined run passed23/24; one historical operator heading selector expected the old title. Only that selector changed to approved V5 title, then the entire24-case gate passed fresh. No policy assertion weakened.
+- Operator branch17focused/3browser and40PNG artifacts; Review branch36focused/5browser and40PNG artifacts. These overlap combined runs; do not sum as new unique product flows. Combined recapture manifests updated with exact hashes/dimensions. Main/additional Spec28 detector scopes each returned[].
+- Validator:42specifications,0errors,12existing documented warnings. Full Spec40/provider/device flow table remains incomplete;41ineligible.
+
+## Preservation and runtime cleanup
+
+The original nine tracked root modifications were byte-identical before root publication. The supplied performance implementation was adopted unchanged atb69a532 before V5 refinement. A narrow safety stash preserves the original four adopted tracked source files, five original untracked performance files and original local handoff append: `fdc9bca84ed91ff798d57f0f578dd28f6d61ab73`. Snapshot/hash/patch files are in the persistent worktree parent (`preserved-root.*`, `adopted-user-files.json`, `root-user-handoff.patch`, `adopted-original-stash.txt`). Do not pop the old source overlay over refined V5 code; it is recovery history, and the performance delta is already incorporated. The original handoff compatibility append is reapplied separately as an unstaged local change.
+
+Unrelated CI/gitignore/DESIGN/backend package modifications remain unstaged and byte-identical. Other untracked design/skills/performance documentation/investor inputs remain untouched. No blanket staging. Existing8080serves another checkout and was left untouched.
+
+Tests used owned localPG17 loopback56442,18existing migrations in guarded UUID disposable databases, synthetic fixtures, sanitized environments and matched private builds. No production/restored customer DB or root .env was used. Final cleanup confirms **zero generated child databases**; the separately created synthetic performance bootstrap was removed and only the owned test cluster was stopped. Private runner child processes/runtime directories were cleaned automatically. No native/device/provider qualification is inferred.
+
+Agents hit usage limits; coordinator recovered persistent committed/dirty source and finished remaining corrections/tests. No lost-source or interrupted-run result was reused as fresh acceptance.
+
+## Remaining and next eligible work
+
+32Done(includingdecision00),9Inprogress,1Notstarted. Remaining:30,32,33,34,35,36,37,38,40,41. **Next32Billing consumes completed15/27/28** and is genuinely eligible. Continue V5 billing/restricted-account web composition with existing lifecycle/catalog/portal contracts; missing approved catalog/terms/provider facts must stay unavailable.30also has28but broader delivered-owner-mail/link proof is external. Positive operator identity/MFA, retained/photo/privacy qualification, Paddle/commercial/legal/support/distribution facts, physical Android and production infrastructure/backup certification remain open. Do not repeat accepted audits/discovery/design or bypass guards for screenshots.
 
 ---
 

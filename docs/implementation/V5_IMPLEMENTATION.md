@@ -53,10 +53,10 @@ reading its old log. **Pending** includes screen/state checks still to perform.
 | handoff | STAFF role web handoff | Existing + approved distribution guard reused | V5 public handoff implemented | Real staff login/logout + role-denial checks | Paired EN/UR1366/390 inspected; no native qualification claim |
 | help | `/help` | Existing + real FAQ/navigation | V5 split panels implemented with public access shell | Current246React + real public support/navigation and labelled network retry | Paired EN/UR1366/390 + FAQ/loading/error independently inspected; unsupported prototype ticket form omitted; configured-positive channel unqualified; V5_HELP.md |
 | information | `/service-information` | Existing configured facts | Distinct V5 centered public card implemented | Current unit + real configured-off public API | Paired EN/UR1366/390 independently inspected; longer truthful content; positive legal/distribution/provider gates open; V5_HELP.md |
-| operator-login | `/platform/login`, callback | Safe-disabled without qualified IdP | Pending | Historical denial checks | Live positive sign-in blocked by missing qualified provider |
+| operator-login | `/platform/login`, callback | Safe-disabled without qualified IdP | V5 public boundary implemented | Current tenant-cookie denial and no-bootstrap proof | Paired1366/390ENUR login/callback inspected; positive IdP blocked; OPERATOR_UI.md, PR95 |
 | platform | `/platform/companies` | Existing guarded workspace | Pending | Historical components | Actual positive route blocked by provider; never bypass guard |
 | customer | `/platform/companies/:companyId` Account/Billing/Activity | Existing | Pending | Historical components | Provider blocked; reasoned suspension/conflict variants |
-| operator-security | `/platform/security` | Existing safe boundary | Pending | Historical | Provider blocked; no simulated MFA in application |
+| operator-security | `/platform/security` | Existing safe boundary retained | V5 public security boundary implemented | Actual local cleanup preserves tenant cookies; guarded APIs401 | Paired1366/390ENUR inspected; positive provider security unqualified; PR95 |
 | service | `/platform/service` | Existing | Pending | Historical components | Provider blocked; real redacted diagnostics |
 | audit | `/platform/audit` | Existing | Pending | Historical components | Provider blocked; real audit filters/paging |
 | leads | `/platform/inquiries` | Existing | Pending | Historical components | Provider blocked; inquiry details/handling/conflict |
@@ -228,3 +228,7 @@ Specs27,29and31nowmeettheirscopedwebacceptance. Currentevidenceandfulldeviations
 ## Spec28 acceptance — 2026-10-29
 
 Setup/Locations and owner/manager performance meet applicable web acceptance. Read V5_SETUP.md, V5_LOCATIONS.md and V5_SETUP_FORMS.md for exact source/provenance/checks/intentional deviations. This replaces the earlier pending entries for these pages only. Full V5, native/provider/production certification remains incomplete.
+
+Operator34and Review36safe-state extensions are integrated fromPR95/96. Review setup/no-task/no-closure authority, saved decision facts/next action, held metadata, largequeue paging, stale-error totals and Urdu review labels are verified; retained private bytes/provider/native qualification stays open. Read OPERATOR_UI.md and V5_REVIEWS.md; these partial continuations do not mark34/36Done.
+
+Final combined checkpoint29Oct:64Node+328React, lint0, strict TS/build and24real browser cases pass. Spec28targeted16case gate and165artifacts remain recorded separately.10specifications remain; next32. FullV5/provider/native/production acceptance remains incomplete.

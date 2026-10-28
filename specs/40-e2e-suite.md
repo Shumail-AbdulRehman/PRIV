@@ -153,3 +153,5 @@ These owned surfaces are consumed by the flow table above or the clean verificat
 - Real Setup area-form capture/persistence consumes `frontend/src/pages/Area/AreaTemplateForm.tsx` and `frontend/src/pages/Area/LocationAreasTab.tsx`, preserving their mutation/archival contracts.
 
 - Site-history boundary verification consumes `frontend/src/pages/Location/locationStatsFilter.ts` and its calendar-boundary behavior tests.
+
+- **2026-10-29 — Combined continuation:** the existing operator/review-state harnesses consume34public boundary and36setup/closed/held/paging/error states; source and evidence are integrated from independent draftPR95/96. No positive IdP/media/native qualification is inferred.

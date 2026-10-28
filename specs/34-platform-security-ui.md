@@ -4,7 +4,7 @@
 **Depends on:** Spec 19, Spec 27
 **Model:** Heavy — `claude-opus-5-5` · `gpt-6-astra` · `gemini-3.1-pro-preview`
 **Issue:** #59
-**Owns:** `frontend/src/pages/Platform/OperatorLogin.tsx`, `frontend/src/pages/Platform/OperatorLogin.test.tsx`, `frontend/src/pages/Platform/operatorSession.ts`, `specs/inventory/34-platform-security-ui.md`, `frontend/src/pages/Platform/operator.css`, `frontend/src/pages/Platform/operatorTranslations.ts`, `docs/implementation/OPERATOR_UI.md`, `.impeccable/surfaces/frontend-src-pages-platform-operatorlogin-tsx.md`
+**Owns:** `frontend/src/pages/Platform/CompaniesPage.test.tsx`, `frontend/src/pages/Platform/ServicePage.test.tsx`, `frontend/src/pages/Platform/OperatorLogin.tsx`, `frontend/src/pages/Platform/OperatorLogin.test.tsx`, `frontend/src/pages/Platform/operatorSession.ts`, `specs/inventory/34-platform-security-ui.md`, `frontend/src/pages/Platform/operator.css`, `frontend/src/pages/Platform/operatorTranslations.ts`, `docs/implementation/OPERATOR_UI.md`, `.impeccable/surfaces/frontend-src-pages-platform-operatorlogin-tsx.md`
 **Reuses:** `frontend/src/components/common/AuthShell.tsx`, `DESIGN-SYSTEM.md#component-conventions`, `design/v5/operator-login.html`
 
 ## Goal

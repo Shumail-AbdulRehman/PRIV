@@ -308,5 +308,7 @@
       "sha256": "4950d5b47e35fd9fc8e312b3c36726dbe1f96bfada1b7a02449ce3438c3bffec",
       "kind": "reference"
     }
-  ]
+  ],
+  "combinedVerificationRevision": "19e2144",
+  "combinedVerification": "2026-10-29:24 actual browser cases pass in combined checkout; provider/media/native limits retained"
 }

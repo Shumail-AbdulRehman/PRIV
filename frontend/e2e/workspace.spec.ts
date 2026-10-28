@@ -95,7 +95,7 @@ test("tenant manager cannot become owner, operator or read foreign workforce", a
   ).toBe(401);
   await page.goto("/platform/companies");
   await expect(
-    page.getByRole("heading", { name: "Platform sign in" }),
+    page.getByRole("heading", { name: "Platform operator sign-in" }),
   ).toBeVisible();
 });
 test("colliding manager/staff numeric IDs do not grant staff-self or attendance access", async ({

@@ -16,7 +16,7 @@
         "width": 1366,
         "height": 900
       },
-      "sha256": "2b651c2a43972bf22ac5c8140f992c936945809df07c723d6a52cf0329796e1d",
+      "sha256": "96bbb11534033ead869cbda13f1494505d9a352cca64f0a34da6afa7a030748c",
       "source": "actual built React application",
       "fullPage": true
     },
@@ -28,7 +28,7 @@
         "width": 1366,
         "height": 900
       },
-      "sha256": "d37f18cb5d4cd4e4e52fd3deb358e6a9def8c467c3c8621dbcb803e0e51155b7",
+      "sha256": "ec4e7c30a8d25ff664206e7632d3daebeccc9e0dd811f4b2e7c7bcb3de060926",
       "source": "actual built React application",
       "fullPage": true
     },
@@ -40,7 +40,7 @@
         "width": 390,
         "height": 900
       },
-      "sha256": "e0f1ff0d747432dd635feb83e8d12d26379a2933746fa25a1b240e713d27f4cb",
+      "sha256": "7f919bd3c19c41ac29d0ce6be61f4ab9f4b8a556fd71c4b93204f05ddc9eee78",
       "source": "actual built React application",
       "fullPage": true
     },
@@ -52,7 +52,7 @@
         "width": 390,
         "height": 900
       },
-      "sha256": "4a5f5613edade927540548f2fee761cd9609205a0ae82ab0c7215dea96cabda7",
+      "sha256": "12108f3f2984fb65ab5dfd38533a231484dc7e20712a06491082b5775a12abb9",
       "source": "actual built React application",
       "fullPage": true
     },
@@ -64,7 +64,7 @@
         "width": 1366,
         "height": 900
       },
-      "sha256": "ed26ef87e00ca2602eec01ac34ec03e7e34af6dc867ba5803e2800f114c31ed5",
+      "sha256": "8163c0d9d9703a56f64882ce6807b61b5030d1032eee345e28a42bccb2ab1d5d",
       "source": "actual built React application",
       "fullPage": false
     },
@@ -76,7 +76,7 @@
         "width": 1366,
         "height": 900
       },
-      "sha256": "2d8d06f2244ae20adf4e6035ced6938c7f7c161384cbb88773d3ea19e97d0e6d",
+      "sha256": "d307e8ff06feaba9906ab8d8b3b98e59cdb2013c8e191b400f6b6bff34464f1f",
       "source": "actual built React application",
       "fullPage": false
     },
@@ -88,7 +88,7 @@
         "width": 390,
         "height": 900
       },
-      "sha256": "8c6358b26dbf9a5004ccaecbb08286e521208b5d20e95ff7ca3d828b527a8c0a",
+      "sha256": "877efe26a2e918c8dbc7e9b6dcf62ed5ea61b355d551f6e122ab3c158e7f7137",
       "source": "actual built React application",
       "fullPage": false
     },
@@ -100,7 +100,7 @@
         "width": 390,
         "height": 900
       },
-      "sha256": "88c889667cc4dff8b9edafc8a26962581701f6989d4e0eebfcece9924fa3db74",
+      "sha256": "8abc912c3da6872105fd615327d820443d5db68b70436e927b6c7ccb5f5eb1c5",
       "source": "actual built React application",
       "fullPage": false
     },
@@ -160,7 +160,7 @@
         "width": 1366,
         "height": 900
       },
-      "sha256": "b7b83852945d0586fc00129685980cd1a67412c22242c0825af503c7bb0952d6",
+      "sha256": "467ac0f83361be01ebadb31e73f9f024b57fdd69941c78b60565d8071b0e27a7",
       "source": "actual built React application",
       "fullPage": true
     },
@@ -172,7 +172,7 @@
         "width": 1366,
         "height": 900
       },
-      "sha256": "742d2768c1befcb322d75114513ad400ce724c4ea8e9a7d6a497c3aa7c1db371",
+      "sha256": "b1a17c7e83d550ec8352223c212d8844ce2fbd5eab508328102c5919b1d909dd",
       "source": "actual built React application",
       "fullPage": true
     },
@@ -184,7 +184,7 @@
         "width": 390,
         "height": 900
       },
-      "sha256": "370b773f10a852dbe1e47a1bdbfe88de8f3de6b215aea92d9550d7bcd6dcef96",
+      "sha256": "3434c9d10ae17d4cbee0b1cdad9199a4340f29fa1035d49230865aadb2786759",
       "source": "actual built React application",
       "fullPage": true
     },
@@ -196,7 +196,7 @@
         "width": 390,
         "height": 900
       },
-      "sha256": "dd5c116cb60214eae8bfc81c2d910f47c712595ea830ff26f18d1c34d83ca8dc",
+      "sha256": "4e637fa37a623295ea2c37d66862b837652c2e657220b1b643eca16b44c5090f",
       "source": "actual built React application",
       "fullPage": true
     },
@@ -208,7 +208,7 @@
         "width": 1366,
         "height": 900
       },
-      "sha256": "9dad2dfeb807169cb34f8d680525fd156b86712d386a3675c7aa64d92591626c",
+      "sha256": "99954b706c13d6136c92ad00dc3148b6a53122935a056b300513c6aad2b74acf",
       "source": "actual built React application",
       "fullPage": true
     },
@@ -220,7 +220,7 @@
         "width": 1366,
         "height": 900
       },
-      "sha256": "1d1330a5933fa1da0f7020c14a63f69807694c7e6393c118eb8757b6d201253c",
+      "sha256": "1a2491473932191ed8682b610c88e82162100a77ff49fdcc4bd39a762c65c626",
       "source": "actual built React application",
       "fullPage": true
     },
@@ -232,7 +232,7 @@
         "width": 390,
         "height": 900
       },
-      "sha256": "bf9ebf598a1ce0fd825a50ca9d74fe065d26f69913a31f9fa51a422c4fcbbb45",
+      "sha256": "397a88bea7c0f19aeb87ec5fba84afbdcc7f20b3ae109269e7cf0888ff31a46c",
       "source": "actual built React application",
       "fullPage": true
     },
@@ -244,7 +244,7 @@
         "width": 390,
         "height": 900
       },
-      "sha256": "84ad6e0d7de9c13964302a05e7b92314453ce8d3e4e23dd564ec406fbb3e9d75",
+      "sha256": "93b722d3a085b0f7c05acb7689105a5e13ea34f64c21c085f648d97f18573743",
       "source": "actual built React application",
       "fullPage": true
     },
@@ -256,7 +256,7 @@
         "width": 1366,
         "height": 900
       },
-      "sha256": "8fbe3d2290919e2f0a5625a02efcc5f6e94f8a225b64c24616331e7aedd9a58c",
+      "sha256": "da9a1bd76fa6ad0e0a23776a30804a705274ef97be1c8d48a0b5248fa3261add",
       "source": "actual built React application",
       "fullPage": true
     },
@@ -268,7 +268,7 @@
         "width": 1366,
         "height": 900
       },
-      "sha256": "b85e4b6fe0f448f97e29ea062c22af1c03061ef9390b00d8f66ff3635edf3ad7",
+      "sha256": "e4f11572049821a015cecd65e9250802e12984d42f0d5d7fc566acae38eda944",
       "source": "actual built React application",
       "fullPage": true
     },
@@ -280,7 +280,7 @@
         "width": 390,
         "height": 900
       },
-      "sha256": "923a53797ca9f4c26d5130fcd62e28821dc8683af9103e678c5b068e4d8f4a6e",
+      "sha256": "48cd4dd292c6125a5d7bcbb051946c4ac891ec6a8c0e06d39ed8bcc35f6c5d35",
       "source": "actual built React application",
       "fullPage": true
     },
@@ -292,7 +292,7 @@
         "width": 390,
         "height": 900
       },
-      "sha256": "5c60baf7f49842335b19f0bab9d8f32eda6375a0e1c054f5e9d4c63f15ab7347",
+      "sha256": "c20814003f088269fabdd1c13fe1f7b4f30f72356aeb7ef106c34c42d4d330e9",
       "source": "actual built React application",
       "fullPage": true
     },
@@ -400,7 +400,7 @@
         "width": 1366,
         "height": 900
       },
-      "sha256": "ed4d1f3f4caa514b4b356924a9d9c70cd705d812feed6f56797be1b9e9abf09f",
+      "sha256": "c67cae67708ccfa5fbbc63ff3f2ad3efb7551a6c5b80ad79c2d64300208d3ecb",
       "source": "actual built React application",
       "fullPage": true
     },
@@ -412,7 +412,7 @@
         "width": 1366,
         "height": 900
       },
-      "sha256": "ee9c4d7431007594794453d19aa5ec0682d276407ee2b305ac57be97f30cb113",
+      "sha256": "c2320fe69b024682876fb36be5312d04eaaafe2aabd110e0354e29b5f97c61b0",
       "source": "actual built React application",
       "fullPage": true
     },
@@ -448,7 +448,7 @@
         "width": 1366,
         "height": 900
       },
-      "sha256": "9db47429b322820852e778998cbf48a1d261d184e28026f74fd38ea716380ec5",
+      "sha256": "f38fad9682921b8d27940c2f688ed29b0820995a5953dbb6a12a924bafa9f7b1",
       "source": "approved V5 reference",
       "fullPage": true
     },
@@ -484,9 +484,11 @@
         "width": 390,
         "height": 900
       },
-      "sha256": "2752162f2ec43a2014f66bd0475a7be11baa2a0112fdeb7616404eec205f38a8",
+      "sha256": "7d95176d83469f4deaff5f9e0422612d9d8560cd0eda7a41e0d99ad0f22eef14",
       "source": "approved V5 reference",
       "fullPage": true
     }
-  ]
+  ],
+  "combinedVerificationRevision": "19e2144",
+  "combinedVerification": "2026-10-29:24 actual browser cases pass in combined checkout; provider/media/native limits retained"
 }

@@ -4,7 +4,7 @@
 **Depends on:** Spec 25, Spec 27
 **Model:** Standard — `claude-sonnet-5-5` · `gpt-6.1-sol` · `gemini-3.8-flash`
 **Issue:** #73
-**Owns:** `docs/implementation/PLATFORM_SERVICE_UI.md`, `.impeccable/surfaces/frontend-src-pages-platform-servicepage-tsx.md`, `frontend/src/pages/Platform/CompaniesPage.tsx`, `frontend/src/pages/Platform/platformRoutes.tsx`, `frontend/src/pages/Platform/service.css`, `frontend/src/i18n/platformServiceTranslations.ts`, `frontend/src/pages/Platform/ServicePage.tsx`, `frontend/src/pages/Platform/ServicePage.test.tsx`, `frontend/src/pages/Platform/serviceApi.ts`, `specs/inventory/35-platform-service-ui.md`
+**Owns:** `docs/implementation/PLATFORM_SERVICE_UI.md`, `.impeccable/surfaces/frontend-src-pages-platform-servicepage-tsx.md`, `frontend/src/pages/Platform/CompaniesPage.tsx`, `frontend/src/pages/Platform/platformRoutes.tsx`, `frontend/src/pages/Platform/service.css`, `frontend/src/i18n/platformServiceTranslations.ts`, `frontend/src/pages/Platform/ServicePage.tsx`, `frontend/src/pages/Platform/serviceApi.ts`, `specs/inventory/35-platform-service-ui.md`
 **Reuses:** `frontend/src/components/common/DataTable.tsx`, `frontend/src/components/common/OperationStatus.tsx`, `DESIGN-SYSTEM.md#component-conventions`, `design/v5/service.html`
 
 ## Goal
@@ -54,3 +54,5 @@ Expose real redacted diagnostics/audit/inquiry status with bounded filters and a
 - **2026-10-21** — Serialized ownership handed to38 before support/information route/nav/dictionary/checkout-availability integration; existing feature behavior preserved.
 
 - **2026-10-21 — Visual acceptance correction:** reopened for outstanding approved V5 acceptance. Historical functional checkmarks/logs are preserved; they do not certify visual fidelity. Current four-part status and evidence: docs/implementation/V5_IMPLEMENTATION.md. No prior visual requirement is newly verified by a build.
+
+- **2026-10-29 — Narrow test ownership:**34takes the existing protected-route heading assertion for the approved V5 operator title; no35runtime or API scope changes.

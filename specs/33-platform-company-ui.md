@@ -4,7 +4,7 @@
 **Depends on:** Spec 24, Spec 27
 **Model:** Standard — `claude-sonnet-5-5` · `gpt-6.1-sol` · `gemini-3.8-flash`
 **Issue:** #71
-**Owns:** `frontend/src/pages/Platform/companies.css`, `frontend/src/i18n/platformCompanyTranslations.ts`, `frontend/src/pages/Platform/CompaniesPage.test.tsx`, `frontend/src/pages/Platform/companyApi.ts`, `specs/inventory/33-platform-company-ui.md`
+**Owns:** `frontend/src/pages/Platform/companies.css`, `frontend/src/i18n/platformCompanyTranslations.ts`, `frontend/src/pages/Platform/companyApi.ts`, `specs/inventory/33-platform-company-ui.md`
 **Reuses:** `frontend/src/components/common/DataTable.tsx`, `frontend/src/components/ui/dialog.tsx`, `DESIGN-SYSTEM.md#component-conventions`, `design/v5/platform.html`
 
 ## Goal
@@ -55,3 +55,5 @@ Build bounded company list/detail Account/Billing/Activity with operator-only re
 2026-10-21:35 owns the company-page navigation seam for the service link; company behavior remains covered by33 tests.
 
 - **2026-10-21 — Visual acceptance correction:** reopened for outstanding approved V5 acceptance. Historical functional checkmarks/logs are preserved; they do not certify visual fidelity. Current four-part status and evidence: docs/implementation/V5_IMPLEMENTATION.md. No prior visual requirement is newly verified by a build.
+
+- **2026-10-29 — Narrow test ownership:**34takes the existing protected-route heading assertion for the approved V5 operator title; no33runtime or API scope changes.
