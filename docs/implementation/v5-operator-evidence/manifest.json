@@ -1,0 +1,312 @@
+{
+  "sourceCommit": "25440e14856127a2e7e25a963e26543525802a9b",
+  "captured": "2026-10-28",
+  "inspected": "2026-10-29",
+  "viewports": [
+    {
+      "width": 1366,
+      "height": 900
+    },
+    {
+      "width": 390,
+      "height": 900
+    }
+  ],
+  "languages": [
+    "en",
+    "ur"
+  ],
+  "actual": "Actual private production React build and matched guarded API; no replaced HTTP responses. Synthetic isolated SQL only for actual tenant-cookie denial proof. Operator screens perform zero API/tenant bootstrap requests.",
+  "qualification": "No positive IdP/OIDC/MFA/provider logout qualification; Spec34 remains In progress.",
+  "sources": {
+    "frontend/src/pages/Platform/OperatorLogin.tsx": "9ce45402bc1c02ecbbe6047bd21300f254b8248df73ac8de07a6144d4eeb3f49",
+    "frontend/src/pages/Platform/operator.css": "6d8e0ab4c8ce86ef8f9fa3ae797707893a15156e9663b125fbcadf8acc438409",
+    "frontend/src/pages/Platform/operatorTranslations.ts": "5911d74111fe531bc0439f58469c7e8cf2ed4c69fc8b28bdd8727a504e5c009f",
+    "frontend/src/pages/Platform/operatorSession.ts": "8b30daf0c95f87e5cf9dfc651b417d5fbd58566b05331bb720f4eb4414db2e4f",
+    "frontend/src/components/common/AuthShell.tsx": "c5f987ce3f0bd9aabee44f51044239bb58673c03c7b5ec02daa073d187d78c03",
+    "frontend/src/components/common/auth.css": "e10608b3a471d1063d151a925a3b5666bf3b14305053afd4afc7fe616099b777",
+    "frontend/e2e/operator-v5.spec.ts": "e30e0586efd8f8a2a3833f131363ef71f88d34e76f1428ed620268fb0cd99cce"
+  },
+  "images": [
+    {
+      "file": "app-callback-1366-en.png",
+      "width": 1366,
+      "height": 900,
+      "sha256": "b4f76151c7b42fda22ba4a168452718954c784c161320f86a2036f82673ef8f4",
+      "kind": "actual-built-React"
+    },
+    {
+      "file": "app-callback-1366-ur.png",
+      "width": 1366,
+      "height": 900,
+      "sha256": "253b9509ce959339a995c44e63e5b20b98ad2e3da6ccb1943b8b5af78f2263f5",
+      "kind": "actual-built-React"
+    },
+    {
+      "file": "app-callback-390-en.png",
+      "width": 390,
+      "height": 900,
+      "sha256": "54d84bb9601fb49e37e552b985bc35161ab841da5ba9aa74e21b29fe124851e7",
+      "kind": "actual-built-React"
+    },
+    {
+      "file": "app-callback-390-ur.png",
+      "width": 390,
+      "height": 900,
+      "sha256": "2071c10a2c659fc18e0228d55b75ef42e6090a44ab764529fea4b07a6864c467",
+      "kind": "actual-built-React"
+    },
+    {
+      "file": "app-callback-full-1366-en.png",
+      "width": 1366,
+      "height": 900,
+      "sha256": "b4f76151c7b42fda22ba4a168452718954c784c161320f86a2036f82673ef8f4",
+      "kind": "actual-built-React"
+    },
+    {
+      "file": "app-callback-full-1366-ur.png",
+      "width": 1366,
+      "height": 900,
+      "sha256": "253b9509ce959339a995c44e63e5b20b98ad2e3da6ccb1943b8b5af78f2263f5",
+      "kind": "actual-built-React"
+    },
+    {
+      "file": "app-callback-full-390-en.png",
+      "width": 390,
+      "height": 900,
+      "sha256": "54d84bb9601fb49e37e552b985bc35161ab841da5ba9aa74e21b29fe124851e7",
+      "kind": "actual-built-React"
+    },
+    {
+      "file": "app-callback-full-390-ur.png",
+      "width": 390,
+      "height": 900,
+      "sha256": "2071c10a2c659fc18e0228d55b75ef42e6090a44ab764529fea4b07a6864c467",
+      "kind": "actual-built-React"
+    },
+    {
+      "file": "app-login-1366-en.png",
+      "width": 1366,
+      "height": 900,
+      "sha256": "8e79c3343e53b308810f39d73f4a7d894121e79ec124794fe94c307aa888656b",
+      "kind": "actual-built-React"
+    },
+    {
+      "file": "app-login-1366-ur.png",
+      "width": 1366,
+      "height": 900,
+      "sha256": "212122065fcce989fb5db778cd5c08fb9efa55cf17b3a7f688c59c48502260e0",
+      "kind": "actual-built-React"
+    },
+    {
+      "file": "app-login-390-en.png",
+      "width": 390,
+      "height": 900,
+      "sha256": "858a79dfb842afdacd3a31026375ab25877d9c147a6f80a83b9787b6eda9c0f6",
+      "kind": "actual-built-React"
+    },
+    {
+      "file": "app-login-390-ur.png",
+      "width": 390,
+      "height": 900,
+      "sha256": "6da1f05607b48f2fdce4956e91990fa1a4db10da3954fdd3f95da9426e3c4668",
+      "kind": "actual-built-React"
+    },
+    {
+      "file": "app-login-full-1366-en.png",
+      "width": 1366,
+      "height": 920,
+      "sha256": "ce8ab645863de8a679bd328a513a34cafd4c79f63dc654e2dbf0b8dcf1db075d",
+      "kind": "actual-built-React"
+    },
+    {
+      "file": "app-login-full-1366-ur.png",
+      "width": 1366,
+      "height": 920,
+      "sha256": "e4f8283c0b72a745d67646647f1c3f056ec2a5146a5a4fa4669118bcaf746122",
+      "kind": "actual-built-React"
+    },
+    {
+      "file": "app-login-full-390-en.png",
+      "width": 390,
+      "height": 900,
+      "sha256": "858a79dfb842afdacd3a31026375ab25877d9c147a6f80a83b9787b6eda9c0f6",
+      "kind": "actual-built-React"
+    },
+    {
+      "file": "app-login-full-390-ur.png",
+      "width": 390,
+      "height": 900,
+      "sha256": "6da1f05607b48f2fdce4956e91990fa1a4db10da3954fdd3f95da9426e3c4668",
+      "kind": "actual-built-React"
+    },
+    {
+      "file": "app-security-1366-en.png",
+      "width": 1366,
+      "height": 900,
+      "sha256": "ba859c0f0e60fc3ed79204f60f524159c9d5659b4fcd0f599df1a1845fd8da19",
+      "kind": "actual-built-React"
+    },
+    {
+      "file": "app-security-1366-ur.png",
+      "width": 1366,
+      "height": 900,
+      "sha256": "8718f5eee2d09cff411672b1346e0fa386e01014e925f6652b185006be9846f2",
+      "kind": "actual-built-React"
+    },
+    {
+      "file": "app-security-390-en.png",
+      "width": 390,
+      "height": 900,
+      "sha256": "65930388d884a7fbd63e271c400798fa3ff0abda00666b43015c82fb43f4c9c3",
+      "kind": "actual-built-React"
+    },
+    {
+      "file": "app-security-390-ur.png",
+      "width": 390,
+      "height": 900,
+      "sha256": "3ab3da4224c31251123879bc235c393c342a5cd28c3f2c8308001d3a886202a0",
+      "kind": "actual-built-React"
+    },
+    {
+      "file": "app-security-cleared-1366-en.png",
+      "width": 1366,
+      "height": 900,
+      "sha256": "6781e339c8774905586d39572c87e26603ab12cc34c472fbd0359d01cdf68974",
+      "kind": "actual-built-React"
+    },
+    {
+      "file": "app-security-cleared-1366-ur.png",
+      "width": 1366,
+      "height": 900,
+      "sha256": "b7fd146aadae194d259991ff669e5591ae101ca61540961675db512bba51858c",
+      "kind": "actual-built-React"
+    },
+    {
+      "file": "app-security-cleared-390-en.png",
+      "width": 390,
+      "height": 900,
+      "sha256": "d89b789d56c4ba20416933b708ab5d7dee90338f7568ddca3a274cc9f7d18748",
+      "kind": "actual-built-React"
+    },
+    {
+      "file": "app-security-cleared-390-ur.png",
+      "width": 390,
+      "height": 900,
+      "sha256": "c61f2e076a5e206ee4caa549a8899ab31f860e909200fd7292bed38e95631cfe",
+      "kind": "actual-built-React"
+    },
+    {
+      "file": "app-security-full-1366-en.png",
+      "width": 1366,
+      "height": 900,
+      "sha256": "ba859c0f0e60fc3ed79204f60f524159c9d5659b4fcd0f599df1a1845fd8da19",
+      "kind": "actual-built-React"
+    },
+    {
+      "file": "app-security-full-1366-ur.png",
+      "width": 1366,
+      "height": 900,
+      "sha256": "8718f5eee2d09cff411672b1346e0fa386e01014e925f6652b185006be9846f2",
+      "kind": "actual-built-React"
+    },
+    {
+      "file": "app-security-full-390-en.png",
+      "width": 390,
+      "height": 900,
+      "sha256": "65930388d884a7fbd63e271c400798fa3ff0abda00666b43015c82fb43f4c9c3",
+      "kind": "actual-built-React"
+    },
+    {
+      "file": "app-security-full-390-ur.png",
+      "width": 390,
+      "height": 900,
+      "sha256": "3ab3da4224c31251123879bc235c393c342a5cd28c3f2c8308001d3a886202a0",
+      "kind": "actual-built-React"
+    },
+    {
+      "file": "v5-callback-1366-en.png",
+      "width": 1366,
+      "height": 900,
+      "sha256": "2eaf863716f78f1b9b99e98c44f963cad71bbdf83078b99944063d91c8700681",
+      "kind": "reference"
+    },
+    {
+      "file": "v5-callback-1366-ur.png",
+      "width": 1366,
+      "height": 900,
+      "sha256": "5a00ce950d18d39a9d0163f2f46ce009061ae04d32b7afa36e0819b19d0abf28",
+      "kind": "reference"
+    },
+    {
+      "file": "v5-callback-390-en.png",
+      "width": 390,
+      "height": 900,
+      "sha256": "954ab0765595e5acefc53f35b80c30ccf149735663e2fbf82d4daad7e7c5fc3c",
+      "kind": "reference"
+    },
+    {
+      "file": "v5-callback-390-ur.png",
+      "width": 390,
+      "height": 900,
+      "sha256": "f29eb5cb762db0d6bda933fe84101176020387609fbb2363a9d0688323e56c51",
+      "kind": "reference"
+    },
+    {
+      "file": "v5-login-1366-en.png",
+      "width": 1366,
+      "height": 900,
+      "sha256": "2eaf863716f78f1b9b99e98c44f963cad71bbdf83078b99944063d91c8700681",
+      "kind": "reference"
+    },
+    {
+      "file": "v5-login-1366-ur.png",
+      "width": 1366,
+      "height": 900,
+      "sha256": "5a00ce950d18d39a9d0163f2f46ce009061ae04d32b7afa36e0819b19d0abf28",
+      "kind": "reference"
+    },
+    {
+      "file": "v5-login-390-en.png",
+      "width": 390,
+      "height": 900,
+      "sha256": "954ab0765595e5acefc53f35b80c30ccf149735663e2fbf82d4daad7e7c5fc3c",
+      "kind": "reference"
+    },
+    {
+      "file": "v5-login-390-ur.png",
+      "width": 390,
+      "height": 900,
+      "sha256": "f29eb5cb762db0d6bda933fe84101176020387609fbb2363a9d0688323e56c51",
+      "kind": "reference"
+    },
+    {
+      "file": "v5-security-1366-en.png",
+      "width": 1366,
+      "height": 900,
+      "sha256": "c1c88ed3605d000ef5d5067927bb88a56564bc579a526d89486f0f6642ff96a0",
+      "kind": "reference"
+    },
+    {
+      "file": "v5-security-1366-ur.png",
+      "width": 1366,
+      "height": 900,
+      "sha256": "95c3c2a84f25f1a9fc9f602e03fa3d79256c01531ed81a4a34801301731279f1",
+      "kind": "reference"
+    },
+    {
+      "file": "v5-security-390-en.png",
+      "width": 390,
+      "height": 900,
+      "sha256": "b356dc9465a15efd98982da593920dc20d67d7b942d0138d6dc1412883d08095",
+      "kind": "reference"
+    },
+    {
+      "file": "v5-security-390-ur.png",
+      "width": 390,
+      "height": 900,
+      "sha256": "4950d5b47e35fd9fc8e312b3c36726dbe1f96bfada1b7a02449ce3438c3bffec",
+      "kind": "reference"
+    }
+  ]
+}
