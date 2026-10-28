@@ -27,3 +27,9 @@ Pending reconstructed-source checks and rendered integration. Prior26Oct48focuse
 ## External blockers
 
 OperatorIdP/MFA,qualifiedphoto/privacy,Paddle,deliveredowneremail/validissuedlinks,approvedlegal/support/distribution,productioninfrastructure/backup and actualAndroidremain unqualified/unavailable. BrowserSQLcannot qualify providers/native. These do not block supportedworkforcewebUI.
+
+## Shared shell accepted — 2026-10-28
+
+Current source7965d06/2ab7c96:26targeted/64Node+250React/19files,lint0,TypeScript/productionbuildpass. Freshguardedbrowser3passed50.0s,40PNGs/8baseobservations nooverflow/pageerrors. QAindependentlyinspectedall32actualstatesand8references: roles/navigation/menugeometry/focus,actualcompanyidentity,44/48touchsizes,notfound/fatalreload,ownsecurity/STAFFhandoff,localizedClose. Noopensignificantshellfinding;27webDone,featurepages/native37/provider/fullV5remainseparate. Spec29nexteligibleafter23/08/27;independentAttendanceworkstartswithoutStaffownership.
+
+Current rerunbackend48targetedpasses;isolatedSQLworkforce+credentialproofspass.
