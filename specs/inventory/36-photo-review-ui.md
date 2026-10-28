@@ -16,3 +16,10 @@
 - `DecisionForm.tsx` keeps backend-supplied closure choices, request idempotency and notes; view selection does not discard notes, and conflicts disable stale resubmission.
 - `backend/src/services/reviewList.service.ts` applies the optional bounded reason filter inside the existing company/site scope, shared by the queue/count/next operations.
 - `ReviewWorkspace.test.tsx` checks draft navigation, conflicts, protected thumbnails, bounded zoom, decode errors and blob cleanup; spec40 owns integrated browser and screenshot evidence.
+
+## Recorded-state continuation — 2026-10-29
+
+- `DecisionForm.tsx` renders the API's latest closure note, actor and site-local time in the approved saved-decision panel; missing historical details stay unavailable. Optional `nextReviewHref` comes only from `ReviewDetail`'s real scoped next/list lookup.
+- `ReviewDetail.tsx` and `reviewDiagnosis.ts` distinguish a SETUP record from a generated staff task and give only the existing setup destination. Closed review navigation consumes the pending queue and preserves filters; a bounded first-row fallback avoids exhausted Reviewed queues.
+- `ExceptionInboxPage.tsx` suppresses stale queue counts/rows after failed refresh and uses existing lowercase review dictionary entries for Urdu tab/option captions; global task Pending translations are unchanged.
+- `frontend/e2e/review-states-v5.spec.ts` is the coordinator-granted Spec40 extension for recorded setup/closure/HOLD/authorization/paging and labelled network seams. Evidence/provenance: `docs/implementation/v5-review-state-evidence/README.md`. Reuse the managed isolated runner, never a configured development database.

@@ -87,7 +87,7 @@ test('real saved closure displays the V5 decision facts and leaves task outcomes
   const panel=page.locator('.v5-saved-decision');await expect(panel).toBeVisible();
   await expect(panel).toContainText(savedNote);await expect(panel).toContainText('E2E owner A');await expect(panel.locator('time')).toHaveAttribute('datetime',/.+/);
   await expect(panel.locator('textarea,button[type=submit]')).toHaveCount(0);
-  await page.reload();await expect(panel).toContainText(savedNote);
+  await page.reload();await expect(panel).toContainText(savedNote);await expect(panel.locator('a')).toBeVisible();
   await capture(page,'closed',width,lang);
   await panel.scrollIntoViewIfNeeded();await page.screenshot({path:join(out,`app-closed-decision-${width}-${lang}.png`)});
   const reference=await page.context().newPage();await reference.goto('file://'+join(root,'design/v5/reviews.html')+'?lang='+lang);
