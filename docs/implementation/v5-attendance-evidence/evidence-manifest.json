@@ -1,0 +1,304 @@
+{
+  "date": "2026-10-28",
+  "integrated_source": "b4bf895084bf3bf132a7618f583a4ae80ae434c2",
+  "synthetic_only": true,
+  "positive_http_responses_replaced": false,
+  "images": [
+    {
+      "file": "app-attendance-1366-en.png",
+      "width": 1366,
+      "height": 900,
+      "sha256": "dba8265024c5e1fe63d59e71867ece1c7ca190aa10036025f601b892990069c6",
+      "kind": "application",
+      "capture": "viewport"
+    },
+    {
+      "file": "app-attendance-1366-ur.png",
+      "width": 1366,
+      "height": 900,
+      "sha256": "c13631b7ef8c3935e41327c803868c51f8b95cb2ce462265e09c3153474e5c08",
+      "kind": "application",
+      "capture": "viewport"
+    },
+    {
+      "file": "app-attendance-390-en.png",
+      "width": 390,
+      "height": 900,
+      "sha256": "f3e4e13cbee600ab76c285e2ab897ea1768931484a475dd98f2cd0e1f043eb70",
+      "kind": "application",
+      "capture": "viewport"
+    },
+    {
+      "file": "app-attendance-390-ur.png",
+      "width": 390,
+      "height": 900,
+      "sha256": "16b5ff47d71bcab9af71ff8ac363b5fc619660458c23cb96d987105ebb73f3e2",
+      "kind": "application",
+      "capture": "viewport"
+    },
+    {
+      "file": "app-attendance-empty-1366-en.png",
+      "width": 1366,
+      "height": 900,
+      "sha256": "26ce02bf23b644c68d1766b2d88302a75bf49f4a4cc6e52f1ed11521c0129e7f",
+      "kind": "application",
+      "capture": "viewport"
+    },
+    {
+      "file": "app-attendance-forwarded-loading-390-en.png",
+      "width": 390,
+      "height": 900,
+      "sha256": "3e733452ed076a855565d9a842b802ae45986abf4fc31cc9842fd1987b21027a",
+      "kind": "application",
+      "capture": "viewport"
+    },
+    {
+      "file": "app-attendance-forwarded-loading-390-ur.png",
+      "width": 390,
+      "height": 900,
+      "sha256": "630ae6c3bb34eb054f7fb98c4ef6d4594eb93ae79e5295b3ac1bd973c1294c0d",
+      "kind": "application",
+      "capture": "viewport"
+    },
+    {
+      "file": "app-attendance-register-1366-en.png",
+      "width": 1366,
+      "height": 900,
+      "sha256": "b84b0150aef9081e1ec98bc3eb6f88943a090c95711fa617887c3d76e61393d1",
+      "kind": "application",
+      "capture": "viewport"
+    },
+    {
+      "file": "app-attendance-register-1366-ur.png",
+      "width": 1366,
+      "height": 900,
+      "sha256": "2abc7dd17d27d19ef55f64df6533c95c0169f40b1396272093bb622ae5caae3c",
+      "kind": "application",
+      "capture": "viewport"
+    },
+    {
+      "file": "app-attendance-register-390-en.png",
+      "width": 390,
+      "height": 900,
+      "sha256": "e896889f0672b765f12cf96da2ab5110bcc4cc5a3b054fde73d4f9bfeeb00751",
+      "kind": "application",
+      "capture": "viewport"
+    },
+    {
+      "file": "app-attendance-register-390-ur.png",
+      "width": 390,
+      "height": 900,
+      "sha256": "69b52c57fa67ef68b7a35066b18ab0aa42054430d4c1c2c97e413a0cc4322c24",
+      "kind": "application",
+      "capture": "viewport"
+    },
+    {
+      "file": "app-attendance-transport-error-390-en.png",
+      "width": 390,
+      "height": 900,
+      "sha256": "1068c441d2af71b97b4d41134a05055fd0c4b162f5e918b2e7dba3c81329f8ac",
+      "kind": "application",
+      "capture": "viewport"
+    },
+    {
+      "file": "app-attendance-transport-error-390-ur.png",
+      "width": 390,
+      "height": 900,
+      "sha256": "df18606a351123d70d681ab4e2901cef73b13e341eaf333541ee4c9867d3c524",
+      "kind": "application",
+      "capture": "viewport"
+    },
+    {
+      "file": "app-context-1366-en.png",
+      "width": 1366,
+      "height": 900,
+      "sha256": "8c6c3ec74aee9d9daf3003057f0e394a6c6601b8e5022d50b1e0bb623d42d945",
+      "kind": "application",
+      "capture": "viewport"
+    },
+    {
+      "file": "app-context-1366-ur.png",
+      "width": 1366,
+      "height": 900,
+      "sha256": "92d0a50234c27c640794b33acb02bf501acf6cfb839a46f801b68b6590fc2a8d",
+      "kind": "application",
+      "capture": "viewport"
+    },
+    {
+      "file": "app-context-390-en.png",
+      "width": 390,
+      "height": 900,
+      "sha256": "874efb7b93b7b131987b92ab3d23270ca43586b006e5f8b21c0c56a0e4c9b389",
+      "kind": "application",
+      "capture": "viewport"
+    },
+    {
+      "file": "app-context-390-ur.png",
+      "width": 390,
+      "height": 900,
+      "sha256": "c0becc4fbce7ff7e905da9b19616438be4f5e9d2d888ba855c721d1b68ef99f4",
+      "kind": "application",
+      "capture": "viewport"
+    },
+    {
+      "file": "app-context-conflict-1366-en.png",
+      "width": 1366,
+      "height": 900,
+      "sha256": "4e02194374468774feec4b272d12f2b353f521448ae93b8b31dad83f8382ff19",
+      "kind": "application",
+      "capture": "viewport"
+    },
+    {
+      "file": "app-context-conflict-1366-ur.png",
+      "width": 1366,
+      "height": 900,
+      "sha256": "b81ac9b4b2ab20f9347eaaa2205c748dcbe8065e41445e8430927fc432bfd4dc",
+      "kind": "application",
+      "capture": "viewport"
+    },
+    {
+      "file": "app-context-conflict-390-en.png",
+      "width": 390,
+      "height": 900,
+      "sha256": "37a263b68034dfb976fe298af4e089a9a293659f50de269bd055a04f1a4d6e80",
+      "kind": "application",
+      "capture": "viewport"
+    },
+    {
+      "file": "app-context-conflict-390-ur.png",
+      "width": 390,
+      "height": 900,
+      "sha256": "360d2ddd6a95244d432254b7a0bd68f4160b22d6a874e59ae4e653c87d06129b",
+      "kind": "application",
+      "capture": "viewport"
+    },
+    {
+      "file": "app-context-form-1366-en.png",
+      "width": 1366,
+      "height": 900,
+      "sha256": "8c6c3ec74aee9d9daf3003057f0e394a6c6601b8e5022d50b1e0bb623d42d945",
+      "kind": "application",
+      "capture": "viewport"
+    },
+    {
+      "file": "app-context-form-1366-ur.png",
+      "width": 1366,
+      "height": 900,
+      "sha256": "92d0a50234c27c640794b33acb02bf501acf6cfb839a46f801b68b6590fc2a8d",
+      "kind": "application",
+      "capture": "viewport"
+    },
+    {
+      "file": "app-context-form-390-en.png",
+      "width": 390,
+      "height": 900,
+      "sha256": "7a60390a5b474dc77a1ccb92cbd9cef9c4348c7b28263d0dd78d15fcfd80bc63",
+      "kind": "application",
+      "capture": "viewport"
+    },
+    {
+      "file": "app-context-form-390-ur.png",
+      "width": 390,
+      "height": 900,
+      "sha256": "0bb7635a2463293c659117095348ef522a36702712a4aa9a5a007e0045a8da3f",
+      "kind": "application",
+      "capture": "viewport"
+    },
+    {
+      "file": "app-context-manager-390-en.png",
+      "width": 390,
+      "height": 900,
+      "sha256": "182c093816218226a36c02bf6c144d362de9f8f8489d09d21ec7091f46d39c47",
+      "kind": "application",
+      "capture": "viewport"
+    },
+    {
+      "file": "app-context-manager-390-ur.png",
+      "width": 390,
+      "height": 900,
+      "sha256": "8f111b9291c487d0e48b7181d02f199ec070db2e0e643fcd952d298f5213ada4",
+      "kind": "application",
+      "capture": "viewport"
+    },
+    {
+      "file": "app-context-saved-1366-en.png",
+      "width": 1366,
+      "height": 900,
+      "sha256": "d45b29258e000d041db73ef6dede60c270e7d3aeb138155d60b31c360e6f824b",
+      "kind": "application",
+      "capture": "viewport"
+    },
+    {
+      "file": "app-context-transport-draft-1366-en.png",
+      "width": 1366,
+      "height": 900,
+      "sha256": "ef8b6bcae0c8fb580710435f9a3bfb216ff5faf1c6105ed7ca8333d00d253bd5",
+      "kind": "application",
+      "capture": "viewport"
+    },
+    {
+      "file": "v5-attendance-1366-en.png",
+      "width": 1366,
+      "height": 900,
+      "sha256": "bb49b0b77d39dad16ea6ee741be6d543cff24365709d89cca06f1dae4eac598f",
+      "kind": "reference",
+      "capture": "viewport"
+    },
+    {
+      "file": "v5-attendance-1366-ur.png",
+      "width": 1366,
+      "height": 900,
+      "sha256": "a09937ae2ec7874d0985347f373703898361c1441b9881b4b6035d51347040b4",
+      "kind": "reference",
+      "capture": "viewport"
+    },
+    {
+      "file": "v5-attendance-390-en.png",
+      "width": 390,
+      "height": 900,
+      "sha256": "cd6ab0d3f6dab4466de85f64970b21965148c83a629fc9741c485157b9475e35",
+      "kind": "reference",
+      "capture": "viewport"
+    },
+    {
+      "file": "v5-attendance-390-ur.png",
+      "width": 390,
+      "height": 900,
+      "sha256": "0719e61c4b118c0535e895b75bc919c47a862e2f0855e03c08671f90b19e283d",
+      "kind": "reference",
+      "capture": "viewport"
+    },
+    {
+      "file": "v5-context-1366-en.png",
+      "width": 1366,
+      "height": 900,
+      "sha256": "fc174481881123dd43044c0c3615b3fc017bb1236f75d3f7f0579cd8d0085f43",
+      "kind": "reference",
+      "capture": "viewport"
+    },
+    {
+      "file": "v5-context-1366-ur.png",
+      "width": 1366,
+      "height": 900,
+      "sha256": "5efc30fbfdf343a50a3eba76ee0af718b18bac06564fa4ccb9ef52a09491bdad",
+      "kind": "reference",
+      "capture": "viewport"
+    },
+    {
+      "file": "v5-context-390-en.png",
+      "width": 390,
+      "height": 900,
+      "sha256": "32faa1a8fcb0ff612cb3be7dc122559c5c563ff50224773f165d629680f34f21",
+      "kind": "reference",
+      "capture": "viewport"
+    },
+    {
+      "file": "v5-context-390-ur.png",
+      "width": 390,
+      "height": 900,
+      "sha256": "9b073a16f0a2adcb3c7ae7e572bd698a38508368a838a6ef88ebb39b44795076",
+      "kind": "reference",
+      "capture": "viewport"
+    }
+  ]
+}

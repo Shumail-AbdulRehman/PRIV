@@ -1,6 +1,6 @@
 # Spec 29 — Attendance exception context UI
 
-**Status:** In progress
+**Status:** Done
 **Depends on:** Spec 23, Spec 27, Spec 08
 **Model:** Standard — `claude-sonnet-5-5` · `gpt-6.1-sol` · `gemini-3.8-flash`
 **Issue:** #57
@@ -37,7 +37,7 @@ Show original captured facts plus immutable attributed annotations and acknowled
 
 ## Done when
 
-- [ ] Approved V5 layout and interactions are implemented and paired actual-app/reference screenshots are inspected at desktop/phone EN/UR; state/permission deviations are recorded. Native acceptance requires a native runtime. [static]
+- [x] Approved V5 layout and interactions are implemented and paired actual-app/reference screenshots are inspected at desktop/phone EN/UR; state/permission deviations are recorded. Native acceptance requires a native runtime. [static]
 - [x] `npm run test:components --prefix frontend -- src/pages/Attendance/AttendanceContext.test.tsx` passes: Required reason validates; save/error/conflict maintains draft; original capture separate from annotation; EN/UR text complete. [unit]
 - [x] `npm test --prefix frontend` passes the whole affected unit suite; record count. [unit]
 - [x] Only scoped paths changed; relevant denial/empty/error/config-unavailable states inspected. [static]
@@ -57,3 +57,5 @@ Show original captured facts plus immutable attributed annotations and acknowled
 - **2026-10-28 — V5 register/context source:** Claimed existing57, dependency27 now scoped web Done3d503cc;23/08 unchanged. Source0357439 implements approved real register/filter/summary/phone composition and flat context facts/history +300px note rail; existing dialog entry and immutable API/draft/uncertain retry preserved. Explicit authorized locationId API consumption, real location timezone join and honest UTC fallback; selected-site Today calendar tested acrossUTCboundary. Eight new page behaviors +12retained context pass; whole64Node+258React/20files and lint0 pass. No backend/schema/provider/Staff/shared-source changes. Rendered acceptance remains pending coordinator's matching API/SQL capture and independent V5 review; no Done claim from source/tests.
 
 - **2026-10-28 — Source checks complete:** `npm test --prefix frontend`64Node+258React/20files, targeted20/2files, full frontend lint0, `tsc -b frontend` and `npm run build --prefix frontend` pass. Mechanical detector[] for all changed UI/CSS. Coordinator's actual rendered reference/application comparison remains the acceptance gate; no extra backend or provider qualification inferred.
+
+- **2026-10-28 — Current approved V5 web acceptance:** real React composition and interactions accepted at1366/390 EN/UR, with recorded contract-driven deviations. Actual API/disposable migrated SQL,48backend tests and both workforce/credential SQL proofs pass. Current web64Node+274React, focused checks, lint0, TypeScript/build pass. A33-case integration milestone and subsequent focused rendered/state corrections pass; overlapping counts are recorded in V5_WORKFORCE.md. Independent QA findings were corrected and finally inspected by the coordinator after agent availability ended. Evidence: V5_WORKFORCE_QA.md, V5_ATTENDANCE_QA.md and their manifests. Web Done; native37, providers, full40/41 and production release remain separate and incomplete. No backend policy or production change.
