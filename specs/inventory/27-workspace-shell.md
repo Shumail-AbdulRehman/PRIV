@@ -9,3 +9,10 @@
 
 ### V5 correction reuse — 2026-10-22
 Existing Sidebar/DashboardLayout now use actual subscription company identity, V5 operational navigation, a quieter account group and the same role guards. Existing workspace tokens now use V5 type/control/table/panel dimensions. `OperationStatus` supports informational SUBMITTED independently from semantic success. `ScopeFilters` accepts an optional actual site-local date without changing the query's today semantics.
+
+### Shared boundary completion — 2026-10-28
+
+- `frontend/src/components/ui/dialog.tsx`: existing DialogContent/optional DialogFooter Close now use existing language context (safe English default outside a provider), plus logical inline-end. No new modal abstraction.
+- `frontend/src/workspace-refresh.css`: language hit areas44px desktop/48px phone; shared phone button/Close targets48px; existing STAFF handoff signout48px. Topbar retains72px minimum.
+- `frontend/src/routes/launchPages.test.tsx`:26shared boundary cases cover translated dismissal, real mobile billing navigation/close and manager Urdu independent security destination. Test ownership returns30→27 serially for this batch.
+- `frontend/e2e/shell-v5.spec.ts` (Spec40 harness): actual matching API/React/disposable SQL shell/navigation/boundary captures, no positive response replacement; evidence/provenance in docs/implementation/v5-shell-evidence. Feature pages/native/providers separate.
