@@ -1,3 +1,5 @@
+import { useQueryClient } from "@tanstack/react-query";
+import { locationStatsFilter, type LocationHistoryPeriod } from "./locationStatsFilter";
 import TaskQr from '../Task/components/TaskQr';
 import OperationStatus from "@/components/common/OperationStatus";
 import { verificationLabel } from "../Verification/presentation";
@@ -29,7 +31,6 @@ import {
 } from "react-router-dom";
 import { formatInTimeZone } from "date-fns-tz";
 import { useGetLocationById, useDeleteLocation } from "./queries";
-import type { LocationStatsFilter } from "./queries";
 import StatusBadge from "@/components/common/StatusBadge";
 import AreaSubmissionsPanel from "@/pages/Task/components/AreaSubmissionsPanel";
 import {
@@ -49,45 +50,14 @@ import {
   Building2,
 } from "lucide-react";
 
-const toDateStr = (d: Date) =>
-  `${d.getUTCFullYear()}-${String(d.getUTCMonth() + 1).padStart(2, "0")}-${String(d.getUTCDate()).padStart(2, "0")}`;
 const fmtCoord = (v: string) => parseFloat(v).toFixed(6);
 const fmtTime = (d: string | null, timeZone = "UTC") => {
   if (!d) return "—";
   return formatInTimeZone(new Date(d), timeZone, "HH:mm");
 };
 
-type FilterKey = "today" | "yesterday" | "7days" | "all";
-const FILTERS: {
-  key: FilterKey;
-  label: string;
-  toFilter: () => LocationStatsFilter | undefined;
-}[] = [
-  {
-    key: "today",
-    label: "Today",
-    toFilter: () => {
-      const t = toDateStr(new Date());
-      return { type: "range", dateFrom: t, dateTo: t };
-    },
-  },
-  {
-    key: "yesterday",
-    label: "Yesterday",
-    toFilter: () => {
-      const y = new Date();
-      y.setUTCDate(y.getUTCDate() - 1);
-      const s = toDateStr(y);
-      return { type: "range", dateFrom: s, dateTo: s };
-    },
-  },
-  {
-    key: "7days",
-    label: "Last 7 Days",
-    toFilter: () => ({ type: "days", days: 7 }),
-  },
-  { key: "all", label: "All Time", toFilter: () => undefined },
-];
+type FilterKey = LocationHistoryPeriod;
+const FILTERS:{key:FilterKey;label:string}[]=[{key:'today',label:'Today'},{key:'yesterday',label:'Yesterday'},{key:'7days',label:'Last 7 Days'},{key:'all',label:'All Time'}];
 
 type Tab =
   "overview" | "areas" | "staff" | "templates" | "instances" | "schedule";
@@ -171,6 +141,7 @@ const getLatestAttempts = (taskInstance: TaskInstance) => {
 };
 
 const AreaAttemptRow = ({ attempt }: { attempt: CompletionAttempt }) => {
+  const {t}=useLocationLanguage();
   const scoreText =
     attempt.locationMatchScore != null && attempt.cleanlinessMatchScore != null
       ? `Loc ${attempt.locationMatchScore} · Clean ${attempt.cleanlinessMatchScore}`
@@ -182,7 +153,7 @@ const AreaAttemptRow = ({ attempt }: { attempt: CompletionAttempt }) => {
     return (
       <div className="space-y-0.5">
         <span className="inline-flex rounded-full bg-emerald-50 px-2 py-0.5 text-[11px] font-semibold text-emerald-700">
-          {name}Approved
+          {name}{t("Approved")}
         </span>
         {scoreText && <p className="text-[10px] text-gray-500">{scoreText}</p>}
       </div>
@@ -193,7 +164,7 @@ const AreaAttemptRow = ({ attempt }: { attempt: CompletionAttempt }) => {
     return (
       <div className="max-w-xs space-y-0.5">
         <span className="inline-flex rounded-full bg-red-50 px-2 py-0.5 text-[11px] font-semibold text-red-700">
-          {name}Wrong area
+          {name}{t("Wrong area")}
         </span>
         {scoreText && <p className="text-[10px] text-gray-500">{scoreText}</p>}
         {attempt.locationMatchReason && (
@@ -212,7 +183,7 @@ const AreaAttemptRow = ({ attempt }: { attempt: CompletionAttempt }) => {
     return (
       <div className="max-w-xs space-y-0.5">
         <span className="inline-flex rounded-full bg-amber-50 px-2 py-0.5 text-[11px] font-semibold text-amber-700">
-          {name}Not clean enough
+          {name}{t("Not clean enough")}
         </span>
         {scoreText && <p className="text-[10px] text-gray-500">{scoreText}</p>}
         {attempt.cleanlinessReason && (
@@ -230,9 +201,9 @@ const AreaAttemptRow = ({ attempt }: { attempt: CompletionAttempt }) => {
   return (
     <div className="space-y-0.5">
       <span className="inline-flex rounded-full bg-gray-100 px-2 py-0.5 text-[11px] font-semibold text-gray-700">
-        {name}Error
+        {name}{t("Error")}
       </span>
-      <p className="text-[10px] text-gray-500">Verification failed</p>
+      <p className="text-[10px] text-gray-500">{t("Verification failed")}</p>
     </div>
   );
 };
@@ -262,7 +233,7 @@ const VerificationCell = ({ attempts }: { attempts: CompletionAttempt[] }) => {
 };
 
 const LocationDetailPage: React.FC = () => {
-  const { t } = useLocationLanguage();
+  const { t, language } = useLocationLanguage();
   const [settingsOpen, setSettingsOpen] = useState(false);
   const [staffDialogOpen, setStaffDialogOpen] = useState(false);
   const [staffAdded, setStaffAdded] = useState(false);
@@ -293,7 +264,11 @@ const LocationDetailPage: React.FC = () => {
   );
 
   const currentFilter = FILTERS.find((f) => f.key === activeFilter)!;
-  const filter = currentFilter.toFilter();
+  const queryClient=useQueryClient();
+  // The initial unfiltered detail is already cached before a history filter can
+  // be selected. Read its saved timezone without another request or local copy.
+  const historyTimezone=queryClient.getQueryData<{data:{locationInfo:LocationInfo}}>(['location',id,null])?.data?.locationInfo?.timezone;
+  const filter=locationStatsFilter(activeFilter,historyTimezone);
 
   const overviewParams = { locationId: id ?? "", date: "today" };
   const overview = useOperations<OperationOverview>(
@@ -361,14 +336,6 @@ const LocationDetailPage: React.FC = () => {
               status={locationInfo.isActive ? "ACTIVE" : "INACTIVE"}
             />
             {user?.role === "ADMIN" ? <Button variant="outline" onClick={()=>{setSaved(false);setEditOpen(true);}}><MapPin size={16}/>{t('Edit location')}</Button> : null}
-            {activeTab === "areas" && locationInfo.isActive ? (
-              <Button asChild>
-                <Link to={"/locations/" + locationInfo.id + "?tab=areas&newArea=1"}>
-                  <Plus size={16} />
-                  {t("Add area template")}
-                </Link>
-              </Button>
-            ) : null}
             <Button
               variant="outline"
               aria-expanded={settingsOpen}
@@ -388,6 +355,7 @@ const LocationDetailPage: React.FC = () => {
           onSaved={() => {
             setEditOpen(false);
             setSaved(true);
+            setActiveFilter("all");
           }}
         />
       ) : null}
@@ -596,6 +564,7 @@ const LocationDetailPage: React.FC = () => {
                   <button
                     key={f.key}
                     aria-pressed={activeFilter === f.key}
+                    disabled={!historyTimezone && ['today','yesterday'].includes(f.key)}
                     onClick={() => setActiveFilter(f.key)}
                     className={`inline-flex items-center gap-1.5 rounded-md px-3 py-1.5 text-sm font-medium transition-all ${
                       f.key === activeFilter
@@ -665,7 +634,7 @@ const LocationDetailPage: React.FC = () => {
                 header: "Date",
                 sortValue: (ti) => ti.date,
                 render: (ti) =>
-                  new Date(ti.date).toLocaleDateString("en-PK", {
+                  new Date(ti.date).toLocaleDateString(language === "ur" ? "ur-PK" : "en-PK", {
                     day: "numeric",
                     month: "short",
                     year: "numeric",

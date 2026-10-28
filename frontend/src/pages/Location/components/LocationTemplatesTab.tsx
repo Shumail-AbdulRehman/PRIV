@@ -1,9 +1,10 @@
 import DataTable from "@/components/common/DataTable";
-import { useLanguage } from "@/i18n/context";
+import { useLocationLanguage } from "../locationTranslations";
+import { Dialog,DialogContent,DialogHeader,DialogTitle,DialogDescription } from "@/components/ui/dialog";
 import TemplateInventoryEditor from "@/pages/Area/TemplateInventoryEditor";
 import { useAreas } from "@/pages/Area/queries";
 import { Link, useLocation, useSearchParams } from "react-router-dom";
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { formatInTimeZone } from "date-fns-tz";
 import DeleteButton from "@/components/common/DeleteButton";
 import StatusBadge from "@/components/common/StatusBadge";
@@ -17,25 +18,13 @@ import {
 import { useAssignStaffToTemplate } from "@/pages/Assignment/queries";
 import type { EditTaskTemplateInput } from "@/pages/Task/api";
 import type { LocationStaff, TaskTemplate } from "../types";
-import { toDateStr, buildDateTimeIso } from "@/pages/Task/taskScheduleForm";
+import { buildDateTimeIso } from "@/pages/Task/taskScheduleForm";
 import TaskScheduleWizard from "@/pages/Task/components/TaskScheduleWizard";
 
 const fmtTimeWithTz = (d: string | null, timeZone = "UTC") => {
   if (!d) return "—";
   return formatInTimeZone(new Date(d), timeZone, "HH:mm (zzz)");
 };
-
-interface ApiErrorBody {
-  message?: string;
-  errors?: { message: string }[];
-}
-
-interface ApiError {
-  response?: {
-    data?: ApiErrorBody;
-  };
-  message?: string;
-}
 
 export default function LocationTemplatesTab({
   templates,
@@ -50,7 +39,9 @@ export default function LocationTemplatesTab({
   timeZone: string;
   locationName: string;
 }) {
-  const { t: translate } = useLanguage();
+  const { t: translate,language } = useLocationLanguage();
+  const [saving,setSaving]=useState(false);
+  const inFlight=useRef(false);
   const { hash } = useLocation();
   useEffect(() => {
     if (hash.startsWith("#schedule-"))
@@ -78,7 +69,7 @@ export default function LocationTemplatesTab({
     recurringType: "" as string,
     effectiveDate: "",
   });
-  const todayDate = toDateStr(new Date());
+  const todayDate = formatInTimeZone(new Date(),timeZone,'yyyy-MM-dd');
 
   const toTimeValue = (iso?: string | null) => {
     if (!iso) return "";
@@ -100,16 +91,6 @@ export default function LocationTemplatesTab({
     return buildDateTimeIso(timeZone, datePart, timeValue);
   };
 
-  const extractError = (err: unknown) => {
-    const error = err as ApiError;
-    return (
-      error.response?.data?.errors?.map((e) => e.message).join(", ") ||
-      error.response?.data?.message ||
-      error.message ||
-      "An unknown error occurred"
-    );
-  };
-
   const handleEditOpen = (t: TaskTemplate) => {
     setEditError(null);
     setEditingTemplate(t);
@@ -125,7 +106,8 @@ export default function LocationTemplatesTab({
   };
 
   const handleEditSave = async () => {
-    if (!editingTemplate) return;
+    if (!editingTemplate || inFlight.current) return;
+    inFlight.current=true;setSaving(true);
     setEditError(null);
 
     const payload: EditTaskTemplateInput = {};
@@ -195,9 +177,9 @@ export default function LocationTemplatesTab({
       }
 
       setEditingTemplate(null);
-    } catch (err: unknown) {
-      setEditError(extractError(err));
-    }
+    } catch {
+      setEditError(translate("The schedule could not be saved. Your draft is kept. Refresh the saved schedule before trying again."));
+    } finally {inFlight.current=false;setSaving(false);}
   };
 
   const inputCls =
@@ -205,15 +187,14 @@ export default function LocationTemplatesTab({
   const formLabelCls = "mb-1.5 block text-sm font-medium text-foreground";
 
   return (
-    <>
-      <div className="flex items-center justify-between gap-3">
+    <section className="ops-panel location-schedules-v5">
+      <div className="ops-panel-heading flex items-start justify-between gap-3 flex-wrap">
         <div>
-          <p className="text-sm font-medium text-foreground">
+          <h2>
             {translate("Cleaning schedules")}
-          </p>
+          </h2>
           <p className="text-sm text-muted-foreground">
-            Create schedules for this location and optionally choose a team
-            member.
+            {translate("Create schedules for this location and optionally choose a team member.")}
           </p>
         </div>
         <Button
@@ -238,7 +219,7 @@ export default function LocationTemplatesTab({
       <DataTable
         data={templates}
         rowKey={(row) => row.id}
-        emptyMessage="No cleaning schedules for this location."
+        emptyMessage={translate("No cleaning schedules for this location.")}
         columns={[
           {
             key: "schedule",
@@ -250,7 +231,7 @@ export default function LocationTemplatesTab({
                 {row.description ? <p>{row.description}</p> : null}
                 {row.setupStatus === "NEEDS_REVIEW" ? (
                   <Link
-                    className="text-amber-800 underline text-xs"
+                    className="text-warning underline text-xs"
                     to={"/locations/" + locationId + "?tab=areas"}
                   >
                     {translate("Inventory needs review")}
@@ -307,7 +288,7 @@ export default function LocationTemplatesTab({
                 {row.effectiveDate ? (
                   <p>
                     {translate("Effective")}:{" "}
-                    {new Date(row.effectiveDate).toLocaleDateString("en-PK", {
+                    {new Date(row.effectiveDate).toLocaleDateString(language === "ur" ? "ur-PK" : "en-PK", {
                       timeZone: "UTC",
                     })}
                   </p>
@@ -350,26 +331,16 @@ export default function LocationTemplatesTab({
         ]}
       />
 
-      {editingTemplate && (
-        <div
-          className="fixed inset-0 z-50 flex items-center justify-center bg-black/30"
-          onClick={() => setEditingTemplate(null)}
-        >
-          <div
-            className="mx-4 w-full max-w-lg rounded-lg border border-gray-200 bg-white p-6 shadow-xl max-h-[90vh] overflow-y-auto"
-            onClick={(e) => e.stopPropagation()}
-          >
-            <h2 className="text-lg font-bold text-gray-900 mb-5">
-              Edit Task Template
-            </h2>
-            <div className="space-y-4">
+      <Dialog open={!!editingTemplate} onOpenChange={open=>{if(!open&&!inFlight.current)setEditingTemplate(null);}}>
+       <DialogContent className="location-schedule-editor-v5" onInteractOutside={event=>{if(inFlight.current)event.preventDefault();}} onEscapeKeyDown={event=>{if(inFlight.current)event.preventDefault();}}>
+        <DialogHeader><DialogTitle>{translate('Edit cleaning schedule')}</DialogTitle><DialogDescription>{translate('Changes apply to the schedule. Recorded task history stays unchanged.')}</DialogDescription></DialogHeader>
+        {editingTemplate?<><form id="location-schedule-edit" onSubmit={event=>{event.preventDefault();void handleEditSave();}}><fieldset disabled={saving} className="space-y-4">
+
               <div>
-                <label className="block text-sm font-medium text-gray-600 mb-1.5">
-                  Title
-                </label>
+                <label htmlFor="schedule-title" className={formLabelCls}>{translate("Schedule title")}</label>
                 <input
                   type="text"
-                  aria-label="Schedule title"
+                  id="schedule-title" aria-label={translate("Schedule title")}
                   value={editForm.title}
                   onChange={(e) =>
                     setEditForm({ ...editForm, title: e.target.value })
@@ -379,11 +350,9 @@ export default function LocationTemplatesTab({
               </div>
 
               <div>
-                <label className="block text-sm font-medium text-gray-600 mb-1.5">
-                  Description
-                </label>
+                <label htmlFor="schedule-description" className={formLabelCls}>{translate("Description")}</label>
                 <textarea
-                  aria-label="Description"
+                  id="schedule-description" aria-label={translate("Description")}
                   value={editForm.description}
                   onChange={(e) =>
                     setEditForm({ ...editForm, description: e.target.value })
@@ -394,16 +363,16 @@ export default function LocationTemplatesTab({
               </div>
 
               <div>
-                <label className={formLabelCls}>Assigned Staff</label>
+                <label htmlFor="schedule-staff" className={formLabelCls}>{translate("Assigned staff")}</label>
                 <select
-                  aria-label="Assigned staff"
+                  id="schedule-staff" aria-label={translate("Assigned staff")}
                   value={editForm.staffId}
                   onChange={(e) =>
                     setEditForm({ ...editForm, staffId: e.target.value })
                   }
                   className={inputCls}
                 >
-                  <option value="">Unassigned</option>
+                  <option value="" disabled={!!editingTemplate.staffId}>{translate("Unassigned")}</option>
                   {staffList.map((s) => (
                     <option key={s.id} value={s.id}>
                       {s.name}
@@ -414,10 +383,10 @@ export default function LocationTemplatesTab({
 
               <div className="grid grid-cols-2 gap-4">
                 <div>
-                  <label className={formLabelCls}>Shift Start</label>
+                  <label htmlFor="schedule-start" className={formLabelCls}>{translate("Shift start")}</label>
                   <Input
                     type="time"
-                    aria-label="Shift start"
+                    id="schedule-start" aria-label={translate("Shift start")}
                     value={editForm.shiftStart}
                     onChange={(e) =>
                       setEditForm({ ...editForm, shiftStart: e.target.value })
@@ -425,10 +394,10 @@ export default function LocationTemplatesTab({
                   />
                 </div>
                 <div>
-                  <label className={formLabelCls}>Shift End</label>
+                  <label htmlFor="schedule-end" className={formLabelCls}>{translate("Shift end")}</label>
                   <Input
                     type="time"
-                    aria-label="Shift end"
+                    id="schedule-end" aria-label={translate("Shift end")}
                     value={editForm.shiftEnd}
                     onChange={(e) =>
                       setEditForm({ ...editForm, shiftEnd: e.target.value })
@@ -438,26 +407,26 @@ export default function LocationTemplatesTab({
               </div>
 
               <div>
-                <label className={formLabelCls}>Recurring Type</label>
+                <label htmlFor="schedule-recurrence" className={formLabelCls}>{translate("Recurrence")}</label>
                 <select
-                  aria-label="Recurrence"
+                  id="schedule-recurrence" aria-label={translate("Recurrence")}
                   value={editForm.recurringType}
                   onChange={(e) =>
                     setEditForm({ ...editForm, recurringType: e.target.value })
                   }
                   className={inputCls}
                 >
-                  <option value="">Select type</option>
-                  <option value="DAILY">Daily</option>
-                  <option value="ONCE">Once</option>
+                  <option value="">{translate("Select type")}</option>
+                  <option value="DAILY">{translate("Daily")}</option>
+                  <option value="ONCE">{translate("Once")}</option>
                 </select>
               </div>
 
               <div>
-                <label className={formLabelCls}>Effective Date</label>
+                <label htmlFor="schedule-effective" className={formLabelCls}>{translate("Effective date")}</label>
                 <Input
                   type="date"
-                  aria-label="Effective date"
+                  id="schedule-effective" aria-label={translate("Effective date")}
                   value={editForm.effectiveDate}
                   onChange={(e) =>
                     setEditForm({ ...editForm, effectiveDate: e.target.value })
@@ -466,39 +435,25 @@ export default function LocationTemplatesTab({
                 />
               </div>
 
+              </fieldset></form>
               {editingTemplate.areaId && (
-                <TemplateInventoryEditor
+                <fieldset disabled={saving}><TemplateInventoryEditor
                   key={editingTemplate.id}
                   templateId={editingTemplate.id}
                   areaId={editingTemplate.areaId}
-                />
+                /></fieldset>
               )}
 
               {editError && (
-                <div className="rounded-lg border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-600">
+                <div role="alert" className="rounded-lg border border-destructive/20 bg-destructive/5 px-4 py-3 text-sm text-destructive">
                   {editError}
                 </div>
               )}
 
-              <div className="flex gap-3 pt-3">
-                <button
-                  onClick={() => setEditingTemplate(null)}
-                  className="flex-1 rounded-lg border border-gray-300 px-4 py-2.5 text-sm font-medium text-gray-600 transition-colors hover:bg-gray-50"
-                >
-                  Cancel
-                </button>
-                <button
-                  onClick={handleEditSave}
-                  disabled={editTemplate.isPending || !editForm.title.trim()}
-                  className="flex-1 rounded-lg bg-blue-600 px-4 py-2.5 text-sm font-medium text-gray-900 shadow-sm transition-colors hover:bg-blue-700 disabled:opacity-60"
-                >
-                  {editTemplate.isPending ? "Saving..." : "Save Changes"}
-                </button>
-              </div>
-            </div>
-          </div>
-        </div>
-      )}
-    </>
+              <div className="location-schedule-actions-v5"><Button type="button" variant="outline" disabled={saving} onClick={()=>setEditingTemplate(null)}>{translate('Cancel')}</Button><Button type="submit" form="location-schedule-edit" disabled={saving||!editForm.title.trim()}>{translate(saving?'Saving...':'Save changes')}</Button></div>
+        </>:null}
+       </DialogContent>
+      </Dialog>
+    </section>
   );
 }

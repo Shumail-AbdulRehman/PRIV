@@ -17,7 +17,7 @@ import {
 } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { useLanguage } from "@/i18n/context";
+import { useLocationLanguage } from "./locationTranslations";
 import { useCreateLocation, useUpdateLocation } from "./queries";
 import { getPreciseCurrentPosition } from "./currentPosition";
 import LocationMapPicker from "./LocationMapPicker";
@@ -47,7 +47,7 @@ export default function LocationFormDialog({
   onSaved,
   location,
 }: Props) {
-  const { t } = useLanguage();
+  const { t } = useLocationLanguage();
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent
@@ -95,7 +95,7 @@ function LocationForm({
   onCancel(): void;
   onSaved(): void;
 }) {
-  const { t } = useLanguage();
+  const { t } = useLocationLanguage();
   const create = useCreateLocation(),
     update = useUpdateLocation();
   const mutation = location ? update : create;
@@ -182,6 +182,15 @@ function LocationForm({
       if (request.current === controller) setLocating(false);
     }
   }
+  const failure=mutation.error as {response?:{status?:number;data?:{errors?:Array<{code?:string}>}}}|undefined;
+  const failureCode=failure?.response?.data?.errors?.find(issue=>issue.code)?.code;
+  const failureMessage=failureCode==='CAPACITY_REACHED'
+   ? 'Your plan’s location capacity has been reached. Review Plan & billing. Your draft is kept.'
+   : failureCode==='SUBSCRIPTION_REQUIRED'
+    ? 'An active subscription is required to add locations. Review Plan & billing. Your draft is kept.'
+    : failure?.response?.status===403
+     ? 'You do not have access to this action. Refresh your workspace before trying again.'
+     : 'Location could not be saved. Check the details and try again. Your draft is kept.';
   const submit = handleSubmit(async (data) => {
     stopLocating();
     const payload = {
@@ -454,12 +463,7 @@ function LocationForm({
         <div className="location-footer-message">
           {mutation.isError ? (
             <p role="alert" className="location-field-error">
-              {(
-                mutation.error as { response?: { data?: { message?: string } } }
-              ).response?.data?.message ??
-                t(
-                  "Location could not be saved. Check the details and try again.",
-                )}
+              {t(failureMessage)}
             </p>
           ) : (
             <p>

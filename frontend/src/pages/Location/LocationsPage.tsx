@@ -157,7 +157,7 @@ export default function LocationsPage() {
           pageSize={20}
           rowKey={(loc) => loc.id}
           emptyMessage="No locations match these filters."
-          mobileRender={loc=>{const row=daily.get(loc.id);return <div className="location-mobile-v5"><div className="location-mobile-title"><Building2 size={20}/><div><h3>{loc.name}</h3><p>{loc.address}</p></div><StatusBadge status={loc.isActive?'ACTIVE':'INACTIVE'}/></div><dl><div><dt>{t('Staff present')}</dt><dd>{row?`${row.present} / ${row.scheduled}`:'—'}</dd></div><div><dt>{t('Submitted / due')}</dt><dd>{row?`${row.submitted} / ${row.tasks}`:'—'}</dd></div><div><dt>{t('Waiting for review')}</dt><dd>{row?.reviews??'—'}</dd></div></dl><Button asChild variant="outline"><Link to={'/locations/'+loc.id}>{t('Open')}<ArrowRight size={14}/></Link></Button></div>;}}
+          mobileRender={loc=>{const row=daily.get(loc.id);return <div className="location-mobile-v5"><div className="location-mobile-title"><Building2 size={20}/><div><h3>{loc.name}</h3><p>{loc.address}</p></div><StatusBadge status={loc.isActive?'ACTIVE':'INACTIVE'}/></div><dl><div><dt>{t('Staff present')}</dt><dd><bdi dir="ltr">{row?`${row.present} / ${row.scheduled}`:'—'}</bdi></dd></div><div><dt>{t('Submitted / due')}</dt><dd><bdi dir="ltr">{row?`${row.submitted} / ${row.tasks}`:'—'}</bdi></dd></div><div><dt>{t('Waiting for review')}</dt><dd>{row?.reviews??'—'}</dd></div></dl><Button asChild variant="outline"><Link to={'/locations/'+loc.id}>{t('Open')}<ArrowRight size={14}/></Link></Button></div>;}}
           columns={[
             {
               key: "location",

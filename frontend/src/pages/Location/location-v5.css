@@ -84,3 +84,14 @@
  .workspace .location-register-v5 > .grid {gap:0}
  .workspace .location-register-v5 .table-mobile-sort {padding:12px 16px}
 }
+.workspace .location-week-v5 > div > div > button {min-height:44px}
+.workspace .location-week-v5 h3 span {margin-inline-start:8px;margin-inline-end:0}
+@media(max-width:620px){.workspace .location-week-v5 > div > div > button {min-height:48px}}
+.workspace .location-schedules-v5 {overflow:hidden}
+.workspace .location-schedules-v5 > .data-table {border:0;border-radius:0}
+.workspace-dialog.location-schedule-editor-v5 {width:min(620px,calc(100vw - 32px));max-height:92dvh;overflow-y:auto;padding:24px;border-radius:12px}
+.location-schedule-editor-v5 label {display:block;font-size:14px;font-weight:550;margin-block-end:8px}
+.location-schedule-editor-v5 input,.location-schedule-editor-v5 select,.location-schedule-editor-v5 textarea {min-height:44px;border-radius:7px}
+.location-schedule-actions-v5 {display:flex;justify-content:flex-end;gap:12px;padding-block-start:16px}
+@media(max-width:620px){.workspace-dialog.location-schedule-editor-v5 {padding:20px}.location-schedule-editor-v5 input,.location-schedule-editor-v5 select,.location-schedule-editor-v5 textarea,.location-schedule-actions-v5 [data-slot=button] {min-height:48px}}
+@media(max-width:620px){.workspace .location-v5 .ops-section-heading {flex-wrap:wrap}.workspace .location-v5 .ops-section-heading > div {min-width:min(100%,240px);flex:1}}

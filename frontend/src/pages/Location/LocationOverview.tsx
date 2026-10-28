@@ -26,7 +26,7 @@ export default function LocationOverview({location,onTab,overview}:{
   <OperationsState loading={overview.isPending} skeleton="metrics" error={overview.error} retry={()=>void overview.refetch()}/>
   {metrics&&facts?<section className="location-metrics-v5" aria-label={t('Daily summary')}>
    <Link to={dailyLink(params,{tab:'staff'})}><span>{t('Staff today')}</span><strong>{metrics.scheduled}</strong><p>{t('{present} checked in · {missing} not checked in',{present:metrics.present,missing:Math.max(0,metrics.scheduled-metrics.present)})}</p><small>{t('Site-local day')}</small></Link>
-   <Link to={dailyLink(params,{tab:'tasks'})}><span>{t('Tasks submitted')}</span><strong>{metrics.submitted}<small> / {metrics.totalTasks}</small></strong><p>{t('{progress} in progress · {overdue} overdue',{progress:facts.chart.inProgress,overdue:facts.chart.overdue})}</p><small>{t('Submission is not verification')}</small></Link>
+   <Link to={dailyLink(params,{tab:'tasks'})}><span>{t('Tasks submitted')}</span><strong dir="ltr">{metrics.submitted}<small> / {metrics.totalTasks}</small></strong><p>{t('{progress} in progress · {overdue} overdue',{progress:facts.chart.inProgress,overdue:facts.chart.overdue})}</p><small>{t('Submission is not verification')}</small></Link>
    <Link to={reviewLink(params)}><span>{t('Photo reviews')}</span><strong>{metrics.reviewCount}</strong><p>{t('Waiting for a decision')}</p><small>{t('View reviews')}</small></Link>
    <button type="button" onClick={()=>onTab('areas')}><span>{t('Area templates')}</span><strong>{activeAreas??'—'}</strong><p>{t(areas.isError?'Area templates are unavailable.':'Reusable cleaning requirements')}</p><small>{t('Immutable task snapshots')}</small></button>
   </section>:null}
