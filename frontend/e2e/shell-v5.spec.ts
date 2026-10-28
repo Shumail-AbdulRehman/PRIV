@@ -96,10 +96,11 @@ test('shared shell preserves manager owner-route denial staff handoff localized 
     await expect(access).toBeVisible();
     const close = access.getByRole('button', { name: lang === 'en' ? 'Close' : 'بند کریں', exact: true });
     await expect(close).toBeVisible();
-    expect((await close.boundingBox())!.height).toBeGreaterThanOrEqual(width === 390 ? 48 : 44);
-    expect((await close.boundingBox())!.width).toBeGreaterThanOrEqual(width === 390 ? 48 : 44);
     await expect(access).toHaveCSS('opacity', '1');
     await expect(access).toHaveCSS('background-color', 'rgb(255, 255, 255)');
+    // Wait for the entry zoom to finish before measuring the hit target.
+    await expect.poll(async () => (await close.boundingBox())!.height).toBeGreaterThanOrEqual(width === 390 ? 48 : 44);
+    await expect.poll(async () => (await close.boundingBox())!.width).toBeGreaterThanOrEqual(width === 390 ? 48 : 44);
     await page.screenshot({ path: join(out, `app-localized-dialog-${width}-${lang}.png`), animations: 'disabled' });
     await close.click(); await expect(access).toHaveCount(0);
     await enter(page, '/unavailable-shell-acceptance-address', 'ownerA', lang);
