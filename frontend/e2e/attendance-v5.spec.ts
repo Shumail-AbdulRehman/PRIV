@@ -131,7 +131,14 @@ test('actual context request conflict preserves the reason and explicit review s
   for (const width of [1366, 390]) for (const lang of ['en', 'ur']) {
     const context = await browser.newContext({ viewport: { width, height: 900 } }); const page = await context.newPage();
     await enter(page, `/staff/${fixture.staff.deactivate.id}?tab=attendance`, 'ownerA', lang);
-    await page.getByRole('button', { name: lang === 'ur' ? 'حاضری کا سیاق' : 'Attendance context', exact: true }).filter({ visible: true }).first().click();
+    const trigger = page.getByRole('button', { name: lang === 'ur' ? 'حاضری کا سیاق' : 'Attendance context', exact: true }).filter({ visible: true }).first();
+    // Spec29 also runs on its independent base, whose retained staff table has
+    // a Show details disclosure. Spec31 separately asserts a persistent action.
+    if (width === 390) {
+      await page.locator('article.record-summary').first().waitFor();
+      if (!await trigger.count()) await page.locator('article.record-summary summary').first().click();
+    }
+    await trigger.click();
     const dialog = page.getByRole('dialog'); const reason = dialog.getByLabel(lang === 'ur' ? 'وجہ (لازمی)' : 'Reason (required)');
     const draft = `V5 conflict draft ${width} ${lang}`;
     await reason.fill(draft); let conflict = true;

@@ -48,6 +48,7 @@ test('V5 Team detail and manager workspaces render actual scoped data across des
     await capture(page, `app-detail-overview-${width}-${lang}`);
     for (const [tab, translated] of [['Attendance', 'حاضری'], ['Task history', 'کام کی تاریخ'], ['Cleaning schedule', 'صفائی کا شیڈول']]) {
       await page.getByRole('button', { name: lang === 'ur' ? translated : tab, exact: true }).click();
+      if (tab === 'Attendance') await expect(page.getByRole('button', { name: lang === 'ur' ? 'حاضری کا سیاق' : 'Attendance context', exact: true }).filter({ visible: true }).first()).toBeVisible();
       await capture(page, `app-detail-${tab.toLowerCase().replaceAll(' ', '-')}-${width}-${lang}`);
     }
     await page.goto('/managers');
