@@ -88,7 +88,7 @@ test('persisted cleaning schedule editor uses saved fields and preserves a faile
  try{
   await enter(initial,`/locations/${fixture.site.A}?tab=templates`);
   await sql('UPDATE "Staff" SET "shiftStart"=$2,"shiftEnd"=$3 WHERE id=$1',[fixture.staff.recovery.id,'1970-01-01T00:00:00Z','1970-01-01T18:00:00Z']);
-  const area=(await sql('SELECT id,"inventoryVersion" FROM "Area" WHERE "locationId"=$1 ORDER BY id LIMIT 1',[fixture.site.A]))[0];
+  const areaResponse=await initial.request.post(backend+`/api/location/${fixture.site.A}/areas`,{data:{name:'V5 schedule inventory',roomType:'WASHROOM',counts:[{fixtureType:'SINK',count:1}]}});expect(areaResponse.status()).toBe(201);const area=(await areaResponse.json()).data;
   const future=new Date(Date.now()+3*86400000).toISOString().slice(0,10);
   const created=await initial.request.post(backend+'/api/task-template',{data:{title:'V5 persisted schedule',locationId:fixture.site.A,areaId:area.id,inventorySelection:'ALL',selectedItems:[],expectedInventoryVersion:area.inventoryVersion,shiftStart:future+'T04:00:00Z',shiftEnd:future+'T05:00:00Z',recurringType:'ONCE',effectiveDate:future+'T00:00:00Z'}});const createdBody=await created.json();expect(created.status(),JSON.stringify(createdBody)).toBe(201);const id=createdBody.data.id;
   await prep.close();
