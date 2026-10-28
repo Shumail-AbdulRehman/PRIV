@@ -85,6 +85,10 @@ const ur: Record<string,string> = {
  'Return to locations':'مقامات پر واپس جائیں',
  'No saved location is available at this address.':'اس پتے پر کوئی محفوظ مقام دستیاب نہیں۔',
  'Checking today’s work…':'آج کا کام دیکھا جا رہا ہے…',
+ 'Description':'تفصیل', 'Daily':'روزانہ', 'Once':'ایک بار',
+ 'Address is required':'پتہ ضروری ہے', 'Inventory needs review':'سامان کی فہرست کا جائزہ درکار ہے',
+ 'reference areas':'حوالے کے علاقے', 'Reference set':'حوالے کا مجموعہ', 'Selected fixtures':'منتخب فکسچر', 'All active fixtures':'تمام فعال فکسچر', 'planned':'منصوبہ شدہ',
+ 'Location creation could not be confirmed. Close and check the location list before creating again.':'مقام بننے کی تصدیق نہیں ہو سکی۔ دوبارہ بنانے سے پہلے بند کرکے مقامات کی فہرست دیکھیں۔',
 };
 export function useLocationLanguage() {
  const context=useLanguage();

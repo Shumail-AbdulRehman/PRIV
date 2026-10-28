@@ -110,6 +110,7 @@ it('schedule editor retains translated draft on failed save and prevents unsuppo
  fireEvent.click(screen.getAllByRole('button',{name:'شیڈول بدلیں'})[0]);
  expect(screen.getByRole('dialog',{name:'صفائی کا شیڈول بدلیں'})).toBeInTheDocument();
  expect(screen.getByRole('option',{name:'کوئی مقرر نہیں'})).toBeDisabled();
+ expect(screen.getByLabelText('تفصیل')).toBeInTheDocument();expect(screen.getByRole('option',{name:'ایک بار'})).toBeInTheDocument();
  fireEvent.change(screen.getByLabelText('شیڈول کا عنوان'),{target:{value:'Preserved schedule draft'}});
  fireEvent.click(screen.getByRole('button',{name:'تبدیلیاں محفوظ کریں'}));
  expect(await screen.findByRole('alert')).toHaveTextContent('آپ کا مسودہ برقرار ہے');

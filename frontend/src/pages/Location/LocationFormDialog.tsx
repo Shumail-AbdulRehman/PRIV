@@ -48,11 +48,15 @@ export default function LocationFormDialog({
   location,
 }: Props) {
   const { t } = useLocationLanguage();
+  const [saving,setSaving]=useState(false);
   return (
-    <Dialog open={open} onOpenChange={onOpenChange}>
+    <Dialog open={open} onOpenChange={next=>{if(!saving)onOpenChange(next);}}>
       <DialogContent
         className="location-form-dialog"
+        showCloseButton={!saving}
+        onEscapeKeyDown={event=>{if(saving)event.preventDefault();}}
         onInteractOutside={(event) => {
+          if(saving){event.preventDefault();return;}
           if (
             event.target instanceof Element &&
             event.target.closest(".gm-style")
@@ -79,6 +83,7 @@ export default function LocationFormDialog({
             location={location}
             onCancel={() => onOpenChange(false)}
             onSaved={onSaved}
+            onSaving={setSaving}
           />
         ) : null}
       </DialogContent>
@@ -90,10 +95,12 @@ function LocationForm({
   location,
   onCancel,
   onSaved,
+  onSaving,
 }: {
   location?: EditableLocation;
   onCancel(): void;
   onSaved(): void;
+  onSaving(value:boolean): void;
 }) {
   const { t } = useLocationLanguage();
   const create = useCreateLocation(),
@@ -126,7 +133,9 @@ function LocationForm({
     name: ["latitude", "longitude", "radiusMeters"],
   });
   const position = parseCoordinates(latitude, longitude);
-  const busy = mutation.isPending;
+  const [pending,setPending]=useState(false),[uncertain,setUncertain]=useState(false);
+  const submitting=useRef(false);
+  const busy = mutation.isPending || pending;
   useEffect(() => () => request.current?.abort(), []);
   function stopLocating() {
     request.current?.abort();
@@ -184,7 +193,9 @@ function LocationForm({
   }
   const failure=mutation.error as {response?:{status?:number;data?:{errors?:Array<{code?:string}>}}}|undefined;
   const failureCode=failure?.response?.data?.errors?.find(issue=>issue.code)?.code;
-  const failureMessage=failureCode==='CAPACITY_REACHED'
+  const failureMessage=uncertain
+   ? 'Location creation could not be confirmed. Close and check the location list before creating again.'
+   : failureCode==='CAPACITY_REACHED'
    ? 'Your plan’s location capacity has been reached. Review Plan & billing. Your draft is kept.'
    : failureCode==='SUBSCRIPTION_REQUIRED'
     ? 'An active subscription is required to add locations. Review Plan & billing. Your draft is kept.'
@@ -192,6 +203,8 @@ function LocationForm({
      ? 'You do not have access to this action. Refresh your workspace before trying again.'
      : 'Location could not be saved. Check the details and try again. Your draft is kept.';
   const submit = handleSubmit(async (data) => {
+    if(submitting.current||uncertain)return;
+    submitting.current=true;setPending(true);onSaving(true);
     stopLocating();
     const payload = {
       ...data,
@@ -204,9 +217,10 @@ function LocationForm({
         await update.mutateAsync({ id: location.id, data: payload });
       else await create.mutateAsync(payload);
       onSaved();
-    } catch {
-      /* Mutation errors stay visible beside the form actions. */
-    }
+    } catch(error) {
+      const status=(error as {response?:{status?:number}})?.response?.status;
+      if(!location&&(!status||status>=500))setUncertain(true);
+    } finally {submitting.current=false;setPending(false);onSaving(false);}
   });
   return (
     <form onSubmit={submit} className="location-editor">
@@ -461,7 +475,7 @@ function LocationForm({
       </div>
       <footer className="location-editor-footer">
         <div className="location-footer-message">
-          {mutation.isError ? (
+          {mutation.isError || uncertain ? (
             <p role="alert" className="location-field-error">
               {t(failureMessage)}
             </p>
@@ -484,7 +498,7 @@ function LocationForm({
           >
             {t("Cancel")}
           </Button>
-          <Button type="submit" disabled={busy || locating}>
+          <Button type="submit" disabled={busy || locating || uncertain}>
             {busy ? (
               <LoaderCircle size={16} className="animate-spin" />
             ) : (
