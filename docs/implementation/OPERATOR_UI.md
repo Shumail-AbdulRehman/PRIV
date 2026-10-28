@@ -15,7 +15,7 @@ cache cleanup, with pending, retryable failure and receipt; tenant state is
 preserved and provider logout is never claimed.
 
 Current source branch: `implementation/v5-operator-boundary`, based on the
-verified combined checkpoint8ff718e. Existing issue59 is reused. Minimal
+verified combined checkpoint8ff718e. Existing issue59 is reused. OPEN/DRAFT [PR95](https://github.com/Shumail-AbdulRehman/PRIV/pull/95) is based on `implementation/v5-workforce-final`; no PR is merged. Minimal
 CompaniesPage/ServicePage test heading changes preserve their denial assertions;
 no33/35 runtime source, route composition, backend, schema, dependency, provider,
 database configuration or approved design is changed.
