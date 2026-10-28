@@ -50,7 +50,9 @@ test('attendance filters use scoped API and empty date results without admitting
   const loaded = page.waitForResponse(r => r.url().includes('/api/attendance') && r.request().method() === 'GET' && new URL(r.url()).searchParams.get('from') === '2090-01-01');
   await page.getByRole('button', { name: 'Apply filters', exact: true }).click();
   const response = await loaded; expect(response.status()).toBe(200); expect(new URL(response.url()).searchParams.get('locationId')).toBe(String(fixture.site.A));
-  await expect(page.getByText('E2E staff openShift', { exact: true })).toHaveCount(0); await capture(page, 'app-attendance-empty-1366-en');
+  await expect(page.locator('.attendance-register').getByText('E2E staff openShift', { exact: true })).toHaveCount(0);
+  await expect(page.getByText('No attendance records found for the selected filters.', { exact: true })).toBeVisible();
+  await capture(page, 'app-attendance-empty-1366-en');
   const denied = await page.request.get(backend + `/api/attendance?locationId=${fixture.site.foreign}`); expect(denied.status()).toBe(403);
 });
 

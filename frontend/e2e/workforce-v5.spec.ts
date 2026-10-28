@@ -195,3 +195,24 @@ test('actual exhausted plan rejects a hire without losing the form or inserting 
   await page.locator('#staff-create-password').fill('');
   await capture(page, 'app-hire-capacity-denied-1366-en');
 });
+
+test('hiring validation exposes associated errors in English Urdu without sending invalid accounts', async ({ browser }) => {
+  test.setTimeout(90000);
+  for (const width of [1366, 390]) for (const lang of ['en', 'ur']) {
+    const context = await browser.newContext({ viewport: { width, height: 900 } });
+    const page = await context.newPage(); let writes = 0;
+    page.on('request', request => { if (request.method() === 'POST' && (new URL(request.url()).pathname === '/api/staff/create-staff' || new URL(request.url()).pathname === '/api/manager/')) writes++; });
+    await enter(page, '/staff?create=1', 'ownerA', lang);
+    await page.getByRole('button', { name: lang === 'ur' ? 'عملہ شامل کریں' : 'Create staff', exact: true }).click();
+    await expect(page.locator('#staff-create-name')).toHaveAttribute('aria-invalid', 'true');
+    await expect(page.locator('#staff-create-name')).toHaveAccessibleDescription(lang === 'ur' ? 'نام ضروری ہے' : 'Name is required');
+    await capture(page, `app-hire-validation-${width}-${lang}`);
+    await page.goto('/managers');
+    await page.getByRole('button', { name: lang === 'ur' ? 'مینیجر شامل کریں' : 'Add manager', exact: true }).click();
+    await page.getByRole('dialog').getByRole('button', { name: lang === 'ur' ? 'مینیجر بنائیں' : 'Create manager', exact: true }).click();
+    await expect(page.locator('#manager-name')).toHaveAttribute('aria-invalid', 'true');
+    await expect(page.locator('#manager-name')).toHaveAccessibleDescription(lang === 'ur' ? 'نام ضروری ہے' : 'Name is required');
+    await capture(page, `app-manager-validation-${width}-${lang}`);
+    expect(writes).toBe(0); await context.close();
+  }
+});

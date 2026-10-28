@@ -33,3 +33,9 @@ OperatorIdP/MFA,qualifiedphoto/privacy,Paddle,deliveredowneremail/validissuedlin
 Current source7965d06/2ab7c96:26targeted/64Node+250React/19files,lint0,TypeScript/productionbuildpass. Freshguardedbrowser3passed50.0s,40PNGs/8baseobservations nooverflow/pageerrors. QAindependentlyinspectedall32actualstatesand8references: roles/navigation/menugeometry/focus,actualcompanyidentity,44/48touchsizes,notfound/fatalreload,ownsecurity/STAFFhandoff,localizedClose. Noopensignificantshellfinding;27webDone,featurepages/native37/provider/fullV5remainseparate. Spec29nexteligibleafter23/08/27;independentAttendanceworkstartswithoutStaffownership.
 
 Current rerunbackend48targetedpasses;isolatedSQLworkforce+credentialproofspass.
+
+## Current integrated functional correction
+
+Main coordinator recovered the two implementation agents’ last scoped edits after their turns became unavailable; all retained work is preserved in Git. Actual Reason control kept its draft after409but implicit label text included the textarea’s typed value, breaking exact accessible lookup. Explicit unique label/id binding fixes the source without weakening regression assertions. Hiring403was genuine: syntheticCompanyAhas6activestaffunderSTARTERlimit3. PositivehireusesCompanyBwithavailablecapacity; separate actual403caseprovesnoinsert+preserveddraft+honestcapacityguidance. No quota/provider guard changed.
+
+Recorded QA corrections: complete Urdu stat/dialog/action labels; LTR chart geometry with Urdu labels;15px directory identity; custom existing DataTable mobile render removes duplicate detail controls; Scheduledtasks uses actual totalInstances rather than schedule templates; cached failed refresh retains dialogs; foreign404shows safe unavailable state; creation/edit drafts bound to principal/person/site and late feedback ignored. Final current54focusedcasespass; full64Node+274React/21filespass,lint0/TypeScriptpasses. Integratedbrowser/visualacceptancependingrerun.
