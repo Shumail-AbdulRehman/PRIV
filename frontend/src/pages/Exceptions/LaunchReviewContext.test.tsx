@@ -143,3 +143,16 @@ it('offers a real pending review after a closed queue is exhausted instead of lo
  expect(decodeURIComponent(link.getAttribute('href')!)).toContain('queue=needs-me');
  expect(api.get).toHaveBeenCalledWith('/verification-exceptions',expect.objectContaining({params:expect.objectContaining({queue:'needs-me',page:'1',pageSize:'1'})}));
 });
+
+it('uses review vocabulary for Urdu queue tabs without leaking English or task-not-started wording',async()=>{
+ mount(<ExceptionInboxPage/>,'ur');
+ const queue=await screen.findByRole('group',{name:reviewUrdu['Review queues']});
+ expect(within(queue).getByRole('button',{name:reviewUrdu.pending})).toBeInTheDocument();
+ expect(within(queue).getByRole('button',{name:reviewUrdu.reviewed})).toBeInTheDocument();
+ expect(within(queue).queryByText('Reviewed')).not.toBeInTheDocument();
+ expect(queue).not.toHaveTextContent('شروع نہیں ہوا');
+ fireEvent.click(screen.getByText(reviewUrdu['Review filters']));
+ const options=screen.getByRole('combobox',{name:'جائزے کی فہرست'});
+ expect(within(options).getByRole('option',{name:reviewUrdu.pending})).toBeInTheDocument();
+ expect(within(options).getByRole('option',{name:reviewUrdu.reviewed})).toBeInTheDocument();
+});
