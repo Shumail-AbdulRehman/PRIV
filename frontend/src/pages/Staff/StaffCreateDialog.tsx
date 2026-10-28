@@ -103,6 +103,17 @@ function ScopedStaffCreateDialog({open,onOpenChange,locations=[],location,onSave
     );
   };
 
+  const failure=createStaff.error as {response?:{status?:number;data?:{errors?:Array<{code?:string}>}}}|undefined;
+  const failureCode=failure?.response?.data?.errors?.find(issue=>issue.code)?.code;
+  const failureMessage=failureCode==='CAPACITY_REACHED'
+    ? 'Your plan’s staff capacity has been reached. Ask the company owner to review Plan & billing. Your draft is kept.'
+    : failureCode==='SUBSCRIPTION_REQUIRED'
+      ? 'An active subscription is required to add staff. Ask the company owner to review Plan & billing. Your draft is kept.'
+      : failure?.response?.status===403
+        ? 'You do not have access to this action. Refresh your assigned sites.'
+        : failure?.response?.status===409
+          ? 'The email is already in use or the available capacity changed. Your draft is kept.'
+          : 'Could not add staff. Check the details and try again. Your draft is kept.';
   const body = (
         <form
           onSubmit={event=>void handleSubmit(onCreateSubmit)(event)}
@@ -117,12 +128,12 @@ function ScopedStaffCreateDialog({open,onOpenChange,locations=[],location,onSave
               {t("Full Name")}
             </label>
             <Input
-              id="staff-create-name" aria-label={t("Full Name")}
-              {...register("name", { required: "Name is required" })}
+              id="staff-create-name" aria-invalid={!!errors.name} aria-describedby={errors.name ? "staff-create-name-error" : undefined} aria-label={t("Full Name")}
+              {...register("name", { required: "Name is required", minLength: { value: 2, message: "Name must be at least 2 characters" } })}
               autoComplete="name"
             />
             {errors.name && (
-              <p className="mt-1 text-xs workforce-danger">{t(String(errors.name.message))}</p>
+              <p id="staff-create-name-error" className="mt-1 text-xs workforce-danger">{t(String(errors.name.message))}</p>
             )}
           </div>
           <div>
@@ -134,12 +145,12 @@ function ScopedStaffCreateDialog({open,onOpenChange,locations=[],location,onSave
             </label>
             <Input
               type="email"
-              id="staff-create-email" aria-label={t("Email")}
+              id="staff-create-email" aria-invalid={!!errors.email} aria-describedby={errors.email ? "staff-create-email-error" : undefined} aria-label={t("Email")}
               {...register("email", { required: "Email is required" })}
               dir="ltr" autoComplete="email"
             />
             {errors.email && (
-              <p className="mt-1 text-xs workforce-danger">
+              <p id="staff-create-email-error" className="mt-1 text-xs workforce-danger">
                 {t(String(errors.email.message))}
               </p>
             )}
@@ -153,7 +164,7 @@ function ScopedStaffCreateDialog({open,onOpenChange,locations=[],location,onSave
             </label>
             <Input
               type="tel"
-              id="staff-create-phone" aria-label={t("Phone Number")}
+              id="staff-create-phone" aria-invalid={!!errors.phone} aria-describedby={errors.phone ? "staff-create-phone-error" : undefined} aria-label={t("Phone Number")}
               {...register("phone", {
                 required: "Phone number is required",
                 minLength: {
@@ -168,7 +179,7 @@ function ScopedStaffCreateDialog({open,onOpenChange,locations=[],location,onSave
               dir="ltr" autoComplete="tel"
             />
             {errors.phone && (
-              <p className="mt-1 text-xs workforce-danger">
+              <p id="staff-create-phone-error" className="mt-1 text-xs workforce-danger">
                 {t(String(errors.phone.message))}
               </p>
             )}
@@ -182,14 +193,14 @@ function ScopedStaffCreateDialog({open,onOpenChange,locations=[],location,onSave
             </label>
             <Input
               type="password"
-              id="staff-create-password" aria-label={t("Password")}
+              id="staff-create-password" aria-invalid={!!errors.password} aria-describedby={errors.password ? "staff-create-password-error" : undefined} aria-label={t("Password")}
               {...register("password", {
                 required: "Password is required", minLength: {value: 8, message:"Use at least 8 characters"},
               })}
               dir="ltr" autoComplete="new-password"
             />
             {errors.password && (
-              <p className="mt-1 text-xs workforce-danger">
+              <p id="staff-create-password-error" className="mt-1 text-xs workforce-danger">
                 {t(String(errors.password.message))}
               </p>
             )}
@@ -203,7 +214,7 @@ function ScopedStaffCreateDialog({open,onOpenChange,locations=[],location,onSave
             </label>
             <select
               disabled={!!location}
-              id="staff-create-locationId" aria-label={t(location||managerHire?"Location":"Location (optional)")}
+              id="staff-create-locationId" aria-invalid={!!errors.locationId} aria-describedby={errors.locationId ? "staff-create-locationId-error" : undefined} aria-label={t(location||managerHire?"Location":"Location (optional)")}
               {...register("locationId", { validate: value => !managerHire || locations.some(site => String(site.id) === (location ? String(location.id) : value)) || "Select assigned site" })}
               className={inputCls}
             >
@@ -215,7 +226,7 @@ function ScopedStaffCreateDialog({open,onOpenChange,locations=[],location,onSave
               ))}
             </select>
           </div>
-          {errors.locationId ? <p role="alert" className="text-destructive">{t(String(errors.locationId.message))}</p> : null}
+          {errors.locationId ? <p id="staff-create-locationId-error" role="alert" className="text-destructive">{t(String(errors.locationId.message))}</p> : null}
           <div className="workforce-create-shifts grid grid-cols-2 gap-4">
             <div>
               <label
@@ -226,13 +237,13 @@ function ScopedStaffCreateDialog({open,onOpenChange,locations=[],location,onSave
               </label>
               <Input
                 type="time" dir="ltr"
-                id="staff-create-shiftStart" aria-label={t("Shift Start")}
+                id="staff-create-shiftStart" aria-invalid={!!errors.shiftStart} aria-describedby={errors.shiftStart ? "staff-create-shiftStart-error" : undefined} aria-label={t("Shift Start")}
                 {...register("shiftStart", {
                   required: "Shift start is required",
                 })}
               />
               {errors.shiftStart && (
-                <p className="mt-1 text-xs workforce-danger">
+                <p id="staff-create-shiftStart-error" className="mt-1 text-xs workforce-danger">
                   {t(String(errors.shiftStart.message))}
                 </p>
               )}
@@ -246,13 +257,13 @@ function ScopedStaffCreateDialog({open,onOpenChange,locations=[],location,onSave
               </label>
               <Input
                 type="time" dir="ltr"
-                id="staff-create-shiftEnd" aria-label={t("Shift End")}
+                id="staff-create-shiftEnd" aria-invalid={!!errors.shiftEnd} aria-describedby={errors.shiftEnd ? "staff-create-shiftEnd-error" : undefined} aria-label={t("Shift End")}
                 {...register("shiftEnd", {
                   required: "Shift end is required",
                 })}
               />
               {errors.shiftEnd && (
-                <p className="mt-1 text-xs workforce-danger">
+                <p id="staff-create-shiftEnd-error" className="mt-1 text-xs workforce-danger">
                   {t(String(errors.shiftEnd.message))}
                 </p>
               )}
@@ -260,7 +271,7 @@ function ScopedStaffCreateDialog({open,onOpenChange,locations=[],location,onSave
           </div>
           {createStaff.isError ? (
             <p role="alert" className="operations-notice">
-              {t((createStaff.error as {response?:{status?:number}})?.response?.status === 409 ? 'The email is already in use or the available capacity changed. Your draft is kept.' : 'Could not add staff. Check the details and try again. Your draft is kept.')}
+              {t(failureMessage)}
             </p>
           ) : null}
           </fieldset>

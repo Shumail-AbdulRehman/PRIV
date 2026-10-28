@@ -119,7 +119,7 @@ export default function ManagerFormDialog({
             </label>
             <Input
               className="min-h-12!"
-              id="manager-name" disabled={isPending} autoComplete="name"
+              id="manager-name" aria-invalid={!!errors.name} aria-describedby={errors.name ? "manager-name-error" : undefined} disabled={isPending} autoComplete="name"
               {...register("name", {
                 required: "Name is required",
                 minLength: {
@@ -130,7 +130,7 @@ export default function ManagerFormDialog({
               placeholder="Ayesha Khan"
             />
             {errors.name && (
-              <p role="alert" className="mt-1 text-xs workforce-danger">
+              <p id="manager-name-error" role="alert" className="mt-1 text-xs workforce-danger">
                 {t(String(errors.name.message))}
               </p>
             )}
@@ -145,13 +145,13 @@ export default function ManagerFormDialog({
             </label>
             <Input
               className="min-h-12!"
-              id="manager-email" disabled={isPending} dir="ltr" autoComplete="email"
+              id="manager-email" aria-invalid={!!errors.email} aria-describedby={errors.email ? "manager-email-error" : undefined} disabled={isPending} dir="ltr" autoComplete="email"
               type="email"
               {...register("email", { required: "Email is required" })}
               placeholder="manager@company.com"
             />
             {errors.email && (
-              <p role="alert" className="mt-1 text-xs workforce-danger">
+              <p id="manager-email-error" role="alert" className="mt-1 text-xs workforce-danger">
                 {t(String(errors.email.message))}
               </p>
             )}
@@ -159,15 +159,15 @@ export default function ManagerFormDialog({
 
           {!isEdit ? <div>
             <label htmlFor="manager-password" className="mb-1.5 block text-sm font-medium text-foreground">{t("Password")}</label>
-            <Input className="min-h-12!" id="manager-password" disabled={isPending} dir="ltr" type="password" autoComplete="new-password" {...register("password", { required: "Password is required", minLength: { value: 8, message: "Use at least 8 characters" } })} />
-            {errors.password ? <p role="alert" className="text-destructive">{t(String(errors.password.message))}</p> : null}
+            <Input className="min-h-12!" id="manager-password" aria-invalid={!!errors.password} aria-describedby={errors.password ? "manager-password-error" : undefined} disabled={isPending} dir="ltr" type="password" autoComplete="new-password" {...register("password", { required: "Password is required", minLength: { value: 8, message: "Use at least 8 characters" } })} />
+            {errors.password ? <p id="manager-password-error" role="alert" className="text-destructive">{t(String(errors.password.message))}</p> : null}
           </div> : <p className="text-sm text-muted-foreground">{t("Managers change their own password in Account security. Owner password replacement is unavailable.")}</p>}
 
-          <fieldset>
+          <fieldset aria-describedby={errors.locationIds ? "manager-locations-error" : undefined}>
             <legend className="mb-1.5 block text-sm font-medium text-foreground">
               {t("Assigned Locations")}
             </legend>
-            <p className="mb-2 text-xs text-muted-foreground">
+            <p id="manager-locations-error" className="mb-2 text-xs text-muted-foreground">
               {t("The manager can only see and manage the locations you select here. A location can only be assigned to one manager.")}
             </p>
             <div className="max-h-48 space-y-1 overflow-y-auto rounded-lg border border-border/70 bg-muted/30 p-2">
@@ -176,7 +176,7 @@ export default function ManagerFormDialog({
                 return (
                   <label
                     key={loc.id}
-                    className={`flex min-h-12! items-center gap-3 rounded-xl px-3 py-2 text-sm transition-colors duration-150 ${
+                    className={`manager-site-option flex min-h-12! items-center gap-3 rounded-xl px-3 py-2 text-sm transition-colors duration-150 ${
                       takenBy
                         ? "cursor-not-allowed opacity-60"
                         : "cursor-pointer text-foreground hover:bg-accent"

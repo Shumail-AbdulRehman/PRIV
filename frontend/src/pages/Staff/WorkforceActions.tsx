@@ -1,4 +1,4 @@
-import { useRef, useState } from 'react';
+import { useId, useRef, useState } from 'react';
 import { useQueryClient } from '@tanstack/react-query';
 import { client } from '@/api/client';
 import useAuth from '@/hooks/useAuth';
@@ -27,7 +27,7 @@ function DraftWorkforceActions(props:Props){
 }
 type DraftProps=Props&{open:boolean;setOpen:(value:boolean)=>void;action:Action;setAction:(value:Action)=>void;reason:string;setReason:(value:string)=>void;destination:string;setDestination:(value:string)=>void};
 function ScopedWorkforceActions({person,locations=[],entity='staff',open,setOpen,action,setAction,reason,setReason,destination,setDestination}:DraftProps){
- const {user}=useAuth();const {t,language}=useLanguage();const qc=useQueryClient();const inFlight=useRef(false);
+ const {user}=useAuth();const {t,language}=useLanguage();const qc=useQueryClient();const inFlight=useRef(false);const reasonId=useId();
  const [password,setPassword]=useState('');const [busy,setBusy]=useState(false);const [refreshing,setRefreshing]=useState(false);
  const [error,setError]=useState('');const [saved,setSaved]=useState(false);const [handoff,setHandoff]=useState<{token:string;expiresAt:string}|null>(null);
  const permitted=user?.role==='ADMIN'||(user?.role==='MANAGER'&&entity==='staff'&&person.locationId!=null&&locations.some(l=>l.id===person.locationId));
@@ -73,7 +73,7 @@ function ScopedWorkforceActions({person,locations=[],entity='staff',open,setOpen
   {saved&&!open?<span role="status">{t('Access change saved. History preserved.')}</span>:null}
   <Dialog open={open} onOpenChange={value=>{if(!value)close();}}>
    <DialogContent className="workforce-dialog bg-card max-h-[90dvh] overflow-y-auto" showCloseButton={!busy&&!refreshing} onEscapeKeyDown={e=>{if(busy||refreshing)e.preventDefault();}} onInteractOutside={e=>{if(busy||refreshing)e.preventDefault();}}>
-    <DialogTitle>{t(entity==='manager'?'Manager access':'Staff access')} · {person.name}</DialogTitle>
+    <DialogTitle>{t(entity==='manager'?'Manager access':'Staff access')} · <bdi>{person.name}</bdi></DialogTitle>
     <DialogDescription>{t('Attendance, tasks and evidence are preserved. Access changes revoke existing sessions. No general restore is available.')}</DialogDescription>
     {handoff?<div className="space-y-4">
      <p role="status">{t('One-use recovery code created. Share it directly with this staff member. It sets a new password; it is not a login password.')}</p>
@@ -89,7 +89,7 @@ function ScopedWorkforceActions({person,locations=[],entity='staff',open,setOpen
      </select></label>
      {entity==='manager'?<p>{t('For a handover, deactivate this manager first. After the sites are released, edit the active replacement manager and assign those sites. The previous manager loses access immediately.')}</p>:null}
      {action==='transfer'?<><label className="block">{t('Destination site')}<select className="w-full min-h-12! rounded-lg border border-border bg-background px-3" required value={destination} disabled={busy} onChange={e=>setDestination(e.target.value)}><option value="">{t('Select assigned site')}</option>{sites.map(l=><option key={l.id} value={l.id}>{l.name}</option>)}</select></label><p>{t('An open shift must be checked out first. Recorded attendance stays at its original site; incomplete assignments are released.')}</p></>:null}
-     <label className="block">{t('Reason')}<Textarea rows={3} required maxLength={1000} value={reason} disabled={busy||refreshing} onChange={e=>setReason(e.target.value)}/></label>
+     <div className="workforce-field"><label htmlFor={reasonId}>{t('Reason')}</label><Textarea id={reasonId} rows={3} required maxLength={1000} value={reason} disabled={busy||refreshing} onChange={e=>setReason(e.target.value)}/></div>
      {action==='handoff'?<label className="block">{t('Your current password')}<Input className="min-h-12!" type="password" dir="ltr" autoComplete="current-password" required value={password} disabled={busy} onChange={e=>setPassword(e.target.value)}/></label>:null}
      {error?<div className="workforce-error"><p role="alert">{t(error)}</p><Button type="button" variant="outline" disabled={busy||refreshing} onClick={()=>void refresh()}>{t(refreshing?'Refreshing…':'Refresh access context')}</Button></div>:null}
      <div className="workforce-form-actions"><Button type="button" variant="outline" className="min-h-12!" disabled={busy||refreshing} onClick={close}>{t('Cancel')}</Button><Button className="min-h-12!" type="submit" disabled={busy||refreshing||!person.isActive||!reason.trim()||(action==='transfer'&&!destination)||(action==='handoff'&&!password)}>{t(busy?'Saving…':'Confirm access change')}</Button></div>

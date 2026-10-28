@@ -10,13 +10,13 @@ import StaffPage from './StaffPage';
 import StaffCreateDialog from './StaffCreateDialog';
 import StaffEditDialog from './StaffEditDialog';
 import StaffDetailPage from './StaffDetailPage';
-const m=vi.hoisted(()=>({edit:vi.fn(),create:vi.fn(),staff:{},locations:{},detail:{},detailArgs:vi.fn()}));
+const m=vi.hoisted(()=>({edit:vi.fn(),create:vi.fn(),createState:{} as Record<string,unknown>,staff:{},locations:{},detail:{},detailArgs:vi.fn()}));
 vi.mock('./queries',()=>({
  useGetStaff:()=>m.staff,
  useGetStaffDetails:(id:number,filters:unknown)=>{m.detailArgs(id,filters);return m.detail;},
  getStaffDetailsQueryOptions:()=>({queryKey:['staff','preview'],queryFn:async()=>null}),
  useEditStaff:()=>({mutateAsync:m.edit,isPending:false}),
- useCreateStaff:()=>({mutate:m.create,isPending:false,isError:false}),
+ useCreateStaff:()=>({mutate:m.create,...m.createState}),
 }));
 vi.mock('../Location/queries',()=>({useGetLocations:()=>m.locations}));
 vi.mock('./StaffPerformanceIssues',()=>({default:()=>null}));
@@ -35,7 +35,7 @@ function mount(node:React.ReactNode,role:AuthUser['role']='ADMIN',path='/staff',
  return {...view,store,rerenderNode:(child:React.ReactNode)=>view.rerender(tree(child))};
 }
 beforeEach(()=>{
- vi.clearAllMocks();localStorage.clear();m.edit.mockResolvedValue({});
+ vi.clearAllMocks();localStorage.clear();m.edit.mockResolvedValue({});m.createState={isPending:false,isError:false};
  m.staff={isLoading:false,isError:false,data:{data:[person,{...person,id:8,name:'Unassigned worker',email:'unassigned@example.invalid',locationId:null}]}};
  m.locations={isPending:false,isError:false,data:{data:[site]}};
  m.detail={isLoading:false,isFetching:false,isError:false,data:{data:{...person,createdAt:'2026-10-01T00:00:00Z',role:'STAFF',location:site,periodLabel:'October 2026',taskStats:{totalTemplates:0,totalInstances:0,completed:0,pending:0,inProgress:0,missed:0},attendanceStats:{totalRecords:0,present:0,absent:0,late:0},taskTemplates:[],taskInstances:[],attendances:[]}}};
@@ -153,4 +153,20 @@ it('scheduled task metric uses execution instances rather than cleaning schedule
  mount(<Routes><Route path="/staff/:id" element={<StaffDetailPage/>}/></Routes>,'ADMIN','/staff/7?month=2026-10');
  const metric=screen.getByText('Scheduled tasks').closest('.stat-card') as HTMLElement;
  expect(within(metric).getByText('9')).toBeInTheDocument();expect(within(metric).queryByText('2')).not.toBeInTheDocument();
+});
+
+it.each(['CAPACITY_REACHED','SUBSCRIPTION_REQUIRED'])('hiring reports %s honestly and retains the draft',code=>{
+ const view=mount(<StaffCreateDialog open inline locations={[site]} onOpenChange={()=>{}}/>);
+ fireEvent.change(screen.getByLabelText('Full Name'),{target:{value:'Retained hire draft'}});
+ m.createState={isPending:false,isError:true,error:{response:{status:403,data:{errors:[{code}],message:'private backend detail'}}}};
+ view.rerenderNode(<StaffCreateDialog open inline locations={[site]} onOpenChange={()=>{}}/>);
+ expect(screen.getByRole('alert')).toHaveTextContent(code==='CAPACITY_REACHED'?'capacity has been reached':'active subscription is required');
+ expect(screen.getByLabelText('Full Name')).toHaveValue('Retained hire draft');expect(screen.queryByText('private backend detail')).not.toBeInTheDocument();
+});
+it('foreign detail404 explains unavailable account scope and offers the team directory',()=>{
+ m.detail={isLoading:false,isError:true,error:{response:{status:404}}};
+ mount(<Routes><Route path="/staff/:id" element={<StaffDetailPage/>}/></Routes>,'ADMIN','/staff/999');
+ expect(screen.getByRole('alert')).toHaveTextContent('unavailable to your account');
+ expect(screen.getByRole('link',{name:'Back to team'})).toHaveAttribute('href','/staff');
+ expect(screen.queryByText(person.name)).not.toBeInTheDocument();
 });
