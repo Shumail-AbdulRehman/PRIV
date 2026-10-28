@@ -58,3 +58,48 @@ Use configured OIDC sign-in/MFA/own security provider handoff with safe redirect
 - **2026-10-21** — Sequential38 owns main.tsx for public help outside tenant bootstrap; platform route order/boundary preserved.
 
 - **2026-10-21 — Visual acceptance correction:** reopened for outstanding approved V5 acceptance. Historical functional checkmarks/logs are preserved; they do not certify visual fidelity. Current four-part status and evidence: docs/implementation/V5_IMPLEMENTATION.md. No prior visual requirement is newly verified by a build.
+
+- **2026-10-28 — V5 public boundary continuation:** continued existing issue59 in
+  persistent isolated worktree `v5-continuation-20261028/operator`, branch
+  `implementation/v5-operator-boundary`, base verified8ff718e. Reused the now
+  corrected AuthShell for actual public login/callback/security; retained
+  OperatorShell's guarded33/35 consumer contract, separate request identity,
+  callback rejection/scrub and local-only cleanup. Source checkpoint80299fb
+  committed early. The coordinator granted minimal heading-only denial-selector
+  changes in CompaniesPage.test/ServicePage.test; their other assertions remain.
+  No shared route/backend/schema/dependency/provider/design changes.
+
+- **2026-10-28 — Fresh behavior verification:** whole frontend64 Node+276 React
+  tests/21files passes, including17 operator cases; full lint0, TypeScript and
+  production build pass, detector[]. Initial whole suite caught4 obsolete title
+  selectors after matching the V5 heading; fixed under explicit ownership and
+  reran whole suite successfully. Initial guarded browser run3/3 passes: actual
+  built routes with no tenant bootstrap, keyboard/language persistence/direct
+  metadata denial, and real owner/manager/staff cookies rejected401 by platform
+  APIs while their tenant identity survives local platform cleanup. Only owned
+  disposable synthetic SQL was used, with matched private API/web builds.
+
+- **2026-10-28 — Visual scope:** compared actual desktop1366×900/phone390×900
+  EN/UR login/callback/security and cleanup receipt with approvedV5 references.
+  Corrected phone heading wrap and identity-badge placement after the first look;
+  fresh capture results and the exact provenance are in OPERATOR_UI.md and
+  `v5-operator-evidence/`. Public unavailable views do not fabricate a provisioned
+  account, authenticated sidebar, challenge or provider success. Overall34 stays
+  In progress: actual OIDC state/nonce/PKCE/MFA/provider logout and positive
+  operator/security acceptance remain blocked by the unqualified provider.
+
+- **2026-10-29 — Saved-run completion:** resumed the persistent source without
+  redoing accepted checks. Final guarded browser3/3 in24.7s passed on source
+ 25440e1, including the mobile type/badge fixes. Focused17/17, whole64Node+276React,
+  full lint0, production build and strict E2E TypeScript passed. Inspected all12
+  final EN/UR desktop/phone base captures and matching references, plus cleanup
+  receipts;40PNGs include12references/12full-page supplements. Manifest hashes
+  and supported security/callback deviations are in v5-operator-evidence. Overall
+ 34 remains In progress because positive provider/security qualification is absent.
+
+- **2026-10-29 — Review handoff:** OPEN/DRAFT
+  [PR95](https://github.com/Shumail-AbdulRehman/PRIV/pull/95), base
+  `implementation/v5-workforce-final`, reuses issue59. Source25440e1 and
+  evidenceb373c03 are separate from the final documentation link commit.
+  Coordinator owns PROGRESS/SESSION_HANDOFF/ledger and shared ownership records.
+  No merge, deployment or production data change.
