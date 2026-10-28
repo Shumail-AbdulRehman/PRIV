@@ -1,6 +1,6 @@
 import { configureStore } from '@reduxjs/toolkit';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
-import { fireEvent, render, screen, waitFor, within } from '@testing-library/react';
+import { act, fireEvent, render, screen, waitFor, within } from '@testing-library/react';
 import { Provider } from 'react-redux';
 import { createMemoryRouter, RouterProvider } from 'react-router-dom';
 import { beforeEach, expect, it, vi } from 'vitest';
@@ -24,7 +24,8 @@ function mount(content:React.ReactNode, lang='en') {
  const store=configureStore({reducer:{auth:authReducer}});store.dispatch(setUser({id:1,companyId:42,role:'MANAGER',name:'Synthetic reviewer',email:'fixture@example.invalid'}));
  const query=new QueryClient({defaultOptions:{queries:{retry:false,gcTime:0},mutations:{retry:false}}});
  const router=createMemoryRouter([{path:'/exceptions/:id',element:content}],{initialEntries:['/exceptions/3?requirementId=view']});
- return render(<Provider store={store}><QueryClientProvider client={query}><LanguageProvider><div className="workspace"><RouterProvider router={router}/></div></LanguageProvider></QueryClientProvider></Provider>);
+ const view=render(<Provider store={store}><QueryClientProvider client={query}><LanguageProvider><div className="workspace"><RouterProvider router={router}/></div></LanguageProvider></QueryClientProvider></Provider>);
+ return {...view,query};
 }
 beforeEach(()=>{
  vi.clearAllMocks();localStorage.clear();detail=fixture();
@@ -118,4 +119,15 @@ it('renders persisted setup records with a setup destination and no fabricated s
  expect(screen.queryByText('Task not submitted')).not.toBeInTheDocument();
  expect(screen.queryByText('Review decisions could not be loaded. Refresh the page to continue.')).not.toBeInTheDocument();
  expect(screen.queryByRole('button',{name:'Resolve review'})).not.toBeInTheDocument();
+});
+
+it('removes earlier queue counts and rows when a failed refresh can no longer confirm them',async()=>{
+ api.get.mockImplementation(async(url:string)=>({data:{data:url.endsWith('/next')?{nextId:null}:url==='/verification-exceptions'?{cases:[structuredClone(detail)],page:1,pageSize:20,total:1,totalPages:1,locations:[],queueCounts:{'needs-me':1,resolved:3}}:structuredClone(detail)}}));
+ const view=mount(<ExceptionInboxPage/>);await screen.findAllByRole('heading',{name:'Synthetic washroom',level:2});
+ expect(view.container.querySelector('.review-counts')).toHaveTextContent('3 reviewed');
+ api.get.mockImplementation(async(url:string)=>{if(url==='/verification-exceptions')throw {response:{status:503}};return {data:{data:url.endsWith('/next')?{nextId:null}:structuredClone(detail)}};});
+ await act(async()=>{await view.query.invalidateQueries({queryKey:['review-page']});});
+ expect(view.container.querySelector('.review-counts')).not.toBeInTheDocument();
+ expect(within(screen.getByRole('region',{name:'Review queue'})).getByRole('alert')).toHaveTextContent('Records could not load');
+ expect(view.container.querySelector('.v5-queue-record')).not.toBeInTheDocument();
 });
