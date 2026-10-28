@@ -6,9 +6,9 @@
 3. ARCHITECTURE.md, DESIGN-SYSTEM.md, INVENTORY.md and inventory fragments.
 4. Assigned spec; approved discovery/audit references only as needed.
 
-## Current checkpoint instruction — 2026-10-22
+## Current checkpoint instruction — 2026-10-28
 
-The latest user explicitly authorized three native agents for the V5 Settings/Help/Information batch, then requested a checkpoint and a choice to continue here or in a new session. Parallel implementation uses isolated worktrees and exclusive files; QA stays source read-only. Finish this batch, save verification and handoff, then STOP. Earlier unlimited continuation/one-unit limitations are historical. Full V5/spec30/38/40 remains incomplete.
+User resumed the approved V5 implementation after stopping agents26Oct. Continue existing specs with three native agents in isolated persistent worktrees; coordinator owns shared progress/handoff. Historical STOP/one-unit limitations are superseded by the current authorization. Root Dashboard/backend/performance changes remain user-owned. The environment removed uncommitted /tmp worktrees while stopped: reconstructed sources must be committed and freshly verified; historical lost-source checks never establish current acceptance. Use persistent worktrees under ~/.local/share/hygene-ops/v5-worktrees-20261028, commit coherent work early, no production actions or PR merges.
 
 ## One spec per session
 Default one focused unit; the user explicitly authorizes sequential units in this session. Finish verification and update handoff after each. Do not restart discovery/design or add a new prototype. Preserve pre-existing dirty changes documented in the survey.
@@ -17,7 +17,7 @@ Default one focused unit; the user explicitly authorizes sequential units in thi
 Search `gh issue list --state all --search "Spec NN"`, reuse or create `Spec NN — title`, write its number to spec/tracker. One issue/PR per spec; PR body names its spec and Closes issue. Never merge your own PR. Skip without GitHub remote; log gh failures and continue. The skill explicitly authorizes this issue/PR ritual. Do not include unrelated dirty changes in commits/PRs.
 
 ## Other specs and ownership
-No other agents are currently dispatched. Dependency waves permit later Orchestro execution; workers change only Owns paths in their worktrees. The lead updates status/tracker at merge. Sequential execution updates local status only after checks pass. Shared hot files have one owner; additional necessary ownership is amended and validated before editing, with dependency consumption documented. Do not introduce dynamic plugin registries merely to avoid wiring edits.
+Three agents own exclusive shell, Workforce, and source-read-only QA work; coordinator serializes shared records and integration. Dependency waves permit later Orchestro execution; workers change only Owns paths in their worktrees. The lead updates status/tracker at merge. Sequential execution updates local status only after checks pass. Shared hot files have one owner; additional necessary ownership is amended and validated before editing, with dependency consumption documented. Do not introduce dynamic plugin registries merely to avoid wiring edits.
 
 ## The model on the spec is the model to run
 Model lines record sizing. A stalled Light unit must be re-tiered before retry. They do not override this session's active model. Provider IDs verified in docs/implementation/research/models.md.

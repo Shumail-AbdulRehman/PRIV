@@ -1,3 +1,13 @@
+# Active continuation — V5 Team / Workforce — 2026-10-28
+
+Latest user says **continue**, superseding historical STOPs below. Work is active in persistent isolated worktrees `/home/shumail/.local/share/hygene-ops/v5-worktrees-20261028/{coordinator,shell,workforce,qa}`. Coordinator branch `implementation/v5-workforce-checkpoint`, dependency-complete based2c426b. Three native agents: A shared27shell, B31Team/StaffDetail/Managers, C independent source-read-only QA. Coordinator owns progress/handoff/integrated harness.
+
+The user stopped all agents26Oct. Environment subsequently removed /tmp worktrees and uncommitted implementation. QA committedreferences/report survive; A/B reconstruct and commit coherent source early. No lost-source tests/captures count as current acceptance. Current progress/results are in V5_WORKFORCE.md /V5_WORKFORCE_QA.md and dated PROGRESS log; fresh verification pending before final acceptance.
+
+Originalrootbranch/9dirtytracked/untracked inputs preserved unchanged, persistent hash+patch in parentpersistentdirectory.8080serves different checkout `/home/shumail/bk-Priv/PRIV/backend/dist/app.js`; do not testagainstit. OwnedPG17runtime/data loopback56442 bootstrappriv_e2e_test feeds guardedUUIDchilddatabases/matchedprivateAPI+frontendbuilds. No production/customer records/provideroperations. Native/operator/mail/photo/Paddle/infrastructure releasegates remain.
+
+---
+
 # Latest checkpoint — Parallel V5 Settings / Help / Information — 2026-10-22
 
 **STOP at the user-requested checkpoint.** The user added: “alos add a checkpoint after that you tell me if i wnat to ocntinue and start a new ssion”. This parallel batch is saved. Offer a choice to continue here or start a new session; do not dispatch another UI group before that choice. Full V5 remains **INCOMPLETE**; specs30/38/40 remain In progress and41 is ineligible. Historical stops below are superseded only within this completed batch.
