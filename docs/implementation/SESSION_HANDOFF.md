@@ -1,38 +1,40 @@
-# Verified V5 checkpoint — Shared shell, Team/Workforce and Attendance — 2026-10-28
+# Verified V5 checkpoint — 2026-10-28
 
-**Specs27,29and31meettheirapplicablewebacceptance. FullV5isstillincomplete.** Current combined tracker:31Done(includingdecision00),10In progress,41Not started;11specsremain. This is the saved coherent implementation checkpoint, not a production release certification.
+**Specs 27, 29 and 31 meet their applicable web acceptance criteria. Full V5 remains incomplete.** The combined tracker has 31 Done (including decision 00), 10 In progress and 1 Not started: 11 specifications remain. Spec 41 is still ineligible.
 
-## Source and review branches
+## Source and review state
 
-- Combined source: `implementation/v5-workforce-checkpoint`, persistent coordinator worktree under `/home/shumail/.local/share/hygene-ops/v5-worktrees-20261028/coordinator`. The root will receive this verified committed tree on `implementation/v5-workforce-final`, preserving all prior user changes.
-- Shared shell: `implementation/v5-shell-acceptance`, latest d18a26b; OPEN/DRAFT [PR92](https://github.com/Shumail-AbdulRehman/PRIV/pull/92), base implementation/v5-parallel-final; existing issue35/historical draft36 retained.
-- Workforce: `implementation/v5-workforce-reviewed`, latest33e73c2; OPEN/DRAFT [PR93](https://github.com/Shumail-AbdulRehman/PRIV/pull/93), base shared-shell branch; issue65/historical68 retained.
-- Attendance: `implementation/v5-attendance-context`, latestc8a59e9; OPEN/DRAFT [PR94](https://github.com/Shumail-AbdulRehman/PRIV/pull/94), independent sibling on shared shell; issue57/historical61 retained.
-- No PR merged, force push, reset, deployment, backend policy/schema change or production operation. Prior Settings/Help/auth/review stacks remain open/draft.
+The canonical combined source is `implementation/v5-workforce-checkpoint` in `/home/shumail/.local/share/hygene-ops/v5-worktrees-20261028/coordinator`. The root receives that verified committed tree on `implementation/v5-workforce-final`, preserving existing user changes. Inspect Git for final documentation HEAD.
+
+- Shared shell: `implementation/v5-shell-acceptance`, d18a26b, OPEN/DRAFT [PR92](https://github.com/Shumail-AbdulRehman/PRIV/pull/92), based on implementation/v5-parallel-final. Issue35 and historical draft36 retained.
+- Workforce: `implementation/v5-workforce-reviewed`, 33e73c2, OPEN/DRAFT [PR93](https://github.com/Shumail-AbdulRehman/PRIV/pull/93), based on the shared shell. Issue65 and historical draft68 retained.
+- Attendance: `implementation/v5-attendance-context`, c8a59e9, OPEN/DRAFT [PR94](https://github.com/Shumail-AbdulRehman/PRIV/pull/94), an independent sibling on the shared shell. Issue57 and historical draft61 retained.
+
+No PR was merged. No reset, force push, deployment, backend policy/schema change or production operation occurred. Existing Settings/Help/auth/review draft stacks remain intact.
 
 ## Delivered and verified
 
-Actual React Team directory/inline hiring/shared editor, Staff Detail profile/reports/tabs, manager assignment tools and workforce action dialogs now follow V5 with real APIs. Scope-bound drafts/secrets, explicit Reason labels, real quota/permission errors, failed-refresh retention and permanent phone context access are corrected. Attendance now has V5 filters/derived summaries/register/mobile rows and original facts/history plus note editor, actual scoped API filters, attributed immutable note/ack, exact retry and real409review.
+The actual React application now has V5 Team directory, inline hiring, reusable editor, Staff Detail reports/tabs, manager assignment tools, accountable workforce dialogs and Attendance register/context composition. Important corrections include scoped drafts/secrets, stable Reason labels, real quota errors, failed-refresh retention, visible phone context actions, immutable notes/acknowledgements, exact retries and explicit conflict review. All use existing real APIs and authorization.
 
-Current whole web64Node+274React/21files passes; final focused checks/lint0/types/production builds pass.48backend workforce/credential/history tests and actual isolated lifecycle/credential SQL proofs pass.33-case integrated milestone passes; final7rendered cases pass. A later state run exposed a new phone action gap; its correction and genuine context conflict/core rerun pass2cases. Spec29's real409review also passes independently on its own branch. Runs overlap; do not add counts or call this the full Spec40 suite.
+Current whole web: **64 Node + 274 React tests across 21 files**, no failures. Focused tests, frontend lint (zero findings), TypeScript and production builds pass. Relevant backend tests:48 across3files; actual isolated lifecycle and credential SQL proofs pass. The 33-case integration milestone passed. Seven final rendered cases passed; a later state check exposed a phone action gap, then two corrected context/core cases passed. The genuine conflict scenario also passed independently on Spec29's branch. These runs overlap and must not be added as unique counts or treated as the complete Spec40 suite.
 
-Matched1366/390EN/UR core, lower-content and dialog/state captures inspected;40shell+161workforce+37attendancePNG widths/hashes recorded. Counts include references/full-page supplements, not accepted-screen counts. Initial independent QA findings were closed by the coordinator after agents became unavailable; final review is not attributed to those agents. Staff Detail is a V5-derived composition because its prototype is a placeholder; real directory metrics replace unsupported sample daily totals. Context remains the existing accessible dialog rather than a new route. Native and provider qualification is not inferred.
+Matching desktop1366×900 and phone390×900 EN/UR references and actual screens were inspected. Evidence contains40shell,161workforce and37attendance PNGs, including references and supplemental full pages; image counts are not accepted-screen counts. Initial independent QA findings were closed by the coordinator after agents became unavailable. Staff Detail derives V5 conventions because its prototype destination is a placeholder; real directory metrics replace unsupported sample daily totals. Context retains the existing accessible dialog rather than inventing a new route. Native/provider qualification is separate.
 
-Read [V5_WORKFORCE.md](V5_WORKFORCE.md), [V5_WORKFORCE_QA.md](V5_WORKFORCE_QA.md), [V5_ATTENDANCE_QA.md](V5_ATTENDANCE_QA.md) and the current [V5 ledger](V5_IMPLEMENTATION.md). Browser harnesses are frontend/e2e/{shell-v5,workforce-v5,attendance-v5}.spec.ts; snapshots/manifests are in their named evidence folders. Validator:42specs,0errors,12documented warnings, also checked on each scoped review branch.
+Read [V5_WORKFORCE.md](V5_WORKFORCE.md), [Workforce QA](V5_WORKFORCE_QA.md), [Attendance QA](V5_ATTENDANCE_QA.md), and [the current V5 ledger](V5_IMPLEMENTATION.md). Harnesses: frontend/e2e/{shell-v5,workforce-v5,attendance-v5}.spec.ts. Evidence manifests record dimensions/hashes and scope. Validator:42specifications,0errors,12documented warnings, also checked on each scoped review branch.
 
-## Preservation and runtime
+## Preservation and environment
 
-All9original root tracked modifications were byte-identical before integration;8unrelated source/config files must remain byte-identical afterward. The existing five-line local-compatibility append in this handoff remains a separate unstaged user change. Original untracked design/skills/performance/investor inputs remain untouched. Hashes and binary patch are persistent in `/home/shumail/.local/share/hygene-ops/v5-worktrees-20261028/preserved-root.{json,patch}`.
+All9original root tracked modifications were unchanged before integration. The8unrelated source/config files must remain byte-identical afterward; the original five-line local-compatibility append in this handoff stays a separate unstaged user change. Untracked design/skills/performance/investor inputs are preserved. Hashes/patch are in the persistent worktree parent as preserved-root.json and preserved-root.patch.
 
-User stopped agents26Oct, then resumed28Oct. Environment removed uncommitted /tmp worktrees while stopped; QA commits survived. Source was reconstructed, committed early in persistent worktrees, and freshly verified. Historical lost-source checks were never reused as current acceptance. The QA/Workforce agents later hit usage limits and the core agent lost network permission; the coordinator finished the remaining source corrections, verification and publication.
+User stopped the agents on26Oct and resumed on28Oct. The environment removed uncommitted /tmp worktrees while stopped; committed QA inputs survived. Source was reconstructed, committed early in persistent worktrees and freshly verified. Historical lost-source results were never reused as current acceptance. Later agent usage/network failures left the coordinator to finish corrections and review.
 
-The existing8080listener serves **another checkout**, `/home/shumail/bk-Priv/PRIV/backend/dist/app.js`, and was left untouched. No5173server was used. Never start a new frontend against that old API. Tests used owned loopback56442PostgreSQL17, bootstrappriv_e2e_test, guarded UUID child databases with18existing migrations, synthetic data, sanitized child environments, matched API/frontend revisions and private web assets. No production or restored customer database was accessed. Final cleanup will stop only the owned test cluster and remove its dedicated synthetic proof database. No Android device was connected on28Oct.
+Existing port8080 serves another checkout, `/home/shumail/bk-Priv/PRIV/backend/dist/app.js`, and was left untouched. Do not start a new frontend against that outdated API. Testing used owned PostgreSQL17 on loopback56442, disposable UUID child databases,18existing migrations, synthetic data, sanitized environments and matched private API/frontend builds. No production/restored customer database was accessed. Cleanup confirmed **zero generated child databases**, removed the dedicated synthetic proof database and stopped only the owned test cluster. No Android device was connected on28Oct.
 
-## Next eligible work and limits
+## Next eligible work
 
-Next: **Spec28Setup/Locations**, then related dashboard composition, carefully preserving the user's dirty Dashboard/performance/backend work. It consumes completed12/14/15/27. Specs30and32stillconsume28andmustnotbypassit. Broader Review/account/help states and independent platform safe states remain per ledger. Operator identity/MFA, photo/privacy qualification, Paddle, delivered owner mail/valid issued links, approved legal/support/distribution facts, physical Android and production infrastructure/backup release proof remain incomplete or externally blocked. Spec40is incomplete and41is ineligible.
+Next is **Spec28: Setup/Locations and related dashboard composition**, consuming completed12/14/15/27. Carefully preserve and reconcile the user's dirty Dashboard/performance/backend work. Specs30 and32 still consume28; do not bypass it. Broader Review/account/help states and platform safe states remain per ledger. Operator identity/MFA, photo/privacy qualification, Paddle, delivered owner mail/valid links, approved legal/support/distribution facts, physical Android and production infrastructure/backup certification remain incomplete or externally blocked.
 
-Continue the approved implementation from this checkpoint; do not restart discovery, create another prototype/design version, repeat accepted audits or infer whole-product acceptance from unit/build/screenshot counts.
+Continue from this checkpoint without discovery, another prototype/design version, or repeating accepted audits. Full V5 and production release certification are not claimed.
 
 ---
 

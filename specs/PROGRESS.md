@@ -42,11 +42,11 @@ marked visually verified merely because its existing tests pass.
 | 24 | [Platform company operations API](24-platform-company-api.md) | Done | 19, 15 | Heavy | #39 | 54 focused/1077 full backend+isolated PG; see Log |
 | 25 | [Redacted diagnostics and inquiry operations](25-platform-support-api.md) | Done | 19, 24 | Standard | #45 | 66 focused/1236 backend+isolated PG; see Log |
 | 26 | [Wire launch backend routes and policies](26-launch-api-composition.md) | Done | 07, 11, 12, 14, 15, 16, 17, 18, 20, 21, 22, 23, 24, 25 | Heavy | #53 | 215 focused/1413 backend + SQL; see Log |
-| 27 | [Approved v5 shared shell and route composition](27-workspace-shell.md) | Done | 06 | Heavy | #35 | 57+40 tests/build/lint; see Log |
+| 27 | [Approved v5 shared shell and route composition](27-workspace-shell.md) | Done | 06 | Heavy | #35 | V5 shared web gate accepted: 3 browser cases, 40 paired/state PNGs; see current handoff |
 | 28 | [Real derived setup and operational dashboard](28-setup-ui.md) | In progress | 12, 14, 15, 27 | Standard | #55 | 16 focused/57+56 web;1416 backend; see Log |
-| 29 | [Attendance exception context UI](29-attendance-context-ui.md) | Done | 23, 27, 08 | Standard | #57 |12focused/57+68web; seeLog |
+| 29 | [Attendance exception context UI](29-attendance-context-ui.md) | Done | 23, 27, 08 | Standard | #57 | V5 register/context accepted; API filters, immutable note/ack/retry/conflict and EN/UR renders verified |
 | 30 | [Account settings and recovery UI](30-account-ui.md) | In progress | 16, 17, 22, 27, 28 | Standard | #88 | V5 settings core correction; auth86/PR87 and historical58/PR62 retained; V5_SETTINGS.md; full30acceptance incomplete |
-| 31 | [Workforce access and transfer UI](31-workforce-ui.md) | Done | 11, 17, 27 | Standard | #65 | PR68;18focused; SQL proofs; see Log |
+| 31 | [Workforce access and transfer UI](31-workforce-ui.md) | Done | 11, 17, 27 | Standard | #65 | V5 Team/detail/Managers/actions accepted; real hire/edit/quota/transfer/offboarding/recovery/handover verified |
 | 32 | [Real subscription lifecycle UI](32-billing-ui.md) | In progress | 15, 27, 28 | Standard | #69 |PR70;23focused;57+165web;109backend |
 | 33 | [Platform company workspace](33-platform-company-ui.md) | In progress | 24, 27 | Standard | #71 |PR72;11focused;57+176web;123backend; live auth gated |
 | 34 | [Platform sign-in and security workspace](34-platform-security-ui.md) | In progress | 19, 27 | Heavy | #59 |15focused; isolatedoperatorroutes; seeLog |
