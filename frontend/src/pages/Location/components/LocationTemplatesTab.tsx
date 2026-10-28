@@ -41,6 +41,7 @@ export default function LocationTemplatesTab({
 }) {
   const { t: translate,language } = useLocationLanguage();
   const [saving,setSaving]=useState(false);
+  const [assignmentRetry,setAssignmentRetry]=useState(false);
   const inFlight=useRef(false);
   const { hash } = useLocation();
   useEffect(() => {
@@ -92,7 +93,7 @@ export default function LocationTemplatesTab({
   };
 
   const handleEditOpen = (t: TaskTemplate) => {
-    setEditError(null);
+    setEditError(null);setAssignmentRetry(false);
     setEditingTemplate(t);
     setEditForm({
       title: t.title,
@@ -153,6 +154,7 @@ export default function LocationTemplatesTab({
     const staffChanged =
       editForm.staffId !== String(editingTemplate.staffId ?? "");
     const hasFieldChanges = Object.keys(payload).length > 0;
+    let fieldsSaved=false;
 
     try {
       if (hasFieldChanges) {
@@ -162,6 +164,8 @@ export default function LocationTemplatesTab({
             { onSuccess: () => resolve(), onError: (err) => reject(err) },
           );
         });
+        fieldsSaved=true;
+        setEditingTemplate({...editingTemplate,...payload});
       }
 
       if (staffChanged && editForm.staffId) {
@@ -178,7 +182,12 @@ export default function LocationTemplatesTab({
 
       setEditingTemplate(null);
     } catch {
-      setEditError(translate("The schedule could not be saved. Your draft is kept. Refresh the saved schedule before trying again."));
+      setAssignmentRetry(staffChanged);
+      setEditError(translate(fieldsSaved&&staffChanged
+       ? 'Schedule details were saved. Staff assignment could not be confirmed. Your draft is kept. Review the assignment before retrying.'
+       : staffChanged&&!hasFieldChanges
+        ? 'Staff assignment could not be confirmed. Your draft is kept. Review the assignment before retrying.'
+        : 'The schedule could not be saved. Your draft is kept. Refresh the saved schedule before trying again.'));
     } finally {inFlight.current=false;setSaving(false);}
   };
 
@@ -334,7 +343,7 @@ export default function LocationTemplatesTab({
       <Dialog open={!!editingTemplate} onOpenChange={open=>{if(!open&&!inFlight.current)setEditingTemplate(null);}}>
        <DialogContent className="location-schedule-editor-v5" onInteractOutside={event=>{if(inFlight.current)event.preventDefault();}} onEscapeKeyDown={event=>{if(inFlight.current)event.preventDefault();}}>
         <DialogHeader><DialogTitle>{translate('Edit cleaning schedule')}</DialogTitle><DialogDescription>{translate('Changes apply to the schedule. Recorded task history stays unchanged.')}</DialogDescription></DialogHeader>
-        {editingTemplate?<><form id="location-schedule-edit" onSubmit={event=>{event.preventDefault();void handleEditSave();}}><fieldset disabled={saving} className="space-y-4">
+        {editingTemplate?<><form id="location-schedule-edit" onChange={()=>setAssignmentRetry(false)} onSubmit={event=>{event.preventDefault();void handleEditSave();}}><fieldset disabled={saving} className="space-y-4">
 
               <div>
                 <label htmlFor="schedule-title" className={formLabelCls}>{translate("Schedule title")}</label>
@@ -450,7 +459,7 @@ export default function LocationTemplatesTab({
                 </div>
               )}
 
-              <div className="location-schedule-actions-v5"><Button type="button" variant="outline" disabled={saving} onClick={()=>setEditingTemplate(null)}>{translate('Cancel')}</Button><Button type="submit" form="location-schedule-edit" disabled={saving||!editForm.title.trim()}>{translate(saving?'Saving...':'Save changes')}</Button></div>
+              <div className="location-schedule-actions-v5"><Button type="button" variant="outline" disabled={saving} onClick={()=>setEditingTemplate(null)}>{translate('Cancel')}</Button><Button type="submit" form="location-schedule-edit" disabled={saving||!editForm.title.trim()}>{translate(saving?'Saving...':assignmentRetry?'Retry staff assignment':'Save changes')}</Button></div>
         </>:null}
        </DialogContent>
       </Dialog>

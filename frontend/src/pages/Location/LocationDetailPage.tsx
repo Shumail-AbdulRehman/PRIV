@@ -1,4 +1,3 @@
-import { useQueryClient } from "@tanstack/react-query";
 import { locationStatsFilter, type LocationHistoryPeriod } from "./locationStatsFilter";
 import TaskQr from '../Task/components/TaskQr';
 import OperationStatus from "@/components/common/OperationStatus";
@@ -264,10 +263,10 @@ const LocationDetailPage: React.FC = () => {
   );
 
   const currentFilter = FILTERS.find((f) => f.key === activeFilter)!;
-  const queryClient=useQueryClient();
-  // The initial unfiltered detail is already cached before a history filter can
-  // be selected. Read its saved timezone without another request or local copy.
-  const historyTimezone=queryClient.getQueryData<{data:{locationInfo:LocationInfo}}>(['location',id,null])?.data?.locationInfo?.timezone;
+  // Keep the canonical detail reactive. Both observers share the same initial
+  // query key, so TanStack deduplicates that request before filters are chosen.
+  const canonicalDetail=useGetLocationById(id!);
+  const historyTimezone=canonicalDetail.data?.data?.locationInfo?.timezone;
   const filter=locationStatsFilter(activeFilter,historyTimezone);
 
   const overviewParams = { locationId: id ?? "", date: "today" };
@@ -276,7 +275,8 @@ const LocationDetailPage: React.FC = () => {
     overviewParams,
     !!id,
   );
-  const detailQuery = useGetLocationById(id!, filter);
+  const filteredDetail = useGetLocationById(id!, filter);
+  const detailQuery = activeFilter === "all" ? canonicalDetail : filteredDetail;
   const { data, isLoading, isFetching } = detailQuery;
   const locationInfo = data?.data?.locationInfo as LocationInfo | undefined;
   const taskStats: TaskStatEntry[] = data?.data?.taskStats ?? [];

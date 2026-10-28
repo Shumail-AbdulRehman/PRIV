@@ -12,8 +12,8 @@ import LocationDetailPage from './LocationDetailPage';
 import LocationOverview from './LocationOverview';
 import type { UseQueryResult } from '@tanstack/react-query';
 import type { OperationOverview } from '../Manager/operations';
-const mocks=vi.hoisted(()=>({templateEdit:vi.fn(),templateAssign:vi.fn(),week:{} as Record<string,unknown>,locations:{} as Record<string,unknown>,detail:{} as Record<string,unknown>,operations:{} as Record<string,unknown>,areas:{} as Record<string,unknown>}));
-vi.mock('./queries',()=>({useLocationSchedule:()=>mocks.week,useGetLocations:()=>mocks.locations,useGetLocationById:()=>mocks.detail,useDeleteLocation:()=>({mutateAsync:vi.fn()}),useCreateLocation:()=>({}),useUpdateLocation:()=>({})}));
+const mocks=vi.hoisted(()=>({detailArgs:vi.fn(),templateEdit:vi.fn(),templateAssign:vi.fn(),week:{} as Record<string,unknown>,locations:{} as Record<string,unknown>,detail:{} as Record<string,unknown>,operations:{} as Record<string,unknown>,areas:{} as Record<string,unknown>}));
+vi.mock('./queries',()=>({useLocationSchedule:()=>mocks.week,useGetLocations:()=>mocks.locations,useGetLocationById:(id:string,filter:unknown)=>{mocks.detailArgs(id,filter);return mocks.detail;},useDeleteLocation:()=>({mutateAsync:vi.fn()}),useCreateLocation:()=>({}),useUpdateLocation:()=>({})}));
 vi.mock('@/pages/Task/queries',()=>({useDeleteTaskTemplate:()=>({mutateAsync:vi.fn()}),useEditTaskTemplate:()=>({mutate:mocks.templateEdit,isPending:false})}));
 vi.mock('@/pages/Assignment/queries',()=>({useAssignStaffToTemplate:()=>({mutate:mocks.templateAssign,isPending:false})}));
 vi.mock('../Area/queries',()=>({useAreas:()=>mocks.areas}));
@@ -125,4 +125,23 @@ it('schedule editor blocks duplicate submission until the whole save resolves',a
  fireEvent.click(screen.getAllByRole('button',{name:'Edit schedule'})[0]);fireEvent.change(screen.getByLabelText('Schedule title'),{target:{value:'Changed title'}});fireEvent.click(screen.getByRole('button',{name:'Save changes'}));
  expect(screen.getByLabelText('Schedule title')).toBeDisabled();expect(screen.getByRole('button',{name:'Saving...'})).toBeDisabled();expect(mocks.templateEdit).toHaveBeenCalledTimes(1);
  await act(async()=>finish());expect(screen.queryByRole('dialog')).not.toBeInTheDocument();
+});
+
+it('history Today stays enabled after reactive detail resolution and consumes its site timezone',()=>{
+ vi.useFakeTimers();vi.setSystemTime(new Date('2026-10-28T20:00:00Z'));
+ try{
+  const view=mount(<Routes><Route path="/locations/:id" element={<LocationDetailPage/>}/></Routes>,'ADMIN','/locations/20?tab=instances');
+  expect(screen.getByRole('button',{name:'Today'})).toBeEnabled();fireEvent.click(screen.getByRole('button',{name:'Today'}));
+  expect(mocks.detailArgs).toHaveBeenLastCalledWith('20',{type:'range',dateFrom:'2026-10-29',dateTo:'2026-10-29'});view.unmount();
+ }finally{vi.useRealTimers();}
+});
+it('partial schedule save reports persisted details and retries only the unresolved assignment',async()=>{
+ const {default:Schedules}=await vi.importActual<typeof import('./components/LocationTemplatesTab')>('./components/LocationTemplatesTab');
+ mocks.templateEdit.mockImplementation((_input,callbacks)=>callbacks.onSuccess({}));
+ mocks.templateAssign.mockImplementationOnce((_input,callbacks)=>callbacks.onError(new Error('transport uncertainty'))).mockImplementationOnce((_input,callbacks)=>callbacks.onSuccess({}));
+ const staff=[7,8].map(id=>({id,name:'Saved worker '+id,email:'worker'+id+'@example.invalid',shiftStart:null,shiftEnd:null,isActive:true}));
+ mount(<Schedules templates={[{id:8,title:'Saved schedule',staffId:7,staff:{name:staff[0].name},shiftStart:null,shiftEnd:null,isActive:true}]} staffList={staff} locationId={20} timeZone="Asia/Karachi" locationName={site.name}/>);
+ fireEvent.click(screen.getAllByRole('button',{name:'Edit schedule'})[0]);fireEvent.change(screen.getByLabelText('Schedule title'),{target:{value:'Persisted details'}});fireEvent.change(screen.getByLabelText('Assigned staff'),{target:{value:'8'}});fireEvent.click(screen.getByRole('button',{name:'Save changes'}));
+ expect(await screen.findByRole('alert')).toHaveTextContent('Schedule details were saved. Staff assignment could not be confirmed.');expect(screen.getByLabelText('Schedule title')).toHaveValue('Persisted details');expect(mocks.templateEdit).toHaveBeenCalledTimes(1);
+ fireEvent.click(screen.getByRole('button',{name:'Retry staff assignment'}));await act(async()=>{});expect(screen.queryByRole('dialog')).not.toBeInTheDocument();expect(mocks.templateEdit).toHaveBeenCalledTimes(1);expect(mocks.templateAssign).toHaveBeenCalledTimes(2);
 });
