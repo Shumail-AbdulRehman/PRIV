@@ -13,3 +13,4 @@
 @media(max-width:620px){.workforce-page a{min-height:48px}.workforce-inline-form .workforce-form{grid-template-columns:minmax(0,1fr)}}
 .workforce-create-shifts{grid-column:1/-1}.workforce-inline-form .workforce-form>.workforce-form-grid{grid-column:1/-1}.workforce-form-grid>[role="alert"]{grid-column:1/-1}
 .workforce-directory .table-identity strong{font-size:15px}.workforce-mobile-record{display:grid;gap:16px}.workforce-mobile-facts{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:16px}.workforce-mobile-facts>div>p{font-size:13px;color:var(--muted-foreground);margin:0 0 6px}.workforce-mobile-record .workforce-record-actions{gap:8px}
+.workforce-field{display:grid;gap:6px}

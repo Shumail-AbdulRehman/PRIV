@@ -507,16 +507,12 @@ const StaffDetailPage: React.FC = () => {
   };
 
   if(isLoading)return <div className="workforce-page"><PageHeader title="Team member"/><OperationsState loading skeleton="detail"/></div>;
-  if (staffQuery.isError&&!staffQuery.data)
-    return (
-      <div className="ops-page">
-        <PageHeader title="Team member" />
-        <OperationsState
-          error={staffQuery.error}
-          retry={() => void staffQuery.refetch()}
-        />
-      </div>
-    );
+  if (staffQuery.isError&&!staffQuery.data) {
+    const status=(staffQuery.error as {response?:{status?:number}})?.response?.status;
+    return <div className="workforce-page"><PageHeader title="Team member"/>
+      {status===404||status===403?<div className="operations-notice" role="alert"><p>{t('This team member is unavailable to your account. Open the team directory to choose an accessible record.')}</p><Link className="workforce-back" to="/staff">{t('Back to team')}</Link></div>:<OperationsState error={staffQuery.error} retry={()=>void staffQuery.refetch()}/>}
+    </div>;
+  }
 
   const staff = data?.data;
   if (!staff) {

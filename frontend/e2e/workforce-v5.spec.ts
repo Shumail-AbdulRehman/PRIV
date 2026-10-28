@@ -125,9 +125,14 @@ test('V5 Team loading and network error recover using actual forwarded reads', a
   test.setTimeout(90000);
   for (const lang of ['en', 'ur']) {
     const context = await browser.newContext({ viewport: { width: 390, height: 900 } }); const page = await context.newPage();
-    await page.route('**/api/staff/', async route => { await new Promise(resolve => setTimeout(resolve, 1500)); await route.continue(); });
-    await enter(page, '/staff', 'ownerA', lang); await expect(page.locator('main').first()).toBeVisible();
-    await capture(page, `app-team-forwarded-loading-390-${lang}`); await expect(exactPerson(page, 'E2E staff transfer')).toBeVisible();
+    let release!: () => void;
+    const heldRead = new Promise<void>(resolve => { release = resolve; });
+    await page.route('**/api/staff/', async route => { await heldRead; await route.continue(); });
+    await enter(page, '/staff', 'ownerA', lang);
+    await expect(page.locator('.workforce-page h1')).toHaveText(lang === 'ur' ? 'آپ کی ٹیم' : 'Your team');
+    await expect(page.locator('.workforce-page [aria-busy=true]')).toBeVisible();
+    await capture(page, `app-team-forwarded-loading-390-${lang}`); release();
+    await expect(exactPerson(page, 'E2E staff transfer')).toBeVisible();
     await page.unroute('**/api/staff/');
     // Explicit frontend transport fault seam; no positive API response is replaced.
     await page.route('**/api/staff/', route => route.abort('failed')); await page.reload();
@@ -169,4 +174,24 @@ test('V5 real empty workforce differs from filtered no matches', async ({ browse
       await expect(page.getByText('E2E staff foreign', { exact: true })).toHaveCount(0); await capture(page, `app-team-empty-${width}-${lang}`); await context.close();
     }
   } finally { for (const row of before) await sql('UPDATE "Staff" SET "isActive"=$2 WHERE id=$1', [row.id, row.isActive]); }
+});
+
+test('actual exhausted plan rejects a hire without losing the form or inserting staff', async ({ page }) => {
+  await enter(page, '/staff?create=1');
+  await page.locator('#staff-create-name').fill('V5 over-capacity hire');
+  await page.locator('#staff-create-email').fill('v5-capacity-denied@example.invalid');
+  await page.locator('#staff-create-phone').fill('+923001234567');
+  await page.locator('#staff-create-password').fill(fixture.password);
+  await page.locator('#staff-create-locationId').selectOption(String(fixture.site.A));
+  await page.locator('#staff-create-shiftStart').fill('09:00');
+  await page.locator('#staff-create-shiftEnd').fill('17:00');
+  const response = page.waitForResponse(r => r.url().endsWith('/staff/create-staff') && r.request().method() === 'POST');
+  await page.getByRole('button', { name: 'Create staff', exact: true }).click();
+  expect((await response).status()).toBe(403);
+  await expect(page.getByRole('alert')).toContainText('capacity has been reached');
+  await expect(page.locator('#staff-create-name')).toHaveValue('V5 over-capacity hire');
+  expect(await sql('SELECT id FROM "Staff" WHERE email=$1', ['v5-capacity-denied@example.invalid'])).toHaveLength(0);
+  // Evidence intentionally clears the secret field; all non-secret draft remains.
+  await page.locator('#staff-create-password').fill('');
+  await capture(page, 'app-hire-capacity-denied-1366-en');
 });

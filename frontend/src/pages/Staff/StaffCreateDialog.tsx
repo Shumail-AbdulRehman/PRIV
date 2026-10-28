@@ -103,6 +103,17 @@ function ScopedStaffCreateDialog({open,onOpenChange,locations=[],location,onSave
     );
   };
 
+  const failure=createStaff.error as {response?:{status?:number;data?:{errors?:Array<{code?:string}>}}}|undefined;
+  const failureCode=failure?.response?.data?.errors?.find(issue=>issue.code)?.code;
+  const failureMessage=failureCode==='CAPACITY_REACHED'
+    ? 'Your plan’s staff capacity has been reached. Ask the company owner to review Plan & billing. Your draft is kept.'
+    : failureCode==='SUBSCRIPTION_REQUIRED'
+      ? 'An active subscription is required to add staff. Ask the company owner to review Plan & billing. Your draft is kept.'
+      : failure?.response?.status===403
+        ? 'You do not have access to this action. Refresh your assigned sites.'
+        : failure?.response?.status===409
+          ? 'The email is already in use or the available capacity changed. Your draft is kept.'
+          : 'Could not add staff. Check the details and try again. Your draft is kept.';
   const body = (
         <form
           onSubmit={event=>void handleSubmit(onCreateSubmit)(event)}
@@ -260,7 +271,7 @@ function ScopedStaffCreateDialog({open,onOpenChange,locations=[],location,onSave
           </div>
           {createStaff.isError ? (
             <p role="alert" className="operations-notice">
-              {t((createStaff.error as {response?:{status?:number}})?.response?.status === 409 ? 'The email is already in use or the available capacity changed. Your draft is kept.' : 'Could not add staff. Check the details and try again. Your draft is kept.')}
+              {t(failureMessage)}
             </p>
           ) : null}
           </fieldset>
