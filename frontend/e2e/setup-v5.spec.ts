@@ -19,6 +19,7 @@ test('setup actual saved readiness and V5 paired English Urdu desktop phone',asy
  await writeFile(join(out,'render-results.json'),JSON.stringify(results,null,2));
 });
 test('setup derives real shift persistence and exact linked forms; managers see only assigned sites',async({page})=>{
+ await page.setViewportSize({width:1366,height:900});
  await mkdir(out,{recursive:true});await enter(page,'/setup');await expect(page.getByRole('progressbar')).toBeVisible();
  const previous=await sql('SELECT "shiftStart","shiftEnd" FROM "Staff" WHERE id=$1',[fixture.staff.transfer.id]);
  try{

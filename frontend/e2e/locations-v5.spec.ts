@@ -107,6 +107,7 @@ test('persisted cleaning schedule editor uses saved fields and preserves a faile
  }finally{await prep.close();await sql('UPDATE "Staff" SET "shiftStart"=$2,"shiftEnd"=$3 WHERE id=$1',[fixture.staff.recovery.id,before.shiftStart,before.shiftEnd]);}
 });
 test('history Today sends the saved location calendar day to the real API',async({page})=>{
+ await page.setViewportSize({width:1366,height:900});
  await enter(page,`/locations/${fixture.site.A}?tab=instances`);await expect(page.locator('.location-detail-page h1')).toHaveText('E2E site A');
  const response=page.waitForResponse(value=>value.url().includes(`/api/location/${fixture.site.A}/stats?`)&&value.url().includes('dateFrom='));await page.getByRole('button',{name:'Today',exact:true}).click();const result=await response;expect(result.status()).toBe(200);const query=new URL(result.url()).searchParams;
  const date=new Intl.DateTimeFormat('en-CA',{timeZone:'Asia/Karachi',year:'numeric',month:'2-digit',day:'2-digit'}).format(new Date());expect(query.get('dateFrom')).toBe(date);expect(query.get('dateTo')).toBe(date);

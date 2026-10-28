@@ -20,3 +20,8 @@
 - `frontend/src/pages/Attendance/AttendancePage.tsx`: narrow initial deep-link adapter for validated location/staff IDs and date ranges. Existing explicit filter application/context APIs stay authoritative.
 
 UI source remains in the existing Setup/Dashboard/Location/Area components; design/v5 is an immutable reference, never a runtime dependency. Shared form translations and final verification are recorded after their isolated implementation is integrated.
+
+- `frontend/src/pages/Area/areaFormText.ts`: bounded form translation and safe error vocabulary; reuse from existing area/inventory/schedule forms rather than exposing transport errors or editing shared language registration.
+- `frontend/src/pages/Area/setup-forms.css`: V5 Dialog/control/focus/RTL sizing for those existing forms.
+- `frontend/src/pages/Area/AreaTemplateForm.tsx`: persisted area editor in shared Dialog with pending protection and explicit unknown-create result.
+- Existing `TaskScheduleWizard` / `TemplateInventoryEditor` preserve real inventory version/mandatory selection and save reconciliation; use these instead of another schedule editor.

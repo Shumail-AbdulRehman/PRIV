@@ -6,9 +6,9 @@
 3. ARCHITECTURE.md, DESIGN-SYSTEM.md, INVENTORY.md and inventory fragments.
 4. Assigned spec; approved discovery/audit references only as needed.
 
-## Current checkpoint instruction — 2026-10-28
+## Current checkpoint instruction — 2026-10-29
 
-The resumed V5 batch is saved:27/29/31meet applicable web acceptance; full V5/native/provider/production certification is incomplete. Review current SESSION_HANDOFF before choosing next work. Next eligible28consumes12/14/15/27; preserve dirty user performance work. Three agents initially worked in exclusive persistent worktrees, then became unavailable; coordinator completed final corrections/review. Do not reactivate historical STOPs, restart discovery/design, or treat old /tmp checks as current. Existing scope remains authorized, no production actions or PR merges.
+Spec28 applicable web acceptance is complete; read the latest SESSION_HANDOFF for canonical branch/worktree/publication.10specifications remain, next32consumes15/27/28. Operator34/review36 safe-state continuations retain external gates and independent draftPR95/96. Preserve supplied user performance work and unrelated root changes. Latest user authorizes continued work; historical STOPs do not reactivate. No production actions/merges or repeated discovery/design/audits.
 
 ## One spec per session
 Default one focused unit; the user explicitly authorizes sequential units in this session. Finish verification and update handoff after each. Do not restart discovery/design or add a new prototype. Preserve pre-existing dirty changes documented in the survey.

@@ -1,3 +1,29 @@
+# Current continuation checkpoint — 2026-10-29
+
+**Spec28 meets its applicable web acceptance. Full V5 remains incomplete;10specifications remain.** Latest user says continue; historical STOPs below do not cancel that authorization. Canonical Spec28 source is `implementation/v5-setup-locations` in `/home/shumail/.local/share/hygene-ops/v5-continuation-20261028/setup`, descended from verified8ff718e. Root user work is preserved; final combined integration/publication is being recorded after this checkpoint.
+
+## Delivered and verified
+
+- Real V5 Setup, owner/manager performance, Locations list/detail/six tabs, location editor and area/inventory/schedule dialogs. Actual backend facts, EN/UR/RTL, phone layouts and loading/empty/error/unknown/readonly states are implemented. Supplied user performance work was copied byte-for-byte atb69a532 before refinement; original root inputs remain preserved.
+- Source e212e40. Whole frontend64Node+318React/27files, lint0, TS/production build pass. Backend21focused and1441whole tests pass with7existing skips; isolated actual performanceSQL proof passes.16actual integrated browser cases pass(2.2min);3overlapping recaptures correct auxiliary viewport dimensions.165PNG artifacts include references/fullpages; manifests record exact dimensions/hashes. See V5_SETUP.md / V5_LOCATIONS.md / V5_SETUP_FORMS.md.
+- No prototype/new design version, schema/business-policy rewrite, production operation, provider activation, force push or merge.
+
+## Independent partial work and review
+
+Operator34: `implementation/v5-operator-boundary`, final7f0d059, OPEN/DRAFT PR95 https://github.com/Shumail-AbdulRehman/PRIV/pull/95, base implementation/v5-workforce-final. Required separate identity remains disabled without qualified IdP;17focused/64Node+276React/3browser cases, lint/TS/build and40PNG artifacts.34stays In progress.
+
+Review36: `implementation/v5-review-states`, finalde9d602, OPEN/DRAFT PR96 https://github.com/Shumail-AbdulRehman/PRIV/pull/96, same independent base. Truthful setup/no-task state, saved closure/actor/time/next-pending, stale-count error and Urdu labels.36focused/64Node+282React/5browser cases, lint/TS/build and40PNG artifacts.36stays In progress for retained private-image/provider/native qualification. These counts are branch-specific and overlap earlier tests.
+
+Agents hit usage limits. Persistent source was recovered and coordinator finished Spec28 corrections; no historical/lost-source test was treated as fresh acceptance. Locations source e85ca78/283edbd/b4254cd and forms7455545 were explicitly integrated into28 with exclusive file ownership.
+
+## Safety and next work
+
+Test infrastructure is owned localPG17 loopback56442 and guarded UUID disposable child databases with18existing migrations, synthetic data and matched private frontend/API assets. Existing8080belongs to another checkout and stays untouched. No root .env copied to worktrees. Final cleanup/integration status follows in the final checkpoint update.
+
+Tracker:32Done(includingdecision00),9Inprogress,1Notstarted. **Next eligible:32Billing**, consuming completed15/27/28.30also now has28, but broader owner-mail/delivered-link acceptance remains external. Do not bypass provider/media/IdP/native/legal/production release gates;41remains ineligible. Preserve original unrelated CI/gitignore/DESIGN/backend package changes and local handoff append.
+
+---
+
 # Verified V5 checkpoint — 2026-10-28
 
 **Specs 27, 29 and 31 meet their applicable web acceptance criteria. Full V5 remains incomplete.** The combined tracker has 31 Done (including decision 00), 10 In progress and 1 Not started: 11 specifications remain. Spec 41 is still ineligible.

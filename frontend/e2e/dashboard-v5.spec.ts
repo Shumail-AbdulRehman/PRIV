@@ -18,6 +18,7 @@ test('owner and manager actual scoped performance match V5 composition English U
  await writeFile(join(out,'render-results.json'),JSON.stringify(results,null,2));
 });
 test('performance period scope daily disclosure search and authorization use actual APIs',async({page})=>{
+ await page.setViewportSize({width:1366,height:900});
  await mkdir(out,{recursive:true});await enter(page,'/dashboard');await expect(page.locator('.perf-location-table')).toBeVisible();
  await page.getByRole('button',{name:'Last 30 days',exact:true}).click();await expect(page).toHaveURL(/period=30/);await expect(page.locator('.perf-data-scroll tbody tr')).toHaveCount(30);await page.getByText('View daily figures',{exact:true}).click();await expect(page.locator('.perf-data-scroll')).toBeVisible();
  await expect(page.getByLabel('Date',{exact:true})).not.toHaveValue('');await page.getByRole('textbox',{name:'Find a location',exact:true}).fill('not-a-site');await expect(page.getByText('No matching locations.',{exact:true})).toBeVisible();await page.getByRole('button',{name:'Clear search',exact:true}).click();await expect(page.locator('.perf-location-table tbody tr')).toHaveCount(2);

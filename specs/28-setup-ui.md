@@ -1,6 +1,6 @@
 # Spec 28 — Real derived setup and operational dashboard
 
-**Status:** In progress
+**Status:** Done
 **Depends on:** Spec 12, Spec 14, Spec 15, Spec 27
 **Model:** Standard — `claude-sonnet-5-5` · `gpt-6.1-sol` · `gemini-3.8-flash`
 **Issue:** #55
@@ -37,7 +37,7 @@ Implement approved setup surface driven by real scoped readiness; deep-link exis
 
 ## Done when
 
-- [ ] Approved V5 layout and interactions are implemented and paired actual-app/reference screenshots are inspected at desktop/phone EN/UR; state/permission deviations are recorded. Native acceptance requires a native runtime. [static]
+- [x] Approved V5 layout and interactions are implemented and paired actual-app/reference screenshots are inspected at desktop/phone EN/UR; state/permission deviations are recorded. Native acceptance requires a native runtime. [static]
 - [x] `npm run test:components --prefix frontend -- src/pages/Setup/SetupPage.test.tsx` passes: Readiness persists after reload via real API state; no record means incomplete; denied/error/loading distinct; role-specific setup actions. [unit]
 - [x] `npm test --prefix frontend` passes the whole affected unit suite; record count. [unit]
 - [x] Only scoped paths changed; relevant denial/empty/error/config-unavailable states inspected. [static]
@@ -71,3 +71,5 @@ Implement approved setup surface driven by real scoped readiness; deep-link exis
 - **2026-10-29 — Independent review:** Correct dashboard overdue predicate to API-supported `overdue`; preserve selected site/day in Attendance follow-up via validated URL filter consumption. Narrow serialized29→28 page/test ownership above; no authorization or context API change.
 
 - **2026-10-29 — Form acceptance:** Shared existing schedule and inventory forms are direct Setup/Locations runtime callers and had untranslated workflow copy. Separate isolated forms agent owns these files; Location agent owns only Location/**. Preserve mandatory-item, recurrence, persistence and backend validation; coordinator serializes their integration.
+
+- **2026-10-29 — Applicable web acceptance complete:** Source e212e40; V5 Setup, owner/manager performance, Location register/detail/tabs and real linked forms integrated.64Node+318React/27files;21focused backend and1441whole backend with7existing skips; actual isolated performanceSQL pass. Lint0, strict TS/frontend/backend build checks pass.16actual React/API/disposableSQL browser cases pass;3overlapping supplemental recaptures correct explicit dimensions.165PNG artifacts include references/fullpages; paired desktop1366/phone390ENUR and significant states inspected, contract deviations recorded in V5_SETUP/LOCATIONS/SETUP_FORMS. No provider/native/production claim. User performance originals adopted atb69a532 and root original overlay preserved. Existing issue55/PR56 history retained; current corrective draft follows. Next32consumes15/27/28;41still ineligible.
