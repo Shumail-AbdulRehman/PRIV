@@ -507,7 +507,7 @@ const StaffDetailPage: React.FC = () => {
   };
 
   if(isLoading)return <div className="workforce-page"><PageHeader title="Team member"/><OperationsState loading skeleton="detail"/></div>;
-  if (staffQuery.isError)
+  if (staffQuery.isError&&!staffQuery.data)
     return (
       <div className="ops-page">
         <PageHeader title="Team member" />
@@ -561,7 +561,7 @@ const StaffDetailPage: React.FC = () => {
       />
 
       {saved?<p role="status" className="ops-save-result">{t('Team member changes saved.')}</p>:null}
-      <OperationsState/>
+      <OperationsState error={staffQuery.isError?staffQuery.error:undefined} retry={()=>void staffQuery.refetch()}/>
       <div className="workforce-profile-strip">
         <span className="flex items-center gap-2">
           <Mail size={16} />
@@ -674,7 +674,7 @@ const StaffDetailPage: React.FC = () => {
       <div className="workforce-detail-summary">
         <StatCard
           label="Scheduled tasks"
-          value={taskStats.totalTemplates}
+          value={taskStats.totalInstances}
           icon={ClipboardList}
         />
         <StatCard
@@ -767,7 +767,7 @@ const StaffDetailPage: React.FC = () => {
             description={t(isFetching?'Refreshing filtered period...':'Task outcomes for {period}.',{period:displayPeriod})}
           >
             {taskChartData.length > 0 ? (
-              <ResponsiveContainer width="100%" height={240}>
+              <div dir="ltr"><ResponsiveContainer width="100%" height={240}>
                 <BarChart data={taskChartData} layout="vertical">
                   <CartesianGrid strokeDasharray="3 3" stroke="var(--border)" />
                   <XAxis
@@ -795,7 +795,7 @@ const StaffDetailPage: React.FC = () => {
                     isAnimationActive={false}
                   />
                 </BarChart>
-              </ResponsiveContainer>
+              </ResponsiveContainer></div>
             ) : (
               <div className="flex h-[240px] items-center justify-center text-sm text-muted-foreground">
                 {t('No task data in this period.')}
