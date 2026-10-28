@@ -18,8 +18,9 @@
 
 /* Public entry uses the same centered foundation as the approved V5 journeys.
    Authenticated metadata workspaces retain OperatorShell's separate contract. */
-.operator-access .operator-identity { display:inline-flex; align-items:center; gap:6px; padding:4px 8px; border-radius:5px; background:var(--accent); color:var(--primary); font-size:12px; font-weight:600; }
-.operator-access .operator-provider-state { display:grid; gap:12px; margin-block-start:24px; }
+.operator-access .v5-auth-panel { display:flex; flex-direction:column; }
+.operator-access .operator-identity { display:inline-flex; align-items:center; align-self:flex-start; order:-1; gap:6px; padding:4px 8px; margin-block-end:24px; border-radius:5px; background:var(--accent); color:var(--primary); font-size:12px; font-weight:600; }
+.operator-access .operator-provider-state { display:grid; gap:12px; }
 .operator-access .operator-provider-state h2 { font-size:16px; line-height:1.4; font-weight:600; }
 .operator-access .operator-provider-state p { color:var(--muted-foreground); font-size:14px; }
 .operator-access .operator-provider-state [data-slot="button"] { width:100%; min-height:44px; height:auto; white-space:normal; padding:10px 16px; }
@@ -33,5 +34,6 @@
 .operator-access :focus-visible { outline:3px solid var(--primary); outline-offset:3px; }
 [dir="rtl"] .operator-access .operator-requirements { line-height:1.85; }
 @media(max-width:620px) {
+ .operator-access .v5-auth h1 { font-size:27px; }
  .operator-access .operator-provider-state [data-slot="button"], .operator-access .operator-cleanup [data-slot="button"], .operator-access .v5-auth-footer a, .operator-access .v5-auth-language button { min-height:48px; }
 }

@@ -2,6 +2,7 @@ import { test, expect } from '@playwright/test';
 import { mkdir, writeFile } from 'node:fs/promises';
 import { fileURLToPath } from 'node:url';
 import { join } from 'node:path';
+import { login, backend } from './fixtures';
 
 const root = fileURLToPath(new URL('../../', import.meta.url));
 const out = join(root, 'docs/implementation/v5-operator-evidence');
@@ -78,4 +79,31 @@ test('operator language navigation and direct protected paths preserve unavailab
   }
   expect(requests).toEqual([]);
   await context.close();
+});
+
+test('real tenant cookies never authorize platform APIs and survive local platform cleanup', async ({ browser }) => {
+  for (const who of ['ownerA', 'managerA', 'transfer']) {
+    const context = await browser.newContext();
+    await login(context.request, who);
+    const before = await context.request.get(backend + '/api/common/get-current-user');
+    expect(before.status()).toBe(200);
+    const identity = (await before.json()).data;
+    for (const path of ['/platform/companies', '/platform/service/diagnostics']) {
+      const denied = await context.request.get(backend + '/api' + path);
+      expect(denied.status()).toBe(401);
+      expect((await denied.json()).message).toBe('Platform bearer identity required');
+    }
+    const page = await context.newPage();
+    const requests: string[] = [];
+    page.on('request', request => { if (new URL(request.url()).pathname.startsWith('/api/')) requests.push(new URL(request.url()).pathname); });
+    await page.goto('/platform/security');
+    await page.getByRole('button', { name: 'Clear platform session', exact: true }).click();
+    await expect(page.getByRole('status')).toContainText('Your company session is unchanged.');
+    expect(requests).toEqual([]);
+    const after = await context.request.get(backend + '/api/common/get-current-user');
+    expect(after.status()).toBe(200);
+    const retained = (await after.json()).data;
+    expect({ id: retained.id, role: retained.role, companyId: retained.companyId }).toEqual({ id: identity.id, role: identity.role, companyId: identity.companyId });
+    await context.close();
+  }
 });

@@ -18,7 +18,7 @@ beforeEach(()=>{vi.clearAllMocks();localStorage.clear();detail={company:{...row,
  return {data:path.includes('?')?{items:[row],nextCursor:'42'}:structuredClone(detail)};
 });});
 it('actual route denies tenant/storage identity and never mounts protected company controls',()=>{
- localStorage.setItem('operator',JSON.stringify({role:'ADMIN',kind:'PLATFORM_OPERATOR'}));mount('/platform/companies',true);expect(screen.getByRole('heading',{name:'Platform sign in'})).toBeInTheDocument();expect(screen.queryByLabelText('Search companies')).not.toBeInTheDocument();expect(m.request).not.toHaveBeenCalled();
+ localStorage.setItem('operator',JSON.stringify({role:'ADMIN',kind:'PLATFORM_OPERATOR'}));mount('/platform/companies',true);expect(screen.getByRole('heading',{name:'Platform operator sign-in'})).toBeInTheDocument();expect(screen.queryByLabelText('Search companies')).not.toBeInTheDocument();expect(m.request).not.toHaveBeenCalled();
 });
 it('search and bounded cursor paging perform scoped requests',async()=>{
  mount();await screen.findAllByRole('link',{name:'Synthetic company'});fireEvent.change(screen.getByLabelText('Search companies'),{target:{value:'Synthetic'}});fireEvent.change(screen.getByLabelText('Operational status'),{target:{value:'SUSPENDED'}});fireEvent.click(screen.getByRole('button',{name:'Apply filters'}));await waitFor(()=>expect(m.request).toHaveBeenCalledWith('/platform/companies?limit=25&q=Synthetic&status=SUSPENDED',expect.any(Object)));fireEvent.click(await screen.findByRole('button',{name:'Next page'}));await waitFor(()=>expect(m.request).toHaveBeenCalledWith('/platform/companies?limit=25&q=Synthetic&status=SUSPENDED&after=42',expect.any(Object)));
