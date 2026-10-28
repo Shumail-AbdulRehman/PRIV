@@ -11,8 +11,8 @@ test('owner and manager actual scoped performance match V5 composition English U
   await enter(page,'/dashboard',who,lang);await expect(page.locator('.perf-main-grid')).toBeVisible();await page.evaluate(()=>document.fonts.ready);
   const response=await page.request.get(backend+'/api/manager/operations/performance');expect(response.status()).toBe(200);const real=(await response.json()).data;
   if(who==='ownerA'){await expect(page.locator('.perf-metrics')).toContainText(String(real.summary.reviews));await expect(page.locator('.perf-location-table tbody tr')).toHaveCount(real.sites.length);}else{expect(real.sites.map((site:{location:{id:number}})=>site.location.id)).toEqual([fixture.site.A]);await expect(page.locator('.perf-metrics')).toHaveCount(0);}
-  await page.screenshot({path:join(out,`app-${who}-${width}-${lang}.png`),fullPage:true});
-  const reference=await context.newPage();await reference.goto('file://'+join(root,`design/v5/${who==='ownerA'?'owner':'overview'}.html`)+`?lang=${lang}`);await reference.evaluate(()=>document.fonts.ready);await reference.screenshot({path:join(out,`v5-${who}-${width}-${lang}.png`),fullPage:true});await reference.close();
+  await page.screenshot({path:join(out,`app-${who}-${width}-${lang}.png`)});await page.screenshot({path:join(out,`app-${who}-${width}-${lang}-full.png`),fullPage:true});
+  const reference=await context.newPage();await reference.goto('file://'+join(root,`design/v5/${who==='ownerA'?'owner':'overview'}.html`)+`?lang=${lang}`);await reference.evaluate(()=>document.fonts.ready);await reference.screenshot({path:join(out,`v5-${who}-${width}-${lang}.png`)});await reference.screenshot({path:join(out,`v5-${who}-${width}-${lang}-full.png`),fullPage:true});await reference.close();
   expect(await page.evaluate(()=>document.documentElement.scrollWidth>innerWidth+1)).toBe(false);expect(errors).toEqual([]);results.push({who,width,lang,errors,source:'actual API and persisted synthetic SQL'});await context.close();
  }
  await writeFile(join(out,'render-results.json'),JSON.stringify(results,null,2));

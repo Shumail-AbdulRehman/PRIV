@@ -146,4 +146,8 @@ These owned surfaces are consumed by the flow table above or the clean verificat
 
 - Dashboard follow-up verification consumes `frontend/src/pages/Attendance/AttendancePage.tsx` and its existing filters while29 retains the immutable context/API contract.
 
-- Setup form flows consume `frontend/src/pages/Task/components/TaskScheduleWizard.tsx`, `frontend/src/pages/Area/TemplateInventoryEditor.tsx`, `frontend/src/pages/Area/InventorySelector.tsx`, `frontend/src/pages/Task/components/scheduleTranslations.ts`, `frontend/src/pages/Task/components/TaskScheduleWizard.test.tsx`, `docs/implementation/V5_SETUP_FORMS.md`.
+- Setup form flows consume `frontend/src/pages/Task/components/TaskScheduleWizard.tsx`, `frontend/src/pages/Area/TemplateInventoryEditor.tsx`, `frontend/src/pages/Area/InventorySelector.tsx`, `frontend/src/pages/Area/areaFormText.ts`, `frontend/src/pages/Area/TemplateInventoryEditor.test.tsx`, `frontend/src/pages/Task/components/TaskScheduleWizard.test.tsx`, `docs/implementation/V5_SETUP_FORMS.md`.
+
+- The Setup form visual flow also consumes `frontend/src/pages/Area/setup-forms.css`.
+
+- Real Setup area-form capture/persistence consumes `frontend/src/pages/Area/AreaTemplateForm.tsx` and `frontend/src/pages/Area/LocationAreasTab.tsx`, preserving their mutation/archival contracts.
