@@ -35,7 +35,7 @@ export default function SetupPage() {
  if(selected&&data&&Number.isFinite(Date.parse(data.asOf)))refreshed=new Intl.DateTimeFormat(language==='ur'?'ur-PK':'en-PK',{timeZone:selected.timezone,dateStyle:'medium',timeStyle:'short'}).format(new Date(data.asOf));
  if(!operational)return <p role="alert">{t('Owner or assigned-site manager access is required.')}</p>;
  return <div className="ops-page setup-page">
-  <PageHeader title={owner?'Get your company ready':'Prepare your assigned locations'} subtitle="A short path from a new location to the first working shift." action={<Button asChild variant="outline"><Link to="/dashboard">{t('Open overview')}</Link></Button>}/>
+  <PageHeader title={owner?'Get your company ready':'Prepare your assigned locations'} subtitle="A short path from a new location to the first working shift." action={<Button asChild variant="ghost"><Link to="/dashboard">{t('Open overview')}</Link></Button>}/>
   <div className="setup-layout">
    <section className="ops-panel setup-checklist" aria-labelledby="setup-heading">
     <div className="setup-heading-row"><div><h2 id="setup-heading">{t('Your setup checklist')}</h2><p>{t('Progress comes from saved locations, staff shifts, areas and schedules.')}</p></div><Button variant="outline" disabled={readiness.isFetching} onClick={()=>void readiness.refetch()}><RefreshCw size={16} aria-hidden="true"/>{t('Refresh status')}</Button></div>

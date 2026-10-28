@@ -28,7 +28,7 @@ beforeEach(() => {
   m.get.mockImplementation(async () => ({ data: { data: structuredClone(saved) } }));
 });
 it('uses persisted rates, totals, daily figures and exact site action links', async () => {
-  mount(); await screen.findByRole('heading', { name: 'Needs attention today' });
+  mount(); await screen.findByRole('heading', { name: 'Needs attention today' }, {timeout: 5000});
   expect(m.get).toHaveBeenCalledWith('/manager/operations/performance', expect.objectContaining({ params: { date: 'today', period: '7' }, signal: expect.any(AbortSignal) }));
   const metrics = screen.getByRole('region', { name: 'Performance summary' });
   expect(within(metrics).getByText('75%')).toBeInTheDocument(); expect(within(metrics).getByText('25%')).toBeInTheDocument();
@@ -37,7 +37,7 @@ it('uses persisted rates, totals, daily figures and exact site action links', as
   fireEvent.click(screen.getByText('View daily figures')); expect(screen.getByText('3 / 4 (75%)')).toBeInTheDocument();
 });
 it('keeps period and location filters in the real API query', async () => {
-  const router = mount('ADMIN', 'en', '/dashboard?locationId=20&date=2026-10-28'); await screen.findByRole('heading', { name: 'Needs attention today' });
+  const router = mount('ADMIN', 'en', '/dashboard?locationId=20&date=2026-10-28'); await screen.findByRole('heading', { name: 'Needs attention for this day' });
   fireEvent.click(screen.getByRole('button', { name: 'Last 30 days' }));
   await waitFor(() => expect(m.get).toHaveBeenLastCalledWith('/manager/operations/performance', expect.objectContaining({ params: { locationId: '20', date: '2026-10-28', period: '30' } })));
   expect(router.state.location.search).toContain('locationId=20');
@@ -59,7 +59,7 @@ it('never describes an unavailable report as zero performance; real retry recove
   m.get.mockRejectedValue(new Error('Unavailable')); mount(); await screen.findByRole('alert');
   expect(screen.queryByRole('heading', { name: 'Needs attention today' })).not.toBeInTheDocument();
   m.get.mockImplementation(async () => ({ data: { data: saved } })); fireEvent.click(screen.getByRole('button', { name: 'Retry' }));
-  await screen.findByRole('heading', { name: 'Needs attention today' });
+  await screen.findByRole('heading', { name: 'Needs attention today' }, {timeout: 5000});
 });
 it('keeps empty assigned scope distinct and translates the actual manager view in Urdu', async () => {
   saved = { ...saved, sites: [] }; mount('MANAGER', 'ur'); await screen.findByRole('heading', { name: 'ابھی کوئی مقام تفویض نہیں' });

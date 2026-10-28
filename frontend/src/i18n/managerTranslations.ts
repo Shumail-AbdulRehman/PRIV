@@ -742,4 +742,5 @@ export const managerUrdu: Record<string, string> = {
   "Daily figures": "روزانہ کے اعداد",
   "Overdue work": "تاخیر شدہ کام",
   "Daily submitted task counts": "روزانہ جمع شدہ کاموں کی تعداد",
+  "Needs attention for this day": "اس دن توجہ درکار ہے",
 };

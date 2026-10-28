@@ -20,8 +20,17 @@ test('owner and manager actual scoped performance match V5 composition English U
 test('performance period scope daily disclosure search and authorization use actual APIs',async({page})=>{
  await mkdir(out,{recursive:true});await enter(page,'/dashboard');await expect(page.locator('.perf-location-table')).toBeVisible();
  await page.getByRole('button',{name:'Last 30 days',exact:true}).click();await expect(page).toHaveURL(/period=30/);await expect(page.locator('.perf-data-scroll tbody tr')).toHaveCount(30);await page.getByText('View daily figures',{exact:true}).click();await expect(page.locator('.perf-data-scroll')).toBeVisible();
- await page.getByRole('textbox',{name:'Find a location',exact:true}).fill('not-a-site');await expect(page.getByText('No matching locations.',{exact:true})).toBeVisible();await page.getByRole('button',{name:'Clear search',exact:true}).click();await expect(page.locator('.perf-location-table tbody tr')).toHaveCount(2);
+ await expect(page.getByLabel('Date',{exact:true})).not.toHaveValue('');await page.getByRole('textbox',{name:'Find a location',exact:true}).fill('not-a-site');await expect(page.getByText('No matching locations.',{exact:true})).toBeVisible();await page.getByRole('button',{name:'Clear search',exact:true}).click();await expect(page.locator('.perf-location-table tbody tr')).toHaveCount(2);
  await page.getByLabel('Location',{exact:true}).selectOption(String(fixture.site.A));await expect(page.locator('.perf-location-table tbody tr')).toHaveCount(1);await page.screenshot({path:join(out,'app-owner-scoped-period-1366-en.png'),fullPage:true});
  await enter(page,'/dashboard','managerA');expect((await page.request.get(backend+'/api/manager/operations/performance?locationId='+fixture.site.B)).status()).toBe(403);expect((await page.request.get(backend+'/api/manager/operations/performance?locationId='+fixture.site.foreign)).status()).toBe(403);
  await page.route('**/api/manager/operations/performance?*',route=>route.abort('failed'));await page.reload();await expect(page.getByRole('alert')).toBeVisible();await expect(page.locator('.perf-main-grid')).toHaveCount(0);await page.screenshot({path:join(out,'app-performance-network-error-1366-en.png'),fullPage:true});await page.unroute('**/api/manager/operations/performance?*');await page.getByRole('button',{name:'Retry',exact:true}).click();await expect(page.locator('.perf-main-grid')).toBeVisible();
+});
+
+test('dashboard overdue and attendance follow-up actions keep backend-supported site/day filters',async({page})=>{
+ await enter(page,`/dashboard?locationId=${fixture.site.A}&date=2026-10-20`);await expect(page.locator('.perf-main-grid')).toBeVisible();
+ const overdue=page.waitForResponse(response=>response.url().includes('/manager/operations/tasks?')&&response.url().includes('status=overdue'));
+ await page.getByRole('link',{name:/Overdue work/}).click();expect((await overdue).status()).toBe(200);await expect(page).toHaveURL(/status=overdue/);
+ await page.goto(`/dashboard?locationId=${fixture.site.A}&date=2026-10-20`);await expect(page.locator('.perf-main-grid')).toBeVisible();
+ const attendance=page.waitForResponse(response=>response.url().includes('/attendance/?')&&response.url().includes('from=2026-10-20')&&response.url().includes('locationId='+fixture.site.A));
+ await page.getByRole('link',{name:/Attendance follow-up/}).click();expect((await attendance).status()).toBe(200);await expect(page.getByLabel('Location',{exact:true})).toHaveValue(String(fixture.site.A));await expect(page.getByLabel('From date',{exact:true})).toHaveValue('2026-10-20');
 });
