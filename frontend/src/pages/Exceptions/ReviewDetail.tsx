@@ -260,9 +260,10 @@ export default function ReviewDetail({ id, backTo, returnState }: {
           label={exceptionStateLabel(detail.state)}
         />
         <span>
-          {detail.task?.staffSubmittedAt
-            ? t("Task submitted")
-            : t("Task not submitted")}
+          {detail.kind === "SETUP"
+            ? t("No task generated")
+            : !detail.task ? t("Task submission information unavailable")
+            : detail.task.staffSubmittedAt ? t("Task submitted") : t("Task not submitted")}
         </span>
       </div>
       <OperationsState error={query.error} retry={() => void query.refetch()} />
@@ -299,21 +300,22 @@ export default function ReviewDetail({ id, backTo, returnState }: {
         </div>
       ) : null}
       {detail.kind === "SETUP" ? (
-        <section className="ops-panel ops-panel-body">
+        <section className="ops-panel-body v5-review-setup">
           <h2>{t("Room inventory needs setup")}</h2>
           <p>
             {t(
               "Configure the room and its schedule. Photos cannot be reviewed until the inventory is ready.",
             )}
           </p>
-          <Button asChild>
+          <p role="status">{t('Complete the room setup before reviewing task photos. No staff decision is available for this setup record.')}</p>
+          <div className="v5-review-setup-actions"><Button asChild>
             <Link to={`/locations/${detail.locationId}?tab=templates`}>
               {t("Review room setup")}
             </Link>
           </Button>
           <Button variant="outline" onClick={() => void done()}>
             {t("Check again")}
-          </Button>
+          </Button></div>
         </section>
       ) : (
         <div className="v5-evidence-body">
@@ -457,11 +459,11 @@ export default function ReviewDetail({ id, backTo, returnState }: {
       {detail.kind !== 'SETUP' && <LaunchReviewContext detail={detail} replacement={selectedRequirement?.replacement} />}
       {detail.kind !== 'SETUP' && <details className="v5-findings-disclosure"><summary>{t('Review findings and capture rules')}</summary><ReviewSummary detail={detail} onSelect={inspectRequirement}/></details>}
       </div>
-      <section className="ops-panel ops-action-column v5-decision-card" id="review-finding" tabIndex={-1}>
+      {detail.kind !== 'SETUP' && <section className="ops-panel ops-action-column v5-decision-card" id="review-finding" tabIndex={-1}>
         <div className="ops-panel-body">
           <DecisionForm detail={detail} onDone={done} />
         </div>
-      </section>
+      </section>}
       </div>
     </div>
   );

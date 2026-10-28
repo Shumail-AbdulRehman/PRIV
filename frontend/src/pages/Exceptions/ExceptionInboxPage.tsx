@@ -45,7 +45,7 @@ export default function ExceptionInboxPage() {
     queryFn:async({signal})=>(await client.get<{data:ReviewPage}>('/verification-exceptions',{params:applied,signal})).data.data,
     refetchInterval:30000,refetchOnWindowFocus:true,
   });
-  const data=query.data;
+  const data=query.isError?undefined:query.data;
   const areas=useAreas(Number(filters.locationId));
   const returnTo='/exceptions?'+new URLSearchParams(filters);
   function update(values:Record<string,string>) {
@@ -97,10 +97,10 @@ function ReviewPanels({data,selectedId,returnTo,filters,onUpdate,loading,error,r
           to={`/exceptions/${record.id}?returnTo=${encodeURIComponent(returnTo)}`}
           state={{returnTo,focusId:record.id,scrollY:window.scrollY}} preventScrollReset>
           <h2><bdi>{record.area?.name??record.task?.areaNameSnapshot??record.task?.title??t('Room setup')}</bdi></h2>
-          <p><bdi>{record.task?.staff?.name??t('Unassigned')}</bdi></p>
+          {record.kind!=='SETUP'&&<p><bdi>{record.task?.staff?.name??t('Unassigned')}</bdi></p>}
           <p className="v5-queue-site"><MapPin size={13} aria-hidden="true"/><bdi>{record.location?.name}</bdi></p>
           <strong className={"v5-queue-reason"+(record.state==='RESOLVED'?' v5-queue-handled':'')}><Camera size={14} aria-hidden="true"/>{t(record.state==='RESOLVED'?'Review handled':plainReason(reason))}</strong>
-          <div className="v5-queue-lifecycle"><span>{t(record.task?.staffSubmittedAt?'Task submitted':'Task not submitted')}</span><span>{t(record.state==='RESOLVED'?'Review closed':'Review pending')}</span></div>
+          <div className="v5-queue-lifecycle"><span>{t(record.kind==='SETUP'?'No task generated':!record.task?'Task submission information unavailable':record.task.staffSubmittedAt?'Task submitted':'Task not submitted')}</span><span>{t(record.state==='RESOLVED'?'Review closed':'Review pending')}</span></div>
           <small><bdi>{localTime(record.updatedAt,record.location?.timezone??'Asia/Karachi',language,true)}</bdi></small>
         </Link>;
       })}

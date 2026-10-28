@@ -68,7 +68,7 @@ it('wires real parent detail reads and closure POST without restoring retired ac
  expect(api.get).toHaveBeenCalledWith('/verification-exceptions/3',{params:{}});
  for(const name of ['Ask for another photo','Give more time for photos','Make an exception for this photo','Accept this photo'])expect(screen.queryByRole('button',{name})).not.toBeInTheDocument();
  fireEvent.click(screen.getByRole('button',{name:'Resolve review'}));fireEvent.change(screen.getByRole('textbox',{name:'Resolution note'}),{target:{value:'Synthetic reviewed outage'}});fireEvent.click(screen.getByRole('button',{name:'Confirm resolution'}));
- await screen.findByText('Synthetic reviewed outage');expect(api.post).toHaveBeenCalledWith('/verification-exceptions/3/close',{requestId:expect.any(String),expectedVersion:2,action:'RESOLVE_REVIEW',note:'Synthetic reviewed outage'});
+ await screen.findAllByText('Synthetic reviewed outage');expect(api.post).toHaveBeenCalledWith('/verification-exceptions/3/close',{requestId:expect.any(String),expectedVersion:2,action:'RESOLVE_REVIEW',note:'Synthetic reviewed outage'});
  expect(screen.getByText('Verified completion not recorded')).toBeInTheDocument();expect(screen.queryByText('Verified complete')).not.toBeInTheDocument();
 });
 it('preserves closure note on conflict and requires refresh',async()=>{
@@ -108,4 +108,14 @@ it('records a deliberate attributed performance issue only through the closure A
 it('shows queue submission, review closure and verified evidence as separate recorded facts',async()=>{
  detail.task!.staffSubmittedAt='2026-10-21T04:00:00Z';detail.state='RESOLVED';
  mount(<ExceptionInboxPage/>);await screen.findAllByText('Task submitted');expect(within(screen.getByRole('region',{name:'Review queue'})).getByText('Review handled')).toBeInTheDocument();expect(screen.getAllByText('Review closed').length).toBeGreaterThan(0);expect(screen.queryByText('Verified completion recorded')).not.toBeInTheDocument();expect(api.get).toHaveBeenCalledWith('/verification-exceptions',expect.objectContaining({params:expect.objectContaining({queue:'needs-me',page:'1'})}));
+});
+
+it('renders persisted setup records with a setup destination and no fabricated staff submission or failed-decision state',async()=>{
+ detail.kind='SETUP';delete detail.task;detail.closureActions=[];detail.items=[];
+ mount(<ExceptionDetailPage/>);await screen.findByRole('heading',{name:'Room inventory needs setup'});
+ expect(screen.getAllByText('No task generated')).toHaveLength(2);
+ expect(screen.getByRole('link',{name:'Review room setup'})).toHaveAttribute('href','/locations/8?tab=templates');
+ expect(screen.queryByText('Task not submitted')).not.toBeInTheDocument();
+ expect(screen.queryByText('Review decisions could not be loaded. Refresh the page to continue.')).not.toBeInTheDocument();
+ expect(screen.queryByRole('button',{name:'Resolve review'})).not.toBeInTheDocument();
 });
