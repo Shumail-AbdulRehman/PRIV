@@ -4,7 +4,7 @@
 **Depends on:** Spec 23, Spec 27, Spec 08
 **Model:** Standard — `claude-sonnet-5-5` · `gpt-6.1-sol` · `gemini-3.8-flash`
 **Issue:** #57
-**Owns:** `.impeccable/surfaces/frontend-src-pages-attendance-attendancecontext-tsx.md`, `frontend/src/pages/Attendance/attendance-context.css`, `frontend/src/i18n/attendanceContextTranslations.ts`, `frontend/src/pages/Attendance/AttendancePage.tsx`, `docs/implementation/ATTENDANCE_CONTEXT_UI.md`, `frontend/src/pages/Attendance/AttendanceContext.tsx`, `frontend/src/pages/Attendance/AttendanceContext.test.tsx`, `frontend/src/pages/Attendance/contextApi.ts`, `specs/inventory/29-attendance-context-ui.md`
+**Owns:** `frontend/src/pages/Attendance/api.ts`, `frontend/src/pages/Attendance/queries.ts`, `frontend/src/pages/Attendance/attendance-v5.css`, `frontend/src/pages/Attendance/AttendancePage.test.tsx`, `.impeccable/surfaces/frontend-src-pages-attendance-attendancecontext-tsx.md`, `frontend/src/pages/Attendance/attendance-context.css`, `frontend/src/i18n/attendanceContextTranslations.ts`, `frontend/src/pages/Attendance/AttendancePage.tsx`, `docs/implementation/ATTENDANCE_CONTEXT_UI.md`, `frontend/src/pages/Attendance/AttendanceContext.tsx`, `frontend/src/pages/Attendance/AttendanceContext.test.tsx`, `frontend/src/pages/Attendance/contextApi.ts`, `specs/inventory/29-attendance-context-ui.md`
 **Reuses:** `frontend/src/components/ui/dialog.tsx`, `frontend/src/lib/attendance.ts`, `DESIGN-SYSTEM.md#component-conventions`, `design/v5/attendance.html`
 
 ## Goal

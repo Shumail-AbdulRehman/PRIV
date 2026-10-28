@@ -103,9 +103,10 @@ function ScopedContext({ attendance, staffName }: Props) {
 
   return <Dialog open={open} onOpenChange={setOpen}>
     <DialogTrigger asChild><Button variant="outline">{t('Attendance context')}</Button></DialogTrigger>
-    <DialogContent className="workspace attendance-context-dialog sm:max-w-3xl" showCloseButton={false}>
+    <DialogContent className="workspace attendance-context-dialog sm:max-w-6xl" showCloseButton={false}>
       <header className="attendance-context-header"><DialogTitle>{t('Attendance context')} · <bdi>#{attendance.id}</bdi></DialogTitle><DialogClose asChild><Button type="button" variant="outline">{t('Close')}</Button></DialogClose></header>
       <DialogDescription>{t('Notes add context. Original attendance, photos and paid hours are not changed.')}</DialogDescription>
+      <div className="attendance-context-layout"><div className="attendance-context-main">
       <section className="attendance-capture" aria-labelledby={`${reasonId}-capture`}>
         <h2 id={`${reasonId}-capture`}>{t('Original captured facts')}</h2>
         {staffName ? <p><bdi>{staffName}</bdi></p> : null}
@@ -140,12 +141,13 @@ function ScopedContext({ attendance, staffName }: Props) {
         </li>)}</ol>
         {history.hasNextPage && !history.isError ? <Button variant="outline" disabled={history.isFetchingNextPage} onClick={() => void history.fetchNextPage()}>{t(history.isFetchingNextPage ? 'Loading more context…' : 'Load more recorded context')}</Button> : null}
       </section>
+      </div>
       <form className="attendance-context-form" onSubmit={event => void submit(event)} noValidate>
         <h2>{t(parentId ? 'Add acknowledgement' : 'Add attendance note')}</h2>
         {parentId ? <p>{t('Acknowledges note')} <bdi>{parentId}</bdi></p> : null}
         <label htmlFor={reasonId}>{t('Reason (required)')}</label>
         <textarea id={reasonId} value={reason} readOnly={!!request} disabled={denied} maxLength={1000} required aria-invalid={invalid} aria-describedby={`${reasonId}-help`} onChange={event => { setReason(event.target.value); setInvalid(false); setSaved(false); }} />
-        <p id={`${reasonId}-help`}>{t('Use 1–1000 characters. Saved notes cannot be edited or deleted.')}</p>
+        <p id={`${reasonId}-help`}>{t('Use 1–1000 characters. Saved notes cannot be edited or deleted.')}</p><p className="attendance-context-policy">{t('Original attendance, photos and paid hours remain unchanged.')}</p>
         {invalid ? <p role="alert">{t('Enter a reason of 1–1000 characters without control characters.')}</p> : null}
         {error ? <div role="alert"><p>{t(error === 409 ? 'Request conflict. Refresh context; your draft is kept.' : [401, 403, 404].includes(Number(error)) ? 'Your account cannot save context for this attendance. Your draft is kept.' : 'Saving was not confirmed. Your draft is locked for an exact retry to prevent duplicate notes.')}</p>
           {error === 409 ? <Button type="button" variant="outline" onClick={() => { setRequest(null); setError(null); void history.refetch(); }}>{t('Review conflict and edit draft')}</Button> : null}</div> : null}
@@ -155,7 +157,7 @@ function ScopedContext({ attendance, staffName }: Props) {
           {parentId && !request ? <Button type="button" variant="outline" onClick={() => setParentId(null)}>{t('Add a note instead')}</Button> : null}
           <DialogClose asChild><Button type="button" variant="outline">{t('Close')}</Button></DialogClose>
         </div>
-      </form>
+      </form></div>
     </DialogContent>
   </Dialog>;
 }
