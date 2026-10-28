@@ -62,3 +62,21 @@ The rebuilt white224px sidebar, minimum72px header, V5 typography/spacing/colors
 Q27-01 is re-established as resolved: final browser assertions measure44px desktop and48px phone language targets, phone navigation and generic Close dimensions, and48px phone Staff signout. Q27-02 is re-established as resolved: all four current shared-dialog images were inspected after opacity1/white-background assertions and disabled screenshot animation; no table bleed remains, Close is correctly translated and mirrored. The minimum72px header may measure73px with border, a documented implementation detail rather than an exact-height failure.
 
 Independently read the final guarded-run log: **3 browser cases passed in50.0s**. Those functional results belong to Agent A's actual matching React/API/disposable synthetic PostgreSQL runner, not a separately executed QA suite. The harness uses actual403 manager company-settings denial/canonical redirect, real Staff identity, navigation/Escape/focus return, recovery controls and only a labelled JavaScript-chunk abort for the fatal-resource state; no positive API response is fabricated. Current whole units/build/lint are attributed to A/coordinator elsewhere. No significant shared-shell visual finding remains open. No full Today/page-specific, native, operator/provider or whole-product qualification follows from this gate.
+
+## Initial current Specification31 application review — 2026-10-28
+
+Coordinator integrated B's `5b715c5`/`5e5e1de` with the verified shared-shell ancestor on `2e509bf`, then ran the guarded actual React/API/disposable synthetic SQL harness. Initial core renders in `v5-workforce-evidence/` show a coherent Team summary/directory/inline-hire composition, Staff Detail facts/filter/stat/tabs/profile/history and owner Managers directory. Truthful directory metrics and the nonexistent-detail-prototype limit remain documented deviations. The initial full-page artifacts are useful for lower content but phone images are too tall for readable viewport comparison; requested900px viewport base/dialog captures and separate scrolled lower states before acceptance.
+
+Actionable findings delivered to B/coordinator:
+
+| ID | Finding | Required disposition before acceptance |
+|---|---|---|
+| Q31-01 | Urdu Staff Detail retains `Scheduled tasks`, `Late Check-ins`, `Records`; manager edit title retains `Edit manager`. | Add exact dictionary keys and inspect fresh Urdu detail/dialog captures. |
+| Q31-02 | Urdu chart's category label overlaps the green bar because SVG geometry inherits RTL direction. | Keep chart coordinate/text-anchor geometry coherent while retaining Urdu labels; recapture. |
+| Q31-03 | Directory names inherit13px shared identity type versus approved15px record titles. | Scoped workforce identity typography correction. |
+| Q31-04 | Generic phone Team cards repeat Show details, View details and Open details; Managers cards hide core assigned sites under disclosure. | Reuse existing DataTable mobileRender to expose key facts and one clear detail action, with Edit/access actions retained. |
+| Q31-05 | Staff Detail labels `taskStats.totalTemplates` as Scheduled tasks, producing0scheduled beside1submitted. Existing backend DTO already supplies filtered `totalInstances`. | Use the correct existing execution count or an accurately named schedule count; regression with distinct counts. No backend expansion required. |
+
+The first broad run reports **24 passed and3 failed**. Two failures concern the Reason control after an actual409 open-shift conflict, and one hire request returns403. These are unresolved at this review point; no functional or full-spec acceptance is claimed from the passing captures. Coordinator/B are diagnosing source versus fixture/selector causes without weakening the required draft/API assertions. Real one-use recovery, manager release/reassignment, tenant/site denials and historical preservation remain mandatory.
+
+Already inspected initial desktop EN deactivation/archive/transfer/handoff forms:560px scoped modal, multiline reason, real contextual policy, persistent labels and cancel/confirm actions are coherent. Credential fields are empty and no one-use code is captured. Remaining EN/UR phone/conflict/empty/loading/error/manager variants require current final capture and inspection after fixes.
