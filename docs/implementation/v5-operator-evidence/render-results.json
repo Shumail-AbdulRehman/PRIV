@@ -1,0 +1,122 @@
+[
+  {
+    "view": "login",
+    "width": 1366,
+    "height": 900,
+    "language": "en",
+    "overflow": false,
+    "apiRequests": [],
+    "errors": [],
+    "provenance": "actual built React routes; no HTTP response replacement; provider intentionally unavailable"
+  },
+  {
+    "view": "security",
+    "width": 1366,
+    "height": 900,
+    "language": "en",
+    "overflow": false,
+    "apiRequests": [],
+    "errors": [],
+    "provenance": "actual built React routes; no HTTP response replacement; provider intentionally unavailable"
+  },
+  {
+    "view": "callback",
+    "width": 1366,
+    "height": 900,
+    "language": "en",
+    "overflow": false,
+    "apiRequests": [],
+    "errors": [],
+    "provenance": "actual built React routes; no HTTP response replacement; provider intentionally unavailable"
+  },
+  {
+    "view": "login",
+    "width": 1366,
+    "height": 900,
+    "language": "ur",
+    "overflow": false,
+    "apiRequests": [],
+    "errors": [],
+    "provenance": "actual built React routes; no HTTP response replacement; provider intentionally unavailable"
+  },
+  {
+    "view": "security",
+    "width": 1366,
+    "height": 900,
+    "language": "ur",
+    "overflow": false,
+    "apiRequests": [],
+    "errors": [],
+    "provenance": "actual built React routes; no HTTP response replacement; provider intentionally unavailable"
+  },
+  {
+    "view": "callback",
+    "width": 1366,
+    "height": 900,
+    "language": "ur",
+    "overflow": false,
+    "apiRequests": [],
+    "errors": [],
+    "provenance": "actual built React routes; no HTTP response replacement; provider intentionally unavailable"
+  },
+  {
+    "view": "login",
+    "width": 390,
+    "height": 900,
+    "language": "en",
+    "overflow": false,
+    "apiRequests": [],
+    "errors": [],
+    "provenance": "actual built React routes; no HTTP response replacement; provider intentionally unavailable"
+  },
+  {
+    "view": "security",
+    "width": 390,
+    "height": 900,
+    "language": "en",
+    "overflow": false,
+    "apiRequests": [],
+    "errors": [],
+    "provenance": "actual built React routes; no HTTP response replacement; provider intentionally unavailable"
+  },
+  {
+    "view": "callback",
+    "width": 390,
+    "height": 900,
+    "language": "en",
+    "overflow": false,
+    "apiRequests": [],
+    "errors": [],
+    "provenance": "actual built React routes; no HTTP response replacement; provider intentionally unavailable"
+  },
+  {
+    "view": "login",
+    "width": 390,
+    "height": 900,
+    "language": "ur",
+    "overflow": false,
+    "apiRequests": [],
+    "errors": [],
+    "provenance": "actual built React routes; no HTTP response replacement; provider intentionally unavailable"
+  },
+  {
+    "view": "security",
+    "width": 390,
+    "height": 900,
+    "language": "ur",
+    "overflow": false,
+    "apiRequests": [],
+    "errors": [],
+    "provenance": "actual built React routes; no HTTP response replacement; provider intentionally unavailable"
+  },
+  {
+    "view": "callback",
+    "width": 390,
+    "height": 900,
+    "language": "ur",
+    "overflow": false,
+    "apiRequests": [],
+    "errors": [],
+    "provenance": "actual built React routes; no HTTP response replacement; provider intentionally unavailable"
+  }
+]
