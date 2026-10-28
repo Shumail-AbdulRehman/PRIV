@@ -1,499 +1,56 @@
-import { useLanguage } from "@/i18n/context";
-import WorkforceActions from "./WorkforceActions";
-import StaffCreateDialog from "./StaffCreateDialog";
-import OperationsState from "../Manager/OperationsState";
-import { useState } from "react";
-import { useNavigate, useSearchParams } from "react-router-dom";
-import { formatInTimeZone, fromZonedTime } from "date-fns-tz";
-import {
-  useGetStaff,
-  useEditStaff,
-  getStaffDetailsQueryOptions,
-} from "./queries";
-import type { EditStaffInput } from "./api";
-import { useGetLocations } from "../Location/queries";
-import PageHeader from "@/components/common/PageHeader";
-import DataTable from "@/components/common/DataTable";
-import StatusBadge from "@/components/common/StatusBadge";
-import LoadingSpinner from "@/components/common/LoadingSpinner";
-import type { Column } from "@/components/common/DataTable";
-import { Dialog, DialogContent, DialogTitle } from "@/components/ui/dialog";
-import { Users, Plus, Search, Pencil, MapPin } from "lucide-react";
-import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import StatCard from "@/components/common/StatCard";
-import FilterBar from "@/components/common/FilterBar";
-import { useQueryClient } from "@tanstack/react-query";
-
-interface StaffMember {
-  id: number;
-  name: string;
-  email: string;
-  phone?: string | null;
-  locationId: number | null;
-  shiftStart: string | null;
-  shiftEnd: string | null;
-  isActive: boolean;
-}
-
-interface LocationOption {
-  id: number;
-  name: string;
-  timezone: string;
-}
-
-interface ApiErrorBody {
-  message?: string;
-  errors?: { message: string }[];
-}
-
-interface ApiError {
-  response?: {
-    data?: ApiErrorBody;
-  };
-  message?: string;
-}
-
-const fmtTimeWithTz = (d: string | null, timeZone = "UTC") => {
-  if (!d) return "—";
-  return formatInTimeZone(new Date(d), timeZone, "HH:mm (zzz)");
-};
-
-const toTimeValue = (iso: string | null, timeZone = "UTC") => {
-  if (!iso) return "";
-  return formatInTimeZone(new Date(iso), timeZone, "HH:mm");
-};
-
-const wallTimeToIso = (
-  base: string | null,
-  timeValue: string,
-  timeZone: string,
-) => {
-  const datePart = formatInTimeZone(
-    base ? new Date(base) : new Date(),
-    timeZone,
-    "yyyy-MM-dd",
-  );
-  return fromZonedTime(`${datePart}T${timeValue}:00`, timeZone).toISOString();
-};
-
-const inputCls =
-  "flex h-11 w-full rounded-lg border border-border/80 bg-background/90 px-4 py-2 text-sm shadow-xs outline-none focus:border-primary/60 focus:ring-4 focus:ring-primary/10";
-
-export default function StaffPage() {
-  const { t } = useLanguage();
-  const staffQuery = useGetStaff();
-  const { data, isLoading } = staffQuery;
-  const [success, setSuccess] = useState("");
-  const locationsQuery = useGetLocations();
-  const editStaffMutation = useEditStaff();
-  const queryClient = useQueryClient();
-  const navigate = useNavigate();
-
-  const [search, setSearch] = useState("");
-  const [params,setParams]=useSearchParams();
-  const locationFilter=params.get('locationId')??'all';
-  const setLocationFilter=(id:string)=>setParams(previous=>{const result=new URLSearchParams(previous);if(id==='all')result.delete('locationId');else result.set('locationId',id);return result;},{replace:true});
-  const dialogOpen=params.get('create')==='1';
-  const setDialogOpen=(open:boolean)=>setParams(previous=>{const result=new URLSearchParams(previous);if(open)result.set('create','1');else result.delete('create');return result;},{replace:true});
-
-  const [editingStaff, setEditingStaff] = useState<StaffMember | null>(null);
-  const [editError, setEditError] = useState<string | null>(null);
-  const [editForm, setEditForm] = useState({
-    name: "",
-    email: "",
-    phone: "",
-    shiftStart: "",
-    shiftEnd: "",
-    locationId: "" as string,
-  });
-
-  if (isLoading) return <LoadingSpinner fullScreen />;
-  if (staffQuery.isError)
-    return (
-      <div className="ops-page">
-        <PageHeader title="Team" />
-        <OperationsState
-          error={staffQuery.error}
-          retry={() => void staffQuery.refetch()}
-        />
-      </div>
-    );
-
-  const staff: StaffMember[] = data?.data ?? [];
-  const locations = (locationsQuery.data?.data ?? []) as LocationOption[];
-
-  const filtered = staff.filter((s) => {
-    const matchesSearch =
-      s.name.toLowerCase().includes(search.toLowerCase()) ||
-      s.email.toLowerCase().includes(search.toLowerCase()) ||
-      (s.phone ?? "").toLowerCase().includes(search.toLowerCase());
-    const matchesLocation =
-      locationFilter === "all"
-        ? true
-        : locationFilter === "unassigned"
-          ? s.locationId === null
-          : s.locationId === Number(locationFilter);
-    return matchesSearch && matchesLocation;
-  });
-  const assignedStaffCount = staff.filter((s) => s.locationId !== null).length;
-  const activeStaffCount = staff.filter((s) => s.isActive).length;
-
-  const locMap = new Map(locations.map((l) => [l.id, l.name]));
-  const tzMap = new Map(locations.map((l) => [l.id, l.timezone]));
-  const tzForLocation = (locationId: number | null) =>
-    (locationId != null ? tzMap.get(locationId) : undefined) ?? "UTC";
-
-  const extractError = (err: unknown) => {
-    const error = err as ApiError;
-    return (
-      error.response?.data?.message ||
-      error.response?.data?.errors?.map((e) => e.message).join(", ") ||
-      error.message ||
-      "An error occurred"
-    );
-  };
-
-  const handleEditOpen = (s: StaffMember) => {
-    setEditError(null);
-    setEditingStaff(s);
-    const tz = tzForLocation(s.locationId);
-    setEditForm({
-      name: s.name,
-      email: s.email,
-      phone: s.phone ?? "",
-      shiftStart: toTimeValue(s.shiftStart, tz),
-      shiftEnd: toTimeValue(s.shiftEnd, tz),
-      locationId: s.locationId ? String(s.locationId) : "",
-    });
-  };
-
-  const handleEditSave = async () => {
-    if (!editingStaff) return;
-    setEditError(null);
-    try {
-      const tz = tzForLocation(
-        editForm.locationId ? Number(editForm.locationId) : null,
-      );
-      const payload: EditStaffInput = {};
-      if (editForm.name !== editingStaff.name) payload.name = editForm.name;
-      if (editForm.email !== editingStaff.email) payload.email = editForm.email;
-      if (editForm.phone !== (editingStaff.phone ?? ""))
-        payload.phone = editForm.phone;
-      if (
-        editForm.shiftStart &&
-        editForm.shiftStart !== toTimeValue(editingStaff.shiftStart, tz)
-      ) {
-        payload.shiftStart = wallTimeToIso(
-          editingStaff.shiftStart,
-          editForm.shiftStart,
-          tz,
-        );
-      }
-      if (
-        editForm.shiftEnd &&
-        editForm.shiftEnd !== toTimeValue(editingStaff.shiftEnd, tz)
-      ) {
-        payload.shiftEnd = wallTimeToIso(
-          editingStaff.shiftEnd,
-          editForm.shiftEnd,
-          tz,
-        );
-      }
-      if (Object.keys(payload).length > 0) {
-        await new Promise<void>((resolve, reject) => {
-          editStaffMutation.mutate(
-            { id: editingStaff.id, data: payload },
-            { onSuccess: () => resolve(), onError: (err) => reject(err) },
-          );
-        });
-      }
-      setEditingStaff(null);
-      setSuccess("Team member changes saved.");
-    } catch (err: unknown) {
-      setEditError(extractError(err));
-    }
-  };
-
-  const columns: Column<StaffMember>[] = [
-    {
-      key: "name",
-      header: "Name",
-      sortValue: (s) => s.name,
-      render: (s) => (
-        <div className="flex items-center gap-3">
-          <div className="flex h-8 w-8 items-center justify-center rounded-full bg-blue-50 text-xs font-bold text-blue-700">
-            {s.name
-              .split(" ")
-              .map((w) => w[0])
-              .join("")
-              .slice(0, 2)
-              .toUpperCase()}
-          </div>
-          <span className="font-medium text-gray-800">{s.name}</span>
-        </div>
-      ),
-    },
-    {
-      key: "email",
-      header: "Email",
-      sortValue: (s) => s.email,
-      render: (s) => <span className="text-gray-500">{s.email}</span>,
-    },
-    {
-      key: "phone",
-      header: "Phone",
-      render: (s) => <span className="text-gray-500">{s.phone || "—"}</span>,
-    },
-    {
-      key: "location",
-      header: "Location",
-      sortValue: (s) => locMap.get(s.locationId ?? -1) ?? "",
-      render: (s) =>
-        s.locationId ? (
-          <span className="rounded-full bg-blue-50 px-2.5 py-0.5 text-xs font-medium text-blue-700">
-            {(locMap.get(s.locationId) as string) ?? `#${s.locationId}`}
-          </span>
-        ) : (
-          <span className="text-gray-400">Unassigned</span>
-        ),
-    },
-    {
-      key: "shift",
-      header: "Shift",
-      render: (s) => (
-        <span className="text-gray-600">
-          {fmtTimeWithTz(s.shiftStart, tzForLocation(s.locationId))} –{" "}
-          {fmtTimeWithTz(s.shiftEnd, tzForLocation(s.locationId))}
-        </span>
-      ),
-    },
-    {
-      key: "status",
-      header: "Status",
-      sortValue: (s) => (s.isActive ? 1 : 0),
-      render: (s) => (
-        <StatusBadge status={s.isActive ? "ACTIVE" : "INACTIVE"} />
-      ),
-    },
-    {
-      key: "actions",
-      header: "Actions",
-      render: (s) => (
-        <div className="flex items-center gap-2">
-          <button
-            aria-label={`Edit ${s.name}`}
-            onClick={(e) => {
-              e.stopPropagation();
-              handleEditOpen(s);
-            }}
-            className="inline-flex min-h-12 items-center gap-2 rounded-lg px-3 py-2 text-sm font-medium text-primary hover:bg-accent"
-          >
-            <Pencil className="h-4 w-4" />
-            <span>Edit</span>
-          </button>
-          <WorkforceActions person={s} locations={locations} />
-
-        </div>
-      ),
-    },
-  ];
-
-  return (
-    <div className="space-y-6">
-      <PageHeader
-        title="Team"
-        subtitle={`${staff.length} team members`}
-        action={
-          <Button
-            className="rounded-lg px-4"
-            onClick={() => setDialogOpen(true)}
-          >
-            <Plus className="h-4 w-4" /> Add staff
-          </Button>
-        }
-      />
-
-      {dialogOpen ? (
-        <StaffCreateDialog
-          open={dialogOpen}
-          onOpenChange={setDialogOpen}
-          locations={locations}
-          location={locations.find(location=>String(location.id)===locationFilter)}
-          onSaved={() => setSuccess("Team member added.")}
-        />
-      ) : null}
-
-      {success ? (
-        <p role="status" className="ops-save-result">
-          {success}
-        </p>
-      ) : null}
-      <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-3">
-        <StatCard label="Team members" value={staff.length} icon={Users} />
-        <StatCard
-          label="Assigned to location"
-          value={assignedStaffCount}
-          icon={MapPin}
-          tone="sky"
-        />
-        <StatCard
-          label="Active staff"
-          value={activeStaffCount}
-          icon={Plus}
-          tone="emerald"
-        />
-      </div>
-
-      <FilterBar>
-        <div className="relative max-w-sm sm:max-w-none">
-          <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-gray-400" />
-          <Input
-            aria-label="Search team"
-            type="text"
-            value={search}
-            onChange={(e) => setSearch(e.target.value)}
-            placeholder="Search staff by name, email, or phone..."
-            className="pl-10"
-          />
-        </div>
-        <div className="relative">
-          <MapPin className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-gray-400 pointer-events-none" />
-          <select
-            aria-label="Filter by location"
-            value={locationFilter}
-            onChange={(e) => setLocationFilter(e.target.value)}
-            className={`${inputCls} appearance-none pl-10 pr-8`}
-          >
-            <option value="all">All Locations</option>
-            <option value="unassigned">Unassigned</option>
-            {locations.map((l) => (
-              <option key={l.id} value={l.id}>
-                {l.name}
-              </option>
-            ))}
-          </select>
-        </div>
-      </FilterBar>
-
-      <DataTable
-        pageSize={20}
-        columns={columns}
-        data={filtered}
-        rowKey={(s) => s.id}
-        emptyIcon={<Users className="h-12 w-12" />}
-        emptyMessage="No staff members found."
-        onRowHover={(s) => {
-          queryClient.prefetchQuery(getStaffDetailsQueryOptions(s.id));
-        }}
-        onRowClick={(s) => navigate(`/staff/${s.id}`)}
-      />
-
-      {editingStaff && (
-        <Dialog
-          open={!!editingStaff}
-          onOpenChange={(open) => {
-            if (!open) setEditingStaff(null);
-          }}
-        >
-          <DialogContent className="bg-card p-6 sm:max-w-lg">
-            <DialogTitle>Edit team member</DialogTitle>
-            <div className="space-y-4">
-              <div>
-                <label className="mb-1.5 block text-sm font-medium text-foreground">
-                  Name
-                </label>
-                <Input
-                  type="text"
-                  value={editForm.name}
-                  onChange={(e) =>
-                    setEditForm({ ...editForm, name: e.target.value })
-                  }
-                />
-              </div>
-              <div>
-                <label className="mb-1.5 block text-sm font-medium text-foreground">
-                  Email
-                </label>
-                <Input
-                  type="email"
-                  value={editForm.email}
-                  onChange={(e) =>
-                    setEditForm({ ...editForm, email: e.target.value })
-                  }
-                />
-              </div>
-              <div>
-                <label className="mb-1.5 block text-sm font-medium text-foreground">
-                  Phone Number
-                </label>
-                <Input
-                  type="tel"
-                  value={editForm.phone}
-                  onChange={(e) =>
-                    setEditForm({ ...editForm, phone: e.target.value })
-                  }
-                />
-              </div>
-              <p className="text-sm text-muted-foreground">{t("Use Staff access to transfer sites with a reason and open-shift checks.")}</p>
-              <div className="grid grid-cols-2 gap-4">
-                <div>
-                  <label className="mb-1.5 block text-sm font-medium text-foreground">
-                    Shift Start
-                  </label>
-                  <Input
-                    type="time"
-                    value={editForm.shiftStart}
-                    onChange={(e) =>
-                      setEditForm({ ...editForm, shiftStart: e.target.value })
-                    }
-                  />
-                </div>
-                <div>
-                  <label className="mb-1.5 block text-sm font-medium text-foreground">
-                    Shift End
-                  </label>
-                  <Input
-                    type="time"
-                    value={editForm.shiftEnd}
-                    onChange={(e) =>
-                      setEditForm({ ...editForm, shiftEnd: e.target.value })
-                    }
-                  />
-                </div>
-              </div>
-              {editError && (
-                <div className="rounded-lg border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-600">
-                  {editError}
-                </div>
-              )}
-              <div className="flex gap-3 pt-3">
-                <Button
-                  onClick={() => setEditingStaff(null)}
-                  variant="outline"
-                  className="flex-1 rounded-lg"
-                >
-                  Cancel
-                </Button>
-                <Button
-                  onClick={handleEditSave}
-                  disabled={
-                    editStaffMutation.isPending ||
-                    !editForm.name.trim() ||
-                    !editForm.email.trim() ||
-                    !editForm.phone.trim()
-                  }
-                  className="flex-1 rounded-lg"
-                >
-                  {editStaffMutation.isPending
-                    ? "Saving..."
-                    : "Save changes"}
-                </Button>
-              </div>
-            </div>
-          </DialogContent>
-        </Dialog>
-      )}
-    </div>
-  );
+import { useState } from 'react';
+import { Link, useNavigate, useSearchParams } from 'react-router-dom';
+import { formatInTimeZone } from 'date-fns-tz';
+import { ArrowRight, Plus, Users } from 'lucide-react';
+import { useQueryClient } from '@tanstack/react-query';
+import { useLanguage } from '@/i18n/context';
+import useAuth from '@/hooks/useAuth';
+import PageHeader from '@/components/common/PageHeader';
+import DataTable, { type Column } from '@/components/common/DataTable';
+import StatusBadge from '@/components/common/StatusBadge';
+import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
+import OperationsState from '../Manager/OperationsState';
+import { useGetLocations } from '../Location/queries';
+import { useGetStaff, getStaffDetailsQueryOptions } from './queries';
+import WorkforceActions from './WorkforceActions';
+import StaffCreateDialog from './StaffCreateDialog';
+import StaffEditDialog, { type EditableStaff } from './StaffEditDialog';
+import './workforce-v5.css';
+interface StaffMember extends EditableStaff { locationId:number|null }
+interface LocationOption {id:number;name:string;timezone:string;isActive?:boolean}
+const shiftTime=(date:string|null,timezone:string)=>date?formatInTimeZone(new Date(date),timezone,'HH:mm'):'—';
+export default function StaffPage(){
+ const {t}=useLanguage();const {user}=useAuth();const staffQuery=useGetStaff();const locationsQuery=useGetLocations();const queryClient=useQueryClient();const navigate=useNavigate();
+ const [success,setSuccess]=useState('');const [search,setSearch]=useState('');const [editingStaff,setEditingStaff]=useState<StaffMember|null>(null);const [params,setParams]=useSearchParams();
+ const locationFilter=params.get('locationId')??'all';const dialogOpen=params.get('create')==='1';
+ const setLocationFilter=(value:string)=>setParams(previous=>{const next=new URLSearchParams(previous);if(value==='all')next.delete('locationId');else next.set('locationId',value);return next;},{replace:true});
+ const setDialogOpen=(open:boolean)=>setParams(previous=>{const next=new URLSearchParams(previous);if(open)next.set('create','1');else next.delete('create');return next;},{replace:true});
+ const staff=(staffQuery.data?.data??[]) as StaffMember[];const locations=(locationsQuery.data?.data??[]) as LocationOption[];const locMap=new Map(locations.map(location=>[location.id,location]));
+ const filtered=staff.filter(person=>(`${person.name} ${person.email} ${person.phone??''}`).toLocaleLowerCase().includes(search.trim().toLocaleLowerCase())&&(locationFilter==='all'||(locationFilter==='unassigned'?person.locationId==null:person.locationId===Number(locationFilter))));
+ const timezone=(person:StaffMember)=>locMap.get(person.locationId??-1)?.timezone??'UTC';
+ const columns:Column<StaffMember>[]=[
+  {key:'name',header:'Team member',sortValue:person=>person.name,render:person=><div className="table-identity"><span className="workspace-avatar" aria-hidden="true">{person.name.split(' ').map(word=>word[0]).join('').slice(0,2).toUpperCase()}</span><div><strong>{person.name}</strong><p><bdi dir="ltr">{person.email}</bdi></p></div></div>},
+  {key:'location',header:'Location & shift',sortValue:person=>locMap.get(person.locationId??-1)?.name??'',render:person=><div className="workforce-record-location"><span>{person.locationId==null?t('Unassigned'):locMap.get(person.locationId)?.name??`#${person.locationId}`}</span><small><bdi dir="ltr">{shiftTime(person.shiftStart,timezone(person))}–{shiftTime(person.shiftEnd,timezone(person))}</bdi> · {timezone(person)}</small></div>},
+  {key:'phone',header:'Phone',render:person=><bdi dir="ltr">{person.phone||'—'}</bdi>},
+  {key:'status',header:'Account status',render:person=><StatusBadge status={person.isActive?'ACTIVE':'INACTIVE'}/>},
+  {key:'actions',header:'Actions',render:person=><div className="workforce-record-actions"><Button variant="outline" onClick={()=>navigate(`/staff/${person.id}`)}>{t('View details')}</Button><Button variant="ghost" disabled={!person.isActive} onClick={()=>setEditingStaff(person)}>{t('Edit')}</Button><WorkforceActions person={person} locations={locations}/></div>}
+ ];
+ return <div className="workforce-page"><PageHeader title="Your team" subtitle="The right people, in the right place, with a clear working day." action={<Button onClick={()=>setDialogOpen(true)} disabled={staffQuery.isLoading||locationsQuery.isPending||locationsQuery.isError}><Plus size={16}/>{t('Add team member')}</Button>}/>
+  {staffQuery.isLoading||locationsQuery.isPending?<OperationsState loading skeleton="table"/>:staffQuery.isError||locationsQuery.isError?<OperationsState error={staffQuery.error??locationsQuery.error} retry={()=>{void staffQuery.refetch();void locationsQuery.refetch();}}/>:<>
+   <OperationsState/>{success?<p role="status" className="ops-save-result">{t(success)}</p>:null}
+   <dl className="workforce-summary" aria-label={t('Team summary')}>
+    <div><dt>{t('Active staff')}</dt><dd>{staff.filter(person=>person.isActive).length}</dd><p>{t('Current active accounts')}</p><p>{t(user?.role==='ADMIN'?'Company-wide scope':'Assigned-site scope')}</p></div>
+    <div><dt>{t('Assigned staff')}</dt><dd>{staff.filter(person=>person.locationId!=null).length}</dd><p>{t('Staff with a current location')}</p><Link to="/attendance">{t('Open attendance')}</Link></div>
+    <div><dt>{t('Locations')}</dt><dd>{locations.length}</dd><p>{t('Locations available to your account')}</p>{user?.role==='ADMIN'?<Link to="/managers">{t('Manager assignments')}</Link>:<p>{t('Assigned-site access')}</p>}</div>
+    <div><dt>{t('Unassigned hires')}</dt><dd>{staff.filter(person=>person.locationId==null).length}</dd><p>{t(user?.role==='ADMIN'?'Owners can stage new hires':'Managers must choose an assigned site')}</p><p>{t('Assign a site before starting work')}</p></div>
+   </dl>
+   {dialogOpen?<StaffCreateDialog open inline onOpenChange={setDialogOpen} locations={locations} location={locations.find(location=>String(location.id)===locationFilter)} onSaved={()=>setSuccess('Team member added.')}/>:null}
+   <section className="workforce-panel workforce-directory" aria-labelledby="team-directory-title"><div className="workforce-panel-heading"><h2 id="team-directory-title">{t('Your people, at a glance')}</h2><p>{t('Current assignments and account access. Open a person for attendance and task history.')}</p></div>
+    <div className="workforce-toolbar"><label>{t('Find a team member')}<Input aria-label={t('Search team')} type="search" value={search} onChange={event=>setSearch(event.target.value)} placeholder={t('Search by name, email or phone')}/></label><label>{t('Location')}<select aria-label={t('Filter by location')} value={locationFilter} onChange={event=>setLocationFilter(event.target.value)}><option value="all">{t('All locations')}</option>{user?.role==='ADMIN'?<option value="unassigned">{t('Unassigned')}</option>:null}{locations.map(location=><option key={location.id} value={location.id}>{location.name}</option>)}</select></label></div>
+    <DataTable pageSize={20} columns={columns} data={filtered} rowKey={person=>person.id} emptyIcon={<Users size={40}/>} emptyMessage={staff.length?'No team members match these filters.':'No team members yet. Add your first team member to get started.'} onRowHover={person=>{void queryClient.prefetchQuery(getStaffDetailsQueryOptions(person.id));}} onRowClick={person=>navigate(`/staff/${person.id}`)}/>
+    <div className="workforce-panel-footer"><span>{t('{shown} of {total} team members',{shown:filtered.length,total:staff.length})}</span>{search||locationFilter!=='all'?<Button variant="ghost" onClick={()=>{setSearch('');setLocationFilter('all');}}>{t('Clear filters')}</Button>:null}<Link to="/attendance">{t('Open attendance')}<ArrowRight size={16}/></Link></div>
+   </section><div className="workforce-guide">{user?.role==='ADMIN'?<section className="workforce-panel"><h2>{t('Manager assignments')}</h2><p>{t('Review each manager’s assigned sites. Release the previous manager’s access before assigning a replacement.')}</p><Link to="/managers">{t('Manage managers')}<ArrowRight size={16}/></Link></section>:<section className="workforce-panel"><h2>{t('Assigned-site access')}</h2><p>{t('You can manage staff only at your assigned sites. Contact the company owner for manager access changes.')}</p></section>}<section className="workforce-panel"><h2>{t('Safe offboarding')}</h2><p>{t('Keep retained evidence and history. Use Staff access to record a reason, end access or transfer a person safely.')}</p></section></div>
+  </>}{editingStaff?<StaffEditDialog person={editingStaff} timezone={timezone(editingStaff)} onClose={()=>setEditingStaff(null)} onSaved={()=>setSuccess('Team member changes saved.')}/>:null}
+ </div>;
 }

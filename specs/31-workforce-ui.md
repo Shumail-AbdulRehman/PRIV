@@ -4,7 +4,7 @@
 **Depends on:** Spec 11, Spec 17, Spec 27
 **Model:** Standard — `claude-sonnet-5-5` · `gpt-6.1-sol` · `gemini-3.8-flash`
 **Issue:** #65
-**Owns:** `backend/tests/credentialHandoff.integration.ts`, `backend/tests/workforceLifecycle.integration.ts`, `frontend/src/pages/Staff/StaffDetailPage.tsx`, `frontend/src/pages/Staff/StaffPage.tsx`, `frontend/src/pages/Staff/StaffCreateDialog.tsx`, `frontend/src/pages/Managers/ManagersPage.tsx`, `frontend/src/pages/Managers/ManagerFormDialog.tsx`, `frontend/src/i18n/workforceTranslations.ts`, `frontend/src/pages/Staff/WorkforceActions.tsx`, `frontend/src/pages/Staff/WorkforceActions.test.tsx`, `frontend/src/pages/Managers/ManagerAccessActions.tsx`, `specs/inventory/31-workforce-ui.md`
+**Owns:** `backend/tests/credentialHandoff.integration.ts`, `backend/tests/workforceLifecycle.integration.ts`, `frontend/src/pages/Staff/StaffDetailPage.tsx`, `frontend/src/pages/Staff/StaffPage.tsx`, `frontend/src/pages/Staff/StaffEditDialog.tsx`, `frontend/src/pages/Staff/workforce-v5.css`, `frontend/src/pages/Staff/WorkforcePages.test.tsx`, `frontend/src/pages/Staff/StaffCreateDialog.tsx`, `frontend/src/pages/Managers/ManagersPage.tsx`, `frontend/src/pages/Managers/ManagerFormDialog.tsx`, `frontend/src/i18n/workforceTranslations.ts`, `frontend/src/pages/Staff/WorkforceActions.tsx`, `frontend/src/pages/Staff/WorkforceActions.test.tsx`, `frontend/src/pages/Managers/ManagerAccessActions.tsx`, `specs/inventory/31-workforce-ui.md`
 **Reuses:** `frontend/src/pages/Staff/StaffCreateDialog.tsx`, `frontend/src/components/common/DeleteButton.tsx`, `DESIGN-SYSTEM.md#component-conventions`, `design/v5/workforce.html`
 
 ## Goal
@@ -59,3 +59,5 @@ Wire safe deactivation/archive, open-shift transfer conflict, manager-site hando
 - **2026-10-21** — Serialized billing integration ownership transferred to32; prior contracts preserved.
 
 - **2026-10-21 — Visual acceptance correction:** reopened for outstanding approved V5 acceptance. Historical functional checkmarks/logs are preserved; they do not certify visual fidelity. Current four-part status and evidence: docs/implementation/V5_IMPLEMENTATION.md. No prior visual requirement is newly verified by a build.
+
+- **2026-10-28 — V5 continuation:** previous shared-shell source/render gate passed before dependent work; reconstructing the interrupted uncommitted31batch on a durable isolated worktree. Exclusive Staff/Managers/dictionary ownership includes reusable StaffEditDialog, page CSS and behavior tests above; coordinator owns progress/handoff and integrated screenshot harness. Retain11/17 API contracts and native/provider gates. Historical screenshots do not accept the reconstructed source; fresh integration and paired visual review remain required.
