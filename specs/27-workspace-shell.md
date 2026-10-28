@@ -4,7 +4,7 @@
 **Depends on:** Spec 06
 **Model:** Heavy — `claude-opus-5-5` · `gpt-6-astra` · `gemini-3.1-pro-preview`
 **Issue:** #35
-**Owns:** `frontend/src/workspace-refresh.css`, `frontend/src/i18n/launchTranslations.ts`, `specs/inventory/27-workspace-shell.md`, `frontend/src/components/layout/Sidebar.tsx`, `frontend/src/components/common/OperationStatus.tsx`, `frontend/src/components/common/ScopeFilters.tsx`
+**Owns:** `frontend/src/components/ui/dialog.tsx`, `frontend/src/routes/launchPages.test.tsx`, `docs/implementation/v5-shell-evidence/`, `frontend/src/workspace-refresh.css`, `frontend/src/i18n/launchTranslations.ts`, `specs/inventory/27-workspace-shell.md`, `frontend/src/components/layout/Sidebar.tsx`, `frontend/src/components/common/OperationStatus.tsx`, `frontend/src/components/common/ScopeFilters.tsx`
 **Reuses:** `frontend/src/components/common/LanguageChoice.tsx`, `frontend/src/components/common/PageHeader.tsx`, `frontend/src/i18n/LanguageProvider.tsx`, `DESIGN-SYSTEM.md#component-conventions`, `design/v5/overview.html`
 
 ## Goal

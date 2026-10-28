@@ -10,6 +10,7 @@ import { ProtectedRoute } from '../App';
 import DashboardLayout from '../components/layout/DashboardLayout';
 import { workspaceRoutes } from './workspaceRoutes';
 import { PlatformUnavailable, WorkspaceAudience, WorkspaceRouteError } from './launchPages';
+import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogTitle } from '../components/ui/dialog';
 vi.mock('../api/client', () => ({client: {get: async (url: string) => ({data: {data: url === '/company/settings' ? {id:42,name:'Synthetic saved company',accountVersion:1,updatedAt:'2026-10-21T00:00:00Z'} : {emailVerified:true,deliveryConfigured:false,bootstrapRequired:false}}})}}));
 const m = vi.hoisted(() => ({ logout: { mutate: vi.fn(), isPending: false, isError: false } }));
 vi.mock('../queries/auth', () => ({ useLogout: () => m.logout, useGetCurrentUser: vi.fn() }));
@@ -147,5 +148,40 @@ describe('navigation language, focus and feedback', () => {
     expect(screen.queryByText('private-exception-detail')).not.toBeInTheDocument();
     expect(screen.getByRole('button', { name: 'Reload page' })).toBeEnabled();
     expect(screen.getByRole('link', { name: 'Back to workspace' })).toHaveAttribute('href', '/dashboard');
+  });
+});
+
+
+describe('shared dialog language and mobile destinations', () => {
+  it('closes mobile navigation after selecting the actual billing route', async () => {
+    const router = mount();
+    await screen.findByRole('heading', { name: 'Operational dashboard fixture' });
+    fireEvent.click(screen.getByRole('button', { name: 'Open navigation' }));
+    const menu = await screen.findByRole('dialog', { name: 'Workspace menu' });
+    fireEvent.click(within(menu).getByRole('link', { name: 'Plan & billing' }));
+    await screen.findByRole('heading', { name: 'Billing details fixture' });
+    expect(router.state.location.pathname).toBe('/subscription');
+    expect(screen.queryByRole('dialog')).not.toBeInTheDocument();
+  });
+  it('keeps manager security independent of owner settings in Urdu navigation', async () => {
+    mount('MANAGER', '/dashboard', 'ur');
+    await screen.findByRole('heading', { name: 'Operational dashboard fixture' });
+    const navigation = screen.getByRole('navigation', { name: 'ورک اسپیس نیویگیشن' });
+    expect(within(navigation).getByRole('link', { name: 'ترتیبات' })).toHaveAttribute('href', '/account/security');
+    expect(within(navigation).queryByRole('link', { name: 'پلان اور بلنگ' })).not.toBeInTheDocument();
+  });
+  it.each([false, true])('translates shared dialog close controls and dismisses with footer=%s', async footer => {
+    localStorage.setItem('hygene-ops.language', 'ur');
+    render(<LanguageProvider><Dialog defaultOpen><DialogContent>
+      <DialogTitle>Shared dialog fixture</DialogTitle>
+      <DialogDescription>Language-aware dismissal</DialogDescription>
+      {footer && <DialogFooter showCloseButton />}
+    </DialogContent></Dialog></LanguageProvider>);
+    const dialog = await screen.findByRole('dialog', { name: 'Shared dialog fixture' });
+    const close = within(dialog).getAllByRole('button', { name: 'بند کریں' });
+    expect(close).toHaveLength(footer ? 2 : 1);
+    expect(within(dialog).queryByRole('button', { name: 'Close' })).not.toBeInTheDocument();
+    fireEvent.click(close[0]);
+    await waitFor(() => expect(screen.queryByRole('dialog')).not.toBeInTheDocument());
   });
 });
