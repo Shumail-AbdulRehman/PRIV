@@ -73,7 +73,7 @@ function ScopedWorkforceActions({person,locations=[],entity='staff',open,setOpen
   {saved&&!open?<span role="status">{t('Access change saved. History preserved.')}</span>:null}
   <Dialog open={open} onOpenChange={value=>{if(!value)close();}}>
    <DialogContent className="workforce-dialog bg-card max-h-[90dvh] overflow-y-auto" showCloseButton={!busy&&!refreshing} onEscapeKeyDown={e=>{if(busy||refreshing)e.preventDefault();}} onInteractOutside={e=>{if(busy||refreshing)e.preventDefault();}}>
-    <DialogTitle>{t(entity==='manager'?'Manager access':'Staff access')} · {person.name}</DialogTitle>
+    <DialogTitle>{t(entity==='manager'?'Manager access':'Staff access')} · <bdi>{person.name}</bdi></DialogTitle>
     <DialogDescription>{t('Attendance, tasks and evidence are preserved. Access changes revoke existing sessions. No general restore is available.')}</DialogDescription>
     {handoff?<div className="space-y-4">
      <p role="status">{t('One-use recovery code created. Share it directly with this staff member. It sets a new password; it is not a login password.')}</p>

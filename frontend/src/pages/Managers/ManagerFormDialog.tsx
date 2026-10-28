@@ -176,7 +176,7 @@ export default function ManagerFormDialog({
                 return (
                   <label
                     key={loc.id}
-                    className={`flex min-h-12! items-center gap-3 rounded-xl px-3 py-2 text-sm transition-colors duration-150 ${
+                    className={`manager-site-option flex min-h-12! items-center gap-3 rounded-xl px-3 py-2 text-sm transition-colors duration-150 ${
                       takenBy
                         ? "cursor-not-allowed opacity-60"
                         : "cursor-pointer text-foreground hover:bg-accent"
