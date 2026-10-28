@@ -1,7 +1,7 @@
 import {useRef,useState} from 'react';
-import {useBeforeUnload,useBlocker} from 'react-router-dom';
+import {Link,useBeforeUnload,useBlocker} from 'react-router-dom';
 import {useMutation} from '@tanstack/react-query';
-import {CheckCircle2,ClipboardList} from 'lucide-react';
+import {ArrowRight,CheckCircle2,ClipboardList} from 'lucide-react';
 import {useOnline} from '@/hooks/useOnline';
 import {useLanguage} from '@/i18n/context';
 import {Button} from '@/components/ui/button';
@@ -9,7 +9,7 @@ import {closeException} from './api';
 import type {ExceptionDetail,ReviewClosureAction,PerformanceCategory} from './types';
 import {performanceCategoryLabels} from './performancePresentation';
 import {localTime} from '../Manager/operations';
-export default function DecisionForm({detail,onDone}:{detail:ExceptionDetail;onDone:(message?:string)=>Promise<void>}){
+export default function DecisionForm({detail,onDone,nextReviewHref}:{detail:ExceptionDetail;onDone:(message?:string)=>Promise<void>;nextReviewHref?:string}){
  const {t,language}=useLanguage(),online=useOnline();
  const actions=detail.closureActions??[];
  const staffOptions=detail.performanceStaffOptions??[];
@@ -44,6 +44,7 @@ export default function DecisionForm({detail,onDone}:{detail:ExceptionDetail;onD
     <div><dt>{t('Recorded at')}</dt><dd><time dateTime={closure.createdAt}><bdi>{localTime(closure.createdAt,timezone,language,true)}</bdi> (<bdi>{timezone}</bdi>)</time></dd></div></dl>
     <div className="v5-saved-decision-note"><h4>{t('Saved note')}</h4><p><bdi>{closure.note??t('Decision note unavailable')}</bdi></p></div>
    </>:<p role="status">{t('Review closed; decision details unavailable')}</p>}
+   {nextReviewHref&&<Button asChild><Link to={nextReviewHref}>{t('Next pending review')}<ArrowRight size={16} aria-hidden="true"/></Link></Button>}
   </section>;
  }
  if(detail.kind==='SETUP')return <p role="status">{t('Complete the room setup before reviewing task photos. No staff decision is available for this setup record.')}</p>;

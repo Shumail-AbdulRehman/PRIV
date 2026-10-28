@@ -146,3 +146,7 @@
 .workspace .v5-review-setup p { font-size:13px; color:var(--muted-foreground); max-width:65ch; }
 .workspace .v5-review-setup-actions { display:flex; flex-wrap:wrap; gap:12px; }
 @media(max-width:650px) { .workspace .v5-review-setup-actions>a,.workspace .v5-review-setup-actions>button { min-height:48px; } }
+
+.workspace .v5-evidence-and-decision.v5-review-setup-layout { grid-template-columns:minmax(0,1fr); }
+.workspace .v5-saved-decision>a { min-height:44px; }
+@media(max-width:650px) { .workspace .v5-saved-decision>a { min-height:48px; } }

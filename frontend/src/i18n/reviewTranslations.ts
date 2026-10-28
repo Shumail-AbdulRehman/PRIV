@@ -17,6 +17,7 @@ export const reviewUrdu: Record<string, string> = {
   'Review handled': 'جائزہ مکمل ہوا',
   'This review has been handled. Existing photos and task completion records stay as recorded.': 'یہ جائزہ مکمل ہو گیا۔ موجودہ تصاویر اور کام کی تکمیل کا ریکارڈ اپنی درج شدہ حالت میں رہیں گے۔',
   'Your decision': 'آپ کا فیصلہ',
+  'Next pending review': 'اگلا زیر التوا جائزہ',
   'Decision recorded': 'فیصلہ درج ہوا',
   'This review is closed. Task verification remains as recorded.': 'یہ جائزہ بند ہے۔ کام کی تصدیق اپنی درج شدہ حالت میں ہے۔',
   'Saved note': 'محفوظ نوٹ',

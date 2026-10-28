@@ -117,6 +117,7 @@ it('renders persisted setup records with a setup destination and no fabricated s
  expect(screen.getAllByText('No task generated')).toHaveLength(2);
  expect(screen.getByRole('link',{name:'Review room setup'})).toHaveAttribute('href','/locations/8?tab=templates');
  expect(screen.queryByText('Task not submitted')).not.toBeInTheDocument();
+ expect(screen.queryByText('Resolve this review, or record a staff performance issue and close it. This task stays in exceptions until you save a decision.')).not.toBeInTheDocument();
  expect(screen.queryByText('Review decisions could not be loaded. Refresh the page to continue.')).not.toBeInTheDocument();
  expect(screen.queryByRole('button',{name:'Resolve review'})).not.toBeInTheDocument();
 });
@@ -127,7 +128,18 @@ it('removes earlier queue counts and rows when a failed refresh can no longer co
  expect(view.container.querySelector('.review-counts')).toHaveTextContent('3 reviewed');
  api.get.mockImplementation(async(url:string)=>{if(url==='/verification-exceptions')throw {response:{status:503}};return {data:{data:url.endsWith('/next')?{nextId:null}:structuredClone(detail)}};});
  await act(async()=>{await view.query.invalidateQueries({queryKey:['review-page']});});
- expect(view.container.querySelector('.review-counts')).not.toBeInTheDocument();
+ await waitFor(()=>expect(view.container.querySelector('.review-counts')).not.toBeInTheDocument());
  expect(within(screen.getByRole('region',{name:'Review queue'})).getByRole('alert')).toHaveTextContent('Records could not load');
  expect(view.container.querySelector('.v5-queue-record')).not.toBeInTheDocument();
+});
+
+it('offers a real pending review after a closed queue is exhausted instead of looping through reviewed records',async()=>{
+ detail.state='RESOLVED';
+ api.get.mockImplementation(async(url:string,options?:{params?:{pageSize?:string}})=>({data:{data:url.endsWith('/next')?{nextId:null}:url==='/verification-exceptions'?{cases:options?.params?.pageSize==='1'?[{id:9}]:[structuredClone(detail)],page:1,pageSize:20,total:1,totalPages:1,locations:[],queueCounts:{}}:structuredClone(detail)}}));
+ mount(<ExceptionDetailPage/>);
+ const decision=await screen.findByRole('region',{name:'Decision recorded'});
+ const link=await within(decision).findByRole('link',{name:'Next pending review'});
+ expect(link).toHaveAttribute('href',expect.stringContaining('/exceptions/9?returnTo='));
+ expect(decodeURIComponent(link.getAttribute('href')!)).toContain('queue=needs-me');
+ expect(api.get).toHaveBeenCalledWith('/verification-exceptions',expect.objectContaining({params:expect.objectContaining({queue:'needs-me',page:'1',pageSize:'1'})}));
 });

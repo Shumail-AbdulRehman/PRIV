@@ -69,9 +69,11 @@ test('recorded SETUP reviews explain no generated task and offer only the existi
   await enter(page,`/exceptions/${setupId}`,'ownerA',lang);
   await expect(page.locator('.v5-review-setup')).toBeVisible();
   await expect(page.locator('.v5-decision-card')).toHaveCount(0);
+  await expect(page.locator('.v5-review-reason')).not.toContainText(lang==='ur'?'کارکردگی':'staff performance');
   await expect(page.locator('.v5-review-setup a')).toHaveAttribute('href',new RegExp(`/locations/${fixture.site.A}\\?tab=templates`));
   await expect(page.locator('.v5-evidence-status')).toContainText(lang==='ur'?'کوئی کام تیار نہیں ہوا':'No task generated');
   await capture(page,'setup',width,lang);
+  const denied=await page.request.post(backend+`/api/verification-exceptions/${setupId}/close`,{data:{requestId:randomUUID(),expectedVersion:0,action:'RESOLVE_REVIEW',note:'Synthetic setup cannot receive a staff closure'}});expect(denied.status()).toBe(409);
  });
 });
 
@@ -91,6 +93,7 @@ test('real saved closure displays the V5 decision facts and leaves task outcomes
   const reference=await page.context().newPage();await reference.goto('file://'+join(root,'design/v5/reviews.html')+'?lang='+lang);
   await reference.locator('[data-queue-tab=reviewed]').click();if(width===390)await reference.locator('[data-review]').first().click();
   await reference.evaluate(()=>document.fonts.ready);await reference.screenshot({path:join(out,`v5-closed-${width}-${lang}.png`),fullPage:true});await reference.close();
+  const pending=panel.locator('a');await expect(pending).toHaveAttribute('href',/returnTo=.*needs-me/);await pending.click();await expect(page.locator('.v5-review-setup')).toBeVisible();
  });
  expect(await sql(`SELECT status,"staffSubmittedAt","completionOutcome","verificationState" FROM "TaskInstance" WHERE id=$1`,[closedTaskId])).toEqual(before);
 });
@@ -134,12 +137,12 @@ test('loading and failed reads have explicit recovery and never show a false zer
  test.setTimeout(120000);
  await matrix(browser,async(page,width,lang)=>{
   let release=()=>{};const gate=new Promise<void>(resolve=>{release=resolve;});
-  await page.route('**/api/verification-exceptions?*',async route=>{const response=await route.fetch();await gate;await route.fulfill({response});});
+  await page.route('**/api/verification-exceptions?*',async route=>{await gate;await route.continue();});
   await enter(page,'/exceptions','ownerA',lang);
   await expect(page.locator('.v5-review-queue [aria-busy=true]')).toBeVisible();
   await expect(page.locator('.review-counts')).toHaveCount(0);
-  await capture(page,'loading',width,lang,'delayed real API response; no positive response replaced');
-  release();await page.unroute('**/api/verification-exceptions?*');await expect(page.locator('.v5-queue-record').first()).toBeVisible();
+  await capture(page,'loading',width,lang,'delayed real API request; no positive response replaced');
+  release();await page.unrouteAll({behavior:'wait'});await expect(page.locator('.v5-queue-record').first()).toBeVisible();
   await page.route('**/api/verification-exceptions?*',route=>route.abort());await page.reload();
   await expect(page.locator('.v5-review-queue [role=alert]')).toBeVisible();
   await expect(page.locator('.review-counts')).toHaveCount(0);await expect(page.locator('.v5-queue-record')).toHaveCount(0);
