@@ -86,3 +86,35 @@ All eight unrelated tracked diffs remain byte-for-byte unchanged; original hando
 append and unrelated untracked files are preserved and excluded from this correction.
 
 Implementation `d64e0ea` published as OPEN/DRAFT [PR85](https://github.com/Shumail-AbdulRehman/PRIV/pull/85), base `implementation/v5-visual-corrections`/PR83. Independent detached-worktree `/tmp/hygene-v5-review-clean-d64e0ea` passes backend/frontend builds and64Node+226React tests without user performance changes. Final six-case browser rerun passes in36.7s; final captures re-inspected.
+
+## Recorded-state continuation — 2026-10-29
+
+The independent branch `implementation/v5-review-states` extends the accepted core
+without repeating its audit. Setup-only records now state that no task was generated,
+link the existing setup destination and offer no staff closure decision. Their reason
+callout also gives setup guidance. Closed task reviews use the approved V5 saved
+outcome/note/actor/site-local-time panel. A real next-pending action preserves filters
+and falls back to the first pending API row when the current queue is exhausted;
+no next record is invented. Urdu review tabs/options use review-specific vocabulary.
+Failed queue refresh hides earlier counts/rows instead of presenting them as current.
+
+The actual SQL/API browser state extension covers setup closure409, saved closure
+reload with unchanged task outcome, persisted HOLD metadata taking precedence over
+older cleaning state, private bytes/site403,25-record paging/next, delayed request
+loading and labelled network-abort/retry. Five cases pass in51.3s;32 EN/UR desktop/
+phone state observations have no overflow/page JS errors. Forty PNGs include four
+V5 references and four focused decision viewports; these counts are not accepted
+screen counts. Direct paired/state inspection corrected the contradictory setup
+callout and Urdu tab leak before final captures. Evidence and precise provenance:
+[v5-review-state-evidence/README.md](v5-review-state-evidence/README.md).
+
+Current isolated branch verification:36 focused review React checks;64 Node +282
+whole React tests/21 files pass; frontend full lint0, managed frontend/backend
+TypeScript/private production builds, final `npm run build --prefix frontend` and
+standalone strict E2E TypeScript pass. Validator42 specs/0errors/12 existing warnings.
+Source checkpoints f589992→0b94928→4cf5e76→10fb4a4. Spec36 stays In progress:
+no provider image bytes, real privacy/photo qualification or native device acceptance
+is claimed. A persisted HOLD synthetic record is not a successful provider fixture.
+Shared tracker/handoff and Spec40 ownership are integrated only by the coordinator.
+
+Recorded-state continuation published as OPEN/DRAFT [PR96](https://github.com/Shumail-AbdulRehman/PRIV/pull/96), base `implementation/v5-workforce-final`/8ff718e; issue84 remains open. No earlier draft branch was rewritten or merged. The persistent review worktree contains only the intentional untracked approved-design symlink beyond the published source/evidence.

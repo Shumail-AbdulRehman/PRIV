@@ -1,6 +1,6 @@
 import { configureStore } from '@reduxjs/toolkit';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
-import { fireEvent, render, screen, waitFor, within } from '@testing-library/react';
+import { act, fireEvent, render, screen, waitFor, within } from '@testing-library/react';
 import { Provider } from 'react-redux';
 import { createMemoryRouter, RouterProvider } from 'react-router-dom';
 import { beforeEach, expect, it, vi } from 'vitest';
@@ -24,7 +24,8 @@ function mount(content:React.ReactNode, lang='en') {
  const store=configureStore({reducer:{auth:authReducer}});store.dispatch(setUser({id:1,companyId:42,role:'MANAGER',name:'Synthetic reviewer',email:'fixture@example.invalid'}));
  const query=new QueryClient({defaultOptions:{queries:{retry:false,gcTime:0},mutations:{retry:false}}});
  const router=createMemoryRouter([{path:'/exceptions/:id',element:content}],{initialEntries:['/exceptions/3?requirementId=view']});
- return render(<Provider store={store}><QueryClientProvider client={query}><LanguageProvider><div className="workspace"><RouterProvider router={router}/></div></LanguageProvider></QueryClientProvider></Provider>);
+ const view=render(<Provider store={store}><QueryClientProvider client={query}><LanguageProvider><div className="workspace"><RouterProvider router={router}/></div></LanguageProvider></QueryClientProvider></Provider>);
+ return {...view,query};
 }
 beforeEach(()=>{
  vi.clearAllMocks();localStorage.clear();detail=fixture();
@@ -68,7 +69,7 @@ it('wires real parent detail reads and closure POST without restoring retired ac
  expect(api.get).toHaveBeenCalledWith('/verification-exceptions/3',{params:{}});
  for(const name of ['Ask for another photo','Give more time for photos','Make an exception for this photo','Accept this photo'])expect(screen.queryByRole('button',{name})).not.toBeInTheDocument();
  fireEvent.click(screen.getByRole('button',{name:'Resolve review'}));fireEvent.change(screen.getByRole('textbox',{name:'Resolution note'}),{target:{value:'Synthetic reviewed outage'}});fireEvent.click(screen.getByRole('button',{name:'Confirm resolution'}));
- await screen.findByText('Synthetic reviewed outage');expect(api.post).toHaveBeenCalledWith('/verification-exceptions/3/close',{requestId:expect.any(String),expectedVersion:2,action:'RESOLVE_REVIEW',note:'Synthetic reviewed outage'});
+ await screen.findAllByText('Synthetic reviewed outage');expect(api.post).toHaveBeenCalledWith('/verification-exceptions/3/close',{requestId:expect.any(String),expectedVersion:2,action:'RESOLVE_REVIEW',note:'Synthetic reviewed outage'});
  expect(screen.getByText('Verified completion not recorded')).toBeInTheDocument();expect(screen.queryByText('Verified complete')).not.toBeInTheDocument();
 });
 it('preserves closure note on conflict and requires refresh',async()=>{
@@ -108,4 +109,50 @@ it('records a deliberate attributed performance issue only through the closure A
 it('shows queue submission, review closure and verified evidence as separate recorded facts',async()=>{
  detail.task!.staffSubmittedAt='2026-10-21T04:00:00Z';detail.state='RESOLVED';
  mount(<ExceptionInboxPage/>);await screen.findAllByText('Task submitted');expect(within(screen.getByRole('region',{name:'Review queue'})).getByText('Review handled')).toBeInTheDocument();expect(screen.getAllByText('Review closed').length).toBeGreaterThan(0);expect(screen.queryByText('Verified completion recorded')).not.toBeInTheDocument();expect(api.get).toHaveBeenCalledWith('/verification-exceptions',expect.objectContaining({params:expect.objectContaining({queue:'needs-me',page:'1'})}));
+});
+
+it('renders persisted setup records with a setup destination and no fabricated staff submission or failed-decision state',async()=>{
+ detail.kind='SETUP';delete detail.task;detail.closureActions=[];detail.items=[];
+ mount(<ExceptionDetailPage/>);await screen.findByRole('heading',{name:'Room inventory needs setup'});
+ expect(screen.getAllByText('No task generated')).toHaveLength(2);
+ expect(screen.getByRole('link',{name:'Review room setup'})).toHaveAttribute('href','/locations/8?tab=templates');
+ expect(screen.queryByText('Task not submitted')).not.toBeInTheDocument();
+ expect(screen.queryByText('Resolve this review, or record a staff performance issue and close it. This task stays in exceptions until you save a decision.')).not.toBeInTheDocument();
+ expect(screen.queryByText('Review decisions could not be loaded. Refresh the page to continue.')).not.toBeInTheDocument();
+ expect(screen.queryByRole('button',{name:'Resolve review'})).not.toBeInTheDocument();
+});
+
+it('removes earlier queue counts and rows when a failed refresh can no longer confirm them',async()=>{
+ api.get.mockImplementation(async(url:string)=>({data:{data:url.endsWith('/next')?{nextId:null}:url==='/verification-exceptions'?{cases:[structuredClone(detail)],page:1,pageSize:20,total:1,totalPages:1,locations:[],queueCounts:{'needs-me':1,resolved:3}}:structuredClone(detail)}}));
+ const view=mount(<ExceptionInboxPage/>);await screen.findAllByRole('heading',{name:'Synthetic washroom',level:2});
+ expect(view.container.querySelector('.review-counts')).toHaveTextContent('3 reviewed');
+ api.get.mockImplementation(async(url:string)=>{if(url==='/verification-exceptions')throw {response:{status:503}};return {data:{data:url.endsWith('/next')?{nextId:null}:structuredClone(detail)}};});
+ await act(async()=>{await view.query.invalidateQueries({queryKey:['review-page']});});
+ await waitFor(()=>expect(view.container.querySelector('.review-counts')).not.toBeInTheDocument());
+ expect(within(screen.getByRole('region',{name:'Review queue'})).getByRole('alert')).toHaveTextContent('Records could not load');
+ expect(view.container.querySelector('.v5-queue-record')).not.toBeInTheDocument();
+});
+
+it('offers a real pending review after a closed queue is exhausted instead of looping through reviewed records',async()=>{
+ detail.state='RESOLVED';
+ api.get.mockImplementation(async(url:string,options?:{params?:{pageSize?:string}})=>({data:{data:url.endsWith('/next')?{nextId:null}:url==='/verification-exceptions'?{cases:options?.params?.pageSize==='1'?[{id:9}]:[structuredClone(detail)],page:1,pageSize:20,total:1,totalPages:1,locations:[],queueCounts:{}}:structuredClone(detail)}}));
+ mount(<ExceptionDetailPage/>);
+ const decision=await screen.findByRole('region',{name:'Decision recorded'});
+ const link=await within(decision).findByRole('link',{name:'Next pending review'});
+ expect(link).toHaveAttribute('href',expect.stringContaining('/exceptions/9?returnTo='));
+ expect(decodeURIComponent(link.getAttribute('href')!)).toContain('queue=needs-me');
+ expect(api.get).toHaveBeenCalledWith('/verification-exceptions',expect.objectContaining({params:expect.objectContaining({queue:'needs-me',page:'1',pageSize:'1'})}));
+});
+
+it('uses review vocabulary for Urdu queue tabs without leaking English or task-not-started wording',async()=>{
+ mount(<ExceptionInboxPage/>,'ur');
+ const queue=await screen.findByRole('group',{name:reviewUrdu['Review queues']});
+ expect(within(queue).getByRole('button',{name:reviewUrdu.pending})).toBeInTheDocument();
+ expect(within(queue).getByRole('button',{name:reviewUrdu.reviewed})).toBeInTheDocument();
+ expect(within(queue).queryByText('Reviewed')).not.toBeInTheDocument();
+ expect(queue).not.toHaveTextContent('شروع نہیں ہوا');
+ fireEvent.click(screen.getByText(reviewUrdu['Review filters']));
+ const options=screen.getByRole('combobox',{name:'جائزے کی فہرست'});
+ expect(within(options).getByRole('option',{name:reviewUrdu.pending})).toBeInTheDocument();
+ expect(within(options).getByRole('option',{name:reviewUrdu.reviewed})).toBeInTheDocument();
 });

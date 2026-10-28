@@ -45,7 +45,7 @@ export default function ExceptionInboxPage() {
     queryFn:async({signal})=>(await client.get<{data:ReviewPage}>('/verification-exceptions',{params:applied,signal})).data.data,
     refetchInterval:30000,refetchOnWindowFocus:true,
   });
-  const data=query.data;
+  const data=query.isError?undefined:query.data;
   const areas=useAreas(Number(filters.locationId));
   const returnTo='/exceptions?'+new URLSearchParams(filters);
   function update(values:Record<string,string>) {
@@ -84,7 +84,7 @@ function ReviewPanels({data,selectedId,returnTo,filters,onUpdate,loading,error,r
     <section className="v5-review-queue" aria-label={t('Review queue')}>
       <div className="v5-queue-top">
         <div className="v5-queue-tabs" role="group" aria-label={t('Review queues')}>
-          {QUEUES.slice(0,2).map(([value,label])=><button type="button" key={value} aria-pressed={filters.queue===value} onClick={()=>onUpdate({queue:value})}>{t(label)}{data?.queueCounts?.[value]!==undefined&&<span>{data.queueCounts[value]}</span>}</button>)}
+          {QUEUES.slice(0,2).map(([value,label])=><button type="button" key={value} aria-pressed={filters.queue===value} onClick={()=>onUpdate({queue:value})}>{t(language==='ur'?label.toLowerCase():label)}{data?.queueCounts?.[value]!==undefined&&<span>{data.queueCounts[value]}</span>}</button>)}
         </div>
         <label className="v5-queue-search"><Search size={16} aria-hidden="true"/><Input aria-label={t('Find a review')} placeholder={t('Search task, staff or site…')} value={filters.q??''} onChange={event=>onUpdate({q:event.target.value})}/></label>
       </div>
@@ -97,10 +97,10 @@ function ReviewPanels({data,selectedId,returnTo,filters,onUpdate,loading,error,r
           to={`/exceptions/${record.id}?returnTo=${encodeURIComponent(returnTo)}`}
           state={{returnTo,focusId:record.id,scrollY:window.scrollY}} preventScrollReset>
           <h2><bdi>{record.area?.name??record.task?.areaNameSnapshot??record.task?.title??t('Room setup')}</bdi></h2>
-          <p><bdi>{record.task?.staff?.name??t('Unassigned')}</bdi></p>
+          {record.kind!=='SETUP'&&<p><bdi>{record.task?.staff?.name??t('Unassigned')}</bdi></p>}
           <p className="v5-queue-site"><MapPin size={13} aria-hidden="true"/><bdi>{record.location?.name}</bdi></p>
           <strong className={"v5-queue-reason"+(record.state==='RESOLVED'?' v5-queue-handled':'')}><Camera size={14} aria-hidden="true"/>{t(record.state==='RESOLVED'?'Review handled':plainReason(reason))}</strong>
-          <div className="v5-queue-lifecycle"><span>{t(record.task?.staffSubmittedAt?'Task submitted':'Task not submitted')}</span><span>{t(record.state==='RESOLVED'?'Review closed':'Review pending')}</span></div>
+          <div className="v5-queue-lifecycle"><span>{t(record.kind==='SETUP'?'No task generated':!record.task?'Task submission information unavailable':record.task.staffSubmittedAt?'Task submitted':'Task not submitted')}</span><span>{t(record.state==='RESOLVED'?'Review closed':'Review pending')}</span></div>
           <small><bdi>{localTime(record.updatedAt,record.location?.timezone??'Asia/Karachi',language,true)}</bdi></small>
         </Link>;
       })}
@@ -116,7 +116,7 @@ function ReviewPanels({data,selectedId,returnTo,filters,onUpdate,loading,error,r
 }
 
 function ReviewFilters({filters,locations,areas,onUpdate}:{filters:Record<string,string>;locations:ReviewPage['locations'];areas:Array<{id:number;name:string}>;onUpdate:UpdateFilters}) {
- const {t}=useLanguage();
+ const {t,language}=useLanguage();
  return <div className="v5-review-filters">
   <label>{t('Location')}<select value={filters.locationId??''} onChange={event=>onUpdate({locationId:event.target.value})}><option value="">{t('All locations')}</option>{locations.map(site=><option key={site.id} value={site.id}>{site.name}</option>)}</select></label>
   <label>{t('Period')}<select value={filters.period??'all'} onChange={event=>onUpdate({period:event.target.value})}>{[['all','All dates'],['today','Today'],['earlier','Earlier work'],['date','Specific date']].map(([value,label])=><option key={value} value={value}>{t(label)}</option>)}</select></label>
@@ -124,7 +124,7 @@ function ReviewFilters({filters,locations,areas,onUpdate}:{filters:Record<string
   <details className="v5-review-more"><summary><SlidersHorizontal size={16} aria-hidden="true"/>{t('Review filters')}</summary><div>
    <label>{t('Review reason')}<select value={filters.reasonCode??''} onChange={event=>onUpdate({reasonCode:event.target.value})}><option value="">{t('All reasons')}</option>{['SERVICE_FAILURE','MISSING_EVIDENCE','CANNOT_ASSESS','PRIVACY_HOLD','CLEANING_REQUIRED','WRONG_ITEM'].map(reason=><option key={reason} value={reason}>{t(plainReason(reason))}</option>)}</select></label>
    <label>{t('Area')}<select value={filters.areaId??''} disabled={!filters.locationId} onChange={event=>onUpdate({areaId:event.target.value})}><option value="">{t('All areas')}</option>{areas.map(area=><option key={area.id} value={area.id}>{area.name}</option>)}</select></label>
-   <label>{t('Review queue')}<select value={filters.queue} onChange={event=>onUpdate({queue:event.target.value})}>{QUEUES.map(([value,label])=><option value={value} key={value}>{t(label)}</option>)}</select></label>
+   <label>{t('Review queue')}<select value={filters.queue} onChange={event=>onUpdate({queue:event.target.value})}>{QUEUES.map(([value,label])=><option value={value} key={value}>{t(language==='ur'&&['Pending','Reviewed'].includes(label)?label.toLowerCase():label)}</option>)}</select></label>
    <button type="button" onClick={()=>onUpdate(Object.fromEntries(FILTERS.filter(key=>key!=='queue').map(key=>[key,''])))}>{t('Clear filters')}</button>
   </div></details>
  </div>;

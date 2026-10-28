@@ -20,3 +20,36 @@ it('keeps the decision note when inspecting another photo and guards leaving the
 function Conflict({refresh}:{refresh:boolean}){const [version,setVersion]=useState(2);return <DecisionForm detail={{...detail,rowVersion:version}} onDone={async()=>{if(refresh)setVersion(3);}}/>;}
 it.each([false,true])('retains draft after a conflict and allows saving only after a new server version (refresh=%s)',async refresh=>{api.post.mockRejectedValue({response:{status:409}});mount(<Conflict refresh={refresh}/>);fireEvent.change(screen.getByRole('textbox',{name:'Resolution note'}),{target:{value:'Conflict draft retained'}});fireEvent.click(screen.getByRole('button',{name:'Confirm resolution'}));await screen.findByText('This review changed. Refresh before saving. Your note is kept.');expect(screen.getByRole('button',{name:'Confirm resolution'})).toBeDisabled();fireEvent.click(screen.getByRole('button',{name:'Resolve review'}));expect(screen.getByRole('button',{name:'Refresh review'})).toBeInTheDocument();fireEvent.click(screen.getByRole('button',{name:'Refresh review'}));await waitFor(()=>expect(screen.getByRole('button',{name:'Confirm resolution'})).toHaveProperty('disabled',!refresh));expect(screen.getByRole('textbox',{name:'Resolution note'})).toHaveValue('Conflict draft retained');});
 it('shows retry feedback if authenticated content cannot decode as an image',async()=>{api.get.mockResolvedValue({data:new Blob(['invalid-image'])});mount(<ProtectedEvidence assetId="private" privacyState="SAFE" variant="workspace" alt="Synthetic evidence"/>);fireEvent.error(await screen.findByRole('img',{name:'Synthetic evidence'}));expect(screen.getByRole('alert')).toHaveTextContent('Evidence could not load. Retry when connected.');expect(screen.getByRole('button',{name:'Retry'})).toBeInTheDocument();expect(screen.queryByRole('img')).not.toBeInTheDocument();});
+
+it('shows the saved closure note, attribution and local time without allowing another decision',()=>{
+ const closed={...detail,state:'RESOLVED',location:{id:8,name:'Synthetic site',timezone:'Asia/Karachi'},decisions:[{id:7,action:'RESOLVE_REVIEW',reasonCode:'MANAGER_RESOLVED',note:'Checked the saved records\nNo staff issue recorded',createdAt:'2026-10-21T04:10:00Z',actorManager:{name:'Recorded manager'}}]};
+ mount(<DecisionForm detail={closed} onDone={async()=>{}}/>);
+ const panel=screen.getByRole('region',{name:'Decision recorded'});
+ expect(within(panel).getByText('Recorded manager')).toBeInTheDocument();
+ expect(within(panel).getByText(/Checked the saved records/)).toHaveTextContent('No staff issue recorded');
+ expect(panel.querySelector('time')).toHaveAttribute('dateTime','2026-10-21T04:10:00Z');
+ expect(panel).toHaveTextContent('Asia/Karachi');
+ expect(screen.queryByRole('textbox')).not.toBeInTheDocument();
+ expect(screen.queryByRole('button',{name:'Confirm resolution'})).not.toBeInTheDocument();
+ expect(screen.queryByText('Verified completion recorded')).not.toBeInTheDocument();
+});
+it('does not invent a closure actor or note when a closed historical record has no saved details',()=>{
+ mount(<DecisionForm detail={{...detail,state:'RESOLVED',decisions:[]}} onDone={async()=>{}}/>);
+ expect(screen.getByRole('status')).toHaveTextContent('Review closed; decision details unavailable');
+ expect(screen.queryByText('Saved note')).not.toBeInTheDocument();
+ expect(screen.queryByRole('textbox')).not.toBeInTheDocument();
+});
+it('renders a deliberate performance closure as its recorded outcome without an automatic verification claim',()=>{
+ localStorage.setItem('hygene-ops.language','ur');
+ mount(<DecisionForm detail={{...detail,state:'RESOLVED',decisions:[{id:8,action:'RECORD_PERFORMANCE_ISSUE',reasonCode:'MANAGER_PERFORMANCE_RECORDED',note:'Saved synthetic performance context',createdAt:'2026-10-21T04:10:00Z'}]}} onDone={async()=>{}}/>);
+ expect(document.documentElement.dir).toBe('rtl');
+ expect(screen.getByRole('status')).toHaveTextContent('عملے کی کارکردگی کا مسئلہ درج ہوا');
+ expect(screen.getByText('مینیجر کا نام دستیاب نہیں')).toBeInTheDocument();
+ expect(screen.getByText('Saved synthetic performance context')).toBeInTheDocument();
+});
+it('explains intentional setup-only records instead of claiming their decisions failed to load',()=>{
+ mount(<DecisionForm detail={{...detail,kind:'SETUP',closureActions:[]}} onDone={async()=>{}}/>);
+ expect(screen.getByRole('status')).toHaveTextContent('No staff decision is available for this setup record.');
+ expect(screen.queryByText('Review decisions could not be loaded. Refresh the page to continue.')).not.toBeInTheDocument();
+ expect(screen.queryByRole('textbox')).not.toBeInTheDocument();
+});

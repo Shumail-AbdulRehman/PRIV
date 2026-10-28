@@ -129,3 +129,24 @@
 }
 
 .workspace .v5-queue-handled { color:var(--success-ink); }
+
+/* Recorded decisions retain their saved attribution; setup records offer no task decision. */
+.workspace .v5-saved-decision { display:grid; gap:16px; }
+.workspace .v5-saved-decision h3,.workspace .v5-saved-decision h4,.workspace .v5-saved-decision p { margin:0; }
+.workspace .v5-saved-decision>p,.workspace .v5-saved-decision dt { color:var(--muted-foreground); font-size:13px; }
+.workspace .v5-saved-decision-state { display:flex; align-items:center; gap:6px; justify-self:start; padding:6px 8px; border-radius:5px; background:var(--success-fill); color:var(--success-ink); font-size:12px; }
+.workspace .v5-saved-decision .v5-saved-decision-result { padding:12px; border:1px solid var(--border); border-radius:7px; background:var(--success-fill); color:var(--success-ink); font-size:13px; }
+.workspace .v5-saved-decision dl { display:grid; gap:12px; }
+.workspace .v5-saved-decision dd { margin-top:4px; font-size:13px; overflow-wrap:anywhere; }
+.workspace .v5-saved-decision-note { border-top:1px solid var(--border); padding-top:16px; }
+.workspace .v5-saved-decision-note h4 { font-size:13px; margin-bottom:8px; }
+.workspace .v5-saved-decision-note p { white-space:pre-wrap; overflow-wrap:anywhere; font-size:13px; }
+.workspace .v5-review-setup { display:grid; gap:16px; }
+.workspace .v5-review-setup h2 { font-size:17px; }
+.workspace .v5-review-setup p { font-size:13px; color:var(--muted-foreground); max-width:65ch; }
+.workspace .v5-review-setup-actions { display:flex; flex-wrap:wrap; gap:12px; }
+@media(max-width:650px) { .workspace .v5-review-setup-actions>a,.workspace .v5-review-setup-actions>button { min-height:48px; } }
+
+.workspace .v5-evidence-and-decision.v5-review-setup-layout { grid-template-columns:minmax(0,1fr); }
+.workspace .v5-saved-decision>a { min-height:44px; }
+@media(max-width:650px) { .workspace .v5-saved-decision>a { min-height:48px; } }

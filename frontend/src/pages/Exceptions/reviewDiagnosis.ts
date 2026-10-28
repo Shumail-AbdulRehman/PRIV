@@ -62,7 +62,9 @@ export function reviewDiagnosis(detail:ExceptionDetail,t:Translate=english) {
   const groups=(['cleaning','missing','retake','review','processing'] as const).map(category=>({category,rows:required.filter(row=>row.category===category)})).filter(group=>group.rows.length);
   const count=(category:DiagnosisRow['category'])=>required.filter(row=>row.category===category).length;
   const capture=reviewCaptureStatus(detail);
-  const next=detail.state==='RESOLVED'
+  const next=detail.kind==='SETUP'
+    ? t('Configure the room and its schedule. Photos cannot be reviewed until the inventory is ready.')
+    : detail.state==='RESOLVED'
     ? t('This review has been handled. Existing photos and task completion records stay as recorded.')
     : t('Resolve this review, or record a staff performance issue and close it. This task stays in exceptions until you save a decision.');
   return {rows,groups,capture,next,missing:count('missing'),cleaning:count('cleaning'),checked:count('checked'),total:required.length};

@@ -66,20 +66,20 @@ export default function ReviewDetail({ id, backTo, returnState }: {
   const listFilters = Object.fromEntries(
     new URLSearchParams(returnTo.split("?")[1] ?? ""),
   );
+  const nextFilters = {...listFilters, queue: detail?.state === 'RESOLVED' ? 'needs-me' : listFilters.queue ?? 'needs-me'};
+  const nextReturnTo = detail?.state === 'RESOLVED'
+    ? '/exceptions?' + new URLSearchParams({...nextFilters,page:'1'}) : returnTo;
   const next = useQuery({
-    queryKey: ["review-next", actorScope, id, listFilters],
-    queryFn: async ({ signal }) =>
-      (
-        await client.get<{ data: { nextId: number | null } }>(
-          `/verification-exceptions/${id}/next`,
-          {
-            params: { ...listFilters, queue: listFilters.queue ?? "needs-me" },
-            signal,
-          },
-        )
-      ).data.data,
+    queryKey: ["review-next", actorScope, id, listFilters, detail?.state],
+    queryFn: async ({ signal }) => {
+      const result = (await client.get<{data:{nextId:number|null}}>(`/verification-exceptions/${id}/next`, {params:nextFilters,signal})).data.data;
+      if(result.nextId || detail?.state !== 'RESOLVED') return result;
+      const first = (await client.get<{data:{cases:Array<{id:number}>}}>('/verification-exceptions',{params:{...nextFilters,page:'1',pageSize:'1'},signal})).data.data.cases[0];
+      return {nextId:first?.id !== id ? first?.id ?? null : null};
+    },
     enabled: id > 0,
   });
+  const nextReviewHref = next.data?.nextId ? `/exceptions/${next.data.nextId}?returnTo=${encodeURIComponent(nextReturnTo)}` : undefined;
   useEffect(() => {
     if (detail?.rowVersion === undefined) return;
     void readException(id)
@@ -205,13 +205,13 @@ export default function ReviewDetail({ id, backTo, returnState }: {
           <ArrowLeft size={16} />
           {t(returnTo.startsWith("/exceptions") ? "Back to reviews" : "Back")}
         </Link>
-        {next.data?.nextId ? (
+        {nextReviewHref ? (
           <Button asChild variant="outline">
             <Link
-              to={`/exceptions/${next.data.nextId}?returnTo=${encodeURIComponent(returnTo)}`}
+              to={nextReviewHref}
               state={returnState}
             >
-              {t("Next review")}
+              {t(detail.state === 'RESOLVED' ? "Next pending review" : "Next review")}
               <ArrowRight size={16} />
             </Link>
           </Button>
@@ -224,7 +224,7 @@ export default function ReviewDetail({ id, backTo, returnState }: {
       <section className="v5-review-reason" aria-label={t('Review reason')}>
         <Camera size={20} aria-hidden="true"/><div><h2>{detail.state === 'RESOLVED' ? t('Review handled') : selectedDiagnosis?.title ?? t(plainReason(issue?.reasonCode??'REVIEW_REQUIRED'))}</h2><p>{detail.state === 'RESOLVED' ? t('This review has been handled. Existing photos and task completion records stay as recorded.') : selectedDiagnosis?.description ?? diagnosis.next}</p></div>
       </section>
-      <div className="v5-evidence-and-decision">
+      <div className={"v5-evidence-and-decision"+(detail.kind==='SETUP'?' v5-review-setup-layout':'')}>
       <div className="v5-evidence-stack">
       <section className="ops-panel v5-evidence-card" id="review-evidence" tabIndex={-1}>
       <header className="ops-header v5-evidence-header">
@@ -239,10 +239,10 @@ export default function ReviewDetail({ id, backTo, returnState }: {
               <MapPin size={16} />
               {detail.location?.name}
             </span>
-            <span>
+            {detail.kind !== 'SETUP' && detail.task ? <span>
               <UserRound size={16} />
-              {detail.task?.staff?.name ?? t("Unassigned")}
-            </span>
+              {detail.task.staff?.name ?? t("Unassigned")}
+            </span> : null}
             {detail.task?.shiftEnd ? (
               <span>
                 <Clock3 size={16} />
@@ -260,9 +260,10 @@ export default function ReviewDetail({ id, backTo, returnState }: {
           label={exceptionStateLabel(detail.state)}
         />
         <span>
-          {detail.task?.staffSubmittedAt
-            ? t("Task submitted")
-            : t("Task not submitted")}
+          {detail.kind === "SETUP"
+            ? t("No task generated")
+            : !detail.task ? t("Task submission information unavailable")
+            : detail.task.staffSubmittedAt ? t("Task submitted") : t("Task not submitted")}
         </span>
       </div>
       <OperationsState error={query.error} retry={() => void query.refetch()} />
@@ -299,21 +300,22 @@ export default function ReviewDetail({ id, backTo, returnState }: {
         </div>
       ) : null}
       {detail.kind === "SETUP" ? (
-        <section className="ops-panel ops-panel-body">
+        <section className="ops-panel-body v5-review-setup">
           <h2>{t("Room inventory needs setup")}</h2>
           <p>
             {t(
               "Configure the room and its schedule. Photos cannot be reviewed until the inventory is ready.",
             )}
           </p>
-          <Button asChild>
+          <p role="status">{t('Complete the room setup before reviewing task photos. No staff decision is available for this setup record.')}</p>
+          <div className="v5-review-setup-actions"><Button asChild>
             <Link to={`/locations/${detail.locationId}?tab=templates`}>
               {t("Review room setup")}
             </Link>
           </Button>
           <Button variant="outline" onClick={() => void done()}>
             {t("Check again")}
-          </Button>
+          </Button></div>
         </section>
       ) : (
         <div className="v5-evidence-body">
@@ -457,11 +459,11 @@ export default function ReviewDetail({ id, backTo, returnState }: {
       {detail.kind !== 'SETUP' && <LaunchReviewContext detail={detail} replacement={selectedRequirement?.replacement} />}
       {detail.kind !== 'SETUP' && <details className="v5-findings-disclosure"><summary>{t('Review findings and capture rules')}</summary><ReviewSummary detail={detail} onSelect={inspectRequirement}/></details>}
       </div>
-      <section className="ops-panel ops-action-column v5-decision-card" id="review-finding" tabIndex={-1}>
+      {detail.kind !== 'SETUP' && <section className="ops-panel ops-action-column v5-decision-card" id="review-finding" tabIndex={-1}>
         <div className="ops-panel-body">
-          <DecisionForm detail={detail} onDone={done} />
+          <DecisionForm detail={detail} onDone={done} nextReviewHref={nextReviewHref} />
         </div>
-      </section>
+      </section>}
       </div>
     </div>
   );
