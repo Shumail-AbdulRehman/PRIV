@@ -38,7 +38,7 @@ beforeEach(()=>{
  vi.clearAllMocks();localStorage.clear();m.edit.mockResolvedValue({});
  m.staff={isLoading:false,isError:false,data:{data:[person,{...person,id:8,name:'Unassigned worker',email:'unassigned@example.invalid',locationId:null}]}};
  m.locations={isPending:false,isError:false,data:{data:[site]}};
- m.detail={isLoading:false,isFetching:false,isError:false,data:{data:{...person,createdAt:'2026-10-01T00:00:00Z',role:'STAFF',location:site,periodLabel:'October 2026',taskStats:{totalTemplates:0,completed:0,pending:0,inProgress:0,missed:0},attendanceStats:{totalRecords:0,present:0,absent:0,late:0},taskTemplates:[],taskInstances:[],attendances:[]}}};
+ m.detail={isLoading:false,isFetching:false,isError:false,data:{data:{...person,createdAt:'2026-10-01T00:00:00Z',role:'STAFF',location:site,periodLabel:'October 2026',taskStats:{totalTemplates:0,totalInstances:0,completed:0,pending:0,inProgress:0,missed:0},attendanceStats:{totalRecords:0,present:0,absent:0,late:0},taskTemplates:[],taskInstances:[],attendances:[]}}};
 });
 it('directory filters real assignments and search together, then clears the empty result',()=>{
  mount(<StaffPage/>);
@@ -138,4 +138,19 @@ it('inline hiring changes scope without retaining a prior site password or draft
  expect(screen.getByLabelText('Full Name')).toHaveValue('');expect(screen.getByLabelText('Password')).toHaveValue('');
  expect(screen.getByRole('combobox',{name:/^Location$/})).toHaveValue('30');
  expect(m.create).not.toHaveBeenCalled();
+});
+it('cached directory refresh failure leaves an open accountable access draft intact',()=>{
+ const view=mount(<StaffPage/>);fireEvent.click(screen.getAllByRole('button',{name:'Staff access'})[0]);
+ fireEvent.change(screen.getByLabelText('Reason'),{target:{value:'Retained context draft'}});
+ m.staff={...m.staff,isError:true,error:new Error('connection failed'),refetch:vi.fn()};
+ view.rerenderNode(<StaffPage/>);
+ expect(screen.getByRole('dialog')).toBeInTheDocument();expect(screen.getByLabelText('Reason')).toHaveValue('Retained context draft');
+ expect(screen.getByText('Your team')).toBeInTheDocument();
+});
+
+it('scheduled task metric uses execution instances rather than cleaning schedule templates',()=>{
+ Object.assign((m.detail as {data:{data:{taskStats:Record<string,number>}}}).data.data.taskStats,{totalTemplates:2,totalInstances:9,completed:3});
+ mount(<Routes><Route path="/staff/:id" element={<StaffDetailPage/>}/></Routes>,'ADMIN','/staff/7?month=2026-10');
+ const metric=screen.getByText('Scheduled tasks').closest('.stat-card') as HTMLElement;
+ expect(within(metric).getByText('9')).toBeInTheDocument();expect(within(metric).queryByText('2')).not.toBeInTheDocument();
 });

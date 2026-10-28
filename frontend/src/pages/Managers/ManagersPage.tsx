@@ -10,7 +10,7 @@ import {
 } from "lucide-react";
 import PageHeader from "@/components/common/PageHeader";
 import EmptyState from "@/components/common/EmptyState";
-import DataTable from "@/components/common/DataTable";
+import DataTable, { type Column } from "@/components/common/DataTable";
 import StatusBadge from "@/components/common/StatusBadge";
 import OperationsState from "../Manager/OperationsState";
 import { useLanguage } from "@/i18n/context";
@@ -33,8 +33,8 @@ export default function ManagersPage() {
   const [success, setSuccess] = useState("");
   if (getManagers.isPending || getLocations.isPending)
     return <div className="workforce-page"><PageHeader title="Managers"/><OperationsState loading skeleton="table"/></div>;
-  if (getManagers.isError || getLocations.isError)
-    return (
+  if ((getManagers.isError&&!getManagers.data) || (getLocations.isError&&!getLocations.data))
+  return (
       <div className="ops-page">
         <PageHeader title="Managers" />
         <OperationsState
@@ -69,65 +69,7 @@ export default function ManagersPage() {
         .toLowerCase()
         .includes(search.toLowerCase()),
   );
-  return (
-    <div className="workforce-page">
-      <PageHeader
-        title="Managers"
-        subtitle="Give each manager access to the locations they look after."
-        action={
-          locations.length ? (
-            <Button onClick={openCreate}>
-              <Plus size={16} />
-              {t("Add manager")}
-            </Button>
-          ) : undefined
-        }
-      />
-      {success ? (
-        <p className="ops-save-result" role="status">
-          {t(success)}
-        </p>
-      ) : null}
-      <OperationsState/>
-      <dl className="workforce-summary workforce-manager-summary" aria-label={t('Manager summary')}>
-        <div><dt>{t('Total managers')}</dt><dd>{managers.length}</dd><p>{t('Company manager accounts')}</p></div>
-        <div><dt>{t('Active managers')}</dt><dd>{managers.filter(m=>m.isActive).length}</dd><p>{t('Assigned-site access')}</p></div>
-        <div><dt>{t('Locations covered')}</dt><dd>{covered.size}</dd><p>{t('One active manager per location')}</p></div>
-      </dl>
-      {locations.length||managers.length ? (
-        <section className="workforce-panel workforce-directory">
-          <div className="workforce-panel-heading"><h2>{t('Manager assignments')}</h2><p>{t('Review access and the sites assigned to each manager.')}</p></div>
-          <div className="workforce-toolbar">
-            <label className="">
-              <span className="flex items-center gap-2">
-                {t("Search managers")}
-              </span>
-              <Input
-                aria-label={t("Search managers")}
-                value={search}
-                onChange={(e) => setSearch(e.target.value)}
-                placeholder={t("Search by name, email or location")}
-              />
-            </label>
-            <label>
-              {t("Account status")}
-              <select
-                aria-label={t("Account status")}
-                value={status}
-                onChange={(e) => setStatus(e.target.value)}
-              >
-                <option value="all">{t("All accounts")}</option>
-                <option value="active">{t("Active")}</option>
-                <option value="inactive">{t("Inactive")}</option>
-              </select>
-            </label>
-          </div>
-          <DataTable
-            data={filtered}
-            pageSize={20}
-            rowKey={(m) => m.id}
-            emptyMessage="No managers match these filters."
-            columns={[
+  const columns:Column<Manager>[]=[
               {
                 key: "name",
                 header: "Manager",
@@ -194,7 +136,72 @@ export default function ManagersPage() {
                   </div>
                 ),
               },
-            ]}
+            ];
+  return (
+    <div className="workforce-page">
+      <PageHeader
+        title="Managers"
+        subtitle="Give each manager access to the locations they look after."
+        action={
+          locations.length ? (
+            <Button onClick={openCreate}>
+              <Plus size={16} />
+              {t("Add manager")}
+            </Button>
+          ) : undefined
+        }
+      />
+      {success ? (
+        <p className="ops-save-result" role="status">
+          {t(success)}
+        </p>
+      ) : null}
+      <OperationsState error={getManagers.isError?getManagers.error:getLocations.isError?getLocations.error:undefined} retry={()=>{void getManagers.refetch();void getLocations.refetch();}}/>
+      <dl className="workforce-summary workforce-manager-summary" aria-label={t('Manager summary')}>
+        <div><dt>{t('Total managers')}</dt><dd>{managers.length}</dd><p>{t('Company manager accounts')}</p></div>
+        <div><dt>{t('Active managers')}</dt><dd>{managers.filter(m=>m.isActive).length}</dd><p>{t('Assigned-site access')}</p></div>
+        <div><dt>{t('Locations covered')}</dt><dd>{covered.size}</dd><p>{t('One active manager per location')}</p></div>
+      </dl>
+      {locations.length||managers.length ? (
+        <section className="workforce-panel workforce-directory">
+          <div className="workforce-panel-heading"><h2>{t('Manager assignments')}</h2><p>{t('Review access and the sites assigned to each manager.')}</p></div>
+          <div className="workforce-toolbar">
+            <label className="">
+              <span className="flex items-center gap-2">
+                {t("Search managers")}
+              </span>
+              <Input
+                aria-label={t("Search managers")}
+                value={search}
+                onChange={(e) => setSearch(e.target.value)}
+                placeholder={t("Search by name, email or location")}
+              />
+            </label>
+            <label>
+              {t("Account status")}
+              <select
+                aria-label={t("Account status")}
+                value={status}
+                onChange={(e) => setStatus(e.target.value)}
+              >
+                <option value="all">{t("All accounts")}</option>
+                <option value="active">{t("Active")}</option>
+                <option value="inactive">{t("Inactive")}</option>
+              </select>
+            </label>
+          </div>
+          <DataTable
+            data={filtered}
+            pageSize={20}
+            rowKey={(m) => m.id}
+            emptyMessage="No managers match these filters."
+            columns={columns}
+            mobileRender={manager=><div className="workforce-mobile-record">
+              {columns[0].render(manager)}
+              <div><p className="workforce-help">{t('Assigned locations')}</p>{columns[1].render(manager)}</div>
+              {columns[2].render(manager)}
+              {columns[3].render(manager)}
+            </div>}
           />
           <div className="workforce-panel-footer"><span>{t('{shown} of {total} managers',{shown:filtered.length,total:managers.length})}</span><Link to="/staff">{t('Back to team')}</Link></div>
         </section>
