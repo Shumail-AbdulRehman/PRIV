@@ -104,9 +104,10 @@ export default function StaffCreateDialog({
 
   const body = (
         <form
-          onSubmit={handleSubmit(onCreateSubmit)}
+          onSubmit={event=>void handleSubmit(onCreateSubmit)(event)}
           className="workforce-form"
         >
+          <fieldset disabled={createStaff.isPending} className="workforce-form-grid">
           <div>
             <label
               htmlFor="staff-create-name"
@@ -115,7 +116,7 @@ export default function StaffCreateDialog({
               {t("Full Name")}
             </label>
             <Input
-              id="staff-create-name"
+              id="staff-create-name" aria-label={t("Full Name")}
               {...register("name", { required: "Name is required" })}
               autoComplete="name"
             />
@@ -132,7 +133,7 @@ export default function StaffCreateDialog({
             </label>
             <Input
               type="email"
-              id="staff-create-email"
+              id="staff-create-email" aria-label={t("Email")}
               {...register("email", { required: "Email is required" })}
               dir="ltr" autoComplete="email"
             />
@@ -151,7 +152,7 @@ export default function StaffCreateDialog({
             </label>
             <Input
               type="tel"
-              id="staff-create-phone"
+              id="staff-create-phone" aria-label={t("Phone Number")}
               {...register("phone", {
                 required: "Phone number is required",
                 minLength: {
@@ -180,7 +181,7 @@ export default function StaffCreateDialog({
             </label>
             <Input
               type="password"
-              id="staff-create-password"
+              id="staff-create-password" aria-label={t("Password")}
               {...register("password", {
                 required: "Password is required", minLength: {value: 8, message:"Use at least 8 characters"},
               })}
@@ -201,7 +202,7 @@ export default function StaffCreateDialog({
             </label>
             <select
               disabled={!!location}
-              id="staff-create-locationId"
+              id="staff-create-locationId" aria-label={t(location||managerHire?"Location":"Location (optional)")}
               {...register("locationId", { validate: value => !managerHire || locations.some(site => String(site.id) === (location ? String(location.id) : value)) || "Select assigned site" })}
               className={inputCls}
             >
@@ -214,7 +215,7 @@ export default function StaffCreateDialog({
             </select>
           </div>
           {errors.locationId ? <p role="alert" className="text-destructive">{t(String(errors.locationId.message))}</p> : null}
-          <div className="grid grid-cols-2 gap-4">
+          <div className="workforce-create-shifts grid grid-cols-2 gap-4">
             <div>
               <label
                 htmlFor="staff-create-shiftStart"
@@ -224,7 +225,7 @@ export default function StaffCreateDialog({
               </label>
               <Input
                 type="time" dir="ltr"
-                id="staff-create-shiftStart"
+                id="staff-create-shiftStart" aria-label={t("Shift Start")}
                 {...register("shiftStart", {
                   required: "Shift start is required",
                 })}
@@ -244,7 +245,7 @@ export default function StaffCreateDialog({
               </label>
               <Input
                 type="time" dir="ltr"
-                id="staff-create-shiftEnd"
+                id="staff-create-shiftEnd" aria-label={t("Shift End")}
                 {...register("shiftEnd", {
                   required: "Shift end is required",
                 })}
@@ -261,6 +262,7 @@ export default function StaffCreateDialog({
               {t((createStaff.error as {response?:{status?:number}})?.response?.status === 409 ? 'The email is already in use or the available capacity changed. Your draft is kept.' : 'Could not add staff. Check the details and try again. Your draft is kept.')}
             </p>
           ) : null}
+          </fieldset>
           <p className="workforce-help">{t('Times use the assigned site’s timezone. Share initial credentials directly with the staff member.')}</p>
           <div className="workforce-form-actions">
             <Button

@@ -1,3 +1,6 @@
+import { useLanguage } from '@/i18n/context';
+import StaffEditDialog from './StaffEditDialog';
+import './workforce-v5.css';
 import WorkforceActions from "./WorkforceActions";
 import { useGetLocations } from "../Location/queries";
 import AttendanceContext from "@/pages/Attendance/AttendanceContext";
@@ -37,7 +40,6 @@ import {
 
 import { useGetStaffDetails } from "./queries";
 import StatusBadge from "@/components/common/StatusBadge";
-import LoadingSpinner from "@/components/common/LoadingSpinner";
 import PageHeader from "@/components/common/PageHeader";
 import StatCard from "@/components/common/StatCard";
 import SurfaceCard from "@/components/common/SurfaceCard";
@@ -106,16 +108,6 @@ const fmtTimeWithTz = (d: string | null, timeZone = "UTC") => {
   if (!d) return "—";
   return formatInTimeZone(new Date(d), timeZone, "HH:mm (zzz)");
 };
-const fmtDate = (d: string | null) => {
-  if (!d) return "—";
-  const date = new Date(d);
-  return date.toLocaleDateString("en-US", { timeZone: "UTC" });
-};
-const fmtDateTime = (d: string | null, timeZone = "UTC") => {
-  if (!d) return "—";
-  return formatInTimeZone(new Date(d), timeZone, "dd MMM HH:mm");
-};
-
 const getCurrentMonthValue = () => {
   const now = new Date();
   return `${now.getUTCFullYear()}-${String(now.getUTCMonth() + 1).padStart(2, "0")}`;
@@ -130,13 +122,13 @@ const getYesterdayValue = () => {
   return toDateInputValue(yesterday);
 };
 
-const getMonthOptions = (count = 12) => {
+const getMonthOptions = (locale: string, count = 12) => {
   const options: { value: string; label: string }[] = [];
   const cursor = new Date();
 
   for (let index = 0; index < count; index += 1) {
     const value = `${cursor.getUTCFullYear()}-${String(cursor.getUTCMonth() + 1).padStart(2, "0")}`;
-    const label = cursor.toLocaleDateString("en-US", {
+    const label = cursor.toLocaleDateString(locale, {
       month: "long",
       year: "numeric",
       timeZone: "UTC",
@@ -149,13 +141,21 @@ const getMonthOptions = (count = 12) => {
 };
 
 const StaffDetailPage: React.FC = () => {
+  const {t,language}=useLanguage();
+  const locale=language==='ur'?'ur-PK':'en-PK';
+  const fmtDate=(date:string|null)=>date?new Date(date).toLocaleDateString(locale,{timeZone:'UTC'}):'—';
+  const fmtDateTime=(date:string|null,timezone='UTC')=>date?new Date(date).toLocaleString(locale,{timeZone:timezone,day:'numeric',month:'short',hour:'2-digit',minute:'2-digit',hour12:false}):'—';
+  const [editing,setEditing]=useState(false);
+  const [saved,setSaved]=useState(false);
+  const [filterError,setFilterError]=useState('');
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
   const [searchParams, setSearchParams] = useSearchParams();
   const initialMonth = searchParams.get("month") ?? getCurrentMonthValue();
   const initialDateFrom = searchParams.get("dateFrom") ?? "";
   const initialDateTo = searchParams.get("dateTo") ?? "";
-  const initialTab = (searchParams.get("tab") as Tab | null) ?? "overview";
+  const requestedTab=searchParams.get("tab");
+  const initialTab:Tab=["overview","templates","instances","attendance"].includes(requestedTab??"")?requestedTab as Tab:"overview";
   const focusMode = searchParams.get("focus");
   const todayValue = toDateInputValue(new Date());
   const yesterdayValue = getYesterdayValue();
@@ -188,14 +188,13 @@ const StaffDetailPage: React.FC = () => {
       ? { dateFrom: initialDateFrom, dateTo: initialDateTo }
       : { month: initialMonth }),
   });
-  const monthOptions = useMemo(() => getMonthOptions(), []);
+  const monthOptions = useMemo(() => getMonthOptions(locale), [locale]);
 
   const workforceSites = useGetLocations();
   const staffQuery = useGetStaffDetails(Number(id), filters);
   const { data, isLoading, isFetching } = staffQuery;
 
-  const instanceColumns: Column<StaffTaskInstanceRow>[] = useMemo(
-    () => [
+  const instanceColumns: Column<StaffTaskInstanceRow>[] = [
       {
         key: "title",
         header: "Task",
@@ -233,19 +232,19 @@ const StaffDetailPage: React.FC = () => {
                 className="text-primary underline"
                 to={`/verification/${instance.id}?returnTo=${encodeURIComponent(`/staff/${id}?${searchParams.toString()}`)}`}
               >
-                {verificationLabel(instance)}
+                {t(verificationLabel(instance))}
               </Link>
             ) : (
               <StatusBadge status={instance.status} />
             )}
             {instance.completionTiming ? (
               <span className="text-xs text-muted-foreground">
-                {timingLabel(instance.completionTiming)}
+                {t(timingLabel(instance.completionTiming))}
               </span>
             ) : null}
             {instance.isLate ? (
-              <span className="text-[10px] font-medium text-amber-600">
-                Late start
+              <span className="text-sm workforce-warning">
+                {t('Late start')}
               </span>
             ) : null}
           </div>
@@ -284,7 +283,7 @@ const StaffDetailPage: React.FC = () => {
               className="inline-flex min-h-11 items-center text-sm font-medium text-primary underline"
               to={`/verification/${instance.id}?returnTo=${encodeURIComponent(`/staff/${id}?${searchParams.toString()}`)}`}
             >
-              View task photos
+              {t('View task photos')}
             </Link>
           ) : instance.proofImageUrls && instance.proofImageUrls.length > 0 ? (
             <div className="flex gap-1">
@@ -292,8 +291,8 @@ const StaffDetailPage: React.FC = () => {
                 <a key={i} href={url} target="_blank" rel="noopener noreferrer">
                   <img
                     src={url}
-                    alt={`Proof ${i + 1}`}
-                    className="h-9 w-9 rounded-md object-cover border border-gray-200 hover:ring-2 hover:ring-blue-400 transition-all cursor-pointer"
+                    alt={t('Proof {count}',{count:i+1})}
+                    className="h-12 w-12 rounded-md object-cover border border-border hover:ring-2 hover:ring-primary cursor-pointer"
                   />
                 </a>
               ))}
@@ -302,12 +301,9 @@ const StaffDetailPage: React.FC = () => {
             <span className="text-xs text-muted-foreground">—</span>
           ),
       },
-    ],
-    [id, searchParams],
-  );
+    ];
 
-  const attendanceColumns: Column<StaffAttendanceRow>[] = useMemo(
-    () => [
+  const attendanceColumns: Column<StaffAttendanceRow>[] = [
       {
         key: "date",
         header: "Date",
@@ -388,8 +384,8 @@ const StaffDetailPage: React.FC = () => {
 
           if (attendance.isLateCheckIn) {
             return (
-              <span className="text-xs font-medium text-amber-600">
-                {attendance.lateMinutes ?? 0} min late
+              <span className="text-sm workforce-warning">
+                {t('{count} min late',{count:attendance.lateMinutes??0})}
               </span>
             );
           }
@@ -398,7 +394,7 @@ const StaffDetailPage: React.FC = () => {
             displayStatus === "CHECKED_IN" ||
             displayStatus === "CHECKED_OUT"
           ) {
-            return <span className="text-xs text-emerald-700">On time</span>;
+            return <span className="text-sm workforce-success">{t('On time')}</span>;
           }
 
           return <span className="text-xs text-muted-foreground">—</span>;
@@ -419,9 +415,7 @@ const StaffDetailPage: React.FC = () => {
         header: "Check-Out Photo",
         render: (attendance) => <ProtectedAttendancePhoto attendanceId={attendance.id} kind="check-out" photo={attendance.checkOutPhoto} />,
       },
-    ],
-    [],
-  );
+    ];
 
   const syncSearchParams = (
     nextFilters: { month?: string; dateFrom?: string; dateTo?: string },
@@ -448,6 +442,7 @@ const StaffDetailPage: React.FC = () => {
   };
 
   const applyMonthFilter = () => {
+    setFilterError('');
     const nextFilters = month ? { month } : {};
     setFilters(nextFilters);
     setDateFrom("");
@@ -459,6 +454,8 @@ const StaffDetailPage: React.FC = () => {
   };
 
   const applyDateRangeFilter = () => {
+    if(!dateFrom||!dateTo||dateFrom>dateTo){setFilterError('Choose both dates. The end date must be on or after the start date.');return;}
+    setFilterError('');
     const nextFilters = dateFrom && dateTo ? { dateFrom, dateTo } : {};
     setFilters(nextFilters);
     setSelectedQuickFilter(null);
@@ -466,6 +463,7 @@ const StaffDetailPage: React.FC = () => {
   };
 
   const clearFilters = () => {
+    setFilterError('');
     const currentMonth = getCurrentMonthValue();
     setMonth(currentMonth);
     setDateFrom("");
@@ -476,6 +474,7 @@ const StaffDetailPage: React.FC = () => {
   };
 
   const applyQuickRange = (type: "today" | "yesterday" | "this-month") => {
+    setFilterError('');
     if (type === "today") {
       const today = toDateInputValue(new Date());
       setDateFrom(today);
@@ -507,7 +506,7 @@ const StaffDetailPage: React.FC = () => {
     syncSearchParams({ month: currentMonth });
   };
 
-  if (isLoading) return <LoadingSpinner fullScreen />;
+  if(isLoading)return <div className="workforce-page"><PageHeader title="Team member"/><OperationsState loading skeleton="detail"/></div>;
   if (staffQuery.isError)
     return (
       <div className="ops-page">
@@ -523,51 +522,54 @@ const StaffDetailPage: React.FC = () => {
   if (!staff) {
     return (
       <div className="flex flex-col items-center justify-center py-20">
-        <User className="mb-4 h-12 w-12 text-gray-400" />
-        <p className="text-gray-500">Staff member not found.</p>
+        <User className="mb-4 h-12 w-12 text-muted-foreground" />
+        <p className="text-muted-foreground">{t('Staff member not found.')}</p>
         <button
           onClick={() => navigate("/staff")}
-          className="mt-3 text-sm text-blue-600 hover:underline"
+          className="workforce-back"
         >
-          ← Back to team
+          {t('Back to team')}
         </button>
       </div>
     );
   }
 
-  const { taskStats, attendanceStats, periodLabel } = staff;
+  const {taskStats,attendanceStats,periodLabel}=staff;
+  const displayPeriod=filters.month?new Date(`${filters.month}-15T12:00:00Z`).toLocaleDateString(locale,{month:'long',year:'numeric',timeZone:'UTC'}):t(periodLabel);
   const staffTz: string = staff.location?.timezone ?? "UTC";
 
   const taskChartData = [
-    { name: "Work submitted", value: taskStats.completed, fill: "#3d8f7b" },
-    { name: "Pending", value: taskStats.pending, fill: "#91a5ab" },
-    { name: "In Progress", value: taskStats.inProgress, fill: "#ba8d34" },
-    { name: "Missed", value: taskStats.missed, fill: "#c75a52" },
+    { name:t("Work submitted"), value: taskStats.completed, fill: "var(--success-ink)" },
+    { name:t("Pending"), value: taskStats.pending, fill: "var(--muted-foreground)" },
+    { name:t("In Progress"), value: taskStats.inProgress, fill: "var(--primary)" },
+    { name:t("Missed"), value: taskStats.missed, fill: "var(--danger-ink)" },
   ].filter((d) => d.value > 0);
 
   return (
-    <div className="space-y-6">
+    <div className="workforce-page">
       <button
         onClick={() => navigate("/staff")}
-        className="inline-flex items-center gap-1.5 text-sm text-muted-foreground transition-colors hover:text-foreground"
+        className="workforce-back"
       >
-        <ArrowLeft className="h-4 w-4" /> Back to team
+        <ArrowLeft className="h-4 w-4" /> {t('Back to team')}
       </button>
 
       <PageHeader
         title={staff.name}
-        subtitle={`${periodLabel} · Attendance and task history${focusMode === "today" ? " for today" : ""}.`}
-        action={<div className="flex flex-wrap items-center gap-3"><StatusBadge status={staff.isActive ? "ACTIVE" : "INACTIVE"} /><WorkforceActions person={{id:staff.id,name:staff.name,isActive:staff.isActive,locationId:staff.locationId ?? staff.location?.id}} locations={workforceSites.data?.data ?? []} /></div>}
+        subtitle={t(focusMode==='today'?'{period} · Attendance and task history for today.':'{period} · Attendance and task history.',{period:displayPeriod})}
+        action={<div className="flex flex-wrap items-center gap-3"><Button variant="outline" disabled={!staff.isActive} onClick={()=>setEditing(true)}>{t('Edit')}</Button><StatusBadge status={staff.isActive ? "ACTIVE" : "INACTIVE"} /><WorkforceActions person={{id:staff.id,name:staff.name,isActive:staff.isActive,locationId:staff.locationId ?? staff.location?.id}} locations={workforceSites.data?.data ?? []} /></div>}
       />
 
-      <div className="flex flex-wrap gap-x-6 gap-y-3 rounded-xl border border-border bg-card px-5 py-4 text-sm text-muted-foreground">
+      {saved?<p role="status" className="ops-save-result">{t('Team member changes saved.')}</p>:null}
+      <OperationsState/>
+      <div className="workforce-profile-strip">
         <span className="flex items-center gap-2">
           <Mail size={16} />
-          {staff.email}
+          <bdi dir="ltr">{staff.email}</bdi>
         </span>
         <span className="flex items-center gap-2">
           <MapPin size={16} />
-          {staff.location?.name ?? "Unassigned"}
+          {staff.location?.name??t("Unassigned")}
         </span>
         <span className="flex items-center gap-2">
           <Clock size={16} />
@@ -579,7 +581,7 @@ const StaffDetailPage: React.FC = () => {
       <FilterBar className="xl:grid-cols-[auto_auto_auto_auto_auto]">
         <div className="xl:col-span-5">
           <label className="mb-2 block text-xs font-medium text-muted-foreground">
-            Quick filters
+            {t('Quick filters')}
           </label>
           <div className="flex flex-wrap gap-2">
             <Button
@@ -588,7 +590,7 @@ const StaffDetailPage: React.FC = () => {
               aria-pressed={selectedQuickFilter === "today"}
               onClick={() => applyQuickRange("today")}
             >
-              Today
+              {t('Today')}
             </Button>
             <Button
               variant="outline"
@@ -596,7 +598,7 @@ const StaffDetailPage: React.FC = () => {
               aria-pressed={selectedQuickFilter === "yesterday"}
               onClick={() => applyQuickRange("yesterday")}
             >
-              Yesterday
+              {t('Yesterday')}
             </Button>
             <Button
               variant="outline"
@@ -604,16 +606,16 @@ const StaffDetailPage: React.FC = () => {
               aria-pressed={selectedQuickFilter === "this-month"}
               onClick={() => applyQuickRange("this-month")}
             >
-              This Month
+              {t('This Month')}
             </Button>
           </div>
         </div>
         <div>
           <label className="mb-1.5 block text-xs font-medium text-muted-foreground">
-            Month
+            {t('Month')}
           </label>
           <select
-            aria-label="Month"
+            aria-label={t("Month")}
             value={month}
             onChange={(e) => setMonth(e.target.value)}
             className="h-11 w-full rounded-lg border border-border/80 bg-background/90 px-4 py-2 text-sm shadow-xs outline-none focus:border-primary/60 focus:ring-4 focus:ring-primary/10"
@@ -628,27 +630,27 @@ const StaffDetailPage: React.FC = () => {
         <div className="flex items-end">
           <Button className="h-11 rounded-lg" onClick={applyMonthFilter}>
             <Calendar className="h-4 w-4" />
-            Apply month
+            {t('Apply month')}
           </Button>
         </div>
         <div>
           <label className="mb-1.5 block text-xs font-medium text-muted-foreground">
-            From
+            {t('From')}
           </label>
           <Input
             type="date"
-            aria-label="From date"
+            aria-label={t("From date")}
             value={dateFrom}
             onChange={(e) => setDateFrom(e.target.value)}
           />
         </div>
         <div>
           <label className="mb-1.5 block text-xs font-medium text-muted-foreground">
-            To
+            {t('To')}
           </label>
           <Input
             type="date"
-            aria-label="To date"
+            aria-label={t("To date")}
             value={dateTo}
             onChange={(e) => setDateTo(e.target.value)}
           />
@@ -659,16 +661,17 @@ const StaffDetailPage: React.FC = () => {
             className="h-11 rounded-lg"
             onClick={clearFilters}
           >
-            Reset
+            {t('Reset')}
           </Button>
           <Button className="h-11 rounded-lg" onClick={applyDateRangeFilter}>
             <Filter className="h-4 w-4" />
-            Apply range
+            {t('Apply range')}
           </Button>
         </div>
       </FilterBar>
+      {filterError?<p role="alert" className="workforce-error">{t(filterError)}</p>:null}
 
-      <div className="grid grid-cols-2 gap-4 xl:grid-cols-5">
+      <div className="workforce-detail-summary">
         <StatCard
           label="Scheduled tasks"
           value={taskStats.totalTemplates}
@@ -700,7 +703,7 @@ const StaffDetailPage: React.FC = () => {
         />
       </div>
 
-      <div className="flex flex-wrap gap-1 rounded-lg border border-border/70 bg-muted/50 p-1">
+      <div className="workforce-detail-tabs" role="group" aria-label={t("Team member sections")}>
         {[
           { key: "overview", label: "Overview" },
           { key: "templates", label: "Cleaning schedule" },
@@ -719,13 +722,8 @@ const StaffDetailPage: React.FC = () => {
                 return next;
               });
             }}
-            className={`flex-1 rounded-xl px-4 py-2.5 text-sm font-medium transition-colors ${
-              activeTab === tab.key
-                ? "bg-background text-primary shadow-sm"
-                : "text-muted-foreground hover:text-foreground"
-            }`}
           >
-            {tab.label}
+            {t(tab.label)}
           </button>
         ))}
       </div>
@@ -736,13 +734,13 @@ const StaffDetailPage: React.FC = () => {
             title="Profile"
             description="Core staff identity and assignment details."
           >
-            <dl className="space-y-3 text-sm">
+            <dl className="workforce-profile-facts text-sm">
               {(
                 [
                   ["Name", staff.name],
                   ["Email", staff.email],
                   ["Role", staff.role],
-                  ["Location", staff.location?.name ?? "Unassigned"],
+                  ["Location", staff.location?.name ?? t("Unassigned")],
                   ["Address", staff.location?.address ?? "—"],
                   [
                     "Shift",
@@ -753,11 +751,11 @@ const StaffDetailPage: React.FC = () => {
               ).map(([label, value]) => (
                 <div
                   key={label}
-                  className="flex justify-between gap-6 border-b border-border/50 pb-3 last:border-b-0 last:pb-0"
+
                 >
-                  <dt className="text-muted-foreground">{label}</dt>
-                  <dd className="text-right font-medium text-foreground">
-                    {value}
+                  <dt className="text-muted-foreground">{t(label)}</dt>
+                  <dd className="font-medium text-foreground">
+                    {label==="Email"?<bdi dir="ltr">{value}</bdi>:label==="Role"?t(value):value}
                   </dd>
                 </div>
               ))}
@@ -766,32 +764,28 @@ const StaffDetailPage: React.FC = () => {
 
           <SurfaceCard
             title="Task performance"
-            description={
-              isFetching
-                ? "Refreshing filtered period..."
-                : `Task outcomes for ${periodLabel}.`
-            }
+            description={t(isFetching?'Refreshing filtered period...':'Task outcomes for {period}.',{period:displayPeriod})}
           >
             {taskChartData.length > 0 ? (
               <ResponsiveContainer width="100%" height={240}>
                 <BarChart data={taskChartData} layout="vertical">
-                  <CartesianGrid strokeDasharray="3 3" stroke="#dbe3ea" />
+                  <CartesianGrid strokeDasharray="3 3" stroke="var(--border)" />
                   <XAxis
                     type="number"
-                    tick={{ fontSize: 12, fill: "#91a5ab" }}
+                    tick={{ fontSize: 12, fill: "var(--muted-foreground)" }}
                     allowDecimals={false}
                   />
                   <YAxis
                     type="category"
                     dataKey="name"
-                    tick={{ fontSize: 12, fill: "#91a5ab" }}
-                    width={90}
+                    tick={{ fontSize: 12, fill: "var(--muted-foreground)" }}
+                    width={language==='ur'?110:100}
                   />
                   <Tooltip
                     contentStyle={{
                       backgroundColor: "var(--card)",
-                      border: "1px solid #e2e8f0",
-                      borderRadius: "6px",
+                      border:"1px solid var(--border)",
+                      borderRadius:"7px",
                       fontSize: 13,
                     }}
                   />
@@ -804,52 +798,22 @@ const StaffDetailPage: React.FC = () => {
               </ResponsiveContainer>
             ) : (
               <div className="flex h-[240px] items-center justify-center text-sm text-muted-foreground">
-                No task data in this period.
+                {t('No task data in this period.')}
               </div>
             )}
+          <div className="workforce-chart-values" aria-label={t('Task totals')}>{taskChartData.map(item=><span key={item.name}>{item.name}: <strong>{item.value}</strong></span>)}</div>
           </SurfaceCard>
 
-          <StaffPerformanceIssues data={staff.performanceIssues} periodLabel={periodLabel} staffId={staff.id} />
+          <StaffPerformanceIssues data={staff.performanceIssues} periodLabel={displayPeriod} staffId={staff.id} />
 
           <SurfaceCard
             title="Attendance summary"
-            description={`Attendance reliability for ${periodLabel}.`}
+            description={t('Attendance reliability for {period}.',{period:displayPeriod})}
             className="lg:col-span-2"
           >
-            <div className="grid grid-cols-2 gap-4 sm:grid-cols-4">
-              <div className="rounded-lg bg-muted/60 p-4 text-center">
-                <p className="text-2xl font-semibold text-foreground">
-                  {attendanceStats.totalRecords}
-                </p>
-                <p className="mt-1 text-xs uppercase tracking-[0.18em] text-muted-foreground">
-                  Records
-                </p>
-              </div>
-              <div className="rounded-lg bg-emerald-50 p-4 text-center">
-                <p className="text-2xl font-semibold text-emerald-700">
-                  {attendanceStats.present}
-                </p>
-                <p className="mt-1 text-xs uppercase tracking-[0.18em] text-emerald-700">
-                  Present
-                </p>
-              </div>
-              <div className="rounded-lg bg-red-50 p-4 text-center">
-                <p className="text-2xl font-semibold text-red-700">
-                  {attendanceStats.absent}
-                </p>
-                <p className="mt-1 text-xs uppercase tracking-[0.18em] text-red-700/80">
-                  Absent
-                </p>
-              </div>
-              <div className="rounded-lg bg-amber-50 p-4 text-center">
-                <p className="text-2xl font-semibold text-amber-700">
-                  {attendanceStats.late}
-                </p>
-                <p className="mt-1 text-xs uppercase tracking-[0.18em] text-amber-700">
-                  Late
-                </p>
-              </div>
-            </div>
+            <div className="workforce-attendance-metrics">{([
+              ['Records',attendanceStats.totalRecords,''],['Present',attendanceStats.present,'workforce-success'],['Absent',attendanceStats.absent,'workforce-danger'],['Late',attendanceStats.late,'workforce-warning']
+            ] as const).map(([label,value,tone])=><div key={label}><strong className={tone}>{value}</strong><p>{t(label)}</p></div>)}</div>
           </SurfaceCard>
         </div>
       )}
@@ -913,7 +877,7 @@ const StaffDetailPage: React.FC = () => {
       {activeTab === "instances" && (
         <SurfaceCard
           title="Task instances"
-          description={`Recent filtered task execution for ${periodLabel}.`}
+          description={t('Recent filtered task execution for {period}.',{period:displayPeriod})}
           contentClassName="p-0"
         >
           <DataTable
@@ -931,7 +895,7 @@ const StaffDetailPage: React.FC = () => {
       {activeTab === "attendance" && (
         <SurfaceCard
           title="Attendance records"
-          description={`Attendance records for ${periodLabel}.`}
+          description={t('Attendance records for {period}.',{period:displayPeriod})}
           contentClassName="p-0"
         >
           <DataTable
@@ -945,6 +909,7 @@ const StaffDetailPage: React.FC = () => {
           />
         </SurfaceCard>
       )}
+      {editing?<StaffEditDialog person={staff} timezone={staffTz} onClose={()=>setEditing(false)} onSaved={()=>setSaved(true)}/>:null}
     </div>
   );
 };
