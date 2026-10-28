@@ -139,15 +139,15 @@ test('V5 Team loading and network error recover using actual forwarded reads', a
 });
 
 test('V5 inline hire and detail edit persist through reload without changing assigned location', async ({ page }) => {
-  await enter(page, '/staff?create=1');
+  await enter(page, '/staff?create=1', 'ownerB');
   await page.locator('#staff-create-name').fill('V5 newly hired staff'); await page.locator('#staff-create-email').fill('v5-hired@example.invalid');
   await page.locator('#staff-create-phone').fill('+923001234567'); await page.locator('#staff-create-password').fill(fixture.password);
-  await page.locator('#staff-create-locationId').selectOption(String(fixture.site.A));
+  await page.locator('#staff-create-locationId').selectOption(String(fixture.site.foreign));
   await page.locator('#staff-create-shiftStart').fill('09:00'); await page.locator('#staff-create-shiftEnd').fill('17:00');
   const created = page.waitForResponse(r => r.url().endsWith('/staff/create-staff') && r.request().method() === 'POST');
   await page.getByRole('button', { name: 'Create staff', exact: true }).click(); expect((await created).status()).toBe(201);
   const record = await sql('SELECT id,"locationId" FROM "Staff" WHERE email=$1', ['v5-hired@example.invalid']);
-  expect(record).toHaveLength(1); expect(record[0].locationId).toBe(fixture.site.A);
+  expect(record).toHaveLength(1); expect(record[0].locationId).toBe(fixture.site.foreign);
   await page.goto(`/staff/${record[0].id}`); await expect(page.getByRole('heading', { name: 'V5 newly hired staff', exact: true })).toBeVisible();
   await page.getByRole('button', { name: 'Edit', exact: true }).click(); const dialog = page.getByRole('dialog');
   await dialog.locator('#staff-edit-name').fill('V5 persisted staff edit'); await dialog.locator('#staff-edit-phone').fill('+923007654321');
@@ -155,7 +155,7 @@ test('V5 inline hire and detail edit persist through reload without changing ass
   await dialog.getByRole('button', { name: 'Save changes', exact: true }).click(); expect((await edited).status()).toBe(200);
   await expect(dialog).not.toBeVisible(); await page.reload();
   await expect(page.getByRole('heading', { name: 'V5 persisted staff edit', exact: true })).toBeVisible();
-  expect((await sql('SELECT name,phone,"locationId" FROM "Staff" WHERE id=$1', [record[0].id]))[0]).toMatchObject({ name: 'V5 persisted staff edit', phone: '+923007654321', locationId: fixture.site.A });
+  expect((await sql('SELECT name,phone,"locationId" FROM "Staff" WHERE id=$1', [record[0].id]))[0]).toMatchObject({ name: 'V5 persisted staff edit', phone: '+923007654321', locationId: fixture.site.foreign });
 });
 
 test('V5 real empty workforce differs from filtered no matches', async ({ browser }) => {
