@@ -3,7 +3,6 @@ import OperationStatus from "@/components/common/OperationStatus";
 import { verificationLabel } from "../Verification/presentation";
 import LocationOverview from "./LocationOverview";
 import StaffCreateDialog from "../Staff/StaffCreateDialog";
-import OperationalSummary from "@/components/common/OperationalSummary";
 import { useOperations, type OperationOverview } from "../Manager/operations";
 import LocationFormDialog from "./LocationFormDialog";
 import PageHeader from "@/components/common/PageHeader";
@@ -12,7 +11,8 @@ import OperationsState from "../Manager/OperationsState";
 import DataTable from "@/components/common/DataTable";
 import TaskWorker from "@/components/common/TaskWorker";
 import { taskAssignee } from "../Task/taskAssignee";
-import { useLanguage } from "@/i18n/context";
+import { useLocationLanguage } from "./locationTranslations";
+import "./location-v5.css";
 import LocationAreasTab from "../Area/LocationAreasTab";
 import DeleteButton from "@/components/common/DeleteButton";
 import { useSelector } from "react-redux";
@@ -31,7 +31,6 @@ import { formatInTimeZone } from "date-fns-tz";
 import { useGetLocationById, useDeleteLocation } from "./queries";
 import type { LocationStatsFilter } from "./queries";
 import StatusBadge from "@/components/common/StatusBadge";
-import LoadingSpinner from "@/components/common/LoadingSpinner";
 import AreaSubmissionsPanel from "@/pages/Task/components/AreaSubmissionsPanel";
 import {
   Clock,
@@ -40,7 +39,6 @@ import {
   ClipboardList,
   Navigation,
   Radius,
-  XCircle,
   Calendar,
   RefreshCw,
   ChevronDown,
@@ -48,6 +46,7 @@ import {
   Plus,
   Settings2,
   LayoutDashboard,
+  Building2,
 } from "lucide-react";
 
 const toDateStr = (d: Date) =>
@@ -263,7 +262,7 @@ const VerificationCell = ({ attempts }: { attempts: CompletionAttempt[] }) => {
 };
 
 const LocationDetailPage: React.FC = () => {
-  const { t } = useLanguage();
+  const { t } = useLocationLanguage();
   const [settingsOpen, setSettingsOpen] = useState(false);
   const [staffDialogOpen, setStaffDialogOpen] = useState(false);
   const [staffAdded, setStaffAdded] = useState(false);
@@ -326,7 +325,7 @@ const LocationDetailPage: React.FC = () => {
 
   const locationTz = locationInfo?.timezone ?? "UTC";
 
-  if (isLoading) return <LoadingSpinner fullScreen />;
+  if (isLoading) return <div className="location-v5"><PageHeader title={t('Location')}/><OperationsState loading skeleton="metrics"/><OperationsState loading/></div>;
 
   if (detailQuery.isError)
     return (
@@ -338,47 +337,31 @@ const LocationDetailPage: React.FC = () => {
         />
       </div>
     );
-  if (!locationInfo) {
-    return (
-      <div className="flex h-64 items-center justify-center">
-        <div className="flex flex-col items-center gap-2 text-center">
-          <XCircle className="h-10 w-10 text-red-600" />
-          <p className="text-base font-semibold text-gray-900">
-            Location not found
-          </p>
-          <button
-            onClick={() => navigate(-1)}
-            className="mt-2 text-sm text-blue-600 hover:underline"
-          >
-            ← Go back
-          </button>
-        </div>
-      </div>
-    );
-  }
+  if (!locationInfo) return <div className="location-v5"><PageHeader title={t('Location not found')}/><p>{t('No saved location is available at this address.')}</p><Button asChild variant="outline"><Link to="/locations">{t('Return to locations')}</Link></Button></div>;
 
   return (
-    <div className="location-detail-page space-y-6 max-w-6xl">
+    <div className="location-detail-page location-v5">
       <div className="flex items-center gap-2 text-sm">
         <Link
           to="/locations"
           className="text-gray-500 hover:text-gray-900 transition-colors"
         >
-          Locations
+          {t("Locations")}
         </Link>
         <span className="text-gray-400">/</span>
         <span className="text-gray-900 font-medium">{locationInfo.name}</span>
       </div>
 
-      <PageHeader
+      <div className="location-heading-v5"><span className="location-symbol-v5" aria-hidden="true"><Building2 size={28}/></span><PageHeader
         title={locationInfo.name}
-        subtitle={locationInfo.address}
+        subtitle={locationInfo.address+" · "+locationInfo.timezone}
         action={
           <>
             <StatusBadge
               status={locationInfo.isActive ? "ACTIVE" : "INACTIVE"}
             />
-            {locationInfo.isActive ? (
+            {user?.role === "ADMIN" ? <Button variant="outline" onClick={()=>{setSaved(false);setEditOpen(true);}}><MapPin size={16}/>{t('Edit location')}</Button> : null}
+            {activeTab === "areas" && locationInfo.isActive ? (
               <Button asChild>
                 <Link to={"/locations/" + locationInfo.id + "?tab=areas&newArea=1"}>
                   <Plus size={16} />
@@ -396,7 +379,7 @@ const LocationDetailPage: React.FC = () => {
             </Button>
           </>
         }
-      />
+      /></div>
       {user?.role === "ADMIN" ? (
         <LocationFormDialog
           open={editOpen}
@@ -472,26 +455,7 @@ const LocationDetailPage: React.FC = () => {
         </div>
       </div>
 
-      <OperationsState
-        loading={overview.isPending}
-        skeleton="metrics"
-        error={overview.error}
-        retry={() => void overview.refetch()}
-      />
-      {overview.data && !overview.isError ? (
-        <OperationalSummary
-          data={overview.data}
-          params={new URLSearchParams(overviewParams)}
-        />
-      ) : null}
-
-      {activeTab === "overview" && (
-        <LocationOverview
-          locationId={locationInfo.id}
-          onTab={setActiveTab}
-          overview={overview}
-        />
-      )}
+      {activeTab === "overview" && <LocationOverview location={locationInfo} onTab={setActiveTab} overview={overview}/>}
       {activeTab === "staff" && (
         <section
           className="ops-panel location-staff-panel"

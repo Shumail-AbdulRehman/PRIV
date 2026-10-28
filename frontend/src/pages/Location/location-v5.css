@@ -1,0 +1,86 @@
+.workspace .location-v5 {display:grid;gap:24px;min-width:0;max-width:none}
+.workspace .location-v5 h1 {font-size:30px;font-weight:650;letter-spacing:-.035em;line-height:1.3}
+.workspace .location-v5 h2 {font-size:19px;font-weight:650;line-height:1.4}
+.workspace .location-v5 h3 {font-size:16px;font-weight:600;line-height:1.4}
+.workspace .location-v5 .workspace-page-header {margin:0}
+.workspace .location-heading-v5 {display:flex;gap:18px;align-items:start}
+.workspace .location-heading-v5 > :last-child {flex:1;min-width:0}
+.workspace .location-symbol-v5 {display:grid;place-items:center;flex:0 0 64px;height:64px;border-radius:10px;background:var(--accent);color:var(--primary)}
+.workspace .location-v5 .ops-tabs {margin:0;padding:0;border-bottom:1px solid var(--border);background:transparent;border-radius:0}
+.workspace .location-v5 .detail-tab-list {display:flex;gap:24px;overflow-x:auto;padding:0;max-width:100%}
+.workspace .location-v5 .detail-tab-list button {min-height:48px;padding:10px 0 14px;flex-shrink:0;border-radius:0;border:0;border-bottom:2px solid transparent;background:transparent;color:var(--muted-foreground);font-weight:500}
+.workspace .location-v5 .detail-tab-list button.is-active {border-bottom-color:var(--primary);color:var(--primary);font-weight:600}
+.workspace .location-v5 .detail-tab-list button svg {display:none}
+.workspace .location-overview-v5 {display:grid;gap:28px;min-width:0}
+.workspace .location-metrics-v5 {display:grid;grid-template-columns:repeat(4,minmax(0,1fr));border:1px solid var(--border);border-radius:10px;overflow:hidden;background:var(--card)}
+.workspace .location-metrics-v5 > a,.workspace .location-metrics-v5 > button {padding:24px;text-align:start;display:flex;flex-direction:column;align-items:start;gap:10px;min-width:0;color:var(--foreground);background:transparent;border:0;border-inline-end:1px solid var(--border)}
+.workspace .location-metrics-v5 > :last-child {border-inline-end:0}
+.workspace .location-metrics-v5 > a:hover,.workspace .location-metrics-v5 > button:hover {background:var(--accent)}
+.workspace .location-metrics-v5 span {font-size:15px}
+.workspace .location-metrics-v5 strong {font-size:32px;font-weight:650;line-height:1.2;letter-spacing:-.035em;font-variant-numeric:tabular-nums}
+.workspace .location-metrics-v5 strong small {font-size:19px;color:var(--muted-foreground);font-weight:500}
+.workspace .location-metrics-v5 p {font-size:14px;color:var(--muted-foreground);line-height:1.55}
+.workspace .location-metrics-v5 > a > small,.workspace .location-metrics-v5 > button > small {font-size:14px;color:var(--primary);margin-block-start:2px}
+.workspace .location-details-grid-v5 {display:grid;grid-template-columns:minmax(0,1.4fr) minmax(0,1fr);gap:24px;align-items:stretch}
+.workspace .location-attention-v5 {background:var(--card);border:1px solid var(--border);border-radius:10px;min-width:0;overflow:hidden}
+.workspace .location-attention-heading {padding:24px 24px 16px}
+.workspace .location-attention-heading p,.workspace .location-facts-v5 .ops-panel-heading p {font-size:14px;color:var(--muted-foreground);margin-block-start:6px}
+.workspace .location-attention-v5 .attention-panel {border:0;background:transparent;border-radius:0}
+.workspace .location-attention-v5 .attention-panel > .ops-panel-heading {display:none}
+.workspace .location-attention-v5 .ops-issue-row {padding-inline:24px;gap:14px}
+.workspace .location-attention-v5 .ops-issue-row [data-slot=button] {font-size:13px;padding-inline:10px}
+.workspace .location-facts-v5 .ops-panel-heading {padding:24px;border:0}
+.workspace .location-facts-body {padding:4px 24px 24px}
+.workspace .location-facts-body dl > div {display:flex;justify-content:space-between;gap:16px;padding-block:18px;border-bottom:1px solid var(--border);font-size:14px}
+.workspace .location-facts-body dt {color:var(--muted-foreground)}
+.workspace .location-facts-body dd {text-align:end;max-width:60%;overflow-wrap:anywhere}
+.workspace .location-facts-body > p {margin-block:20px 8px;color:var(--muted-foreground);font-size:13px;line-height:1.6}
+.workspace .location-directory-metrics-v5 {display:grid;grid-template-columns:repeat(3,minmax(0,1fr));border:1px solid var(--border);border-radius:10px;background:var(--card)}
+.workspace .location-directory-metrics-v5 > div {padding:20px 24px;border-inline-end:1px solid var(--border)}
+.workspace .location-directory-metrics-v5 > div:last-child {border:0}
+.workspace .location-directory-metrics-v5 dt {font-size:14px;color:var(--muted-foreground)}
+.workspace .location-directory-metrics-v5 dd {font-size:30px;font-weight:650;line-height:1.3;margin-block-start:8px;font-variant-numeric:tabular-nums}
+.workspace .location-register-v5 {overflow:hidden;min-width:0}
+.workspace .location-register-v5 .ops-panel-heading {padding:24px}
+.workspace .location-register-v5 .ops-toolbar {padding:16px 24px;border-block:1px solid var(--border);margin:0;gap:16px;background:var(--card);border-radius:0}
+.workspace .location-register-v5 .data-table {border:0;border-radius:0}
+.workspace .location-register-v5 .workspace-footnote {padding:12px 24px;margin:0}
+.workspace .location-register-count {font-size:13px;background:var(--muted);padding:4px 8px;border-radius:5px}
+.workspace .location-mobile-v5 {display:grid;gap:16px}
+.workspace .location-mobile-title {display:flex;align-items:start;gap:12px}
+.workspace .location-mobile-title > div {flex:1;min-width:0}
+.workspace .location-mobile-title > svg {color:var(--primary);margin-block-start:3px;flex-shrink:0}
+.workspace .location-mobile-title p {font-size:13px;color:var(--muted-foreground);margin-block-start:4px;overflow-wrap:anywhere}
+.workspace .location-mobile-v5 dl {display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:12px}
+.workspace .location-mobile-v5 dt {font-size:12px;line-height:1.6;color:var(--muted-foreground)}
+.workspace .location-mobile-v5 dd {font-size:17px;font-weight:600;margin-block-start:4px}
+.workspace .location-mobile-v5 [data-slot=button] {justify-self:start;min-height:48px}
+.workspace .location-detail-page .detail-settings {border:1px solid var(--border);border-radius:10px;background:var(--card);padding:24px}
+@media(max-width:1100px){.workspace .location-metrics-v5 > a,.workspace .location-metrics-v5 > button {padding:20px 16px}.workspace .location-details-grid-v5 {grid-template-columns:1fr}}
+@media(max-width:620px){
+ .workspace .location-v5 {gap:24px}
+ .workspace .location-heading-v5 {gap:12px;flex-wrap:wrap}
+ .workspace .location-symbol-v5 {flex-basis:48px;height:48px}
+ .workspace .location-heading-v5 > :last-child {flex-basis:calc(100% - 60px)}
+ .workspace .location-v5 h1 {font-size:26px;line-height:1.35}
+ .workspace .location-v5 .detail-tab-list {gap:20px}
+ .workspace .location-metrics-v5 {grid-template-columns:repeat(2,minmax(0,1fr))}
+ .workspace .location-metrics-v5 > a,.workspace .location-metrics-v5 > button {padding:18px 16px;border-bottom:1px solid var(--border)}
+ .workspace .location-metrics-v5 > :nth-child(2) {border-inline-end:0}
+ .workspace .location-metrics-v5 > :nth-last-child(-n+2) {border-bottom:0}
+ .workspace .location-metrics-v5 strong {font-size:28px}
+ .workspace .location-metrics-v5 p,.workspace .location-metrics-v5 > a > small,.workspace .location-metrics-v5 > button > small {font-size:13px}
+ .workspace .location-attention-heading,.workspace .location-facts-v5 .ops-panel-heading {padding:20px}
+ .workspace .location-facts-body {padding:0 20px 20px}
+ .workspace .location-attention-v5 .ops-issue-row {padding-inline:20px;flex-wrap:wrap}
+ .workspace .location-attention-v5 .ops-issue-row .attention-copy {flex-basis:calc(100% - 56px)}
+ .workspace .location-attention-v5 .ops-issue-row [data-slot=button] {margin-inline-start:52px}
+ .workspace .location-directory-metrics-v5 > div {padding:16px 12px}
+ .workspace .location-directory-metrics-v5 dd {font-size:26px}
+ .workspace .location-directory-metrics-v5 dt {font-size:13px}
+ .workspace .location-register-v5 .ops-panel-heading {padding:20px}
+ .workspace .location-register-v5 .ops-toolbar {padding:16px;display:grid;grid-template-columns:1fr}
+ .workspace .location-register-v5 .record-summary {border:0;border-block-end:1px solid var(--border);border-radius:0;padding:20px;margin:0}
+ .workspace .location-register-v5 > .grid {gap:0}
+ .workspace .location-register-v5 .table-mobile-sort {padding:12px 16px}
+}
