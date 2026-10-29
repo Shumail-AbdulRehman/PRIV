@@ -113,6 +113,8 @@ test('loaded type follows language and emphasis while system scaling and font-fa
     text = renderer.root.findByType('NativeText');
     assert.equal(text.props.style[0].fontFamily, 'HygeneArabicBold');
     assert.equal(text.props.children, 'آپ کی شفٹ');
+    await act(async () => renderer.update(React.createElement(NativeFontsReady.Provider, { value: true }, React.createElement(Text, { className: 'font-semibold' }, 'Hygene Ops'))));
+    assert.equal(renderer.root.findByType('NativeText').props.style[0].fontFamily, 'HygeneInterSemiBold');
     await act(async () => renderer.update(React.createElement(NativeFontsReady.Provider, { value: false }, React.createElement(Text, null, 'Your shift'))));
     assert.equal(renderer.root.findByType('NativeText').props.style[0].fontFamily, 'sans-serif');
   } finally { await close(renderer); language = 'en'; }
