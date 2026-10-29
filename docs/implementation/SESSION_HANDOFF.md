@@ -1,3 +1,108 @@
+# Single-spec completion — Spec 38, 2026-10-29
+
+**Spec 38 — Configured support and service information is Done for its approved
+web implementation contract. STOP after this unit.** Only38 was selected in this
+session. Spec30 remains Blocked on genuine owner-mail qualification and was not
+reimplemented. This latest user instruction supersedes historical automatic/
+parallel continuation instructions below. No other specification was implemented.
+
+## Verified baseline and eligibility
+
+Fetched origin and inspected branches/worktrees/dirty state/draft PRs. Latest
+source+handoff baseline was `2011a9008940058f7a8b8ffe5442bcb537f89b57` on
+`implementation/spec-30-delivery-qualification` / OPEN/DRAFT PR102, above the
+accepted combined3c9367c checkpoint. Original checkout remains
+`fix/v5-runtime-data-loading` at55061b8 with its unrelated source/runtime/config
+overlays. All prior work is preserved; never switch/reset or copy that old overlay
+onto the accepted tree. PR99/100/101/102 remain separate unmerged reviews.
+
+Seven unfinished units were30/34/36/37/38/40/41. Graph:30←16/17/22/27/28,
+34←19/27,36←20/21/27,37←09/17/20/21/26,38←27/25,40←01–39,41←40.
+All declared38dependencies are Done and actual contracts/shell/routes are present.
+38explicitly requires unavailable states when recipient/legal/distribution facts
+are absent, so local implementation acceptance does not depend on activating an
+external service. No criterion or guard was removed. Real approval/delivery,
+merchant, native/device and photo qualification remain existing39/40release gates.
+
+Branch: `implementation/spec-38-public-information`.
+Worktree: `/home/shumail/.local/share/hygene-ops/v5-spec38-20261029/implementation`.
+Issue89reused/claimed; historical reviews PR76/90 retained. Commit/current draft
+review are recorded in the publication note below.
+
+## Implemented and verified
+
+Existing actual React Help/Service information surfaces, public route composition,
+AuthShell and configured availability/approved-link/readiness guards were reused.
+Added10-second support timeout/cancellation cleanup, distinct localized policy link
+names, busy-retry protection, correct44/48px language targets, support label/email
+alignment, and scroll reset/main focus on public navigation. AuthShell already
+handled titles and was tested. The baseline unchanged parity test exposed ten
+native Urdu entries missing from web; copied them into the owned shared dictionary.
+No native code/test exception or extra unit was implemented.
+
+Files: existing HelpPage.tsx/test, help.css, serviceInformation.ts, service/shared
+translations;38spec/inventory/PROGRESS/README, V5_HELP, COMMERCIAL_CONTENT, this
+handoff and owned v5-help-evidence capture/source/hash/PNG records. No backend,
+schema, package, design, production configuration or database changes.
+
+Fresh verification:
+
+- 32 Help tests;64Help+billing focused; complete web64Node+372React/28files pass,
+ zero failures/skips. Whole React run225.57s. Final focused run includes32Help/32billing; existing Android-help fragment
+ navigation has unit and actual browser focus/viewport assertions. No test was weakened to hide a failure.
+- 110 backend support/billing tests/2files pass with injected persistence/provider
+ boundaries and explicit non-listening loopback DB URL; no SQL integration claimed.
+- Frontend TypeScript, full lint0 and exact production npm build pass. Final Vite
+40.53s, existing non-failing plugin-timing advisory. Mechanical detector[] is
+ supplementary. Spec validator42specifications/0errors/10documented warnings;
+ whitespace check passes. Exact commands/log limits are in V5_HELP.md.
+- Final 18scoped visual observations pass;34PNGs inspected. Actual compiled React
+ and actual public Express router/getSupportContact use private loopback ports.
+ Default API200unavailable; configured `.invalid` contacts/links are explicit test
+ process/build fixtures. No base API response replacement, SQL or external service
+ required. GET omits an unrelated synthetic cookie and is private/no-store; only
+ public contact reads, no tenant bootstrap. Diagnostics not exposed by public mount.
+- Paired 1366×900/390×900 EN/UR for both pages, configured/unavailable, FAQ and phone
+ loading/stale-contact network failure/retry checked. Native absent from this web
+ unit. No overflow/page JS errors. Navigation focus/scroll and contact alignment
+ issues found by rendered inspection fixed and recaptured. All final images viewed
+ or hash-matched to inspected identical renders. Full Spec40 E2E not run/claimed.
+
+Evidence: `docs/implementation/v5-help-evidence/spec38-final/` has34PNGs, manifest
+with viewports/API provenance/image hashes and final runtime source hashes. Final runtime source hashes match the accepted capture. Reproduce using `backend/node_modules/.bin/tsx` with the owned capture script.
+Intentional public shell/no fictional identity/no preview-ticket form and expanded
+truthful information differences from V5 remain documented. No prototype changed.
+
+Initial failures/interruption are documented, not accepted as passing: pre-existing
+vocabulary parity; capture cwd and Express static fallback path; unsupported test
+option; one interrupted parallel build(exit143). Final checks above pass freshly.
+
+## Preservation, limitations and next session
+
+Private parent `v5-spec38-20261029/` holds logs and the before/final preservation
+audit of41pre-existing worktrees/796changed or untracked path hashes. Original
+root and other branches/dirty inputs remain untouched: final comparison reports
+zero mismatches. Intentional design symlink
+is untracked/read-only input; node_modules symlinks ignored; neither is committed.
+No database was started/migrated/read/written, provider/mailbox enabled, email sent,
+production service changed, PR merged, deployment or force push.
+
+Live support delivery, approved legal document contents, signed Android distribution,
+native device/camera/GPS/push, Paddle and photo/privacy qualification remain
+unverified. Default configuration keeps relevant services/purchases unavailable.
+Spec30 remains Blocked exactly as before.38Done certifies its conditional web
+implementation and visual behavior, not any external approval or release readiness.
+
+**Six specifications remain:30Blocked;34/36/37/40In progress;41Not started.**
+Next dependency-eligible task:36Truthful task and photo review UX (20/21/27Done).
+Inspect its existing source/evidence and remaining scoped web acceptance before
+editing; do not activate unqualified processing or redo completed work. Genuine
+provider/private-media/native qualification stays explicit.30/34need actual mail/
+IdP facts;37needs native runtime/device;40waits unfinished dependencies;41waits40.
+36is identified only and was not begun. Stop here pending the user's next unit.
+
+---
+
 # Single-spec session — Spec30 blocked on delivered-link qualification, 2026-10-29
 
 **STOP: this session selected only Spec30 and stopped on a verified external

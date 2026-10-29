@@ -74,6 +74,14 @@ External release facts only: configured IdP/MFA/people, verified sender/support 
 
 ## Known gaps
 
+Latest single-spec continuation2026-10-29:38's approved conditional web contract is
+Done; six remain30/34/36/37/40/41. Spec30stays Blocked;38's default unavailable
+states and production mail/legal/distribution/billing gates remain unchanged.
+32Help/436whole web/110focused backend, lint/types/build and18actual-public-surface
+visual observations pass;34PNGs inspected. Configured `.invalid` facts are fixtures,
+not real approval. See current PROGRESS/SESSION_HANDOFF/V5_HELP. Earlier seven-unit
+checkpoint below is historical. No new dependency edge or specification.
+
 Continuation2026-10-29:33/35applicable web acceptance complete. Final validator
 42specs/0errors/10warnings; remaining warnings are the existing decision/no-issue,
 actual transitive consumption edges, deliberately long single40 and terminal

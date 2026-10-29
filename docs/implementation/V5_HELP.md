@@ -2,8 +2,14 @@
 
 Issue89; branch `implementation/v5-help-information`, based on dependency-complete
 `16264ae`/PR87. The actual React routes now have distinct approved V5 compositions.
-Spec38 remains **In progress** until all relevant states/configured-positive visual
-acceptance are established. Whole-product V5 and spec40 remain incomplete.
+This original checkpoint was **In progress** until relevant web states and
+configured rendering were verified. The single-spec continuation below records
+the latest work. Whole-product V5 and spec40 remain incomplete.
+
+**Current status: Spec38 Done for its approved web implementation contract.**
+Unavailable configuration is an implemented scope branch, not a claim of live
+service qualification. Real recipient/legal/distribution approval remains a
+separate release gate; default purchases/services stay unavailable.
 
 ## Actual application behavior
 
@@ -109,7 +115,95 @@ visually verified within the intentional content/audience differences above.
 | Help loading and network-error/retry390EN | Implemented | Readable within panels | Actual delayed-forward plus explicitly aborted network seam/retry pass | Captures inspected |
 | Approved-positive mailbox/documents/Android | Existing guards preserved | Implemented conditional links |20focused unit/config seam checks include safe/unsafe links | **Unverified with live approved configuration** |
 
-Spec38 therefore remains **In progress**. Real approved commercial/legal facts,
+At that historical checkpoint Spec38 remained **In progress**. Real approved commercial/legal facts,
 mail delivery and Android/native qualification were unavailable and not activated.
 This checkpoint implements and visually verifies the scoped public core; it does
 not complete full V5 or qualification gates. No further UI group starts this session.
+
+## Single-spec completion — 2026-10-29
+
+Branch `implementation/spec-38-public-information`, base2011a90, issue89. Completed
+only38; dependencies25/27 verified Done and actual source present. Existing public
+Help/AuthShell/routes, query client, support contract and semantic tokens are reused.
+
+Changes:10-second contact timeout with propagated cancellation and timer/listener
+cleanup; distinct EN/UR policy link accessible names; busy retry disabled;44/48px
+language controls; aligned support action/email; route scroll reset/main focus, preserving existing Android-help fragments.
+Shared AuthShell title handling already worked and was regression-tested. The
+unchanged whole-suite parity test exposed ten missing shared web Urdu entries;
+copied existing native translations without changing any native behavior/test.
+
+Fresh checks:
+
+- `npm run test:components --prefix frontend -- src/pages/Help/HelpPage.test.tsx src/pages/Subscription/SubscriptionPage.test.tsx --maxWorkers=1`:64pass.
+  Final focused run includes32Help and32billing cases; earlier Help-only31pass was before the added Android-fragment regression.
+- `npm run test:unit --prefix frontend`:64pass. Whole
+  `npm run test:components --prefix frontend -- --maxWorkers=1`:372pass/28files,
+  225.57s. Together these are the complete436-test frontend suite; zero failures/skips.
+- `DATABASE_URL=postgresql://spec38_unit@127.0.0.1:65432/spec38_nonexistent npm test --prefix backend -- src/services/platformSupport.service.test.ts src/services/billingLifecycle.service.test.ts --maxWorkers=1`:110pass/2files.
+  Injected persistence/provider boundaries; no SQL integration or full backend claim.
+- `npm run lint --prefix frontend`:0findings. Frontend TypeScript and exact
+  `npm run build --prefix frontend -- --outDir /home/shumail/.local/share/hygene-ops/v5-spec38-20261029/verified-web`
+  pass; final Vite40.53s with existing non-failing plugin-timing advisory.
+- `backend/node_modules/.bin/tsx docs/implementation/v5-help-evidence/capture-spec38.mjs`:
+  final18observations/34PNGs pass. Actual compiled React and actual public Express
+  router/service; no database, base-response replacement or external service call.
+  Env-file loading disabled; configured `.invalid` links/contact are explicit fixtures.
+- Spec validator:42specifications/0errors/10existing documented warnings.
+  Whitespace check passes. Mechanical design detector returned no findings; rendered
+  inspection remains the visual evidence.
+
+| Acceptance fact | Verified result |
+|---|---|
+| Functional implementation | Existing conditional contact/policy/distribution and purchase guards retained; timeout/cancellation/navigation/accessibility completed |
+| Visual implementation | V5 split Help and centered information compositions, semantic blue/white typography/spacing, responsive RTL |
+| Functional verification |64focused/436whole web;110backend; real public-route facts/no-store/cookie omission, FAQ/navigation/focus/retry; no tenant bootstrap |
+| Visual verification |16base app renders plus8matching references,4FAQ and6phone state PNGs; all34inspected at1366×900/390×900 EN/UR |
+
+The previously documented public shell/no fictional identity/no pretend ticket
+form and expanded truthful copy are intentional scope-driven deviations. New
+inspection fixed a contact alignment specificity issue and a focused old link
+appearing mid-page after navigation. Final rerenders confirm those fixes; no
+horizontal overflow or page JavaScript errors. Changed-state captures were viewed
+again; unchanged source/render images were hash-compared. Evidence includes source
+and PNG dimension/SHA256 provenance in `spec38-final/`.
+
+Initial failed runs are retained privately: baseline vocabulary parity mismatch;
+capture cwd/Babel resolution and Express absolute-path handling; unsupported
+Testing Library `exact` option. One parallel build was interrupted with exit143;
+the later exact final build passes. No security behavior was weakened for a check.
+
+**Live approval/delivery and release remain unverified.** No real mailbox was
+qualified, legal contents approved, Android artifact downloaded/signed/installed,
+Paddle activated, photo provider qualified or native device exercised. These are
+existing39/40release gates; missing facts keep actual services/purchases unavailable.
+Spec30 remains Blocked. No backend/schema/package/design/production data change.
+Six specifications remain; next dependency-eligible task is36, identified only.
+
+## Single-spec continuation — 2026-10-29
+
+Baseline `2011a90` preserves accepted implementation and the blocked Spec30 handoff.
+Branch `implementation/spec-38-public-information` reuses issue89; only38 is selected.
+Dependencies25/27 are Done and actual public contact/shell/route sources are present.
+The approved scope explicitly includes unavailable support/legal/distribution states.
+Conditional web behavior can be verified without approving a mailbox, inventing
+legal text, delivering email or qualifying Android. Actual publication/provider/
+device facts stay unverified in39/40. Spec30 remains Blocked and unchanged.
+
+Scoped changes:
+
+- Bound public support reads to10seconds with query cancellation and cleanup;
+  stalled connections reach localized retry instead of permanent loading.
+- Give policy links distinct EN/UR accessible names, retaining the V5 visible label
+  and pinned-origin/approval guards. Prevent duplicate retry while fetching.
+- Apply the intended44px/48px language targets and align support labels/email in
+  both directions; existing selectors were losing precedence.
+- Reset scroll and focus new main content between the public surfaces. State
+  captures exposed retained scroll and an old focused link. Language changes and
+  data refresh do not reset scroll. AuthShell already sets the title; test it.
+- Synchronize ten existing native Urdu entries into the owned shared web dictionary.
+  The unchanged parity test exposed this baseline mismatch. No native behavior or
+  test exception was added.
+
+No backend, migration, package, tenant authorization, billing policy, design or
+production configuration changed. No other specification implementation started.

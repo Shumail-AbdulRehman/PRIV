@@ -1,6 +1,6 @@
 # Customer information and commercial boundaries — Spec38
 
-`/help` and `/service-information` mount outside tenant App/session bootstrap using PublicLayout. Guests, locked-out/suspended companies and forced-password users can reach configured assistance without workforce or platform authorization. Sidebar/footer link to this public boundary. No tenant auth, refresh or cookies are used for GET `/api/support/contact`; fetch omits credentials, uses no-store and rejects redirects. Only25's available/EMAIL/OPERATOR_CONFIGURED safe email creates a mailto link. Unavailable/loading/error/retry are separate. Opening an email client never proves receipt/delivery.
+`/help` and `/service-information` mount outside tenant App/session bootstrap using the approved public Help layout and shared AuthShell respectively. Guests, locked-out/suspended companies and forced-password users can reach configured assistance without workforce or platform authorization. Sidebar/footer link to this public boundary. No tenant auth, refresh or cookies are used for GET `/api/support/contact`; fetch omits credentials, uses no-store and rejects redirects. Only25's available/EMAIL/OPERATOR_CONFIGURED safe email creates a mailto link. Unavailable/loading/error/retry are separate. Opening an email client never proves receipt/delivery.
 
 ## Publishable approved facts
 
@@ -13,6 +13,26 @@ All VITE values are public, build-time input, never secrets. No actual productio
 New checkout buttons require all three approved policy links and a currently available support contact. The click path rechecks contact before reserving a provider transaction. Existing linked subscribers retain their portal/account access. Missing customer facts cannot enable a purchase even when mocked/server billing metadata says checkoutAvailable. Existing server PADDLE_BILLING_ENABLED activation is still a separate business-owner qualification gate, not set by these public values; direct API/operator activation must remain disabled until merchant/catalog/terms/support qualification in39. Browser display configuration is not independent legal review or server-side authorization.
 
 No price/trial/refund/retention/legal promise invented. Guidance accurately separates uploaded/submitted/reviewed/verified, authorized evidence access and currently unavailable new automated processing. Existing result reconciliation remains supported; no AI accuracy/identity/redaction claim.
+
+## Local implementation acceptance versus live publication
+
+Spec38 explicitly permits unavailable support, policies and distribution. Its web
+implementation can be finished and verified while those facts are absent; absence
+must keep their links and new-purchase readiness unavailable. This does not qualify
+the recipient, approve document contents, sign an APK or activate billing. Existing
+production/release gates remain39/40. No requirement or guard is removed.
+
+Public contact reads have a10-second timeout with upstream query cancellation and
+cleanup. Refreshing/failed contact cannot reuse cached availability for purchase
+readiness. Policy links have distinct localized accessible names. Public route
+changes reset scroll and focus their main content; language changes do not reset it.
+
+`v5-help-evidence/capture-spec38.mjs` builds private unavailable and configured
+fixture variants with env-file loading disabled. Configured `.invalid` links/email
+are test facts, never real approval or secrets. Both variants use the actual public
+Express router/service; no base response is replaced and no SQL is needed. External
+browser requests are blocked, email is never opened, and fixture document/download
+links are not followed. These private builds must not be published as production.
 
 ## Checks
 
