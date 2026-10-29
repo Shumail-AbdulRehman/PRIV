@@ -84,6 +84,7 @@ function CompanyContent() {
 
   function beginStatusChange() {
     if (!current || detail.isError || detail.isFetching) return;
+    setSaved('');
     if (!needsRefresh) {
       setError(''); setVersion(current.company.accountVersion);
       setTarget(current.company.operationalStatus === 'ACTIVE' ? 'SUSPENDED' : 'ACTIVE');
@@ -103,7 +104,7 @@ function CompanyContent() {
   async function save(event: FormEvent) {
     event.preventDefault();
     if (lock.current || !current || !reason.trim() || needsRefresh || detail.isFetching || detail.isError) return;
-    lock.current = true; setBusy(true); setError('');
+    lock.current = true; setBusy(true); setError(''); setSaved('');
     try {
       await setCompanyStatus(current.company.id, { operationalStatus: target, expectedVersion: version, reason: reason.trim() });
       setOpen(false); setReason(''); setNeedsRefresh(false); setSaved('Company status saved. Billing entitlement is unchanged.');
@@ -127,7 +128,7 @@ function CompanyContent() {
         ['Suspended at', stamp(current.company.suspendedAt)], ['Suspension reason', current.company.suspensionReason ?? t('Not recorded')],
       ])}<p className="platform-company-notice">{t('Suspension restricts company operations. Reactivation does not grant paid entitlement or change billing. Historical records are preserved.')}</p>
         {!current.company.isActive ? <p role="status" className="platform-company-warning">{t('This inactive legacy account requires review before reactivation.')}</p> : null}
-        <Button disabled={busy || detail.isFetching || detail.isError || (!current.company.isActive && current.company.operationalStatus === 'SUSPENDED')} variant="outline" onClick={beginStatusChange}><ShieldCheck size={16} aria-hidden="true" />{t(current.company.operationalStatus === 'ACTIVE' ? 'Suspend company' : 'Reactivate company')}</Button>
+        <Button disabled={busy || detail.isFetching || detail.isError || (!current.company.isActive && current.company.operationalStatus === 'SUSPENDED')} variant="outline" onClick={beginStatusChange}><ShieldCheck size={16} aria-hidden="true" />{t(needsRefresh ? 'Review pending status change' : current.company.operationalStatus === 'ACTIVE' ? 'Suspend company' : 'Reactivate company')}</Button>
       </div></section>
     </div>
     <aside className="platform-company-stack">

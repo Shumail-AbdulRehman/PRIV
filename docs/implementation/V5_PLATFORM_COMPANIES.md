@@ -52,16 +52,20 @@ filters removes the cursor and returns to the first bounded server request.
 ## Verification in this worktree
 
 `npm run test:components --prefix frontend -- --maxWorkers=1 src/pages/Platform/CompaniesPage.test.tsx`:
-**17 passed**, one file,10.70s. Covers real route denial before request, bounded
+**18 passed**, one file,4.89s (the first source checkpoint passed17/10.70s). Covers real route denial before request, bounded
 filter/cursor calls, allowlisted metadata, missing billing/activity, reason/version
 save, conflict target retention, uncertain/failed refresh, pending duplicate/close
-guards,401/403 stale denial, invalid IDs, clear-filter cursor reset and Urdu/RTL.
+guards,401/403 stale denial, invalid IDs, clear-filter cursor reset, stale save
+receipt clearing and Urdu/RTL. A later status attempt clears its earlier success
+receipt; reopening an uncertain attempt is labelled as review rather than an
+unrelated opposite status action.
 The initial existing11-case run passed10 and exposed a historical test expectation
 for the now-dismissed refresh action; the updated assertion verifies confirmation
 becomes enabled only after successful refresh. No functional assertion weakened.
 
-Targeted ESLint, integrated whole suite/build and rendered paired evidence are
-recorded by the coordinator/QA after source integration. These17 component checks
+Targeted ESLint passes for changed TypeScript/test/copy files. Integrated whole
+suite/build and rendered paired evidence are recorded by the coordinator/QA after
+source integration. These18 component checks
 replace only `operatorRequest` at its dedicated boundary. They do not qualify
 OIDC/MFA or a live operator mutation. Actual routes still use unmodified34's
 fail-closed OperatorBoundary, and transport still rejects before network I/O.

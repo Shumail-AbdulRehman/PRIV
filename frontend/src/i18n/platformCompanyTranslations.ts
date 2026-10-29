@@ -1,5 +1,6 @@
 export const platformCompanyUrdu:Record<string,string>={
  'Customer companies':'کسٹمر کمپنیاں','Company account':'کمپنی کا اکاؤنٹ','Platform operations':'پلیٹ فارم کی نگرانی','Inquiries':'درخواستیں','Service diagnostics':'سروس کی تشخیص','Administrative audit':'انتظامی آڈٹ',
+ 'Review pending status change':'زیرِ التوا حالت کی تبدیلی کا جائزہ لیں',
  'Account metadata only. No workforce records or photos.':'صرف اکاؤنٹ کی معلومات۔ عملے کا ریکارڈ یا تصاویر نہیں۔',
  'Understand each account and the next action it needs.':'ہر اکاؤنٹ اور اس کے لیے اگلے ضروری اقدام کو سمجھیں۔',
  'Customer account, commercial access and administrative history.':'کسٹمر کا اکاؤنٹ، تجارتی رسائی اور انتظامی تاریخ۔',
