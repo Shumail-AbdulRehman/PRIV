@@ -1,3 +1,95 @@
+# Single-spec session — Spec30 blocked on delivered-link qualification, 2026-10-29
+
+**STOP: this session selected only Spec30 and stopped on a verified external
+blocker. No specification was completed and no next unit was started.** This latest
+user instruction supersedes every historical automatic/parallel continuation
+instruction below. The existing approved plan and `design/v5` remain unchanged.
+
+## Restored baseline and selected unit
+
+Original checkout: `/home/shumail/bkacup-16-oct-bkpriv/bk-Priv/PRIV`, branch
+`fix/v5-runtime-data-loading`, HEAD `55061b8`, with existing dirty/untracked work.
+Fetched origin and inspected all refs, registered worktrees and open draft PRs.
+Latest verified combined baseline remains `3c9367cab611d7f96ed63fd366dac9ae260bb636`
+on `implementation/v5-remaining-checkpoint`; main/original checkout is older.
+PR99/100/101 are OPEN/DRAFT and unchanged, based on accepted billing;33/35are Done,
+37remains incomplete. Before changes, privately recorded40registered worktrees
+(19present), original HEADs/statuses and795changed/untracked file or symlink hashes.
+Missing temporary worktrees were not pruned; no original checkout was switched.
+
+Selected **30 — Account settings and recovery UI**, issue88. Dependencies16/17/22/
+27/28are Done and their consumed APIs/shell/setup sources are present. Chosen for
+the remaining account-security/recovery acceptance before lower-priority release
+surfaces. The existing React forms, versioned company settings, independent own
+security, token scrub and neutral recovery are implemented already; do not repeat
+them. Remaining scope is genuine delivered verify/reset-link qualification and its
+fresh state/visual evidence. Units40/41remain ineligible while dependencies are
+unfinished. No numeric-order assumption or new plan was used.
+
+Worktree: `/home/shumail/.local/share/hygene-ops/v5-spec30-20261029/implementation`.
+Branch: `implementation/spec-30-delivery-qualification`, based on3c9367c.
+Only four records changed: `specs/30-account-ui.md`, `specs/PROGRESS.md`,
+`docs/implementation/V5_SETTINGS.md` and this handoff. No application, backend,
+schema, package, provider, design or other specification implementation changed.
+
+## Blocker and verification
+
+Spec30is **Blocked**, not Done. Presence-only checks of the available session,
+original repository backend environment and isolated checkout confirm all six
+required `OWNER_IDENTITY_*` mail settings are absent. No verified sender/domain,
+provisioned send credential, approved HTTPS application origin or real recipient
+mailbox workflow is available. No secret values were printed/committed. No email
+was sent, provider enabled, person enrolled or delivery result fabricated. See
+`OWNER_IDENTITY.md` for the existing six-setting opt-in contract and protected
+legacy-bootstrap procedure; do not turn qualification flags on to bypass this gate.
+
+Fresh checks: **26account/token UI tests /2files and114backend identity/credential/
+settings tests /3files pass**, zero failures/skips. The114include real Express
+unavailable/denial behavior with injected DB/provider seams; they are not actual
+SQL or mail proof. Tests explicitly used a non-listening loopback unit-test URL,
+never application `.env` as a DB target. Backend `tsc --noEmit` passes. Frontend
+`npm run build` with private output passes TypeScript and Vite (28.13s; existing
+non-failing plugin-timing advisory). No new full-suite/lint/SQL/provider/device/
+whole-product E2E claim. Exact commands/counts are appended to V5_SETTINGS.md;
+private logs and presence/preservation records live in the worktree's parent.
+
+Reinspected four existing app/reference recovery screenshot pairs at1366×900and
+390×900, English/Urdu. Composition is consistent with V5 after removing prototype
+reviewer tooling and fictional copy; role guidance changes wrapping/vertical
+placement. These are historical renders, not fresh captures or delivered-link
+verification. Full visual/interaction acceptance stays unchecked; no build or
+fixture result closes it. No native change or native/device acceptance is claimed.
+
+The original worktrees, dirty/untracked files and services remain preserved. No
+database access/migration, production action, merge, deployment or force push.
+Final preservation comparison checks all40prior registered worktrees and795path
+hashes: **zero mismatches**. Spec validator:42specifications,0errors,10existing
+warnings documented in specs/README.md. `git diff --check` passes.
+Handoff/evidence commit: `19a68cf687cb99447aca5c274fe9508d5181d860`, pushed normally.
+Continuation [draft PR102](https://github.com/Shumail-AbdulRehman/PRIV/pull/102)
+is based on `implementation/v5-remaining-checkpoint`; it records the blocker and
+references issue88 without claiming completion/closure. The final publication
+documentation commit follows19a68cf; inspect branch HEAD for that commit. No
+changes to historical reviews. The only untracked item in the new worktree is
+the intentional `design` symlink to the original immutable approved reference;
+node_modules links are ignored. No tooling/reference symlink is included in PR102.
+
+## Resume and remaining work
+
+**Seven specifications remain:30Blocked;34/36/37/38/40In progress;41Not started.**
+Resume30after qualified sender/domain/origin/credential/mailbox facts and an
+authorized delivery verification environment are supplied. Verify both genuinely
+delivered link paths, explicit POST, expired/used links and session revocation,
+then capture/inspect fresh V5 desktop/phone EN/UR states. Preserve bootstrap,
+tenant/role and unavailable guards. This session does not switch to another unit.
+
+Next eligible unit to resume:30once its mail blocker is removed. Other
+dependency-eligible unfinished units34/36/37/38retain their separate IdP/photo/
+native/legal/support qualification blockers. No unblocked replacement is claimed;
+40waits unfinished01–39and41waits40. Select at most one unit under a new instruction.
+
+---
+
 # Verified V5 platform and native/account continuation — 2026-10-29
 
 **Specifications33/35meet applicable web acceptance. Full V5 remains incomplete:

@@ -8,7 +8,12 @@ they do not establish approved V5 visual implementation or verification. They ar
 retained without erasing their logs. The current four-part per-page ledger is in
 [the V5 implementation record](../docs/implementation/V5_IMPLEMENTATION.md).
 Spec40 remains in progress and41 remains ineligible. Current correction branch:
-`implementation/v5-remaining-checkpoint` (persistent integration based on accepted32/adae1b9); current33/35 continuation reuses issues71/73. Accepted28 issue55/PR97 and32 issue69/PR98, operator59/PR95 and review84/PR96; prior workforce/shell/Settings/Help/auth histories retained. No previous UI screen is newly
+`implementation/spec-30-delivery-qualification`, based on verified checkpoint
+`3c9367c` / `implementation/v5-remaining-checkpoint`. Only30was selected in the
+latest session; it is Blocked on genuine delivered-owner-link qualification.
+Seven specifications remain; no additional unit was started. Accepted33/35
+remain Done with draftPR99/100; native draftPR101remains incomplete.
+Accepted28 issue55/PR97 and32 issue69/PR98, operator59/PR95 and review84/PR96; prior workforce/shell/Settings/Help/auth histories retained. No previous UI screen is newly
 marked visually verified merely because its existing tests pass.
 
 **Historical functional checkpoint (not V5 visual completion): Spec40 in progress** on `implementation/spec-40-launch-e2e`, issue79, draftPR81 https://github.com/Shumail-AbdulRehman/PRIV/pull/81 base39/dbbb51d. Decision00 and39of41execution/gate units remain Done;40is not complete and41is not eligible. Real persisted browser suite, guarded disposable DB and native templates implemented; full table/device/provider qualification remains incomplete and registration navigation has a confirmed failing regression. See `docs/implementation/E2E_RESULTS.md`. Latest user also requests fresh current-UI testing APK: independent build branch `build/hygeneops-android-testing-20261021`, draftPR80. Fresh testing APK completed and locally inspected: `frontend-mobile/build-output/HygeneOps-staff-2.1.7-ui-20261021.apk`, run39644524268 all3jobs passed; physical/provider qualification remains pending. No merge/deploy/provider activation; root dirty work preserved.
@@ -45,7 +50,7 @@ marked visually verified merely because its existing tests pass.
 | 27 | [Approved v5 shared shell and route composition](27-workspace-shell.md) | Done | 06 | Heavy | #35 | V5 shared web gate accepted: 3 browser cases, 40 paired/state PNGs; see current handoff |
 | 28 | [Real derived setup and operational dashboard](28-setup-ui.md) | Done | 12, 14, 15, 27 | Standard | #55 | V5 web accepted:64Node+318React;16API/SQL browser cases, paired ENUR desktop/phone; V5_SETUP.md |
 | 29 | [Attendance exception context UI](29-attendance-context-ui.md) | Done | 23, 27, 08 | Standard | #57 | V5 register/context accepted; API filters, immutable note/ack/retry/conflict and EN/UR renders verified |
-| 30 | [Account settings and recovery UI](30-account-ui.md) | In progress | 16, 17, 22, 27, 28 | Standard | #88 | V5 settings core correction; auth86/PR87 and historical58/PR62 retained; V5_SETTINGS.md; full30acceptance incomplete |
+| 30 | [Account settings and recovery UI](30-account-ui.md) | Blocked | 16, 17, 22, 27, 28 | Standard | #88 | No qualified owner-mail sender/origin/mailbox; delivered-link acceptance unverified. Existing implementation preserved; fresh26web+114backend tests pass; V5_SETTINGS.md/latest handoff |
 | 31 | [Workforce access and transfer UI](31-workforce-ui.md) | Done | 11, 17, 27 | Standard | #65 | V5 Team/detail/Managers/actions accepted; real hire/edit/quota/transfer/offboarding/recovery/handover verified |
 | 32 | [Real subscription lifecycle UI](32-billing-ui.md) | Done | 15, 27, 28 | Standard | #69 | V5 web accepted:64Node+348React;1449backend/SQL;27+2actual browser;86paired/state PNGs; PR98; historicalPR70 retained |
 | 33 | [Platform company workspace](33-platform-company-ui.md) | Done | 24, 27 | Standard | #71 |PR99; V5 web accepted;18focused, paired ENUR/1366/390; actual SQL + guarded routes; positive IdP remains34/40 |
@@ -177,3 +182,22 @@ Implementation `d64e0ea` published as OPEN/DRAFT [PR85](https://github.com/Shuma
 - **2026-10-29 — Platform web acceptance and native/account continuation:**33/35meet applicable web acceptance after64Node+360React/28files,45focused, lint0/strict types/exact production build,189backend+actual isolated SQL and20real React/API/SQL browser cases. Platform74observations/98PNGs bind paired ENUR1366/390 plus meaningful states; positive named-workspace transport is synthetic, actual guards remain fail-closed. Native37composition/font/header/help/start correction passes106tests/types/Expoexport and8RNWeb source-preview observations;37remains In progress without native runtime. Additional30own-password pending/denied/transport states inspected ENUR; delivered-link proof still external.35Done(including00),6Inprogress,1Notstarted;7remain30,34,36,37,38,40,41. Full40incomplete/41ineligible.
 
 - **2026-10-29 — Published review:**33PR99,35PR100and partial37PR101are OPEN/DRAFT, independent siblings on accepted billing branch/adae1b9. Combined source/evidence saved on implementation/v5-remaining-checkpoint; original root unchanged. No merge/deploy.
+
+- **2026-10-29 — Single-spec session stopped on30blocker:** independently fetched
+  refs/PRs and restored3c9367c; all16/17/22/27/28dependencies Done and present.
+  Selected only30(issue88), branch implementation/spec-30-delivery-qualification.
+  Existing account implementation preserved. Six required owner-mail settings
+  are absent in the checked session/repository; no verified sender/origin/real
+  mailbox workflow or delivered-link acceptance. Status30Blocked, not Done.
+  Fresh26account/token+114backend dependency tests pass, zero failures/skips;
+  backend TypeScript and frontend TypeScript/production build pass. Four historical
+  recovery screenshot pairs reinspected; no fresh/live/provider/device acceptance
+  inferred. Documentation-only continuation; no full suite/SQL/E2E run or production
+  change.35Done(including00),5In progress,1Blocked,1Not started:7remain. Resume30
+  after qualification facts are supplied; no other specification started. Full
+  commands, limits, preservation, commit/PR and strict STOP in latest handoff.
+
+- **2026-10-29 — Blocked30handoff published:**19a68cf on
+  implementation/spec-30-delivery-qualification; OPEN/DRAFT
+  [PR102](https://github.com/Shumail-AbdulRehman/PRIV/pull/102), base3c9367c checkpoint.
+  Issue88stays open; seven remain; no next unit started.

@@ -50,3 +50,62 @@ All six captures have empty password fields. The20-case managed regression passe
 including a separate real successful-password/session-revocation lifecycle case.
 See `v5-account-state-evidence/`. This closes these six visual gaps without claiming
 provider-issued delivered-link qualification;30remains In progress.
+
+## Single-spec delivery qualification check — 2026-10-29
+
+Only Spec30 was selected in this session. Its dependency-complete source baseline
+is `3c9367c` on `implementation/v5-remaining-checkpoint`; the isolated continuation
+branch is `implementation/spec-30-delivery-qualification`. Reuse issue88 and retain
+historical PR91/87/62. No account/backend runtime, schema, package or design source
+was changed. The existing implementation is preserved, rather than repeated.
+
+**Status: Blocked, not complete.** No qualified mail configuration is available in
+the checked session, original repository `backend/.env` or isolated checkout. A
+presence-only check finds none of `OWNER_IDENTITY_MAIL_ENABLED`,
+`OWNER_IDENTITY_MAIL_PROVIDER`, `OWNER_IDENTITY_SENDER_VERIFIED`,
+`OWNER_IDENTITY_SENDER_EMAIL`, `OWNER_IDENTITY_RESEND_API_KEY` or
+`OWNER_IDENTITY_WEB_ORIGIN`. No values were printed, loaded as a database target,
+committed or changed. No provisioned mailbox workflow or delivered owner link was
+available. `OWNER_IDENTITY_SENDER_VERIFIED=true` must follow genuine qualification;
+setting it or substituting captured fixture mail is not delivery evidence.
+
+Fresh verification from the isolated source:
+
+- `npm run test:components --prefix frontend -- src/pages/Account/AccountPages.test.tsx src/pages/Account/linkToken.test.tsx --maxWorkers=1`:
+  **26 tests /2files pass**, zero failures/skips; owner/manager separation, neutral
+  unavailable recovery, current-password checks, expired links, explicit POST,
+  immediate fragment scrub, volatile tokens and identity/cache clearing.
+- `DATABASE_URL=postgresql://spec30_unit@127.0.0.1:65432/spec30_unit_nonexistent npm test --prefix backend -- src/services/ownerIdentity.service.test.ts src/services/credentialHandoff.service.test.ts src/services/companySettings.service.test.ts --maxWorkers=1`:
+  **114 tests /3files pass**, zero failures/skips; includes the real Express route
+  returning503 without delivery, with injected database/provider boundaries.
+  This fail-fast loopback URL is not an actual SQL integration target. No database
+  was started, read, migrated or mutated by this session.
+- `cd backend && ./node_modules/.bin/tsc --noEmit`: pass.
+- `npm run build --prefix frontend -- --outDir /home/shumail/.local/share/hygene-ops/v5-spec30-20261029/web`:
+  frontend TypeScript and production build pass; Vite28.13s, non-failing existing
+  plugin-timing advisory. No full-suite, lint, new SQL integration, live mail,
+  whole-product E2E or physical-device result is claimed by this documentation-only
+  blocked continuation. Existing broader results remain historical evidence.
+
+The eight existing `v5-auth-evidence/{app,v5}-recovery-{1366,390}-{en,ur}.png`
+renders were reinspected as four matching pairs. They show the approved centered
+blue/white form, readable controls and Urdu RTL. The app deliberately replaces
+prototype fictional copy/identity with real role guidance and omits reviewer
+tooling/gallery; this changes vertical position and text wrapping. These are
+historical captures, not fresh runtime or positive delivered-link proof. The new
+build alone certifies no visual acceptance. Full Spec30 visual/interaction
+acceptance remains unchecked.
+
+Resume this same specification after a responsible operator provides a genuinely
+qualified sender/domain, provisioned credential, approved HTTPS application origin
+and authorized recipient/mailbox workflow. Then verify delivered verify/reset
+links, explicit confirmation, invalid/expired/used links, credential revocation
+and matching fresh EN/UR desktop/phone renders against V5. Preserve legacy-owner
+bootstrap restrictions. Do not use production data, activate a provider or assume
+delivery without the required facts/authorization. The current session stops on
+this blocker; no other specification is started.
+
+Blocked continuation published as handoff/evidence commit19a68cf and
+[draft PR102](https://github.com/Shumail-AbdulRehman/PRIV/pull/102), stacked on
+`implementation/v5-remaining-checkpoint`. Issue88stays open; no full acceptance
+or delivered-mail qualification is claimed.
