@@ -1,5 +1,9 @@
 # Platform service workspace — Spec35
 
+Current V5 composition/recovery continuation and its exact evidence limits are in
+[V5_PLATFORM_SERVICE.md](V5_PLATFORM_SERVICE.md). The historical functional proof
+below is retained; current rendered acceptance is recorded separately by40.
+
 Actual React routes `/platform/service`, `/platform/audit`, `/platform/inquiries` use existing34 OperatorBoundary and separate operatorRequest, outside tenant bootstrap. Current browser identity provider is unqualified: all three actual routes stop at unavailable sign-in and issue no protected requests. No tenant role/storage value, fake operator identity or browser configuration flag enables them. Future provider selection/MFA/browser adapter qualification remains39/40.
 
 ## Contract-backed behavior

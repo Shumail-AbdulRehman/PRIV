@@ -1,0 +1,49 @@
+{
+  "baseline": "adae1b9",
+  "frontend": {
+    "nodePassed": 64,
+    "reactPassed": 360,
+    "reactFiles": 28,
+    "focusedPlatform": 45,
+    "lint": "whole0 plus final touched files",
+    "build": "TypeScript and exact npm build passed; Vite11.62s"
+  },
+  "backend": {
+    "focusedPassed": 189,
+    "files": 3,
+    "sourceChanged": false,
+    "actualSQL": [
+      "platformCompany.integration.ts",
+      "platformSupport.integration.ts"
+    ],
+    "database": "guarded UUID disposable;18existing migrations;zero children;owned56442stopped"
+  },
+  "browser": {
+    "actualPrivateAPISQLPassed": 20,
+    "durationSeconds": 49.6,
+    "platformObservations": 74,
+    "platformImages": 98,
+    "positiveOperatorIdentity": "synthetic named seam only; shipped default route denied",
+    "nativeRNWebObservations": 8,
+    "nativeImages": 10,
+    "accountStateImages": 6
+  },
+  "native": {
+    "passed": 106,
+    "skipped": 0,
+    "typecheck": "pass",
+    "expoWebExport": "pass",
+    "nativeRuntimeVerified": false
+  },
+  "remaining": [
+    "30",
+    "34",
+    "36",
+    "37",
+    "38",
+    "40",
+    "41"
+  ],
+  "productionChanged": false,
+  "mergedPRs": false
+}

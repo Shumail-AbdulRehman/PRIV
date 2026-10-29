@@ -1,3 +1,33 @@
+Current scoped review: **OPEN/DRAFT [PR100](https://github.com/Shumail-AbdulRehman/PRIV/pull/100)**, base accepted billing branch/adae1b9. No merge.
+
+# Scoped V5 Specification35 review checkpoint — 2026-10-29
+
+This independent branch contains only its assigned runtime scope and acceptance records, based on accepted28/32 atadae1b9. The canonical combined latest source/handoff is `implementation/v5-remaining-checkpoint` in the sibling `coordinator` worktree. Read that handoff before selecting further work. Specification35 meets applicable web acceptance; qualified positive operator IdP/MFA remains34/40. Whole combined checks and shared visual provenance were executed in the coordinator; no new branch-only whole-suite result is inferred. Original root and all earlier worktrees remain preserved. No merge/deploy/production mutation.
+
+---
+
+# Active approved V5 continuation — 2026-10-29
+
+The user explicitly authorizes continuing remaining approved implementation in
+parallel, with preserved work, functional tests and rendered V5 checks. Current
+coordinator is `implementation/v5-remaining-checkpoint` in
+`/home/shumail/.local/share/hygene-ops/v5-remaining-20261029/coordinator`, based on
+accepted billing checkpoint `adae1b9`. Verified28/32 and actual consumed15/24/25/27
+source ancestry; do not repeat28/32. All prior branches/worktrees and uncommitted
+work are preserved, with private status/hash/patch snapshots in the parent.
+Original root remains `fix/v5-runtime-data-loading` at55061b8 and is not switched.
+
+Nine specifications remain:30,33,34,35,36,37,38,40,41. Next33 and independent35
+are active in separate `companies`/`service` worktrees; QA has its own `qa`
+worktree and owns only40 visual harness/evidence and review. Shared source
+ownership transfers are recorded before edits. Read
+`docs/implementation/planning/remaining-20261029.md` for DAG and boundaries.
+Existing positive IdP/MFA/mail/legal/support/photo/privacy/device/production gates
+remain unverified. Do not bypass operator denial for screenshots or call named
+workspace fixtures qualified authentication. No merge/deploy/production changes.
+
+---
+
 # Spec 32 V5 Billing accepted — 2026-10-29
 
 **Spec 32 meets applicable web acceptance. Full V5 remains incomplete: 9 specifications remain.** This session implemented only Billing and its documented restricted owner recovery; no unrelated specification was started. No PR merge, deployment, live charge/subscription, provider activation or production operation occurred.

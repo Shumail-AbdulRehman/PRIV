@@ -1,10 +1,10 @@
 # Spec 35 — Platform service audit and leads UI
 
-**Status:** In progress
+**Status:** Done
 **Depends on:** Spec 25, Spec 27
 **Model:** Standard — `claude-sonnet-5-5` · `gpt-6.1-sol` · `gemini-3.8-flash`
 **Issue:** #73
-**Owns:** `docs/implementation/PLATFORM_SERVICE_UI.md`, `.impeccable/surfaces/frontend-src-pages-platform-servicepage-tsx.md`, `frontend/src/pages/Platform/CompaniesPage.tsx`, `frontend/src/pages/Platform/platformRoutes.tsx`, `frontend/src/pages/Platform/service.css`, `frontend/src/i18n/platformServiceTranslations.ts`, `frontend/src/pages/Platform/ServicePage.tsx`, `frontend/src/pages/Platform/serviceApi.ts`, `specs/inventory/35-platform-service-ui.md`
+**Owns:** `docs/implementation/V5_PLATFORM_SERVICE.md`, `frontend/src/pages/Platform/ServicePage.test.tsx`, `docs/implementation/PLATFORM_SERVICE_UI.md`, `.impeccable/surfaces/frontend-src-pages-platform-servicepage-tsx.md`, `frontend/src/pages/Platform/platformRoutes.tsx`, `frontend/src/pages/Platform/service.css`, `frontend/src/i18n/platformServiceTranslations.ts`, `frontend/src/pages/Platform/ServicePage.tsx`, `frontend/src/pages/Platform/serviceApi.ts`, `specs/inventory/35-platform-service-ui.md`
 **Reuses:** `frontend/src/components/common/DataTable.tsx`, `frontend/src/components/common/OperationStatus.tsx`, `DESIGN-SYSTEM.md#component-conventions`, `design/v5/service.html`
 
 ## Goal
@@ -37,7 +37,7 @@ Expose real redacted diagnostics/audit/inquiry status with bounded filters and a
 
 ## Done when
 
-- [ ] Approved V5 layout and interactions are implemented and paired actual-app/reference screenshots are inspected at desktop/phone EN/UR; state/permission deviations are recorded. Native acceptance requires a native runtime. [static]
+- [x] Approved V5 layout and interactions are implemented and paired actual-app/reference screenshots are inspected at desktop/phone EN/UR; state/permission deviations are recorded. Native acceptance requires a native runtime. [static]
 - [x] `npm run test:components --prefix frontend -- src/pages/Platform/ServicePage.test.tsx` passes: Unavailable diagnostic distinct from healthy; lead state persists; retry performs actual scoped request; no private workforce data. [unit]
 - [x] `npm test --prefix frontend` passes the whole affected unit suite; record count. [unit]
 - [x] Only scoped paths changed; relevant denial/empty/error/config-unavailable states inspected. [static]
@@ -45,6 +45,8 @@ Expose real redacted diagnostics/audit/inquiry status with bounded filters and a
 - [x] `npm run build --prefix frontend` passes. [static]
 
 ## Log
+
+- **2026-10-29 — Current continuation:** Start from accepted billing checkpoint adae1b9, preserving completed28/32 and existing root/runtime work. Completed25/27 source and tracker verified. CompaniesPage.tsx ownership returns33 and ServicePage.test.tsx transfers34→35 before parallel edits. Shared operator identity/shell remains34. Coordinator owns40 visual harness/evidence and shared records. Approved design/v5/service.html is fixed input; retain existing diagnostics/audit/inquiry contracts and unqualified operator denial. Issue73 reused; fixture checks never qualify a provider or live operational mutation.
 
 - **2026-10-21** — Issue73 claimed before source edits. Actual25(c04c7ab)/27(b8396ff) commits verified as HEAD ancestors, not assumed present on main. Existing34 unavailable operator boundary/request reused unchanged. Shared routes/dictionary/company-navigation ownership transferred33→35 before edits. Branch implementation/spec-35-platform-service-ui based completed33/e0a5d63; this preserves established Git stack, not a new spec dependency.
 - **2026-10-21** — Implemented actual guarded service/audit/inquiry routes, redacted diagnostics with unknown/unavailable observations, real retry, bounded audit/company/action/inquiry search/cursors, escaped submission detail, accountable versioned status/SELF-or-UNASSIGNED handling/reason.409/uncertain save keeps draft and requires successful explicit refresh; no duplicate pending update. Configured validated support mailto only, no delivery/verification claim. No private workforce fields or fabricated health/provider results. Backend/schema/provider configuration unchanged.
@@ -56,3 +58,9 @@ Expose real redacted diagnostics/audit/inquiry status with bounded filters and a
 - **2026-10-21 — Visual acceptance correction:** reopened for outstanding approved V5 acceptance. Historical functional checkmarks/logs are preserved; they do not certify visual fidelity. Current four-part status and evidence: docs/implementation/V5_IMPLEMENTATION.md. No prior visual requirement is newly verified by a build.
 
 - **2026-10-29 — Narrow test ownership:**34takes the existing protected-route heading assertion for the approved V5 operator title; no35runtime or API scope changes.
+
+- **2026-10-29 — V5 source continuation:** application2f504f9 on implementation/v5-platform-service, based acceptedadae1b9 and serialized ownership. Implemented V5 platform navigation/page heading/tabs, split observed diagnostics/support rail, audit/inquiry registers and split accountable handling form. Existing backend/API/provider/identity remains unchanged. Failed background inquiry refresh retains labelled stale draft and blocks save;401/403/404 removes cached details; accepted PATCH handling survives failed follow-up read; pending support refresh hides previous handoff.27focused ServicePage cases pass (22existing+5new) in15.85s; changed-source ESLint0 and diffcheck pass. Lead owns whole-suite/build and40paired rendered acceptance; full35status/unchecked visual criterion unchanged. See V5_PLATFORM_SERVICE.md for contract-driven reference differences and unqualified IdP/provider limits.
+
+- **2026-10-29 — Applicable web acceptance complete:** Final45focused platform cases, whole64Node+360React/28files, full lint0, exact frontend TS/build11.62s and guarded backend/E2E types pass. Actual isolated company/support SQL plus189backend cases pass. Final platform matrix74observations/98PNGs includes32core+26state+12reload+4guard matrices, not74unique flows. Paired1366/390ENUR and significant actions inspected by coordinator after independent source agents hit usage limits. Named positive workspace transport is synthetic; actual default operator denial and20real React/privateAPI/SQL browser cases pass separately. No positive IdP/MFA/provider qualification; those remain34/40. See current V5_PLATFORM reports/evidence; no merge/deploy.
+
+- **2026-10-29 — Published:** OPEN/DRAFT PR100 https://github.com/Shumail-AbdulRehman/PRIV/pull/100, base implementation/v5-billing-acceptance/adae1b9. Original root/old worktrees preserved; no merge/deploy. Combined tested source is implementation/v5-remaining-checkpoint; native37retains device gates.
