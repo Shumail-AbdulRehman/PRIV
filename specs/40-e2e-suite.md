@@ -13,6 +13,12 @@ Consumes36 receipt/submission/closure/verification flows from `frontend/src/page
 
 ## Goal
 
+Consume37source preview inputs `frontend-mobile/src/screens/TasksScreen.tsx`,
+`frontend-mobile/src/screens/StartTaskScreen.tsx`, `frontend-mobile/src/fonts.ts`,
+`frontend-mobile/src/components/TaskCard.tsx`, `frontend-mobile/src/components/ui/card.tsx`
+and `docs/implementation/V5_NATIVE_COMPOSITION.md`; native runtime acceptance
+remains separate from exported source preview.
+
 Consume current33/35 acceptance reports `docs/implementation/V5_PLATFORM_COMPANIES.md`
 and `docs/implementation/V5_PLATFORM_SERVICE.md` for paired visual states, fixture
 provenance and remaining positive operator qualification gates.
