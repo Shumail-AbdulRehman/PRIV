@@ -10,3 +10,9 @@
 
 ### V5 palette bridge — 2026-10-22
 `frontend-mobile/src/theme.ts` centralizes approved V5 native prop colours; NativeWind global.css uses matching HSL tokens. Existing navigation, brand, shutter/progress and button native props consume the same palette. No camera/API/Expo architecture changed.101tests/typecheck/web export pass; native visual/permission/device acceptance remains unverified.
+
+### V5 source composition — 2026-10-29
+- Existing StaffBrand is reused across My day/Tasks/Help/Start; existing attendance/QR/authority/reconciliation handlers remain authoritative.
+- `frontend-mobile/src/fonts.ts` provides font-ready context and existing-language/weight family mapping. App loads locally bundled licensed Inter/Noto Arabic through the already installed ExpoFont14.0.12, declared directly. Pending/error never blocks access; Text preserves native scaling, RTL and Latin identifiers.
+- Help uses current alert-registration API, explicit unknown/registered/denied/unavailable/retry, synchronous duplicate guard and existing own-password recovery. No delivered-push claim.
+- `frontend-mobile/tests/nativeComposition.test.mjs` adds five behavior cases; whole106pass. `docs/implementation/V5_NATIVE_COMPOSITION.md` documents scope and retained device gates; Spec40 source preview is expressly RNWeb/synthetic, not native acceptance.
