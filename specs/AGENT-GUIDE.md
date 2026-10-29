@@ -8,6 +8,12 @@
 
 ## Current checkpoint instruction — 2026-10-29
 
+Verified current checkpoint:33/35applicable web acceptance complete;7units remain
+30/34/36/37/38/40/41. Coordinator `implementation/v5-remaining-checkpoint` contains
+preserved accepted28/32, platform fixes, native37source composition and30credential
+state evidence. Read its latest handoff. Native37and other external gates remain
+In progress. Original root and all prior overlays are byte-preserved; no merge/deploy.
+
 Latest user explicitly resumes approved remaining work. Coordinator is
 `implementation/v5-remaining-checkpoint`, based on verifiedadae1b9, in persistent
 `v5-remaining-20261029/coordinator`. Independent33/35 workers and QA have exclusive

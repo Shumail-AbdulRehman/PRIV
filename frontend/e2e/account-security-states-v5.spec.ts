@@ -56,7 +56,7 @@ test('own-security pending denied and disconnected states retain recovery in Eng
     await page.route('**/api/common/security/password', route => route.abort('failed'));
     await fill();
     await page.locator('form button[type="submit"]').click();
-    await expect(page.getByRole('alert')).toContainText(language === 'ur' ? 'کنکشن' : 'connection');
+    await expect(page.getByRole('alert')).toContainText(language === 'ur' ? 'رابطہ' : 'connection');
     await scrub();
     await capture('network-error', 'explicit transport abort; NOT server outage/provider proof');
     await page.unroute('**/api/common/security/password');

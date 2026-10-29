@@ -43,4 +43,7 @@ A failed run writes `<mode>-failure.json`; failed/partial observations never bec
 completed acceptance. The independent QA report records actual executed commands,
 inspected images, findings and current status.
 
-Current state: harness prepared; final integrated-source execution is pending.
+Final integrated all-mode run: **74observations/98PNG artifacts**,0failures.
+See `all-results.json`, `all-manifest.json`, `image-index.json` and
+`../V5_PLATFORM_QA.md` for the exact scope, inspection and diagnostic corrections.
+Partial/overlapping core/state/guard runs are retained as provenance, not summed.

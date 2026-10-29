@@ -40,3 +40,13 @@ The approved rendered reference is `design/v5/settings.html`, `journeys.js` func
 The coordinator ran `frontend/e2e/settings-v5.spec.ts` using the guarded disposable SQL harness and synthetic seeded records, never the restored customer database. GET loading delays then forwards the original request; no API response is replaced. Network-failure screenshots are explicitly labelled transport seams created with `route.abort`, followed by real API retry; they are not server outage proof. The unverified-status test changes and restores only the disposable fixture's emailVerifiedAt in `finally`; it does not enroll or verify a person or qualify delivery. Credential fields are empty in screenshots; no traces, videos or saved auth state are written.
 
 **The scoped owner settings core is implemented and visually verified. Full V5 and spec30 remain In progress.** Genuine mail delivery, valid delivered-link success and all broader account/provider acceptance are not inferred from these checks. No native runtime acceptance, production action, deployment or merged PR is claimed. The coordinating agent owns final checkpoint/handoff and publication decisions.
+
+## Credential-state continuation — 2026-10-29
+The coordinator's Spec40 `account-security-states-v5.spec.ts` adds actual EN/UR390
+pending/denied/network-error observations from the standalone own-security page.
+Pending forwards the delayed original request;403comes from the real private API
+with a synthetic incorrect password; disconnection is an explicit route abort.
+All six captures have empty password fields. The20-case managed regression passes,
+including a separate real successful-password/session-revocation lifecycle case.
+See `v5-account-state-evidence/`. This closes these six visual gaps without claiming
+provider-issued delivered-link qualification;30remains In progress.

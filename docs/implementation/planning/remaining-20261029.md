@@ -71,3 +71,11 @@ identity before tenant/operator I/O. No screenshot mock is positive IdP proof.
 Use only owned disposable synthetic databases for integration, never the existing
 restored runtime/customer database. Keep unverified acceptance items open. Validate
 spec metadata and update progress/handoff with real commands/counts and next work.
+
+## Verified outcome
+
+33/35nowmeet applicable web acceptance after functional/SQL/guarded browser and
+paired visual checks. Seven units remain30/34/36/37/38/40/41. Native37source
+composition and30credential-state evidence progressed without claiming external
+qualification. Exact counts/limits are in the current handoff and V5 reports.
+Original worktree statuses/HEADs/file hashes have zero preservation mismatches.

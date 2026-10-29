@@ -74,3 +74,52 @@ web acceptance may be assessed from real backend contract/persistence proof,
 focused/full affected web checks, real named-component renders and unchanged
 fail-closed shipped routes, with the positive identity and full product gate
 explicitly retained in34/40. A build or screenshot count alone is insufficient.
+
+## Executed coordinator verification
+
+Parallel agents saved company1937224/1244bd0, service2f504f9/e90ed91 and QA107137a
+before reaching account usage limits. The coordinator recovered their committed
+source and dirty QA harness, reviewed the rendered result and finished corrections.
+This final execution is coordinator verification, not a claim that the unavailable
+independent reviewer approved every final image.
+
+The final all-mode run passes **74 observations**, comprising32core combinations,
+26state captures,12mutation/reload observations and4guarded-route matrix checks.
+These are browser observations, not74unique product flows. **98PNG artifacts**
+include reference/application pairs and four supplemental full pages. Desktop is
+1366×900; phone390×900; both English/Urdu. Dimensions/SHA256 and exact source
+hashes are recorded in all-manifest.json/image-index.json. The older core/state/
+guard manifests overlap this final run and must not be added as unique evidence.
+
+Visual review compared company register, account/billing/activity, diagnostic
+split, audit/queue/handling, mobile navigation and reasoned confirmation to the
+approved references. Final refinements replaced account tab pills with V5
+underlines, stacked phone confirmation actions and corrected duplicate mobile
+audit labels. Negative states, focus on the reason field, keyboard phone-menu
+operation, one pending request, conflict/lost-response refresh, actual retry and
+stale contact removal pass. No page overflow, JavaScript error or undersized
+visible action button is present in the measured matrix. Actual default routes
+mount no protected workspace and perform no tenant/operator API I/O, including
+untrusted local-storage claims.
+
+The first runner diagnostics used the wrong Babel cwd and hidden table/option
+selectors. The coordinator corrected the harness and explicit inquiry form label
+associations, then ran all74observations fresh. No policy assertion was weakened.
+Diagnostic outputs were retained privately, outside accepted evidence.
+
+Relevant real backend checks are separate: **189tests/3files** pass, plus fresh
+isolated company and support SQL proofs. They prove concurrent one-winner/409,
+operator reason/issuer/subject/timestamp, audit-failure rollback, suspension policy
+and owner-safe destinations, inquiry handling and redaction. A UUID database was
+created/migrated with18existing migrations and removed; provider calls were absent.
+This is actual backend persistence, not browser-provider identity qualification.
+
+The integrated frontend passes64Node+360React/28files. Final focused45company/
+service tests pass; full lint0. Strict types/private build/API browser proof is
+recorded by the coordinator's final handoff. The first type gate caught two
+unsupported Testing Library `exact` options; removing them retains string-name
+exact matching and fixes compilation.
+
+Applicable33/35web acceptance passes the final build/API gate: exact frontend build11.62s, strict types and20/20actual React/API/SQL browser cases in49.6s. Missing
+qualified positive operator sign-in remains explicitly owned34/40. Native source
+preview and account-state evidence are separate; neither is platform auth proof.

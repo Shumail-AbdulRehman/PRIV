@@ -74,6 +74,15 @@ External release facts only: configured IdP/MFA/people, verified sender/support 
 
 ## Known gaps
 
+Continuation2026-10-29:33/35applicable web acceptance complete. Final validator
+42specs/0errors/10warnings; remaining warnings are the existing decision/no-issue,
+actual transitive consumption edges, deliberately long single40 and terminal
+follow-up/verification reports described below. Native37new font/screens/cards
+are explicitly consumed by40source preview; no unreferenced runtime is introduced.
+Seven units remain30/34/36/37/38/40/41; native runtime and positive provider/mail/
+legal/support/photo/privacy/device/production qualification are not inferred from
+the source fixes, synthetic renders or successful builds.
+
 Final VERIFICATION.md is a terminal report consumed by human release review, not a runtime endpoint; its no-consumer warning is accepted. Recorded decision spec 00 has no GitHub issue: a planning record, not a code task. Code specs without issues remain Not started until local execution. Hot-file re-edit needs explicit ownership transfer at serialized integration units 18/26/27; amend/validate before editing, do not presume wave-safe wiring. Existing app.ts starts jobs on import: spec 03 must validate first. E2E flow table is deliberately the long spec. External provider/device/restore tests cannot be replaced by unit mocks. Existing dirty CI/dashboard work stays intact. No claim that unimplemented specs are complete.
 
 Spec25 directly consumes19 identity and24 operator audit typing;26 directly mounts24 routes even though25 also depends24. The validator flags these two transitive edges as redundant; retained because each records an actual consumed contract and imposes no additional execution wave.

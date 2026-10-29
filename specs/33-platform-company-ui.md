@@ -1,6 +1,6 @@
 # Spec 33 — Platform company workspace
 
-**Status:** In progress
+**Status:** Done
 **Depends on:** Spec 24, Spec 27
 **Model:** Standard — `claude-sonnet-5-5` · `gpt-6.1-sol` · `gemini-3.8-flash`
 **Issue:** #71
@@ -37,7 +37,7 @@ Build bounded company list/detail Account/Billing/Activity with operator-only re
 
 ## Done when
 
-- [ ] Approved V5 layout and interactions are implemented and paired actual-app/reference screenshots are inspected at desktop/phone EN/UR; state/permission deviations are recorded. Native acceptance requires a native runtime. [static]
+- [x] Approved V5 layout and interactions are implemented and paired actual-app/reference screenshots are inspected at desktop/phone EN/UR; state/permission deviations are recorded. Native acceptance requires a native runtime. [static]
 - [x] `npm run test:components --prefix frontend -- src/pages/Platform/CompaniesPage.test.tsx` passes: Operator company search/paging/status save reflect API; tenant identity denied; protected workforce fields absent. [unit]
 - [x] `npm test --prefix frontend` passes the whole affected unit suite; record count. [unit]
 - [x] Only scoped paths changed; relevant denial/empty/error/config-unavailable states inspected. [static]
@@ -63,3 +63,5 @@ Build bounded company list/detail Account/Billing/Activity with operator-only re
 - **2026-10-29 — Owned V5 source implemented:** Company-specific V5 sidebar/header, real bounded-page summary/register/mobile records, split Account profile/access/context rail and Billing/Activity panels; EN/UR/RTL and existing separate operator boundary retained. No unsupported contact/usage/global-total facts added. Fix uncertain/409 retry lock until successful explicit matching refresh, retain reason/target after failed refresh, guard duplicate/pending dismissal and supersede cached metadata on401/403. Invalid unsafe IDs make no request.17focused company component tests pass/1file10.70s; initial10/11 run exposed only old post-refresh action expectation, corrected to assert enabled confirmation after successful refresh. Full suite/build/rendered verification coordinated separately; visual criterion and status remain open. See V5_PLATFORM_COMPANIES.md/inventory33. No backend/provider/schema/dependency/production change.
 
 - **2026-10-29 — Source follow-up:** Clear the earlier save receipt before another status action and label reopened uncertain requests as pending review.18focused tests/1file4.89s pass; targeted changed-TS lint passes. Visual/provider acceptance remains pending and no status checkmark changed.
+
+- **2026-10-29 — Applicable web acceptance complete:** Final45focused platform cases, whole64Node+360React/28files, full lint0, exact frontend TS/build11.62s and guarded backend/E2E types pass. Actual isolated company/support SQL plus189backend cases pass. Final platform matrix74observations/98PNGs includes32core+26state+12reload+4guard matrices, not74unique flows. Paired1366/390ENUR and significant actions inspected by coordinator after independent source agents hit usage limits. Named positive workspace transport is synthetic; actual default operator denial and20real React/privateAPI/SQL browser cases pass separately. No positive IdP/MFA/provider qualification; those remain34/40. See current V5_PLATFORM reports/evidence; no merge/deploy.

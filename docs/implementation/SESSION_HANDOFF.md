@@ -1,3 +1,96 @@
+# Verified V5 platform and native/account continuation — 2026-10-29
+
+**Specifications33/35meet applicable web acceptance. Full V5 remains incomplete:
+7specifications remain.** Native37has additional source composition fixes and
+account30has additional credential-state evidence; neither is falsely closed.
+The user authorized continuation and parallel work. This is a verified durable
+checkpoint, not a cancellation or a request for repeated approval.
+
+## Canonical source and preservation
+
+Continue from `implementation/v5-remaining-checkpoint` in
+`/home/shumail/.local/share/hygene-ops/v5-remaining-20261029/coordinator`.
+It starts from accepted `adae1b9` and preserves28/32. Actual dependency sources
+15/24/25/27were verified. Final source includes company1937224/1244bd0 plus
+coordinator refinements3589c9e/971f2f9, service2f504f9 plus scoped audit/label fixes,
+nativefe209f4/81be476 and the Spec40harness; later commits record acceptance.
+Inspect Git for final documentation HEAD. Independent review branches are
+`implementation/v5-platform-companies`, `implementation/v5-platform-service`,
+and `implementation/v5-native-composition`; draft publication is recorded below.
+
+Original root remains **`fix/v5-runtime-data-loading` at55061b8**, with runtime/
+Maps/performance/config/design/source overlays unchanged. All earlier registered
+worktrees, uncommitted files and branch HEADs were inventoried and preserved.
+Final status/hash comparison reports **zero mismatches**. Private exact statuses,
+file hashes, binary patches and refs are in the persistent parent. Missing old
+temporary worktrees were recorded, not pruned. Do not overlay old dirty source
+onto this accepted tree or switch/reset the original checkout.
+
+## Delivered and actually verified
+
+-33: V5 company register, bounded page facts/filter/paging, Account/Billing/
+ Activity split, exact reason/version status confirmation, retained uncertainty
+ with required successful refresh, guarded stale/denied data and readable phone
+ actions.35: V5 diagnostics/support split, redacted audit, inquiry queue/handling,
+ stale-contact removal and retained drafts on failed refresh. Existing unavailable
+ operator provider/transport is unchanged; no tenant promotion or debug auth.
+- Whole frontend **64Node+360React/28files**, final45focused platform tests,
+ full lint0, strict backend/E2E/frontend TypeScript and exact frontend production
+ build pass (11.62sVite).189focused backend/3files pass; fresh actual isolated
+ company/support SQL proofs verify one-winner/409, audited issuer/subject/reason,
+ rollback, suspension/owner-safe policy and inquiry/redaction. Backend source
+ and schema were not changed.
+- **20/20actual React/privateAPI/disposableSQL browser cases pass in49.6s**:
+ lifecycle/workspace/operator denial and additional account pending/403/transport
+ states. Six EN/UR390credential-state screenshots have empty password fields;
+ successful password/session revocation is a separate actual lifecycle case.
+- Platform visual harness: **74observations/98PNGs**, including32core combinations,
+ 26state captures,12mutation/reload observations and4guarded-route matrices.
+ Paired1366×900/390×900ENUR and significant interactions inspected. Positive
+ named-workspace transport is synthetic; actual SQL and default guarded routes
+ are separate proof. No positive IdP/MFA or live operator mutation is inferred.
+ Source/dimensions/SHA256 are in v5-platform-evidence. Overlapping earlier runs
+ and the40fresh operator recaptures retained privately are not unique flows.
+-37: actual My day/header/Tasks/Help/Start composition, panel radii and locally
+ bundled licensed Inter/Noto Arabic, nonblocking ExpoFont14.0.12 direct declaration,
+ Latin text inside Urdu and accountable alert retry. **106native tests/0skips**,
+ native/integrated TypeScript and Expo web export pass.8RNWeb source observations/
+ 10images inspected ENUR390; explicitly synthetic identity/HTTP and inert web-only
+ decoder fixture. **No native/device/camera/GPS/QR/push acceptance** is claimed.
+- Spec validator:42specifications,0errors,10documented warnings. No acceptance is
+ inferred from builds, image counts or provider mocks alone. Full40is incomplete;
+41is ineligible.
+
+Parallel agents saved coherent source before account usage limits. Coordinator
+recovered commits and the dirty QA harness, completed tests and visual corrections.
+Initial diagnostics caught wrong harness cwd/hidden selectors, inquiry label
+association, duplicate mobile audit text, cramped phone confirmations, unsupported
+test type options and native Urdu Latin fallback; all final gates above passed
+fresh after correction. No failed/interrupted run became acceptance.
+
+## Remaining and environment
+
+35Done(including00),6Inprogress,1Notstarted. Remaining:
+**30(16/17/22/27/28),34(19/27),36(20/21/27),37(09/17/20/21/26),
+38(27/25),40(all01–39),41(40)**. Each30/34/36/37/38declared dependency is Done;
+actual remaining qualification is distinct. Next work requires real delivered
+owner links/mail, selected qualified IdP/MFA, retained-media/photo/privacy proof,
+native Android runtime/device checks, approved legal/support/distribution facts,
+or the missing full40provider/device/production-operations evidence. Do not repeat
+accepted28/32or bypass guards. Inventory/DAG details remain in
+`docs/implementation/planning/remaining-20261029.md` and current specs/PROGRESS.md.
+
+Owned testPG17loopback56442was started with UTC/jitoff,18existing migrations and
+UUID synthetic children. **Zero generated children remain and only that owned
+test cluster was stopped.** Root5173/8080/56445services/restored local customer DB
+were untouched. Private browser runtimes/processes cleaned on exit. No production
+data, schema, provider activation, payment, deployment, PR merge or force push.
+
+Reports: V5_PLATFORM_COMPANIES.md, V5_PLATFORM_SERVICE.md, V5_PLATFORM_QA.md,
+V5_NATIVE_COMPOSITION.md and V5_SETTINGS.md. Scoped evidence has explicit provenance.
+
+---
+
 # Active approved V5 continuation — 2026-10-29
 
 The user explicitly authorizes continuing remaining approved implementation in

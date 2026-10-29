@@ -13,8 +13,15 @@ Consumes36 receipt/submission/closure/verification flows from `frontend/src/page
 
 ## Goal
 
+Native preview consumes `frontend-mobile/src/screens/TasksScreen.tsx`,
+`frontend-mobile/src/screens/StartTaskScreen.tsx`, `frontend-mobile/src/fonts.ts`,
+`frontend-mobile/src/components/TaskCard.tsx` and
+`frontend-mobile/src/components/ui/card.tsx` through the exported application;
+actual device proof remains separate.
+
 Consume current33/35 acceptance reports `docs/implementation/V5_PLATFORM_COMPANIES.md`
-and `docs/implementation/V5_PLATFORM_SERVICE.md` for paired visual states, fixture
+and `docs/implementation/V5_PLATFORM_SERVICE.md` plus native source report
+`docs/implementation/V5_NATIVE_COMPOSITION.md` for paired visual states, fixture
 provenance and remaining positive operator qualification gates.
 
 Launch end-to-end suite in the existing application, with persisted behavior and explicit safety boundaries.
@@ -163,3 +170,5 @@ These owned surfaces are consumed by the flow table above or the clean verificat
 - **2026-10-29** — Single existing40 harness consumes32 `docs/implementation/V5_BILLING.md`, `frontend/src/components/onboarding/workspace-access.css`, `frontend/src/components/onboarding/WorkspaceGate.tsx` and paired billing/access evidence for real React/private API/disposable SQL qualification. Scoped32 correction does not complete full40 provider/native flow table.
 
 - **2026-10-29** — Spec32 correction consumes this single harness for27actual billing/workspace/lifecycle cases (fresh final rerun27pass) and2new access pending/failure/recovery ENUR cases (2pass).86paired/state artifacts inspected, no mocked successful HTTP responses. Full40still In progress: provider/native and remaining-spec flow gaps unchanged;41ineligible. Source/payments/tenant guards not bypassed for screenshots.
+
+- **2026-10-29 — Scoped continuation proof:** Own platform-visual named-component harness, native-source-preview and account-security-states-v5 inputs added without claiming full40.74platform browser observations/98PNGs (synthetic positive seam, real default guard);8RNWeb source observations/10PNGs (notnative);20matched privateAPI/disposableSQL browser cases pass49.6s, including actual operator tenant denial and credential403/pending/transport states. Earlier typegate caught unsupported test options; corrected before fresh run. Full table/provider/native qualification remains incomplete;41ineligible.
