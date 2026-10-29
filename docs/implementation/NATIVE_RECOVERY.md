@@ -13,6 +13,8 @@ PR104 on `implementation/spec-36-review-acceptance`. This continuation lives on
 `implementation/spec-37-native-acceptance` in
 `/home/shumail/.local/share/hygene-ops/v5-spec37-20261029/implementation`.
 Issue60 was independently found, reused, assigned and claimed before source edits.
+Implementation `a9879e49c02cbd2cb4962993c44e51f996b26276` is pushed in OPEN/DRAFT
+[PR105](https://github.com/Shumail-AbdulRehman/PRIV/pull/105), stacked on PR104.
 The original dirty root and all22 pre-existing present worktrees are preserved;
 there is no checkout switch, reset, merge, deploy or production operation.
 
@@ -126,8 +128,9 @@ installed or tested in this session; no signing/device result is reused.
   is claimed for this native-only continuation. Spec36's previous450web/1444backend/
   15browser results remain historical, not new runs here.
 - Mechanical Impeccable detector on changed VerificationScreen returns `[]`;
-  this is not visual acceptance. Whitespace and spec validator are recorded in
-  the current handoff.
+  this is not visual acceptance. Whitespace passes; validator42specs/0errors/
+  12existing documented warnings. Final preservation audit22other worktrees/798dirty
+  paths has0HEAD/status/byte mismatches; tested/runtime source hashes match.
 
 The four new initial red checks reproduced the missing controls; later fixture
 assertions were corrected to account for the fresh OS read and a scoped counter.
