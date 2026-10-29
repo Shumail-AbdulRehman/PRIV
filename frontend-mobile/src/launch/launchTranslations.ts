@@ -20,6 +20,8 @@ export const launchUrdu: Record<string, string> = {
   'Camera and location are required for attendance. Task photos also require current server authority. Turning on permissions does not renew expired authority.': 'حاضری کے لیے کیمرہ اور لوکیشن ضروری ہیں۔ کام کی تصاویر کے لیے سرور کی موجودہ اجازت بھی ضروری ہے۔ فون کی اجازتیں فعال کرنے سے ختم شدہ سرور اجازت بحال نہیں ہوتی۔',
   'Ask your assigned manager about your shift, task QR or an access code.': 'اپنی شفٹ، کام کے کیو آر یا رسائی کوڈ کے لیے اپنے مقررہ منیجر سے رابطہ کریں۔',
   'Open this app in your phone settings.': 'فون کی ترتیبات میں اس ایپ کو کھولیں۔',
+  'Allow camera access in Settings to take task photos.': 'کام کی تصاویر لینے کے لیے ترتیبات میں کیمرے کی اجازت دیں۔',
+  'Camera or task access could not be checked. Refresh results and try again.': 'کیمرے یا کام تک رسائی کی تصدیق نہیں ہوئی۔ نتائج تازہ کر کے دوبارہ کوشش کریں۔',
   'Retry phone alerts': 'فون کی اطلاعات دوبارہ فعال کریں',
   'Phone alerts registered.': 'فون کی اطلاعات درج ہو گئیں۔',
   'Phone alerts are denied. Open settings to allow them.': 'فون کی اطلاعات کی اجازت نہیں۔ اجازت دینے کے لیے ترتیبات کھولیں۔',

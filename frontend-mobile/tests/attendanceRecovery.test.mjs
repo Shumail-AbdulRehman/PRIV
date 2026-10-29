@@ -10,17 +10,18 @@ import {create,act} from 'react-test-renderer';
 globalThis.React=React;globalThis.IS_REACT_ACT_ENVIRONMENT=true;
 const now=Date.now();
 const shift={id:456,date:new Date(now).toISOString(),status:'CHECKED_IN',expectedStart:new Date(now-3*3600000).toISOString(),expectedEnd:new Date(now-60000).toISOString(),checkInTime:new Date(now-2*3600000).toISOString(),checkOutTime:null,location:{id:7,name:'Assigned site'}};
-let records=[shift],uploads=[],failRead=false,permissions=0;
+let records=[shift],uploads=[],failRead=false,permissions=0,cameraGranted=true,locationGranted=true,settingsOpened=0;
 const cache={invalidateQueries:async()=>{},setQueryData(){}};
 globalThis.attendanceRecovery={
  records:()=>records,
  read:async()=>{if(failRead)throw new Error('offline');return records;},
- permission:async()=>{permissions++;return{granted:true};},
+ permission:async()=>{permissions++;return{granted:permissions===1?cameraGranted:locationGranted};},
+ settings:async()=>{settingsOpened++;},
  upload:async(path,form)=>{uploads.push({path,id:form.get('attendanceId')});records=[{...shift,checkOutTime:new Date(now).toISOString(),status:'CHECKED_OUT'}];throw new Error('response lost');},
  cache,
 };
 const mocks={
- 'react-native':'{Alert:{alert(){}},Linking:{openSettings:async()=>{}},RefreshControl:"RefreshControl",ScrollView:"ScrollView",View:"View"}',
+ 'react-native':'{Alert:{alert(){}},Linking:{openSettings:globalThis.attendanceRecovery.settings},RefreshControl:"RefreshControl",ScrollView:"ScrollView",View:"View"}',
  'expo-camera':'{useCameraPermissions:()=>[null,globalThis.attendanceRecovery.permission]}',
  'expo-location':'{requestForegroundPermissionsAsync:globalThis.attendanceRecovery.permission,Accuracy:{Highest:1}}','expo-haptics':'{}',
  '@react-native-community/netinfo':'{addEventListener:()=>()=>{}}',
@@ -54,5 +55,20 @@ test('home screen reconciles before camera permission and never opens camera whe
  records=[shift];uploads=[];permissions=0;failRead=true;const renderer=await mount();
  try{await act(async()=>checkout(renderer).props.onPress());assert.equal(renderer.root.findAllByType('AttendanceCamera').length,0);assert.equal(permissions,0);assert.equal(uploads.length,0);}
  finally{failRead=false;await act(async()=>renderer.unmount());}
+});
+for(const denied of ['camera','location'])test(`attendance ${denied} denial exposes Settings and an explicit retry without uploading`,async()=>{
+ records=[shift];uploads=[];permissions=0;failRead=false;settingsOpened=0;
+ cameraGranted=denied!=='camera';locationGranted=denied!=='location';
+ const renderer=await mount();
+ try{
+  await act(async()=>checkout(renderer).props.onPress());
+  assert.equal(renderer.root.findAllByType('AttendanceCamera').length,0);assert.equal(uploads.length,0);
+  assert.equal(permissions,denied==='camera'?1:2);
+  const settings=renderer.root.findAllByType('Button').find(button=>button.props.children==='Open settings');
+  assert.ok(settings);await act(async()=>settings.props.onPress());assert.equal(settingsOpened,1);
+  cameraGranted=true;locationGranted=true;permissions=0;
+  await act(async()=>checkout(renderer).props.onPress());
+  assert.equal(renderer.root.findAllByType('AttendanceCamera').length,1);assert.equal(uploads.length,0);
+ }finally{cameraGranted=true;locationGranted=true;await act(async()=>renderer.unmount());}
 });
 test.after(()=>{hook.deregister();rmSync(directory,{recursive:true,force:true});});

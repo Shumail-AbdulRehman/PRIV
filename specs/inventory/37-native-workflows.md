@@ -16,3 +16,8 @@
 - `frontend-mobile/src/fonts.ts` provides font-ready context and existing-language/weight family mapping. App loads locally bundled licensed Inter/Noto Arabic through the already installed ExpoFont14.0.12, declared directly. Pending/error never blocks access; Text preserves native scaling, RTL and Latin identifiers.
 - Help uses current alert-registration API, explicit unknown/registered/denied/unavailable/retry, synchronous duplicate guard and existing own-password recovery. No delivered-push claim.
 - `frontend-mobile/tests/nativeComposition.test.mjs` adds five behavior cases; whole106pass. `docs/implementation/V5_NATIVE_COMPOSITION.md` documents scope and retained device gates; Spec40 source preview is expressly RNWeb/synthetic, not native acceptance.
+
+### Single-spec recovery continuation — 2026-10-29
+- Actual VerificationScreen now reuses expo-camera's installed third permission getter, existing AppState/manifest API and Button for permanent-denial Settings recovery and fresh permission/authority rechecks. No new hook/service/state library or retry queue.
+- Existing lifecycle mocks now exercise7new Settings/permission/authority cases; Home's existing denial/explicit retry behavior gains2component cases. New recovery messages use launchUrdu; shared operational dictionary is untouched.
+- Full native115/51focused(overlap),169backend dependency unit checks, types/web export/real Android Metro JS bundle pass. Native rendering, physical sensors/QR/push, large-font layouts and positive photo qualification remain unverified. Full37Blocked; current requirement-to-evidence/environment/APK matrix in NATIVE_RECOVERY.md.

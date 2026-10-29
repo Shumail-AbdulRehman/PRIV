@@ -1,6 +1,6 @@
 # Spec 37 — Native attendance/photo/account recovery
 
-**Status:** In progress
+**Status:** Blocked
 **Depends on:** Spec 09, Spec 17, Spec 20, Spec 21, Spec 26
 **Model:** Standard — `claude-sonnet-5-5` · `gpt-6.1-sol` · `gemini-3.8-flash`
 **Issue:** #60
@@ -73,3 +73,5 @@ Integrate approved v5 native states into existing actual screens: role-correct s
 - **2026-10-29 — Source composition verified:** My day hierarchy, consistent StaffBrand headers, task-bound QR heading, grouped alert/permission/account help,10pxpanels and bundled Inter/Noto Arabic with nonblocking ExpoFont14.0.12 direct declaration implemented. Alert retry now locks duplicate calls and handles thrown failures.106native tests/0skips; native and integrated tsc, Expo web export pass.8actual RNWeb synthetic source-preview observations ENUR390 and10images inspected, with explicit inert web-decoder fixture. Initial Latin serif fallback in Urdu corrected/recaptured. This is not native/device/camera/GPS/QR/push/large-text qualification;37remains In progress. See V5_NATIVE_COMPOSITION.md. No backend/provider/production change.
 
 - **2026-10-29 — Review publication:** OPEN/DRAFT PR101 https://github.com/Shumail-AbdulRehman/PRIV/pull/101, independently based accepted implementation/v5-billing-acceptance/adae1b9. No merge/deploy; scoped runtime hashes match this tested integrated checkpoint.
+
+- **2026-10-29 — Specification37 only, local recovery verified/full acceptance Blocked:** independently fetched/restored d5098aa/PR104; dependencies09/17/20/21/26Done and actual native/API contracts inspected. Reused issue60 and isolated implementation/spec-37-native-acceptance. Fixed permanent camera denial's unreachable Settings action, fresh OS permission on explicit continue, foreground permission/manifest recheck and bilingual failure recovery; added two attendance and seven task-camera component cases. Baseline106/final115native tests,51focused(overlapping),169backend dependency tests/6files, native TypeScript, Expo web export and real Metro Android JS bundle pass. Only owned source/test/doc paths changed; packages/lockfiles/backend/design unchanged. ADB37.0.1 exists outside PATH, devices list empty, no configured emulator/AVD; no native screenshots/physical GPS/camera/QR/permission/large-text/push proof. Old APK's hash matches d69d855 build,33native baseline files differ; not current-source acceptance. Physical API URL missing; provider privacy/identity/push qualification unavailable, safe-disabled processing preserved. First V5 criterion remains unchecked. Full requirements/acceptance matrix, commands, environment, precise blockers and STOP: NATIVE_RECOVERY.md/latest handoff. Six units remain,40/41ineligible; no next unit started.

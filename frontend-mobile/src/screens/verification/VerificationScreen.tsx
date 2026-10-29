@@ -39,7 +39,7 @@ export function VerificationScreen({route,navigation}:Props) {
   const {user}=useAuth(),{t,language}=useLanguage();
   const taskId=route.params.taskId,scope=user?`${user.companyId}_${user.id}`:null;
   const queryClient=useQueryClient(),insets=useSafeAreaInsets(),focused=useIsFocused();
-  const [permission,requestPermission]=useCameraPermissions();
+  const [permission,requestPermission,getPermission]=useCameraPermissions();
   const [manifest,setManifest]=useState<Manifest|null>(null),[local,setLocal]=useState<LocalSession|null>(null);
   const [mode,setMode]=useState<Mode>('prepare'),[pending,setPending]=useState<PendingPhoto|null>(null);
   const pendingRef=useRef<PendingPhoto|null>(null);
@@ -73,7 +73,18 @@ export function VerificationScreen({route,navigation}:Props) {
   useEffect(()=>{mounted.current=true;return()=>{mounted.current=false;if(pendingRef.current)removeTemporary(pendingRef.current.uri);pendingRef.current=null;};},[]);
   useEffect(()=>{if(focused)void load().catch(error=>{if(mounted.current)setMessage(messageFor(error));});},[load,focused]);
   useEffect(()=>NetInfo.addEventListener(state=>setOnline(state.isConnected!==false&&state.isInternetReachable!==false)),[]);
-  useEffect(()=>{const listener=AppState.addEventListener('change',state=>{setForeground(state==='active');setCameraReady(false);});return()=>listener.remove();},[]);
+  useEffect(()=>{
+    const listener=AppState.addEventListener('change',state=>{
+      setForeground(state==='active');setCameraReady(false);
+      if(state==='active'){
+        // Settings can change OS permission, but never renew task authority.
+        void Promise.all([getPermission(),load()]).catch(()=>{
+          if(valid()){setMode('prepare');setMessage('Camera or task access could not be checked. Refresh results and try again.');}
+        });
+      }
+    });
+    return()=>listener.remove();
+  },[getPermission,load]);
   useEffect(()=>{setCameraReady(false);},[mode,focused,cameraKey]);
   useEffect(()=>{
     const tick=()=>{try{setSeconds(local?objectSecondsRemaining(local,slot,captureClock()):null);}catch{setSeconds(0);}};
@@ -98,7 +109,13 @@ export function VerificationScreen({route,navigation}:Props) {
     if(!photoAuthority(current).capture)throw new Error('Task photos are unavailable. Your received results are kept. Ask your manager for help.');
     if(Platform.OS==='web')throw new Error('Open the installed staff app to scan the task QR and take photos.');
     if(!online)throw new Error('Internet needed to continue. Reconnect, then scan this task’s QR code.');
-    const result=permission?.granted?permission:await requestPermission();
+    const currentPermission=await getPermission();
+    if(!valid())return;
+    if(!currentPermission.granted&&currentPermission.canAskAgain===false){
+      try{await Linking.openSettings();}catch{throw new Error('Open this app in your phone settings.');}
+      return;
+    }
+    const result=currentPermission.granted?currentPermission:await requestPermission();
     if(!result.granted)throw new Error('Allow camera access in Settings to take task photos.');
     setMode('scan');
   });}
@@ -182,7 +199,7 @@ export function VerificationScreen({route,navigation}:Props) {
       {mode==='capture'&&heading?<View style={{gap:8}}><PhotoStepProgress current={Math.max(1,(local?.session.slots.findIndex(s=>s.id===slot?.id)??0)+1)} total={Math.max(1,local?.session.slots.length??1)}/><Text className="text-3xl font-bold">{heading.title}</Text><PhotoGuide fixture={local?.manifest.items.find(i=>i.requirements.some(r=>r.id===slot?.requirementId))?.typeSnapshot} instruction={heading.view}/>{heading.hint?<Text>{heading.hint}</Text>:null}</View>:null}
       {cameraVisible?<View style={{width:'100%',height:cameraHeight,flexShrink:0,borderRadius:24,overflow:'hidden',backgroundColor:'#DDE5DE'}}><CameraView key={cameraKey} ref={camera} style={StyleSheet.absoluteFill} facing="back" enableTorch={torch} onCameraReady={()=>setCameraReady(true)} onMountError={()=>{setCameraReady(false);setMessage('Camera could not open. Tap Restart camera.');}} barcodeScannerSettings={mode==='scan'?scanSettings:undefined} onBarcodeScanned={mode==='scan'?({data})=>{if(!inFlight.current&&focused&&foreground&&online)void scanned(data);}:undefined}/><CaptureFrame/></View>:null}
       {cameraVisible?<View style={{flexDirection:'row',gap:12}}><Button className="flex-1" variant="outline" onPress={()=>setTorch(value=>!value)}>{torch?'Torch off':'Torch on'}</Button><Button className="flex-1" variant="ghost" onPress={()=>setCameraKey(value=>value+1)}>Restart camera</Button></View>:null}
-      {authority.capture&&!permission?.granted&&mode==='scan'?<Button onPress={()=>void (permission?.canAskAgain?requestPermission():Linking.openSettings())}>Allow camera</Button>:null}
+      {!finished&&authority.capture&&!permission?.granted?<Button variant="outline" loading={busy} disabled={!online} onPress={()=>void beginPhotos()}>{permission?.canAskAgain===false?'Open camera settings':'Allow camera'}</Button>:null}
       {mode==='capture'&&seconds!==null?<Text className="text-xl font-bold">{t('Time remaining: {time}',{time:`${Math.floor(seconds/60)}:${String(seconds%60).padStart(2,'0')}`})}</Text>:null}
       {pending?<View style={{gap:12}}><Text className="text-xl font-bold">{busy?'Uploading and checking photo…':'Upload this photo again'}</Text><Image source={{uri:pending.uri}} style={{height:180,width:'100%',borderRadius:16}} resizeMode="contain"/><Text>This picture is temporary. If you close this screen, take it again.</Text><Button size="lg" loading={busy} disabled={!online||!authority.upload} onPress={()=>void action(async()=>{if(pending)await sendPhoto(pending,true);})}>Upload again</Button><Button variant="outline" disabled={busy||!online} onPress={()=>void checkResult()}>Check result</Button><Button variant="ghost" disabled={busy||!online||!authority.capture} onPress={()=>void beginPhotos()}>Scan task QR and take a new photo</Button></View>:null}
       {manifest&&(mode==='progress'||!authority.capture||finished)&&!pending?<VerificationProgress manifest={manifest} local={local} rows={[]} online={online} lastUpdated={lastUpdated}/>:null}

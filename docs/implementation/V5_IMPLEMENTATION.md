@@ -60,7 +60,7 @@ reading its old log. **Pending** includes screen/state checks still to perform.
 | service | `/platform/service` | Real redacted facts/support retry | V5 diagnostics/support split implemented |27service component cases + actual backend SQL and guards | Paired ENUR1366/390 + stale-contact/loading/error inspected;35webDone, positive provider unqualified |
 | audit | `/platform/audit` | Bounded filters/paging/redaction retained | V5 register/mobile details implemented | Actual SQL redaction + components/guarded API checks | Paired ENUR1366/390 inspected; duplicate mobile action corrected;35webDone |
 | leads | `/platform/inquiries` | Versioned handling/reason/ownership retained | V5 queue/detail/handling split implemented | Draft retention, pending/conflict/uncertain, SQL one-winner/rollback verified | Paired ENUR1366/390 + significant actions inspected; synthetic positive browser seam explicit;35webDone |
-| mobile | Expo My day/Tasks/StartTask/Verification/Help/recovery | Existing safety flows retained | My day/header/help/start/card/font composition corrected; other workflows retain existing source |106native tests/types/Expo export;8RNWeb preview observations | **Native runtime/device unavailable**; RNWeb source preview inspected ENUR390, not native acceptance;37Inprogress |
+| mobile | Expo My day/Tasks/StartTask/Verification/Help/recovery | Existing safety flows plus reachable camera Settings/current permission recovery | Existing V5 source composition retained; recovery uses approved Button/Text |115native/51focused(overlap),169backend dependency checks,types/Expo export/current Metro Android JS bundle | **37Blocked: no native runtime/device**; no fresh native screenshots, physical sensors/permissions/QR/push/large-text acceptance; old APK is stale; NATIVE_RECOVERY.md |
 | index | Reviewer gallery | Reference only | N/A | N/A | Not an application page |
 | decisions | Reviewer decision register | Reference only | N/A | N/A | Approved decisions documented separately; not a product route |
 
@@ -248,3 +248,7 @@ contract; full36remains Blocked. Fresh evidence is in `v5-review-acceptance/`, w
 source/image hashes and explicit positive-image/fault seam provenance. No production
 private media, privacy capability or native runtime is qualified. The original
 whole-product incomplete status and other specifications remain unchanged.
+
+## Specification37 single-spec checkpoint — 2026-10-29
+
+Local camera permission/Settings recovery and attendance denial/retry are automated-verified; native visual acceptance remains Blocked. Fresh115native tests and169backend dependency tests pass, with types, Expo web export and current Android Metro JS bundling. These do not qualify a physical Android runtime. No device/emulator/AVD is available, physical-device API config is absent, and photo privacy/identity/push-provider proof remains external. Six specs remain;36's external gates and40/41eligibility are unchanged. See NATIVE_RECOVERY.md and latest SESSION_HANDOFF; stop after37.
