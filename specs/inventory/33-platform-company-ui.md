@@ -12,9 +12,10 @@
   bounded-page facts/register/mobile records, Account profile/access/context split,
   real Billing/Activity and safe status dialog. Reuses PageHeader, existing
   DataTable mobile rendering, Button/Input/Dialog, operator query scope and API.
-- `CompaniesPage.test.tsx`:17 focused behaviors, including uncertain/conflict
+- `CompaniesPage.test.tsx`:18 focused behaviors, including uncertain/conflict
   refresh locking, retained draft on failed refresh, pending close/duplicate guard,
-  cached denial, safe IDs and cursor reset. Mocks only the dedicated request seam.
+  cached denial, safe IDs, cursor reset and stale save-receipt clearing. Mocks only
+  the dedicated request seam.
 - `platformCompanyTranslations.ts`: complete owned V5 labels and recovery copy.
 - `docs/implementation/V5_PLATFORM_COMPANIES.md`: contract deviations, real local
   verification and explicit unqualified IdP/visual limits. No global totals,

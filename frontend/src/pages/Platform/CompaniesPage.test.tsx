@@ -93,6 +93,15 @@ it('a denied refresh removes cached account facts and cannot open status control
  expect(screen.queryByRole('heading',{name:'Company profile'})).not.toBeInTheDocument();
 });
 
+it('starting another status change clears the earlier save receipt',async()=>{
+ mount('/platform/companies/42');fireEvent.click(await screen.findByRole('button',{name:'Suspend company'}));
+ fireEvent.change(screen.getByLabelText('Reason'),{target:{value:'First saved action'}});fireEvent.click(screen.getByRole('button',{name:'Confirm status change'}));
+ await screen.findByText('Company status saved. Billing entitlement is unchanged.');
+ fireEvent.click(await screen.findByRole('button',{name:'Reactivate company'}));
+ expect(screen.queryByText('Company status saved. Billing entitlement is unchanged.')).not.toBeInTheDocument();
+ expect(screen.getByRole('heading',{name:'Confirm reactivation'})).toBeInTheDocument();
+});
+
 it.each(['not-a-number','9007199254740993'])('invalid company identifier %s never requests an account',async identifier=>{
  mount(`/platform/companies/${identifier}`);expect(screen.getByText('Company account not found.')).toBeInTheDocument();expect(m.request).not.toHaveBeenCalled();
 });
