@@ -1,6 +1,6 @@
 # Spec 30 — Account settings and recovery UI
 
-**Status:** In progress
+**Status:** Blocked
 **Depends on:** Spec 16, Spec 17, Spec 22, Spec 27, Spec 28
 **Model:** Standard — `claude-sonnet-5-5` · `gpt-6.1-sol` · `gemini-3.8-flash`
 **Issue:** #88
@@ -76,3 +76,17 @@ Implement real reset/verify/self-password and owner Organization settings forms;
 - **2026-10-28 — Serialized shared-shell handoff:** launchPages.test.tsx transfers30→27 for actual navigation/role/dialog regressions. Account/auth sources and own-security contracts remain30. No additional dependency or product policy.
 
 - **2026-10-29 — Additional credential-state evidence:** Spec40actual privateReact/API/disposableSQL run20/20passes, including own-security pending (delayed original request), actual wrong-current-password403, explicit transport abort/retry UI in ENUR390. Six full-page screenshots have empty credential fields and no persisted auth/trace. Existing lifecycle test independently proves successful own-password revocation. No account runtime change or mail/provider delivery inferred;30remains In progress for broader delivered-link qualification.
+
+- **2026-10-29 — Single-spec continuation; blocked:** selected only30 on
+  `implementation/spec-30-delivery-qualification`, based on verified3c9367c.
+  Dependencies16/17/22/27/28are Done and their source is present; issue88reused.
+  Existing implementation retained. All six OWNER_IDENTITY mail settings are
+  absent from the checked session/repository environment; no verified sender,
+  approved HTTPS link origin or real mailbox workflow was available. Genuine
+  delivered verification/reset-link acceptance cannot be completed. No fake
+  delivery, production bootstrap or provider activation. Fresh26account/token
+  and114backend dependency tests pass with no failures/skips. Historical paired
+  recovery renders were reinspected, not freshly captured or treated as delivered
+  link proof. Full acceptance remains unchecked. See latest SESSION_HANDOFF and
+  V5_SETTINGS for commands, build results, preservation and publication. Stop on
+  this blocker; no other specification started.
