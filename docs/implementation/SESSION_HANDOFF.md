@@ -1,3 +1,82 @@
+# Current Android testing APK — 29 October 2026
+
+**The requested fresh standalone APK is built, inspected and saved.** This was a
+user-authorized build task, not completion of Specification37. All six unfinished
+specifications retain their statuses:30/34/36/37 Blocked;40 In progress;41 Not started.
+No other feature/specification was implemented or accepted.
+
+## Where the APK is
+
+- Primary: `/home/shumail/Downloads/HygeneOps-Latest.apk`
+- Project copy: `/home/shumail/bkacup-16-oct-bkpriv/bk-Priv/PRIV/frontend-mobile/build-output/HygeneOps-staff-2.1.8-latest-20261029.apk`
+- Size57,454,943bytes; SHA256
+  `166be51d90f6b52cf1582b4148988fb2d2502ae448096fb79fa59a01a37e8616`.
+- Version2.1.8/code11, Hygene Ops Staff, com.hygeneops.staff, Android7+ ARM64/ARMv7.
+- Gradle release variant using the existing standard testing/debug certificate;
+  certificate matches the previous UI APK. No Metro or Play publication.
+- Default API: `http://192.168.100.95:8080/api`, documented approved local dev copy.
+- Built29October2026at22:59:10PKT /17:59:10UTC; all three hosted jobs pass.
+
+## Exact source and build provenance
+
+Fetched/verified latest dependency-complete298fad3 (Spec34/PR106), including all
+Spec37 fixes a9879e4/aa1b6e2/643ac41 and previous completed native source. Created
+isolated build/hygeneops-android-testing-20261029 at
+`/home/shumail/.local/share/hygene-ops/v5-apk-20261029/implementation`.
+The exact compiled source is **e73591e25406725cc354bf9b1f5e845da4b658bd**, not the
+subsequent documentation HEAD. All114 hashed runtime/module/font files match the
+latest accepted native implementation; no screen/auth/backend runtime rewrite.
+
+The existing GitHub-hosted Expo prebuild/Gradle workflow was selected because local
+Java/full Android SDK were absent and only9.1GiB was free. Local Node24.14.1,
+Expo54.0.37, React Native0.81.5; hosted JDK17/SDK36/NDK27.1.12297006. Reused prior
+successful expo-asset12.0.14 and current backend/inspection compatibility fixes.
+First run stopped at Expo config Doctor; preserving incoming static configuration
+fixed it and18/18checks pass. App metadata/API defaults advance only in build scope.
+Existing Firebase Android client config is supplied through encrypted Actions
+secret HYGENEOPS_ANDROID_CLIENT_CONFIG, never as server/admin credentials.
+A checksum-verified portable JRE17 supports local inspection only; system tools,
+other branches and user services are untouched.
+
+Successful [run40923692593](https://github.com/Shumail-AbdulRehman/PRIV/actions/runs/40923692593).
+Artifact [12919548716](https://github.com/Shumail-AbdulRehman/PRIV/actions/runs/40923692593/artifacts/12919548716).
+OPEN/DRAFT [PR107](https://github.com/Shumail-AbdulRehman/PRIV/pull/107) is based on
+implementation/spec-34-identity-qualification /298fad3 /PR106. Historical build
+PR80/nativePR101/105 remain preserved; issue60 stays open. Final docs commit uses
+[skip ci] to avoid duplicating an already verified native build; built source stays
+e73591e. No existing PR was merged.
+
+## Verified and unverified
+
+Local/hosted115 mobile tests, TypeScript, Expo dependency compatibility and18/18
+Doctor pass. Hosted1444backend tests pass with7existing conditional skips; current
+isolated launch SQL/persistence invariants and manager contracts pass. Native
+compile12m4s and APK assembly2m42s pass. Hosted and independent local manifest,
+package/version, native modules/permissions, four exact font bytes, SHA256/CRC,
+APK signing and16KiB ZIP alignment checks pass. Both copied APKs match the source
+artifact bytes. Sidecar checksum files are saved beside the APKs.
+
+Zero ADB devices were connected and no installation was attempted. Physical
+camera/GPS/geofence/QR/photo uploads/push, native EN/UR/large-font/IME/Back/inset
+acceptance remain unverified. Photo-provider qualification remains closed where
+unavailable and local backend push/billing remain disabled; no gate is weakened.
+The LAN API responds from this computer and protected routes require auth, but
+phone Wi-Fi/firewall reachability still needs actual testing. Saved server address
+can override default; DHCP changes may require editing it before sign-in.
+
+Complete report: [ANDROID_LATEST_20261029.md](../verification/ANDROID_LATEST_20261029.md).
+Machine-readable evidence: docs/verification/android-latest-20261029/.
+Private logs, source hashes, signing inspection, JRE and preservation audits:
+`/home/shumail/.local/share/hygene-ops/v5-apk-20261029/`.
+
+All24other worktrees/800original dirty paths retain HEAD/status/bytes. Root remains
+fix/v5-runtime-data-loading at55061b8 with existing changes. No environment file,
+production database, backend deployment, user service, Google Play or OAuth/OIDC
+work was changed. No customer-data test writes or migrations were performed.
+The APK is ready for the user's physical testing; Spec37 remains Blocked.
+
+---
+
 # Single-spec continuation — Specification 34, 2026-10-29
 
 **Specification34 is Blocked for full acceptance. All independently implementable

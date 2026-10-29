@@ -1,0 +1,15 @@
+backend-contracts	Backend contracts and build	2026-10-29T17:42:20.3545361Z       Tests  1444 passed | 7 skipped (1451)
+backend-contracts	Current isolated launch contracts and protected manager HTTP	2026-10-29T17:42:32.8729656Z Isolated launch check: workforceLifecycle
+backend-contracts	Current isolated launch contracts and protected manager HTTP	2026-10-29T17:42:35.4998344Z Isolated launch check: accountCapacity
+backend-contracts	Current isolated launch contracts and protected manager HTTP	2026-10-29T17:42:36.7553732Z Isolated launch check: billingLifecycle
+backend-contracts	Current isolated launch contracts and protected manager HTTP	2026-10-29T17:42:38.0002516Z Isolated launch check: ownerIdentity
+backend-contracts	Current isolated launch contracts and protected manager HTTP	2026-10-29T17:42:39.1839659Z Isolated launch check: companySettings
+backend-contracts	Current isolated launch contracts and protected manager HTTP	2026-10-29T17:42:40.1631799Z Isolated launch check: attendanceAnnotation
+backend-contracts	Current isolated launch contracts and protected manager HTTP	2026-10-29T17:42:41.4947282Z Isolated launch check: platformCompany
+backend-contracts	Current isolated launch contracts and protected manager HTTP	2026-10-29T17:42:42.4808212Z Isolated launch check: platformSupport
+backend-contracts	Current isolated launch contracts and protected manager HTTP	2026-10-29T17:42:43.1218063Z Isolated launch check: launchPhoto
+backend-contracts	Current isolated launch contracts and protected manager HTTP	2026-10-29T17:42:44.3878716Z Isolated launch check: launchComposition
+mobile-checks	Mobile TypeScript and regression tests	2026-10-29T17:41:57.4951897Z ℹ pass 115
+mobile-checks	Expo compatibility and configuration	2026-10-29T17:42:02.7648965Z 18/18 checks passed. No issues detected!
+android-apk	Compile native Android before APK packaging	2026-10-29T17:55:53.0292196Z BUILD SUCCESSFUL in 12m 4s
+android-apk	Package standalone testing APK with the generated test signing key	2026-10-29T17:58:36.3556775Z BUILD SUCCESSFUL in 2m 42s

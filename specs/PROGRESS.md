@@ -2,6 +2,23 @@
 
 Source of truth for execution; latest user authorization supersedes old pending labels. Approved v5 preserved.
 
+**Latest Android testing build — 2026-10-29:** a fresh standalone APK is built,
+downloaded and independently inspected. Version **2.1.8/code11**, package
+`com.hygeneops.staff`, source `e73591e25406725cc354bf9b1f5e845da4b658bd` on
+`build/hygeneops-android-testing-20261029`, includes all latest Spec37 changes.
+Successful [run40923692593](https://github.com/Shumail-AbdulRehman/PRIV/actions/runs/40923692593)
+and OPEN/DRAFT [PR107](https://github.com/Shumail-AbdulRehman/PRIV/pull/107).
+APK: `/home/shumail/Downloads/HygeneOps-Latest.apk`, 57,454,943 bytes;
+SHA256 `166be51d90f6b52cf1582b4148988fb2d2502ae448096fb79fa59a01a37e8616`.
+No Metro required. Approved local development API: `http://192.168.100.95:8080/api`.
+115 mobile tests, types, Expo compatibility/Doctor18/18, hosted backend contracts,
+native compile/package and independent APK/native/font/signature/alignment checks
+pass. Zero ADB devices; no physical sensor/QR/upload/push/V5 acceptance is inferred.
+**Spec37 remains Blocked; all six unfinished statuses/counts below are unchanged.**
+No production change, backend deployment, PR merge, Play publication or OIDC work.
+Detailed provenance, installation and limits: [Android build report](../docs/verification/ANDROID_LATEST_20261029.md).
+The following Spec34 continuation and older APK references are historical.
+
 **V5 acceptance correction (2026-10-21): overall UI completion is INCOMPLETE.**
 The historical Done rows below record functional deliveries and earlier checks;
 they do not establish approved V5 visual implementation or verification. They are
@@ -258,3 +275,15 @@ PLATFORM_OIDCinputs and loads no root secrets.23other worktrees/799dirtypaths
  mailblocked;36/37externalblocked;40/41ineligible. STOP, nootherunit/merge/deploy.
 
 - **2026-10-29 — Spec34 publication:** verification commit `5e2668a` is pushed in OPEN/DRAFT [PR106](https://github.com/Shumail-AbdulRehman/PRIV/pull/106), based on Spec37/PR105. Full34 remains Blocked. Final documentation records this publication; no merge, deployment or next specification.
+
+- **2026-10-29 — User-authorized Android build:** latest dependency-complete298fad3
+ native source packaged at e73591e into actual standalone2.1.8/code11 APK. Hosted
+ run40923692593 passes all three jobs; first attempt stopped at Expo config Doctor
+ and was corrected using incoming config.115 mobile tests/types,18/18Doctor,
+1444 backend tests(+7 existing conditional skips), isolated SQL and native compile/
+ assembly pass. Independent local package, native/permission, four-font byte,
+ signature/hash/CRC/16KiB checks pass; testing certificate matches old UI APK.
+ Saved Downloads/HygeneOps-Latest.apk plus project copy; exact paths/hash/limits in
+ ANDROID_LATEST_20261029.md.24 other worktrees/800 dirty paths preserved. No device
+ connected or installed; provider/physical gates remain.37 Blocked, six remain.
+ DraftPR107 based106; no merge, deployment, production or OAuth/OIDC action.

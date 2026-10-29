@@ -1,3 +1,18 @@
+# Fresh standalone Android testing APK — 2026-10-29
+
+A current-source APK now exists: version2.1.8/code11, built from e73591e on
+`build/hygeneops-android-testing-20261029`, including the latest a9879e4 camera
+recovery and V5/font changes. It is saved at
+`/home/shumail/Downloads/HygeneOps-Latest.apk`. No Metro is needed.
+Build/package/signature/font/native/permission checks pass;115 tests and types pass.
+**No physical device was connected or tested; Spec37 remains Blocked.** Existing
+provider/privacy/identity/push gates are unchanged. See the complete
+[build and installation report](../verification/ANDROID_LATEST_20261029.md) and
+OPEN/DRAFT [PR107](https://github.com/Shumail-AbdulRehman/PRIV/pull/107).
+Old APK/environment claims below are retained as historical session evidence.
+
+---
+
 # Native launch recovery — Specification 37
 
 ## Current single-spec verification — 2026-10-29
