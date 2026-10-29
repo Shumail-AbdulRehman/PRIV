@@ -1,3 +1,137 @@
+# Single-spec continuation — Specification36, 2026-10-29
+
+**Spec36 is Blocked for full acceptance. Its remaining local web functionality and
+V5 state/interaction checks are implemented and verified. STOP after this unit.**
+Only36 was selected. No other specification was started or marked complete. The
+latest user instruction overrides all historical automatic/parallel continuation
+instructions below. No PR was merged, deployment made or production data changed.
+
+## Baseline, worktree and review stack
+
+Fetched origin and independently inspected current/root dirty state, worktrees,
+progress, newest Spec38 handoff and open draft PR dependencies. Actual latest base
+is `85e64f5b40f93cae80be71786356f5d9a011099f`, Spec38's pushed handoff on
+`implementation/spec-38-public-information` / PR103. It includes3c9367c's combined
+checkpoint, blocked30records/PR102 and the accepted review-state source10fb4a4.
+Declared dependencies20/21/27 are Done; their actual policies/routes/shell exist.
+Spec30 remains Blocked on owner-mail qualification and was not reimplemented.
+
+Original checkout stays `fix/v5-runtime-data-loading` at55061b8 with its unrelated
+source/config/runtime overlays. Do not switch/reset/copy that older overlay onto
+this accepted tree. Private before/final audit covers21other present worktrees and
+797changed/untracked path hashes: zero HEAD/status/content mismatches. Prunable
+missing temporary worktree registrations were not removed. Other PR branches and
+services remain intact; PR96's original independent review is preserved.
+
+Current branch: `implementation/spec-36-review-acceptance`.
+Worktree: `/home/shumail/.local/share/hygene-ops/v5-spec36-20261029/implementation`.
+Issue84 reused, assigned and claimed before source changes. The continuation is
+stacked on Spec38/PR103; prior issue66/PR67 and correction PR85/96 remain history.
+Publication references are recorded after the implementation commit is created;
+inspect this branch HEAD and the publication note below for the final commit/PR.
+
+## What changed
+
+Existing actual React queue/evidence/task facts/decisions remain in place. Failed
+detail refresh now keeps notes but blocks decisions until successful refresh. Issue
+bookmarks show their own requirement's replacement explanation.401/403/404/410 hide
+cached private detail and display review-specific EN/UR feedback. Save denial uses
+localized recovery copy; a newer server version removes obsolete conflict feedback.
+Uncertain closure retries keep their original request identity. Uploaded/submitted/
+reviewed/verified remain independent persisted facts, never inferred equivalents.
+
+Protected image inspection adds keyboard-pannable named regions,44px desktop/48px
+phone zoom controls and actual opener focus restoration on dialog close. The same
+authenticated review-byte endpoint, abort/blob cleanup, bounded zoom and explicit
+photo restrictions remain. HOLD review now also requires authenticated storage;
+its privacy exception cannot bypass delivery protection. Existing role/company/site/
+task/original-byte restrictions and the SQL constraint remain unchanged and tested.
+No new AI result, provider activation, native source, schema, endpoint, dependency,
+deprecated task action or broadened manager closure authority was introduced.
+
+## Verified checks and evidence
+
+-50focused review React checks;89focused backend receipt/replacement/qualification/
+ read/closure/list/security checks. Whole backend1444passed+7existing integration
+ skips,94files passed/1skipped. No backend lint script exists.
+- Full web64Node+386React/28files passes, no skips, via
+ `npm test --prefix frontend -- -- --maxWorkers=1` (React107.44s). The default
+ parallel run can exceed the unchanged shell test's one-second lazy fixture wait;
+ standalone26shell tests and the whole serial suite pass. No shell source, timeout,
+ assertion or security guard was changed. Full frontend lint passes.
+- Backend npm build/TypeScript, final frontend npm build/TypeScript (14.13s), strict
+ browser TypeScript and native TypeScript pass. Native's unchanged suite106passes.
+ The accepted native dependency layout resolves expo-font; the older shared direct
+ install lacked that entry. No package change was needed. Managed web build18.15s.
+- Three actual disposable PostgreSQL17 integration scripts pass: launchPhoto,
+ launchComposition and reviewClosure. Receipt/submission is not verification; immutable failed-view
+ allocation/retry, submitted/missing denial and task/attendance transaction guards
+ remain. These tests never call photo providers or qualify real media.
+-15scoped managed browser cases pass185.97s, zero retries/skips/flaky results.
+ 58EN/UR observations (6core,32recorded,20new),117PNGs at1366/390×900 plus1920core.
+ No page overflow or JS errors. Paired core/missing/closed prototype views and
+ changed recovery/denial/keyboard panels inspected. Phone loading/setup/HOLD/paging/
+ fault sheets were inspected. Success images are labelled HTTP presentation fixtures;
+ actual SQL/API closure, scope, row versions and privacy denials are separate proof.
+- Validator42specs/0errors/12documented warnings. New warning mistakes an existing
+ evidence service for an unconsumed creation; actual evidence.route.ts calls it. The standalone existing closure test is directly consumed by this unit, explaining the second added no-consumer warning.
+ Existing V5 queue-accent detector warning is retained against the fixed prototype.
+ Whitespace clean. No default design/acceptance criterion was removed.
+
+Evidence: `docs/implementation/v5-review-acceptance/` has45fresh core,40recorded and
+32new PNGs, source/reference/image hashes, observation/check/browser summaries and
+preservation audit summary. Historical evidence directories were restored unchanged
+after fresh outputs were copied to this distinct folder. Runtime source hashes
+match accepted captures. V5_REVIEWS.md/PHOTO_REVIEW_UI.md/inventory36/ledger/tracker
+record final changes, exact checks, intent and limits. Private logs/SQL runner and
+inspection sheets live in the worktree's parent, never credentials or production data.
+
+The existing manager-closure SQL fixture was repaired to use actual test entitlements
+for both companies and the real typed access-token helper; its legacy subscription
+flag and untyped JWT correctly failed current guards. Real performance attribution,
+no-reopen, owner/manager/staff/tenant denial, idempotency, concurrency and KPI-failure
+rollback now pass without relaxing a policy. Standalone strict types include the
+backend Node/Multer roots and operator Request augmentation.
+
+Initial failures are recorded rather than labelled passing: issue fixture lacked
+its requirement link; SQL correctly forbade a public asset insertion; a saved note
+selector found both legitimate panels; a selected requirement union needed narrowing;
+keyboard check found missing focus return. All were corrected without weakening
+policies. A browser batch was stopped for an additional feedback correction; the
+final15-case run passes. An extracted psql17 tool had a libpq symbol mismatch during
+cleanup; the installed compatible client verified zero child DBs, then only the
+owned test cluster was stopped. Vite/pg advisory warnings are non-failing.
+
+## Precise blocker, preservation and next eligibility
+
+Full36is **Blocked**, not Done. The active adapter's release configuration still
+reports `privacyAssessment:false` and `fixtureIdentityAssessment:false`; no switch
+can create these missing qualified capabilities. No approved authenticated retained-
+media provider fixture or native runtime is available to close the existing full
+acceptance gates. Original-checkout credential presence does not establish consent,
+a test account, independent privacy/identity qualification or real native rendering.
+Those values were not loaded or used. Processing/automatic approval remain disabled.
+Synthetic fixtures, persisted HOLD metadata, component tests and builds do not close
+the unchecked full visual/provider/native criterion. Supplied evidence must genuinely
+verify these gates before36can be Done; this unit does not implement another evaluator
+or start37/40 to manufacture completion.
+
+Owned PostgreSQL17 loopback56536 is STOPPED, with zero generated child databases.
+Its data remains under the private parent runtime directory. Temporary managed
+servers/databases/runtimes were cleaned; the earlier interrupted private preview
+was explicitly stopped. User development services and other test clusters were left
+alone. Intentional untracked `design` symlink is read-only approved-reference input;
+ignored dependency symlinks are not committed. No production action, merge, deploy,
+force push or photo/mail/provider access occurred.
+
+**Six specifications remain:30/36Blocked;34/37/40In progress;41Not started.**
+Next dependency-eligible continuation:37 (09/17/20/21/26Done), requiring a native
+runtime for acceptance; it was not started.34needs qualified IdP facts;30needs genuine
+mail delivery;40waits unfinished dependencies and41waits40. No remaining unit is
+newly accepted by these local checks. Stop here pending the user's next instruction.
+
+---
+
 # Single-spec completion — Spec 38, 2026-10-29
 
 **Spec 38 — Configured support and service information is Done for its approved

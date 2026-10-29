@@ -8,11 +8,15 @@ they do not establish approved V5 visual implementation or verification. They ar
 retained without erasing their logs. The current four-part per-page ledger is in
 [the V5 implementation record](../docs/implementation/V5_IMPLEMENTATION.md).
 Spec40 remains in progress and41 remains ineligible. Current correction branch:
-`implementation/spec-38-public-information`, based on verified `2011a90`
-(Spec30's blocked handoff on top of3c9367c). Latest session completed only38's
-approved conditional web contract:436web tests,110focused backend and18scoped
-visual observations/34PNGs. Spec30 stays Blocked; no external approval fabricated.
-Six specifications remain:30/34/36/37/40/41. Next eligible task36is identified only.
+`implementation/spec-36-review-acceptance`, based on verified `85e64f5` (Spec38/PR103).
+Latest session implements only36's remaining local review recovery, selected-view
+replacement, keyboard inspection and authenticated-delivery guard. Full36is **Blocked**
+on the existing qualified retained-media/privacy/native gate; its first criterion stays
+unchecked. Fresh450web/1444backend(+7existing skips)/106native tests, three actual SQL
+contract scripts and15scoped browser cases pass;58observations/117PNGs capture the
+local V5/state matrix. Six remain30/34/36/37/40/41.30stays Blocked. Next dependency-
+eligible continuation37needs a native runtime and was not started. No external
+qualification, merge, deployment or another completed unit is claimed.
 Accepted33/35
 remain Done with draftPR99/100; native draftPR101remains incomplete.
 Accepted28 issue55/PR97 and32 issue69/PR98, operator59/PR95 and review84/PR96; prior workforce/shell/Settings/Help/auth histories retained. No previous UI screen is newly
@@ -58,7 +62,7 @@ marked visually verified merely because its existing tests pass.
 | 33 | [Platform company workspace](33-platform-company-ui.md) | Done | 24, 27 | Standard | #71 |PR99; V5 web accepted;18focused, paired ENUR/1366/390; actual SQL + guarded routes; positive IdP remains34/40 |
 | 34 | [Platform sign-in and security workspace](34-platform-security-ui.md) | In progress | 19, 27 | Heavy | #59 |PR95;V5disabled-boundary17focused/3browser;IdPpositiveunqualified |
 | 35 | [Platform service audit and leads UI](35-platform-service-ui.md) | Done | 25, 27 | Standard | #73 |PR100; V5 web accepted;27focused, paired ENUR/1366/390; actual SQL + guarded routes; positive IdP remains34/40 |
-| 36 | [Truthful task and photo review UX](36-photo-review-ui.md) | In progress | 20, 21, 27 | Standard | #84 | Historical issue66/PR67 retained; PR96extendssetup/closed/held/paging;36focused/5browser;provider/nativeacceptanceincomplete |
+| 36 | [Truthful task and photo review UX](36-photo-review-ui.md) | Blocked | 20, 21, 27 | Standard | #84 | Local web recovery/eligibility/keyboard/private delivery verified:50focused/450web/1444backend/15browser,58observations/117PNGs; full retained-media/privacy/native gate open; V5_REVIEWS.md/latest handoff |
 | 37 | [Native attendance/photo/account recovery](37-native-workflows.md) | In progress | 09, 17, 20, 21, 26 | Standard | #60 |101native/tsc/Expoexport; deviceunverified |
 | 38 | [Configured support and service information](38-service-information.md) | Done | 27, 25 | Standard | #89 |32Help/64focused;64Node+372React;110backend;18public visual observations/34PNGs; V5_HELP.md. Live publication qualification remains39/40 |
 | 39 | [Launch operations and active CI proof](39-release-operations.md) | Done | 03, 26 | Heavy | #77 |PR78;13readiness;10SQL+7invariants;all4CIjobs pass; release blocked |
@@ -222,3 +226,5 @@ Implementation `d64e0ea` published as OPEN/DRAFT [PR85](https://github.com/Shuma
   implementation/spec-38-public-information; OPEN/DRAFT
   [PR103](https://github.com/Shumail-AbdulRehman/PRIV/pull/103), base2011a90/PR102.
   Six remain;30Blocked;36identified only. STOP, no next implementation begun.
+
+- **2026-10-29 — Spec36 only, local continuation verified/full acceptance Blocked:** baseline85e64f5/PR103 independently restored; original and20other present worktrees/797dirty paths preserved. Actual React review recovery/selected issue replacement/permission copy/keyboard photo focus and authenticated HOLD delivery guard fixed.50focused/450whole web,89focused/1444whole backend(+7existing skips),106native tests, backend/frontend/strict browser/native types, builds/lint,3actual SQL scripts and15guarded browser cases pass.58observations/117PNGs; paired V5/core/closed and changed states inspected. Full36not Done: real retained-media/privacy/native acceptance unavailable; no fake AI or guard bypass. Remaining6unchanged; next dependency-eligible37requires runtime. Only36implemented, no merge/deploy/production action. See current SESSION_HANDOFF and V5_REVIEWS.md.

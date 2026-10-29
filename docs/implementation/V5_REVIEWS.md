@@ -118,3 +118,94 @@ is claimed. A persisted HOLD synthetic record is not a successful provider fixtu
 Shared tracker/handoff and Spec40 ownership are integrated only by the coordinator.
 
 Recorded-state continuation published as OPEN/DRAFT [PR96](https://github.com/Shumail-AbdulRehman/PRIV/pull/96), base `implementation/v5-workforce-final`/8ff718e; issue84 remains open. No earlier draft branch was rewritten or merged. The persistent review worktree contains only the intentional untracked approved-design symlink beyond the published source/evidence.
+
+## Single-spec acceptance continuation — 2026-10-29
+
+Status: **Blocked for full acceptance; scoped web implementation and local visual
+verification complete.** The first Spec36 criterion remains unchecked. Only36 was
+implemented; no other unfinished specification was started or marked complete.
+
+Reused the accepted queue/detail/closure/qualification/evidence implementation at
+85e64f5 (Spec38/PR103), including review-state PR96 ancestry and completed20/21/27.
+Added failed-detail-refresh submission guards without losing notes, selected-issue
+replacement explanations, distinct review401/403/404/410 feedback, localized save
+denial and cleared obsolete conflicts after actual version recovery. Added named
+keyboard-pannable image regions,44/48px zoom targets and dialog focus restoration.
+The existing evidence service now keeps authenticated delivery mandatory for HOLD
+review; role/site/task/original restrictions remain. No processing or retired
+manager authority was added.
+
+### Fresh verification
+
+- Focused review components:50pass; backend receipt/replacement/qualification/read/
+ closure/list/security:89pass. The full backend suite passes1444tests with7existing
+ integration skips (94files passed,1skipped). No backend lint script exists.
+- Full web:64Node+386React/28files with one worker, no skipped tests. Full frontend
+ lint, backend build/TypeScript, frontend build/TypeScript, strict browser TypeScript
+ and native TypeScript pass. Native's unchanged suite passes106tests.
+- Actual isolated PostgreSQL17 launch-photo, launch-composition and manager-closure scripts pass.
+ They verify receipt/submission without verification credit, immutable replacement/
+ exact retry, submitted/missing/stale denial, task-start/check-in CAS and retained
+ entitlement boundaries. They do not run photo providers.
+- Scoped managed browser:15cases pass in3.1m;6core+32recorded+20new observations,
+ 58total, with no page overflow or JS errors.117PNGs (45core/40recorded/32new)
+ capture1366/390 EN/UR plus1920core views. Paired actual/reference and changed-state
+ panels were inspected; automatic geometry checks supplement that inspection.
+ Successful images are explicitly intercepted presentation fixtures, not provider proof.
+- Spec validator42specs/0errors/12documented warnings; whitespace check passes.
+ Mechanical detector has one inherited V5 queue-accent warning, retained because
+ it matches the fixed reference. No new design/prototype/token was introduced.
+
+Commands use the existing npm scripts and guarded runner. Full-suite web command:
+`npm test --prefix frontend -- -- --maxWorkers=1` (64Node, then all386React).
+Parallel runs occasionally exceeded the unchanged shell test's one-second lazy
+fixture wait; the standalone26shell tests and whole serial suite pass without
+changing assertions/timeouts/source. Initial harness failures bound a missing-view
+issue to no requirement and attempted an insertion the SQL privacy constraint
+correctly forbids. The fixture now links its real synthetic view and asserts23514;
+no constraint was disabled. A stale saved-note selector was scoped to its existing
+Decision recorded region because the note legitimately appears in two panels.
+One browser batch was stopped for a feedback correction; the final15-case run
+passes. The keyboard check found and drove the actual focus-return fix.
+
+Initial native TypeScript used the old shared install without a direct expo-font
+entry. Using the accepted native worktree's dependency layout (same declared pinned
+version, read-only symlink) passes. No package/native source changed. Native tests
+and web viewports cannot establish native rendering/camera/GPS/QR/provider behavior.
+Vite plugin-timing and existing pg concurrency deprecation advisories are non-failing.
+
+### Design evidence and remaining gate
+
+Evidence: [v5-review-acceptance/README.md](v5-review-acceptance/README.md), source and
+image hashes in its manifest. Earlier evidence directories remain unchanged; fresh
+outputs were copied into this distinct acceptance directory. Matching missing/closed
+references and EN/UR desktop/phone panels show the same blue/white queue, evidence,
+facts and decision hierarchy. Wider views keep the decision rail; phones inspect
+evidence before decisions. Actual dates/status/identities, priority ordering,
+unknown qualification and additional capture rules intentionally replace sample facts.
+The new errors, preserved notes, keyboard viewer, zoom targets and return focus are
+verified locally. No prototype future-AI/reviewer tool or deprecated action ships.
+
+The active adapter still reports `privacyAssessment:false` and
+`fixtureIdentityAssessment:false`; no configuration flag creates those capabilities.
+No approved authenticated retained-media provider fixture and no native runtime are
+available to close the existing full-acceptance gates. Available original-checkout
+credential names are not proof of consent, an isolated test account, measured safety
+or independent qualification; their values were not loaded or used. Processing and
+automatic approval remain disabled. Successful HTTP fixture images and persisted
+HOLD metadata are not claimed as privacy/AI/provider evidence.
+
+The declared prerequisites20/21/27 remain Done for their existing contracts. This
+unit does not implement a new photo evaluator, activate providers or start37/40.
+Full36is Blocked until qualified retained-media/privacy evidence and applicable
+native runtime acceptance are supplied and genuinely verified. No existing acceptance
+criterion was removed or marked complete on the basis of fixtures/builds alone.
+
+The existing manager-closure integration fixture needed current synthetic billing
+entitlements (including its foreign-company actor) and the real typed access-token
+helper. Legacy subscriptionStatus/untyped JWT fixtures correctly failed current
+guards. Only that test setup changed; its real owner/manager/staff/tenant denial,
+performance attribution across reassignment, period filtering, idempotency,
+concurrent200/409 and failed-KPI transaction rollback assertions now pass. No guard
+was bypassed. Standalone strict types run from backend with Node/Multer and operator
+Request augmentation. This is the third actual SQL suite, separate from15browser cases.

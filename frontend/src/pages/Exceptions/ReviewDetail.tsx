@@ -117,19 +117,23 @@ export default function ReviewDetail({ id, backTo, returnState }: {
         );
     }
   }
-  const denied=[401,403,404].includes((query.error as {response?:{status?:number}})?.response?.status??0);
+  const errorStatus = (query.error as {response?:{status?:number}})?.response?.status;
+  const denied = [401,403,404,410].includes(errorStatus ?? 0);
   if (query.isPending || !detail || denied)
     return (
       <div className="ops-page">
         <Link className="ops-text-link" to={returnTo}>
           {t(returnTo.startsWith("/exceptions") ? "Back to reviews" : "Back")}
         </Link>
-        <OperationsState
+        {denied ? <div className="operations-notice" role="alert">
+          <p>{t(errorStatus === 401 ? 'Sign in again to view this review.' : errorStatus === 403 ? 'You do not have access to this review.' : 'Review unavailable. Return to the queue or refresh to check again.')}</p>
+          <Button variant="outline" onClick={() => void query.refetch()}>{t('Retry')}</Button>
+        </div> : <OperationsState
           loading={query.isPending}
           layout="review-detail"
           error={query.error}
           retry={() => void query.refetch()}
-        />
+        />}
       </div>
     );
   const requirements = detail.items?.flatMap((item) => item.requirements.map((r) => ({...r,item}))) ?? [];
@@ -456,12 +460,12 @@ export default function ReviewDetail({ id, backTo, returnState }: {
         </div>
       )}
       </section>
-      {detail.kind !== 'SETUP' && <LaunchReviewContext detail={detail} replacement={selectedRequirement?.replacement} />}
+      {detail.kind !== 'SETUP' && <LaunchReviewContext detail={detail} replacement={requirements.find(row => row.id === requirement?.id)?.replacement} />}
       {detail.kind !== 'SETUP' && <details className="v5-findings-disclosure"><summary>{t('Review findings and capture rules')}</summary><ReviewSummary detail={detail} onSelect={inspectRequirement}/></details>}
       </div>
       {detail.kind !== 'SETUP' && <section className="ops-panel ops-action-column v5-decision-card" id="review-finding" tabIndex={-1}>
         <div className="ops-panel-body">
-          <DecisionForm detail={detail} onDone={done} nextReviewHref={nextReviewHref} />
+          <DecisionForm detail={detail} onDone={done} nextReviewHref={nextReviewHref} unavailable={query.isError} />
         </div>
       </section>}
       </div>

@@ -1,0 +1,17 @@
+{
+  "stats": {
+    "startTime": "2026-10-29T11:48:15.496Z",
+    "duration": 185973.91,
+    "expected": 15,
+    "skipped": 0,
+    "unexpected": 0,
+    "flaky": 0
+  },
+  "scope": [
+    "photo-review-v5.spec.ts",
+    "review-states-v5.spec.ts",
+    "review.spec.ts",
+    "review-acceptance-v5.spec.ts"
+  ],
+  "fullSpec40Complete": false
+}

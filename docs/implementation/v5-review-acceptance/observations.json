@@ -1,0 +1,162 @@
+[
+  {
+    "name": "app-failed-detail-refresh",
+    "width": 1366,
+    "height": 900,
+    "language": "en",
+    "overflow": false,
+    "provenance": "actual API conflict; labelled aborted detail refresh; no positive response replaced"
+  },
+  {
+    "name": "app-refreshed-draft",
+    "width": 1366,
+    "height": 900,
+    "language": "en",
+    "overflow": false,
+    "provenance": "actual refreshed scoped API and preserved unsaved note"
+  },
+  {
+    "name": "app-failed-detail-refresh",
+    "width": 1366,
+    "height": 900,
+    "language": "ur",
+    "overflow": false,
+    "provenance": "actual API conflict; labelled aborted detail refresh; no positive response replaced"
+  },
+  {
+    "name": "app-refreshed-draft",
+    "width": 1366,
+    "height": 900,
+    "language": "ur",
+    "overflow": false,
+    "provenance": "actual refreshed scoped API and preserved unsaved note"
+  },
+  {
+    "name": "app-failed-detail-refresh",
+    "width": 390,
+    "height": 900,
+    "language": "en",
+    "overflow": false,
+    "provenance": "actual API conflict; labelled aborted detail refresh; no positive response replaced"
+  },
+  {
+    "name": "app-refreshed-draft",
+    "width": 390,
+    "height": 900,
+    "language": "en",
+    "overflow": false,
+    "provenance": "actual refreshed scoped API and preserved unsaved note"
+  },
+  {
+    "name": "app-failed-detail-refresh",
+    "width": 390,
+    "height": 900,
+    "language": "ur",
+    "overflow": false,
+    "provenance": "actual API conflict; labelled aborted detail refresh; no positive response replaced"
+  },
+  {
+    "name": "app-refreshed-draft",
+    "width": 390,
+    "height": 900,
+    "language": "ur",
+    "overflow": false,
+    "provenance": "actual refreshed scoped API and preserved unsaved note"
+  },
+  {
+    "name": "app-review-denied",
+    "width": 1366,
+    "height": 900,
+    "language": "en",
+    "overflow": false,
+    "provenance": "actual same-company manager with no task-site assignment:403"
+  },
+  {
+    "name": "app-review-unavailable",
+    "width": 1366,
+    "height": 900,
+    "language": "en",
+    "overflow": false,
+    "provenance": "actual foreign-company review lookup:404"
+  },
+  {
+    "name": "app-review-denied",
+    "width": 1366,
+    "height": 900,
+    "language": "ur",
+    "overflow": false,
+    "provenance": "actual same-company manager with no task-site assignment:403"
+  },
+  {
+    "name": "app-review-unavailable",
+    "width": 1366,
+    "height": 900,
+    "language": "ur",
+    "overflow": false,
+    "provenance": "actual foreign-company review lookup:404"
+  },
+  {
+    "name": "app-review-denied",
+    "width": 390,
+    "height": 900,
+    "language": "en",
+    "overflow": false,
+    "provenance": "actual same-company manager with no task-site assignment:403"
+  },
+  {
+    "name": "app-review-unavailable",
+    "width": 390,
+    "height": 900,
+    "language": "en",
+    "overflow": false,
+    "provenance": "actual foreign-company review lookup:404"
+  },
+  {
+    "name": "app-review-denied",
+    "width": 390,
+    "height": 900,
+    "language": "ur",
+    "overflow": false,
+    "provenance": "actual same-company manager with no task-site assignment:403"
+  },
+  {
+    "name": "app-review-unavailable",
+    "width": 390,
+    "height": 900,
+    "language": "ur",
+    "overflow": false,
+    "provenance": "actual foreign-company review lookup:404"
+  },
+  {
+    "name": "http-fixture-keyboard-inspection",
+    "width": 1366,
+    "height": 900,
+    "language": "en",
+    "overflow": false,
+    "provenance": "labelled HTTP metadata/image presentation fixture; keyboard panning and44/48px control geometry"
+  },
+  {
+    "name": "http-fixture-keyboard-inspection",
+    "width": 1366,
+    "height": 900,
+    "language": "ur",
+    "overflow": false,
+    "provenance": "labelled HTTP metadata/image presentation fixture; keyboard panning and44/48px control geometry"
+  },
+  {
+    "name": "http-fixture-keyboard-inspection",
+    "width": 390,
+    "height": 900,
+    "language": "en",
+    "overflow": false,
+    "provenance": "labelled HTTP metadata/image presentation fixture; keyboard panning and44/48px control geometry"
+  },
+  {
+    "name": "http-fixture-keyboard-inspection",
+    "width": 390,
+    "height": 900,
+    "language": "ur",
+    "overflow": false,
+    "provenance": "labelled HTTP metadata/image presentation fixture; keyboard panning and44/48px control geometry"
+  }
+]
