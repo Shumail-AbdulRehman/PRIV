@@ -1,0 +1,27 @@
+[
+  {
+    "who": "managerA",
+    "status": 409,
+    "publicDeliveryConstraint": "23514"
+  },
+  {
+    "who": "ownerA",
+    "status": 409,
+    "publicDeliveryConstraint": "23514"
+  },
+  {
+    "who": "managerB",
+    "status": 403,
+    "publicDeliveryConstraint": "23514"
+  },
+  {
+    "who": "ownerB",
+    "status": 404,
+    "publicDeliveryConstraint": "23514"
+  },
+  {
+    "who": "recovery",
+    "status": 403,
+    "publicDeliveryConstraint": "23514"
+  }
+]

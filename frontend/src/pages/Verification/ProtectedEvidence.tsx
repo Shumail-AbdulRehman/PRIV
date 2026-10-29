@@ -33,6 +33,12 @@ export default function ProtectedEvidence({
   const allowed = ["SAFE", "NOT_REQUIRED"].includes(privacyState ?? "") || reviewAllowed;
   const key = `${assetId}:${privacyState}`;
   const root = useRef<HTMLElement>(null);
+  const opener = useRef<HTMLButtonElement>(null);
+  function enlarge(button: HTMLButtonElement) {
+    opener.current = button;
+    setZoom(1);
+    setExpanded(true);
+  }
   const [visible, setVisible] = useState(false);
   useEffect(() => {
     if (!allowed || !root.current) return;
@@ -103,30 +109,24 @@ export default function ProtectedEvidence({
             <output aria-label={t('Photo zoom')}>{Math.round(zoom*100)}%</output>
             <Button variant="ghost" aria-label={t('Zoom in')} disabled={zoom>=3} onClick={()=>setZoom(z=>Math.min(3,z+.5))}><ZoomIn size={16}/></Button>
             <Button variant="ghost" onClick={()=>setZoom(1)}>{t('Fit')}</Button>
-            <Button variant="ghost" onClick={()=>{setZoom(1);setExpanded(true);}}><Expand size={16}/>{t('Enlarge photo')}</Button>
+            <Button variant="ghost" onClick={event=>enlarge(event.currentTarget)}><Expand size={16}/>{t('Enlarge photo')}</Button>
           </div>}
-          {variant === 'workspace' ? <div className="v5-evidence-stage"><img alt={t(alt)} src={url} onError={()=>setFailed({key})} style={{width:`${zoom*100}%`,height:`${zoom*100}%`,maxWidth:'none'}}/></div> : <><button
+          {variant === 'workspace' ? <div className="v5-evidence-stage" role="region" aria-label={t('Photo inspection area')} tabIndex={0}><img alt={t(alt)} src={url} onError={()=>setFailed({key})} style={{width:`${zoom*100}%`,height:`${zoom*100}%`,maxWidth:'none'}}/></div> : <><button
             className="ops-image-button"
-            onClick={() => {
-              setZoom(1);
-              setExpanded(true);
-            }}
+            onClick={event => enlarge(event.currentTarget)}
             aria-label={t("Enlarge photo")}
           >
             <img alt={t(alt)} src={url} onError={()=>setFailed({key})} />
           </button>
           <Button
             variant="ghost"
-            onClick={() => {
-              setZoom(1);
-              setExpanded(true);
-            }}
+            onClick={event => enlarge(event.currentTarget)}
           >
             <Expand size={16} />
             {t("Enlarge photo")}
           </Button></>}
           <Dialog open={expanded} onOpenChange={setExpanded}>
-            <DialogContent className="workspace ops-image-dialog sm:max-w-5xl">
+            <DialogContent className="workspace ops-image-dialog sm:max-w-5xl" onCloseAutoFocus={event => { event.preventDefault(); opener.current?.focus(); }}>
               <DialogTitle>{t("Review photo")}</DialogTitle>
               <DialogDescription>{t(alt)}</DialogDescription>
               <div className="ops-zoom-toolbar">
@@ -151,7 +151,7 @@ export default function ProtectedEvidence({
                   {t("Zoom in")}
                 </Button>
               </div>
-              <div className="ops-image-zoom">
+              <div className="ops-image-zoom" role="region" aria-label={t("Enlarged photo inspection area")} tabIndex={0}>
                 <img
                   alt={t(alt)}
                   src={url}

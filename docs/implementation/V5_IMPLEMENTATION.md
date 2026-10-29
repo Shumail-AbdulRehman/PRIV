@@ -41,7 +41,7 @@ reading its old log. **Pending** includes screen/state checks still to perform.
 | team | `/staff`, `/staff/:id`, `/managers` | Real directory/hire/edit/detail + retained APIs | V5 frames/mobile/ENUR implemented | Current unit/API/SQL hire/edit/handover/role proof | Paired1366/390ENUR + forms/states inspected; detail derived from approved placeholder; Spec31webDone (V5_WORKFORCE.md) |
 | attendance | `/attendance` | Actual scoped location/from/to + secondary filters | V5 register/metrics/mobile implemented | API filters403/empty/localday and unit proof | Paired1366/390ENUR register/lower/photos + manager/loading/error inspected; Spec29webDone |
 | attendance-case | existing attendance context dialog | Immutable note/ack/exact retry/real409review | V5 facts/history + editor rail/mobile stack | Actual SQL capturedfacts unchanged, notes persist/retry once | Paired1366/390ENUR context/form/conflict + phone manager inspected; dialog vs prototype fullpage recorded; Spec29webDone |
-| reviews | `/exceptions`, `/exceptions/:id` | Existing + reason/draft correction | V5 core workspace implemented | Full suites + real API/SQL closure/filter/conflict checks | Paired EN/UR1366/390/1920 inspected; labelled image seam; broader closed/setup/held/large-queue/provider acceptance open (V5_REVIEWS.md) |
+| reviews | `/exceptions`, `/exceptions/:id` | Existing workspace + refresh/selected-view/keyboard/private delivery correction | V5 blue/white queue/evidence/facts/decision with44/48px zoom controls |50focused/450web/1444backend(+7skips),3SQL scripts,15scoped browser cases | Paired1366/390ENUR+1920core and states inspected,58observations/117PNGs; full36Blocked on qualified retained-media/privacy/native gate; V5_REVIEWS.md |
 | setup | `/setup` and linked existing setup forms | Persisted derived readiness and forms | V5 checklist/rail + actual Dialog forms | Actual saved area/schedule reaches4/4 afterreload; unknown/readonly/denial proof | Paired1366/390ENUR + loading/error/empty/forms inspected; V5_SETUP.md, Spec28Done |
 | workforce | staff/manager access/transfer/recovery dialogs | Reasoned actions + draft/context refresh retained | V5 dialogs/manager choices implemented | Actual transfer409/history/session/recovery/capacity proof | ENUR1366/390 forms/conflict/retry/denial/validation inspected; Spec31webDone; no native/provider qualification |
 | billing | `/subscription` | Actual lifecycle/catalog/transaction/portal guards retained | V5 subscription/capacity/activity stack and help rail |64Node+348React;1449backend+SQL;actual API/SQL browser proof | Paired1366/390ENUR+loading/error/empty/reconciliation/period/overcapacity inspected; Spec32webDone; actual merchant/provider qualification external; V5_BILLING.md |
@@ -240,3 +240,11 @@ Spec32 now meets applicable web acceptance. Actual billing/access paired referen
 ## Platform and native/account continuation — 2026-10-29
 
 33/35applicable web acceptance passes:64Node+360React,45focused,189backend+actual isolated SQL, full lint/types/build and20actual privateReact/API/SQL browser cases.74platform observations/98PNGs contain synthetic named positive workspaces and unchanged real default guards; no IdP qualification inferred. Native37source composition/font fixes pass106tests/types/Expoexport, with8RNWeb source observations/10images, never native acceptance. Additional30credential pending/denied/transport states are inspected with empty password fields. Seven units remain30,34,36,37,38,40,41; fullV5incomplete/41ineligible. Reports: V5_PLATFORM_COMPANIES.md, V5_PLATFORM_SERVICE.md, V5_PLATFORM_QA.md and V5_NATIVE_COMPOSITION.md.
+
+## Spec36 single-unit acceptance continuation — 2026-10-29
+
+Local review state and V5 interaction verification is complete for the tested web
+contract; full36remains Blocked. Fresh evidence is in `v5-review-acceptance/`, with
+source/image hashes and explicit positive-image/fault seam provenance. No production
+private media, privacy capability or native runtime is qualified. The original
+whole-product incomplete status and other specifications remain unchanged.

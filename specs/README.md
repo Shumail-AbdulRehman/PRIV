@@ -74,6 +74,21 @@ External release facts only: configured IdP/MFA/people, verified sender/support 
 
 ## Known gaps
 
+Latest single-spec continuation2026-10-29:36's local web behavior/V5 matrix is
+verified, but full36is Blocked on the existing qualified retained-media/privacy/
+native gate. Six remain30/34/36/37/40/41; no other unit started.450web/1444backend
+(+7existing SQL skips)/106native tests and15scoped browser cases pass;58observations/
+117PNGs. The original criterion stays unchecked. Current evidence/handoff:
+V5_REVIEWS.md and SESSION_HANDOFF.md. The following38checkpoint is historical.
+
+
+Spec36 continuation2026-10-29 extends the existing `evidence.service.ts` and
+`reviewClosure.integration.ts`. Two added no-consumer warnings are source-index
+false positives: evidence.route.ts already calls evidenceContent, and36directly runs
+the standalone closure integration test. No new endpoint is introduced. These are
+accepted alongside the ten existing warnings (12total); no unrelated spec/dependency
+is changed merely to silence them.
+
 Latest single-spec continuation2026-10-29:38's approved conditional web contract is
 Done; six remain30/34/36/37/40/41. Spec30stays Blocked;38's default unavailable
 states and production mail/legal/distribution/billing gates remain unchanged.

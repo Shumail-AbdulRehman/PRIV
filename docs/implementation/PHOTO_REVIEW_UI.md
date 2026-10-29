@@ -17,3 +17,26 @@ Protected evidence remains credentialed blob access.403/401 access denial,404/41
 - Local browser captures render actual React with synthetic HTTP fixtures on loopback5196, English/Urdu,1440/390px, outage/resolved/missing/denied states. They prove layout/rendering only; they are not backend/database/provider E2E proof. Logs/captures `/tmp/hygene-spec36-render.log` and `/tmp/hygene-spec36-visual/`; no prototype was changed.
 - No production data/configuration, database migration, new dependency or real photo processing. Existing real SQL policy proofs remain20/26; integrated whole-product/live-provider/device gates remain40/41.
 - Shared tracker/handoff/40 consumer documentation is updated by the coordinating agent after independent review, avoiding concurrent edits.
+
+## Single-spec continuation — 2026-10-29
+
+Issue84 continues from dependency-complete Spec38 checkpoint85e64f5. Existing
+implementation is reused. Failed detail refresh now leaves the note intact and
+blocks decisions until actual detail recovery.401/403/404/410 remove cached private
+detail and display review-specific EN/UR feedback. Issue deep links show their own
+requirement's replacement policy. A newer server version clears obsolete conflict
+feedback; uncertain-result retries retain their original request identity.
+
+Protected evidence remains credentialed review bytes. Keyboard users can pan a
+zoomed image in named inline/enlarged scroll regions, and closing the dialog returns
+focus to the actual opener. Zoom targets meet44px desktop/48px phone minima.
+HOLD review still requires authenticated delivery, role/task/site authorization and
+a review derivative; it cannot reveal an original or make evidence acceptable.
+The existing database constraint also rejects public evidence rows. No storage or
+qualification restriction was disabled for the checks.
+
+Fresh checks/evidence and precise full-acceptance blocker: `V5_REVIEWS.md` and
+`v5-review-acceptance/README.md`. Actual privacy assessment remains absent from the
+active adapter; no qualified retained-media fixture/native runtime is certified.
+Existing configuration keys cannot manufacture that capability. No new AI result,
+production photo access, provider activation or native acceptance is claimed.
