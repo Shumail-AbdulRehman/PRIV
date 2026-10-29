@@ -16,7 +16,19 @@ coordinator refinements3589c9e/971f2f9, service2f504f9 plus scoped audit/label f
 nativefe209f4/81be476 and the Spec40harness; later commits record acceptance.
 Inspect Git for final documentation HEAD. Independent review branches are
 `implementation/v5-platform-companies`, `implementation/v5-platform-service`,
-and `implementation/v5-native-composition`; draft publication is recorded below.
+and `implementation/v5-native-composition`.
+
+-33: OPEN/DRAFT [PR99](https://github.com/Shumail-AbdulRehman/PRIV/pull/99), issue71.
+-35: OPEN/DRAFT [PR100](https://github.com/Shumail-AbdulRehman/PRIV/pull/100), issue73.
+-37: OPEN/DRAFT [PR101](https://github.com/Shumail-AbdulRehman/PRIV/pull/101), issue60;
+ remains In progress without native runtime/device qualification.
+
+All three independent review branches are based on accepted billing branch
+`implementation/v5-billing-acceptance`/adae1b9. No PR is merged. Coordinator6c89bf1
+contains the combined acceptance/evidence; a final documentation commit follows.
+Scoped review source hashes match the tested coordinator byte-for-byte. Each
+scoped branch validator has0errors; company/service retain12existing warnings,
+native10. The combined current validator has10documented warnings.
 
 Original root remains **`fix/v5-runtime-data-loading` at55061b8**, with runtime/
 Maps/performance/config/design/source overlays unchanged. All earlier registered
