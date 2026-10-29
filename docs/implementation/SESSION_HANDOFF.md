@@ -1,3 +1,132 @@
+# Single-spec continuation — Specification37, 2026-10-29
+
+**Spec37 is Blocked for full acceptance. Local recovery work and automated checks
+are saved; STOP after this unit.** Only37was selected. No other specification was
+started/completed, no PR merged, deployment made or production data/provider changed.
+This instruction overrides all historical continuation/parallel instructions below.
+
+## Verified baseline and isolated Git stack
+
+Fetched origin, inspected root/worktrees/open draft PRs and restored latest
+`d5098aacbf92e1e00676e30e69914dd2a1303c8c`, the actual PR104 HEAD on
+`implementation/spec-36-review-acceptance`. PR104 is OPEN/DRAFT, based on
+Spec38/PR103. It contains the latest36handoff, verified native source and existing
+37partial history/PR101.36remains Blocked; no external36criterion was ticked.
+Dependencies09/17/20/21/26are Done and their actual APIs/native consumers exist.
+
+Current branch: `implementation/spec-37-native-acceptance`.
+Worktree: `/home/shumail/.local/share/hygene-ops/v5-spec37-20261029/implementation`.
+Issue60 was found/reused, assigned and claimed before edits. Implementation
+`a9879e49c02cbd2cb4962993c44e51f996b26276` is pushed in OPEN/DRAFT
+[PR105](https://github.com/Shumail-AbdulRehman/PRIV/pull/105), based on
+`implementation/spec-36-review-acceptance` /d5098aa (PR104). Historical native
+PR64/101 remain preserved. Issue60 stays open for review; full37remains Blocked.
+
+Original root remains `fix/v5-runtime-data-loading` at55061b8 with its unrelated
+source/config/runtime overlays. All22other present worktrees and798changed/untracked
+path hashes were captured privately before work; final audit checks HEAD, status
+and bytes. No root overlay was moved onto this accepted tree and no missing/prunable
+worktree registration was removed. Existing5173/8080services were left untouched.
+
+## Actual changes and verified behavior
+
+The task-photo prepare screen now exposes Allow camera/Open camera settings when
+permission is denied; previously its recovery action existed only in unreachable
+scan mode. Explicit continue rereads OS permission after current server authority.
+Permanent denial opens Settings without repeating a denied prompt. Foreground reads
+permission+manifest; failed recheck pauses scanning and gives EN/UR recovery. No
+foreground/upload timer automatically creates a session, photo upload or submission.
+Existing task-bound QR, same-capture manual retry, receipt and fail-closed photo
+qualification remain. Nine new cases cover7task-camera and2attendance permission
+recoveries; the Urdu vocabulary assertion includes the new messages.
+
+Only owned37source/test paths changed, plus its logs/tracker/handoff/ledger/inventory.
+No backend source, DB, provider, dependency/lockfile or design/v5 change. The new
+control reuses V5 Button/Text; actual native visual fidelity is still unverified.
+Full requirements/acceptance evidence matrix: [NATIVE_RECOVERY.md](NATIVE_RECOVERY.md).
+
+## Tests actually performed
+
+- Baseline106native pass; final `npm test --prefix frontend-mobile`:
+  **115passed,0failed,0skipped** (4.19s). Fresh51focused cases pass (3.42s),
+  overlapping that115, not additional product flows.
+- `npm run typecheck --prefix frontend-mobile` passes. Expo web export with
+  EXPO_NO_DOTENV/EXPO_OFFLINE/EXPO_NO_TELEMETRY/CI passes and bundles all4fonts.
+-169backend dependency unit tests/6files pass (4.60s): attendanceWrites,
+  credentialHandoff, launchPhotoPolicy, launchQualification, launch.route,
+  staffSubmission. No full backend/web, SQL, browser or live API run here;
+  Spec36's450web/1444backend/15browser results remain prior-session evidence.
+- Actual Expo dev server from this exact cwd on owned loopback5198 returns
+  `packager-status:running`; Android `index.bundle` request200 compiles3607modules
+  and includes the changed recovery/custom native module code. Android JS bundling
+  is not native execution. Only that owned Metro process was stopped afterward.
+- Locked local `npm ci --ignore-scripts --no-audit --no-fund` succeeds,787packages;
+  it resolves Metro's initial failure with shared dependency symlinks. No tracked
+  package/lockfile changed. Corrected conflicting Expo CLI flags and intermediate
+  fixture counter/assertion errors; final checks pass. Native renderer/install
+  deprecation advisories remain non-failing. Detector returns[].
+- Spec validator:42specs,0errors,12existing documented warnings; whitespace clean.
+  Final byte audit:22other worktrees/798dirty paths,0mismatches. Runtime source
+  hashes match the tested/bundled source. No hosted CI success is inferred.
+
+Private logs/env/source hashes/bundles/exports/preservation records live at
+`/home/shumail/.local/share/hygene-ops/v5-spec37-20261029/`. The complete command/file
+list and concrete evidence limits are in NATIVE_RECOVERY.md.
+
+## Physical/device/provider status and exact blocker
+
+ADB exists outside PATH at
+`/home/shumail/.local/share/hygeneops-tools/platform-tools/adb`,37.0.1-15733141;
+`adb devices -l` has **zero devices**. No emulator binary/configured AVD/system image
+was found; `~/.android/avd` is absent. Java is not on PATH and Java/Android SDK env
+variables are unset. The partial local SDK and KVM node are not a running emulator.
+
+No mobile .env or provider credentials were loaded/copied. This worktree/session
+has no device API URL or google-services.json/GOOGLE_SERVICES_JSON/EXPO_TOKEN.
+Physical-build config guard correctly exits1 for missing EXPO_PUBLIC_API_BASE_URL.
+The built-in development target is emulator networking, not a verified phone target.
+Metro bundling works with a local locked install; complete native install/execution
+is unverified. Expo Go does not supply this application's CaptureQuality module.
+
+The available21Oct APK's fresh SHA256 matches its record:
+5851b5df48c9e0f7957847d88197a7ddbe13ec9c3d1568e96f6d0df7c25fc717;
+its build commit isd69d855a4d893358a3c0467a05a1238d26c73333. Git shows33baseline
+native files already differ; the APK is not current-source proof. No new APK was
+built/installed/tested. Version2.1.7alone does not establish freshness.
+
+Remaining37requirements: a fresh exact-source native build on an authorized physical
+Android phone, matched device-reachable isolated test API, actual sign-in/session/
+password recovery, GPS/attendance/selfie, task QR, camera/permission/settings cycles,
+photo upload/lost-response/same-capture retry/receipt persistence, push delivery,
+EN/UR paired V5 screenshots, large system font, responsive native sizes, IME/Back/
+insets/background. **None is claimed physically verified. No browser screenshots
+substitute for them.** Positive photo processing additionally needs genuine consented
+privacy/fixture-identity/provider qualification: current adapter capabilities remain
+false and cannot be created by a flag. Push delivery needs approved dedicated
+Firebase/Expo configuration and a real phone. Safe-disabled source is preserved.
+
+## Count, next eligibility and strict STOP
+
+**36Done(including decision00),2In progress,3Blocked,1Not started. Six remain:
+30/36/37Blocked;34/40In progress;41Not started.** Full V5 remains incomplete.
+34is dependency-eligible (19/27Done) but qualified OIDC/state/nonce/PKCE/MFA/provider
+facts remain unavailable; there is no fully independently actionable new spec with
+current access.30/36/37can resume after their external facts/evidence arrive.
+40waits unfinished dependencies and41waits40. No next specification was started.
+Preserve this worktree and changes; STOP after publication, without merge/deploy.
+
+## Publication and STOP
+
+Implementationa9879e4 is pushed; OPEN/DRAFT PR105 is confirmed stacked on PR104.
+The following final documentation commit records publication; inspect branch HEAD
+for that handoff reference. Only the intentional read-only `design` symlink remains
+untracked; native dependencies/exports/caches are ignored or kept in the private
+parent. Existing user services and all prior worktrees/dirty bytes are preserved.
+No new unit, merge, deployment, production or real provider action followed.
+Six specifications remain;37Blocked. STOP here.
+
+---
+
 # Single-spec continuation — Specification36, 2026-10-29
 
 **Spec36 is Blocked for full acceptance. Its remaining local web functionality and

@@ -7,16 +7,17 @@ The historical Done rows below record functional deliveries and earlier checks;
 they do not establish approved V5 visual implementation or verification. They are
 retained without erasing their logs. The current four-part per-page ledger is in
 [the V5 implementation record](../docs/implementation/V5_IMPLEMENTATION.md).
-Spec40 remains in progress and41 remains ineligible. Current correction branch:
-`implementation/spec-36-review-acceptance`, OPEN/DRAFT [PR104](https://github.com/Shumail-AbdulRehman/PRIV/pull/104), based on verified `85e64f5` (Spec38/PR103).
-Latest session implements only36's remaining local review recovery, selected-view
-replacement, keyboard inspection and authenticated-delivery guard. Full36is **Blocked**
-on the existing qualified retained-media/privacy/native gate; its first criterion stays
-unchecked. Fresh450web/1444backend(+7existing skips)/106native tests, three actual SQL
-contract scripts and15scoped browser cases pass;58observations/117PNGs capture the
-local V5/state matrix. Six remain30/34/36/37/40/41.30stays Blocked. Next dependency-
-eligible continuation37needs a native runtime and was not started. No external
-qualification, merge, deployment or another completed unit is claimed.
+Spec40 remains in progress and41 remains ineligible. Current continuation branch:
+`implementation/spec-37-native-acceptance`, OPEN/DRAFT [PR105](https://github.com/Shumail-AbdulRehman/PRIV/pull/105), based on verified `d5098aa` (Spec36/PR104).
+Only37was worked on: permanent camera denial/Settings recovery, fresh permission and
+foreground authority checks.115native tests,51overlapping focused cases,169backend
+dependency checks, native TypeScript, Expo web export and Metro Android JS bundling
+pass. ADB exists outside PATH but no phone/emulator is connected or configured.
+Full37is **Blocked**; native V5/device/provider checks remain unverified.30/36stay
+Blocked. Six remain30/34/36/37/40/41:36Done(including00),2In progress,3Blocked,
+1Not started.34is dependency-eligible but needs qualified IdP facts; no fully
+independently actionable next unit.40/41are ineligible. Latest handoff/NATIVE_RECOVERY
+record exact limits and publication. STOP; no next specification, merge or deployment.
 Accepted33/35
 remain Done with draftPR99/100; native draftPR101remains incomplete.
 Accepted28 issue55/PR97 and32 issue69/PR98, operator59/PR95 and review84/PR96; prior workforce/shell/Settings/Help/auth histories retained. No previous UI screen is newly
@@ -63,7 +64,7 @@ marked visually verified merely because its existing tests pass.
 | 34 | [Platform sign-in and security workspace](34-platform-security-ui.md) | In progress | 19, 27 | Heavy | #59 |PR95;V5disabled-boundary17focused/3browser;IdPpositiveunqualified |
 | 35 | [Platform service audit and leads UI](35-platform-service-ui.md) | Done | 25, 27 | Standard | #73 |PR100; V5 web accepted;27focused, paired ENUR/1366/390; actual SQL + guarded routes; positive IdP remains34/40 |
 | 36 | [Truthful task and photo review UX](36-photo-review-ui.md) | Blocked | 20, 21, 27 | Standard | #84 | Local web recovery/eligibility/keyboard/private delivery verified:50focused/450web/1444backend/15browser,58observations/117PNGs; full retained-media/privacy/native gate open; V5_REVIEWS.md/latest handoff |
-| 37 | [Native attendance/photo/account recovery](37-native-workflows.md) | In progress | 09, 17, 20, 21, 26 | Standard | #60 |101native/tsc/Expoexport; deviceunverified |
+| 37 | [Native attendance/photo/account recovery](37-native-workflows.md) | Blocked | 09, 17, 20, 21, 26 | Standard | #60 |115native/51focused/169backend dependency checks; types/Expo export/Android JS bundle pass; physical V5/camera/GPS/QR/provider acceptance unavailable; NATIVE_RECOVERY.md |
 | 38 | [Configured support and service information](38-service-information.md) | Done | 27, 25 | Standard | #89 |32Help/64focused;64Node+372React;110backend;18public visual observations/34PNGs; V5_HELP.md. Live publication qualification remains39/40 |
 | 39 | [Launch operations and active CI proof](39-release-operations.md) | Done | 03, 26 | Heavy | #77 |PR78;13readiness;10SQL+7invariants;all4CIjobs pass; release blocked |
 | 40 | [Launch end-to-end suite](40-e2e-suite.md) | In progress | 01, 02, 03, 04, 05, 08, 07, 06, 09, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23, 24, 25, 26, 27, 28, 29, 30, 31, 32, 33, 34, 35, 36, 37, 38, 39 | Heavy | #79 | DraftPR81;29/30browser cases pass; APK built; full acceptance incomplete |
@@ -230,3 +231,7 @@ Implementation `d64e0ea` published as OPEN/DRAFT [PR85](https://github.com/Shuma
 - **2026-10-29 — Spec36 only, local continuation verified/full acceptance Blocked:** baseline85e64f5/PR103 independently restored; original and20other present worktrees/797dirty paths preserved. Actual React review recovery/selected issue replacement/permission copy/keyboard photo focus and authenticated HOLD delivery guard fixed.50focused/450whole web,89focused/1444whole backend(+7existing skips),106native tests, backend/frontend/strict browser/native types, builds/lint,3actual SQL scripts and15guarded browser cases pass.58observations/117PNGs; paired V5/core/closed and changed states inspected. Full36not Done: real retained-media/privacy/native acceptance unavailable; no fake AI or guard bypass. Remaining6unchanged; next dependency-eligible37requires runtime. Only36implemented, no merge/deploy/production action. See current SESSION_HANDOFF and V5_REVIEWS.md.
 
 - **2026-10-29 — Spec36 publication and STOP:** implementationdc0b6a8 pushed; OPEN/DRAFT PR104 https://github.com/Shumail-AbdulRehman/PRIV/pull/104 confirmed base implementation/spec-38-public-information/85e64f5 (PR103). Full36Blocked; issue84open, six specifications remain. Final publication audit21other worktrees/797dirty paths has0mismatches. Only36implemented; no merge/deploy or next unit. Final documentation commit follows implementation.
+
+- **2026-10-29 — Spec37 only, local permission recovery verified/full acceptance Blocked:** latest d5098aa/PR104 and09/17/20/21/26dependencies independently verified;22other worktrees/798dirty paths preserved. Permanent task-camera denial now exposes Settings, explicit continue rereads OS permission, foreground rereads permission+authority with actionable EN/UR failure; attendance denial/retry regression coverage added.115whole native/51focused(overlap),169backend dependency tests/6files, native types, Expo web export and current Android Metro JS bundle pass. No physical device/AVD/native screenshots or live photo/push qualification; existing APK proven older. Physical build config correctly refuses missing device API URL.37Blocked,30/36Blocked unchanged;36Done(including00),2In progress,3Blocked,1Not started,6remain.34dependency-eligible but qualified IdP facts unavailable;40/41ineligible. NATIVE_RECOVERY/current handoff document exact remaining gates. STOP, no other spec/merge/deploy/production operation.
+
+- **2026-10-29 — Spec37 publication and STOP:** implementationa9879e4 pushed; OPEN/DRAFT PR105 https://github.com/Shumail-AbdulRehman/PRIV/pull/105 confirmed base implementation/spec-36-review-acceptance/d5098aa (PR104). Issue60open; full37Blocked; six remain. Validator42/0errors/12existing warnings, whitespace clean,22other worktrees/798dirty paths byte-identical. Final handoff documentation follows; no next unit, merge, deployment or production/provider operation.
