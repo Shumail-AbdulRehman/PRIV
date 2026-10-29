@@ -1,64 +1,197 @@
-import {useRef,useState} from 'react';
-import {Link,useParams,useSearchParams} from 'react-router-dom';
-import {useQuery,useQueryClient} from '@tanstack/react-query';
-import {useLanguage} from '@/i18n/context';
-import {Button} from '@/components/ui/button';
-import {Input} from '@/components/ui/input';
+import { useRef, useState, type FormEvent, type ReactNode } from 'react';
+import { Link, useParams, useSearchParams } from 'react-router-dom';
+import { useQuery, useQueryClient } from '@tanstack/react-query';
+import { ArrowLeft, ArrowRight, Building2, FileText, LifeBuoy, Mail, Menu, RefreshCw, ShieldCheck } from 'lucide-react';
+import { useLanguage } from '@/i18n/context';
+import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
 import DataTable from '@/components/common/DataTable';
-import {Dialog,DialogContent,DialogTitle,DialogDescription} from '@/components/ui/dialog';
-import {OperatorBoundary,OperatorShell} from './OperatorLogin';
-import {operatorQueryScope} from './operatorSession';
-import {getCompanies,getCompany,setCompanyStatus,type CompanySummary} from './companyApi';
+import PageHeader from '@/components/common/PageHeader';
+import { Dialog, DialogContent, DialogTitle, DialogDescription } from '@/components/ui/dialog';
+import { OperatorBoundary, OperatorShell } from './OperatorLogin';
+import { operatorQueryScope } from './operatorSession';
+import { getCompanies, getCompany, setCompanyStatus, type CompanySummary } from './companyApi';
 import './companies.css';
 
-export default function CompaniesPage(){return <OperatorBoundary><CompanyWorkspace/></OperatorBoundary>;}
-/** Only mounted by OperatorBoundary after a real provider adapter is qualified. */
-export function CompanyWorkspace(){const {companyId}=useParams();return <CompanyContent key={companyId??'list'}/>;}
-function CompanyContent(){
- const {t,language}=useLanguage();const {companyId}=useParams();const [params,setParams]=useSearchParams();const qc=useQueryClient();
- const [search,setSearch]=useState(params.get('q')??'');const [status,setStatus]=useState(params.get('status')??'');
- const [target,setTarget]=useState<'ACTIVE'|'SUSPENDED'>('SUSPENDED');
- const [tab,setTab]=useState('account'),[open,setOpen]=useState(false),[reason,setReason]=useState(''),[version,setVersion]=useState(0),[busy,setBusy]=useState(false),[error,setError]=useState(''),[saved,setSaved]=useState('');const lock=useRef(false);
- const id=companyId&&/^[1-9]\d*$/.test(companyId)?Number(companyId):null;
- const list=useQuery({queryKey:[...operatorQueryScope,'companies',params.toString()],queryFn:({signal})=>getCompanies({q:params.get('q')??undefined,status:params.get('status')??undefined,after:params.get('after')??undefined},signal),enabled:!companyId,retry:false});
- const detail=useQuery({queryKey:[...operatorQueryScope,'company',id],queryFn:({signal})=>getCompany(id!,signal),enabled:!!id,retry:false});
- const current=detail.data;
- const stamp=(value:string|null|undefined)=>value&&Number.isFinite(Date.parse(value))?<time dateTime={value}>{new Date(value).toLocaleString(language==='ur'?'ur-PK':'en-PK')}</time>:t('Not available');
- const fail=(e:unknown)=>{const code=(e as {response?:{status?:number};status?:number})?.response?.status??(e as {status?:number})?.status;return code===403||code===401?'Platform access denied. Sign in with a provisioned operator account.':code===404?'Company account not found.':'Company records are unavailable. Retry the scoped request.';};
- async function save(event:React.FormEvent){
-  event.preventDefault();if(lock.current||!current||!reason.trim())return;lock.current=true;setBusy(true);setError('');
-  try{await setCompanyStatus(current.company.id,{operationalStatus:target,expectedVersion:version,reason:reason.trim()});setOpen(false);setReason('');setSaved('Company status saved. Billing entitlement is unchanged.');await qc.invalidateQueries({queryKey:operatorQueryScope});}
-  catch(e){const code=(e as {response?:{status?:number};status?:number})?.response?.status??(e as {status?:number})?.status;setError(code===409?'The company changed or needs legacy account review. Refresh before saving. Your reason is kept.':'The status change could not be confirmed. Refresh the account before retrying. Your reason is kept.');}
-  finally{lock.current=false;setBusy(false);}
- }
- const activeQuery=companyId?detail:list;
- return <OperatorShell title={t('Platform companies')}><div className="platform-company-workspace ops-page">
-  <nav className="platform-company-links" aria-label={t('Platform navigation')}><Link to="/platform/companies">{t('Companies')}</Link><Link to="/platform/service">{t('Platform service')}</Link><Link to="/platform/security">{t('Platform security')}</Link></nav>
-  {saved?<p role="status" className="ops-save-result">{t(saved)}</p>:null}
-  {companyId&&!id?<p role="alert">{t('Company account not found.')}</p>:null}
-  {activeQuery.isFetching?<p role="status">{t('Loading company records…')}</p>:null}
-  {activeQuery.isError?<div role="alert"><p>{t(fail(activeQuery.error))}</p><Button onClick={()=>void activeQuery.refetch()}>{t('Retry')}</Button></div>:null}
-  {!companyId?<>
-   <form className="platform-company-filters" onSubmit={e=>{e.preventDefault();setParams({...(search.trim()?{q:search.trim()}:{}),...(status?{status}:{})});}}>
-    <label>{t('Search companies')}<Input maxLength={100} value={search} onChange={e=>setSearch(e.target.value)}/></label>
-    <label>{t('Operational status')}<select value={status} onChange={e=>setStatus(e.target.value)}><option value="">{t('All statuses')}</option><option value="ACTIVE">{t('Active')}</option><option value="SUSPENDED">{t('Suspended')}</option></select></label><Button type="submit">{t('Apply filters')}</Button>
-   </form>
-   {list.data&&!list.isError?<><DataTable data={list.data.items} rowKey={r=>r.id} pageSize={25} emptyMessage={t('No companies match these filters.')} columns={[
-    {key:'name',header:t('Company'),render:r=><Link to={`/platform/companies/${r.id}`}>{r.name}</Link>},
-    {key:'plan',header:t('Capacity plan'),render:r=><bdi>{r.plan}</bdi>},
-    {key:'status',header:t('Operational status'),render:r=>t(r.operationalStatus==='ACTIVE'?'Active':'Suspended')},
-    {key:'version',header:t('Account version'),render:r=>r.accountVersion},
-   ]}/><div className="platform-company-links">{params.get('after')?<Button variant="outline" onClick={()=>setParams(p=>{const next=new URLSearchParams(p);next.delete('after');return next;})}>{t('First page')}</Button>:null}{list.data.nextCursor?<Button variant="outline" onClick={()=>setParams(p=>{const next=new URLSearchParams(p);next.set('after',list.data.nextCursor!);return next;})}>{t('Next page')}</Button>:null}</div></>:null}
-  </>:current&&!detail.isError?<>
-   <h2>{current.company.name}</h2>
-   <div className="platform-company-links" role="group" aria-label={t('Company sections')}>{['account','billing','activity'].map(value=><Button key={value} variant={tab===value?'default':'outline'} aria-pressed={tab===value} onClick={()=>setTab(value)}>{t({account:'Account',billing:'Billing',activity:'Activity'}[value]!)}</Button>)}</div>
-   {tab==='account'?<section className="ops-panel ops-panel-body"><dl className="platform-company-facts"><div><dt>{t('Operational status')}</dt><dd>{t(current.company.operationalStatus==='ACTIVE'?'Active':'Suspended')}</dd></div><div><dt>{t('Capacity plan')}</dt><dd><bdi>{current.company.plan}</bdi></dd></div><div><dt>{t('Operational reads')}</dt><dd>{t(current.operationalReadAllowed?'Allowed':'Restricted')}</dd></div><div><dt>{t('Account version')}</dt><dd>{current.company.accountVersion}</dd></div><div><dt>{t('Suspended at')}</dt><dd>{stamp(current.company.suspendedAt)}</dd></div><div><dt>{t('Suspension reason')}</dt><dd>{current.company.suspensionReason??t('Not recorded')}</dd></div></dl>
-    <p>{t('Suspension restricts company operations. Reactivation does not grant paid entitlement or change billing. Historical records are preserved.')}</p>
-    {!current.company.isActive?<p role="status">{t('This inactive legacy account requires review before reactivation.')}</p>:null}
-    <Button disabled={!current.company.isActive&&current.company.operationalStatus==='SUSPENDED'} variant="outline" onClick={()=>{setOpen(true);setError('');setVersion(current.company.accountVersion);setTarget(current.company.operationalStatus==='ACTIVE'?'SUSPENDED':'ACTIVE');}}>{t(current.company.operationalStatus==='ACTIVE'?'Suspend company':'Reactivate company')}</Button>
-   </section>:tab==='billing'?<section className="ops-panel ops-panel-body"><h3>{t('Mirrored billing metadata')}</h3><dl className="platform-company-facts"><div><dt>{t('Provider state')}</dt><dd><bdi>{current.providerState}</bdi></dd></div><div><dt>{t('Provider subscription status')}</dt><dd><bdi>{current.subscription?.status??t('Not available')}</bdi></dd></div><div><dt>{t('Billing period starts')}</dt><dd>{stamp(current.subscription?.periodStart)}</dd></div><div><dt>{t('Billing period ends')}</dt><dd>{stamp(current.subscription?.periodEnd)}</dd></div><div><dt>{t('Last provider event')}</dt><dd>{stamp(current.subscription?.lastEventAt)}</dd></div><div><dt>{t('Scheduled change')}</dt><dd><bdi>{current.subscription?.scheduledChangeAction??t('Not recorded')}</bdi> · {stamp(current.subscription?.scheduledChangeAt)}</dd></div></dl><p>{t('Metadata does not authorize payment overrides, impersonation or tenant workforce access.')}</p></section>:<section className="ops-panel ops-panel-body"><h3>{t('Administrative activity')}</h3>{current.activity.length?<ol>{current.activity.map(row=><li key={row.id}><strong>{t(row.action==='COMPANY_SUSPENDED'?'Company suspended':row.action==='COMPANY_REACTIVATED'?'Company reactivated':row.action)}</strong> · {stamp(row.createdAt)}<p>{row.reason??t('Not recorded')}</p></li>)}</ol>:<p>{t('No platform status changes recorded.')}</p>}</section>}
-   <Dialog open={open} onOpenChange={value=>{if(!busy)setOpen(value);}}><DialogContent className="workspace platform-company-dialog" showCloseButton={!busy} onInteractOutside={e=>{if(busy)e.preventDefault();}} onEscapeKeyDown={e=>{if(busy)e.preventDefault();}}><DialogTitle>{t(target==='SUSPENDED'?'Confirm suspension':'Confirm reactivation')}</DialogTitle><DialogDescription>{current.company.name} · {t('This changes operational access only. It does not mark the company paid or delete its records.')}</DialogDescription><form className="space-y-4" onSubmit={save}><label className="block">{t('Reason')}<Input required maxLength={500} value={reason} disabled={busy} onChange={e=>setReason(e.target.value)}/></label>{error?<p role="alert">{t(error)}</p>:null}<div className="platform-company-links"><Button type="button" variant="outline" disabled={busy} onClick={()=>setOpen(false)}>{t('Cancel')}</Button>{error?<Button type="button" variant="outline" disabled={busy||detail.isFetching} onClick={async()=>{const result=await detail.refetch();if(result.data&&!result.isError)setVersion(result.data.company.accountVersion);}}>{t('Refresh company')}</Button>:null}<Button type="submit" disabled={busy||!reason.trim()}>{t(busy?'Saving…':'Confirm status change')}</Button></div></form></DialogContent></Dialog>
-  </>:null}
- </div></OperatorShell>;
+export default function CompaniesPage() {
+  return <OperatorBoundary><CompanyWorkspace /></OperatorBoundary>;
 }
-export type {CompanySummary};
+
+/** Mounted by the real route only after the separate operator boundary permits it. */
+export function CompanyWorkspace() {
+  const { companyId } = useParams();
+  return <CompanyContent key={companyId ?? 'list'} />;
+}
+
+function statusCode(error: unknown) {
+  return (error as { response?: { status?: number }; status?: number } | null)?.response?.status
+    ?? (error as { status?: number } | null)?.status;
+}
+
+function CompanyNavigation() {
+  const { t } = useLanguage();
+  const [expanded, setExpanded] = useState(false);
+  const links = [
+    ['/platform/companies', 'Companies', Building2], ['/platform/inquiries', 'Inquiries', Mail],
+    ['/platform/service', 'Service diagnostics', LifeBuoy], ['/platform/audit', 'Administrative audit', FileText],
+    ['/platform/security', 'Platform security', ShieldCheck],
+  ] as const;
+  return <nav className="platform-company-nav" aria-label={t('Platform navigation')}>
+    <div className="platform-company-nav-heading"><Building2 size={20} aria-hidden="true" /><div><strong>Hygene Ops</strong><span>{t('Platform operations')}</span></div></div>
+    <Button className="platform-company-menu" variant="outline" aria-expanded={expanded} aria-controls="company-platform-links" onClick={() => setExpanded(!expanded)}><Menu size={17} aria-hidden="true" />{t('Platform navigation')}</Button>
+    <div id="company-platform-links" className="platform-company-nav-links" data-expanded={expanded}>
+      {links.map(([to, label, Icon]) => <Link key={to} to={to} aria-current={to === '/platform/companies' ? 'page' : undefined}><Icon size={18} aria-hidden="true" /><span>{t(label)}</span></Link>)}
+    </div>
+    <p className="platform-company-nav-note"><ShieldCheck size={17} aria-hidden="true" /><span>{t('Account metadata only. No workforce records or photos.')}</span></p>
+  </nav>;
+}
+
+function CompanyContent() {
+  const { t, language } = useLanguage();
+  const { companyId } = useParams();
+  const [params, setParams] = useSearchParams();
+  const client = useQueryClient();
+  const [search, setSearch] = useState(params.get('q') ?? '');
+  const [status, setStatus] = useState(params.get('status') ?? '');
+  const [tab, setTab] = useState('account');
+  const [target, setTarget] = useState<'ACTIVE' | 'SUSPENDED'>('SUSPENDED');
+  const [open, setOpen] = useState(false), [reason, setReason] = useState('');
+  const [version, setVersion] = useState(0), [busy, setBusy] = useState(false);
+  const [needsRefresh, setNeedsRefresh] = useState(false), [error, setError] = useState(''), [saved, setSaved] = useState('');
+  const lock = useRef(false);
+  const numericId = companyId && /^[1-9]\d*$/.test(companyId) ? Number(companyId) : null;
+  const id = numericId && Number.isSafeInteger(numericId) ? numericId : null;
+  const list = useQuery({
+    queryKey: [...operatorQueryScope, 'companies', params.toString()],
+    queryFn: ({ signal }) => getCompanies({ q: params.get('q') ?? undefined, status: params.get('status') ?? undefined, after: params.get('after') ?? undefined }, signal),
+    enabled: !companyId, retry: false,
+  });
+  const detail = useQuery({ queryKey: [...operatorQueryScope, 'company', id], queryFn: ({ signal }) => getCompany(id!, signal), enabled: !!id, retry: false });
+  const denied = statusCode(detail.error) === 401 || statusCode(detail.error) === 403;
+  const current = detail.data?.company.id === id && !denied ? detail.data : undefined;
+  const activeQuery = companyId ? detail : list;
+  const rows = list.data && !list.isError ? list.data.items : undefined;
+  const fail = (cause: unknown) => {
+    const code = statusCode(cause);
+    return code === 403 || code === 401 ? 'Platform access denied. Sign in with a provisioned operator account.'
+      : code === 404 ? 'Company account not found.' : 'Company records are unavailable. Retry the scoped request.';
+  };
+  const stamp = (value: string | null | undefined, dateOnly = false) => value && Number.isFinite(Date.parse(value))
+    ? <time dateTime={value}>{dateOnly ? new Date(value).toLocaleDateString(language === 'ur' ? 'ur-PK' : 'en-PK') : new Date(value).toLocaleString(language === 'ur' ? 'ur-PK' : 'en-PK')}</time>
+    : t('Not available');
+  const badge = (value: CompanySummary) => <span className="platform-company-badge" data-state={!value.isActive ? 'inactive' : value.operationalStatus.toLowerCase()}>{t(!value.isActive ? 'Inactive' : value.operationalStatus === 'ACTIVE' ? 'Active' : 'Suspended')}</span>;
+  const facts = (items: Array<[string, ReactNode]>) => <dl className="platform-company-facts">{items.map(([label, value]) => <div key={label}><dt>{t(label)}</dt><dd>{value}</dd></div>)}</dl>;
+
+  function beginStatusChange() {
+    if (!current || detail.isError || detail.isFetching) return;
+    if (!needsRefresh) {
+      setError(''); setVersion(current.company.accountVersion);
+      setTarget(current.company.operationalStatus === 'ACTIVE' ? 'SUSPENDED' : 'ACTIVE');
+    }
+    setOpen(true);
+  }
+  async function refreshCompany() {
+    if (lock.current || busy) return;
+    setBusy(true);
+    try {
+      const result = await detail.refetch();
+      if (!result.isError && result.data?.company.id === id) {
+        setVersion(result.data.company.accountVersion); setNeedsRefresh(false); setError('');
+      }
+    } finally { setBusy(false); }
+  }
+  async function save(event: FormEvent) {
+    event.preventDefault();
+    if (lock.current || !current || !reason.trim() || needsRefresh || detail.isFetching || detail.isError) return;
+    lock.current = true; setBusy(true); setError('');
+    try {
+      await setCompanyStatus(current.company.id, { operationalStatus: target, expectedVersion: version, reason: reason.trim() });
+      setOpen(false); setReason(''); setNeedsRefresh(false); setSaved('Company status saved. Billing entitlement is unchanged.');
+      await client.invalidateQueries({ queryKey: operatorQueryScope });
+    } catch (cause) {
+      setNeedsRefresh(true);
+      setError(statusCode(cause) === 409 ? 'The company changed or needs legacy account review. Refresh before saving. Your reason is kept.'
+        : 'The status change could not be confirmed. Refresh the account before retrying. Your reason is kept.');
+    } finally { lock.current = false; setBusy(false); }
+  }
+
+  const refresh = <Button variant="outline" disabled={activeQuery.isFetching || busy} onClick={() => void activeQuery.refetch()}><RefreshCw size={16} aria-hidden="true" />{t('Refresh')}</Button>;
+  const accountContent = current ? <div className="platform-company-split">
+    <div className="platform-company-stack">
+      <section className="platform-company-panel"><header><h2>{t('Company profile')}</h2><p>{t('Registered account metadata from the platform record.')}</p></header><div className="platform-company-panel-body">{facts([
+        ['Registered company', <bdi>{current.company.name}</bdi>], ['Customer ID', <bdi>{current.company.id}</bdi>],
+        ['Registered on', stamp(current.company.createdAt, true)], ['Last account update', stamp(current.company.updatedAt)],
+      ])}</div></section>
+      <section className="platform-company-panel"><header><h2>{t('Account access')}</h2><p>{t('Operational access is separate from billing entitlement.')}</p></header><div className="platform-company-panel-body">{facts([
+        ['Operational status', badge(current.company)], ['Operational reads', t(current.operationalReadAllowed ? 'Allowed' : 'Restricted')],
+        ['Suspended at', stamp(current.company.suspendedAt)], ['Suspension reason', current.company.suspensionReason ?? t('Not recorded')],
+      ])}<p className="platform-company-notice">{t('Suspension restricts company operations. Reactivation does not grant paid entitlement or change billing. Historical records are preserved.')}</p>
+        {!current.company.isActive ? <p role="status" className="platform-company-warning">{t('This inactive legacy account requires review before reactivation.')}</p> : null}
+        <Button disabled={busy || detail.isFetching || detail.isError || (!current.company.isActive && current.company.operationalStatus === 'SUSPENDED')} variant="outline" onClick={beginStatusChange}><ShieldCheck size={16} aria-hidden="true" />{t(current.company.operationalStatus === 'ACTIVE' ? 'Suspend company' : 'Reactivate company')}</Button>
+      </div></section>
+    </div>
+    <aside className="platform-company-stack">
+      <section className="platform-company-panel"><header><h2>{t('Account context')}</h2><p>{t('Only recorded account facts are shown.')}</p></header><div className="platform-company-panel-body">{facts([
+        ['Capacity plan', <bdi>{current.company.plan}</bdi>], ['Account version', <bdi>{current.company.accountVersion}</bdi>], ['Billing integration', t(current.billingConfigured ? 'Configured' : 'Not configured')],
+      ])}</div></section>
+      <section className="platform-company-panel"><header><h2>{t('Support context')}</h2></header><div className="platform-company-panel-body"><p>{t('Diagnose account issues using the customer ID and redacted service records.')}</p><Link className="platform-company-action" to={`/platform/audit?companyId=${current.company.id}`}>{t('View account audit')}<ArrowRight size={16} aria-hidden="true" /></Link><Link className="platform-company-action" to="/platform/service">{t('View service diagnostics')}<ArrowRight size={16} aria-hidden="true" /></Link></div></section>
+    </aside>
+  </div> : null;
+
+  return <OperatorShell title={t('Platform companies')}><div className="platform-company-workspace">
+    <CompanyNavigation />
+    <div className="platform-company-main">
+      {companyId ? <Link className="platform-company-back" to="/platform/companies"><ArrowLeft size={16} aria-hidden="true" />{t('All companies')}</Link> : null}
+      <PageHeader title={companyId ? current?.company.name ?? 'Company account' : 'Customer companies'} subtitle={companyId ? 'Customer account, commercial access and administrative history.' : 'Understand each account and the next action it needs.'} action={refresh} />
+      {saved ? <p role="status" className="platform-company-success">{t(saved)}</p> : null}
+      {companyId && !id ? <p role="alert" className="platform-company-state">{t('Company account not found.')}</p> : null}
+      {activeQuery.isFetching ? <p role="status" className="platform-company-loading">{t('Loading company records…')}</p> : null}
+      {activeQuery.isError ? <div role="alert" className="platform-company-state"><h2>{t('Company records need attention')}</h2><p>{t(fail(activeQuery.error))}</p>{current ? <p>{t('Showing the last saved account record. Refresh before making changes.')}</p> : null}<Button variant="outline" disabled={activeQuery.isFetching || busy} onClick={() => void activeQuery.refetch()}>{t('Retry')}</Button></div> : null}
+      {detail.data && !current && !denied && id ? <p role="alert" className="platform-company-state">{t('Company records do not match this account. Refresh before continuing.')}</p> : null}
+      {!companyId ? <>
+        {rows ? <section className="platform-company-metrics" aria-label={t('Companies on this page')}>
+          {[
+            ['Companies on this page', rows.length], ['Active on this page', rows.filter(row => row.isActive && row.operationalStatus === 'ACTIVE').length],
+            ['Suspended on this page', rows.filter(row => row.operationalStatus === 'SUSPENDED').length], ['Inactive on this page', rows.filter(row => !row.isActive).length],
+          ].map(([label, count]) => <div key={label}><span>{t(String(label))}</span><strong><bdi>{count}</bdi></strong></div>)}
+        </section> : null}
+        <section className="platform-company-panel platform-company-register" aria-label={t('Company register')}>
+          <form className="platform-company-filters" onSubmit={event => { event.preventDefault(); setParams({ ...(search.trim() ? { q: search.trim() } : {}), ...(status ? { status } : {}) }); }}>
+            <label>{t('Search companies')}<Input maxLength={100} value={search} placeholder={t('Company name')} onChange={event => setSearch(event.target.value)} /></label>
+            <label>{t('Operational status')}<select value={status} onChange={event => setStatus(event.target.value)}><option value="">{t('All statuses')}</option><option value="ACTIVE">{t('Active')}</option><option value="SUSPENDED">{t('Suspended')}</option></select></label>
+            <Button type="submit">{t('Apply filters')}</Button><Button type="button" variant="ghost" disabled={!search && !status && !params.toString()} onClick={() => { setSearch(''); setStatus(''); setParams({}); }}>{t('Clear filters')}</Button>
+          </form>
+          {rows ? <>
+            <DataTable data={rows} rowKey={row => row.id} emptyMessage={t('No companies match these filters.')} mobileRender={row => <div className="platform-company-mobile-record"><div><Link to={`/platform/companies/${row.id}`}><bdi>{row.name}</bdi></Link>{badge(row)}</div><p>{t('Capacity plan')}: <bdi>{row.plan}</bdi> · {t('Account version')}: <bdi>{row.accountVersion}</bdi></p><p>{t('Registered on')} {stamp(row.createdAt, true)}</p><Link className="platform-company-action" to={`/platform/companies/${row.id}`}>{t('Open account')}<ArrowRight size={16} aria-hidden="true" /></Link></div>} columns={[
+              { key: 'name', header: t('Company'), render: row => <div className="platform-company-record-name"><Link to={`/platform/companies/${row.id}`}><bdi>{row.name}</bdi></Link><small>{t('Registered on')} {stamp(row.createdAt, true)}</small></div> },
+              { key: 'status', header: t('Operational status'), render: badge }, { key: 'plan', header: t('Capacity plan'), render: row => <bdi>{row.plan}</bdi> },
+              { key: 'version', header: t('Account version'), render: row => <bdi>{row.accountVersion}</bdi> },
+              { key: 'actions', header: t('Account'), render: row => <Link className="platform-company-action" to={`/platform/companies/${row.id}`}>{t('Open account')}<ArrowRight size={16} aria-hidden="true" /></Link> },
+            ]} />
+            <footer className="platform-company-pagination"><p>{t('{count} companies on this page', { count: rows.length })}</p><div>{params.get('after') ? <Button variant="outline" disabled={list.isFetching} onClick={() => setParams(previous => { const next = new URLSearchParams(previous); next.delete('after'); return next; })}>{t('First page')}</Button> : null}{list.data?.nextCursor ? <Button variant="outline" disabled={list.isFetching} onClick={() => setParams(previous => { const next = new URLSearchParams(previous); next.set('after', list.data.nextCursor!); return next; })}>{t('Next page')}</Button> : null}</div></footer>
+          </> : !list.isError && list.isPending ? <div className="platform-company-placeholder" aria-hidden="true"><span /><span /><span /></div> : null}
+        </section>
+        <p className="platform-company-footnote"><ShieldCheck size={16} aria-hidden="true" />{t('Counts describe this bounded page only. Account metadata does not provide workforce access.')}</p>
+      </> : current ? <>
+        <div className="platform-company-detail-heading">{badge(current.company)}<span>{t('Customer ID')} <bdi>{current.company.id}</bdi></span></div>
+        <div className="platform-company-tabs" role="group" aria-label={t('Company sections')}>{[['account', 'Account'], ['billing', 'Billing'], ['activity', 'Activity']].map(([value, label]) => <Button key={value} variant="ghost" aria-pressed={tab === value} onClick={() => setTab(value)}>{t(label)}</Button>)}</div>
+        {tab === 'account' ? accountContent : tab === 'billing' ? <section className="platform-company-panel"><header><h2>{t('Mirrored billing metadata')}</h2><p>{t('Provider facts are read-only and do not change commercial access.')}</p></header><div className="platform-company-panel-body">{facts([
+          ['Provider state', <bdi>{current.providerState}</bdi>], ['Provider subscription status', <bdi>{current.subscription?.status ?? t('Not available')}</bdi>],
+          ['Billing period starts', stamp(current.subscription?.periodStart)], ['Billing period ends', stamp(current.subscription?.periodEnd)], ['Last provider event', stamp(current.subscription?.lastEventAt)],
+          ['Scheduled change', <><bdi>{current.subscription?.scheduledChangeAction ?? t('Not recorded')}</bdi> · {stamp(current.subscription?.scheduledChangeAt)}</>],
+        ])}<p className="platform-company-notice">{t('Metadata does not authorize payment overrides, impersonation or tenant workforce access.')}</p></div></section> : <section className="platform-company-panel"><header><h2>{t('Administrative activity')}</h2><p>{t('Recorded platform status changes for this account.')}</p></header><div className="platform-company-panel-body">{current.activity.length ? <ol className="platform-company-timeline">{current.activity.map(item => <li key={item.id}><strong>{t(item.action === 'COMPANY_SUSPENDED' ? 'Company suspended' : item.action === 'COMPANY_REACTIVATED' ? 'Company reactivated' : item.action)}</strong><p>{item.reason ?? t('Not recorded')}</p><small>{stamp(item.createdAt)}</small></li>)}</ol> : <p className="platform-company-empty">{t('No platform status changes recorded.')}</p>}</div></section>}
+        <Dialog open={open} onOpenChange={value => { if (!busy) setOpen(value); }}><DialogContent className="workspace platform-company-dialog" showCloseButton={!busy} onInteractOutside={event => { if (busy) event.preventDefault(); }} onEscapeKeyDown={event => { if (busy) event.preventDefault(); }}>
+          <DialogTitle>{t(target === 'SUSPENDED' ? 'Confirm suspension' : 'Confirm reactivation')}</DialogTitle>
+          <DialogDescription><bdi>{current.company.name}</bdi> · {t('This changes operational access only. It does not mark the company paid or delete its records.')}</DialogDescription>
+          <form className="platform-company-confirmation" onSubmit={save}>
+            <label>{t('Reason')}<Input required maxLength={500} pattern="[^\x00-\x1F\x7F]+" value={reason} disabled={busy} onChange={event => setReason(event.target.value)} /></label>
+            {error ? <p role="alert" className="platform-company-warning">{t(error)}</p> : null}
+            <div className="platform-company-dialog-actions"><Button type="button" variant="outline" disabled={busy} onClick={() => setOpen(false)}>{t('Cancel')}</Button>{needsRefresh ? <Button type="button" variant="outline" disabled={busy || detail.isFetching} onClick={() => void refreshCompany()}>{t('Refresh company')}</Button> : null}<Button type="submit" disabled={busy || needsRefresh || detail.isFetching || detail.isError || !reason.trim()}>{t(busy ? 'Saving…' : 'Confirm status change')}</Button></div>
+          </form>
+        </DialogContent></Dialog>
+      </> : null}
+    </div>
+  </div></OperatorShell>;
+}
+
+export type { CompanySummary };
