@@ -1,3 +1,5 @@
+Current scoped review: **OPEN/DRAFT [PR100](https://github.com/Shumail-AbdulRehman/PRIV/pull/100)**, base accepted billing branch/adae1b9. No merge.
+
 # Scoped V5 Specification35 review checkpoint — 2026-10-29
 
 This independent branch contains only its assigned runtime scope and acceptance records, based on accepted28/32 atadae1b9. The canonical combined latest source/handoff is `implementation/v5-remaining-checkpoint` in the sibling `coordinator` worktree. Read that handoff before selecting further work. Specification35 meets applicable web acceptance; qualified positive operator IdP/MFA remains34/40. Whole combined checks and shared visual provenance were executed in the coordinator; no new branch-only whole-suite result is inferred. Original root and all earlier worktrees remain preserved. No merge/deploy/production mutation.
