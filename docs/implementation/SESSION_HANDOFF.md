@@ -4,7 +4,7 @@
 
 ## Canonical current work
 
-Branch `implementation/v5-billing-acceptance`, based on verified `55061b8`, in `/home/shumail/.local/share/hygene-ops/v5-billing-20261029/implementation`. Application commits `1040ef2` and `5f90451`; subsequent test/evidence/acceptance commits follow. Issue 69 reused; historical draft PR 70 retained. New acceptance draft publication is recorded below when available.
+Branch `implementation/v5-billing-acceptance`, based on verified `55061b8`, in `/home/shumail/.local/share/hygene-ops/v5-billing-20261029/implementation`. Application commits `1040ef2` and `5f90451`; subsequent test/evidence/acceptance commits follow. Issue 69 reused; historical draft PR 70 retained. New **OPEN/DRAFT [PR 98](https://github.com/Shumail-AbdulRehman/PRIV/pull/98)**, base `implementation/v5-continuation-final` at55061b8. Issue69 remains open for review; no merge.
 
 The original root `/home/shumail/bkacup-16-oct-bkpriv/bk-Priv/PRIV` remains on **`fix/v5-runtime-data-loading`**, with all existing runtime/Maps/source changes and exact Git status preserved. Do not assume the old handoff branch name is current, switch/reset that dirty tree, or copy its overlay over the new billing implementation. Current progress/handoff records live on the acceptance branch. Preservation snapshot/patch/status: `/home/shumail/.local/share/hygene-ops/v5-billing-20261029/` (19 file hashes, no mismatches).
 
@@ -830,3 +830,5 @@ Allfour requestedbatchPRs confirmedOPEN/DRAFT andstackedcorrectly:29 https://git
 ## Current final checkpoint
 
 Main root branch implementation/spec-40-launch-e2e, draftPR81 base39, issue79. Latest behavior commit64d42c4; final documentation commit follows.40Inprogress/41Notstarted;39of41Done. E2E29passed/1confirmed registration redirect failure; all15required rows and remaining gaps mapped. Both tested commit CI39645400371 and fresh APK39644524268 passed their respective jobs, without overriding the failing E2E or absent physical/provider evidence. Build PR80 and test PR81 are OPEN/DRAFT; no merges/deployment. All8original dirty files remain byte-identical, unrelated untracked work preserved. STOP: no next eligible existing spec until40acceptance is met; proposed registration fix remains unimplemented.
+
+- **2026-10-29 — Spec32 publication:** source1040ef2/5f90451, verified acceptance90cbb47 published in OPEN/DRAFT PR98 https://github.com/Shumail-AbdulRehman/PRIV/pull/98 on implementation/v5-billing-acceptance. Final documentation commit follows. Hosted CI started; no hosted success inferred or production qualification claimed. Root dirty work unchanged; nine specs remain.
