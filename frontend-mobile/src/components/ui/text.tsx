@@ -20,6 +20,8 @@ const Text = React.forwardRef<RNText, TextProps>(
             )
           ? translateText(children.join(""), language)
           : children;
+    const textLanguage = typeof content === 'string' && /[A-Za-z]/.test(content) && !/[\u0600-\u06ff\u0750-\u077f\u08a0-\u08ff]/.test(content) ? 'en' : language;
+    const loadedFamily = nativeFontFamily(textLanguage, emphasized);
     return (
       <RNText
         ref={ref}
@@ -27,7 +29,7 @@ const Text = React.forwardRef<RNText, TextProps>(
         {...props}
         style={[
           {
-            fontFamily: fontsReady ? nativeFontFamily(language, emphasized) : Platform.OS === "web" ? "system-ui, -apple-system, sans-serif" : Platform.OS === "android" ? "sans-serif" : "System",
+            fontFamily: fontsReady ? Platform.OS === 'web' ? `${loadedFamily}, ${nativeFontFamily('en', emphasized)}, sans-serif` : loadedFamily : Platform.OS === "web" ? "system-ui, -apple-system, sans-serif" : Platform.OS === "android" ? "sans-serif" : "System",
             ...(fontsReady ? { fontWeight: 'normal' as const } : {}),
             writingDirection: isRTL ? "rtl" : "ltr",
             textAlign: isRTL ? "right" : "left",
