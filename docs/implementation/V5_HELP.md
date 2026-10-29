@@ -180,6 +180,11 @@ existing39/40release gates; missing facts keep actual services/purchases unavail
 Spec30 remains Blocked. No backend/schema/package/design/production data change.
 Six specifications remain; next dependency-eligible task is36, identified only.
 
+Published implementation36fd568 in OPEN/DRAFT
+[PR103](https://github.com/Shumail-AbdulRehman/PRIV/pull/103), based on the verified
+Spec30handoff branch/2011a90. Issue89remains open for human review; no merge or
+production deployment. Final publication documentation follows the source commit.
+
 ## Single-spec continuation — 2026-10-29
 
 Baseline `2011a90` preserves accepted implementation and the blocked Spec30 handoff.

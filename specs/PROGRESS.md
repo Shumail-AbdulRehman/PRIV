@@ -217,3 +217,8 @@ Implementation `d64e0ea` published as OPEN/DRAFT [PR85](https://github.com/Shuma
   1Blocked,1Not started:6remain30/34/36/37/40/41. Next dependency-eligible36identified
   only. Strict STOP after publication; full commands/limits/evidence in V5_HELP and
   latest SESSION_HANDOFF.
+
+- **2026-10-29 — Spec38 published:** implementation36fd568 on
+  implementation/spec-38-public-information; OPEN/DRAFT
+  [PR103](https://github.com/Shumail-AbdulRehman/PRIV/pull/103), base2011a90/PR102.
+  Six remain;30Blocked;36identified only. STOP, no next implementation begun.

@@ -87,3 +87,7 @@ Provide actual support path, approved service/privacy/exit text via explicit con
   Native is outside this web unit. Real mailbox/legal/distribution/photo/merchant
   qualification remains39/40; default unavailable guards and30Blocked retained.
   No other spec implementation. V5_HELP and final evidence map every criterion.
+
+- **Published:** implementation36fd568, OPEN/DRAFT
+  [PR103](https://github.com/Shumail-AbdulRehman/PRIV/pull/103), base verified
+  implementation/spec-30-delivery-qualification. Issue89open for human review.

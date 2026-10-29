@@ -26,8 +26,13 @@ merchant, native/device and photo qualification remain existing39/40release gate
 
 Branch: `implementation/spec-38-public-information`.
 Worktree: `/home/shumail/.local/share/hygene-ops/v5-spec38-20261029/implementation`.
-Issue89reused/claimed; historical reviews PR76/90 retained. Commit/current draft
-review are recorded in the publication note below.
+Issue89reused/claimed; historical reviews PR76/90 retained. Implementation commit
+`36fd56872956ef488219e189001d3008daaec968` is pushed. OPEN/DRAFT
+[PR103](https://github.com/Shumail-AbdulRehman/PRIV/pull/103) is based on
+`implementation/spec-30-delivery-qualification` /2011a90. The final publication
+documentation commit follows36fd568; inspect branch HEAD for that reference.
+No PR merged; issue89remains open pending human review. Hosted CI is separate
+from the completed local checks; no new hosted success is claimed here.
 
 ## Implemented and verified
 

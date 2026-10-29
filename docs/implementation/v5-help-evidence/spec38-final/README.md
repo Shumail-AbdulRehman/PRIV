@@ -43,8 +43,9 @@ transport, then retry the actual route. They do not qualify a provider outage.
 Assertions cover RTL, overflow, language targets, distinct link names, FAQ,
 navigation/main focus/scroll and stale contact hiding. All final34images inspected.
 State inspection led to real scroll/focus and label-alignment fixes before final
-capture. The four changed loading/error images were reinspected after the final fix;
-other final images matched the inspected hashes.
+capture. Changed images were reinspected after corrections; other final images
+matched inspected hashes. The existing Android-help fragment's actual focused
+section/viewport is also verified without claiming a native app or download.
 
 References contain fictional identity/sidebar/reviewer tools and preview ticket
 form. Actual Help remains public with a brand/language header and real support
