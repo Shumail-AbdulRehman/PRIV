@@ -1,17 +1,119 @@
-.operator-content:has(.platform-service-workspace) { width:min(100%,1600px); }
-.platform-service-workspace { overflow-wrap:anywhere; }
-.platform-service-actions { display:flex; gap:16px; flex-wrap:wrap; align-items:center; }
-.platform-service-workspace a { color:var(--primary); text-decoration:underline; text-underline-offset:3px; display:inline-flex; min-height:48px; align-items:center; }
-.platform-service-filters { display:flex; flex-wrap:wrap; gap:16px; align-items:end; }
-.platform-service-workspace label { display:grid; gap:8px; }
-.platform-service-workspace select { min-height:48px; border:1px solid var(--border); background:var(--card); border-radius:7px; padding:10px; max-width:100%; }
-.platform-service-facts { display:grid; grid-template-columns:repeat(2,minmax(0,1fr)); gap:24px; margin-block:24px; }
-.platform-service-facts dt { color:var(--muted-foreground); }
-.platform-service-facts dd { margin-block-start:8px; }
-.platform-service-workspace .ops-panel-body>p { margin-block:16px; }
-.platform-service-workspace h2 { font-size:24px; font-weight:650; }
-.platform-service-workspace h3 { font-size:19px; font-weight:650; }
-.platform-service-edit { display:grid; gap:16px; max-width:640px; margin-block-start:24px; }
-.platform-service-edit [data-slot="button"] { justify-self:start; }
-.platform-service-submission { white-space:pre-wrap; }
-@media(max-width:620px) { .platform-service-facts { grid-template-columns:minmax(0,1fr); } .platform-service-filters label { width:100%; } }
+.operator-page:has(.platform-service-workspace) .operator-header { min-height:72px; padding:12px 32px; }
+.operator-content:has(.platform-service-workspace) { display:block; width:100%; padding:0; margin:0; }
+.operator-content:has(.platform-service-workspace)>svg,
+.operator-content:has(.platform-service-workspace)>h1 { display:none; }
+.platform-service-workspace { display:grid; grid-template-columns:224px minmax(0,1fr); min-height:calc(100dvh - 72px); overflow-wrap:anywhere; }
+.platform-service-sidebar { display:flex; flex-direction:column; gap:24px; padding:28px 16px; border-inline-end:1px solid var(--border); background:var(--card); }
+.platform-service-context { display:flex; gap:10px; align-items:center; padding-inline:12px; }
+.platform-service-context>svg { color:var(--primary); flex-shrink:0; }
+.platform-service-context strong { display:block; font-size:14px; font-weight:650; }
+.platform-service-context span { display:block; color:var(--muted-foreground); font-size:12px; margin-block-start:2px; }
+.platform-service-sidebar nav { display:grid; gap:4px; }
+.platform-service-sidebar nav a { display:flex; align-items:center; gap:10px; min-height:48px; padding:10px 12px; border-radius:7px; color:var(--muted-foreground); font-size:14px; text-decoration:none; }
+.platform-service-sidebar nav a[aria-current="page"] { background:var(--accent); color:var(--primary); font-weight:600; }
+.platform-service-sidebar nav a>svg { flex-shrink:0; }
+.platform-service-menu { display:none; }
+.platform-service-boundary { display:flex; align-items:start; gap:8px; margin-block-start:auto; padding:20px 12px 0; border-block-start:1px solid var(--border); color:var(--muted-foreground); font-size:12px; }
+.platform-service-boundary>svg { flex-shrink:0; margin-block-start:2px; }
+.platform-service-main { min-width:0; width:100%; max-width:1600px; padding:28px 32px 40px; margin-inline:auto; gap:24px; }
+.platform-service-main>.page-header { align-items:start; }
+.platform-service-main .page-header-copy { min-width:0; flex:1; }
+.platform-service-main .page-header-copy p { max-width:65ch; font-size:15px; margin-block-start:8px; }
+.platform-service-main .page-header-actions { flex-shrink:0; }
+.platform-service-tabs { display:flex; gap:24px; min-width:0; overflow-x:auto; border-block-end:1px solid var(--border); }
+.platform-service-tabs button { flex-shrink:0; min-height:48px; padding:10px 0; border-block-end:2px solid transparent; color:var(--muted-foreground); font-size:14px; background:transparent; cursor:pointer; }
+.platform-service-tabs button[aria-pressed="true"] { color:var(--primary); border-color:var(--primary); font-weight:600; }
+.platform-service-diagnostics { display:grid; grid-template-columns:minmax(0,1fr) 300px; align-items:start; gap:24px; }
+.platform-service-stack { display:grid; min-width:0; gap:24px; }
+.platform-service-panel { min-width:0; overflow:hidden; }
+.platform-service-panel-heading { display:flex; flex-wrap:wrap; align-items:center; justify-content:space-between; gap:16px; padding:20px 24px; border-block-end:1px solid var(--border); }
+.platform-service-panel-heading h2 { font-size:19px; line-height:1.4; font-weight:650; }
+.platform-service-panel-body { padding:0 24px 24px; }
+.platform-service-panel-body>p { margin-block-start:20px; }
+.platform-service-panel-body>[data-slot="button"] { margin-block-start:20px; }
+.platform-service-facts { display:grid; margin:0; }
+.platform-service-facts>div { display:grid; grid-template-columns:minmax(0,1fr) minmax(0,1.5fr); gap:16px; padding-block:16px; border-block-end:1px solid var(--border); }
+.platform-service-facts>div:last-child { border:0; padding-block-end:0; }
+.platform-service-facts dt { color:var(--muted-foreground); font-size:14px; }
+.platform-service-facts dd { margin:0; overflow-wrap:anywhere; }
+.platform-service-notice { display:flex; align-items:start; gap:10px; padding:14px 16px; background:var(--accent); color:var(--primary-dark); border:1px solid var(--border); border-radius:7px; font-size:14px; }
+.platform-service-notice>svg { flex-shrink:0; margin-block-start:2px; }
+.platform-service-main a { color:var(--primary); text-decoration:underline; text-underline-offset:3px; }
+.platform-service-main .platform-service-mail { display:flex; flex-direction:column; align-items:start; justify-content:center; min-height:48px; margin-block-start:16px; }
+.platform-service-mail bdi { max-width:100%; font-size:13px; }
+.platform-service-main .platform-service-back { display:inline-flex; align-items:center; justify-self:start; min-height:48px; }
+.platform-service-stack .platform-service-panel-body>p+a { display:inline-flex; align-items:center; min-height:48px; margin-block-start:8px; }
+.platform-service-loading { display:flex; align-items:center; flex-wrap:wrap; gap:12px; color:var(--muted-foreground); font-size:14px; }
+.platform-service-skeleton { width:110px; height:12px; border-radius:4px; background:var(--border); }
+.platform-service-placeholder { display:grid; gap:20px; min-height:260px; padding:24px; background:var(--card); border:1px solid var(--border); border-radius:10px; }
+.platform-service-placeholder span { display:block; align-self:start; height:16px; width:85%; background:var(--border); border-radius:4px; }
+.platform-service-placeholder span:nth-child(2n) { width:60%; }
+.platform-service-feedback { display:flex; flex-wrap:wrap; align-items:center; justify-content:space-between; gap:16px; padding:16px; border:1px solid var(--danger-ink); border-radius:7px; background:var(--danger-fill); color:var(--danger-ink); }
+.platform-service-feedback p { flex:1; min-width:150px; }
+.platform-service-register { min-width:0; overflow:hidden; }
+.platform-service-register .platform-service-filters { padding:16px 24px; border-block-end:1px solid var(--border); }
+.platform-service-register .data-table { border:0; border-radius:0; }
+.platform-service-register .record-summary { margin:0; padding:20px 24px; border:0; border-block-end:1px solid var(--border); border-radius:0; }
+.platform-service-register-note { padding:20px 24px 0; color:var(--muted-foreground); font-size:14px; }
+.platform-service-filters { display:flex; flex-wrap:wrap; align-items:end; gap:12px; }
+.platform-service-filters label { min-width:140px; flex:1; }
+.platform-service-main label { display:grid; gap:8px; color:var(--ink); font-size:14px; font-weight:550; }
+.platform-service-main select { min-height:48px; max-width:100%; width:100%; padding:10px 12px; border:1px solid var(--border); border-radius:7px; background:var(--card); font:inherit; }
+.platform-service-main input { min-height:48px; font-weight:400; }
+.platform-service-pagination { display:flex; flex-wrap:wrap; justify-content:space-between; align-items:center; gap:16px; color:var(--muted-foreground); font-size:13px; }
+.platform-service-pagination>div { display:flex; flex-wrap:wrap; gap:12px; }
+.platform-service-inquiry { display:grid; grid-template-columns:minmax(0,1fr) 340px; align-items:start; gap:24px; }
+.platform-service-inquiry .platform-service-panel-body>p { color:var(--muted-foreground); font-size:14px; }
+.platform-service-inquiry .platform-service-facts { margin-block-start:12px; }
+.platform-service-requirements-heading { margin-block-start:28px; font-size:16px; font-weight:650; }
+.platform-service-inquiry .platform-service-submission { white-space:pre-wrap; color:var(--ink); font-size:15px; margin-block-start:8px; }
+.platform-service-edit { display:grid; gap:20px; padding-block-start:24px; }
+.platform-service-edit>[data-slot="button"] { width:100%; min-height:48px; }
+.platform-service-form-note { color:var(--muted-foreground); font-size:13px; }
+.platform-service-form-error { display:grid; gap:12px; padding:14px; border:1px solid var(--danger-ink); background:var(--danger-fill); border-radius:7px; color:var(--danger-ink); font-size:14px; }
+.platform-service-save-result { padding:14px; background:var(--success-fill); color:var(--success-ink); border:1px solid var(--success-ink); border-radius:7px; font-size:14px; }
+.platform-service-inquiry .platform-service-stale { padding:14px; border:1px solid var(--warning-ink); border-radius:7px; color:var(--warning-ink); background:var(--warning-fill); }
+.platform-service-workspace :focus-visible { outline:3px solid var(--primary); outline-offset:3px; }
+[dir="rtl"] .platform-service-workspace { line-height:1.85; }
+@media(hover:hover) {
+ .platform-service-sidebar nav a:hover { background:var(--accent); color:var(--primary); }
+ .platform-service-tabs button:hover { color:var(--primary); }
+}
+@media(max-width:1100px) {
+ .platform-service-main { padding:24px; }
+ .platform-service-diagnostics,.platform-service-inquiry { grid-template-columns:minmax(0,1fr); }
+ .platform-service-diagnostics>aside { grid-template-columns:repeat(2,minmax(0,1fr)); }
+}
+@media(max-width:900px) {
+ .platform-service-workspace { grid-template-columns:minmax(0,1fr); }
+ .platform-service-sidebar { display:block; padding:12px 24px; border-inline-end:0; border-block-end:1px solid var(--border); }
+ .platform-service-context,.platform-service-boundary { display:none; }
+ .platform-service-menu { display:inline-flex; min-height:48px; gap:8px; }
+ .platform-service-sidebar nav { display:none; margin-block-start:12px; }
+ .platform-service-sidebar nav.is-open { display:grid; }
+}
+@media(max-width:620px) {
+ .operator-page:has(.platform-service-workspace) .operator-header { padding:12px 16px; }
+ .platform-service-sidebar { padding:10px 16px; }
+ .platform-service-main { padding:22px 16px 28px; gap:20px; }
+ .platform-service-main .page-header { display:grid; gap:16px; }
+ .platform-service-main .page-header-copy h1 { font-size:27px; }
+ .platform-service-main .page-header-actions { width:100%; }
+ .platform-service-main .page-header-actions>[data-slot="button"] { width:100%; }
+ .platform-service-tabs { gap:20px; }
+ .platform-service-diagnostics,.platform-service-diagnostics>aside { grid-template-columns:minmax(0,1fr); gap:20px; }
+ .platform-service-panel-heading { padding:18px; }
+ .platform-service-panel-heading>[data-slot="button"] { width:100%; }
+ .platform-service-panel-body { padding:0 18px 18px; }
+ .platform-service-facts>div { grid-template-columns:minmax(0,1fr); gap:4px; }
+ .platform-service-register .platform-service-filters { padding:16px 18px; }
+ .platform-service-register .record-summary { padding:18px; }
+ .platform-service-register-note { padding-inline:18px; }
+ .platform-service-filters { align-items:stretch; }
+ .platform-service-filters label { min-width:0; flex-basis:100%; }
+ .platform-service-filters>[data-slot="button"] { width:100%; }
+ .platform-service-feedback { display:grid; }
+ .platform-service-pagination { align-items:start; }
+ .platform-service-pagination>div { width:100%; }
+ .platform-service-pagination [data-slot="button"] { flex:1; }
+}
