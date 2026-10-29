@@ -209,3 +209,5 @@ performance attribution across reassignment, period filtering, idempotency,
 concurrent200/409 and failed-KPI transaction rollback assertions now pass. No guard
 was bypassed. Standalone strict types run from backend with Node/Multer and operator
 Request augmentation. This is the third actual SQL suite, separate from15browser cases.
+
+Published implementation `dc0b6a8` in OPEN/DRAFT [PR104](https://github.com/Shumail-AbdulRehman/PRIV/pull/104), stacked on Spec38/PR103 at85e64f5. Full36Blocked; issue84open. Final publication preservation audit21worktrees/797paths has0mismatches; owned test cluster stopped with0child databases. Final documentation commit follows; no merge/deployment.

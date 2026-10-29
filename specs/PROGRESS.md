@@ -8,7 +8,7 @@ they do not establish approved V5 visual implementation or verification. They ar
 retained without erasing their logs. The current four-part per-page ledger is in
 [the V5 implementation record](../docs/implementation/V5_IMPLEMENTATION.md).
 Spec40 remains in progress and41 remains ineligible. Current correction branch:
-`implementation/spec-36-review-acceptance`, based on verified `85e64f5` (Spec38/PR103).
+`implementation/spec-36-review-acceptance`, OPEN/DRAFT [PR104](https://github.com/Shumail-AbdulRehman/PRIV/pull/104), based on verified `85e64f5` (Spec38/PR103).
 Latest session implements only36's remaining local review recovery, selected-view
 replacement, keyboard inspection and authenticated-delivery guard. Full36is **Blocked**
 on the existing qualified retained-media/privacy/native gate; its first criterion stays
@@ -228,3 +228,5 @@ Implementation `d64e0ea` published as OPEN/DRAFT [PR85](https://github.com/Shuma
   Six remain;30Blocked;36identified only. STOP, no next implementation begun.
 
 - **2026-10-29 — Spec36 only, local continuation verified/full acceptance Blocked:** baseline85e64f5/PR103 independently restored; original and20other present worktrees/797dirty paths preserved. Actual React review recovery/selected issue replacement/permission copy/keyboard photo focus and authenticated HOLD delivery guard fixed.50focused/450whole web,89focused/1444whole backend(+7existing skips),106native tests, backend/frontend/strict browser/native types, builds/lint,3actual SQL scripts and15guarded browser cases pass.58observations/117PNGs; paired V5/core/closed and changed states inspected. Full36not Done: real retained-media/privacy/native acceptance unavailable; no fake AI or guard bypass. Remaining6unchanged; next dependency-eligible37requires runtime. Only36implemented, no merge/deploy/production action. See current SESSION_HANDOFF and V5_REVIEWS.md.
+
+- **2026-10-29 — Spec36 publication and STOP:** implementationdc0b6a8 pushed; OPEN/DRAFT PR104 https://github.com/Shumail-AbdulRehman/PRIV/pull/104 confirmed base implementation/spec-38-public-information/85e64f5 (PR103). Full36Blocked; issue84open, six specifications remain. Final publication audit21other worktrees/797dirty paths has0mismatches. Only36implemented; no merge/deploy or next unit. Final documentation commit follows implementation.
