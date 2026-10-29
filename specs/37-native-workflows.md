@@ -9,6 +9,14 @@
 
 ## Goal
 
+Continuation ownership additionally includes `frontend-mobile/src/screens/TasksScreen.tsx`,
+`frontend-mobile/src/screens/StartTaskScreen.tsx`, `frontend-mobile/src/components/TaskCard.tsx`,
+`frontend-mobile/src/components/ui/card.tsx`, `frontend-mobile/src/components/ui/text.tsx`,
+`frontend-mobile/src/fonts.ts`, `frontend-mobile/assets/fonts/`,
+`frontend-mobile/package.json`, `frontend-mobile/package-lock.json`,
+`frontend-mobile/tests/nativeComposition.test.mjs`, and
+`docs/implementation/V5_NATIVE_COMPOSITION.md`; these are exclusive37 paths.
+
 Native attendance/photo/account recovery in the existing application, with persisted behavior and explicit safety boundaries.
 
 ## Scope
@@ -45,6 +53,8 @@ Integrate approved v5 native states into existing actual screens: role-correct s
 - [x] `npm run build:web --prefix frontend-mobile` passes; native release separately gated. [static]
 
 ## Log
+
+- **2026-10-29 — Approved composition continuation:** Independent source inspection against design/v5/mobile confirms remaining native hierarchy/header/help/task-start/font work beyond the earlier palette bridge. Separate persistent native worktree starts from verifiedadae1b9 plus common preservation metadata. Coordinator owns this scope; company/service/QA workers do not edit native source. Reuse existing attendance/QR/camera/authority/retry/API behavior; add only approved composition and bundled font loading, using the already installed Expo font version where necessary. Additional paths listed above transfer exclusively before edits. Actual native runtime/physical-device proof is unavailable, so37 remains In progress regardless of component/web-preview success. Issue60 reused; no provider/backend/production change.
 
 - **2026-10-21** — Claimed issue60 in isolated worktree based on Spec28/PR56. Consume26 real manifest permissions and forced-password denial; amend existing native screen/auth/client ownership before integration. No backend, provider, schema, new dependency or production change.
 
