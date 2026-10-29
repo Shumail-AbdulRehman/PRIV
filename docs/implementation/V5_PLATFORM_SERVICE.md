@@ -75,3 +75,26 @@ request queue and reason/version handling form replace the prototype's single
 fictional inquiry. The sidebar retains actual destinations without a fictional
 operator profile or sign-out claim. Header brand/language remain in the existing
 separate operator shell. All deviations preserve existing approved policies.
+
+## Final applicable web acceptance — 2026-10-29
+
+The integrated coordinator passes64Node+360React/28files, final45company/service
+focused cases, frontend full lint0, TypeScript and exact production build
+(11.62sVite). Backend source is unchanged:189focused tests/3files and actual
+isolated company/support SQL proofs pass. The guarded React/private-API/disposable
+SQL browser regression passes20/20cases in49.6s, including real tenant-cookie
+platform denial, safe owner security/billing destinations, registration/lifecycle
+and six EN/UR own-password pending/403/transport-error observations. No deployed
+service, customer DB or qualified provider was used.
+
+Final platform visual run passes74observations with98PNG artifacts:32core,
+26state,12mutation/reload and4guarded-route matrices; these overlap earlier runs
+and are not74unique product flows. Actual named workspaces use synthetic transport;
+actual SQL and default guarded-route proof are separate. The coordinator inspected
+paired1366×900/390×900 EN/UR compositions, phone navigation, negative states and
+confirmation/handling interactions. All-manifest.json/image-index.json bind source
+hashes/dimensions/SHA256. See V5_PLATFORM_QA.md for exact diagnostics and limits.
+
+Applicable web implementation and visual/functional verification pass. Qualified
+positive browser operator identity/MFA remains34/40, and no positive live
+operator mutation, support delivery or provider qualification is inferred.
