@@ -77,7 +77,7 @@ it('a pending status mutation prevents duplicate requests, cancellation and Esca
  fireEvent.change(screen.getByLabelText('Reason'),{target:{value:'Pending reason'}});
  fireEvent.click(screen.getByRole('button',{name:'Confirm status change'}));
  expect(screen.getByRole('button',{name:'Saving…'})).toBeDisabled();expect(screen.getByRole('button',{name:'Cancel'})).toBeDisabled();
- expect(screen.queryByRole('button',{name:'Close',exact:true})).not.toBeInTheDocument();
+ expect(screen.queryByRole('button',{name:'Close'})).not.toBeInTheDocument();
  fireEvent.click(screen.getByRole('button',{name:'Saving…'}));fireEvent.keyDown(screen.getByRole('dialog'),{key:'Escape'});
  expect(screen.getByRole('dialog')).toBeInTheDocument();
  expect(m.request.mock.calls.filter(([,options])=>options?.method==='PATCH')).toHaveLength(1);
@@ -87,7 +87,7 @@ it('a pending status mutation prevents duplicate requests, cancellation and Esca
 
 it('a denied refresh removes cached account facts and cannot open status controls',async()=>{
  mount('/platform/companies/42');await screen.findByRole('button',{name:'Suspend company'});
- m.request.mockRejectedValue({response:{status:403}});fireEvent.click(screen.getByRole('button',{name:'Refresh',exact:true}));
+ m.request.mockRejectedValue({response:{status:403}});fireEvent.click(screen.getByRole('button',{name:'Refresh'}));
  await screen.findByRole('alert');expect(screen.queryByRole('button',{name:'Suspend company'})).not.toBeInTheDocument();
  expect(screen.queryByRole('heading',{name:'Synthetic company'})).not.toBeInTheDocument();
  expect(screen.queryByRole('heading',{name:'Company profile'})).not.toBeInTheDocument();
