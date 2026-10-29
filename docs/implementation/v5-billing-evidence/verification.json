@@ -1,0 +1,216 @@
+{
+  "applicationRevision": "5f90451",
+  "frontendNode": {
+    "passed": 64,
+    "failed": 0
+  },
+  "frontendComponents": {
+    "passed": 348,
+    "files": 28,
+    "failed": 0,
+    "maxWorkers": 1,
+    "durationSeconds": 270.89
+  },
+  "postVisualFocused": {
+    "passed": 70,
+    "files": 3,
+    "failed": 0
+  },
+  "backendWhole": {
+    "passed": 1449,
+    "files": 95,
+    "failed": 0,
+    "skipped": 0,
+    "maxWorkers": 1,
+    "durationSeconds": 210.57
+  },
+  "backendFocusedWithSql": {
+    "passed": 158,
+    "files": 5,
+    "failed": 0
+  },
+  "actualBillingSql": "passed; no-network provider seam",
+  "frontendLint": "whole passed; final changed TS files separately checked",
+  "typescript": "backend, strict standalone billing integration, web build, strict E2E passed",
+  "build": "exact frontend npm run build passed; private matched browser builds passed",
+  "browserRegression": [
+    {
+      "file": "e2e/billing-v5.spec.ts",
+      "title": "billing saved lifecycle and capacity match SQL with paired V5 English Urdu desktop phone",
+      "status": "passed",
+      "duration": "5.5s"
+    },
+    {
+      "file": "e2e/billing-v5.spec.ts",
+      "title": "billing provider periods scheduled changes and missing dates are real retained facts",
+      "status": "passed",
+      "duration": "3.5s"
+    },
+    {
+      "file": "e2e/billing-v5.spec.ts",
+      "title": "new owner billing has honest empty catalog and checkout return never grants activation",
+      "status": "passed",
+      "duration": "2.9s"
+    },
+    {
+      "file": "e2e/billing-v5.spec.ts",
+      "title": "billing preserves real over-capacity records and exposes no destructive workaround",
+      "status": "passed",
+      "duration": "1.4s"
+    },
+    {
+      "file": "e2e/billing-v5.spec.ts",
+      "title": "billing unresolved reservation prevents another purchase and remains after refresh",
+      "status": "passed",
+      "duration": "1.1s"
+    },
+    {
+      "file": "e2e/billing-v5.spec.ts",
+      "title": "billing actual request loading failure retained refresh and retry remain honest en",
+      "status": "passed",
+      "duration": "2.1s"
+    },
+    {
+      "file": "e2e/billing-v5.spec.ts",
+      "title": "billing actual request loading failure retained refresh and retry remain honest ur",
+      "status": "passed",
+      "duration": "2.1s"
+    },
+    {
+      "file": "e2e/billing-v5.spec.ts",
+      "title": "billing API remains owner-scoped and manager cannot purchase or reach another tenant",
+      "status": "passed",
+      "duration": "1.3s"
+    },
+    {
+      "file": "e2e/billing-v5.spec.ts",
+      "title": "active unpaid owner retains operational reads while the server denies new work",
+      "status": "passed",
+      "duration": "952ms"
+    },
+    {
+      "file": "e2e/billing-v5.spec.ts",
+      "title": "suspended owner sees real V5 account access and retains safe billing security support destinations",
+      "status": "passed",
+      "duration": "19.6s"
+    },
+    {
+      "file": "e2e/billing-v5.spec.ts",
+      "title": "legacy inactive company cannot appear operational while owner recovery remains reachable",
+      "status": "passed",
+      "duration": "3.1s"
+    },
+    {
+      "file": "e2e/lifecycle.spec.ts",
+      "title": "React registration persists an owner and own-password replacement revokes its old session",
+      "status": "passed",
+      "duration": "1.4s"
+    },
+    {
+      "file": "e2e/lifecycle.spec.ts",
+      "title": "annotation UI persists an immutable note without changing captured attendance",
+      "status": "passed",
+      "duration": "2.6s"
+    },
+    {
+      "file": "e2e/lifecycle.spec.ts",
+      "title": "staff recovery UI issues a one-use credential, clears its display and revokes old access",
+      "status": "passed",
+      "duration": "2.2s"
+    },
+    {
+      "file": "e2e/lifecycle.spec.ts",
+      "title": "manager UI deactivation releases a site and real edit assigns its replacement",
+      "status": "passed",
+      "duration": "2.5s"
+    },
+    {
+      "file": "e2e/lifecycle.spec.ts",
+      "title": "competing real refreshes have one winner and a stale response cannot revoke it",
+      "status": "passed",
+      "duration": "221ms"
+    },
+    {
+      "file": "e2e/lifecycle.spec.ts",
+      "title": "protected photo DTOs hide private/legacy URLs and deny a foreign reader before storage",
+      "status": "passed",
+      "duration": "290ms"
+    },
+    {
+      "file": "e2e/lifecycle.spec.ts",
+      "title": "registration CTA lands in canonical billing after durable account creation",
+      "status": "passed",
+      "duration": "529ms"
+    },
+    {
+      "file": "e2e/workspace.spec.ts",
+      "title": "owner signs in through React and persisted session survives reload/logout",
+      "status": "passed",
+      "duration": "939ms"
+    },
+    {
+      "file": "e2e/workspace.spec.ts",
+      "title": "real company settings form persists and version conflicts preserve draft",
+      "status": "passed",
+      "duration": "1.0s"
+    },
+    {
+      "file": "e2e/workspace.spec.ts",
+      "title": "real setup readiness is read-only and reflects persisted sites",
+      "status": "passed",
+      "duration": "1.7s"
+    },
+    {
+      "file": "e2e/workspace.spec.ts",
+      "title": "tenant manager cannot become owner, operator or read foreign workforce",
+      "status": "passed",
+      "duration": "434ms"
+    },
+    {
+      "file": "e2e/workspace.spec.ts",
+      "title": "colliding manager/staff numeric IDs do not grant staff-self or attendance access",
+      "status": "passed",
+      "duration": "190ms"
+    },
+    {
+      "file": "e2e/workspace.spec.ts",
+      "title": "unconfigured billing retains mirrored facts while checkout remains unavailable",
+      "status": "passed",
+      "duration": "797ms"
+    },
+    {
+      "file": "e2e/workspace.spec.ts",
+      "title": "real recovery request is neutral and does not fabricate delivery",
+      "status": "passed",
+      "duration": "504ms"
+    },
+    {
+      "file": "e2e/workspace.spec.ts",
+      "title": "suspension revokes operational access while owner billing and security remain reachable",
+      "status": "passed",
+      "duration": "1.0s"
+    },
+    {
+      "file": "e2e/workspace.spec.ts",
+      "title": "public enterprise inquiry persists through the real form without creating billing access",
+      "status": "passed",
+      "duration": "918ms"
+    }
+  ],
+  "browserAccessStates": {
+    "passed": 2,
+    "failed": 0,
+    "languages": [
+      "en",
+      "ur"
+    ],
+    "fixture": "actual request delay/forward, network abort and explicit recovery; no successful response mocked"
+  },
+  "externalProviderOrDeviceQualified": false,
+  "limitations": [
+    "Real approved Paddle merchant/catalog/terms/sandbox/portal/payment/webhook/reconciliation unqualified",
+    "Positive payment/portal component tests mock provider and network seams",
+    "Native/device, IdP/MFA, delivered owner mail, photo/privacy and production infrastructure remain existing release gates"
+  ],
+  "harnessSha256": "ac6520b11719c36956095eb0df2e392934fe74cd327850e8ba28befdf26c9bb7"
+}

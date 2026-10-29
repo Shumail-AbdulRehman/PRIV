@@ -1,3 +1,42 @@
+# Spec 32 V5 Billing accepted — 2026-10-29
+
+**Spec 32 meets applicable web acceptance. Full V5 remains incomplete: 9 specifications remain.** This session implemented only Billing and its documented restricted owner recovery; no unrelated specification was started. No PR merge, deployment, live charge/subscription, provider activation or production operation occurred.
+
+## Canonical current work
+
+Branch `implementation/v5-billing-acceptance`, based on verified `55061b8`, in `/home/shumail/.local/share/hygene-ops/v5-billing-20261029/implementation`. Application commits `1040ef2` and `5f90451`; subsequent test/evidence/acceptance commits follow. Issue 69 reused; historical draft PR 70 retained. New **OPEN/DRAFT [PR 98](https://github.com/Shumail-AbdulRehman/PRIV/pull/98)**, base `implementation/v5-continuation-final` at55061b8. Issue69 remains open for review; no merge.
+
+The original root `/home/shumail/bkacup-16-oct-bkpriv/bk-Priv/PRIV` remains on **`fix/v5-runtime-data-loading`**, with all existing runtime/Maps/source changes and exact Git status preserved. Do not assume the old handoff branch name is current, switch/reset that dirty tree, or copy its overlay over the new billing implementation. Current progress/handoff records live on the acceptance branch. Preservation snapshot/patch/status: `/home/shumail/.local/share/hygene-ops/v5-billing-20261029/` (19 file hashes, no mismatches).
+
+## Independent restoration and eligibility
+
+Tracker/DAG confirms completed 15, 27 and 28; actual API/client/shell source and commits verified. Spec 27's independent publication metadata d18a26b is not an ancestor, but integrated source/acceptance b8396ff/7965d06/4cf9791/c86c93b is present. Spec 28 source e212e40 and open/draft PR 97 verified; 95/96 remain open/draft. The root's private local Vite/API cwd matches, Maps key presence/fallback and runtime allowlist are confirmed without exposing values. Existing 8080/5173/56445 services and restored customer DB were not used for fixtures or changed.
+
+## Delivered and verified
+
+- Actual V5 billing subscription/capacity/latest-event stack and help/recovery rail, responsive EN/UR/RTL, real lifecycle/catalog/transaction/fresh portal contracts. No invoice/card/pricing/trial or policy invention. Stale catalog failures cannot expose checkout; principal/company, reservation and uncertain-payment safeguards retained.
+- Previously unused WorkspaceGate now presents actual owner suspension/inactivity around operational content. Additive existing company.isActive DTO handles legacy false/ACTIVE. Safe billing/settings/security/help remain available; active unpaid reads remain allowed and the API denies new work. Explicit 401/403 supersedes a stale active presentation. No schema/migration/access-policy change.
+- 70 focused billing/access/shell tests pass; whole **64 Node + 348 React / 28 files**, zero failures. Full frontend lint 0 plus final changed-TS lint, exact frontend production build and backend/web/strict E2E/standalone integration TypeScript pass. Single workers; frontend whole suite took 270.89s.
+- **158 focused backend / 5 files; 1,449 whole / 95 files, zero failures/skips.** Actual isolated billing SQL proof passes canonical ownership, atomic dedup/rollback/order, placeholder convergence, unknown catalog denial, concurrent single draft and lost-response resolution. Provider fixture is no-network; actual sandbox qualification remains external.
+- **27 fresh real React/private API/disposable SQL browser cases pass**, then **2 new EN/UR access-state cases pass separately**. These are 29 distinct scoped cases, not full Spec 40. 86 PNG artifacts (70 app / 16 reference), paired 1366×900 / 390×900 EN/UR plus significant states/full pages inspected; hashes/dimensions in evidence manifest. Final owner recovery CSS-class collision was fixed and recaptured; primary recovery action is fully in viewport. Unknown/loading/error/retry states visually checked.
+- Initial shell fixture and in-flight pre-fix assertions corrected (8 initial web failures). First SQL-enabled whole run passed 1,448 and failed an existing lifetime fixture because Node UTC differed from scratch PostgreSQL Asia/Karachi. Confirmed clock mismatch; a fresh generated test DB explicitly used UTC, then all 1,449 passed. No invariant or production configuration weakened. A targeted ESLint invocation initially used the wrong cwd; corrected frontend-cwd invocation passes.
+
+Details, full changed-file groups, commands/provenance and intentional reference differences: [V5_BILLING.md](V5_BILLING.md), [evidence](v5-billing-evidence/README.md), [verification](v5-billing-evidence/verification.json). Backend lint has no configured script; no backend lint success is claimed. Payment/portal success unit tests mock boundaries; actual unconfigured owner API 503 and manager 403 are real backend proof.
+
+## Remaining and reproduction
+
+33 Done (including decision 00), 8 In progress, 1 Not started. Remaining: **30, 33, 34, 35, 36, 37, 38, 40, 41**. Next recommended **33**, consuming completed 24/27 at approved scope; 35/38 also dependency-eligible. Positive IdP/MFA, Paddle merchant/catalog/terms/sandbox/portal/payment/webhook/reconciliation, mail/support/legal, photo/privacy, physical Android and production host/backups remain external. 40 remains In progress; 41 ineligible. No follow-on specification started.
+
+Test PG 17 at owned loopback 56442 is STOPPED, zero generated child DBs remain. Its data is `/home/shumail/.local/share/hygene-ops/v5-worktrees-20261028/runtime/data`; tools `~/.local/share/hygene-ops/local-development/postgresql-tools/usr/lib/postgresql/17/bin`. Restart only that test cluster with `-c timezone=UTC -c jit=off`, preserving host/port/socket from postmaster.opts. Normal guarded browser reproduction from the acceptance worktree:
+
+```bash
+HYGENE_E2E_DATABASE_URL=postgresql://shumail@127.0.0.1:56442/priv_e2e_test HYGENE_E2E_BROWSER_PATH=/usr/bin/google-chrome npm run test:e2e --prefix frontend -- billing-v5.spec.ts workspace.spec.ts lifecycle.spec.ts
+```
+
+That current combined command now contains 29 cases; this session actually ran final 27 plus the 2 added access cases separately. The runner creates/migrates/seeds/builds/cleans its own UUID child and private runtime with Paddle disabled and one worker. Never use restored local/customer/production DBs. Final backend helper/logs are in the persistent parent and `/tmp/hygene-v5-billing-*`; see report for executed commands. Read-only design/skill symlinks in the worktree are intentionally untracked; approved design unchanged.
+
+---
+
 # Verified continuation checkpoint — 2026-10-29
 
 **Spec28 meets applicable web acceptance. Full V5 remains incomplete:10specifications remain.** Latest user authorized continuation; this is a clean verified handoff, not a cancellation. Next eligible work is32Billing.
@@ -791,3 +830,5 @@ Allfour requestedbatchPRs confirmedOPEN/DRAFT andstackedcorrectly:29 https://git
 ## Current final checkpoint
 
 Main root branch implementation/spec-40-launch-e2e, draftPR81 base39, issue79. Latest behavior commit64d42c4; final documentation commit follows.40Inprogress/41Notstarted;39of41Done. E2E29passed/1confirmed registration redirect failure; all15required rows and remaining gaps mapped. Both tested commit CI39645400371 and fresh APK39644524268 passed their respective jobs, without overriding the failing E2E or absent physical/provider evidence. Build PR80 and test PR81 are OPEN/DRAFT; no merges/deployment. All8original dirty files remain byte-identical, unrelated untracked work preserved. STOP: no next eligible existing spec until40acceptance is met; proposed registration fix remains unimplemented.
+
+- **2026-10-29 — Spec32 publication:** source1040ef2/5f90451, verified acceptance90cbb47 published in OPEN/DRAFT PR98 https://github.com/Shumail-AbdulRehman/PRIV/pull/98 on implementation/v5-billing-acceptance. Final documentation commit follows. Hosted CI started; no hosted success inferred or production qualification claimed. Root dirty work unchanged; nine specs remain.

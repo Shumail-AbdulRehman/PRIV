@@ -48,7 +48,7 @@ export type PricingContext = {
 };
 
 export type BillingLifecycle = {
- company:{id:number;name:string;plan:PlanCode;operationalStatus:'ACTIVE'|'SUSPENDED'};
+ company:{id:number;name:string;plan:PlanCode;isActive:boolean;operationalStatus:'ACTIVE'|'SUSPENDED'};
  usage:{locations:number;staff:number;managers:number};
  limits:PlanDefinition['limits'];
  subscription:null|{status:string;plan:PlanCode|null;catalogQualified:boolean;periodStart:string|null;periodEnd:string|null;scheduledChangeAction:string|null;scheduledChangeAt:string|null;lastEventAt:string};

@@ -11,7 +11,7 @@ import DashboardLayout from '../components/layout/DashboardLayout';
 import { workspaceRoutes } from './workspaceRoutes';
 import { PlatformUnavailable, WorkspaceAudience, WorkspaceRouteError } from './launchPages';
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogTitle } from '../components/ui/dialog';
-vi.mock('../api/client', () => ({client: {get: async (url: string) => ({data: {data: url === '/company/settings' ? {id:42,name:'Synthetic saved company',accountVersion:1,updatedAt:'2026-10-21T00:00:00Z'} : {emailVerified:true,deliveryConfigured:false,bootstrapRequired:false}}})}}));
+vi.mock('../api/client', () => ({client: {get: async (url: string) => ({data: {data: url === '/subscription/manage/lifecycle' ? {company:{id:42,name:'Synthetic saved company',plan:'PRO',isActive:true,operationalStatus:'ACTIVE'},usage:{locations:1,staff:1,managers:1},limits:{locations:5,staff:25,managers:3},subscription:null,reconciliationRequired:false,billingConfigured:false,ownerVerified:false,providerState:'NOT_LINKED',portalAvailable:false,checkoutAvailable:false} : url === '/company/settings' ? {id:42,name:'Synthetic saved company',accountVersion:1,updatedAt:'2026-10-21T00:00:00Z'} : {emailVerified:true,deliveryConfigured:false,bootstrapRequired:false}}})}}));
 const m = vi.hoisted(() => ({ logout: { mutate: vi.fn(), isPending: false, isError: false } }));
 vi.mock('../queries/auth', () => ({ useLogout: () => m.logout, useGetCurrentUser: vi.fn() }));
 vi.mock('../pages/Exceptions/queries', () => ({ useExceptionCount: () => ({ data: { total: 2 } }) }));

@@ -1,4 +1,4 @@
-Validating /home/shumail/.local/share/hygene-ops/v5-continuation-20261028/integrated/specs  (42 specs)
+Validating /home/shumail/.local/share/hygene-ops/v5-billing-20261029/implementation/specs  (42 specs)
 
 Parallel schedule  (10 waves · widest 9 · 42 specs)
   W0  00
@@ -34,7 +34,7 @@ Parallel schedule  (10 waves · widest 9 · 42 specs)
   WARN   Depends on 09, 17, 20, 21 is already implied through another dependency
 
 40-e2e-suite.md
-  WARN   158 lines — over 130 usually means this should be two specs
+  WARN   162 lines — over 130 usually means this should be two specs
   WARN   creates 'docs/implementation/followups/E2E_DEFECTS.md' but no other spec mentions it — check it is not an endpoint or component with zero callers
   WARN   creates 'frontend/package-lock.json' but no other spec mentions it — check it is not an endpoint or component with zero callers
   WARN   creates 'frontend/package.json' but no other spec mentions it — check it is not an endpoint or component with zero callers

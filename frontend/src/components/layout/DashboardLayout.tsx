@@ -10,6 +10,7 @@ import { Menu, ChevronRight } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import Sidebar from "./Sidebar";
 import { useSubscription } from "@/pages/Subscription/queries";
+import WorkspaceGate from "@/components/onboarding/WorkspaceGate";
 import "@/workspace.css";
 import "@/workspace-refresh.css";
 
@@ -120,7 +121,7 @@ export default function DashboardLayout() {
             className="workspace-content"
           >
             <Suspense fallback={<LoadingSpinner fullScreen />}>
-              <Outlet />
+              <WorkspaceGate><Outlet /></WorkspaceGate>
             </Suspense>
           </main>
         </div>
