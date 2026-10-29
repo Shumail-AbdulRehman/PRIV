@@ -4,7 +4,7 @@
 **Depends on:** Spec 24, Spec 27
 **Model:** Standard — `claude-sonnet-5-5` · `gpt-6.1-sol` · `gemini-3.8-flash`
 **Issue:** #71
-**Owns:** `frontend/src/pages/Platform/companies.css`, `frontend/src/i18n/platformCompanyTranslations.ts`, `frontend/src/pages/Platform/companyApi.ts`, `specs/inventory/33-platform-company-ui.md`
+**Owns:** `frontend/src/pages/Platform/CompaniesPage.tsx`, `frontend/src/pages/Platform/CompaniesPage.test.tsx`, `docs/implementation/V5_PLATFORM_COMPANIES.md`, `frontend/src/pages/Platform/companies.css`, `frontend/src/i18n/platformCompanyTranslations.ts`, `frontend/src/pages/Platform/companyApi.ts`, `specs/inventory/33-platform-company-ui.md`
 **Reuses:** `frontend/src/components/common/DataTable.tsx`, `frontend/src/components/ui/dialog.tsx`, `DESIGN-SYSTEM.md#component-conventions`, `design/v5/platform.html`
 
 ## Goal
@@ -45,6 +45,8 @@ Build bounded company list/detail Account/Billing/Activity with operator-only re
 - [x] `npm run build --prefix frontend` passes. [static]
 
 ## Log
+
+- **2026-10-29 — Current continuation:** Start from accepted billing checkpoint adae1b9, preserving completed28/32 and existing root/runtime work. Completed24/27 source and tracker verified. Serialized35/34 ownership transfers CompaniesPage.tsx and its tests back to33 before edits. Independent35 owns only service sources; shared operator identity/shell remains34. Coordinator owns40 visual harness/evidence and shared records. Approved design/v5/platform.html is fixed input; no design restart or provider activation. Issue71 reused. Full completion requires truthful separation of named-workspace fixture evidence and qualified positive operator acceptance.
 
 - **2026-10-21** — User authorizes next two units33/35 only. Issue71 claimed; dependencies24/27 and actual existing34 boundary verified in current Git ancestry. Preserve eight dirty files checkpoint /tmp/hygene-spec33-35-preserved.json. Existing operator browser provider remains unqualified: preserve fail-closed boundary and transport, no tenant identity promotion. Implement real contract-backed workspace behind it; live access remains external39/40 qualification. Serialized route/dictionary ownership transferred before edits.
 

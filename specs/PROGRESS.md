@@ -8,7 +8,7 @@ they do not establish approved V5 visual implementation or verification. They ar
 retained without erasing their logs. The current four-part per-page ledger is in
 [the V5 implementation record](../docs/implementation/V5_IMPLEMENTATION.md).
 Spec40 remains in progress and41 remains ineligible. Current correction branch:
-`implementation/v5-continuation-checkpoint` (persistent integration); current Spec28 issue55/PR97, operator59/PR95 and review84/PR96; prior workforce/shell/Settings/Help/auth histories retained. No previous UI screen is newly
+`implementation/v5-remaining-checkpoint` (persistent integration based on accepted32/adae1b9); current33/35 continuation reuses issues71/73. Accepted28 issue55/PR97 and32 issue69/PR98, operator59/PR95 and review84/PR96; prior workforce/shell/Settings/Help/auth histories retained. No previous UI screen is newly
 marked visually verified merely because its existing tests pass.
 
 **Historical functional checkpoint (not V5 visual completion): Spec40 in progress** on `implementation/spec-40-launch-e2e`, issue79, draftPR81 https://github.com/Shumail-AbdulRehman/PRIV/pull/81 base39/dbbb51d. Decision00 and39of41execution/gate units remain Done;40is not complete and41is not eligible. Real persisted browser suite, guarded disposable DB and native templates implemented; full table/device/provider qualification remains incomplete and registration navigation has a confirmed failing regression. See `docs/implementation/E2E_RESULTS.md`. Latest user also requests fresh current-UI testing APK: independent build branch `build/hygeneops-android-testing-20261021`, draftPR80. Fresh testing APK completed and locally inspected: `frontend-mobile/build-output/HygeneOps-staff-2.1.7-ui-20261021.apk`, run39644524268 all3jobs passed; physical/provider qualification remains pending. No merge/deploy/provider activation; root dirty work preserved.
@@ -59,6 +59,8 @@ marked visually verified merely because its existing tests pass.
 | 41 | [Final clean verification pass](41-verification-pass.md) | Not started | 40 | Heavy | — | See spec |
 
 ## Log
+
+- **2026-10-29 — Approved remaining-work continuation:** User authorizes implementation, parallel subagents, functional and rendered V5 checks. All refs/worktrees/dirty files inventoried and privately hashed/patched; no old work discarded. Baselineadae1b9 verified to contain completed28/32 and actual15/24/25/27 dependencies. Coordinator and independent33/35/QA worktrees created; hot-file ownership serialized before edits. Nine units remain30,33–38,40,41;33/35 selected for safe independent composition work. Full40incomplete/41ineligible; external provider/device/commercial facts cannot be invented. See planning/remaining-20261029.md and current handoff.
 
 - **2026-10-20** — Continued from approved scope/design. Generated source-grounded steering docs and implementation queue. No production data/config touched. Await initial validator before spec 01.
 - **2026-10-20** — Spec 01 complete locally: 9 regression tests, whole backend 591 tests, build passed. Next P0 historical scope (02).
