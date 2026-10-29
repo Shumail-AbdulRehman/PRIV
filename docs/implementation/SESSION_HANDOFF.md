@@ -126,8 +126,19 @@ is30(16/17/22/27/28Done), requiring genuine owner-mail delivery qualification;
 36and37also have Done dependencies but require qualified media/native access.
 40waits unfinished dependencies and41waits40. No next specification was started.
 
-Publication details are recorded below after push. STOP after preserving this
-checkpoint; no merge, deployment, production or provider action.
+## Publication and STOP
+
+Verification commit `5e2668a28d0db08d404254b789dcd6a10a314d2e` is pushed in
+OPEN/DRAFT [PR106](https://github.com/Shumail-AbdulRehman/PRIV/pull/106), confirmed based on
+`implementation/spec-37-native-acceptance` / `d25f411` (PR105).
+The following documentation commit records this publication; inspect branch HEAD
+for its hash. The evidence README is explicitly tracked despite the existing
+`*.md` ignore pattern; no ignore policy was changed. Issue59 remains open for
+human review. The worktree has only the intentional untracked design symlink.
+Final validation: 42 specs, zero errors, 12 documented baseline warnings.
+Final preservation audit: 23 other worktrees/799 dirty paths, zero mismatches.
+All six unfinished specifications and their gates remain. STOP here; no merge,
+deployment, production/provider action or next specification followed.
 
 ---
 

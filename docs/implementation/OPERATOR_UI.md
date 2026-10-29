@@ -33,6 +33,10 @@ Final spec validation: 42 specifications, zero errors, 12 existing documented
 warnings. Whitespace and source/reference/image hashes pass. Other worktrees,
 dirty paths, prior evidence and user services are preserved.
 
+Published verification commit `5e2668a` in OPEN/DRAFT [PR106](https://github.com/Shumail-AbdulRehman/PRIV/pull/106),
+stacked on Spec37/PR105. This is the current continuation; historical PR63/95 below
+remain unchanged. Issue59 stays open for review and full34 remains Blocked.
+
 ## Exact external requirements before full acceptance
 
 The five `PLATFORM_OIDC_*` service inputs (issuer, API audience, JWKS URL, MFA acr,
