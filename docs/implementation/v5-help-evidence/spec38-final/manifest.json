@@ -1,0 +1,587 @@
+{
+  "source": "2011a9008940058f7a8b8ffe5442bcb537f89b57",
+  "changedSourceSha256": "b1ba875e269a0bc82ece203c91f5493c607af495b4bf80d80bdd884d2158e844",
+  "provenance": "Actual compiled React + actual public Express router/service on isolated loopback. Configured .invalid facts are synthetic. No database, email send, external fetch, signed Android or production qualification.",
+  "api": [
+    {
+      "mode": "unavailable",
+      "origin": "http://127.0.0.1:42999",
+      "mount": "actual customerSupportRouter + getSupportContact; isolated public surface only",
+      "data": {
+        "available": false,
+        "email": null,
+        "channel": null,
+        "verification": "UNAVAILABLE"
+      },
+      "cacheControl": "private, no-store",
+      "diagnostics": 404,
+      "sql": "not used",
+      "externalMail": "not attempted"
+    },
+    {
+      "mode": "configured-fixture",
+      "origin": "http://127.0.0.1:33569",
+      "mount": "actual customerSupportRouter + getSupportContact; isolated public surface only",
+      "data": {
+        "available": true,
+        "email": "support@example.invalid",
+        "channel": "EMAIL",
+        "verification": "OPERATOR_CONFIGURED"
+      },
+      "cacheControl": "private, no-store",
+      "diagnostics": 404,
+      "sql": "not used",
+      "externalMail": "not attempted"
+    }
+  ],
+  "observations": [
+    {
+      "mode": "unavailable",
+      "name": "help",
+      "path": "/help",
+      "width": 1366,
+      "height": 900,
+      "language": "en",
+      "overflow": false,
+      "dir": "ltr",
+      "headingFont": "\"Inter Variable\", Arial, sans-serif",
+      "languageTargets": [
+        44,
+        44
+      ],
+      "errors": [],
+      "apiRequests": [
+        "GET /api/support/contact"
+      ],
+      "qualification": "actual configured-unavailable public route"
+    },
+    {
+      "mode": "unavailable",
+      "name": "information",
+      "path": "/service-information",
+      "width": 1366,
+      "height": 900,
+      "language": "en",
+      "overflow": false,
+      "dir": "ltr",
+      "headingFont": "\"Inter Variable\", Arial, sans-serif",
+      "languageTargets": [
+        44,
+        44
+      ],
+      "errors": [],
+      "apiRequests": [
+        "GET /api/support/contact",
+        "GET /api/support/contact"
+      ],
+      "qualification": "actual configured-unavailable public route"
+    },
+    {
+      "mode": "unavailable",
+      "name": "help",
+      "path": "/help",
+      "width": 1366,
+      "height": 900,
+      "language": "ur",
+      "overflow": false,
+      "dir": "rtl",
+      "headingFont": "\"Noto Sans Arabic\", Tahoma, sans-serif",
+      "languageTargets": [
+        44,
+        44
+      ],
+      "errors": [],
+      "apiRequests": [
+        "GET /api/support/contact"
+      ],
+      "qualification": "actual configured-unavailable public route"
+    },
+    {
+      "mode": "unavailable",
+      "name": "information",
+      "path": "/service-information",
+      "width": 1366,
+      "height": 900,
+      "language": "ur",
+      "overflow": false,
+      "dir": "rtl",
+      "headingFont": "\"Noto Sans Arabic\", Tahoma, sans-serif",
+      "languageTargets": [
+        44,
+        44
+      ],
+      "errors": [],
+      "apiRequests": [
+        "GET /api/support/contact",
+        "GET /api/support/contact"
+      ],
+      "qualification": "actual configured-unavailable public route"
+    },
+    {
+      "mode": "unavailable",
+      "name": "help",
+      "path": "/help",
+      "width": 390,
+      "height": 900,
+      "language": "en",
+      "overflow": false,
+      "dir": "ltr",
+      "headingFont": "\"Inter Variable\", Arial, sans-serif",
+      "languageTargets": [
+        48,
+        48
+      ],
+      "errors": [],
+      "apiRequests": [
+        "GET /api/support/contact"
+      ],
+      "qualification": "actual configured-unavailable public route"
+    },
+    {
+      "mode": "unavailable",
+      "name": "information",
+      "path": "/service-information",
+      "width": 390,
+      "height": 900,
+      "language": "en",
+      "overflow": false,
+      "dir": "ltr",
+      "headingFont": "\"Inter Variable\", Arial, sans-serif",
+      "languageTargets": [
+        48,
+        48
+      ],
+      "errors": [],
+      "apiRequests": [
+        "GET /api/support/contact",
+        "GET /api/support/contact"
+      ],
+      "qualification": "actual configured-unavailable public route"
+    },
+    {
+      "mode": "unavailable",
+      "name": "help",
+      "path": "/help",
+      "width": 390,
+      "height": 900,
+      "language": "ur",
+      "overflow": false,
+      "dir": "rtl",
+      "headingFont": "\"Noto Sans Arabic\", Tahoma, sans-serif",
+      "languageTargets": [
+        48,
+        48
+      ],
+      "errors": [],
+      "apiRequests": [
+        "GET /api/support/contact"
+      ],
+      "qualification": "actual configured-unavailable public route"
+    },
+    {
+      "mode": "unavailable",
+      "name": "information",
+      "path": "/service-information",
+      "width": 390,
+      "height": 900,
+      "language": "ur",
+      "overflow": false,
+      "dir": "rtl",
+      "headingFont": "\"Noto Sans Arabic\", Tahoma, sans-serif",
+      "languageTargets": [
+        48,
+        48
+      ],
+      "errors": [],
+      "apiRequests": [
+        "GET /api/support/contact",
+        "GET /api/support/contact"
+      ],
+      "qualification": "actual configured-unavailable public route"
+    },
+    {
+      "mode": "configured-fixture",
+      "name": "help",
+      "path": "/help",
+      "width": 1366,
+      "height": 900,
+      "language": "en",
+      "overflow": false,
+      "dir": "ltr",
+      "headingFont": "\"Inter Variable\", Arial, sans-serif",
+      "languageTargets": [
+        44,
+        44
+      ],
+      "errors": [],
+      "apiRequests": [
+        "GET /api/support/contact"
+      ],
+      "qualification": "synthetic configuration; not legal/mail/device approval"
+    },
+    {
+      "mode": "configured-fixture",
+      "name": "information",
+      "path": "/service-information",
+      "width": 1366,
+      "height": 900,
+      "language": "en",
+      "overflow": false,
+      "dir": "ltr",
+      "headingFont": "\"Inter Variable\", Arial, sans-serif",
+      "languageTargets": [
+        44,
+        44
+      ],
+      "errors": [],
+      "apiRequests": [
+        "GET /api/support/contact",
+        "GET /api/support/contact"
+      ],
+      "qualification": "synthetic configuration; not legal/mail/device approval"
+    },
+    {
+      "mode": "configured-fixture",
+      "name": "help",
+      "path": "/help",
+      "width": 1366,
+      "height": 900,
+      "language": "ur",
+      "overflow": false,
+      "dir": "rtl",
+      "headingFont": "\"Noto Sans Arabic\", Tahoma, sans-serif",
+      "languageTargets": [
+        44,
+        44
+      ],
+      "errors": [],
+      "apiRequests": [
+        "GET /api/support/contact"
+      ],
+      "qualification": "synthetic configuration; not legal/mail/device approval"
+    },
+    {
+      "mode": "configured-fixture",
+      "name": "information",
+      "path": "/service-information",
+      "width": 1366,
+      "height": 900,
+      "language": "ur",
+      "overflow": false,
+      "dir": "rtl",
+      "headingFont": "\"Noto Sans Arabic\", Tahoma, sans-serif",
+      "languageTargets": [
+        44,
+        44
+      ],
+      "errors": [],
+      "apiRequests": [
+        "GET /api/support/contact",
+        "GET /api/support/contact"
+      ],
+      "qualification": "synthetic configuration; not legal/mail/device approval"
+    },
+    {
+      "mode": "configured-fixture",
+      "name": "help",
+      "path": "/help",
+      "width": 390,
+      "height": 900,
+      "language": "en",
+      "overflow": false,
+      "dir": "ltr",
+      "headingFont": "\"Inter Variable\", Arial, sans-serif",
+      "languageTargets": [
+        48,
+        48
+      ],
+      "errors": [],
+      "apiRequests": [
+        "GET /api/support/contact"
+      ],
+      "qualification": "synthetic configuration; not legal/mail/device approval"
+    },
+    {
+      "mode": "configured-fixture",
+      "name": "information",
+      "path": "/service-information",
+      "width": 390,
+      "height": 900,
+      "language": "en",
+      "overflow": false,
+      "dir": "ltr",
+      "headingFont": "\"Inter Variable\", Arial, sans-serif",
+      "languageTargets": [
+        48,
+        48
+      ],
+      "errors": [],
+      "apiRequests": [
+        "GET /api/support/contact",
+        "GET /api/support/contact"
+      ],
+      "qualification": "synthetic configuration; not legal/mail/device approval"
+    },
+    {
+      "mode": "configured-fixture",
+      "width": 390,
+      "language": "en",
+      "state": "delayed original response, stale-contact transport abort, actual route retry",
+      "qualification": "explicit network fault; not provider outage proof"
+    },
+    {
+      "mode": "configured-fixture",
+      "name": "help",
+      "path": "/help",
+      "width": 390,
+      "height": 900,
+      "language": "ur",
+      "overflow": false,
+      "dir": "rtl",
+      "headingFont": "\"Noto Sans Arabic\", Tahoma, sans-serif",
+      "languageTargets": [
+        48,
+        48
+      ],
+      "errors": [],
+      "apiRequests": [
+        "GET /api/support/contact"
+      ],
+      "qualification": "synthetic configuration; not legal/mail/device approval"
+    },
+    {
+      "mode": "configured-fixture",
+      "name": "information",
+      "path": "/service-information",
+      "width": 390,
+      "height": 900,
+      "language": "ur",
+      "overflow": false,
+      "dir": "rtl",
+      "headingFont": "\"Noto Sans Arabic\", Tahoma, sans-serif",
+      "languageTargets": [
+        48,
+        48
+      ],
+      "errors": [],
+      "apiRequests": [
+        "GET /api/support/contact",
+        "GET /api/support/contact"
+      ],
+      "qualification": "synthetic configuration; not legal/mail/device approval"
+    },
+    {
+      "mode": "configured-fixture",
+      "width": 390,
+      "language": "ur",
+      "state": "delayed original response, stale-contact transport abort, actual route retry",
+      "qualification": "explicit network fault; not provider outage proof"
+    }
+  ],
+  "images": [
+    {
+      "name": "app-unavailable-help-1366-en.png",
+      "width": 1366,
+      "height": 1170,
+      "sha256": "3ba1fe4b9830997f56448ee7c48952e584d22e5234171263bb687af6342ad148"
+    },
+    {
+      "name": "v5-help-1366-en.png",
+      "width": 1366,
+      "height": 1083,
+      "sha256": "dea6c838fa5dda9096b0aac3c2c188ade1c2c6ee453cdfe911a107df7ad18dd1"
+    },
+    {
+      "name": "app-unavailable-information-1366-en.png",
+      "width": 1366,
+      "height": 1574,
+      "sha256": "da9eceee728ed3800fc7b0a91af80c97de5146dc155615a4b69d9573a17f0668"
+    },
+    {
+      "name": "v5-information-1366-en.png",
+      "width": 1366,
+      "height": 923,
+      "sha256": "5a6010949ce4c1335f0e6501b0c42fe8892c47df2daac154c3a301f456958df2"
+    },
+    {
+      "name": "app-faq-1366-en.png",
+      "width": 1366,
+      "height": 1234,
+      "sha256": "bd904145b6f60d6bb4b32a43298b72d8a66c820229b628801875c3467c79523b"
+    },
+    {
+      "name": "app-unavailable-help-1366-ur.png",
+      "width": 1366,
+      "height": 1154,
+      "sha256": "7e653ce35175fc56399ee8a7be85594f851c73e3c43d96afa1267f259834dd8b"
+    },
+    {
+      "name": "v5-help-1366-ur.png",
+      "width": 1366,
+      "height": 1143,
+      "sha256": "d42bd9d6e69d97e8cff3e87cf2ffdfd4701e1d39531885c19315f32e7b2bd12e"
+    },
+    {
+      "name": "app-unavailable-information-1366-ur.png",
+      "width": 1366,
+      "height": 1593,
+      "sha256": "8c3c5ba1b9bb688086679772fdef605a4dcf4512f5848d030a5e9f1aa81f1bb0"
+    },
+    {
+      "name": "v5-information-1366-ur.png",
+      "width": 1366,
+      "height": 979,
+      "sha256": "1f9a6c92b7dd5fc561ba87342f7b4a96555a64210fa32fd3f5a78c82272ba368"
+    },
+    {
+      "name": "app-faq-1366-ur.png",
+      "width": 1366,
+      "height": 1218,
+      "sha256": "fa0badfb90a40cf06bc13cc7d21318ec1ce7b7d8e03803d02334c8d5ca29cd7d"
+    },
+    {
+      "name": "app-unavailable-help-390-en.png",
+      "width": 390,
+      "height": 2106,
+      "sha256": "7afc61296f5e1cbacdf6ac50ace8d3181ba9585b425a3ea5927699bf386ca526"
+    },
+    {
+      "name": "v5-help-390-en.png",
+      "width": 390,
+      "height": 1732,
+      "sha256": "43f52e38fb648fc6464e88bdda9a3554f169b83ddb0cc8b9a849be83959deb4d"
+    },
+    {
+      "name": "app-unavailable-information-390-en.png",
+      "width": 390,
+      "height": 1609,
+      "sha256": "686a269b602a4a3e8e7b41181481abfdb94ea19b6d80cadfb8208a533095f7ff"
+    },
+    {
+      "name": "v5-information-390-en.png",
+      "width": 390,
+      "height": 900,
+      "sha256": "d10ca0da9841b964b1d19f22b456eb1a243296bbf2e6b5e6d366c7a0d67d261b"
+    },
+    {
+      "name": "app-faq-390-en.png",
+      "width": 390,
+      "height": 2194,
+      "sha256": "a5087e0489aff1fcef572a0ad721fac9ed929e6c05ef98035804fd8a1aea1914"
+    },
+    {
+      "name": "app-unavailable-help-390-ur.png",
+      "width": 390,
+      "height": 1919,
+      "sha256": "f61da93ccf54724c9b985a8aec8542304d17e2895b68cd93def8c5ea46bb2f2e"
+    },
+    {
+      "name": "v5-help-390-ur.png",
+      "width": 390,
+      "height": 1685,
+      "sha256": "4dd4a97416eb11586ec01c4809d1476f1441d771ddec481e551724a91d7da0f5"
+    },
+    {
+      "name": "app-unavailable-information-390-ur.png",
+      "width": 390,
+      "height": 1537,
+      "sha256": "21aecd5aef53e2c4469e4ef64a7edf3d96051a1d8e0a2cd121b2c79da317d355"
+    },
+    {
+      "name": "v5-information-390-ur.png",
+      "width": 390,
+      "height": 979,
+      "sha256": "743324c937d1da73f12d11e80748b25fb8a1e1073efba88e805c47541853dd75"
+    },
+    {
+      "name": "app-faq-390-ur.png",
+      "width": 390,
+      "height": 2007,
+      "sha256": "002a2f5afd1c784baa7677b15ba8da0c4c9997050e2712a8fcfcb719e2404423"
+    },
+    {
+      "name": "app-configured-fixture-help-1366-en.png",
+      "width": 1366,
+      "height": 1213,
+      "sha256": "d96a31fc0323e77e2086d9b7467b903175d49227203e91a5036d1530cba74ebe"
+    },
+    {
+      "name": "app-configured-fixture-information-1366-en.png",
+      "width": 1366,
+      "height": 1703,
+      "sha256": "e15a2db3161bc1b4cc334ae490b79ea41fdf997841b883d03c10451257e2ae64"
+    },
+    {
+      "name": "app-configured-fixture-help-1366-ur.png",
+      "width": 1366,
+      "height": 1206,
+      "sha256": "1fe9e12c3b00905be226df5f9972863e21c15ca6b66882830289530a7bb3c049"
+    },
+    {
+      "name": "app-configured-fixture-information-1366-ur.png",
+      "width": 1366,
+      "height": 1719,
+      "sha256": "5980e9b5ae02549a94b8f4445496ccb8780a4f1860fb66b1db772dff49731e18"
+    },
+    {
+      "name": "app-configured-fixture-help-390-en.png",
+      "width": 390,
+      "height": 2195,
+      "sha256": "3826c937aaf9733e5f87ce785d7e1b8e9649a0dfb5f4eb242f4e874c7cc14342"
+    },
+    {
+      "name": "app-configured-fixture-information-390-en.png",
+      "width": 390,
+      "height": 1732,
+      "sha256": "f19a51aa2454fa014bcadac6b7d1aabf98f9286f0dd55e56f9ce2e982e1b877d"
+    },
+    {
+      "name": "app-loading-en.png",
+      "width": 390,
+      "height": 1719,
+      "sha256": "26c193900375455c40c8407edf362b724d1c02bfe5c81df1bf0f897e23af01cd"
+    },
+    {
+      "name": "app-stale-network-error-en.png",
+      "width": 390,
+      "height": 2159,
+      "sha256": "30f4be74ff5e0415bba9110dcb8863dc7bdcefca5c7cb7532a7ff0d4462a49ce"
+    },
+    {
+      "name": "app-retry-en.png",
+      "width": 390,
+      "height": 2195,
+      "sha256": "3826c937aaf9733e5f87ce785d7e1b8e9649a0dfb5f4eb242f4e874c7cc14342"
+    },
+    {
+      "name": "app-configured-fixture-help-390-ur.png",
+      "width": 390,
+      "height": 2018,
+      "sha256": "4b7832d32f74377d4191bb90b9834098e2131cb5dbcb27d4ddf16ca4175c5218"
+    },
+    {
+      "name": "app-configured-fixture-information-390-ur.png",
+      "width": 390,
+      "height": 1679,
+      "sha256": "c990f2d0d784dd4aadd1794d4235686415e29c89c97c9a77545404b8faffc5d6"
+    },
+    {
+      "name": "app-loading-ur.png",
+      "width": 390,
+      "height": 1636,
+      "sha256": "65ab6bcb6247bbb66e50b8815de4fd47af62466a40372fa53fd6b2c0ac336b04"
+    },
+    {
+      "name": "app-stale-network-error-ur.png",
+      "width": 390,
+      "height": 1973,
+      "sha256": "a465817aa3341797a591bf231977d5d1b62a6eaaf8d9ce19bbd8f812c8e9ad81"
+    },
+    {
+      "name": "app-retry-ur.png",
+      "width": 390,
+      "height": 2018,
+      "sha256": "4b7832d32f74377d4191bb90b9834098e2131cb5dbcb27d4ddf16ca4175c5218"
+    }
+  ]
+}

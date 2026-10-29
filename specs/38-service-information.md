@@ -1,6 +1,6 @@
 # Spec 38 — Configured support and service information
 
-**Status:** In progress
+**Status:** Done
 **Depends on:** Spec 27, Spec 25
 **Model:** Standard — `claude-sonnet-5-5` · `gpt-6.1-sol` · `gemini-3.8-flash`
 **Issue:** #89
@@ -40,7 +40,7 @@ Provide actual support path, approved service/privacy/exit text via explicit con
 
 ## Done when
 
-- [ ] Approved V5 layout and interactions are implemented and paired actual-app/reference screenshots are inspected at desktop/phone EN/UR; state/permission deviations are recorded. Native acceptance requires a native runtime. [static]
+- [x] Approved V5 layout and interactions are implemented and paired actual-app/reference screenshots are inspected at desktop/phone EN/UR; state/permission deviations are recorded. Native acceptance requires a native runtime. [static]
 - [x] `npm run test:components --prefix frontend -- src/pages/Help/HelpPage.test.tsx` passes: Missing support/link/policy never renders a working claim; configured safe links use expected origin; EN/UR assistance available. [unit]
 - [x] `npm test --prefix frontend` passes the whole affected unit suite; record count. [unit]
 - [x] Only scoped paths changed; relevant denial/empty/error/config-unavailable states inspected. [static]
@@ -48,6 +48,15 @@ Provide actual support path, approved service/privacy/exit text via explicit con
 - [x] `npm run build --prefix frontend` passes. [static]
 
 ## Log
+
+- **2026-10-29 — Single-spec continuation:** Dependencies25/27 are Done on verified
+  2011a90; issue89 reused. Existing unavailable behavior is part of approved38,
+  not a dependency on activating live services. Verify its web contract with real
+  public-router responses and separately labelled configured rendering fixtures;
+  retain actual mail/legal/distribution qualification in39/40. The unchanged
+  Node parity test exposed ten missing shared web strings from earlier native
+  work. Synchronize only those existing translations in the already owned shared
+  dictionary as a narrow dependency correction; no native flow or test weakening.
 
 - **2026-10-21** — Issue75 claimed, actual25/27 ancestors verified; branch implementation/spec-38-service-information based35/5f10d3c. Latest user authorizes38/39 only. Explicit shared ownership transferred30/32/34/35 before edits, no DAG change. Preserve eight dirty files snapshot /tmp/hygene-spec38-39-preserved.json.
 - **2026-10-21** — Added actual public help/information routes outside tenant bootstrap, configured safe support/contact no-credentials/no-store request and retry, escaped facts, origin-pinned explicitly approved policy/distribution links with unavailable defaults. Separate photo upload/submission/review/verification and unqualified processing guidance. New checkout blocks absent policy/support, rechecks recipient before transaction; existing portal retained. No legal promises, production config/provider activation, database or dependency changes.
@@ -64,3 +73,21 @@ Provide actual support path, approved service/privacy/exit text via explicit con
 - **2026-10-22 — Integrated visual checkpoint:** coordinator guarded matching React/API/disposable-SQL run21cases passed52.2s including both Help cases; integrated64Node+245React/full lint/types/build pass.22PNGs/8base observations, actual unavailable support200, public-only API requests, FAQ/navigation/loading and explicitly aborted network-error/retry. Implementer/coordinator/independent QA compared matching1366/390 EN/UR; core compositions/readability verified with public shell/title/no-ticket-form/real-copy differences documented in V5_HELP.md. Configured-positive live mailbox/legal/distribution visual states remain unverified, so38 remains In progress; no full-V5/provider/native completion claim.
 
 - **2026-10-29** — Serialized ownership transferred to32 for existing `frontend/src/pages/Subscription/SubscriptionPage.tsx`, `frontend/src/pages/Subscription/SubscriptionPage.test.tsx` during approved billing/restricted-account correction. Existing policy and public help/security composition preserved.
+
+- **2026-10-29 — Complete approved web contract:** Bounded cancellable contact read,
+  localized distinct policy link names,44/48px language targets, support alignment
+  and public navigation scroll/main-focus fixes reuse existing implementation.
+  Final32Help/64Help+billing tests,64Node+372React whole web,110backend support/billing,
+  full frontend lint0 and TypeScript/production build pass. Final18visual observations
+  and34PNGs include paired1366/390EN/UR plus configured fixtures/FAQ/loading/error/
+  retry; all inspected. Actual public router/service HTTP200, no-store, omitted
+  cookies and no tenant bootstrap verified; no SQL/external services required.
+  Initial vocabulary parity, harness cwd/static-path, test-type option and captured
+  alignment/retained-focus defects corrected; failed/interrupted runs not accepted.
+  Native is outside this web unit. Real mailbox/legal/distribution/photo/merchant
+  qualification remains39/40; default unavailable guards and30Blocked retained.
+  No other spec implementation. V5_HELP and final evidence map every criterion.
+
+- **Published:** implementation36fd568, OPEN/DRAFT
+  [PR103](https://github.com/Shumail-AbdulRehman/PRIV/pull/103), base verified
+  implementation/spec-30-delivery-qualification. Issue89open for human review.

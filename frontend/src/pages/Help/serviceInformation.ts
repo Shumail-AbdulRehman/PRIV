@@ -17,12 +17,22 @@ export function serviceInformation(env: PublicEnvironment = import.meta.env) {
 }
 export async function getPublicSupport(signal?: AbortSignal): Promise<{ email: string | null }> {
   const base = import.meta.env.VITE_API_BASE_URL?.trim().replace(/\/+$/, '') || '/api';
-  const response = await fetch(`${base}/support/contact`, { signal, credentials: 'omit', cache: 'no-store', redirect: 'error', headers: { Accept: 'application/json' } });
-  if (!response.ok) throw new Error('Support unavailable');
-  const { data } = await response.json();
-  const email = typeof data?.email === 'string' ? data.email : '';
-  if (data?.available === true && data.channel === 'EMAIL' && data.verification === 'OPERATOR_CONFIGURED' && email.length <= 254 && /^[^\s@<>?#;]+@[^\s@<>?#;]+\.[^\s@<>?#;]+$/.test(email)) return { email };
-  return { email: null };
+  const controller = new AbortController();
+  const timeout = setTimeout(() => controller.abort(), 10_000);
+  const cancel = () => { clearTimeout(timeout); controller.abort(); };
+  if (signal?.aborted) cancel();
+  else signal?.addEventListener('abort', cancel, { once: true });
+  try {
+    const response = await fetch(`${base}/support/contact`, { signal: controller.signal, credentials: 'omit', cache: 'no-store', redirect: 'error', headers: { Accept: 'application/json' } });
+    if (!response.ok) throw new Error('Support unavailable');
+    const { data } = await response.json();
+    const email = typeof data?.email === 'string' ? data.email : '';
+    if (data?.available === true && data.channel === 'EMAIL' && data.verification === 'OPERATOR_CONFIGURED' && email.length <= 254 && /^[^\s@<>?#;]+@[^\s@<>?#;]+\.[^\s@<>?#;]+$/.test(email)) return { email };
+    return { email: null };
+  } finally {
+    clearTimeout(timeout);
+    signal?.removeEventListener('abort', cancel);
+  }
 }
 export function useServiceInformation() {
   const facts = serviceInformation();

@@ -602,6 +602,16 @@ export const urdu: Record<string, string> = {
   "Clean this item, then scan the task QR again": "یہ شے صاف کریں، پھر کام کا QR دوبارہ اسکین کریں",
   "Load more tasks": "مزید کام دکھائیں",
   "Loading tasks…": "کام کھل رہے ہیں…",
+  "Your working day": "آپ کا کام کا دن",
+  "Your shift": "آپ کی شفٹ",
+  "Task alerts": "کام کی اطلاعات",
+  "Alert registration has not been checked on this screen. Your assigned work stays available.": "اس اسکرین پر اطلاعات کی رجسٹریشن ابھی چیک نہیں ہوئی۔ آپ کا مقررہ کام دستیاب ہے۔",
+  "Permission and delivery are different things. Registration does not confirm an alert was delivered.": "اجازت اور ترسیل الگ چیزیں ہیں۔ رجسٹریشن سے اطلاع کی ترسیل کی تصدیق نہیں ہوتی۔",
+  "Scan this task’s QR": "اس کام کا کیو آر اسکین کریں",
+  "Cleaning started": "صفائی شروع ہو گئی",
+  "Scan to start": "شروع کرنے کے لیے اسکین کریں",
+  "Starting work is separate from submitting it. Scan the same task QR again when you are ready for photos.": "کام شروع کرنا اور جمع کرنا الگ ہیں۔ تصاویر کے لیے تیار ہوں تو اسی کام کا کیو آر دوبارہ اسکین کریں۔",
+  "Use the code for this assigned task. A room code or another task cannot start this work.": "اسی مقررہ کام کا کوڈ استعمال کریں۔ کمرے یا کسی دوسرے کام کا کوڈ اسے شروع نہیں کر سکتا۔",
 };
 
 export function translate(
