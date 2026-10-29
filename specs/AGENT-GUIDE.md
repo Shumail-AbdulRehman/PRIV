@@ -8,7 +8,7 @@
 
 ## Current checkpoint instruction — 2026-10-29
 
-Spec28 applicable web acceptance is complete; read the latest SESSION_HANDOFF for canonical root implementation/v5-continuation-final and persistent integration worktree.10specifications remain, next32consumes15/27/28. Operator34/review36 safe-state continuations retain external gates and independent draftPR95/96. Preserve supplied user performance work and unrelated root changes. Latest user authorizes continued work; historical STOPs do not reactivate. No production actions/merges or repeated discovery/design/audits.
+Spec32 applicable web acceptance is complete;9specifications remain. Current continuation source is `implementation/v5-billing-acceptance` in `/home/shumail/.local/share/hygene-ops/v5-billing-20261029/implementation`, based on55061b8. Original root `fix/v5-runtime-data-loading` and dirty runtime/Maps/source work are preserved unchanged; do not overlay/discard them. Read the current branch handoff/progress before using old root checkpoints. Next33 consumes completed24/27 at approved scope; positive operator IdP remains external. No merge/deploy or live financial/provider operation.
 
 ## One spec per session
 Default one focused unit; the user explicitly authorizes sequential units in this session. Finish verification and update handoff after each. Do not restart discovery/design or add a new prototype. Preserve pre-existing dirty changes documented in the survey.

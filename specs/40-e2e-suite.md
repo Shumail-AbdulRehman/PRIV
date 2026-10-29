@@ -157,3 +157,5 @@ These owned surfaces are consumed by the flow table above or the clean verificat
 - **2026-10-29 — Combined continuation:** the existing operator/review-state harnesses consume34public boundary and36setup/closed/held/paging/error states; source and evidence are integrated from independent draftPR95/96. No positive IdP/media/native qualification is inferred.
 
 - **2026-10-29** — Single existing40 harness consumes32 `docs/implementation/V5_BILLING.md`, `frontend/src/components/onboarding/workspace-access.css`, `frontend/src/components/onboarding/WorkspaceGate.tsx` and paired billing/access evidence for real React/private API/disposable SQL qualification. Scoped32 correction does not complete full40 provider/native flow table.
+
+- **2026-10-29** — Spec32 correction consumes this single harness for27actual billing/workspace/lifecycle cases (fresh final rerun27pass) and2new access pending/failure/recovery ENUR cases (2pass).86paired/state artifacts inspected, no mocked successful HTTP responses. Full40still In progress: provider/native and remaining-spec flow gaps unchanged;41ineligible. Source/payments/tenant guards not bypassed for screenshots.

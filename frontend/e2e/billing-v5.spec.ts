@@ -304,3 +304,29 @@ test('legacy inactive company cannot appear operational while owner recovery rem
     await sql('UPDATE "Company" SET "isActive"=$2,"operationalStatus"=$3 WHERE id=$1', [fixture.company.A, saved.isActive, saved.operationalStatus]);
   }
 });
+
+for (const lang of ['en', 'ur']) test(`owner access pending request failure and recovery retain safe destinations ${lang}`, async ({ page }) => {
+  await page.setViewportSize({ width: 390, height: 900 });
+  const errors: string[] = [];
+  page.on('pageerror', error => errors.push(error.message));
+  let release!: () => void;
+  const held = new Promise<void>(resolve => { release = resolve; });
+  await page.route('**/api/subscription/manage/lifecycle', async route => { await held; await route.continue(); });
+  try {
+    await enter(page, '/dashboard', 'ownerA', lang);
+    await expect(page.getByRole('heading', { name: lang === 'ur' ? 'ورک اسپیس کی رسائی جانچی جا رہی ہے…' : 'Checking workspace access…', exact: true })).toBeVisible();
+    await capture(page, `app-access-loading-390-${lang}`);
+  } finally { release(); }
+  await expect(page.getByRole('heading', { name: lang === 'ur' ? 'کمپنی کی کارکردگی' : 'Company performance', exact: true })).toBeVisible();
+  await page.unroute('**/api/subscription/manage/lifecycle');
+  await page.route('**/api/subscription/manage/lifecycle', route => route.abort('failed'));
+  await page.reload();
+  await expect(page.getByRole('heading', { name: lang === 'ur' ? 'ورک اسپیس کی رسائی نہیں جانچی جا سکی' : 'Workspace access could not be checked', exact: true })).toBeVisible();
+  await expect(page.getByRole('link', { name: lang === 'ur' ? 'پلان اور بلنگ کھولیں' : 'Open Plan & billing', exact: true })).toHaveAttribute('href', '/subscription');
+  await expect(page.getByRole('link', { name: lang === 'ur' ? 'آپ کے اکاؤنٹ کی سکیورٹی' : 'Your account security', exact: true })).toHaveAttribute('href', '/account/security');
+  await capture(page, `app-access-error-390-${lang}`);
+  await page.unroute('**/api/subscription/manage/lifecycle');
+  await page.getByRole('button', { name: lang === 'ur' ? 'ورک اسپیس کی رسائی تازہ کریں' : 'Refresh workspace access', exact: true }).click();
+  await expect(page.getByRole('heading', { name: lang === 'ur' ? 'کمپنی کی کارکردگی' : 'Company performance', exact: true })).toBeVisible();
+  expect(errors).toEqual([]);
+});

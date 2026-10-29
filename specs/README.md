@@ -106,3 +106,5 @@ rather than split into a second E2E spec. No extra architecture or dependency wa
 Spec40 remains the single integrated flow table; its additional correction logs may exceed130lines. This is an intentionally long E2E record already accepted above, not a reason to create a second E2E specification.
 
 V5 correction validator2026-10-22:42specs/0errors/12warnings. The additional long-spec40 warning is accepted because40 remains the sole integrated browser/screenshot harness by project contract; its explicit consumption and evidence log are retained rather than splitting browser ownership into another execution spec. Existing11warnings remain justified above.
+
+Spec32 V5 acceptance2026-10-29:15/27/28 remain the actual consumption dependencies; no graph edge or wave changed. Ownership of additive lifecycle DTO and serialized shell presentation transferred before editing. Current32webDone,9remain.86paired/state PNG artifacts and27+2actual browser cases do not qualify live Paddle or complete40. Existing12validator warnings remain documented above. Next33 is locally eligible via24/27; its positive IdP qualification stays external.

@@ -1,6 +1,6 @@
 # Spec 32 — Real subscription lifecycle UI
 
-**Status:** In progress
+**Status:** Done
 **Depends on:** Spec 15, Spec 27, Spec 28
 **Model:** Standard — `claude-sonnet-5-5` · `gpt-6.1-sol` · `gemini-3.8-flash`
 **Issue:** #69
@@ -37,7 +37,7 @@ Display real capacity/provider period/status/activation/sync and restricted-acco
 
 ## Done when
 
-- [ ] Approved V5 layout and interactions are implemented and paired actual-app/reference screenshots are inspected at desktop/phone EN/UR; state/permission deviations are recorded. Native acceptance requires a native runtime. [static]
+- [x] Approved V5 layout and interactions are implemented and paired actual-app/reference screenshots are inspected at desktop/phone EN/UR; state/permission deviations are recorded. Native acceptance requires a native runtime. [static]
 - [x] `npm run test:components --prefix frontend -- src/pages/Subscription/SubscriptionPage.test.tsx` passes: Unconfigured catalog cannot checkout; linked subscriber invokes portal not new purchase; delayed webhook shown pending; owner access retained. [unit]
 - [x] `npm test --prefix frontend` passes the whole affected unit suite; record count. [unit]
 - [x] Only scoped paths changed; relevant denial/empty/error/config-unavailable states inspected. [static]
@@ -62,3 +62,7 @@ Display real capacity/provider period/status/activation/sync and restricted-acco
 - **2026-10-21 — Visual acceptance correction:** reopened for outstanding approved V5 acceptance. Historical functional checkmarks/logs are preserved; they do not certify visual fidelity. Current four-part status and evidence: docs/implementation/V5_IMPLEMENTATION.md. No prior visual requirement is newly verified by a build.
 
 - **2026-10-29** — Continuation on issue69; verified15/27/28 complete and actual owner billing API/mirror/capacity/auth contracts. Exclusive billing page/CSS/copy/tests assigned to frontend agent; coordinator owns serialized owner suspended-account presentation/route boundary and records; QA owns only40 browser harness/evidence. Existing provider/commercial gates remain disabled. Additional hot-file ownership transferred from27/38 before edits. No plan/DAG dependency changes.
+
+- **2026-10-29 — V5 web acceptance complete:** Completed15/27/28 contracts and actual integrated source verified; existing merchant/commercial/provider decisions remain disabled, not invented. V5 subscription/capacity/latest-event stack and help/recovery rail, true status/period facts, ENUR/RTL and owner suspended/inactive recovery implemented. Additive company.isActive DTO only; no schema, migration, pricing/provider/entitlement rule or live financial action. Active unpaid reads remain allowed. Checkout/portal safeguards retained; failed catalog refresh cannot act on stale prices or mismatched company.
+- **2026-10-29 — Verification:**70focused billing/access/shell; whole64Node+348React/28files pass (one worker; whole270.89s), frontend full lint0 plus final touched TS lint, exact frontend build (11.07s), backend/strict integration/web/E2E TypeScript pass. Backend158focused/5files and1449whole/95files/zero skips pass on explicit disposable SQL. Actual billing SQL proves canonical ownership, atomic event/rollback/order, catalog denial, concurrent single draft and lost-response recovery; no-network provider fixture. Initial old shell fixture/stale in-flight access assertions corrected; one unrelated SQL clock-fixture failure fixed only by UTC configuration of a new disposable database; invariants unchanged.
+- **2026-10-29 — Actual browser/visual evidence:**27matched React/API/SQL browser cases pass fresh after visual class-collision correction; two additional ENUR access loading/error/retry cases pass separately.86PNG artifacts (70app/16reference), paired1366×900/390×900 ENUR core and significant states/full-page inspected with hashes/dimensions. These are29distinct scoped cases, not full40 or live provider/native proof. See V5_BILLING.md and v5-billing-evidence/{README.md,manifest.json,verification.json}. Original root branch/runtime/Maps and19file preservation snapshot remain unchanged; no generated child databases remain and owned test cluster stopped. Provider/device/legal/mail/privacy/production gates stay39/40; no merge/deploy. Publication follows separately.
