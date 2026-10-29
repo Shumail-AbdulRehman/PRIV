@@ -17,6 +17,8 @@ const args = process.argv.slice(2);
 const option = name => args.includes(name) ? args[args.indexOf(name) + 1] : undefined;
 const root = resolve(option('--source') ?? fileURLToPath(new URL('../../', import.meta.url)));
 const out = resolve(option('--out') ?? join(root, 'docs/implementation/v5-platform-evidence'));
+// The installed Babel compiler resolves its plugin from the process cwd.
+process.chdir(join(root, 'frontend'));
 const mode = option('--mode') ?? 'all';
 const runtime = await mkdtemp(join(tmpdir(), 'hygene-platform-visual-'));
 await mkdir(out, { recursive: true });
@@ -146,6 +148,13 @@ async function runCore() {
     const { context, page, issues } = await createPage(width, language);
     for (const view of core) {
       await open(page, view.path); await ready(page, view.name);
+      if (width === 390 && ['company-list', 'service-diagnostics'].includes(view.name)) {
+        const menu = page.getByRole('button', { name: label('Platform navigation', language), exact: true });
+        await menu.focus(); await page.keyboard.press('Enter');
+        await expect(menu).toHaveAttribute('aria-expanded', 'true');
+        await expect(page.getByRole('link', { name: label('Companies', language), exact: true })).toBeVisible();
+        await page.keyboard.press('Enter'); await expect(menu).toHaveAttribute('aria-expanded', 'false');
+      }
       if (view.button) {
         await page.getByRole('button', { name: label(view.button, language), exact: true }).click();
         await expect(page.getByRole('button', { name: label(view.button, language), exact: true })).toHaveAttribute('aria-pressed', 'true');
@@ -195,6 +204,7 @@ async function runMutations() {
       await page.getByLabel(label('Ownership decision', language), { exact: true }).selectOption('SELF');
     }
     const reason = page.getByLabel(label('Reason', language), { exact: true });
+    if (company) await expect(reason).toBeFocused();
     await reason.fill('Synthetic reviewed request');
     const submit = page.getByRole('button', { name: label(company ? 'Confirm status change' : 'Save handling', language), exact: true });
     await submit.click();
@@ -227,6 +237,22 @@ async function runMutations() {
     await context.close();
   }
 }
+async function runSupportRefresh() {
+  for (const language of ['en', 'ur']) {
+    const { context, page, issues } = await createPage(390, language);
+    await open(page, '/platform/service', 'support'); await ready(page, 'service-diagnostics');
+    await expect(page.locator('a[href^="mailto:"]')).toHaveCount(1);
+    await control({ supportFailure: true });
+    await page.getByRole('button', { name: label('Refresh support contact', language), exact: true }).click();
+    await expect(page.getByText(label('Support contact could not be loaded.', language), { exact: true })).toBeVisible();
+    await expect(page.locator('a[href^="mailto:"]')).toHaveCount(0);
+    await capture(page, 'service-support-refresh-error', 390, language, issues);
+    await control({ supportFailure: false });
+    await page.getByRole('button', { name: label('Retry support contact', language), exact: true }).click();
+    await expect(page.locator('a[href^="mailto:"]')).toHaveCount(1);
+    await context.close();
+  }
+}
 async function runGuard() {
   for (const width of [1366, 390]) for (const language of ['en', 'ur']) {
     const { context, page, issues } = await createPage(width, language);
@@ -249,7 +275,7 @@ try {
   await server.listen(); origin = server.resolvedUrls.local[0].replace(/\/$/, '');
   browser = await chromium.launch({ executablePath: process.env.HYGENE_E2E_BROWSER_PATH ?? '/usr/bin/google-chrome', args: ['--no-sandbox', '--disable-dev-shm-usage'] });
   if (['all', 'core'].includes(mode)) await runCore();
-  if (['all', 'states'].includes(mode)) { await runSimpleStates(); await runMutations(); }
+  if (['all', 'states'].includes(mode)) { await runSimpleStates(); await runMutations(); await runSupportRefresh(); }
   if (['all', 'guard'].includes(mode)) await runGuard();
   const source = {};
   for (const name of ['CompaniesPage.tsx', 'companies.css', 'ServicePage.tsx', 'service.css', 'operatorSession.ts', 'OperatorLogin.tsx']) source[name] = createHash('sha256').update(await readFile(join(root, 'frontend/src/pages/Platform', name))).digest('hex');
@@ -260,5 +286,8 @@ try {
   console.log(JSON.stringify({ passed: results.length, screenshots: files.length, sourceRoot: root, mode, evidence: out }));
 } catch (error) {
   await writeFile(join(out, `${mode}-failure.json`), JSON.stringify({ message: error.stack, completed: results }, null, 2));
+  if (browser) for (const [index, page] of browser.contexts().flatMap(context => context.pages()).entries()) {
+    await page.screenshot({ path: join(out, `${mode}-failure-${index}.png`), fullPage: true }).catch(() => {});
+  }
   throw error;
 } finally { if (browser) await browser.close(); if (server) await server.close(); await rm(runtime, { recursive: true, force: true }); }
