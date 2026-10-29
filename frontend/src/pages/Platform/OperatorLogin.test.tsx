@@ -1,5 +1,5 @@
 import { beforeEach, expect, it, vi } from 'vitest';
-import { fireEvent, render, screen, waitFor } from '@testing-library/react';
+import { act, fireEvent, render, screen, waitFor } from '@testing-library/react';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { createMemoryRouter, RouterProvider } from 'react-router-dom';
 import { Provider } from 'react-redux';
@@ -91,6 +91,52 @@ it('cleanup cancels pending operator reads before removing sensitive cache entri
   await pending;
   expect(cancelled).toBe(true);
   expect(queryClient.getQueryCache().findAll({ queryKey: operatorQueryScope })).toHaveLength(0);
+});
+
+it('a rejected callback clears cached operator records while preserving the company session', async () => {
+  const { router, queryClient, store } = mount('/platform/security', 'en', 'ADMIN');
+  queryClient.setQueryData([...operatorQueryScope, 'companies'], { restricted: true });
+  queryClient.setQueryData(['tenant', 'locations'], { kept: true });
+  await act(async () => { await router.navigate('/platform/callback?code=untrusted&state=untrusted#id_token=untrusted'); });
+  expect(await screen.findByRole('alert')).toHaveTextContent('No platform session was created.');
+  await waitFor(() => expect(queryClient.getQueryCache().findAll({ queryKey: operatorQueryScope })).toHaveLength(0));
+  expect(queryClient.getQueryData(['tenant', 'locations'])).toEqual({ kept: true });
+  expect(store.getState().auth.user?.role).toBe('ADMIN');
+  expect(router.state.location.search).toBe('');
+  expect(router.state.location.hash).toBe('');
+});
+
+it('an unsolicited callback never follows an external return destination or exchanges its code', async () => {
+  const request = vi.spyOn(globalThis, 'fetch');
+  const { router } = mount('/platform/callback?code=untrusted&state=untrusted&returnTo=https%3A%2F%2Funtrusted.example.invalid%2F');
+  expect(await screen.findByRole('alert')).toHaveTextContent('Sign-in response rejected');
+  expect(router.state.location.pathname).toBe('/platform/callback');
+  expect(router.state.location.search).toBe('');
+  expect(screen.getByRole('link', { name: 'Return to platform sign in' })).toHaveAttribute('href', '/platform/login');
+  expect(request).not.toHaveBeenCalled();
+});
+
+it('a late operator response cannot restore data after local cleanup even if transport ignores abort', async () => {
+  const queryClient = new QueryClient();
+  let finish!: (value: { restricted: boolean }) => void;
+  const pending = queryClient.fetchQuery({
+    queryKey: [...operatorQueryScope, 'late'],
+    queryFn: () => new Promise<{ restricted: boolean }>(resolve => { finish = resolve; }),
+  }).catch(() => undefined);
+  await clearOperatorSession(queryClient);
+  finish({ restricted: true });
+  await pending;
+  expect(queryClient.getQueryCache().findAll({ queryKey: operatorQueryScope })).toHaveLength(0);
+});
+
+it('failed operator cancellation still removes only the operator cache and reports failure', async () => {
+  const queryClient = new QueryClient();
+  queryClient.setQueryData([...operatorQueryScope, 'companies'], { restricted: true });
+  queryClient.setQueryData(['tenant', 'locations'], { kept: true });
+  vi.spyOn(queryClient, 'cancelQueries').mockRejectedValueOnce(new Error('synthetic cancellation failure'));
+  await expect(clearOperatorSession(queryClient)).rejects.toThrow('synthetic cancellation failure');
+  expect(queryClient.getQueryCache().findAll({ queryKey: operatorQueryScope })).toHaveLength(0);
+  expect(queryClient.getQueryData(['tenant', 'locations'])).toEqual({ kept: true });
 });
 
 it('cleanup failures stay explicit and retryable without reporting success', async () => {

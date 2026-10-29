@@ -1,3 +1,147 @@
+# Single-spec continuation — Specification 34, 2026-10-29
+
+**Specification34 is Blocked for full acceptance. All independently implementable
+safe-state behavior is already present and freshly verified. STOP after34.**
+Only34was selected; no other specification was started/completed, no PR merged,
+deployment made, production data changed or live identity provider activated.
+This entry overrides historical continuation/parallel/STOP instructions below.
+
+## Restored ground truth and Git safety
+
+Read both the requested plan-project skill and the project implementation guide,
+architecture, progress, complete34spec, reuse inventory and latest37handoff.
+Fetched origin and confirmed OPEN/DRAFT PR105 HEAD is
+`d25f4111e4d101bad0f45f0309fd05b6a669b1a7`, based on36/PR104. Its actual saved
+native-final/backend-dependencies logs independently confirm115native and169backend
+dependency tests; those remain previous-session results, not new runs.37still
+requires physical-device/provider acceptance. Tracker independently counts36Done
+including00and sixunfinished30/34/36/37/40/41. Dependencies19/27are Done and the
+actual verifier, top-level tenant-independent platform routes and V5 shell exist.
+
+Continuation branch: `implementation/spec-34-identity-qualification`.
+Worktree: `/home/shumail/.local/share/hygene-ops/v5-spec34-20261029/implementation`.
+Issue59was found/reused, assigned and claimed before edits. Historical34PR63/95
+and every prior stack are preserved; this continuation is based on105rather than
+rebasing a historical branch or merging a PR.
+
+Original root remains `fix/v5-runtime-data-loading` at55061b8with its unrelated
+source/config/runtime overlays. A private before/final audit verifies23other
+present worktrees and799dirty/untracked path hashes with zero HEAD/status/content
+mismatches. No old overlay was copied into the accepted tree. Existing5173/8080
+services and missing/prunable worktree registrations were untouched. Ignored
+node_modules and a read-only approved-design symlink support local verification;
+these are not source changes. No .env credentials were loaded or copied.
+
+## Functionality and exact changes
+
+Existing safe-disabled sign-in, own-security provider handoff, callback rejection
+and URL scrub, operator-only request/query/cache boundary, EN/UR/RTL and protected
+route fallback already implement the local requirements. Reused them without
+rewriting working auth, importing tenant auth, creating a default operator,
+guessing provider URLs or adding an unqualified adapter. No missing independent
+runtime behavior was found. Operator login and security handoffs remain disabled.
+Local cleanup honestly preserves the company session and does not claim IdP logout.
+
+Only OperatorLogin.test.tsx executable code changed:4new regressions cover rejected
+callback clearing platform cache while preserving company identity, denial of an
+external return destination without code exchange, late ignored-abort results
+unable to restore cleared cache, and scoped removal even when cancellation fails.
+Existing backend RS256 issuer/API audience/JWKS/provisioned-subject/exact-MFA-acr
+checks and tenant/operator separation remain unchanged. No backend runtime,
+schema, dependency/lockfile, native, global router or approved design change.
+
+Updated34spec/status, inventory, OPERATOR_UI.md, PROGRESS and this handoff. Added
+an explicit unchecked real-provider criterion from the existing34scope; no prior
+criterion was removed/weakened and the full visual criterion remains unchecked.
+Fresh evidence is in `docs/implementation/v5-operator-acceptance/`; historical
+operator evidence was restored unchanged after the existing harness wrote captures.
+
+## Verification actually performed
+
+-21focused operator component cases pass; full frontend64Node+390React/28files
+ pass,0failures/skips. Serial component run175.49s under concurrent checks:
+ `npm test --prefix frontend -- -- --maxWorkers=1`.
+- Full backend1444pass+7existing integration skips,94files passed/1skipped,
+116.36s, with an explicit nonexistent loopback unit-DB target.186focused backend
+ cases/4matched files cover actual RSA/JWKS verifier, platform support, tenant
+ middleware and launch routing. The initial extra plural company-test selector
+ matched no file; the real singular platformCompany test is in the full run.
+ No backend lint script exists and no lint success is invented.
+- Full frontend lint, backend build/TypeScript, frontend build/TypeScript and
+ strict browser TypeScript pass. Vite plugin-timing advisory is non-failing.
+ No native suite was rerun because no native code changed; previous115count was
+ independently checked in the saved37log. No hosted CI result is inferred.
+- Existing Spec40-owned operator-v5 harness3/3passes21.7s, no skips/retries/flaky
+ results. Fresh migrated UUID SQL database, real tenant logins/API401denials and
+ preserved tenant identity after local platform cleanup. No positive API response
+ was replaced and no identity provider was contacted. Direct protected routes
+ remain unavailable; public pages make zeroAPI/tenant-bootstrap requests.
+-12base EN/UR1366×900/390×900observations plus4cleanup receipts inspected against
+ matching approvedV5reference captures.40PNGs include12base/12full supplements/
+12references/4receipts; no overflow or JSerror,44px/48px buttons, language and
+ keyboard focus verified. The real public no-session security deliberately differs
+ from V5's fictional authenticated sidebar; positive security remains unverified.
+- Owned PostgreSQL17loopback56534was stopped after checking zero generated child
+ databases; managed API/Vite servers were cleaned by the runner. No user service,
+ customer database or real provider was used. Source/reference/image hashes match
+ the captured source. Raw logs/inspection sheets and preservation hashes remain
+ privately in the worktree parent. The original design symlink remains untracked.
+
+Spec validation: 42 specifications, zero errors and the same 12 documented
+baseline warnings. An intermediate run caught the tracker/status synchronization
+before the tracker update; final validation passes. No new warning is accepted.
+Whitespace and source/reference/image hashes pass. The final preservation audit
+again reports 23 other worktrees/799 dirty paths with zero mismatches.
+
+## Precise external blocker
+
+This session has no configured PLATFORM_OIDC_ISSUER/AUDIENCE/JWKS_URL/MFA_ACR/
+SUBJECTS, and the isolated checkout contains only example env files. No approved
+browser provider adapter/client registration or real named operator/MFA test access
+is supplied. Backend verifier env alone would not complete browser sign-in.
+
+Needed: selected approved test IdP and public browser client ID/API resource;
+exact issuer, API audience, compatible JWKS and enforced MFA acr; provisioned named
+subjects; registered callback/logout-return origins; documented authorization-code/
+PKCE and trusted own-security/MFA/recovery destinations; approved real test access.
+Implement the maintained provider-specific browser adapter against primary docs
+only after these facts exist. Qualify real state/nonce/PKCE/replay/error behavior,
+MFA sign-in/enrollment/recovery, dedicated API bearer expiry/refresh, deprovisioning,
+key rotation/outage and provider logout/revocation, plus positive security/V5 views.
+Actual company ADMIN/MANAGER/STAFF must still be denied; operator authority never
+grants tenant workforce/evidence/impersonation. Do not log/request tokens or secrets
+as handoff evidence. No generated credential, local MFA form, sample account,
+provider-success fixture or env flag can substitute for those real results.
+
+Local tests/captures prove the unavailable/denial boundary only. Real provider
+acceptance remains unchecked;34cannot be marked Done. Exact prerequisites,
+commands, evidence provenance and limits are in OPERATOR_UI.md and evidence README.
+
+## Count, next eligibility and STOP
+
+**36Done(including00),1In progress,4Blocked,1Not started. Six remain:**
+30/34/36/37Blocked;40In progress;41Not started. FullV5remains incomplete.
+No unblocked next unit exists. Numerically next dependency-eligible continuation
+is30(16/17/22/27/28Done), requiring genuine owner-mail delivery qualification;
+36and37also have Done dependencies but require qualified media/native access.
+40waits unfinished dependencies and41waits40. No next specification was started.
+
+## Publication and STOP
+
+Verification commit `5e2668a28d0db08d404254b789dcd6a10a314d2e` is pushed in
+OPEN/DRAFT [PR106](https://github.com/Shumail-AbdulRehman/PRIV/pull/106), confirmed based on
+`implementation/spec-37-native-acceptance` / `d25f411` (PR105).
+The following documentation commit records this publication; inspect branch HEAD
+for its hash. The evidence README is explicitly tracked despite the existing
+`*.md` ignore pattern; no ignore policy was changed. Issue59 remains open for
+human review. The worktree has only the intentional untracked design symlink.
+Final validation: 42 specs, zero errors, 12 documented baseline warnings.
+Final preservation audit: 23 other worktrees/799 dirty paths, zero mismatches.
+All six unfinished specifications and their gates remain. STOP here; no merge,
+deployment, production/provider action or next specification followed.
+
+---
+
 # Single-spec continuation — Specification37, 2026-10-29
 
 **Spec37 is Blocked for full acceptance. Local recovery work and automated checks

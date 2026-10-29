@@ -1,3 +1,81 @@
+# Spec 34 continuation — 2026-10-29
+
+**Blocked for full acceptance; locally implementable safe-state functionality is
+already implemented and now freshly verified.** Do not enable provider controls
+or mark real authentication complete from these checks.
+
+Restored fetched PR105 HEAD `d25f411` on an isolated continuation branch
+`implementation/spec-34-identity-qualification`. Dependencies19/27are Done and
+actual backend verifier, top-level routes and public shell are present. Issue59
+was reused/claimed. Historical PR63/95 and every prior worktree remain preserved.
+Current worktree: `/home/shumail/.local/share/hygene-ops/v5-spec34-20261029/implementation`.
+
+No missing independently implementable runtime behavior was found. Reused
+AuthShell, platformRoutes, OperatorBoundary, operatorRequest, operatorQueryScope,
+clearOperatorSession, callback rejection/scrub, feature-local EN/UR/CSS and the
+existing backend RS256/JWKS/issuer/API-audience/provisioned-subject/exact-acr verifier.
+No auth infrastructure was rewritten, tenant client reused, provider adapter
+invented, operator credential created, guard weakened or browser session fabricated.
+Four new security regressions prove callback cache cleanup/company preservation,
+external return denial without code exchange, late-response cleanup and scoped
+removal even when cancellation fails. Runtime source is unchanged.
+
+Fresh verification:21focused operator cases; full64Node+390React; full backend
+1444passed+7existing integration skips;186focused backend cases; full frontend
+lint, both builds/TypeScript and strict browser TypeScript pass. Existing scoped
+actual-API/SQL/browser harness3/3passes21.7s.12EN/UR1366/390base observations,
+40PNGs and paired inspection of public login/callback/security plus cleanup
+receipts are saved in [v5-operator-acceptance](v5-operator-acceptance/README.md).
+No overflow, JavaScript error or tenant bootstrap occurred. Actual tenant cookies
+remain unauthorized for operator APIs and survive local platform cleanup.
+
+Final spec validation: 42 specifications, zero errors, 12 existing documented
+warnings. Whitespace and source/reference/image hashes pass. Other worktrees,
+dirty paths, prior evidence and user services are preserved.
+
+Published verification commit `5e2668a` in OPEN/DRAFT [PR106](https://github.com/Shumail-AbdulRehman/PRIV/pull/106),
+stacked on Spec37/PR105. This is the current continuation; historical PR63/95 below
+remain unchanged. Issue59 stays open for review and full34 remains Blocked.
+
+## Exact external requirements before full acceptance
+
+The five `PLATFORM_OIDC_*` service inputs (issuer, API audience, JWKS URL, MFA acr,
+provisioned-subject allowlist) are all absent from this session environment; the
+isolated checkout contains example env files only. No original-checkout .env or
+provider credentials were read/copied. Backend verifier configuration alone
+would not supply the missing approved browser integration.
+
+The operator must supply/approve a selected identity provider and dedicated test
+browser client/API resource, public client ID, exact issuer/API audience/JWKS,
+registered callback and logout-return origins, documented authorization-code/
+PKCE behavior, trusted own-security/MFA/recovery destination and named provisioned
+operator subjects. Enforced MFA must actually issue the exact approved API-token
+acr, with issue/expiry behavior compatible with the verifier's15-minute age bound.
+No browser client secret belongs in this application.
+
+Only then implement the maintained provider-specific browser adapter against its
+primary docs and qualify real state/nonce/PKCE and replay/failure denial, MFA
+sign-in/enrollment/recovery, API bearer isolation, expiry/refresh, key rotation/
+outage/deprovisioning, own-security handoff and logout/revocation. Actual company
+ADMIN/MANAGER/STAFF must still fail platform authorization; operators must gain no
+tenant workforce/evidence/impersonation access. Record provider facts/evidence
+without tokens or credentials. These requirements remain unimplemented/unverified;
+unit RSA fixtures and unavailable UI cannot satisfy them.
+
+The approved authenticated operator-security composition also remains unverified;
+its fictional sample identity/sidebar is not rendered as a real session. The
+original full visual criterion remains unchecked. A separate unchecked provider
+criterion now makes the existing scope's external gate explicit, without relaxing
+or replacing any prior acceptance criterion.
+
+Six specifications still remain:30/34/36/37Blocked,40In progress,41Not started.
+There is no unblocked next specification. Numerically next dependency-eligible
+continuation is30(16/17/22/27/28Done), gated by genuine owner-mail delivery;
+36and37also have Done dependencies but need qualified media/native facts.
+40waits unfinished dependencies and41waits40. STOP after34; no other unit started.
+
+---
+
 # Current V5 operator public boundary — 2026-10-28
 
 Spec34 remains **In progress** because a browser OIDC provider, provisioned

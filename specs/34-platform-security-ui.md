@@ -1,10 +1,10 @@
 # Spec 34 — Platform sign-in and security workspace
 
-**Status:** In progress
+**Status:** Blocked
 **Depends on:** Spec 19, Spec 27
 **Model:** Heavy — `claude-opus-5-5` · `gpt-6-astra` · `gemini-3.1-pro-preview`
 **Issue:** #59
-**Owns:** `frontend/src/pages/Platform/OperatorLogin.tsx`, `frontend/src/pages/Platform/OperatorLogin.test.tsx`, `frontend/src/pages/Platform/operatorSession.ts`, `specs/inventory/34-platform-security-ui.md`, `frontend/src/pages/Platform/operator.css`, `frontend/src/pages/Platform/operatorTranslations.ts`, `docs/implementation/OPERATOR_UI.md`, `.impeccable/surfaces/frontend-src-pages-platform-operatorlogin-tsx.md`
+**Owns:** `frontend/src/pages/Platform/OperatorLogin.tsx`, `frontend/src/pages/Platform/OperatorLogin.test.tsx`, `frontend/src/pages/Platform/operatorSession.ts`, `specs/inventory/34-platform-security-ui.md`, `frontend/src/pages/Platform/operator.css`, `frontend/src/pages/Platform/operatorTranslations.ts`, `docs/implementation/OPERATOR_UI.md`, `docs/implementation/v5-operator-acceptance/`, `.impeccable/surfaces/frontend-src-pages-platform-operatorlogin-tsx.md`
 **Reuses:** `frontend/src/components/common/AuthShell.tsx`, `DESIGN-SYSTEM.md#component-conventions`, `design/v5/operator-login.html`
 
 ## Goal
@@ -37,6 +37,7 @@ Use configured OIDC sign-in/MFA/own security provider handoff with safe redirect
 
 ## Done when
 
+- [ ] Real approved provider sign-in, callback state/nonce/PKCE/replay denial, enforced MFA, own-security handoff, API bearer expiry/refresh and provider logout are qualified using provisioned operators; tenant identities remain denied. Existing scope remains disabled until this evidence exists. [requires: approved identity provider]
 - [ ] Approved V5 layout and interactions are implemented and paired actual-app/reference screenshots are inspected at desktop/phone EN/UR; state/permission deviations are recorded. Native acceptance requires a native runtime. [static]
 - [x] `npm run test:components --prefix frontend -- src/pages/Platform/OperatorLogin.test.tsx` passes: Missing config stays disabled; unsolicited callback/state/nonce rejected without an initiated flow; tenant auth never treated as operator; MFA requirement explained. Live provider state/nonce/PKCE/MFA remains gated by39/40. [unit]
 - [x] `npm test --prefix frontend` passes the whole affected unit suite; record count. [unit]
@@ -105,3 +106,24 @@ Use configured OIDC sign-in/MFA/own security provider handoff with safe redirect
   evidenceb373c03 are separate from the final documentation link commit.
   Coordinator owns PROGRESS/SESSION_HANDOFF/ledger and shared ownership records.
   No merge, deployment or production data change.
+
+- **2026-10-29 — Single-spec continuation:** verified fetched `d25f411`/draft PR105,
+  prior 115 native/169 backend logs, six remaining and actual dependencies 19/27.
+  Claimed issue59; isolated `implementation/spec-34-identity-qualification` branch.
+  Existing local runtime was complete; added four callback/cache/isolation regressions.
+  No runtime/backend/dependency/schema/design changes or invented provider adapter.
+- **2026-10-29 — Verification:** 21 focused; full 64 Node +390 React/28 files;
+  backend 1444 passed +7 existing skips; 186 focused backend/4 matched files;
+  full frontend lint, both builds/types and browser types pass. Existing actual
+  API/SQL/browser harness 3/3 passes (21.7s). Paired EN/UR1366/390 login/callback/
+  no-session security and cleanup inspected; 40 PNGs/hashes in v5-operator-acceptance.
+  No overflow/JS errors/bootstrap. Owned PG56534 stopped/zero child DBs;
+  23 other worktrees/799 dirty paths unchanged. Full details: OPERATOR_UI.md.
+- **2026-10-29 — Blocked, STOP:** approved browser IdP/client/API/redirect/security/
+  recovery policy, provisioned subjects and exact MFA acr unavailable; session OIDC
+  inputs absent, no root credentials loaded. State/nonce/PKCE/MFA/refresh/logout and
+  positive security visual acceptance remain unchecked. Explicit provider criterion
+  clarifies existing scope; no criterion removed. Six remain; no unblocked next unit.
+ 30 is dependency-eligible but mail blocked;36/37 external gates;40/41 ineligible.
+  No other specification, merge, deployment, production or provider action.
+- **2026-10-29 — Publication:** `5e2668a`, OPEN/DRAFT [PR106](https://github.com/Shumail-AbdulRehman/PRIV/pull/106) on PR105; full34 Blocked.
