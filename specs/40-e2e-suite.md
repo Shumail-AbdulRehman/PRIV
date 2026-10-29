@@ -13,6 +13,10 @@ Consumes36 receipt/submission/closure/verification flows from `frontend/src/page
 
 ## Goal
 
+Consume current33/35 acceptance reports `docs/implementation/V5_PLATFORM_COMPANIES.md`
+and `docs/implementation/V5_PLATFORM_SERVICE.md` for paired visual states, fixture
+provenance and remaining positive operator qualification gates.
+
 Launch end-to-end suite in the existing application, with persisted behavior and explicit safety boundaries.
 
 ## Scope
