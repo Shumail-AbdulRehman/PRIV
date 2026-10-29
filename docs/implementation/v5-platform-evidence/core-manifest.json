@@ -1,0 +1,426 @@
+{
+  "sourceRoot": "/home/shumail/.local/share/hygene-ops/v5-remaining-20261029/coordinator",
+  "revision": "416bf51d61f40bc81b53c78e58352d5274e9e8d7",
+  "source": {
+    "CompaniesPage.tsx": "14f55a099931bbf898f49871c1704c78cf9f830d4a42875f0cd5d04b150fdea6",
+    "companies.css": "81badb949b1b1082d98e5700fcc7c0c765798194d534956ae1bfdf023d4eab77",
+    "ServicePage.tsx": "d90bfa87c918934e825b12eb76fd4244059f4a8f1829d699427bf8f0cae48924",
+    "service.css": "c0aa57da7ab3835d0c59dddc6b756193761431b7a010f6d3775dbd40fa0425cc",
+    "operatorSession.ts": "8b30daf0c95f87e5cf9dfc651b417d5fbd58566b05331bb720f4eb4414db2e4f",
+    "OperatorLogin.tsx": "9ce45402bc1c02ecbbe6047bd21300f254b8248df73ac8de07a6144d4eeb3f49"
+  },
+  "provenance": "real named React components, test-only synthetic operatorRequest response store; no live provider/auth/SQL qualification",
+  "viewportHeights": 900,
+  "mode": "core",
+  "observations": 32,
+  "files": [
+    {
+      "name": "app-company-list-1366-en.png",
+      "sha256": "5763b64839fa0b6069e053c65a298fa466eae7bc6143f65d30b4e68e095f1166",
+      "width": 1366,
+      "height": 900
+    },
+    {
+      "name": "v5-company-list-1366-en.png",
+      "sha256": "1df992696cfa562dbd2d93ea08da7df60079e044895b478d4ca6bdd35e27ffbb",
+      "width": 1366,
+      "height": 900
+    },
+    {
+      "name": "app-company-account-1366-en.png",
+      "sha256": "d4233a2b3cc0ced48f967bc37fa5d43deec9143c9210911ec949dd8aeccea84c",
+      "width": 1366,
+      "height": 900
+    },
+    {
+      "name": "v5-company-account-1366-en.png",
+      "sha256": "8146cd43c6d80271397853b383d103b95ef4a69daeed7a47dd7aaa73f8b09cde",
+      "width": 1366,
+      "height": 900
+    },
+    {
+      "name": "app-company-billing-1366-en.png",
+      "sha256": "f213e5e045e433242a3a5c04e6529ff715664bdb3ea0a74dbce758af163776c0",
+      "width": 1366,
+      "height": 900
+    },
+    {
+      "name": "v5-company-billing-1366-en.png",
+      "sha256": "c7ae292e2554a8922f50e10739b71ca7e961e5283fda1a411395226979bdca67",
+      "width": 1366,
+      "height": 900
+    },
+    {
+      "name": "app-company-activity-1366-en.png",
+      "sha256": "6bc9b01a44d2bf2e8c66255744c9391e56a2d191e73398716ea71f61c85acf27",
+      "width": 1366,
+      "height": 900
+    },
+    {
+      "name": "v5-company-activity-1366-en.png",
+      "sha256": "2d8eae745d56301f014136e33b7190a6c15eb609e8beec1801e0edd6e70dc06c",
+      "width": 1366,
+      "height": 900
+    },
+    {
+      "name": "app-service-diagnostics-1366-en.png",
+      "sha256": "f270c4deca34f48c11119ff496c3cb9b77d003aa2c5d81bf5ef25633149f30ee",
+      "width": 1366,
+      "height": 900
+    },
+    {
+      "name": "v5-service-diagnostics-1366-en.png",
+      "sha256": "3a0e3a7606e66f57baf19980943f082cc3df20ea4a59c3be998cae980cef07e1",
+      "width": 1366,
+      "height": 900
+    },
+    {
+      "name": "app-service-audit-1366-en.png",
+      "sha256": "7c7a098d7b6097ea8f7ded6ad600f2e19f6b1e7ebd38f25701cb343280621e9a",
+      "width": 1366,
+      "height": 900
+    },
+    {
+      "name": "v5-service-audit-1366-en.png",
+      "sha256": "021a6658b2e46e5dbd452c43471da35225650bde2355e1fa8b4b6742ee14cd10",
+      "width": 1366,
+      "height": 900
+    },
+    {
+      "name": "app-service-inquiries-1366-en.png",
+      "sha256": "c07953f75fee026df5a7be62f592bced89a659bf1696715fb86543b150ffba3e",
+      "width": 1366,
+      "height": 900
+    },
+    {
+      "name": "v5-service-inquiries-1366-en.png",
+      "sha256": "2f41761e23c511ebd7c306b4bf77fe9a782a3195be46f1bad6cc675be3c72f6b",
+      "width": 1366,
+      "height": 900
+    },
+    {
+      "name": "app-service-handling-1366-en.png",
+      "sha256": "b38e7550970841f155909d15bbf481de23fd2346c20bc8ba351667ed0d2b058e",
+      "width": 1366,
+      "height": 900
+    },
+    {
+      "name": "v5-service-handling-1366-en.png",
+      "sha256": "2f41761e23c511ebd7c306b4bf77fe9a782a3195be46f1bad6cc675be3c72f6b",
+      "width": 1366,
+      "height": 900
+    },
+    {
+      "name": "app-company-list-1366-ur.png",
+      "sha256": "7a848b23dc4f4ca5e5e33e15acd93037ec0e164a3c90ecb8d0192094de4c17eb",
+      "width": 1366,
+      "height": 900
+    },
+    {
+      "name": "v5-company-list-1366-ur.png",
+      "sha256": "5bca12ca5c2c3f62238e983e5f33e5a33efa882eadc44e9d4f6a01caa908a6e2",
+      "width": 1366,
+      "height": 900
+    },
+    {
+      "name": "app-company-account-1366-ur.png",
+      "sha256": "ffde76fc5e798df672b2ed72c8a1c3d4528d6ee056e3785a1f844ccdcc380893",
+      "width": 1366,
+      "height": 900
+    },
+    {
+      "name": "v5-company-account-1366-ur.png",
+      "sha256": "185e4089e015396ef0fd46e25ea298799ecf697e6057e595a3024ea0a4429a82",
+      "width": 1366,
+      "height": 900
+    },
+    {
+      "name": "app-company-billing-1366-ur.png",
+      "sha256": "32c5876a0bdf14e43b3116a2a4f378f7c1535f53245b003997717bdcf3640414",
+      "width": 1366,
+      "height": 900
+    },
+    {
+      "name": "v5-company-billing-1366-ur.png",
+      "sha256": "27623d3a7ea367d5397b7d37e9eaf91146c95e2db99fe2ca3f85af35c188f1e2",
+      "width": 1366,
+      "height": 900
+    },
+    {
+      "name": "app-company-activity-1366-ur.png",
+      "sha256": "31506083f5d6d4ebf00f49273062b288a25008479bbfc275764bcc51c3a8f561",
+      "width": 1366,
+      "height": 900
+    },
+    {
+      "name": "v5-company-activity-1366-ur.png",
+      "sha256": "7fd0181441a7be7347c40a0b5bac23068ded873403500e55cd449d78900b0f05",
+      "width": 1366,
+      "height": 900
+    },
+    {
+      "name": "app-service-diagnostics-1366-ur.png",
+      "sha256": "7083356e016b7337f76bf06a2a53195c01b9a3dcbe4cdfb4e2b68d8ac7ec5adf",
+      "width": 1366,
+      "height": 900
+    },
+    {
+      "name": "v5-service-diagnostics-1366-ur.png",
+      "sha256": "fb6a0d94f395e1323ca7aafe10ee25ffdcdf97284ed0037811b98f011d4f86a2",
+      "width": 1366,
+      "height": 900
+    },
+    {
+      "name": "app-service-audit-1366-ur.png",
+      "sha256": "057ee978423e500a2bb46f8e26c829a1013e7f554f678d48ad462368f6fa230b",
+      "width": 1366,
+      "height": 900
+    },
+    {
+      "name": "v5-service-audit-1366-ur.png",
+      "sha256": "f88f75216682e3b74b069a29cde1886983f52b54f57f2dc396e53e0697f7abdb",
+      "width": 1366,
+      "height": 900
+    },
+    {
+      "name": "app-service-inquiries-1366-ur.png",
+      "sha256": "c4d3df0b406d338f8bba0fba6821626f254eaeafa1067325b88fb030f9ecd8af",
+      "width": 1366,
+      "height": 900
+    },
+    {
+      "name": "v5-service-inquiries-1366-ur.png",
+      "sha256": "52ffc893967fc6fcc40a975857239fe8a9a4c941247bdf7f0fbf076281ff3dca",
+      "width": 1366,
+      "height": 900
+    },
+    {
+      "name": "app-service-handling-1366-ur.png",
+      "sha256": "fd3dd4f2e8bfe21ad76f69a5dfce2e16967a4bff2c23c21b4dc05a4dd6cab84d",
+      "width": 1366,
+      "height": 900
+    },
+    {
+      "name": "v5-service-handling-1366-ur.png",
+      "sha256": "52ffc893967fc6fcc40a975857239fe8a9a4c941247bdf7f0fbf076281ff3dca",
+      "width": 1366,
+      "height": 900
+    },
+    {
+      "name": "app-company-list-390-en.png",
+      "sha256": "9b9c3ed426b83203e09762f6b4b2de8ed242ce773f87761c92d647ce96df751b",
+      "width": 390,
+      "height": 900
+    },
+    {
+      "name": "v5-company-list-390-en.png",
+      "sha256": "2006fe68d8b789086aa50abd094420b653b08689ff678134d66549a3fa603a17",
+      "width": 390,
+      "height": 900
+    },
+    {
+      "name": "app-company-account-390-en.png",
+      "sha256": "328c0cba3f836065111bac3097612993a425b15a24d5c8cb6791da4777e64ad8",
+      "width": 390,
+      "height": 900
+    },
+    {
+      "name": "app-company-account-full-390-en.png",
+      "sha256": "e2c6cc9298898cf14f1a21f2a8291962a1d9d2d525c34b14e81d91f05ee12248",
+      "width": 390,
+      "height": 2262
+    },
+    {
+      "name": "v5-company-account-390-en.png",
+      "sha256": "dd29ddee5ebc045bfd6476714649a6b58b1feee2c4cdbc043e3ea6b0c6bc0a1b",
+      "width": 390,
+      "height": 900
+    },
+    {
+      "name": "app-company-billing-390-en.png",
+      "sha256": "e819ea03baa0ecb1c89d3f63a11e671164a1b6f45a3067549708f06b848af471",
+      "width": 390,
+      "height": 900
+    },
+    {
+      "name": "v5-company-billing-390-en.png",
+      "sha256": "598e0b312430571337d2ef5992dd8d6cd6e5095aeedfb03c61f8ae0ab47cd377",
+      "width": 390,
+      "height": 900
+    },
+    {
+      "name": "app-company-activity-390-en.png",
+      "sha256": "9d6857b117086ba225fd895ab4fb9fd7f375fc75cd5a19185e8144460eb81882",
+      "width": 390,
+      "height": 900
+    },
+    {
+      "name": "v5-company-activity-390-en.png",
+      "sha256": "baebcc9716c946341321c918823b7aeb5c628fa34cb21102ccfc41166b0988ab",
+      "width": 390,
+      "height": 900
+    },
+    {
+      "name": "app-service-diagnostics-390-en.png",
+      "sha256": "4fe37f963865a9a2b11f9cd9e4d2fdac62a0bba6af8176e09dcba69b15636ac5",
+      "width": 390,
+      "height": 900
+    },
+    {
+      "name": "v5-service-diagnostics-390-en.png",
+      "sha256": "102ced9621c1e8b65e55c24780025f8f33149508195fb8eb614cd4412d158854",
+      "width": 390,
+      "height": 900
+    },
+    {
+      "name": "app-service-audit-390-en.png",
+      "sha256": "8e2ceceed69ada1c97555c4f6ddaf727896cda72669cd49f40ea919c4127d807",
+      "width": 390,
+      "height": 900
+    },
+    {
+      "name": "v5-service-audit-390-en.png",
+      "sha256": "dee5c0db3f3d7eb4bcb328a9315a8670a57d4322a80b716cbadc46f62aa9dbf8",
+      "width": 390,
+      "height": 900
+    },
+    {
+      "name": "app-service-inquiries-390-en.png",
+      "sha256": "eaa82e9c7a44758f91b425c6558dd2fe1ae973078ee2754b182a79562270414b",
+      "width": 390,
+      "height": 900
+    },
+    {
+      "name": "v5-service-inquiries-390-en.png",
+      "sha256": "ade3a02f2913e2890c4db433be4125a04887b592408703076f64d69188692871",
+      "width": 390,
+      "height": 900
+    },
+    {
+      "name": "app-service-handling-390-en.png",
+      "sha256": "086e1618c0b252852fd74758338c1cc0293c480df39eb0417e41f8cefb7e6c5b",
+      "width": 390,
+      "height": 900
+    },
+    {
+      "name": "app-service-handling-full-390-en.png",
+      "sha256": "011a219e17c7bebe33cc1cc83b35f6ff15ca239ce496fa054c306e55bdfe57bc",
+      "width": 390,
+      "height": 1995
+    },
+    {
+      "name": "v5-service-handling-390-en.png",
+      "sha256": "ade3a02f2913e2890c4db433be4125a04887b592408703076f64d69188692871",
+      "width": 390,
+      "height": 900
+    },
+    {
+      "name": "app-company-list-390-ur.png",
+      "sha256": "90f99eb9efce86ce8c2e9eaa976a1f582dd7c16f54e72ecc8882e57ce1f3428b",
+      "width": 390,
+      "height": 900
+    },
+    {
+      "name": "v5-company-list-390-ur.png",
+      "sha256": "20c882ba7c4c0135398ffe8ddbbe9ad3ce85acfcc3d39e3897a4030ef1e5a2bb",
+      "width": 390,
+      "height": 900
+    },
+    {
+      "name": "app-company-account-390-ur.png",
+      "sha256": "0709388fad01ad60fa0e564604a9859b56aea90a97e751fe69b99c011d932ff0",
+      "width": 390,
+      "height": 900
+    },
+    {
+      "name": "app-company-account-full-390-ur.png",
+      "sha256": "c1d1df439ee3f1ee2993e60484cfabf90d807462d9757f8625d85f71c3366d7f",
+      "width": 390,
+      "height": 2232
+    },
+    {
+      "name": "v5-company-account-390-ur.png",
+      "sha256": "c5c06cf7fb7c86d0db492c07816e0b513bdc341cd9826302ce1d329536929038",
+      "width": 390,
+      "height": 900
+    },
+    {
+      "name": "app-company-billing-390-ur.png",
+      "sha256": "f91a0789589dffa15b739e50ca8dac96a9239a9ce1c98333c2ffee54635e537a",
+      "width": 390,
+      "height": 900
+    },
+    {
+      "name": "v5-company-billing-390-ur.png",
+      "sha256": "3d4a38e0c2782b99c203c851e8e48844c5be91e16a5d2ad2209fbc12fa1cff04",
+      "width": 390,
+      "height": 900
+    },
+    {
+      "name": "app-company-activity-390-ur.png",
+      "sha256": "3bdbe12bc247056e16b33a11d1baf91276465694f3c05b52eb15b37d22912a74",
+      "width": 390,
+      "height": 900
+    },
+    {
+      "name": "v5-company-activity-390-ur.png",
+      "sha256": "715dedf4c87a884b2871cc89ffeb0c33133c14dc951f32e7479cf291c63ff1a0",
+      "width": 390,
+      "height": 900
+    },
+    {
+      "name": "app-service-diagnostics-390-ur.png",
+      "sha256": "321b9f3a8c219467fe82bde7359655d364935f35bea435d27372c9991c154a56",
+      "width": 390,
+      "height": 900
+    },
+    {
+      "name": "v5-service-diagnostics-390-ur.png",
+      "sha256": "62efd0ec0495e2596809f4dbed3c3b335609882d3dd7d47817b745d10446b0e7",
+      "width": 390,
+      "height": 900
+    },
+    {
+      "name": "app-service-audit-390-ur.png",
+      "sha256": "b341eb67457beb7c17debc9c798a5e81f44daed96a05c2a465a37b96a8837c52",
+      "width": 390,
+      "height": 900
+    },
+    {
+      "name": "v5-service-audit-390-ur.png",
+      "sha256": "296658153743a0a9616c6a7965ad73158c61199256cac067fc7e27e643c60b7d",
+      "width": 390,
+      "height": 900
+    },
+    {
+      "name": "app-service-inquiries-390-ur.png",
+      "sha256": "2020f6d8dbdd2c33de32fadad088fe6aaba1e15c3b861ea5a137979a0cadb92c",
+      "width": 390,
+      "height": 900
+    },
+    {
+      "name": "v5-service-inquiries-390-ur.png",
+      "sha256": "2ef6924b0d67d25a2f3f1b00d301f21356304fdba688fa93ee2392b05f21e305",
+      "width": 390,
+      "height": 900
+    },
+    {
+      "name": "app-service-handling-390-ur.png",
+      "sha256": "ff659cda12c41d6397cbd49e55494b28aa950650fd0fd9f8c02eddfe4a49f780",
+      "width": 390,
+      "height": 900
+    },
+    {
+      "name": "app-service-handling-full-390-ur.png",
+      "sha256": "f1c252f2ddb8b6267e36cbbd5f1d6c1bfce126c0892476662c90750b05c13b0b",
+      "width": 390,
+      "height": 2110
+    },
+    {
+      "name": "v5-service-handling-390-ur.png",
+      "sha256": "2ef6924b0d67d25a2f3f1b00d301f21356304fdba688fa93ee2392b05f21e305",
+      "width": 390,
+      "height": 900
+    }
+  ]
+}

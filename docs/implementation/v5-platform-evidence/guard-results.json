@@ -1,0 +1,146 @@
+[
+  {
+    "name": "guarded-route",
+    "width": 1366,
+    "height": 900,
+    "language": "en",
+    "provenance": "actual default React router and unmodified fail-closed operator boundary; no fixture transport invoked",
+    "overflow": false,
+    "buttonTargets": [
+      {
+        "text": "Continue with identity provider",
+        "width": 374,
+        "height": 44,
+        "close": false
+      },
+      {
+        "text": "English",
+        "width": 63,
+        "height": 44,
+        "close": false
+      },
+      {
+        "text": "اردو",
+        "width": 38,
+        "height": 44,
+        "close": false
+      }
+    ],
+    "h1": [
+      "Platform operator sign-in"
+    ],
+    "scrollY": 0,
+    "errors": [],
+    "apiRequests": [],
+    "remoteRequests": [],
+    "requests": []
+  },
+  {
+    "name": "guarded-route",
+    "width": 1366,
+    "height": 900,
+    "language": "ur",
+    "provenance": "actual default React router and unmodified fail-closed operator boundary; no fixture transport invoked",
+    "overflow": false,
+    "buttonTargets": [
+      {
+        "text": "شناخت فراہم کنندہ کے ذریعے جاری رکھیں",
+        "width": 374,
+        "height": 44,
+        "close": false
+      },
+      {
+        "text": "English",
+        "width": 59,
+        "height": 44,
+        "close": false
+      },
+      {
+        "text": "اردو",
+        "width": 39,
+        "height": 44,
+        "close": false
+      }
+    ],
+    "h1": [
+      "پلیٹ فارم آپریٹر کا داخلہ"
+    ],
+    "scrollY": 0,
+    "errors": [],
+    "apiRequests": [],
+    "remoteRequests": [],
+    "requests": []
+  },
+  {
+    "name": "guarded-route",
+    "width": 390,
+    "height": 900,
+    "language": "en",
+    "provenance": "actual default React router and unmodified fail-closed operator boundary; no fixture transport invoked",
+    "overflow": false,
+    "buttonTargets": [
+      {
+        "text": "Continue with identity provider",
+        "width": 304,
+        "height": 48,
+        "close": false
+      },
+      {
+        "text": "English",
+        "width": 59,
+        "height": 48,
+        "close": false
+      },
+      {
+        "text": "اردو",
+        "width": 34,
+        "height": 48,
+        "close": false
+      }
+    ],
+    "h1": [
+      "Platform operator sign-in"
+    ],
+    "scrollY": 0,
+    "errors": [],
+    "apiRequests": [],
+    "remoteRequests": [],
+    "requests": []
+  },
+  {
+    "name": "guarded-route",
+    "width": 390,
+    "height": 900,
+    "language": "ur",
+    "provenance": "actual default React router and unmodified fail-closed operator boundary; no fixture transport invoked",
+    "overflow": false,
+    "buttonTargets": [
+      {
+        "text": "شناخت فراہم کنندہ کے ذریعے جاری رکھیں",
+        "width": 304,
+        "height": 48,
+        "close": false
+      },
+      {
+        "text": "English",
+        "width": 55,
+        "height": 48,
+        "close": false
+      },
+      {
+        "text": "اردو",
+        "width": 35,
+        "height": 48,
+        "close": false
+      }
+    ],
+    "h1": [
+      "پلیٹ فارم آپریٹر کا داخلہ"
+    ],
+    "scrollY": 0,
+    "errors": [],
+    "apiRequests": [],
+    "remoteRequests": [],
+    "requests": []
+  }
+]

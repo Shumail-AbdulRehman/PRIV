@@ -4,7 +4,7 @@
 **Depends on:** Spec 19, Spec 27
 **Model:** Heavy — `claude-opus-5-5` · `gpt-6-astra` · `gemini-3.1-pro-preview`
 **Issue:** #59
-**Owns:** `frontend/src/pages/Platform/CompaniesPage.test.tsx`, `frontend/src/pages/Platform/ServicePage.test.tsx`, `frontend/src/pages/Platform/OperatorLogin.tsx`, `frontend/src/pages/Platform/OperatorLogin.test.tsx`, `frontend/src/pages/Platform/operatorSession.ts`, `specs/inventory/34-platform-security-ui.md`, `frontend/src/pages/Platform/operator.css`, `frontend/src/pages/Platform/operatorTranslations.ts`, `docs/implementation/OPERATOR_UI.md`, `.impeccable/surfaces/frontend-src-pages-platform-operatorlogin-tsx.md`
+**Owns:** `frontend/src/pages/Platform/OperatorLogin.tsx`, `frontend/src/pages/Platform/OperatorLogin.test.tsx`, `frontend/src/pages/Platform/operatorSession.ts`, `specs/inventory/34-platform-security-ui.md`, `frontend/src/pages/Platform/operator.css`, `frontend/src/pages/Platform/operatorTranslations.ts`, `docs/implementation/OPERATOR_UI.md`, `.impeccable/surfaces/frontend-src-pages-platform-operatorlogin-tsx.md`
 **Reuses:** `frontend/src/components/common/AuthShell.tsx`, `DESIGN-SYSTEM.md#component-conventions`, `design/v5/operator-login.html`
 
 ## Goal
@@ -45,6 +45,8 @@ Use configured OIDC sign-in/MFA/own security provider handoff with safe redirect
 - [x] `npm run build --prefix frontend` passes. [static]
 
 ## Log
+
+- **2026-10-29 — Parallel continuation ownership:** Return CompaniesPage.test.tsx to33 and ServicePage.test.tsx to35. Current identity, callback, provider-unavailable guard and OperatorShell remain owned34 and unchanged by those units. No positive IdP/MFA qualification or permission change is implied.
 
 - **2026-10-21** — Claimed issue59 in isolated branch implementation/spec-34-operator-ui from2d77fd3 (Spec28/PR56). Scope amended before implementation for separate route exports, local translation/style/session boundary and operator handoff docs. Global main/App/router ownership remains the parallel30/root integration owner. No tenant client/Redux/cookie fallback or provider/token credentials. No selected browser IdP adapter exists; configured backend19 verifier alone cannot create a browser session. Every handoff remains unavailable and every callback rejected without an initiated trusted flow.
 - **2026-10-21** — Local15 focused component tests and whole web57 Node+71 component tests/7files pass; initial/full lint and TypeScript/Vite build pass. Scoped48px control correction captured in7 valid EN/UR desktop1440/mobile390 component-fixture screenshots, plus security cleanup and callback denial, with no JS errors/overflow. Impeccable detector ran once withzero findings. Temporary preview entry removed. No full-product e2e run before40. Final rebuild passes; independent finish review/documenter plus root top-level routing integration remain required before markingDone. Root serializes progress/handoff updates to avoid parallel conflicts.

@@ -8,6 +8,13 @@
 
 ## Current checkpoint instruction — 2026-10-29
 
+Latest user explicitly resumes approved remaining work. Coordinator is
+`implementation/v5-remaining-checkpoint`, based on verifiedadae1b9, in persistent
+`v5-remaining-20261029/coordinator`. Independent33/35 workers and QA have exclusive
+worktrees/ownership. Prior checkpoint below remains baseline history. Do not stop
+at an ordinary unit boundary; continue feasible approved work and retain external
+qualification limits. Root and all older worktrees remain preserved unchanged.
+
 Spec32 applicable web acceptance is complete;9specifications remain. Current continuation source is `implementation/v5-billing-acceptance` in `/home/shumail/.local/share/hygene-ops/v5-billing-20261029/implementation`, based on55061b8. Original root `fix/v5-runtime-data-loading` and dirty runtime/Maps/source work are preserved unchanged; do not overlay/discard them. Read the current branch handoff/progress before using old root checkpoints. Next33 consumes completed24/27 at approved scope; positive operator IdP remains external. No merge/deploy or live financial/provider operation.
 
 ## One spec per session

@@ -1,10 +1,10 @@
 # Spec 33 — Platform company workspace
 
-**Status:** In progress
+**Status:** Done
 **Depends on:** Spec 24, Spec 27
 **Model:** Standard — `claude-sonnet-5-5` · `gpt-6.1-sol` · `gemini-3.8-flash`
 **Issue:** #71
-**Owns:** `frontend/src/pages/Platform/companies.css`, `frontend/src/i18n/platformCompanyTranslations.ts`, `frontend/src/pages/Platform/companyApi.ts`, `specs/inventory/33-platform-company-ui.md`
+**Owns:** `frontend/src/pages/Platform/CompaniesPage.tsx`, `frontend/src/pages/Platform/CompaniesPage.test.tsx`, `docs/implementation/V5_PLATFORM_COMPANIES.md`, `frontend/src/pages/Platform/companies.css`, `frontend/src/i18n/platformCompanyTranslations.ts`, `frontend/src/pages/Platform/companyApi.ts`, `specs/inventory/33-platform-company-ui.md`
 **Reuses:** `frontend/src/components/common/DataTable.tsx`, `frontend/src/components/ui/dialog.tsx`, `DESIGN-SYSTEM.md#component-conventions`, `design/v5/platform.html`
 
 ## Goal
@@ -37,7 +37,7 @@ Build bounded company list/detail Account/Billing/Activity with operator-only re
 
 ## Done when
 
-- [ ] Approved V5 layout and interactions are implemented and paired actual-app/reference screenshots are inspected at desktop/phone EN/UR; state/permission deviations are recorded. Native acceptance requires a native runtime. [static]
+- [x] Approved V5 layout and interactions are implemented and paired actual-app/reference screenshots are inspected at desktop/phone EN/UR; state/permission deviations are recorded. Native acceptance requires a native runtime. [static]
 - [x] `npm run test:components --prefix frontend -- src/pages/Platform/CompaniesPage.test.tsx` passes: Operator company search/paging/status save reflect API; tenant identity denied; protected workforce fields absent. [unit]
 - [x] `npm test --prefix frontend` passes the whole affected unit suite; record count. [unit]
 - [x] Only scoped paths changed; relevant denial/empty/error/config-unavailable states inspected. [static]
@@ -45,6 +45,8 @@ Build bounded company list/detail Account/Billing/Activity with operator-only re
 - [x] `npm run build --prefix frontend` passes. [static]
 
 ## Log
+
+- **2026-10-29 — Current continuation:** Start from accepted billing checkpoint adae1b9, preserving completed28/32 and existing root/runtime work. Completed24/27 source and tracker verified. Serialized35/34 ownership transfers CompaniesPage.tsx and its tests back to33 before edits. Independent35 owns only service sources; shared operator identity/shell remains34. Coordinator owns40 visual harness/evidence and shared records. Approved design/v5/platform.html is fixed input; no design restart or provider activation. Issue71 reused. Full completion requires truthful separation of named-workspace fixture evidence and qualified positive operator acceptance.
 
 - **2026-10-21** — User authorizes next two units33/35 only. Issue71 claimed; dependencies24/27 and actual existing34 boundary verified in current Git ancestry. Preserve eight dirty files checkpoint /tmp/hygene-spec33-35-preserved.json. Existing operator browser provider remains unqualified: preserve fail-closed boundary and transport, no tenant identity promotion. Implement real contract-backed workspace behind it; live access remains external39/40 qualification. Serialized route/dictionary ownership transferred before edits.
 
@@ -57,3 +59,11 @@ Build bounded company list/detail Account/Billing/Activity with operator-only re
 - **2026-10-21 — Visual acceptance correction:** reopened for outstanding approved V5 acceptance. Historical functional checkmarks/logs are preserved; they do not certify visual fidelity. Current four-part status and evidence: docs/implementation/V5_IMPLEMENTATION.md. No prior visual requirement is newly verified by a build.
 
 - **2026-10-29 — Narrow test ownership:**34takes the existing protected-route heading assertion for the approved V5 operator title; no33runtime or API scope changes.
+
+- **2026-10-29 — Owned V5 source implemented:** Company-specific V5 sidebar/header, real bounded-page summary/register/mobile records, split Account profile/access/context rail and Billing/Activity panels; EN/UR/RTL and existing separate operator boundary retained. No unsupported contact/usage/global-total facts added. Fix uncertain/409 retry lock until successful explicit matching refresh, retain reason/target after failed refresh, guard duplicate/pending dismissal and supersede cached metadata on401/403. Invalid unsafe IDs make no request.17focused company component tests pass/1file10.70s; initial10/11 run exposed only old post-refresh action expectation, corrected to assert enabled confirmation after successful refresh. Full suite/build/rendered verification coordinated separately; visual criterion and status remain open. See V5_PLATFORM_COMPANIES.md/inventory33. No backend/provider/schema/dependency/production change.
+
+- **2026-10-29 — Source follow-up:** Clear the earlier save receipt before another status action and label reopened uncertain requests as pending review.18focused tests/1file4.89s pass; targeted changed-TS lint passes. Visual/provider acceptance remains pending and no status checkmark changed.
+
+- **2026-10-29 — Applicable web acceptance complete:** Final45focused platform cases, whole64Node+360React/28files, full lint0, exact frontend TS/build11.62s and guarded backend/E2E types pass. Actual isolated company/support SQL plus189backend cases pass. Final platform matrix74observations/98PNGs includes32core+26state+12reload+4guard matrices, not74unique flows. Paired1366/390ENUR and significant actions inspected by coordinator after independent source agents hit usage limits. Named positive workspace transport is synthetic; actual default operator denial and20real React/privateAPI/SQL browser cases pass separately. No positive IdP/MFA/provider qualification; those remain34/40. See current V5_PLATFORM reports/evidence; no merge/deploy.
+
+- **2026-10-29 — Published:** OPEN/DRAFT PR99 https://github.com/Shumail-AbdulRehman/PRIV/pull/99, base implementation/v5-billing-acceptance/adae1b9. Original root/old worktrees preserved; no merge/deploy. Combined tested source is implementation/v5-remaining-checkpoint; native37retains device gates.
