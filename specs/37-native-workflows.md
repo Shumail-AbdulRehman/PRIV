@@ -77,3 +77,17 @@ Integrate approved v5 native states into existing actual screens: role-correct s
 - **2026-10-29 — Specification37 only, local recovery verified/full acceptance Blocked:** independently fetched/restored d5098aa/PR104; dependencies09/17/20/21/26Done and actual native/API contracts inspected. Reused issue60 and isolated implementation/spec-37-native-acceptance. Fixed permanent camera denial's unreachable Settings action, fresh OS permission on explicit continue, foreground permission/manifest recheck and bilingual failure recovery; added two attendance and seven task-camera component cases. Baseline106/final115native tests,51focused(overlapping),169backend dependency tests/6files, native TypeScript, Expo web export and real Metro Android JS bundle pass. Only owned source/test/doc paths changed; packages/lockfiles/backend/design unchanged. ADB37.0.1 exists outside PATH, devices list empty, no configured emulator/AVD; no native screenshots/physical GPS/camera/QR/permission/large-text/push proof. Old APK's hash matches d69d855 build,33native baseline files differ; not current-source acceptance. Physical API URL missing; provider privacy/identity/push qualification unavailable, safe-disabled processing preserved. First V5 criterion remains unchecked. Full requirements/acceptance matrix, commands, environment, precise blockers and STOP: NATIVE_RECOVERY.md/latest handoff. Six units remain,40/41ineligible; no next unit started.
 
 - **2026-10-29 — Publication/STOP:** implementationa9879e4 pushed in OPEN/DRAFT PR105 https://github.com/Shumail-AbdulRehman/PRIV/pull/105, base implementation/spec-36-review-acceptance/d5098aa (PR104). Issue60remains open;37Blocked, first V5 criterion unchecked; six remain. Validator42/0errors/12documented baseline warnings; whitespace clean; final22worktree/798path preservation audit0mismatches. Final publication handoff docs follow. No other unit/merge/deploy/production/provider action.
+
+- **2026-10-29 — Fresh standalone testing APK built:** user explicitly authorized
+ packaging the latest native source without completing37. Dependency-complete
+ base298fad3 includes a9879e4/aa1b6e2/643ac41; build branch
+ `build/hygeneops-android-testing-20261029`, exact compiled sourcee73591e.
+ Version2.1.8/code11, actual57,454,943-byte APK, no Metro; approved local API95:8080.
+ Hosted run40923692593 succeeds;115 mobile tests,18/18Doctor/types, backend contracts,
+ native compile/assembly, package/native/permissions/fonts/signature/hash/alignment
+ pass. Expo incoming-config and prior build compatibility fixes stay in isolated
+ build scope. Existing testing certificate matches the prior UI APK. Download:
+ `/home/shumail/Downloads/HygeneOps-Latest.apk`; SHA256 and all evidence in
+ docs/verification/ANDROID_LATEST_20261029.md. DraftPR107 based106, issue60 stays
+ open. Zero devices/installs; physical/provider/V5 qualification remains unverified,
+ first acceptance criterion unchecked, full37 still Blocked. No other spec completed.
