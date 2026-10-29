@@ -205,6 +205,9 @@ test('billing API remains owner-scoped and manager cannot purchase or reach anot
   const own = await page.request.get(endpoint + '?companyId=' + fixture.company.A);
   expect(own.status()).toBe(200);
   expect((await own.json()).data.company.id).toBe(fixture.company.B);
+  expect((await page.request.get(backend + '/api/subscription/manage/catalog')).status()).toBe(503);
+  expect((await page.request.post(backend + '/api/subscription/manage/checkout', { data: { plan: 'STARTER', interval: 'month' } })).status()).toBe(503);
+  expect((await page.request.post(backend + '/api/subscription/manage/managed-portal', { data: {} })).status()).toBe(503);
   await expect(page.getByRole('heading', { name: heading('en'), exact: true })).toBeVisible();
   const denied = await browser.newContext();
   try {
@@ -252,6 +255,7 @@ test('suspended owner sees real V5 account access and retains safe billing secur
         await page.goto('/dashboard');
         await expect(page.getByRole('heading', { name: lang === 'ur' ? 'اکاؤنٹ کی رسائی پر توجہ درکار ہے' : 'Account access needs attention', exact: true })).toBeVisible();
         expect((await lifecycle(page)).company.operationalStatus).toBe('SUSPENDED');
+        await expect(page.locator('.owner-access-actions').getByRole('link', { name: lang === 'ur' ? 'پلان اور بلنگ کھولیں' : 'Open Plan & billing', exact: true })).toBeInViewport({ ratio: 1 });
         expect((await page.request.get(backend + '/api/manager/operations/performance?period=7')).status()).toBe(403);
         await capture(page, `app-access-${width}-${lang}`);
         const reference = await context.newPage();
