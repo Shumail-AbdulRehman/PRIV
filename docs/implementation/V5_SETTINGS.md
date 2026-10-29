@@ -104,3 +104,8 @@ and matching fresh EN/UR desktop/phone renders against V5. Preserve legacy-owner
 bootstrap restrictions. Do not use production data, activate a provider or assume
 delivery without the required facts/authorization. The current session stops on
 this blocker; no other specification is started.
+
+Blocked continuation published as handoff/evidence commit19a68cf and
+[draft PR102](https://github.com/Shumail-AbdulRehman/PRIV/pull/102), stacked on
+`implementation/v5-remaining-checkpoint`. Issue88stays open; no full acceptance
+or delivered-mail qualification is claimed.

@@ -65,7 +65,14 @@ database access/migration, production action, merge, deployment or force push.
 Final preservation comparison checks all40prior registered worktrees and795path
 hashes: **zero mismatches**. Spec validator:42specifications,0errors,10existing
 warnings documented in specs/README.md. `git diff --check` passes.
-Commit/continuation draft PR are recorded in the publication note below.
+Handoff/evidence commit: `19a68cf687cb99447aca5c274fe9508d5181d860`, pushed normally.
+Continuation [draft PR102](https://github.com/Shumail-AbdulRehman/PRIV/pull/102)
+is based on `implementation/v5-remaining-checkpoint`; it records the blocker and
+references issue88 without claiming completion/closure. The final publication
+documentation commit follows19a68cf; inspect branch HEAD for that commit. No
+changes to historical reviews. The only untracked item in the new worktree is
+the intentional `design` symlink to the original immutable approved reference;
+node_modules links are ignored. No tooling/reference symlink is included in PR102.
 
 ## Resume and remaining work
 

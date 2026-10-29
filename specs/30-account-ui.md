@@ -90,3 +90,7 @@ Implement real reset/verify/self-password and owner Organization settings forms;
   link proof. Full acceptance remains unchecked. See latest SESSION_HANDOFF and
   V5_SETTINGS for commands, build results, preservation and publication. Stop on
   this blocker; no other specification started.
+
+- **Publication:** blocked handoff19a68cf, OPEN/DRAFT
+  [PR102](https://github.com/Shumail-AbdulRehman/PRIV/pull/102), base
+  implementation/v5-remaining-checkpoint. Issue88remains open; no completion claim.
