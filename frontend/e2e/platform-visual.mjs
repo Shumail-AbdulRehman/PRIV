@@ -99,7 +99,12 @@ async function ready(page, kind) {
   if (kind === 'company-list') await expect(page.getByRole('link', { name: 'Synthetic Facilities', exact: true }).first()).toBeVisible();
   else if (kind.startsWith('company')) await expect(page.getByRole('button', { name: /Suspend company|کمپنی معطل کریں|Reactivate company|کمپنی دوبارہ فعال کریں/ })).toBeVisible();
   else if (kind === 'service-diagnostics') await expect(page.getByText(/Reachable at observation|مشاہدے کے وقت/).first()).toBeVisible();
-  else if (kind === 'service-audit') await expect(page.locator('time').first()).toBeVisible();
+  else if (kind === 'service-audit') {
+    await expect(page.getByText(/Company suspended|کمپنی معطل/).first()).toBeVisible();
+    const details = page.locator('.record-summary details:visible').first();
+    if (await details.count()) await details.locator('summary').click();
+    await expect(page.locator('time:visible').first()).toBeVisible();
+  }
   else if (kind === 'service-inquiries') await expect(page.getByRole('link', { name: 'Synthetic Prospect', exact: true }).first()).toBeVisible();
   else await expect(page.locator('form.platform-service-edit')).toBeVisible();
 }
