@@ -4,7 +4,7 @@
 **Depends on:** Spec 15, Spec 27, Spec 28
 **Model:** Standard — `claude-sonnet-5-5` · `gpt-6.1-sol` · `gemini-3.8-flash`
 **Issue:** #69
-**Owns:** `docs/implementation/BILLING.md`, `frontend/src/pages/Subscription/api.ts`, `frontend/src/pages/Subscription/types.ts`, `frontend/src/pages/Subscription/billing.css`, `frontend/src/i18n/billingTranslations.ts`, `frontend/src/pages/Pricing/PaddlePricing.tsx`, `frontend/src/pages/Pricing/ChoosePlanPage.tsx`, `frontend/src/pages/Pricing/WelcomePage.tsx`, `frontend/src/pages/Subscription/queries.ts`, `specs/inventory/32-billing-ui.md`
+**Owns:** `frontend/src/routes/launchPages.test.tsx`, `backend/src/services/billingLifecycle.service.ts`, `backend/src/services/billingLifecycle.service.test.ts`, `frontend/src/pages/Subscription/SubscriptionPage.tsx`, `frontend/src/pages/Subscription/SubscriptionPage.test.tsx`, `frontend/src/components/onboarding/WorkspaceGate.tsx`, `frontend/src/components/onboarding/WorkspaceGate.test.tsx`, `frontend/src/components/layout/DashboardLayout.tsx`, `frontend/src/components/onboarding/workspace-access.css`, `docs/implementation/V5_BILLING.md`, `docs/implementation/v5-billing-evidence/`, `docs/implementation/BILLING.md`, `frontend/src/pages/Subscription/api.ts`, `frontend/src/pages/Subscription/types.ts`, `frontend/src/pages/Subscription/billing.css`, `frontend/src/i18n/billingTranslations.ts`, `frontend/src/pages/Pricing/PaddlePricing.tsx`, `frontend/src/pages/Pricing/ChoosePlanPage.tsx`, `frontend/src/pages/Pricing/WelcomePage.tsx`, `frontend/src/pages/Subscription/queries.ts`, `specs/inventory/32-billing-ui.md`
 **Reuses:** `frontend/src/pages/Subscription/api.ts`, `frontend/src/pages/Subscription/types.ts`, `frontend/src/lib/paddle.ts`, `frontend/src/pages/Pricing/PaddlePricing.tsx`, `DESIGN-SYSTEM.md#component-conventions`, `design/v5/billing.html`
 
 ## Goal
@@ -60,3 +60,5 @@ Display real capacity/provider period/status/activation/sync and restricted-acco
 - **2026-10-21** — Serialized ownership handed to38 before support/information route/nav/dictionary/checkout-availability integration; existing feature behavior preserved.
 
 - **2026-10-21 — Visual acceptance correction:** reopened for outstanding approved V5 acceptance. Historical functional checkmarks/logs are preserved; they do not certify visual fidelity. Current four-part status and evidence: docs/implementation/V5_IMPLEMENTATION.md. No prior visual requirement is newly verified by a build.
+
+- **2026-10-29** — Continuation on issue69; verified15/27/28 complete and actual owner billing API/mirror/capacity/auth contracts. Exclusive billing page/CSS/copy/tests assigned to frontend agent; coordinator owns serialized owner suspended-account presentation/route boundary and records; QA owns only40 browser harness/evidence. Existing provider/commercial gates remain disabled. Additional hot-file ownership transferred from27/38 before edits. No plan/DAG dependency changes.

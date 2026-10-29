@@ -1,0 +1,13 @@
+.workspace .workspace-access-panel { display: grid; gap: 20px; }
+.workspace .workspace-access-notice { border: 1px solid var(--border); border-radius: 7px; padding: 16px; background: var(--warning-fill); color: var(--warning-ink); }
+.workspace .workspace-access-notice p { margin-block-start: 8px; }
+.workspace .workspace-access-actions { display: flex; flex-wrap: wrap; align-items: center; gap: 12px; }
+.workspace .workspace-access-actions a { display: inline-flex; min-height: 48px; align-items: center; justify-content: center; padding: 10px 16px; border: 1px solid var(--border); border-radius: 7px; font-weight: 550; color: var(--ink); }
+.workspace .workspace-access-actions .workspace-access-primary { background: var(--primary); color: var(--card); border-color: var(--primary); }
+.workspace .workspace-access-actions a:hover { background: var(--surface); }
+.workspace .workspace-access-actions .workspace-access-primary:hover { background: var(--primary-dark); }
+.workspace .workspace-access-actions button { min-height: 48px; }
+@media (max-width: 620px) {
+  .workspace .workspace-access-actions { align-items: stretch; }
+  .workspace .workspace-access-actions a, .workspace .workspace-access-actions button { flex: 1 1 100%; white-space: normal; text-align: center; }
+}
