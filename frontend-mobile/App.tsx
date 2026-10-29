@@ -1,4 +1,6 @@
 import { v5Colors } from './src/theme';
+import { NativeFontsReady } from './src/fonts';
+import { useFonts } from 'expo-font';
 import { LanguageProvider, useLanguage } from "./src/i18n/LanguageProvider";
 import * as Application from "expo-application";
 import { configureNativeAppVersion } from "./src/api/client";
@@ -38,6 +40,13 @@ const queryClient = new QueryClient({
   },
 });
 
+const staffFonts = {
+  HygeneInter: require('./assets/fonts/Inter-Regular.otf'),
+  HygeneInterSemiBold: require('./assets/fonts/Inter-SemiBold.otf'),
+  HygeneArabic: require('./assets/fonts/NotoSansArabic-Regular.ttf'),
+  HygeneArabicBold: require('./assets/fonts/NotoSansArabic-Bold.ttf'),
+};
+
 function LocalizedNavigation() {
   const { isRTL } = useLanguage();
   const [ready,setReady]=useState(false);
@@ -51,7 +60,9 @@ function LocalizedNavigation() {
 }
 
 export default function App() {
+  const [fontsReady] = useFonts(staffFonts);
   return (
+    <NativeFontsReady.Provider value={fontsReady}>
     <SafeAreaProvider>
       <QueryClientProvider client={queryClient}>
         <LanguageProvider>
@@ -61,5 +72,6 @@ export default function App() {
         </LanguageProvider>
       </QueryClientProvider>
     </SafeAreaProvider>
+    </NativeFontsReady.Provider>
   );
 }

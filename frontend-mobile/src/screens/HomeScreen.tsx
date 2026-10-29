@@ -528,12 +528,14 @@ export function HomeScreen() {
       }
     >
       <StaffBrand />
+      <Text className="text-base text-muted-foreground">
+        {new Intl.DateTimeFormat(language === "ur" ? "ur-PK" : "en-PK", {
+          weekday: "long", day: "numeric", month: "long",
+        }).format(now)}
+      </Text>
       <ScreenHeader
-        title={t("Today")}
-        subtitle={new Intl.DateTimeFormat(
-          language === "ur" ? "ur-PK" : "en-PK",
-          { weekday: "long", day: "numeric", month: "long" },
-        ).format(now)}
+        title={t("Your working day")}
+        subtitle={activeAttendance?.location?.name ?? t(user?.locationId ? "Assigned location" : "No location assigned")}
       />
       {!online ? (
         <View className="gap-2 rounded-xl bg-secondary p-4">
@@ -582,22 +584,12 @@ export function HomeScreen() {
               alignItems: "center",
             }}
           >
-            <View className="rounded-full bg-accent p-3">
-              <Icon
-                name={checkedIn ? "CircleCheck" : "CalendarDays"}
-                size={26}
-                className="text-primary"
-              />
-            </View>
             <View className="flex-1">
-              <Text className="text-sm font-semibold text-muted-foreground">
-                {t("My shift")}
-              </Text>
-              <Text className="mt-1 text-xl font-bold">
-                {activeAttendance?.location?.name ??
-                  t(user?.locationId ? "Location" : "No location assigned")}
-              </Text>
+              <Text accessibilityRole="header" className="text-xl font-semibold">{t("Your shift")}</Text>
             </View>
+            <Text className="rounded-[5px] bg-accent px-3 py-2 text-sm font-semibold text-primary">
+              {t(attendanceView.statusLabel)}
+            </Text>
           </View>
           {activeAttendance ? (
             <Text
@@ -613,9 +605,7 @@ export function HomeScreen() {
               )}
             </Text>
           ) : null}
-          <Text className="text-xl font-bold">
-            {t(onShiftWaiting ? "Checked in" : attendanceView.title)}
-          </Text>
+          {!onShiftWaiting ? <Text className="text-lg font-semibold">{t(attendanceView.title)}</Text> : null}
           {!onShiftWaiting?<Text className="text-base leading-6 text-muted-foreground">
             {onShiftWaiting
               ? t("Your attendance is recorded. Continue with your next task.")

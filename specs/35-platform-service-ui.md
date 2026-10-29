@@ -4,7 +4,7 @@
 **Depends on:** Spec 25, Spec 27
 **Model:** Standard — `claude-sonnet-5-5` · `gpt-6.1-sol` · `gemini-3.8-flash`
 **Issue:** #73
-**Owns:** `docs/implementation/PLATFORM_SERVICE_UI.md`, `.impeccable/surfaces/frontend-src-pages-platform-servicepage-tsx.md`, `frontend/src/pages/Platform/CompaniesPage.tsx`, `frontend/src/pages/Platform/platformRoutes.tsx`, `frontend/src/pages/Platform/service.css`, `frontend/src/i18n/platformServiceTranslations.ts`, `frontend/src/pages/Platform/ServicePage.tsx`, `frontend/src/pages/Platform/serviceApi.ts`, `specs/inventory/35-platform-service-ui.md`
+**Owns:** `docs/implementation/V5_PLATFORM_SERVICE.md`, `frontend/src/pages/Platform/ServicePage.test.tsx`, `docs/implementation/PLATFORM_SERVICE_UI.md`, `.impeccable/surfaces/frontend-src-pages-platform-servicepage-tsx.md`, `frontend/src/pages/Platform/platformRoutes.tsx`, `frontend/src/pages/Platform/service.css`, `frontend/src/i18n/platformServiceTranslations.ts`, `frontend/src/pages/Platform/ServicePage.tsx`, `frontend/src/pages/Platform/serviceApi.ts`, `specs/inventory/35-platform-service-ui.md`
 **Reuses:** `frontend/src/components/common/DataTable.tsx`, `frontend/src/components/common/OperationStatus.tsx`, `DESIGN-SYSTEM.md#component-conventions`, `design/v5/service.html`
 
 ## Goal
@@ -45,6 +45,8 @@ Expose real redacted diagnostics/audit/inquiry status with bounded filters and a
 - [x] `npm run build --prefix frontend` passes. [static]
 
 ## Log
+
+- **2026-10-29 — Current continuation:** Start from accepted billing checkpoint adae1b9, preserving completed28/32 and existing root/runtime work. Completed25/27 source and tracker verified. CompaniesPage.tsx ownership returns33 and ServicePage.test.tsx transfers34→35 before parallel edits. Shared operator identity/shell remains34. Coordinator owns40 visual harness/evidence and shared records. Approved design/v5/service.html is fixed input; retain existing diagnostics/audit/inquiry contracts and unqualified operator denial. Issue73 reused; fixture checks never qualify a provider or live operational mutation.
 
 - **2026-10-21** — Issue73 claimed before source edits. Actual25(c04c7ab)/27(b8396ff) commits verified as HEAD ancestors, not assumed present on main. Existing34 unavailable operator boundary/request reused unchanged. Shared routes/dictionary/company-navigation ownership transferred33→35 before edits. Branch implementation/spec-35-platform-service-ui based completed33/e0a5d63; this preserves established Git stack, not a new spec dependency.
 - **2026-10-21** — Implemented actual guarded service/audit/inquiry routes, redacted diagnostics with unknown/unavailable observations, real retry, bounded audit/company/action/inquiry search/cursors, escaped submission detail, accountable versioned status/SELF-or-UNASSIGNED handling/reason.409/uncertain save keeps draft and requires successful explicit refresh; no duplicate pending update. Configured validated support mailto only, no delivery/verification claim. No private workforce fields or fabricated health/provider results. Backend/schema/provider configuration unchanged.
