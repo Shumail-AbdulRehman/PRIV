@@ -291,3 +291,5 @@ PLATFORM_OIDCinputs and loads no root secrets.23other worktrees/799dirtypaths
  DraftPR107 based106; no merge, deployment, production or OAuth/OIDC action.
 
 - **2026-10-31 — Additive42 complete locally:** issue108, isolated implementation/spec-42-location-staff-import baseda8728ed. Existing root fix/v5-runtime-data-loading/user overlays and all worktrees preserved. Real XLSX/CSV onboarding uses existing site/shift/capacity/password-handoff architecture; no migration/email dependency. Final checks and limits: docs/implementation/STAFF_IMPORT_RESULTS.md. Original six unresolved specs unchanged; no merge/deploy. After initial laptop contention all verification used nice15/singleworker, sequentially.
+
+- **2026-10-31 — Spec42 review:** source eed787a, OPEN/DRAFT [PR109](https://github.com/Shumail-AbdulRehman/PRIV/pull/109), stacked on preserved107branch; original root work preserved, no merge/deploy.

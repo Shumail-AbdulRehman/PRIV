@@ -143,6 +143,10 @@ Spec32 V5 acceptance2026-10-29:15/27/28 remain the actual consumption dependenci
 
 ## Additive feature42
 
+| Spec | Wave | Consumes |
+|---|---|---|
+| [42 — Location staff import](42-location-staff-import.md) | 7 | 09, 14, 17, 28, 31 |
+
 Spec42 consumes09attendance windows,14capacity transactions,17secure handoff,28location workspace and31staff management. Original40/41 gates retain numbering and scope; this post-plan feature uses their existing browser/release harness rather than replacing them. See docs/planning/location-staff-import-assessment.md.
 
 ### Spec42 known gaps and validation notes

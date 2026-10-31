@@ -34,3 +34,5 @@ Original six unresolved specs remain30/34/36/37Blocked,40In progress,41Not start
 
 ## Cleanup and completion
 The final real browser run passed3/3. Reference capture passed4/4. Owned test-cluster inspection found zero generated child databases, then only that cluster was stopped. Final spec validation output is docs/planning/location-staff-import-validator.txt. Spec42 is complete locally; review PR remains draft and unmerged. The task’s current source is the isolated worktree, not the unchanged live root service.
+
+Source commit: `eed787a`. OPEN/DRAFT [PR109](https://github.com/Shumail-AbdulRehman/PRIV/pull/109), based on preserved PR107 branch. Source is published for review only. No hosted CI result is claimed in this report.

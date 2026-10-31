@@ -1,6 +1,6 @@
 # Latest feature checkpoint — Location staff import — 2026-10-31
 
-**Spec42 is complete locally; original six V5 gates remain unresolved.** New feature branch `implementation/spec-42-location-staff-import`, worktree `/home/shumail/.local/share/hygene-ops/v5-import-20261031`, based on preserved a8728ed/AndroidPR107 acceptance stack. Issue108. Inspect final Git log for source/documentation commit and draft review link below. No PR was merged and no service deployed.
+**Spec42 is complete locally; original six V5 gates remain unresolved.** New feature branch `implementation/spec-42-location-staff-import`, worktree `/home/shumail/.local/share/hygene-ops/v5-import-20261031`, based on preserved a8728ed/AndroidPR107 acceptance stack. Issue108; OPEN/DRAFT [PR109](https://github.com/Shumail-AbdulRehman/PRIV/pull/109), base `build/hygeneops-android-testing-20261029`. Source commit `eed787a`; final documentation commit follows (inspect Git log). No PR was merged and no service deployed.
 
 Current root remains `fix/v5-runtime-data-loading` at55061b8 with its original user overlays. Those runtime fixes were inspected/preserved and were not copied into this feature PR. Existing root5173/8080 services and all worktrees remain untouched. Root's old tracker reports ten unresolved; the newer feature base contains36originalDone and the actual six unresolved30/34/36/37Blocked,40In progress,41Not started. Do not erase that distinction or infer merge from Done.
 
