@@ -1,5 +1,7 @@
 # Spec33 — platform company workspace
 
+- 2026-10-31 refinement: local `CompanyResources` renders real active manager/staff/location totals in desktop rows, mobile records and account overview. Temporarily hidden service/inquiry/audit routes redirect to Companies; company sidebar retains Companies and Platform security. Details: docs/implementation/PLATFORM_COMPANY_OVERVIEW.md.
+
 - `frontend/src/pages/Platform/CompaniesPage.tsx`: guarded route component and named CompanyWorkspace, bounded search/cursor list and Account/Billing/Activity detail. Explicit version/reason confirmation; refresh preserves reason and intended target, legacy inactive reactivation unavailable.
 - `frontend/src/pages/Platform/companyApi.ts`: exact24 allowlisted summary/detail/status contracts through dedicated `operatorRequest`; never tenant Axios/Redux/cookies/refresh.
 - `frontend/src/pages/Platform/platformRoutes.tsx`: company routes registered outside tenant App; existing34 OperatorBoundary never mounts protected children until a real provider adapter is qualified.

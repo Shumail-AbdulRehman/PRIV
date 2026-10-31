@@ -61,3 +61,6 @@ The existing location router mounts `staffImport.route.ts`; `staffImport.service
 
 ## Local platform-owner session (spec43)
 Explicit loopback development-only activation may authenticate a privately provisioned bcrypt email/password through `/api/platform/session`. Opaque hashed server sessions and a separate HttpOnly platform-path cookie grant only existing operator metadata APIs. Production always retains the original provider verifier; tenant roles/JWTs never authorize platform access. Frontend local build uses a separate fetch client and server-derived session query; no browser credential storage or tenant Redux role promotion. No schema migration is added.
+
+## Platform aggregate refinement — 2026-10-31
+The user authorizes per-company active manager, staff and location counts as operator account metadata. Existing company list/detail/status DTOs expose a `counts` object from filtered Prisma relation counts; manager totals exclude ADMIN owners. No workforce identities or evidence are selected. The three support screens are temporarily hidden by frontend redirects to Companies; their backend authorization and audit retention remain intact. See docs/implementation/PLATFORM_COMPANY_OVERVIEW.md.
