@@ -7,7 +7,7 @@ import CompaniesPage,{CompanyWorkspace} from './CompaniesPage';
 import type {CompanyDetail,CompanySummary} from './companyApi';
 const m=vi.hoisted(()=>({request:vi.fn()}));
 vi.mock('./operatorSession',async original=>({...await original<typeof import('./operatorSession')>(),operatorRequest:m.request}));
-const row:CompanySummary={id:42,name:'Synthetic company',plan:'PRO',isActive:true,operationalStatus:'ACTIVE',accountVersion:3,createdAt:'2026-10-21T00:00:00Z',updatedAt:'2026-10-21T00:00:00Z'};
+const row:CompanySummary={id:42,name:'Synthetic company',plan:'PRO',isActive:true,operationalStatus:'ACTIVE',accountVersion:3,createdAt:'2026-10-21T00:00:00Z',updatedAt:'2026-10-21T00:00:00Z',counts:{managers:2,staff:37,locations:5}};
 let detail:CompanyDetail;
 function mount(path='/platform/companies',boundary=false,language='en'){
  localStorage.setItem('hygene-ops.language',language);const query=new QueryClient({defaultOptions:{queries:{retry:false,gcTime:0}}});
@@ -112,4 +112,34 @@ it('renders bounded-page facts and clear filters resets the server cursor',async
  fireEvent.click(screen.getByRole('button',{name:'Clear filters'}));await waitFor(()=>expect(m.request).toHaveBeenCalledWith('/platform/companies?limit=25',expect.any(Object)));
  expect(screen.getByLabelText('Search companies')).toHaveValue('');expect(screen.getByLabelText('Operational status')).toHaveValue('');
  expect(screen.queryByRole('button',{name:'First page'})).not.toBeInTheDocument();
+});
+
+it('shows real counts in company rows and hides the three deferred platform pages',async()=>{
+ mount();await screen.findAllByRole('link',{name:'Synthetic company'});
+ for(const group of screen.getAllByLabelText('Active team and locations')){
+  for(const [label,value] of [['Managers','2'],['Staff','37'],['Locations','5']]){
+   expect(within(within(group).getByText(label).closest('div')!).getByText(value)).toBeInTheDocument();
+  }
+ }
+ const navigation=screen.getByRole('navigation',{name:'Platform navigation'});
+ expect(within(navigation).getByRole('link',{name:'Companies'})).toBeInTheDocument();
+ expect(within(navigation).getByRole('link',{name:'Platform security'})).toBeInTheDocument();
+ for(const label of ['Inquiries','Service diagnostics','Administrative audit'])expect(screen.queryByRole('link',{name:label})).not.toBeInTheDocument();
+ expect(screen.queryByRole('columnheader',{name:'Account version'})).not.toBeInTheDocument();
+ expect(screen.getByText('Team and location counts include active records only. Managers exclude the company owner.')).toBeInTheDocument();
+});
+
+it('company overview shows zero counts accurately and removes links to hidden service pages',async()=>{
+ detail.company.counts={managers:0,staff:0,locations:0};mount('/platform/companies/42');
+ const overview=await screen.findByRole('region',{name:'Company overview'});
+ expect(within(overview).getAllByText('0')).toHaveLength(3);
+ expect(screen.queryByRole('link',{name:'View account audit'})).not.toBeInTheDocument();
+ expect(screen.queryByRole('link',{name:'View service diagnostics'})).not.toBeInTheDocument();
+});
+
+it('company resource counts and labels support Urdu',async()=>{
+ mount('/platform/companies/42',false,'ur');
+ const overview=await screen.findByRole('region',{name:'کمپنی کا جائزہ'});
+ for(const label of ['مینیجرز','عملہ','مقامات'])expect(within(overview).getByText(label)).toBeInTheDocument();
+ expect(document.documentElement.dir).toBe('rtl');
 });

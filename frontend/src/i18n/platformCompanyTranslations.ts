@@ -1,4 +1,7 @@
 export const platformCompanyUrdu:Record<string,string>={
+ 'Managers':'مینیجرز','Staff':'عملہ','Locations':'مقامات','Company overview':'کمپنی کا جائزہ','Active team and locations':'فعال ٹیم اور مقامات',
+ 'Team and location counts include active records only. Managers exclude the company owner.':'ٹیم اور مقامات کی تعداد میں صرف فعال ریکارڈ شامل ہیں۔ کمپنی کا مالک مینیجرز کی تعداد میں شامل نہیں۔',
+ 'Active records only. Managers exclude the company owner.':'صرف فعال ریکارڈ۔ کمپنی کا مالک مینیجرز کی تعداد میں شامل نہیں۔',
  'Customer companies':'کسٹمر کمپنیاں','Company account':'کمپنی کا اکاؤنٹ','Platform operations':'پلیٹ فارم کی نگرانی','Inquiries':'درخواستیں','Service diagnostics':'سروس کی تشخیص','Administrative audit':'انتظامی آڈٹ',
  'Review pending status change':'زیرِ التوا حالت کی تبدیلی کا جائزہ لیں',
  'Account metadata only. No workforce records or photos.':'صرف اکاؤنٹ کی معلومات۔ عملے کا ریکارڈ یا تصاویر نہیں۔',

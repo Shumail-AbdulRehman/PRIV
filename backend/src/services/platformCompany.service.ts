@@ -23,12 +23,18 @@ const change = z.object({
 const companySelect = {
     id: true, name: true, plan: true, isActive: true, operationalStatus: true,
     accountVersion: true, createdAt: true, updatedAt: true,
+    _count: { select: {
+        managers: { where: { isActive: true, role: 'MANAGER' } },
+        staff: { where: { isActive: true } },
+        locations: { where: { isActive: true } },
+    } },
 } satisfies Prisma.CompanySelect;
 type Summary = Prisma.CompanyGetPayload<{ select: typeof companySelect }>;
 // Explicit DTO construction remains mandatory even when a DB adapter returns extra fields.
 const summary = (company: Summary) => ({ id: company.id, name: company.name, plan: company.plan,
     isActive: company.isActive, operationalStatus: company.operationalStatus, accountVersion: company.accountVersion,
-    createdAt: company.createdAt, updatedAt: company.updatedAt });
+    createdAt: company.createdAt, updatedAt: company.updatedAt,
+    counts: { managers: company._count.managers, staff: company._count.staff, locations: company._count.locations } });
 function operator(actor: OperatorPrincipal) {
     if (!actor || actor.kind !== 'PLATFORM_OPERATOR' || typeof actor.issuer !== 'string' || !actor.issuer.trim() ||
         typeof actor.subject !== 'string' || !actor.subject.trim()) throw new ApiError(403, 'Platform operator required');

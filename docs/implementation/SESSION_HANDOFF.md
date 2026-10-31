@@ -1,3 +1,28 @@
+# Latest refinement — Company counts and focused platform UI — 2026-10-31
+
+User requests real per-company manager/staff/location counts, hiding Inquiries,
+Service diagnostics and Administrative audit, and polishing the existing UI.
+Completed in the preserved feature worktree on `feat/platform-company-overview`,
+based on UI polish `f89c8e2`/draft112. Read [the implementation and verification
+record](PLATFORM_COMPANY_OVERVIEW.md). Single-session plan-project exception;
+no new numbered spec or prototype. Original six V5 gates remain unchanged.
+Verified source `5321d7d`; OPEN/DRAFT [PR113](https://github.com/Shumail-AbdulRehman/PRIV/pull/113), stacked on draft112. No PR merged.
+
+Existing operator DTOs select only filtered aggregate counts: active records,
+MANAGER role excluding ADMIN owners. Desktop/mobile register and each account
+overview show these values, with EN/UR labels and an explicit counting rule.
+The three temporarily hidden routes redirect to Companies; sidebar/account
+shortcuts are removed. Their APIs and components remain intact for later use.
+No migrations, billing/auth changes, staff imports or tenant screen changes.
+
+Proof:55 focused backend/72 platform frontend;1491 full backend+7existing skips;
+64Node+405React; touched lint and both builds;1 isolated SQL/API/Chromium case;
+8 actual local rendered observations at1366/390 EN/UR, no overflow/browser errors,
+12 successful hidden-route redirects and actual API-backed counts. Heavy checks
+remain sequential nice15/singleworker. Owned disposable test DB cleaned, cluster
+stopped. Local5173/8080services now run this update. Refresh/re-login with the
+existing private platform-owner credential if prompted. No merge or deployment.
+
 # Latest checkpoint — Local platform-owner sign-in — 2026-10-31
 
 User explicitly requested enabling product-owner login with a random unique email/password. Spec43 source bccbb95 is published in OPEN/DRAFT [PR111](https://github.com/Shumail-AbdulRehman/PRIV/pull/111), based on spec42/PR109. Spec43 is complete locally on `implementation/spec-43-local-platform-login`, based on b826856/spec42, in `/home/shumail/.local/share/hygene-ops/v5-import-20261031`. Current local app: http://localhost:5173/platform/login. The actual generated credential was tested through the real browser and opens Companies; it is supplied privately to the owner and is never committed.

@@ -1,7 +1,7 @@
 import { useRef, useState, type FormEvent, type ReactNode } from 'react';
 import { Link, useParams, useSearchParams } from 'react-router-dom';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
-import { ArrowLeft, ArrowRight, Building2, FileText, LifeBuoy, Mail, Menu, RefreshCw, ShieldCheck } from 'lucide-react';
+import { ArrowLeft, ArrowRight, Building2, MapPin, Menu, RefreshCw, ShieldCheck, UserRoundCog, Users } from 'lucide-react';
 import { useLanguage } from '@/i18n/context';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -28,12 +28,24 @@ function statusCode(error: unknown) {
     ?? (error as { status?: number } | null)?.status;
 }
 
+function CompanyResources({ company, compact = false }: { company: CompanySummary; compact?: boolean }) {
+  const { t, language } = useLanguage();
+  const resources = [
+    ['managers', 'Managers', UserRoundCog], ['staff', 'Staff', Users], ['locations', 'Locations', MapPin],
+  ] as const;
+  return <dl className={compact ? 'platform-company-size' : 'platform-company-resources'} aria-label={t('Active team and locations')}>
+    {resources.map(([key, label, Icon]) => <div key={key}>
+      <dt><Icon size={compact ? 14 : 19} aria-hidden="true" />{t(label)}</dt>
+      <dd>{company.counts[key].toLocaleString(language === 'ur' ? 'ur-PK' : 'en-PK')}</dd>
+    </div>)}
+  </dl>;
+}
+
 function CompanyNavigation() {
   const { t } = useLanguage();
   const [expanded, setExpanded] = useState(false);
   const links = [
-    ['/platform/companies', 'Companies', Building2], ['/platform/inquiries', 'Inquiries', Mail],
-    ['/platform/service', 'Service diagnostics', LifeBuoy], ['/platform/audit', 'Administrative audit', FileText],
+    ['/platform/companies', 'Companies', Building2],
     ['/platform/security', 'Platform security', ShieldCheck],
   ] as const;
   return <nav className="platform-company-nav" aria-label={t('Platform navigation')}>
@@ -135,7 +147,6 @@ function CompanyContent() {
       <section className="platform-company-panel"><header><h2>{t('Account context')}</h2><p>{t('Only recorded account facts are shown.')}</p></header><div className="platform-company-panel-body">{facts([
         ['Capacity plan', <bdi>{current.company.plan}</bdi>], ['Account version', <bdi>{current.company.accountVersion}</bdi>], ['Billing integration', t(current.billingConfigured ? 'Configured' : 'Not configured')],
       ])}</div></section>
-      <section className="platform-company-panel"><header><h2>{t('Support context')}</h2></header><div className="platform-company-panel-body"><p>{t('Diagnose account issues using the customer ID and redacted service records.')}</p><Link className="platform-company-action" to={`/platform/audit?companyId=${current.company.id}`}>{t('View account audit')}<ArrowRight size={16} aria-hidden="true" /></Link><Link className="platform-company-action" to="/platform/service">{t('View service diagnostics')}<ArrowRight size={16} aria-hidden="true" /></Link></div></section>
     </aside>
   </div> : null;
 
@@ -163,18 +174,22 @@ function CompanyContent() {
             <Button type="submit">{t('Apply filters')}</Button><Button type="button" variant="ghost" disabled={!search && !status && !params.toString()} onClick={() => { setSearch(''); setStatus(''); setParams({}); }}>{t('Clear filters')}</Button>
           </form>
           {rows ? <>
-            <DataTable data={rows} rowKey={row => row.id} emptyMessage={t('No companies match these filters.')} mobileRender={row => <div className="platform-company-mobile-record"><div><Link to={`/platform/companies/${row.id}`}><bdi>{row.name}</bdi></Link>{badge(row)}</div><p>{t('Capacity plan')}: <bdi>{row.plan}</bdi> · {t('Account version')}: <bdi>{row.accountVersion}</bdi></p><p>{t('Registered on')} {stamp(row.createdAt, true)}</p><Link className="platform-company-action" to={`/platform/companies/${row.id}`}>{t('Open account')}<ArrowRight size={16} aria-hidden="true" /></Link></div>} columns={[
+            <DataTable data={rows} rowKey={row => row.id} emptyMessage={t('No companies match these filters.')} mobileRender={row => <div className="platform-company-mobile-record"><div><Link to={`/platform/companies/${row.id}`}><bdi>{row.name}</bdi></Link>{badge(row)}</div><p>{t('Capacity plan')}: <bdi>{row.plan}</bdi></p><CompanyResources company={row} compact /><p>{t('Registered on')} {stamp(row.createdAt, true)}</p><Link className="platform-company-action" to={`/platform/companies/${row.id}`}>{t('Open account')}<ArrowRight size={16} aria-hidden="true" /></Link></div>} columns={[
               { key: 'name', header: t('Company'), render: row => <div className="platform-company-record-name"><Link to={`/platform/companies/${row.id}`}><bdi>{row.name}</bdi></Link><small>{t('Registered on')} {stamp(row.createdAt, true)}</small></div> },
+              { key: 'resources', header: t('Active team and locations'), render: row => <CompanyResources company={row} compact /> },
               { key: 'status', header: t('Operational status'), render: badge }, { key: 'plan', header: t('Capacity plan'), render: row => <bdi>{row.plan}</bdi> },
-              { key: 'version', header: t('Account version'), render: row => <bdi>{row.accountVersion}</bdi> },
               { key: 'actions', header: t('Account'), render: row => <Link className="platform-company-action" to={`/platform/companies/${row.id}`}>{t('Open account')}<ArrowRight size={16} aria-hidden="true" /></Link> },
             ]} />
             <footer className="platform-company-pagination"><p>{t('{count} companies on this page', { count: rows.length })}</p><div>{params.get('after') ? <Button variant="outline" disabled={list.isFetching} onClick={() => setParams(previous => { const next = new URLSearchParams(previous); next.delete('after'); return next; })}>{t('First page')}</Button> : null}{list.data?.nextCursor ? <Button variant="outline" disabled={list.isFetching} onClick={() => setParams(previous => { const next = new URLSearchParams(previous); next.set('after', list.data.nextCursor!); return next; })}>{t('Next page')}</Button> : null}</div></footer>
           </> : !list.isError && list.isPending ? <div className="platform-company-placeholder" aria-hidden="true"><span /><span /><span /></div> : null}
         </section>
-        <p className="platform-company-footnote"><ShieldCheck size={16} aria-hidden="true" />{t('Counts describe this bounded page only. Account metadata does not provide workforce access.')}</p>
+        <p className="platform-company-footnote"><ShieldCheck size={16} aria-hidden="true" />{t('Team and location counts include active records only. Managers exclude the company owner.')}</p>
       </> : current ? <>
         <div className="platform-company-detail-heading">{badge(current.company)}<span>{t('Customer ID')} <bdi>{current.company.id}</bdi></span></div>
+        <section className="platform-company-overview" aria-label={t('Company overview')}>
+          <div className="platform-company-overview-heading"><h2>{t('Active team and locations')}</h2><p>{t('Active records only. Managers exclude the company owner.')}</p></div>
+          <CompanyResources company={current.company} />
+        </section>
         <div className="platform-company-tabs" role="group" aria-label={t('Company sections')}>{[['account', 'Account'], ['billing', 'Billing'], ['activity', 'Activity']].map(([value, label]) => <Button key={value} variant="ghost" aria-pressed={tab === value} onClick={() => setTab(value)}>{t(label)}</Button>)}</div>
         {tab === 'account' ? accountContent : tab === 'billing' ? <section className="platform-company-panel"><header><h2>{t('Mirrored billing metadata')}</h2><p>{t('Provider facts are read-only and do not change commercial access.')}</p></header><div className="platform-company-panel-body">{facts([
           ['Provider state', <bdi>{current.providerState}</bdi>], ['Provider subscription status', <bdi>{current.subscription?.status ?? t('Not available')}</bdi>],

@@ -2,6 +2,17 @@
 
 Source of truth for execution; latest user authorization supersedes old pending labels. Approved v5 preserved.
 
+**Latest focused refinement — 2026-10-31:** company list/details now expose real
+active manager/staff/location counts (owners excluded from managers). Inquiries,
+Service diagnostics and Administrative audit are temporarily hidden by navigation
+removal and frontend redirects; their protected APIs remain intact. Existing
+24/33/35 contracts refined under the plan-project single-session exception;
+no new numbered spec. Branch `feat/platform-company-overview`, basedf89c8e2.
+1491backend+7existing skips,64Node+405React,55/72focused,1real isolated SQL/browser,
+both builds/lint and8local EN/UR desktop/phone observations passed. Details:
+[PLATFORM_COMPANY_OVERVIEW.md](../docs/implementation/PLATFORM_COMPANY_OVERVIEW.md).
+No original specification status changed; no merge or deployment.
+
 **Latest Android testing build — 2026-10-29:** a fresh standalone APK is built,
 downloaded and independently inspected. Version **2.1.8/code11**, package
 `com.hygeneops.staff`, source `e73591e25406725cc354bf9b1f5e845da4b658bd` on
@@ -301,3 +312,5 @@ PLATFORM_OIDCinputs and loads no root secrets.23other worktrees/799dirtypaths
 - **2026-10-31 — Spec42 Password amendment complete:**49focused backend/5dialog,1478full backend passed/7existing skips,64Node+395React,4real API/SQL/browser tests and builds/lint pass. New staff directly use spreadsheet Email+Password. No raw passwords in preview/token/audit/receipt; keyed HMAC file receipts. Updated local5173/8080services verified200. Original six unresolved V5 gates unchanged.
 
 - **2026-10-31 — Spec43 complete locally:** separate provisioned local platform-owner email/password, private bcrypt credential store, opaque platform cookie, strict loopback/development/origin/database gates, throttling/expiry/logout and existing metadata pages wired. Full1490backend/7existing skips,64Node+399React,1isolated browser plus actual provisioned local owner login pass. Credentials stay outside Git. Original six V5 gates remain unresolved; production auth/MFA unchanged.
+
+- **2026-10-31 — Focused platform refinement complete:** user-authorized active manager/staff/location aggregates in company register and account overview; owners excluded. Hide inquiry/diagnostics/audit navigation and redirect old URLs.55backend/72platform UI focused;1491full backend+7existing skips;64Node+405React;1isolated PostgreSQL/API/browser; touched lint/both builds;8actual EN/UR desktop/phone captures with no browser errors/overflow. Local services updated. See PLATFORM_COMPANY_OVERVIEW.md. No new numbered spec, migrations, original status changes, merge or deployment.
