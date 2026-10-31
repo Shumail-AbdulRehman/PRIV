@@ -1,0 +1,32 @@
+{
+  "date": "2026-10-31",
+  "scope": "local-only platform-owner email/password login; production34stillblocked",
+  "credentials": "private outside Git; no credential screenshots/video/traces",
+  "emptyLoginCaptures": {
+    "widths": [
+      1366,
+      390
+    ],
+    "height": 900,
+    "languages": [
+      "en",
+      "ur"
+    ],
+    "source": "actual restarted local frontend/API, before credentials entered"
+  },
+  "companyCaptures": {
+    "widths": [
+      1280,
+      390
+    ],
+    "language": "en",
+    "source": "migrated disposable synthetic PostgreSQL/API/browser fixture"
+  },
+  "actualLocalSmoke": {
+    "login": true,
+    "companiesHTTP": 200,
+    "tenantHTTP": 401,
+    "logoutHTTP": 401
+  },
+  "limits": "No production IdP/MFA or release qualification"
+}

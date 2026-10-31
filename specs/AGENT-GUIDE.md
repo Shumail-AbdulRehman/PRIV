@@ -1,3 +1,7 @@
+# Latest local platform-owner checkpoint — 2026-10-31
+
+Spec43 is complete locally on implementation/spec-43-local-platform-login in the preserved v5-import-20261031 worktree. Read docs/implementation/LOCAL_PLATFORM_LOGIN.md. The user explicitly requested a random separate platform-owner email/password; private artifacts/launcher config are outside Git. Current local5173/8080services serve this version. Build local frontend with VITE_LOCAL_PLATFORM_LOGIN=true; production/default mode remains unavailable without qualified provider. Never turn a company ADMIN into a platform identity. Original34production/MFA and other five V5 gates remain unresolved. Heavy checks remain sequential, nice15/maxWorkers1.
+
 # Implementation agent guide
 
 ## Latest additive feature checkpoint — 2026-10-31
