@@ -60,6 +60,7 @@ const env = {
       interval: "month",
       priceId: "pri_00000000000000000000000001",
     },
+    { plan: "ADVANCED", interval: "month", priceId: "pri_00000000000000000000000003" },
   ]),
   PADDLE_BILLING_ENABLED: "false",
   HYGENE_E2E_BACKEND_ORIGIN: `http://127.0.0.1:${backendPort}`,

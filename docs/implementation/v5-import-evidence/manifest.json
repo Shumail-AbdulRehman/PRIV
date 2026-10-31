@@ -1,0 +1,41 @@
+{
+  "date": "2026-10-31",
+  "source": "spec42 Password-column amendment; see latest Git commit",
+  "application": "real React production build, authenticated Express API, migrated disposable PostgreSQL 17 UUID child",
+  "fixtures": "synthetic companies, users, subscription mirrors and staff; no production or restored customer records",
+  "viewportWidths": [
+    1366,
+    390
+  ],
+  "viewportHeight": 900,
+  "languages": [
+    "en",
+    "ur"
+  ],
+  "states": [
+    "preview",
+    "success"
+  ],
+  "interceptions": "none",
+  "credentials": "plaintext passwords occur only in manager-selected input workbook/request memory and bcrypt processing; not in preview, receipts, audit, screenshots, video or trace",
+  "assertions": [
+    "selected location",
+    "no preview writes",
+    "six-column XLSX and CSV",
+    "supplied password validated and excluded from all responses",
+    "bcrypt storage",
+    "direct password login/profile without recovery or forced replacement",
+    "wrong password rejected",
+    "invalid password blocks entire batch",
+    "Staff Management visibility",
+    "no body horizontal overflow"
+  ],
+  "limits": "Camera/photo/GPS/device and external provider acceptance remain original V5 gates. These screenshots are not native evidence. Reference captures depict approved Staff-tab composition; no exact import prototype existed.",
+  "draftPullRequest": "https://github.com/Shumail-AbdulRehman/PRIV/pull/109",
+  "referenceStates": [
+    "reference-staff-1366-en",
+    "reference-staff-1366-ur",
+    "reference-staff-390-en",
+    "reference-staff-390-ur"
+  ]
+}

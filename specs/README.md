@@ -140,3 +140,17 @@ Spec40 remains the single integrated flow table; its additional correction logs 
 V5 correction validator2026-10-22:42specs/0errors/12warnings. The additional long-spec40 warning is accepted because40 remains the sole integrated browser/screenshot harness by project contract; its explicit consumption and evidence log are retained rather than splitting browser ownership into another execution spec. Existing11warnings remain justified above.
 
 Spec32 V5 acceptance2026-10-29:15/27/28 remain the actual consumption dependencies; no graph edge or wave changed. Ownership of additive lifecycle DTO and serialized shell presentation transferred before editing. Current32webDone,9remain.86paired/state PNG artifacts and27+2actual browser cases do not qualify live Paddle or complete40. Existing12validator warnings remain documented above. Next33 is locally eligible via24/27; its positive IdP qualification stays external.
+
+## Additive feature42
+
+| Spec | Wave | Consumes |
+|---|---|---|
+| [42 — Location staff import](42-location-staff-import.md) | 7 | 09, 14, 17, 28, 31 |
+
+Spec42 consumes09attendance windows,14capacity transactions,17secure handoff,28location workspace and31staff management. Original40/41 gates retain numbering and scope; this post-plan feature uses their existing browser/release harness rather than replacing them. See docs/planning/location-staff-import-assessment.md.
+
+### Spec42 known gaps and validation notes
+
+The original40/41gate numbers remain frozen at user request;42 is a sequential additive feature after that plan. Its direct09/14/17dependencies name consumed behavior even where transitively implied. Issue108 may trigger the validator’s raw-colour heuristic; it is an issue number. Prior00missingissue,25/26/28/30/32/37redundantedges,36evidence/testconsumer,40length/defectledger and41finalreport warnings are inherited, not new feature failures. Copied local design/v5 references are validation inputs preserved byte-for-byte, not feature changes to commit.
+
+Spec42 latest user amendment adds a required Password column and immediate staff email/password login, superseding handoff-only initial access. Existing handoff remains recovery. File receipts use HMAC; previews/receipts/audits never contain passwords. User-authorized local5173/8080services now run the feature checkout.

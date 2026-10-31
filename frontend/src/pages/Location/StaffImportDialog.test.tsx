@@ -1,0 +1,20 @@
+import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
+import { fireEvent, render, screen, waitFor } from '@testing-library/react';
+import { beforeEach, expect, it, vi } from 'vitest';
+import { LanguageProvider } from '@/i18n/LanguageProvider';
+import StaffImportDialog from './StaffImportDialog';
+const m=vi.hoisted(()=>({get:vi.fn(),post:vi.fn()}));
+vi.mock('@/api/client',()=>({client:{get:m.get,post:m.post}}));
+function mount(language='en') {localStorage.setItem('hygene-ops.language',language);const cache=new QueryClient({defaultOptions:{mutations:{retry:false}}});render(<QueryClientProvider client={cache}><LanguageProvider><StaffImportDialog location={{id:3,name:'Centaurus Mall'}}/></LanguageProvider></QueryClientProvider>);}
+const preview={total:1,valid:1,token:'signed-preview',location:{name:'Centaurus Mall',timezone:'Asia/Karachi'},rows:[{row:2,name:'Ahmed Khan',email:'ahmed@example.com',phone:'03001234567',start:'22:00',end:'06:00',errors:[]}]};
+beforeEach(()=>{vi.clearAllMocks();localStorage.clear();});
+it('opens at selected location, downloads template and cancels',async()=>{mount();fireEvent.click(screen.getByRole('button',{name:'Import Staff'}));expect(screen.getByRole('dialog')).toHaveTextContent('Centaurus Mall');m.get.mockRejectedValue(Error('offline'));fireEvent.click(screen.getByRole('button',{name:'Download Excel Template'}));await waitFor(()=>expect(m.get).toHaveBeenCalledWith('/location/3/staff-import/template',{responseType:'blob'}));expect(await screen.findByRole('alert')).toBeVisible();fireEvent.click(screen.getByRole('button',{name:'Cancel'}));expect(screen.queryByRole('dialog')).not.toBeInTheDocument();});
+it('previews without creating, confirms same file/token, and explains direct password login',async()=>{mount();fireEvent.click(screen.getByRole('button',{name:'Import Staff'}));m.post.mockResolvedValueOnce({data:{data:preview}}).mockResolvedValueOnce({data:{data:{count:1}}});const file=new File(['csv'],'staff.csv');fireEvent.change(screen.getByLabelText(/Completed spreadsheet/),{target:{files:[file]}});expect(await screen.findByText('Ahmed Khan')).toBeVisible();expect(m.post).toHaveBeenCalledTimes(1);fireEvent.click(screen.getByRole('button',{name:'Confirm Import'}));expect(await screen.findByText(/Staff can now sign in/)).toBeVisible();expect(m.post.mock.calls[1]![0]).toBe('/location/3/staff-import/confirm');expect(m.post.mock.calls[1]![1].get('token')).toBe('signed-preview');});
+it('displays row errors and disables confirmation',async()=>{mount();fireEvent.click(screen.getByRole('button',{name:'Import Staff'}));m.post.mockResolvedValue({data:{data:{...preview,valid:0,rows:[{...preview.rows[0],errors:['Email is already in use.']}]}}});fireEvent.change(screen.getByLabelText(/Completed spreadsheet/),{target:{files:[new File(['csv'],'staff.csv')]}});expect((await screen.findAllByText('Email is already in use.'))[0]).toBeVisible();expect(screen.getByRole('button',{name:'Confirm Import'})).toBeDisabled();});
+it('renders Urdu RTL entry and workflow',()=>{mount('ur');fireEvent.click(screen.getByRole('button',{name:'عملہ درآمد کریں'}));expect(screen.getByRole('dialog')).toHaveAttribute('dir','rtl');expect(screen.getByRole('button',{name:'ایکسل سانچہ ڈاؤن لوڈ کریں'})).toBeVisible();});
+
+it('explains the password column without rendering any passwords in preview',async()=>{
+ mount();fireEvent.click(screen.getByRole('button',{name:'Import Staff'}));expect(screen.getByText(/passwords stay hidden/i)).toBeVisible();
+ m.post.mockResolvedValue({data:{data:preview}});fireEvent.change(screen.getByLabelText(/Completed spreadsheet/),{target:{files:[new File(['csv'],'staff.csv')]}});
+ await screen.findByText('Ahmed Khan');expect(screen.queryByRole('columnheader',{name:'Password'})).not.toBeInTheDocument();
+});

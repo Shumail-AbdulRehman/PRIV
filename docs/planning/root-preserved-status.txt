@@ -1,0 +1,29 @@
+ M .github/workflows/ci.yml
+ M .gitignore
+ M DESIGN.md
+ M backend/package.json
+ M backend/src/controllers/location.controller.ts
+ M docs/implementation/SESSION_HANDOFF.md
+ A docs/implementation/V5_LOCAL_RUNTIME.md
+ A docs/implementation/V5_MAPS_RUNTIME.md
+ A docs/implementation/V5_RUNTIME_DATA_AUDIT.md
+ M frontend/src/pages/Dashboard/DashboardPage.test.tsx
+ M frontend/src/pages/Dashboard/DashboardPage.tsx
+ M frontend/src/pages/Location/LocationsPage.tsx
+ M frontend/src/pages/Location/api.ts
+ M frontend/src/pages/Location/queries.ts
+?? .agents/skills/animate
+?? .agents/skills/gpt-taste
+?? .agents/skills/impeccable
+?? .agents/skills/plan-project
+?? .ai/
+?? .impeccable/review/
+?? backend/src/controllers/locationDirectory.controller.test.ts
+?? design/
+?? docs/OVERVIEW_PERFORMANCE.md
+?? docs/plan-project/
+?? frontend/e2e/runtime-data.spec.ts
+?? frontend/src/pages/Location/LocationQueries.test.tsx
+?? frontend/tests/performanceBrowser.mjs
+?? investor-video/
+?? scripts/

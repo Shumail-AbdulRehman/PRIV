@@ -1,3 +1,25 @@
+# Latest user amendment — Excel passwords — 2026-10-31
+
+User explicitly requests manager-entered Password in the import spreadsheet and direct staff login, superseding the original no-password-column restriction. Spec42 amendment is complete:1478backend passed/7existing skips,64Node+395React,49focused backend/5dialog,4real API/SQL/browser tests, lint and both builds passed. Correct supplied password authenticated immediately; wrong password401; invalid-password batch created no accounts. User-authorized local5173/8080services rebuilt/restarted and returned200. No new account architecture: use supplied password with existing bcrypt hook and mustChangePassword=false for new imported accounts. Passwords stay out of preview/token/audit/receipt responses; file receipts use keyed HMAC. Existing staff/recovery behavior is unchanged. New sample workbook is outside Git in Downloads; never commit credential-bearing test sheets.
+
+Following a separate explicit restart request, local5173/8080services now run this isolated feature worktree through backed-up systemd overrides. Root source and private DB configuration are preserved. Old duplicate dev/watch processes and old remote-configured verification worker are stopped. Local runtime manifest/backups live under ~/.local/share/hygene-ops/local-development. Run heavy checks sequentially at nice15/maxWorkers1.
+
+# Latest feature checkpoint — Location staff import — 2026-10-31
+
+**Spec42 is complete locally; original six V5 gates remain unresolved.** New feature branch `implementation/spec-42-location-staff-import`, worktree `/home/shumail/.local/share/hygene-ops/v5-import-20261031`, based on preserved a8728ed/AndroidPR107 acceptance stack. Issue108; OPEN/DRAFT [PR109](https://github.com/Shumail-AbdulRehman/PRIV/pull/109), base `build/hygeneops-android-testing-20261029`. Source commit `eed787a`; final documentation commit follows (inspect Git log). No PR was merged and no service deployed.
+
+Current root remains `fix/v5-runtime-data-loading` at55061b8 with its original user overlays. Those runtime fixes were inspected/preserved and were not copied into this feature PR. Existing root5173/8080 services and all worktrees remain untouched. Root's old tracker reports ten unresolved; the newer feature base contains36originalDone and the actual six unresolved30/34/36/37Blocked,40In progress,41Not started. Do not erase that distinction or infer merge from Done.
+
+Architecture decision: location import is valid with existing single Staff.locationId and inline shift DateTimes, selected location IANA timezone, company capacity locks and existing secure one-use handoff. No Shift table, migration, OAuth, mail delivery or background system was added. New guard declines absence windows before account creation. Required spreadsheet fields: Full Name, Email, Phone, Shift Start, Shift End. Current commercial staff caps remain3/25/200;500is parser limit, not a new entitlement.
+
+Final proof:1471backend passed/7existing skips;64Node+394React;42focused backend/4dialog; touched lint; both production builds; real SQL/API/Chromium3/3cases35.3s.200staff commit13,383ms. Actual XLSX/CSV, no preview writes, field persistence, bcrypt, secure handoff/authentication, stale/site/tenant/role denials, concurrent receipt reconciliation, rollback, individual creation and Staff Management visibility verified. Eight actual screenshots plus four unchanged V5 references at1366/390EN/UR. Owned test cluster had zero generated child DBs and was stopped. Physical device/media/provider gates remain unqualified; no whole-product release claim.
+
+**Resource constraint:** initial concurrent checks caused laptop contention;24task processes were stopped. User then authorized continuing with fewer heavy operations. All subsequent complete checks ran sequentially at nice15 and one worker. Preserve that rule in future sessions.
+
+Read [results](STAFF_IMPORT_RESULTS.md), [manual/automated testing](STAFF_IMPORT_TESTING.md), [architectural assessment](../planning/location-staff-import-assessment.md), spec42 and inventory fragment. Manual alternate-port startup is documented but not executed against the existing local database. Feature is not present in the root-served app until separately reviewed/integrated; do not merge/deploy without authorization.
+
+---
+
 # Current Android testing APK — 29 October 2026
 
 **The requested fresh standalone APK is built, inspected and saved.** This was a
