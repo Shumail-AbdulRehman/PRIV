@@ -1,3 +1,22 @@
+# Password-column amendment — verified 2026-10-31
+
+Latest user explicitly requests Password in Excel and immediate email/password login. This supersedes the earlier handoff-only flow documented below. Six required headers are Full Name, Email, Phone, Shift Start, Shift End, Password. Existing individual creation's6character minimum and bcrypt hashing are reused; import also rejects blank passwords and values over72UTF-8bytes to avoid bcrypt truncation. Password text is preserved exactly, including whitespace/punctuation. New accounts have mustChangePassword=false and authenticate immediately; existing accounts and recovery remain unchanged.
+
+Password values are never sent in preview/confirmation JSON, signed claims, audit receipts or screenshots. Request-memory parsing is necessary, uploaded files are not retained, and receipts use a server-keyed HMAC rather than an unkeyed digest of password-bearing spreadsheets. The plaintext workbook is supplied and controlled by the manager as explicitly requested; no credential-bearing workbook is committed to Git.
+
+Current-source verification (all heavy checks sequential, nice15/maxWorkers1):
+- Backend focused:49passed/3files,4.48s; whole backend1478passed/7existing skips,80.82s.
+- Frontend focused:5passed; whole64Node+395React passed,88.97s React run; touched lint passed.
+- Real XLSX/CSV upload → PostgreSQL → direct supplied-password staff login/profile:4browser/API/SQL cases passed33.8s. Wrong password rejected401; password validation prevents whole-batch writes; account hashes stored and mustChangePassword=false; preview/receipt/audit no-echo assertions pass. Original site/tenant/role/stale membership checks, concurrent confirmation, database rollback, individual creation and Staff Management remain verified.
+- Current200staff batch13,059ms;500row capacity denial still enforced.
+- Updated English/Urdu desktop/phone preview and success screenshots visually inspected; no credential screenshots/traces. Existing static V5 references are unchanged.
+
+The test sample with four fresh identities/passwords is in Downloads outside Git. Staff use the exact Email and Password values in that workbook. Previous five-column samples are obsolete. Both final builds passed (frontend12.93s). Matching local5173/8080services restarted and app/API proxy returned200. The current source is served by the user-authorized local5173/8080services, not by the preserved older root source.
+
+---
+
+Historical first implementation results follow; handoff-only initial access below is superseded.
+
 # Spec42 — location staff import verification, 2026-10-31
 
 ## Result and scope

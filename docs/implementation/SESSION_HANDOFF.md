@@ -1,3 +1,9 @@
+# Latest user amendment — Excel passwords — 2026-10-31
+
+User explicitly requests manager-entered Password in the import spreadsheet and direct staff login, superseding the original no-password-column restriction. Spec42 amendment is complete:1478backend passed/7existing skips,64Node+395React,49focused backend/5dialog,4real API/SQL/browser tests, lint and both builds passed. Correct supplied password authenticated immediately; wrong password401; invalid-password batch created no accounts. User-authorized local5173/8080services rebuilt/restarted and returned200. No new account architecture: use supplied password with existing bcrypt hook and mustChangePassword=false for new imported accounts. Passwords stay out of preview/token/audit/receipt responses; file receipts use keyed HMAC. Existing staff/recovery behavior is unchanged. New sample workbook is outside Git in Downloads; never commit credential-bearing test sheets.
+
+Following a separate explicit restart request, local5173/8080services now run this isolated feature worktree through backed-up systemd overrides. Root source and private DB configuration are preserved. Old duplicate dev/watch processes and old remote-configured verification worker are stopped. Local runtime manifest/backups live under ~/.local/share/hygene-ops/local-development. Run heavy checks sequentially at nice15/maxWorkers1.
+
 # Latest feature checkpoint — Location staff import — 2026-10-31
 
 **Spec42 is complete locally; original six V5 gates remain unresolved.** New feature branch `implementation/spec-42-location-staff-import`, worktree `/home/shumail/.local/share/hygene-ops/v5-import-20261031`, based on preserved a8728ed/AndroidPR107 acceptance stack. Issue108; OPEN/DRAFT [PR109](https://github.com/Shumail-AbdulRehman/PRIV/pull/109), base `build/hygeneops-android-testing-20261029`. Source commit `eed787a`; final documentation commit follows (inspect Git log). No PR was merged and no service deployed.

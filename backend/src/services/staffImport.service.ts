@@ -1,7 +1,7 @@
 import ExcelJS from 'exceljs';
 import yauzl from 'yauzl';
 import { Readable } from 'node:stream';
-import { createHash, randomBytes } from 'node:crypto';
+import { createHmac } from 'node:crypto';
 import jwt from 'jsonwebtoken';
 import { fromZonedTime } from 'date-fns-tz';
 import { prisma } from '../prisma/prisma.js';
@@ -15,12 +15,19 @@ import { insertStaff } from './staffProvisioning.service.js';
 import { writeAuditLog } from './auditLog.service.js';
 import type { VerificationTransaction } from './verification-v2/transaction.js';
 
-export const HEADERS = ['Full Name', 'Email', 'Phone', 'Shift Start', 'Shift End'];
+export const HEADERS = ['Full Name', 'Email', 'Phone', 'Shift Start', 'Shift End', 'Password'];
 export const MAX_IMPORT_BYTES = 1024 * 1024;
 const MAX_ROWS = 500;
 const bad = (message: string) => new ApiError(400, message);
 export type ImportRow = { row: number; name: string; email: string; phone: string; start: string; end: string; errors: string[] };
-const digest = (bytes: Buffer) => createHash('sha256').update(bytes).digest('hex');
+type ParsedImportRow = ImportRow & { password: string };
+const importSecret = () => {
+  const value = process.env.ACCESS_TOKEN_SECRET;
+  if (!value) throw new ApiError(503, 'Staff import is unavailable.');
+  return value;
+};
+// Spreadsheet passwords must not acquire a fast unkeyed verifier in audit storage.
+const digest = (bytes: Buffer) => createHmac('sha256', importSecret()).update('staff-import:v2\0').update(bytes).digest('hex');
 
 /** Bound decompression before the workbook parser reads any XML. */
 async function inspectZip(bytes: Buffer) {
@@ -54,7 +61,7 @@ const clock = (value: ExcelJS.CellValue) => {
   return typeof value === 'string' ? value.trim() : '';
 };
 const textCell = (value: ExcelJS.CellValue) => typeof value === 'string' ? value.trim() : '';
-export async function parseStaffFile(bytes: Buffer, filename: string): Promise<ImportRow[]> {
+export async function parseStaffFile(bytes: Buffer, filename: string): Promise<ParsedImportRow[]> {
   if (!bytes.length || bytes.length > MAX_IMPORT_BYTES) throw bad('Choose a file smaller than 1 MB.');
   const book = new ExcelJS.Workbook();
   try {
@@ -67,19 +74,20 @@ export async function parseStaffFile(bytes: Buffer, filename: string): Promise<I
   } catch (error) { if (error instanceof ApiError) throw error; throw bad('The spreadsheet could not be read. Download the template and try again.'); }
   if (book.worksheets.length !== 1) throw bad('Use one worksheet with the template columns.');
   const sheet = book.worksheets[0]!;
-  if (sheet.rowCount > MAX_ROWS + 1 || sheet.columnCount !== 5) throw bad('Use the five template columns and at most 500 employees.');
+  if (sheet.rowCount > MAX_ROWS + 1 || sheet.columnCount !== HEADERS.length) throw bad('Use the six template columns and at most 500 employees.');
   if (HEADERS.some((name, index) => sheet.getRow(1).getCell(index + 1).value !== name)) throw bad('Use the exact template headers, once each and in their original order.');
-  const rows: ImportRow[] = [], seen = new Set<string>();
+  const rows: ParsedImportRow[] = [], seen = new Set<string>();
   for (let index = 2; index <= sheet.rowCount; index++) {
-    const cells = [1,2,3,4,5].map(column => sheet.getRow(index).getCell(column).value);
+    const cells = [1,2,3,4,5,6].map(column => sheet.getRow(index).getCell(column).value);
     if (cells.every(value => value === null || value === '')) continue;
     const [name, email, phone] = cells.slice(0,3).map(textCell);
-    const row: ImportRow = { row: index, name: name!, email: email!.toLowerCase(), phone: phone!, start: clock(cells[3]!), end: clock(cells[4]!), errors: [] };
-    if (cells.some((value,index) => value !== null && typeof value === 'object' && !(index >= 3 && value instanceof Date && value.getUTCFullYear() <= 1904)) || cells.some(value => typeof value === 'string' && /^[=+@\-]/.test(value) && !/^\+\d[\d ()-]*$/.test(value))) row.errors.push('Unsupported formula, link or cell content.');
+    const row: ParsedImportRow = { row: index, name: name!, email: email!.toLowerCase(), phone: phone!, start: clock(cells[3]!), end: clock(cells[4]!), password: typeof cells[5] === 'string' ? cells[5] : '', errors: [] };
+    if (cells.some((value,index) => value !== null && typeof value === 'object' && !((index === 3 || index === 4) && value instanceof Date && value.getUTCFullYear() <= 1904)) || cells.some((value,index) => index !== 5 && typeof value === 'string' && /^[=+@\-]/.test(value) && !/^\+\d[\d ()-]*$/.test(value))) row.errors.push('Unsupported formula, link or cell content.');
     if (row.name.length < 2 || row.name.length > 150) row.errors.push('Enter a name between 2 and 150 characters.');
     if (!createStaffSchema.shape.email.safeParse(row.email).success || row.email.length > 254) row.errors.push('Enter a valid email.');
     if (!/^\+?[\d ()-]{7,20}$/.test(row.phone) || row.phone.replace(/\D/g, '').length < 7) row.errors.push('Enter a valid phone as text, including any leading zero.');
     if (![row.start,row.end].every(value => /^([01]\d|2[0-3]):[0-5]\d$/.test(value)) || row.start === row.end) row.errors.push('Enter different shift times in HH:mm format.');
+    if (!createStaffSchema.shape.password.safeParse(row.password).success || !row.password.trim() || Buffer.byteLength(row.password, 'utf8') > 72) row.errors.push('Enter a password with at least 6 characters and at most 72 UTF-8 bytes.');
     if (seen.has(row.email)) row.errors.push('Duplicate email in this spreadsheet.');
     seen.add(row.email); rows.push(row);
   }
@@ -115,10 +123,9 @@ export async function previewStaffImport(actor: VerificationActor, locationId: n
   const location = await authorize(actor, locationId);
   const rows = await parseStaffFile(bytes, filename); await validateExisting(rows);
   await checkCapacity(actor, rows.length);
-  const secret = process.env.ACCESS_TOKEN_SECRET;
-  if (!secret) throw new ApiError(503, 'Staff import is unavailable.');
+  const secret = importSecret();
   const token = jwt.sign({ purpose: 'STAFF_IMPORT', actorId: actor.id, role: actor.role, companyId: actor.companyId, locationId, digest: digest(bytes) }, secret, { expiresIn: '10m', algorithm: 'HS256' });
-  return { location: { id: location.id, name: location.name, timezone: location.timezone }, rows, total: rows.length, valid: rows.filter(row => !row.errors.length).length, token };
+  return { location: { id: location.id, name: location.name, timezone: location.timezone }, rows: rows.map(({row,name,email,phone,start,end,errors})=>({row,name,email,phone,start,end,errors})), total: rows.length, valid: rows.filter(row => !row.errors.length).length, token };
 }
 export async function confirmStaffImport(actor: VerificationActor, locationId: number, bytes: Buffer, filename: string, token: string) {
   await authorize(actor, locationId);
@@ -143,9 +150,9 @@ export async function confirmStaffImport(actor: VerificationActor, locationId: n
       if (rows.some(row => row.errors.length)) throw bad('The spreadsheet has errors or an email is now in use. Upload it again.');
       const ids: number[] = [];
       for (const row of [...rows].sort((a,b)=>a.email.localeCompare(b.email))) {
-        const input = createStaffSchema.parse({ name: row.name, email: row.email, phone: row.phone, password: randomBytes(32).toString('base64url'), locationId,
+        const input = createStaffSchema.parse({ name: row.name, email: row.email, phone: row.phone, password: row.password, locationId,
           shiftStart: fromZonedTime(`1970-01-01T${row.start}:00`, location.timezone), shiftEnd: fromZonedTime(`1970-01-01T${row.end}:00`, location.timezone) });
-        const staff = await insertStaff(tx, actor.companyId, input, true); ids.push(staff.id);
+        const staff = await insertStaff(tx, actor.companyId, input, false); ids.push(staff.id);
         await prepareStaffAttendance(tx, staff.id);
       }
       const result = { digest: hash, count: ids.length, staffIds: ids, locationId };

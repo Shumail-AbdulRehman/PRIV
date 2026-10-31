@@ -1,3 +1,7 @@
+# Latest authorization amendment — 2026-10-31
+
+The user explicitly requested manager-entered spreadsheet passwords and direct staff login, superseding the original no-password-column restriction. This is compatible with existing individual staff creation: retain its password validation and bcrypt creation hook, set mustChangePassword=false for these new accounts, and leave existing accounts/recovery unchanged. Require six headers, validate password text/minimum6characters/maximum72UTF-8bytes, do not trim meaningful whitespace, and remove password properties before constructing preview responses. Replace unkeyed file digest with server-keyed HMAC to avoid persisting a fast verifier derived from plaintext spreadsheet passwords. No schema change is needed. The original assessment below is historical where it describes inaccessible random passwords/handoff-only provisioning.
+
 # Location staff import assessment — 2026-10-31
 
 ## Ground truth and branch reconciliation
@@ -30,3 +34,5 @@ No serious conflict in the location-based UX itself was found. Capacity, onboard
 
 ## Implementation evidence
 The feasibility risks were tested against real disposable PostgreSQL/API/browser:200staff committed atomically in13,383ms under the existing30s transaction budget;500row preview correctly rejected current commercial capacity. Concurrent confirmation returned the same receipt, stale site permission was denied, injected second-row failure rolled back the batch, and existing handoff enabled staff authentication. No new migration/queue/shift model or mail dependency was necessary. See docs/implementation/STAFF_IMPORT_RESULTS.md.
+
+Password amendment evidence:4real browser/API/PostgreSQL cases passed33.8s, including direct XLSX/CSV supplied-password login and wrong-password denial;200staff committed13,059ms; invalid-password batch rejected without writes. Full backend1478passed/7existing skips;64Node+395React passed. No database migration or new credential infrastructure.

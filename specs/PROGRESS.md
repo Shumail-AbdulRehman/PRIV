@@ -92,7 +92,7 @@ marked visually verified merely because its existing tests pass.
 | 40 | [Launch end-to-end suite](40-e2e-suite.md) | In progress | 01, 02, 03, 04, 05, 08, 07, 06, 09, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23, 24, 25, 26, 27, 28, 29, 30, 31, 32, 33, 34, 35, 36, 37, 38, 39 | Heavy | #79 | DraftPR81;29/30browser cases pass; APK built; full acceptance incomplete |
 | 41 | [Final clean verification pass](41-verification-pass.md) | Not started | 40 | Heavy | — | See spec |
 
-| 42 | [Location-based bulk staff import](42-location-staff-import.md) | Done | 09, 14, 17, 28, 31 | Heavy | #108 | 1471backend/7existing skips;64Node+394React;3real browser/SQL cases;200staff13.38s; original6gates unchanged |
+| 42 | [Location-based bulk staff import](42-location-staff-import.md) | Done | 09, 14, 17, 28, 31 | Heavy | #108 | 1478backend/7existing skips;64Node+395React;4real browser/SQL cases; direct spreadsheet-password login; original6gates unchanged |
 
 ## Log
 
@@ -293,3 +293,7 @@ PLATFORM_OIDCinputs and loads no root secrets.23other worktrees/799dirtypaths
 - **2026-10-31 — Additive42 complete locally:** issue108, isolated implementation/spec-42-location-staff-import baseda8728ed. Existing root fix/v5-runtime-data-loading/user overlays and all worktrees preserved. Real XLSX/CSV onboarding uses existing site/shift/capacity/password-handoff architecture; no migration/email dependency. Final checks and limits: docs/implementation/STAFF_IMPORT_RESULTS.md. Original six unresolved specs unchanged; no merge/deploy. After initial laptop contention all verification used nice15/singleworker, sequentially.
 
 - **2026-10-31 — Spec42 review:** source eed787a, OPEN/DRAFT [PR109](https://github.com/Shumail-AbdulRehman/PRIV/pull/109), stacked on preserved107branch; original root work preserved, no merge/deploy.
+
+- **2026-10-31 — Spec42 amendment in progress:** user explicitly authorizes Password column and immediate email/password login, superseding original no-password-sheet/handoff requirement. Existing hashing, tenant/site/capacity checks and atomic confirmation retained. Preview strips passwords and file receipts now use keyed HMAC. New tests and real import/login proof pending before completion.
+
+- **2026-10-31 — Spec42 Password amendment complete:**49focused backend/5dialog,1478full backend passed/7existing skips,64Node+395React,4real API/SQL/browser tests and builds/lint pass. New staff directly use spreadsheet Email+Password. No raw passwords in preview/token/audit/receipt; keyed HMAC file receipts. Updated local5173/8080services verified200. Original six unresolved V5 gates unchanged.

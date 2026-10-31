@@ -152,3 +152,5 @@ Spec42 consumes09attendance windows,14capacity transactions,17secure handoff,28l
 ### Spec42 known gaps and validation notes
 
 The original40/41gate numbers remain frozen at user request;42 is a sequential additive feature after that plan. Its direct09/14/17dependencies name consumed behavior even where transitively implied. Issue108 may trigger the validator’s raw-colour heuristic; it is an issue number. Prior00missingissue,25/26/28/30/32/37redundantedges,36evidence/testconsumer,40length/defectledger and41finalreport warnings are inherited, not new feature failures. Copied local design/v5 references are validation inputs preserved byte-for-byte, not feature changes to commit.
+
+Spec42 latest user amendment adds a required Password column and immediate staff email/password login, superseding handoff-only initial access. Existing handoff remains recovery. File receipts use HMAC; previews/receipts/audits never contain passwords. User-authorized local5173/8080services now run the feature checkout.

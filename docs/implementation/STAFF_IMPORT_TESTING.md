@@ -1,6 +1,12 @@
+# Current Password-column amendment — 2026-10-31
+
+The latest user instruction supersedes the original handoff-only onboarding. Download the updated six-column template; the previous five-column test file is obsolete. The required Password column is last. Passwords stay hidden in preview and all backend responses. New staff use the spreadsheet email/password directly. Existing employees are still rejected as duplicates; this feature does not reset existing accounts.
+
+Current local app: http://localhost:5173/login. Following verified amendment builds, restart the existing matching-checkout units sequentially. The alternate-port instructions below remain an optional manual method and do not replace the active systemd setup.
+
 # Location staff import: local testing
 
-Implementation lives in `/home/shumail/.local/share/hygene-ops/v5-import-20261031`, branch `implementation/spec-42-location-staff-import`. The existing root checkout/services on5173/8080 were deliberately left intact, so they do not yet contain this feature. No PR was merged or app deployed.
+Implementation lives in `/home/shumail/.local/share/hygene-ops/v5-import-20261031`, branch `implementation/spec-42-location-staff-import`. Following the user’s explicit restart request, services on5173/8080 now run this feature worktree using compiled backend/production frontend assets. Original root source and protected database configuration remain preserved. Local systemd overrides and their backups are in the private local-development runtime directory. No PR was merged or app deployed.
 
 ## Automated disposable-data verification
 
@@ -67,13 +73,13 @@ Open **http://127.0.0.1:5175**. Use your existing local company-owner or assigne
 ## Import an employee
 
 1. Open Locations, choose an active authorized location, then Staff and shifts → Import Staff.
-2. Download Excel Template. Keep its one sheet and exact five headers: Full Name, Email, Phone, Shift Start, Shift End. Do not add location/password columns.
-3. Enter name, unused email, phone stored as Text (preserve0300…), and distinct local HH:mm shifts. Examples08:00–16:00 or22:00–06:00; actual Excel time cells also work. DAILY rules include every calendar day, matching current scheduling.
+2. Download Excel Template. Keep its one sheet and exact six headers: Full Name, Email, Phone, Shift Start, Shift End, Password. The manager enters each initial password as text; do not add a location column.
+3. Enter name, unused email, phone stored as Text (preserve0300…), distinct local HH:mm shifts, and an initial password of at least6characters and at most72UTF-8bytes. Passwords are used exactly as entered. Examples08:00–16:00 or22:00–06:00; actual Excel time cells also work. DAILY rules include every calendar day, matching current scheduling.
 4. Save .xlsx (or matching UTF-8 CSV), <=1MB and <=500rows. Current active-staff capacities remain3/25/200 company-wide; existing staff consume them. No500staff commercial plan was introduced.
 5. Upload. Preview creates no accounts. Fix any row errors and reupload. Inspect selected location, totals, shifts and all preview pages.
 6. Confirm Import once. On an uncertain network response, retry the same confirmation/file to reconcile its saved receipt. Do not change emails just to retry.
-7. Close the success receipt and inspect the selected location staff list and Staff Management. The imported accounts have no known reusable initial password.
-8. In Staff Management, open each employee’s **Staff access**, choose the existing one-use access/recovery handoff, enter your current password and a reason, then share the short-lived code directly with that employee. They use the existing handoff completion screen to set their password, then sign in on the supported staff app. No credentials are added to templates, ordinary exports, logs or import receipts.
+7. Close the success receipt and inspect the selected location staff list and Staff Management. Staff can sign in immediately using the email and password in their spreadsheet row. Passwords are hashed in PostgreSQL and are hidden from previews and import receipts.
+8. Give each employee their email and spreadsheet password privately. They sign in normally on the staff app; no access-code or email-delivery step is required. Existing Staff access recovery remains available if a password is later forgotten.
 
 First attendance eligibility is a shift whose start does not predate account creation. Importing after today's shift began does not backfill an absence; the next applicable shift uses existing site-zone/overnight preparation. No tasks are fabricated: create/assign cleaning schedules using existing workflows. Physical-device photo/geofencing/provider acceptance remains part of the original open V5 gates.
 

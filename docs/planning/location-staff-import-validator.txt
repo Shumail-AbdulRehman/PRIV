@@ -38,7 +38,7 @@ Parallel schedule  (10 waves · widest 9 · 43 specs)
   WARN   Depends on 09, 17, 20, 21 is already implied through another dependency
 
 40-e2e-suite.md
-  WARN   177 lines — over 130 usually means this should be two specs
+  WARN   179 lines — over 130 usually means this should be two specs
   WARN   creates 'docs/implementation/followups/E2E_DEFECTS.md' but no other spec mentions it — check it is not an endpoint or component with zero callers
 
 41-verification-pass.md
