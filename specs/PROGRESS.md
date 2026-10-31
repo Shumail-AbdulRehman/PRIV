@@ -2,6 +2,13 @@
 
 Source of truth for execution; latest user authorization supersedes old pending labels. Approved v5 preserved.
 
+**Latest login refinement — 2026-10-31:** `/login` now has a responsive blue/white
+split layout, password visibility and separate platform-owner sign-in link.
+Default shared auth layouts and authentication payloads remain unchanged.
+59focused,407React+64Node, lint/build,3isolated actual browser cases and8local
+EN/UR visual observations passed. Details: [LOGIN_UI_POLISH.md](../docs/implementation/LOGIN_UI_POLISH.md).
+Branch `ui/company-login-polish`; original spec statuses unchanged.
+
 **Latest focused refinement — 2026-10-31:** company list/details now expose real
 active manager/staff/location counts (owners excluded from managers). Inquiries,
 Service diagnostics and Administrative audit are temporarily hidden by navigation
@@ -314,3 +321,5 @@ PLATFORM_OIDCinputs and loads no root secrets.23other worktrees/799dirtypaths
 - **2026-10-31 — Spec43 complete locally:** separate provisioned local platform-owner email/password, private bcrypt credential store, opaque platform cookie, strict loopback/development/origin/database gates, throttling/expiry/logout and existing metadata pages wired. Full1490backend/7existing skips,64Node+399React,1isolated browser plus actual provisioned local owner login pass. Credentials stay outside Git. Original six V5 gates remain unresolved; production auth/MFA unchanged.
 
 - **2026-10-31 — Focused platform refinement complete:** user-authorized active manager/staff/location aggregates in company register and account overview; owners excluded. Hide inquiry/diagnostics/audit navigation and redirect old URLs.55backend/72platform UI focused;1491full backend+7existing skips;64Node+405React;1isolated PostgreSQL/API/browser; touched lint/both builds;8actual EN/UR desktop/phone captures with no browser errors/overflow. Local services updated. See PLATFORM_COMPANY_OVERVIEW.md. No new numbered spec, migrations, original status changes, merge or deployment.
+
+- **2026-10-31 — Company login polish complete locally:** user-requested responsive desktop/photo and mobile form, password visibility, focused error styling and separate platform-owner sign-in link.59focused,407React+64Node, lint/build,3isolated real browser and8local EN/UR observations passed. No new specification or original status change; LOGIN_UI_POLISH.md records scope and verification.

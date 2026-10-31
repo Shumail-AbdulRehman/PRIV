@@ -1,3 +1,23 @@
+# Latest refinement — Company login UI — 2026-10-31
+
+User requests polishing the pictured `/login` screen. Complete locally on
+`ui/company-login-polish`, based1aa4cce/draft113, in the preserved feature worktree.
+Read [LOGIN_UI_POLISH.md](LOGIN_UI_POLISH.md). Optional AuthShell aside is used
+only by company Login: balanced desktop form with existing cleaning image,
+focused mobile form, header language selector, password visibility, structured
+errors, recovery and explicit separate platform-owner sign-in link. The email
+shown by the user belongs to the platform identity and uses `/platform/login`;
+no company authentication or account permissions were altered.
+
+59focused auth/account,407React+64Node, touched lint, frontend build and strict
+browser/backend TypeScript passed.3real isolated SQL/API/browser cases cover
+rejection, staff login/handoff/logout and pending owner login/dashboard arrival.
+8actual local EN/UR observations at1366/768/390/320,12empty/scrubbed screenshots,
+4real API401states, zero overflow/browser errors and zero detector findings.
+Local frontend rebuilt/restarted; backend not restarted or changed. Test child
+DB cleaned and owned cluster stopped. Single-session refinement, no new numbered
+spec, original V5 status changes, merge or deployment. Heavy checks sequential.
+
 # Latest refinement — Company counts and focused platform UI — 2026-10-31
 
 User requests real per-company manager/staff/location counts, hiding Inquiries,
