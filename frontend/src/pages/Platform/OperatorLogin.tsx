@@ -14,6 +14,7 @@ import { operatorUrdu } from './operatorTranslations';
 import '@/workspace.css';
 import '@/workspace-refresh.css';
 import './operator.css';
+import './operator-polish.css';
 
 function useOperatorText() {
   const { language } = useLanguage();
@@ -23,7 +24,7 @@ function useOperatorText() {
 export function OperatorShell({ title, children }: { title: string; children: ReactNode }) {
   const text = useOperatorText();
   useEffect(() => { document.title = `${text(title)} | Hygene Ops`; }, [title, text]);
-  return <div className="workspace operator-page">
+  return <div className="workspace operator-page platform-polished">
     <header className="operator-header"><BrandLogo /><LanguageChoice /></header>
     <main className="operator-content">
       <ShieldCheck size={32} aria-hidden="true" />
