@@ -82,6 +82,8 @@ gates are not accepted by these checks.
 
 Worktree: `/home/shumail/.local/share/hygene-ops/v5-import-20261031`.
 Branch: `feat/platform-company-overview`, based on UI polish `f89c8e2` (draft112).
+Verified source commit: `5321d7d`. OPEN/DRAFT review:
+[PR113](https://github.com/Shumail-AbdulRehman/PRIV/pull/113), stacked on draft112.
 Local URL: http://localhost:5173/platform/companies; existing separately provisioned
 platform-owner login. No new credentials. No merge or deployment authorized.
 Original six unresolved V5 specifications retain their existing statuses.

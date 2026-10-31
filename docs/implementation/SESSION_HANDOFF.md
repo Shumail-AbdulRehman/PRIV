@@ -6,6 +6,7 @@ Completed in the preserved feature worktree on `feat/platform-company-overview`,
 based on UI polish `f89c8e2`/draft112. Read [the implementation and verification
 record](PLATFORM_COMPANY_OVERVIEW.md). Single-session plan-project exception;
 no new numbered spec or prototype. Original six V5 gates remain unchanged.
+Verified source `5321d7d`; OPEN/DRAFT [PR113](https://github.com/Shumail-AbdulRehman/PRIV/pull/113), stacked on draft112. No PR merged.
 
 Existing operator DTOs select only filtered aggregate counts: active records,
 MANAGER role excluding ADMIN owners. Desktop/mobile register and each account
