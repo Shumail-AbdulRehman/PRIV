@@ -1,5 +1,8 @@
 # Implementation agent guide
 
+## Latest additive feature checkpoint — 2026-10-31
+Spec42 location staff import is complete locally in `/home/shumail/.local/share/hygene-ops/v5-import-20261031`, branch `implementation/spec-42-location-staff-import`, baseda8728ed (newer preserved acceptance stack). Read STAFF_IMPORT_RESULTS/TESTING and latest SESSION_HANDOFF. Original30/34/36/37stay Blocked,40In progress,41Not started. Root remains fix/v5-runtime-data-loading with user dirty runtime changes; no local service was switched. User reported laptop contention: execute heavy checks sequentially at nice15, maxWorkers1; never parallel full builds/suites on this laptop.
+
 ## Read before implementing
 1. PROGRESS.md is current state and outranks previous-session assumptions.
 2. docs/implementation/SESSION_HANDOFF.md and DECISIONS.md.

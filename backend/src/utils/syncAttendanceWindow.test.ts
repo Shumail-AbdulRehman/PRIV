@@ -25,6 +25,11 @@ describe('current unrecorded attendance preparation', () => {
         expect(await prepareStaffAttendance(tx, 7, now)).toBe('RECORDED_SHIFT');
         expect(m.update).not.toHaveBeenCalled(); expect(m.create).not.toHaveBeenCalled();
     });
+    it('does not manufacture an absence before onboarding', async () => {
+        m.find.mockResolvedValue(null); m.staff.mockResolvedValue({...staff, createdAt: now});
+        expect(await prepareStaffAttendance(tx, 7, now)).toBe('BEFORE_ONBOARDING');
+        expect(m.create).not.toHaveBeenCalled();
+    });
     it('creates an absent current-site window if none exists', async () => {
         m.find.mockResolvedValue(null);
         expect(await prepareStaffAttendance(tx, 7, now)).toBe('READY');

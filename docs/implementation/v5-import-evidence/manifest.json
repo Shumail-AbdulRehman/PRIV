@@ -1,0 +1,14 @@
+{
+  "date": "2026-10-31",
+  "source": "implementation/spec-42-location-staff-import, based on a8728ed; see Git commit for final source",
+  "application": "real React production build, authenticated Express API, migrated disposable PostgreSQL 17 UUID child",
+  "fixtures": "synthetic companies, users, subscription mirrors and staff; no production or restored customer records",
+  "viewportWidths": [1366, 390],
+  "viewportHeight": 900,
+  "languages": ["en", "ur"],
+  "states": ["preview", "success"],
+  "interceptions": "none",
+  "credentials": "traces and video disabled; no handoff-token or password screenshots",
+  "assertions": ["selected location", "no preview writes", "XLSX and CSV", "persisted company/site/shift fields", "bcrypt", "handoff and staff login", "Staff Management visibility", "no body horizontal overflow"],
+  "limits": "Camera/photo/GPS/device and external provider acceptance remain original V5 gates. These screenshots are not native evidence. Reference captures depict approved Staff-tab composition; no exact import prototype existed."
+}

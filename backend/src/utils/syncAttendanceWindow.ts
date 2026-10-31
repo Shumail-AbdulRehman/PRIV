@@ -20,6 +20,8 @@ export async function prepareStaffAttendance(tx: VerificationTransaction, staffI
             checkInImage: null, checkOutImage: null, expectedEnd: { gte: now } },
             data: { locationId: staff.location.id, expectedStart, expectedEnd } });
     } else {
+        // A new hire must not acquire an absence for a shift predating their account.
+        if (staff.createdAt && expectedStart < staff.createdAt) return 'BEFORE_ONBOARDING' as const;
         await tx.attendance.createMany({ data: [{ staffId, locationId: staff.location.id, date, expectedStart, expectedEnd, status: 'ABSENT' }], skipDuplicates: true });
     }
     return 'READY' as const;

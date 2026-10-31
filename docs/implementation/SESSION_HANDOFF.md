@@ -1,3 +1,19 @@
+# Latest feature checkpoint — Location staff import — 2026-10-31
+
+**Spec42 is complete locally; original six V5 gates remain unresolved.** New feature branch `implementation/spec-42-location-staff-import`, worktree `/home/shumail/.local/share/hygene-ops/v5-import-20261031`, based on preserved a8728ed/AndroidPR107 acceptance stack. Issue108. Inspect final Git log for source/documentation commit and draft review link below. No PR was merged and no service deployed.
+
+Current root remains `fix/v5-runtime-data-loading` at55061b8 with its original user overlays. Those runtime fixes were inspected/preserved and were not copied into this feature PR. Existing root5173/8080 services and all worktrees remain untouched. Root's old tracker reports ten unresolved; the newer feature base contains36originalDone and the actual six unresolved30/34/36/37Blocked,40In progress,41Not started. Do not erase that distinction or infer merge from Done.
+
+Architecture decision: location import is valid with existing single Staff.locationId and inline shift DateTimes, selected location IANA timezone, company capacity locks and existing secure one-use handoff. No Shift table, migration, OAuth, mail delivery or background system was added. New guard declines absence windows before account creation. Required spreadsheet fields: Full Name, Email, Phone, Shift Start, Shift End. Current commercial staff caps remain3/25/200;500is parser limit, not a new entitlement.
+
+Final proof:1471backend passed/7existing skips;64Node+394React;42focused backend/4dialog; touched lint; both production builds; real SQL/API/Chromium3/3cases35.3s.200staff commit13,383ms. Actual XLSX/CSV, no preview writes, field persistence, bcrypt, secure handoff/authentication, stale/site/tenant/role denials, concurrent receipt reconciliation, rollback, individual creation and Staff Management visibility verified. Eight actual screenshots plus four unchanged V5 references at1366/390EN/UR. Owned test cluster had zero generated child DBs and was stopped. Physical device/media/provider gates remain unqualified; no whole-product release claim.
+
+**Resource constraint:** initial concurrent checks caused laptop contention;24task processes were stopped. User then authorized continuing with fewer heavy operations. All subsequent complete checks ran sequentially at nice15 and one worker. Preserve that rule in future sessions.
+
+Read [results](STAFF_IMPORT_RESULTS.md), [manual/automated testing](STAFF_IMPORT_TESTING.md), [architectural assessment](../planning/location-staff-import-assessment.md), spec42 and inventory fragment. Manual alternate-port startup is documented but not executed against the existing local database. Feature is not present in the root-served app until separately reviewed/integrated; do not merge/deploy without authorization.
+
+---
+
 # Current Android testing APK — 29 October 2026
 
 **The requested fresh standalone APK is built, inspected and saved.** This was a
