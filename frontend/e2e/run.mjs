@@ -1,6 +1,6 @@
 import { createRequire } from "node:module";
 import { randomUUID, randomBytes } from "node:crypto";
-import { readFile, readdir, mkdtemp, rm } from "node:fs/promises";
+import { readFile, readdir, mkdtemp, rm, writeFile } from "node:fs/promises";
 import { tmpdir, homedir } from "node:os";
 import { join } from "node:path";
 import { fileURLToPath } from "node:url";
@@ -74,6 +74,17 @@ const env = {
     ? { HYGENE_E2E_BROWSER_PATH: process.env.HYGENE_E2E_BROWSER_PATH }
     : {}),
 };
+if (process.env.HYGENE_E2E_LOCAL_PLATFORM === 'true') {
+  const bcrypt = require('bcrypt');
+  const email = 'platform-' + randomBytes(6).toString('hex') + '@example.invalid';
+  const password = randomBytes(24).toString('base64url');
+  const credentialFile = join(directory,'platform-credential.json');
+  const ownerFile = join(directory,'platform-owner.json');
+  await writeFile(credentialFile,JSON.stringify({email,passwordHash:await bcrypt.hash(password,10)}),{mode:0o600});
+  await writeFile(ownerFile,JSON.stringify({email,password}),{mode:0o600});
+  Object.assign(env,{NODE_ENV:'development',LOCAL_PLATFORM_LOGIN_ENABLED:'true',LOCAL_PLATFORM_CREDENTIAL_FILE:credentialFile,
+    VITE_LOCAL_PLATFORM_LOGIN:'true',HYGENE_E2E_LOCAL_PLATFORM:'true',HYGENE_E2E_PLATFORM_OWNER_FILE:ownerFile});
+}
 const children = new Set();
 async function command(args, cwd, overrides = {}) {
   await new Promise((resolve, reject) => {

@@ -1,0 +1,62 @@
+Focused backend
+
+ RUN  v4.1.11 /home/shumail/.local/share/hygene-ops/v5-import-20261031/backend
+
+
+ Test Files  1 passed (1)
+      Tests  12 passed (12)
+   Start at  11:27:30
+   Duration  1.64s (transform 98ms, setup 0ms, import 245ms, tests 1.10s, environment 1ms)
+
+
+Focused frontend
+
+ RUN  v4.1.11 /home/shumail/.local/share/hygene-ops/v5-import-20261031/frontend
+
+
+ Test Files  2 passed (2)
+      Tests  25 passed (25)
+   Start at  11:27:33
+   Duration  7.68s (transform 703ms, setup 376ms, import 1.74s, tests 2.38s, environment 2.49s)
+
+
+Whole backend
+
+ RUN  v4.1.11 /home/shumail/.local/share/hygene-ops/v5-import-20261031/backend
+
+
+ Test Files  97 passed | 1 skipped (98)
+      Tests  1490 passed | 7 skipped (1497)
+   Start at  11:32:09
+   Duration  114.89s (transform 2.92s, setup 0ms, import 75.68s, tests 16.47s, environment 21ms)
+
+
+Whole web summary
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 6664.557975
+
+ RUN  v4.1.11 /home/shumail/.local/share/hygene-ops/v5-import-20261031/frontend
+
+
+ Test Files  30 passed (30)
+      Tests  399 passed (399)
+   Start at  11:35:09
+   Duration  149.27s (transform 3.34s, setup 7.14s, import 33.25s, tests 56.10s, environment 43.24s)
+
+
+Real isolated browser
+
+[33m[PLUGIN_TIMINGS] Warning:[0m Your build spent significant time in plugins. Here is a breakdown:
+  - @rolldown/plugin-babel (66%)
+  - vite:css (29%)
+See https://rolldown.rs/options/checks#plugintimings for more details.
+
+✓ built in 22.97s
+
+Running 1 test using 1 worker
+
+  ✓  1 e2e/local-platform-login.spec.ts:7:1 › local platform email/password grants metadata access only and logout revokes it (1.7s)
+
+  1 passed (8.8s)

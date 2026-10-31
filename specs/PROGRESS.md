@@ -94,6 +94,8 @@ marked visually verified merely because its existing tests pass.
 
 | 42 | [Location-based bulk staff import](42-location-staff-import.md) | Done | 09, 14, 17, 28, 31 | Heavy | #108 | 1478backend/7existing skips;64Node+395React;4real browser/SQL cases; direct spreadsheet-password login; original6gates unchanged |
 
+| 43 | [Local platform-owner login](43-local-platform-login.md) | Done | 19, 27, 33, 35 | Heavy | #110 | 1490backend/7existing skips;64Node+399React; real local login/logout/isolation verified; production34 blocked |
+
 ## Log
 
 - **2026-10-29 — Approved remaining-work continuation:** User authorizes implementation, parallel subagents, functional and rendered V5 checks. All refs/worktrees/dirty files inventoried and privately hashed/patched; no old work discarded. Baselineadae1b9 verified to contain completed28/32 and actual15/24/25/27 dependencies. Coordinator and independent33/35/QA worktrees created; hot-file ownership serialized before edits. Nine units remain30,33–38,40,41;33/35 selected for safe independent composition work. Full40incomplete/41ineligible; external provider/device/commercial facts cannot be invented. See planning/remaining-20261029.md and current handoff.
@@ -297,3 +299,5 @@ PLATFORM_OIDCinputs and loads no root secrets.23other worktrees/799dirtypaths
 - **2026-10-31 — Spec42 amendment in progress:** user explicitly authorizes Password column and immediate email/password login, superseding original no-password-sheet/handoff requirement. Existing hashing, tenant/site/capacity checks and atomic confirmation retained. Preview strips passwords and file receipts now use keyed HMAC. New tests and real import/login proof pending before completion.
 
 - **2026-10-31 — Spec42 Password amendment complete:**49focused backend/5dialog,1478full backend passed/7existing skips,64Node+395React,4real API/SQL/browser tests and builds/lint pass. New staff directly use spreadsheet Email+Password. No raw passwords in preview/token/audit/receipt; keyed HMAC file receipts. Updated local5173/8080services verified200. Original six unresolved V5 gates unchanged.
+
+- **2026-10-31 — Spec43 complete locally:** separate provisioned local platform-owner email/password, private bcrypt credential store, opaque platform cookie, strict loopback/development/origin/database gates, throttling/expiry/logout and existing metadata pages wired. Full1490backend/7existing skips,64Node+399React,1isolated browser plus actual provisioned local owner login pass. Credentials stay outside Git. Original six V5 gates remain unresolved; production auth/MFA unchanged.

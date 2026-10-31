@@ -1,3 +1,4 @@
+import { localOperatorSessions } from '../services/localOperatorSession.service.js';
 import type { NextFunction, Request, Response } from 'express';
 import { ApiError } from '../utils/ApiError.js';
 import { verifyOperatorIdentity, type OperatorPrincipal } from '../services/operatorIdentity.service.js';
@@ -20,4 +21,11 @@ export function createOperatorAuthMiddleware(verify = verifyOperatorIdentity) {
     };
 }
 
-export const verifyOperator = createOperatorAuthMiddleware();
+const providerOperatorAuth = createOperatorAuthMiddleware();
+export const verifyOperator = (req: Request, res: Response, next: NextFunction) => {
+    try {
+        const local = localOperatorSessions.authenticate(req);
+        if (local) { req.operator = local; next(); return; }
+        return providerOperatorAuth(req, res, next);
+    } catch (error) { next(error); }
+};

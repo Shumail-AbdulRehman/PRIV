@@ -25,8 +25,7 @@ export async function operatorRequest<T>(
   _path: string,
   _options?: { method?: 'GET' | 'POST' | 'PATCH'; body?: unknown; signal?: AbortSignal },
 ): Promise<T> {
-  void _path;
-  void _options;
+  if (localOperatorLoginEnabled()) return localPlatformRequest<T>('/' + _path.replace(/^\//,''), _options);
   throw new OperatorUnavailableError();
 }
 
@@ -43,4 +42,34 @@ export async function clearOperatorSession(queryClient: QueryClient): Promise<vo
 export function rejectOperatorCallback(): 'UNEXPECTED_CALLBACK' {
   // Never decode, persist or promote URL tokens/claims into an operator identity.
   return 'UNEXPECTED_CALLBACK';
+}
+
+/** Explicit local build only; never use tenant state as platform authority. */
+export function localOperatorLoginEnabled() {
+  return import.meta.env.VITE_LOCAL_PLATFORM_LOGIN === 'true'
+    && ['localhost','127.0.0.1','[::1]'].includes(window.location.hostname);
+}
+const localSessionKey = [...operatorQueryScope, 'local-session'];
+export { localSessionKey };
+export async function localPlatformRequest<T>(path: string, options?: {method?: string;body?: unknown;signal?: AbortSignal}): Promise<T> {
+  if (!localOperatorLoginEnabled()) throw new OperatorUnavailableError();
+  const base = import.meta.env.VITE_API_BASE_URL?.trim().replace(/\/+$/,'') || '/api';
+  const target = new URL(base + path, window.location.origin);
+  if (!['localhost','127.0.0.1','[::1]'].includes(target.hostname)) throw new OperatorUnavailableError();
+  const response = await fetch(target.toString(), {method:options?.method??'GET',credentials:'include',cache:'no-store',signal:options?.signal,
+    headers: options?.body === undefined ? undefined : {'Content-Type':'application/json'},body: options?.body === undefined ? undefined : JSON.stringify(options.body)});
+  if (!response.ok) {
+    const error = Object.assign(new Error('Platform request failed'),{status:response.status});
+    throw error;
+  }
+  return response.json() as Promise<T>;
+}
+export async function getLocalOperatorSession() {
+  return (await localPlatformRequest<{data:{enabled:boolean;authenticated:boolean;email?:string}}>('/platform/session')).data;
+}
+export async function signInLocalOperator(email:string,password:string) {
+  return (await localPlatformRequest<{data:{authenticated:boolean;email:string}}>('/platform/session/login',{method:'POST',body:{email,password}})).data;
+}
+export async function signOutLocalOperator() {
+  await localPlatformRequest('/platform/session/logout',{method:'POST'});
 }
