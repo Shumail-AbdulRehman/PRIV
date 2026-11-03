@@ -791,3 +791,48 @@ Allfour requestedbatchPRs confirmedOPEN/DRAFT andstackedcorrectly:29 https://git
 ## Current final checkpoint
 
 Main root branch implementation/spec-40-launch-e2e, draftPR81 base39, issue79. Latest behavior commit64d42c4; final documentation commit follows.40Inprogress/41Notstarted;39of41Done. E2E29passed/1confirmed registration redirect failure; all15required rows and remaining gaps mapped. Both tested commit CI39645400371 and fresh APK39644524268 passed their respective jobs, without overriding the failing E2E or absent physical/provider evidence. Build PR80 and test PR81 are OPEN/DRAFT; no merges/deployment. All8original dirty files remain byte-identical, unrelated untracked work preserved. STOP: no next eligible existing spec until40acceptance is met; proposed registration fix remains unimplemented.
+
+
+## Local frontend/backend compatibility repair — 2026-10-21
+
+Replaced the stopped old-main backend user service with `hygeneops-backend-compatible-local.service` on port8080, running the same root checkout as Vite5173 via the documented npm development workflow and a private guarded local environment. Uses isolated PostgreSQL17 at127.0.0.1:56445/hygene_ops_local, restored local backup copy with18migrations; no remote data/config/source edits. Five public/tenant API reads200 direct and through Vite; actual Chromium dashboard performance200, records error absent, no JavaScript errors; help smoke passed. Backend build passed. OperatorAPI503 remains expected while external IdP is unconfigured. All8original modified tracked files remain byte-identical. Sign in again for new local session keys. Runtime/restart details and limitations: [LOCAL_DEVELOPMENT_ENVIRONMENT.md](LOCAL_DEVELOPMENT_ENVIRONMENT.md). Old backend unit remains installed/enabled but stopped; replacement unit is transient. V5 acceptance and existing spec40/41 gaps are unchanged. STOP after environment repair.
+
+
+## Local demo company — 2026-10-31
+
+At the user's request, a separate **Hygene Ops Demo — Local Testing** company
+(company20, owner23) is available at http://localhost:5173/dashboard. The owner
+login identifier is `demo.owner@hygeneops.example`. Its generated password is
+only in the protected `~/Downloads/HygeneOps-Demo-Account.txt` and private task
+credentials; never copy it into Git, logs or screenshots. Choose **Owner or manager**
+on web login. This company-owner login is separate from staff Android login.
+
+This is an explicitly labeled **local subscription fixture**, not a Paddle
+checkout, payment or qualified provider subscription. Pro access expires
+2026-11-30T04:43:30.590Z. Existing Pro limits remain5locations/25staff/3managers
+including the owner. No location or permanent staff fixtures were added; set up
+a real test location and staff using the application.
+
+Paddle stays `sandbox`; `PADDLE_BILLING_ENABLED=false` and provider credentials
+remain absent from the running server. The launcher now permits precisely one
+local-demo Pro price mapping (`pri_localdemo` followed by17zeroes) in the private
+configuration. Empty catalog is still valid; arbitrary/real catalogs, API keys,
+production mode, billing activation, remote databases and push remain rejected.
+The existing application authorization/quota/subscription code is unchanged; only
+the new demo company's exact customer/subscription/price/period linkage qualifies.
+No email was verified and no recovery, photo-provider or Paddle qualification gate
+was changed. A `LOCAL_DEMO_SUBSCRIPTION_PROVISIONED` audit records the fixture.
+
+Verification:11launcher tests pass. Actual browser password login, Pro subscription
+read and staff creation(201) pass; wrong password returns401 and a foreign-tenant
+staff read returns404. Temporary staff rows were removed; the demo workforce is
+empty. Hash comparisons prove pre-existing company and manager records unchanged.
+The first browser script's final heading selector expected `Team`; correcting it
+to the actual `Your team` heading produced a fresh complete pass. No product code
+was changed for that script correction.
+
+Private backups, provision script, redacted verification and demo-only screenshot:
+`~/.local/share/hygene-ops/demo-company-20261031T044226Z/`. No migration/reset,
+remote provider call, real charge, production action, branch switch or PR merge.
+The signup/billing-policy investigation is paused; specification statuses are
+unchanged and no acceptance is inferred from this demo.

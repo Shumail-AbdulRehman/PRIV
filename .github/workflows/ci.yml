@@ -61,6 +61,9 @@ jobs:
       - name: Active direct-photo, review and qualification regressions
         run: npx vitest run src/services/verification-v2/directPhoto.service.test.ts src/services/verification-v2/launchQualification.test.ts src/services/verification-v2/reviewClosure.service.test.ts src/services/verification-v2/launchPhotoPolicy.test.ts src/services/verification-v2/launchReviewContext.test.ts
 
+      - name: Company performance aggregates and access controls
+        run: npm run test:performance:integration
+
       - name: Current isolated launch contracts
         env:
           NODE_ENV: test

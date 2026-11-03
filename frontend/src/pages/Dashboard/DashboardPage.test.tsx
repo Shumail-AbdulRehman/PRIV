@@ -1,6 +1,6 @@
 import { configureStore } from '@reduxjs/toolkit';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
-import { fireEvent, render, screen, waitFor, within } from '@testing-library/react';
+import { act, fireEvent, render, screen, waitFor, within } from '@testing-library/react';
 import { Provider } from 'react-redux';
 import { createMemoryRouter, RouterProvider } from 'react-router-dom';
 import { beforeEach, expect, it, vi } from 'vitest';
@@ -55,11 +55,19 @@ it('clears a no-match search without hiding the saved performance totals', async
   expect(screen.getByText('No matching locations.')).toBeInTheDocument();
   fireEvent.click(screen.getByRole('button', { name: 'Clear search' })); expect(screen.getByText('Synthetic site', { selector: 'strong' })).toBeInTheDocument();
 });
-it('never describes an unavailable report as zero performance; real retry recovers', async () => {
-  m.get.mockRejectedValue(new Error('Unavailable')); mount(); await screen.findByRole('alert');
+it('ends the loading label after failure and recovers persisted performance on retry', async () => {
+  let rejectRequest!: (reason: Error) => void;
+  m.get.mockImplementationOnce(() => new Promise((_resolve, reject) => { rejectRequest = reject; }));
+  mount(); await screen.findByText('Loading performance…');
+  await act(async () => rejectRequest(new Error('Unavailable')));
+  await screen.findByRole('alert');
+  expect(screen.queryByText('Loading performance…')).not.toBeInTheDocument();
+  expect(screen.getByText('Reporting period')).toBeInTheDocument();
   expect(screen.queryByRole('heading', { name: 'Needs attention today' })).not.toBeInTheDocument();
   m.get.mockImplementation(async () => ({ data: { data: saved } })); fireEvent.click(screen.getByRole('button', { name: 'Retry' }));
   await screen.findByRole('heading', { name: 'Needs attention today' }, {timeout: 5000});
+  expect(screen.queryByText('Loading performance…')).not.toBeInTheDocument();
+  expect(screen.getByText('22 Oct – 28 Oct')).toBeInTheDocument();
 });
 it('keeps empty assigned scope distinct and translates the actual manager view in Urdu', async () => {
   saved = { ...saved, sites: [] }; mount('MANAGER', 'ur'); await screen.findByRole('heading', { name: 'ابھی کوئی مقام تفویض نہیں' });

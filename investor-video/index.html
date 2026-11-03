@@ -1,0 +1,32 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <meta name="theme-color" content="#4264d9">
+  <title>Hygene Ops · Investor film</title>
+  <style>
+    @font-face{font-family:Manrope;src:url(assets/manrope.woff2);font-weight:200 800}
+    @font-face{font-family:GeistMono;src:url(assets/geist-mono.woff2);font-weight:100 900}
+    *{box-sizing:border-box}body{margin:0;background:#101b30;color:#fff;font-family:Manrope,sans-serif;min-height:100vh;display:grid;place-content:center;padding:24px}
+    main{width:min(1440px,calc(100vw - 48px))}canvas{display:block;width:100%;height:auto;aspect-ratio:16/9;border-radius:12px;background:#f2f5fb}
+    .controls{display:flex;align-items:center;gap:16px;padding:20px 0 0}button,a{font:600 14px Manrope;color:#fff}button{border:1px solid #ffffff40;background:transparent;padding:10px 16px;border-radius:7px;cursor:pointer}button:hover{background:#ffffff18}button:focus-visible,a:focus-visible,input:focus-visible{outline:3px solid #b7ceff;outline-offset:5px}input{flex:1;accent-color:#9aafff;min-width:40px}time{font:13px GeistMono;white-space:nowrap}.note{color:#b8c5df;font-size:12px;line-height:1.7;margin:10px 0 0}a{color:#c8d5ff;text-underline-offset:3px}.status{min-width:100px;font-size:12px;color:#b8c5df}.render body{margin:0;padding:0;display:block;background:#f2f5fb}.render main{width:1920px}.render canvas{width:1920px;height:1080px;border-radius:0}.render .controls,.render .note{display:none}
+    @media(max-width:600px){body{padding:10px}main{width:calc(100vw - 20px)}.controls{gap:10px;flex-wrap:wrap}.status{display:none}button{padding:9px 12px}}
+  </style>
+</head>
+<body>
+  <main>
+    <canvas id="film" width="1920" height="1080" role="img" aria-label="A 90-second animated Hygene Ops investor explainer. Recurring schedules create cleaning tasks for assigned employees, who submit photographic proof for managers to review."></canvas>
+    <div class="controls" role="group" aria-label="Video playback">
+      <button id="play" type="button">Play film</button>
+      <input id="seek" aria-label="Playback position in seconds" type="range" min="0" max="90" step="0.1" value="0">
+      <time id="time">0:00 / 1:30</time>
+      <button id="captions" type="button" aria-pressed="true">Captions on</button>
+      <button id="mute" type="button" aria-pressed="false">Mute</button>
+    </div>
+    <p class="note">Hygene Ops · 90-second investor film · Illustrative product demo · AI verification is planned.<br><a href="output/hygene-ops-investor.mp4" download>Download MP4</a> · <a href="output/captions.srt" download>Download captions</a> · Space: play/pause · Arrow keys: seek 5 seconds</p>
+  </main>
+  <audio id="sound" src="assets/soundtrack.wav" preload="auto"></audio>
+  <script type="module" src="film.js"></script>
+</body>
+</html>

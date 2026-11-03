@@ -10,10 +10,10 @@ import {
 } from "./api";
 import type { LocationStatsFilter } from "./api";
 
-export const useGetLocations = () => {
+export const useGetLocations = (includeInactive = false) => {
   return useQuery({
-    queryKey: ["getLocations"],
-    queryFn: getLocations,
+    queryKey: ["getLocations", { includeInactive }],
+    queryFn: ({ signal }) => getLocations(includeInactive, signal),
   });
 };
 

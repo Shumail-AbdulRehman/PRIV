@@ -33,7 +33,7 @@ export default function LocationsPage() {
   const operations = useOperations<OperationOverview>("overview", {
     date: "today",
   });
-  const getLocations = useGetLocations();
+  const getLocations = useGetLocations(true);
   const user = useSelector((s: RootState) => s.auth.user);
   const isAdmin = user?.role === "ADMIN";
   const [params,setParams]=useSearchParams();

@@ -1,0 +1,191 @@
+{
+  "schemaVersion": 2,
+  "generatedAt": "2026-10-20T09:15:32.586230+00:00",
+  "title": "Design System: Hygene Ops v4 candidate — PENDING USER APPROVAL",
+  "extensions": {
+    "colorMeta": {
+      "primary": {
+        "role": "primary",
+        "displayName": "Professional Blue"
+      },
+      "ink": {
+        "role": "neutral",
+        "displayName": "Navy Ink"
+      },
+      "success": {
+        "role": "semantic-success",
+        "displayName": "Success Green"
+      }
+    },
+    "typographyMeta": {
+      "body-urdu": {
+        "displayName": "Urdu body",
+        "purpose": "Local Noto Sans Arabic exposed as CSS family Arabic; document lang ur-PK and RTL."
+      }
+    },
+    "shadows": [
+      {
+        "name": "overlay",
+        "value": "0 12px 40px #0f172a14",
+        "purpose": "Drawer and settings/menu separation."
+      },
+      {
+        "name": "selected-queue-tab",
+        "value": "0 1px 3px #0f172a0a",
+        "purpose": "Selected queue tab."
+      }
+    ],
+    "motion": [
+      {
+        "name": "ease-out",
+        "value": "cubic-bezier(.23,1,.32,1)",
+        "purpose": "Purposeful feedback easing."
+      },
+      {
+        "name": "press",
+        "value": "120ms",
+        "purpose": "Button scale .985; keyboard focus-active and reduced motion suppress scale."
+      },
+      {
+        "name": "state",
+        "value": "180ms",
+        "purpose": "Status opacity and pointer-opened viewer; reduced-motion overlays use opacity only."
+      },
+      {
+        "name": "overlay",
+        "value": "220ms",
+        "purpose": "Pointer-opened drawer entry; keyboard opening instant."
+      }
+    ],
+    "breakpoints": [
+      {
+        "name": "wide-three-column-min",
+        "value": "1501px"
+      },
+      {
+        "name": "two-column-max",
+        "value": "1500px"
+      },
+      {
+        "name": "compact-sidebar-max",
+        "value": "1200px"
+      },
+      {
+        "name": "menu-navigation-max",
+        "value": "1024px"
+      },
+      {
+        "name": "stack-today-max",
+        "value": "800px"
+      },
+      {
+        "name": "phone-list-detail-max",
+        "value": "650px"
+      }
+    ],
+    "scope": {
+      "status": "CANDIDATE / PENDING USER APPROVAL",
+      "artifactRoot": "design/v4",
+      "sources": [
+        "brief.md",
+        "base.css",
+        "style.css",
+        "app.js",
+        "index.html",
+        "../../PRODUCT.md"
+      ],
+      "authority": "Effective base.css then style.css cascade; prototype only. Root DESIGN.md intentionally untouched. No production readiness or final specification claimed.",
+      "tonalRamps": "Omitted: source defines no eight-step tonal scales; invented ramps would not be extracted prototype tokens."
+    }
+  },
+  "components": [
+    {
+      "name": "Primary button",
+      "kind": "button",
+      "refersTo": "button-primary",
+      "description": "The candidate’s principal action.",
+      "html": "<button class=\"ds-button ds-primary\">Save resolution</button>",
+      "css": ".ds-button{display:inline-flex;align-items:center;justify-content:center;gap:10px;min-height:44px;padding:10px 14px;border:1px solid var(--line,#e2e8f0);border-radius:7px;background:white;color:var(--ink,#0f172a);font-family:var(--font,Inter,Arial,sans-serif);font-size:14px;font-weight:550;cursor:pointer;transition:transform 120ms cubic-bezier(.23,1,.32,1)}.ds-button:active{transform:scale(.985)}.ds-button:focus-visible{outline:3px solid var(--focus,#2556d8);outline-offset:3px}.ds-button:focus-visible:active{transform:none}@media(max-width:650px){.ds-button{min-height:48px}}@media(prefers-reduced-motion:reduce){.ds-button{transition:none}.ds-button:active{transform:none}}.ds-primary{background:var(--primary,#2556d8);border-color:var(--primary,#2556d8);color:white}@media(hover:hover) and (pointer:fine){.ds-primary:hover{background:var(--primary-dark,#1d42b1)}}"
+    },
+    {
+      "name": "Secondary button",
+      "kind": "button",
+      "refersTo": "button-secondary",
+      "description": "Bordered supporting action.",
+      "html": "<button class=\"ds-button\">Next pending review</button>",
+      "css": ".ds-button{display:inline-flex;align-items:center;justify-content:center;gap:10px;min-height:44px;padding:10px 14px;border:1px solid var(--line,#e2e8f0);border-radius:7px;background:white;color:var(--ink,#0f172a);font-family:var(--font,Inter,Arial,sans-serif);font-size:14px;font-weight:550;cursor:pointer;transition:transform 120ms cubic-bezier(.23,1,.32,1)}.ds-button:active{transform:scale(.985)}.ds-button:focus-visible{outline:3px solid var(--focus,#2556d8);outline-offset:3px}.ds-button:focus-visible:active{transform:none}@media(max-width:650px){.ds-button{min-height:48px}}@media(prefers-reduced-motion:reduce){.ds-button{transition:none}.ds-button:active{transform:none}}@media(hover:hover) and (pointer:fine){.ds-button:hover{background:#f4f6fa}}"
+    },
+    {
+      "name": "Search field",
+      "kind": "input",
+      "description": "Task and queue search in the offline prototype.",
+      "html": "<label class=\"ds-field\">Search tasks<input class=\"ds-search\" placeholder=\"Search tasks\"></label>",
+      "css": ".ds-field{display:grid;gap:6px;color:var(--ink,#0f172a);font:14px var(--font,Inter,Arial,sans-serif)}.ds-search{min-height:42px;padding:10px 12px;border:1px solid var(--line,#e2e8f0);border-radius:7px;background:var(--surface,#fff);color:var(--ink,#0f172a);font:14px var(--font,Inter,Arial,sans-serif)}.ds-search::placeholder{color:var(--muted,#475569)}.ds-search:focus-visible{outline:3px solid var(--focus,#2556d8);outline-offset:3px}"
+    },
+    {
+      "name": "Active navigation",
+      "kind": "nav",
+      "refersTo": "nav-active",
+      "description": "Labeled sidebar destination with current-page semantics.",
+      "html": "<nav aria-label=\"Main navigation\"><a class=\"ds-nav\" href=\"#\" aria-current=\"page\">Photo Reviews <span class=\"ds-count\">3</span></a></nav>",
+      "css": ".ds-nav{display:flex;align-items:center;gap:11px;min-height:46px;padding:10px 12px;border-radius:6px;font:600 14px var(--font,Inter,Arial,sans-serif);color:var(--primary,#2556d8);background:var(--blue-soft,#eef3ff);text-decoration:none}.ds-count{margin-inline-start:auto;font-size:12px;line-height:22px;min-width:22px;padding:0 5px;text-align:center;background:#dbe7ff;color:#234eac;border-radius:4px}.ds-nav:focus-visible{outline:3px solid var(--focus,#2556d8);outline-offset:3px}@media(hover:hover) and (pointer:fine){.ds-nav:hover{background:#e8efff}}"
+    },
+    {
+      "name": "Success badge",
+      "kind": "chip",
+      "refersTo": "badge-success",
+      "description": "Completed facts, never generic brand decoration.",
+      "html": "<span class=\"ds-badge\">Completed</span>",
+      "css": ".ds-badge{display:inline-flex;align-items:center;gap:6px;padding:4px 8px;border-radius:5px;background:var(--success-soft,#eaf7ef);color:var(--success,#167343);font:550 13px var(--font,Inter,Arial,sans-serif)}"
+    },
+    {
+      "name": "Operational panel",
+      "kind": "card",
+      "refersTo": "card",
+      "description": "Flat bordered operational group.",
+      "html": "<section class=\"ds-card\"><h2>Today’s tasks</h2><p>Task progress and assigned work</p></section>",
+      "css": ".ds-card{background:var(--surface,#fff);color:var(--ink,#0f172a);border:1px solid var(--line,#e2e8f0);border-radius:10px;padding:20px 22px;font-family:var(--font,Inter,Arial,sans-serif)}.ds-card h2{margin:0;font-size:17px;font-weight:600;line-height:1.4;letter-spacing:-.02em}.ds-card p{margin:4px 0 0;color:var(--muted,#475569);font-size:14px;line-height:1.55}"
+    },
+    {
+      "name": "Selected review outcome",
+      "kind": "custom",
+      "description": "Explicit selected closure action; no verification implication.",
+      "html": "<button class=\"ds-outcome\" aria-pressed=\"true\"><i class=\"ds-radio\" aria-hidden=\"true\"></i><span><strong>Resolve review</strong><small>Close with a note; no staff penalty.</small></span></button>",
+      "css": ".ds-outcome{width:100%;border:1px solid #7c9de8;background:#f6f8ff;border-radius:7px;min-height:64px;padding:12px;text-align:start;display:flex;align-items:flex-start;gap:9px;color:var(--ink,#0f172a);font-family:var(--font,Inter,Arial,sans-serif);cursor:pointer}.ds-radio{width:15px;height:15px;border:4px solid var(--primary,#2556d8);border-radius:50%;margin-top:3px;flex-shrink:0;box-sizing:border-box}.ds-outcome strong{font-size:14px;font-weight:600;display:block}.ds-outcome small{font-size:13px;line-height:1.6;color:var(--muted,#475569);display:block;margin-top:3px}.ds-outcome:focus-visible{outline:3px solid var(--focus,#2556d8);outline-offset:3px}@media(hover:hover) and (pointer:fine){.ds-outcome:hover{border-color:#9eb6e6}}"
+    }
+  ],
+  "narrative": {
+    "northStar": "A clear operational workspace",
+    "overview": "This working description reflects the blue/white direction in `brief.md`; it is candidate language, not a separately approved brand metaphor. Professional blue actions, navy text, white navigation and quiet slate surfaces support calm daily work. Product constraints come from `../../PRODUCT.md`: readable English/Urdu, visible exceptions, respectful staff workflows and operational clarity.\n\nExtraction authority is the stylesheet order in `index.html`: `base.css` followed by `style.css`, including its Stage 03 and final mobile overrides. `app.js` supplies the actual Today and Photo Reviews interactions; several secondary routes inherit `legacy.js`. Old green root declarations in `base.css` are overridden and are not the candidate palette. The existing root `DESIGN.md` is intentionally untouched.",
+    "keyCharacteristics": [
+      "White/slate surfaces with a professional blue action and selection vocabulary.",
+      "Compact operational hierarchy with readable labels and tabular numbers.",
+      "Separate submission, task completion, photo requirements and review closure facts.",
+      "English/Urdu direction changes and limited, purposeful feedback motion."
+    ],
+    "rules": [
+      {
+        "name": "The Fact Before Color Rule",
+        "body": "Green communicates an established success fact; a submitted task or closed review does not imply verified task completion.",
+        "section": "colors"
+      },
+      {
+        "name": "The Closure Boundary Rule",
+        "body": "A review decision changes review facts only; submission, verification and missing-photo requirements stay separate.",
+        "section": "components"
+      }
+    ],
+    "dos": [
+      "Do keep blue action and selection emphasis, navy text and white/slate surfaces in this candidate prototype.",
+      "Do show explicit semantic labels, visible keyboard focus, English/Urdu direction changes and reduced-motion behavior.",
+      "Do preserve the distinction between staff submission, task completion, photo receipt and review closure.",
+      "Do label synthetic evidence and future AI samples plainly."
+    ],
+    "donts": [
+      "Don't treat this candidate as user approval, production readiness or a replacement for the root design system.",
+      "Don't use success green as general branding or imply a review closure verifies the task.",
+      "Don't offer unsupported manual extensions, photo waivers or retake actions.",
+      "Don't infer real access control, persistence, model findings or recovery delivery from a local preview."
+    ]
+  }
+}

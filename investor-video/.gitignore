@@ -1,0 +1,9 @@
+node_modules/
+output/
+.venv/
+assets/voice-*.mp3
+assets/voice-*.wav
+assets/voice-*.json
+assets/narration.wav
+assets/soundtrack.wav
+!README.md

@@ -1,0 +1,4877 @@
+{
+  "layouts": [
+    {
+      "name": "index",
+      "width": 390,
+      "lang": "en",
+      "state": "ready",
+      "overflow": false,
+      "headings": 1,
+      "direction": "ltr",
+      "untranslated": [],
+      "brokenImages": []
+    },
+    {
+      "name": "index",
+      "width": 390,
+      "lang": "ur",
+      "state": "ready",
+      "overflow": false,
+      "headings": 1,
+      "direction": "rtl",
+      "untranslated": [],
+      "brokenImages": []
+    },
+    {
+      "name": "index",
+      "width": 1366,
+      "lang": "en",
+      "state": "ready",
+      "overflow": false,
+      "headings": 1,
+      "direction": "ltr",
+      "untranslated": [],
+      "brokenImages": []
+    },
+    {
+      "name": "index",
+      "width": 1366,
+      "lang": "ur",
+      "state": "ready",
+      "overflow": false,
+      "headings": 1,
+      "direction": "rtl",
+      "untranslated": [],
+      "brokenImages": []
+    },
+    {
+      "name": "platform",
+      "width": 390,
+      "lang": "en",
+      "state": "ready",
+      "overflow": false,
+      "headings": 1,
+      "direction": "ltr",
+      "untranslated": [],
+      "brokenImages": []
+    },
+    {
+      "name": "platform",
+      "width": 390,
+      "lang": "ur",
+      "state": "ready",
+      "overflow": false,
+      "headings": 1,
+      "direction": "rtl",
+      "untranslated": [],
+      "brokenImages": []
+    },
+    {
+      "name": "platform",
+      "width": 1366,
+      "lang": "en",
+      "state": "ready",
+      "overflow": false,
+      "headings": 1,
+      "direction": "ltr",
+      "untranslated": [],
+      "brokenImages": []
+    },
+    {
+      "name": "platform",
+      "width": 1366,
+      "lang": "ur",
+      "state": "ready",
+      "overflow": false,
+      "headings": 1,
+      "direction": "rtl",
+      "untranslated": [],
+      "brokenImages": []
+    },
+    {
+      "name": "customer",
+      "width": 390,
+      "lang": "en",
+      "state": "ready",
+      "overflow": false,
+      "headings": 1,
+      "direction": "ltr",
+      "untranslated": [],
+      "brokenImages": []
+    },
+    {
+      "name": "customer",
+      "width": 390,
+      "lang": "ur",
+      "state": "ready",
+      "overflow": false,
+      "headings": 1,
+      "direction": "rtl",
+      "untranslated": [],
+      "brokenImages": []
+    },
+    {
+      "name": "customer",
+      "width": 1366,
+      "lang": "en",
+      "state": "ready",
+      "overflow": false,
+      "headings": 1,
+      "direction": "ltr",
+      "untranslated": [],
+      "brokenImages": []
+    },
+    {
+      "name": "customer",
+      "width": 1366,
+      "lang": "ur",
+      "state": "ready",
+      "overflow": false,
+      "headings": 1,
+      "direction": "rtl",
+      "untranslated": [],
+      "brokenImages": []
+    },
+    {
+      "name": "operator-login",
+      "width": 390,
+      "lang": "en",
+      "state": "ready",
+      "overflow": false,
+      "headings": 1,
+      "direction": "ltr",
+      "untranslated": [],
+      "brokenImages": []
+    },
+    {
+      "name": "operator-login",
+      "width": 390,
+      "lang": "ur",
+      "state": "ready",
+      "overflow": false,
+      "headings": 1,
+      "direction": "rtl",
+      "untranslated": [],
+      "brokenImages": []
+    },
+    {
+      "name": "operator-login",
+      "width": 1366,
+      "lang": "en",
+      "state": "ready",
+      "overflow": false,
+      "headings": 1,
+      "direction": "ltr",
+      "untranslated": [],
+      "brokenImages": []
+    },
+    {
+      "name": "operator-login",
+      "width": 1366,
+      "lang": "ur",
+      "state": "ready",
+      "overflow": false,
+      "headings": 1,
+      "direction": "rtl",
+      "untranslated": [],
+      "brokenImages": []
+    },
+    {
+      "name": "operator-security",
+      "width": 390,
+      "lang": "en",
+      "state": "ready",
+      "overflow": false,
+      "headings": 1,
+      "direction": "ltr",
+      "untranslated": [],
+      "brokenImages": []
+    },
+    {
+      "name": "operator-security",
+      "width": 390,
+      "lang": "ur",
+      "state": "ready",
+      "overflow": false,
+      "headings": 1,
+      "direction": "rtl",
+      "untranslated": [],
+      "brokenImages": []
+    },
+    {
+      "name": "operator-security",
+      "width": 1366,
+      "lang": "en",
+      "state": "ready",
+      "overflow": false,
+      "headings": 1,
+      "direction": "ltr",
+      "untranslated": [],
+      "brokenImages": []
+    },
+    {
+      "name": "operator-security",
+      "width": 1366,
+      "lang": "ur",
+      "state": "ready",
+      "overflow": false,
+      "headings": 1,
+      "direction": "rtl",
+      "untranslated": [],
+      "brokenImages": []
+    },
+    {
+      "name": "service",
+      "width": 390,
+      "lang": "en",
+      "state": "ready",
+      "overflow": false,
+      "headings": 1,
+      "direction": "ltr",
+      "untranslated": [],
+      "brokenImages": []
+    },
+    {
+      "name": "service",
+      "width": 390,
+      "lang": "ur",
+      "state": "ready",
+      "overflow": false,
+      "headings": 1,
+      "direction": "rtl",
+      "untranslated": [],
+      "brokenImages": []
+    },
+    {
+      "name": "service",
+      "width": 1366,
+      "lang": "en",
+      "state": "ready",
+      "overflow": false,
+      "headings": 1,
+      "direction": "ltr",
+      "untranslated": [],
+      "brokenImages": []
+    },
+    {
+      "name": "service",
+      "width": 1366,
+      "lang": "ur",
+      "state": "ready",
+      "overflow": false,
+      "headings": 1,
+      "direction": "rtl",
+      "untranslated": [],
+      "brokenImages": []
+    },
+    {
+      "name": "audit",
+      "width": 390,
+      "lang": "en",
+      "state": "ready",
+      "overflow": false,
+      "headings": 1,
+      "direction": "ltr",
+      "untranslated": [],
+      "brokenImages": []
+    },
+    {
+      "name": "audit",
+      "width": 390,
+      "lang": "ur",
+      "state": "ready",
+      "overflow": false,
+      "headings": 1,
+      "direction": "rtl",
+      "untranslated": [],
+      "brokenImages": []
+    },
+    {
+      "name": "audit",
+      "width": 1366,
+      "lang": "en",
+      "state": "ready",
+      "overflow": false,
+      "headings": 1,
+      "direction": "ltr",
+      "untranslated": [],
+      "brokenImages": []
+    },
+    {
+      "name": "audit",
+      "width": 1366,
+      "lang": "ur",
+      "state": "ready",
+      "overflow": false,
+      "headings": 1,
+      "direction": "rtl",
+      "untranslated": [],
+      "brokenImages": []
+    },
+    {
+      "name": "leads",
+      "width": 390,
+      "lang": "en",
+      "state": "ready",
+      "overflow": false,
+      "headings": 1,
+      "direction": "ltr",
+      "untranslated": [],
+      "brokenImages": []
+    },
+    {
+      "name": "leads",
+      "width": 390,
+      "lang": "ur",
+      "state": "ready",
+      "overflow": false,
+      "headings": 1,
+      "direction": "rtl",
+      "untranslated": [],
+      "brokenImages": []
+    },
+    {
+      "name": "leads",
+      "width": 1366,
+      "lang": "en",
+      "state": "ready",
+      "overflow": false,
+      "headings": 1,
+      "direction": "ltr",
+      "untranslated": [],
+      "brokenImages": []
+    },
+    {
+      "name": "leads",
+      "width": 1366,
+      "lang": "ur",
+      "state": "ready",
+      "overflow": false,
+      "headings": 1,
+      "direction": "rtl",
+      "untranslated": [],
+      "brokenImages": []
+    },
+    {
+      "name": "setup",
+      "width": 390,
+      "lang": "en",
+      "state": "ready",
+      "overflow": false,
+      "headings": 1,
+      "direction": "ltr",
+      "untranslated": [],
+      "brokenImages": []
+    },
+    {
+      "name": "setup",
+      "width": 390,
+      "lang": "ur",
+      "state": "ready",
+      "overflow": false,
+      "headings": 1,
+      "direction": "rtl",
+      "untranslated": [],
+      "brokenImages": []
+    },
+    {
+      "name": "setup",
+      "width": 1366,
+      "lang": "en",
+      "state": "ready",
+      "overflow": false,
+      "headings": 1,
+      "direction": "ltr",
+      "untranslated": [],
+      "brokenImages": []
+    },
+    {
+      "name": "setup",
+      "width": 1366,
+      "lang": "ur",
+      "state": "ready",
+      "overflow": false,
+      "headings": 1,
+      "direction": "rtl",
+      "untranslated": [],
+      "brokenImages": []
+    },
+    {
+      "name": "settings",
+      "width": 390,
+      "lang": "en",
+      "state": "ready",
+      "overflow": false,
+      "headings": 1,
+      "direction": "ltr",
+      "untranslated": [],
+      "brokenImages": []
+    },
+    {
+      "name": "settings",
+      "width": 390,
+      "lang": "ur",
+      "state": "ready",
+      "overflow": false,
+      "headings": 1,
+      "direction": "rtl",
+      "untranslated": [],
+      "brokenImages": []
+    },
+    {
+      "name": "settings",
+      "width": 1366,
+      "lang": "en",
+      "state": "ready",
+      "overflow": false,
+      "headings": 1,
+      "direction": "ltr",
+      "untranslated": [],
+      "brokenImages": []
+    },
+    {
+      "name": "settings",
+      "width": 1366,
+      "lang": "ur",
+      "state": "ready",
+      "overflow": false,
+      "headings": 1,
+      "direction": "rtl",
+      "untranslated": [],
+      "brokenImages": []
+    },
+    {
+      "name": "billing",
+      "width": 390,
+      "lang": "en",
+      "state": "ready",
+      "overflow": false,
+      "headings": 1,
+      "direction": "ltr",
+      "untranslated": [],
+      "brokenImages": []
+    },
+    {
+      "name": "billing",
+      "width": 390,
+      "lang": "ur",
+      "state": "ready",
+      "overflow": false,
+      "headings": 1,
+      "direction": "rtl",
+      "untranslated": [],
+      "brokenImages": []
+    },
+    {
+      "name": "billing",
+      "width": 1366,
+      "lang": "en",
+      "state": "ready",
+      "overflow": false,
+      "headings": 1,
+      "direction": "ltr",
+      "untranslated": [],
+      "brokenImages": []
+    },
+    {
+      "name": "billing",
+      "width": 1366,
+      "lang": "ur",
+      "state": "ready",
+      "overflow": false,
+      "headings": 1,
+      "direction": "rtl",
+      "untranslated": [],
+      "brokenImages": []
+    },
+    {
+      "name": "workforce",
+      "width": 390,
+      "lang": "en",
+      "state": "ready",
+      "overflow": false,
+      "headings": 1,
+      "direction": "ltr",
+      "untranslated": [],
+      "brokenImages": []
+    },
+    {
+      "name": "workforce",
+      "width": 390,
+      "lang": "ur",
+      "state": "ready",
+      "overflow": false,
+      "headings": 1,
+      "direction": "rtl",
+      "untranslated": [],
+      "brokenImages": []
+    },
+    {
+      "name": "workforce",
+      "width": 1366,
+      "lang": "en",
+      "state": "ready",
+      "overflow": false,
+      "headings": 1,
+      "direction": "ltr",
+      "untranslated": [],
+      "brokenImages": []
+    },
+    {
+      "name": "workforce",
+      "width": 1366,
+      "lang": "ur",
+      "state": "ready",
+      "overflow": false,
+      "headings": 1,
+      "direction": "rtl",
+      "untranslated": [],
+      "brokenImages": []
+    },
+    {
+      "name": "attendance-case",
+      "width": 390,
+      "lang": "en",
+      "state": "ready",
+      "overflow": false,
+      "headings": 1,
+      "direction": "ltr",
+      "untranslated": [],
+      "brokenImages": []
+    },
+    {
+      "name": "attendance-case",
+      "width": 390,
+      "lang": "ur",
+      "state": "ready",
+      "overflow": false,
+      "headings": 1,
+      "direction": "rtl",
+      "untranslated": [],
+      "brokenImages": []
+    },
+    {
+      "name": "attendance-case",
+      "width": 1366,
+      "lang": "en",
+      "state": "ready",
+      "overflow": false,
+      "headings": 1,
+      "direction": "ltr",
+      "untranslated": [],
+      "brokenImages": []
+    },
+    {
+      "name": "attendance-case",
+      "width": 1366,
+      "lang": "ur",
+      "state": "ready",
+      "overflow": false,
+      "headings": 1,
+      "direction": "rtl",
+      "untranslated": [],
+      "brokenImages": []
+    },
+    {
+      "name": "help",
+      "width": 390,
+      "lang": "en",
+      "state": "ready",
+      "overflow": false,
+      "headings": 1,
+      "direction": "ltr",
+      "untranslated": [],
+      "brokenImages": []
+    },
+    {
+      "name": "help",
+      "width": 390,
+      "lang": "ur",
+      "state": "ready",
+      "overflow": false,
+      "headings": 1,
+      "direction": "rtl",
+      "untranslated": [],
+      "brokenImages": []
+    },
+    {
+      "name": "help",
+      "width": 1366,
+      "lang": "en",
+      "state": "ready",
+      "overflow": false,
+      "headings": 1,
+      "direction": "ltr",
+      "untranslated": [],
+      "brokenImages": []
+    },
+    {
+      "name": "help",
+      "width": 1366,
+      "lang": "ur",
+      "state": "ready",
+      "overflow": false,
+      "headings": 1,
+      "direction": "rtl",
+      "untranslated": [],
+      "brokenImages": []
+    },
+    {
+      "name": "access",
+      "width": 390,
+      "lang": "en",
+      "state": "ready",
+      "overflow": false,
+      "headings": 1,
+      "direction": "ltr",
+      "untranslated": [],
+      "brokenImages": []
+    },
+    {
+      "name": "access",
+      "width": 390,
+      "lang": "ur",
+      "state": "ready",
+      "overflow": false,
+      "headings": 1,
+      "direction": "rtl",
+      "untranslated": [],
+      "brokenImages": []
+    },
+    {
+      "name": "access",
+      "width": 1366,
+      "lang": "en",
+      "state": "ready",
+      "overflow": false,
+      "headings": 1,
+      "direction": "ltr",
+      "untranslated": [],
+      "brokenImages": []
+    },
+    {
+      "name": "access",
+      "width": 1366,
+      "lang": "ur",
+      "state": "ready",
+      "overflow": false,
+      "headings": 1,
+      "direction": "rtl",
+      "untranslated": [],
+      "brokenImages": []
+    },
+    {
+      "name": "overview",
+      "width": 390,
+      "lang": "en",
+      "state": "ready",
+      "overflow": false,
+      "headings": 1,
+      "direction": "ltr",
+      "untranslated": [],
+      "brokenImages": []
+    },
+    {
+      "name": "overview",
+      "width": 390,
+      "lang": "ur",
+      "state": "ready",
+      "overflow": false,
+      "headings": 1,
+      "direction": "rtl",
+      "untranslated": [],
+      "brokenImages": []
+    },
+    {
+      "name": "overview",
+      "width": 1366,
+      "lang": "en",
+      "state": "ready",
+      "overflow": false,
+      "headings": 1,
+      "direction": "ltr",
+      "untranslated": [],
+      "brokenImages": []
+    },
+    {
+      "name": "overview",
+      "width": 1366,
+      "lang": "ur",
+      "state": "ready",
+      "overflow": false,
+      "headings": 1,
+      "direction": "rtl",
+      "untranslated": [],
+      "brokenImages": []
+    },
+    {
+      "name": "mobile",
+      "width": 390,
+      "lang": "en",
+      "state": "ready",
+      "overflow": false,
+      "headings": 1,
+      "direction": "ltr",
+      "untranslated": [],
+      "brokenImages": []
+    },
+    {
+      "name": "mobile",
+      "width": 390,
+      "lang": "ur",
+      "state": "ready",
+      "overflow": false,
+      "headings": 1,
+      "direction": "rtl",
+      "untranslated": [],
+      "brokenImages": []
+    },
+    {
+      "name": "mobile",
+      "width": 1366,
+      "lang": "en",
+      "state": "ready",
+      "overflow": false,
+      "headings": 1,
+      "direction": "ltr",
+      "untranslated": [],
+      "brokenImages": []
+    },
+    {
+      "name": "mobile",
+      "width": 1366,
+      "lang": "ur",
+      "state": "ready",
+      "overflow": false,
+      "headings": 1,
+      "direction": "rtl",
+      "untranslated": [],
+      "brokenImages": []
+    },
+    {
+      "name": "login",
+      "width": 390,
+      "lang": "en",
+      "state": "ready",
+      "overflow": false,
+      "headings": 1,
+      "direction": "ltr",
+      "untranslated": [],
+      "brokenImages": []
+    },
+    {
+      "name": "login",
+      "width": 390,
+      "lang": "ur",
+      "state": "ready",
+      "overflow": false,
+      "headings": 1,
+      "direction": "rtl",
+      "untranslated": [],
+      "brokenImages": []
+    },
+    {
+      "name": "login",
+      "width": 1366,
+      "lang": "en",
+      "state": "ready",
+      "overflow": false,
+      "headings": 1,
+      "direction": "ltr",
+      "untranslated": [],
+      "brokenImages": []
+    },
+    {
+      "name": "login",
+      "width": 1366,
+      "lang": "ur",
+      "state": "ready",
+      "overflow": false,
+      "headings": 1,
+      "direction": "rtl",
+      "untranslated": [],
+      "brokenImages": []
+    },
+    {
+      "name": "recovery",
+      "width": 390,
+      "lang": "en",
+      "state": "ready",
+      "overflow": false,
+      "headings": 1,
+      "direction": "ltr",
+      "untranslated": [],
+      "brokenImages": []
+    },
+    {
+      "name": "recovery",
+      "width": 390,
+      "lang": "ur",
+      "state": "ready",
+      "overflow": false,
+      "headings": 1,
+      "direction": "rtl",
+      "untranslated": [],
+      "brokenImages": []
+    },
+    {
+      "name": "recovery",
+      "width": 1366,
+      "lang": "en",
+      "state": "ready",
+      "overflow": false,
+      "headings": 1,
+      "direction": "ltr",
+      "untranslated": [],
+      "brokenImages": []
+    },
+    {
+      "name": "recovery",
+      "width": 1366,
+      "lang": "ur",
+      "state": "ready",
+      "overflow": false,
+      "headings": 1,
+      "direction": "rtl",
+      "untranslated": [],
+      "brokenImages": []
+    },
+    {
+      "name": "verify",
+      "width": 390,
+      "lang": "en",
+      "state": "ready",
+      "overflow": false,
+      "headings": 1,
+      "direction": "ltr",
+      "untranslated": [],
+      "brokenImages": []
+    },
+    {
+      "name": "verify",
+      "width": 390,
+      "lang": "ur",
+      "state": "ready",
+      "overflow": false,
+      "headings": 1,
+      "direction": "rtl",
+      "untranslated": [],
+      "brokenImages": []
+    },
+    {
+      "name": "verify",
+      "width": 1366,
+      "lang": "en",
+      "state": "ready",
+      "overflow": false,
+      "headings": 1,
+      "direction": "ltr",
+      "untranslated": [],
+      "brokenImages": []
+    },
+    {
+      "name": "verify",
+      "width": 1366,
+      "lang": "ur",
+      "state": "ready",
+      "overflow": false,
+      "headings": 1,
+      "direction": "rtl",
+      "untranslated": [],
+      "brokenImages": []
+    },
+    {
+      "name": "handoff",
+      "width": 390,
+      "lang": "en",
+      "state": "ready",
+      "overflow": false,
+      "headings": 1,
+      "direction": "ltr",
+      "untranslated": [],
+      "brokenImages": []
+    },
+    {
+      "name": "handoff",
+      "width": 390,
+      "lang": "ur",
+      "state": "ready",
+      "overflow": false,
+      "headings": 1,
+      "direction": "rtl",
+      "untranslated": [],
+      "brokenImages": []
+    },
+    {
+      "name": "handoff",
+      "width": 1366,
+      "lang": "en",
+      "state": "ready",
+      "overflow": false,
+      "headings": 1,
+      "direction": "ltr",
+      "untranslated": [],
+      "brokenImages": []
+    },
+    {
+      "name": "handoff",
+      "width": 1366,
+      "lang": "ur",
+      "state": "ready",
+      "overflow": false,
+      "headings": 1,
+      "direction": "rtl",
+      "untranslated": [],
+      "brokenImages": []
+    },
+    {
+      "name": "information",
+      "width": 390,
+      "lang": "en",
+      "state": "ready",
+      "overflow": false,
+      "headings": 1,
+      "direction": "ltr",
+      "untranslated": [],
+      "brokenImages": []
+    },
+    {
+      "name": "information",
+      "width": 390,
+      "lang": "ur",
+      "state": "ready",
+      "overflow": false,
+      "headings": 1,
+      "direction": "rtl",
+      "untranslated": [],
+      "brokenImages": []
+    },
+    {
+      "name": "information",
+      "width": 1366,
+      "lang": "en",
+      "state": "ready",
+      "overflow": false,
+      "headings": 1,
+      "direction": "ltr",
+      "untranslated": [],
+      "brokenImages": []
+    },
+    {
+      "name": "information",
+      "width": 1366,
+      "lang": "ur",
+      "state": "ready",
+      "overflow": false,
+      "headings": 1,
+      "direction": "rtl",
+      "untranslated": [],
+      "brokenImages": []
+    },
+    {
+      "name": "decisions",
+      "width": 390,
+      "lang": "en",
+      "state": "ready",
+      "overflow": false,
+      "headings": 1,
+      "direction": "ltr",
+      "untranslated": [],
+      "brokenImages": []
+    },
+    {
+      "name": "decisions",
+      "width": 390,
+      "lang": "ur",
+      "state": "ready",
+      "overflow": false,
+      "headings": 1,
+      "direction": "rtl",
+      "untranslated": [],
+      "brokenImages": []
+    },
+    {
+      "name": "decisions",
+      "width": 1366,
+      "lang": "en",
+      "state": "ready",
+      "overflow": false,
+      "headings": 1,
+      "direction": "ltr",
+      "untranslated": [],
+      "brokenImages": []
+    },
+    {
+      "name": "decisions",
+      "width": 1366,
+      "lang": "ur",
+      "state": "ready",
+      "overflow": false,
+      "headings": 1,
+      "direction": "rtl",
+      "untranslated": [],
+      "brokenImages": []
+    },
+    {
+      "name": "owner",
+      "width": 390,
+      "lang": "en",
+      "state": "ready",
+      "overflow": false,
+      "headings": 1,
+      "direction": "ltr",
+      "untranslated": [],
+      "brokenImages": []
+    },
+    {
+      "name": "owner",
+      "width": 390,
+      "lang": "ur",
+      "state": "ready",
+      "overflow": false,
+      "headings": 1,
+      "direction": "rtl",
+      "untranslated": [],
+      "brokenImages": []
+    },
+    {
+      "name": "owner",
+      "width": 1366,
+      "lang": "en",
+      "state": "ready",
+      "overflow": false,
+      "headings": 1,
+      "direction": "ltr",
+      "untranslated": [],
+      "brokenImages": []
+    },
+    {
+      "name": "owner",
+      "width": 1366,
+      "lang": "ur",
+      "state": "ready",
+      "overflow": false,
+      "headings": 1,
+      "direction": "rtl",
+      "untranslated": [],
+      "brokenImages": []
+    },
+    {
+      "name": "manager",
+      "width": 390,
+      "lang": "en",
+      "state": "ready",
+      "overflow": false,
+      "headings": 1,
+      "direction": "ltr",
+      "untranslated": [],
+      "brokenImages": []
+    },
+    {
+      "name": "manager",
+      "width": 390,
+      "lang": "ur",
+      "state": "ready",
+      "overflow": false,
+      "headings": 1,
+      "direction": "rtl",
+      "untranslated": [],
+      "brokenImages": []
+    },
+    {
+      "name": "manager",
+      "width": 1366,
+      "lang": "en",
+      "state": "ready",
+      "overflow": false,
+      "headings": 1,
+      "direction": "ltr",
+      "untranslated": [],
+      "brokenImages": []
+    },
+    {
+      "name": "manager",
+      "width": 1366,
+      "lang": "ur",
+      "state": "ready",
+      "overflow": false,
+      "headings": 1,
+      "direction": "rtl",
+      "untranslated": [],
+      "brokenImages": []
+    },
+    {
+      "name": "reviews",
+      "width": 390,
+      "lang": "en",
+      "state": "ready",
+      "overflow": false,
+      "headings": 1,
+      "direction": "ltr",
+      "untranslated": [],
+      "brokenImages": []
+    },
+    {
+      "name": "reviews",
+      "width": 390,
+      "lang": "ur",
+      "state": "ready",
+      "overflow": false,
+      "headings": 1,
+      "direction": "rtl",
+      "untranslated": [],
+      "brokenImages": []
+    },
+    {
+      "name": "reviews",
+      "width": 1366,
+      "lang": "en",
+      "state": "ready",
+      "overflow": false,
+      "headings": 1,
+      "direction": "ltr",
+      "untranslated": [],
+      "brokenImages": []
+    },
+    {
+      "name": "reviews",
+      "width": 1366,
+      "lang": "ur",
+      "state": "ready",
+      "overflow": false,
+      "headings": 1,
+      "direction": "rtl",
+      "untranslated": [],
+      "brokenImages": []
+    },
+    {
+      "name": "location",
+      "width": 390,
+      "lang": "en",
+      "state": "ready",
+      "overflow": false,
+      "headings": 1,
+      "direction": "ltr",
+      "untranslated": [],
+      "brokenImages": []
+    },
+    {
+      "name": "location",
+      "width": 390,
+      "lang": "ur",
+      "state": "ready",
+      "overflow": false,
+      "headings": 1,
+      "direction": "rtl",
+      "untranslated": [],
+      "brokenImages": []
+    },
+    {
+      "name": "location",
+      "width": 1366,
+      "lang": "en",
+      "state": "ready",
+      "overflow": false,
+      "headings": 1,
+      "direction": "ltr",
+      "untranslated": [],
+      "brokenImages": []
+    },
+    {
+      "name": "location",
+      "width": 1366,
+      "lang": "ur",
+      "state": "ready",
+      "overflow": false,
+      "headings": 1,
+      "direction": "rtl",
+      "untranslated": [],
+      "brokenImages": []
+    },
+    {
+      "name": "team",
+      "width": 390,
+      "lang": "en",
+      "state": "ready",
+      "overflow": false,
+      "headings": 1,
+      "direction": "ltr",
+      "untranslated": [],
+      "brokenImages": []
+    },
+    {
+      "name": "team",
+      "width": 390,
+      "lang": "ur",
+      "state": "ready",
+      "overflow": false,
+      "headings": 1,
+      "direction": "rtl",
+      "untranslated": [],
+      "brokenImages": []
+    },
+    {
+      "name": "team",
+      "width": 1366,
+      "lang": "en",
+      "state": "ready",
+      "overflow": false,
+      "headings": 1,
+      "direction": "ltr",
+      "untranslated": [],
+      "brokenImages": []
+    },
+    {
+      "name": "team",
+      "width": 1366,
+      "lang": "ur",
+      "state": "ready",
+      "overflow": false,
+      "headings": 1,
+      "direction": "rtl",
+      "untranslated": [],
+      "brokenImages": []
+    },
+    {
+      "name": "attendance",
+      "width": 390,
+      "lang": "en",
+      "state": "ready",
+      "overflow": false,
+      "headings": 1,
+      "direction": "ltr",
+      "untranslated": [],
+      "brokenImages": []
+    },
+    {
+      "name": "attendance",
+      "width": 390,
+      "lang": "ur",
+      "state": "ready",
+      "overflow": false,
+      "headings": 1,
+      "direction": "rtl",
+      "untranslated": [],
+      "brokenImages": []
+    },
+    {
+      "name": "attendance",
+      "width": 1366,
+      "lang": "en",
+      "state": "ready",
+      "overflow": false,
+      "headings": 1,
+      "direction": "ltr",
+      "untranslated": [],
+      "brokenImages": []
+    },
+    {
+      "name": "attendance",
+      "width": 1366,
+      "lang": "ur",
+      "state": "ready",
+      "overflow": false,
+      "headings": 1,
+      "direction": "rtl",
+      "untranslated": [],
+      "brokenImages": []
+    },
+    {
+      "name": "platform",
+      "width": 320,
+      "lang": "en",
+      "state": "ready",
+      "overflow": false,
+      "headings": 1,
+      "direction": "ltr",
+      "untranslated": [],
+      "brokenImages": []
+    },
+    {
+      "name": "platform",
+      "width": 320,
+      "lang": "ur",
+      "state": "ready",
+      "overflow": false,
+      "headings": 1,
+      "direction": "rtl",
+      "untranslated": [],
+      "brokenImages": []
+    },
+    {
+      "name": "platform",
+      "width": 768,
+      "lang": "en",
+      "state": "ready",
+      "overflow": false,
+      "headings": 1,
+      "direction": "ltr",
+      "untranslated": [],
+      "brokenImages": []
+    },
+    {
+      "name": "platform",
+      "width": 768,
+      "lang": "ur",
+      "state": "ready",
+      "overflow": false,
+      "headings": 1,
+      "direction": "rtl",
+      "untranslated": [],
+      "brokenImages": []
+    },
+    {
+      "name": "platform",
+      "width": 1024,
+      "lang": "en",
+      "state": "ready",
+      "overflow": false,
+      "headings": 1,
+      "direction": "ltr",
+      "untranslated": [],
+      "brokenImages": []
+    },
+    {
+      "name": "platform",
+      "width": 1024,
+      "lang": "ur",
+      "state": "ready",
+      "overflow": false,
+      "headings": 1,
+      "direction": "rtl",
+      "untranslated": [],
+      "brokenImages": []
+    },
+    {
+      "name": "platform",
+      "width": 1600,
+      "lang": "en",
+      "state": "ready",
+      "overflow": false,
+      "headings": 1,
+      "direction": "ltr",
+      "untranslated": [],
+      "brokenImages": []
+    },
+    {
+      "name": "platform",
+      "width": 1600,
+      "lang": "ur",
+      "state": "ready",
+      "overflow": false,
+      "headings": 1,
+      "direction": "rtl",
+      "untranslated": [],
+      "brokenImages": []
+    },
+    {
+      "name": "customer",
+      "width": 320,
+      "lang": "en",
+      "state": "ready",
+      "overflow": false,
+      "headings": 1,
+      "direction": "ltr",
+      "untranslated": [],
+      "brokenImages": []
+    },
+    {
+      "name": "customer",
+      "width": 320,
+      "lang": "ur",
+      "state": "ready",
+      "overflow": false,
+      "headings": 1,
+      "direction": "rtl",
+      "untranslated": [],
+      "brokenImages": []
+    },
+    {
+      "name": "customer",
+      "width": 768,
+      "lang": "en",
+      "state": "ready",
+      "overflow": false,
+      "headings": 1,
+      "direction": "ltr",
+      "untranslated": [],
+      "brokenImages": []
+    },
+    {
+      "name": "customer",
+      "width": 768,
+      "lang": "ur",
+      "state": "ready",
+      "overflow": false,
+      "headings": 1,
+      "direction": "rtl",
+      "untranslated": [],
+      "brokenImages": []
+    },
+    {
+      "name": "customer",
+      "width": 1024,
+      "lang": "en",
+      "state": "ready",
+      "overflow": false,
+      "headings": 1,
+      "direction": "ltr",
+      "untranslated": [],
+      "brokenImages": []
+    },
+    {
+      "name": "customer",
+      "width": 1024,
+      "lang": "ur",
+      "state": "ready",
+      "overflow": false,
+      "headings": 1,
+      "direction": "rtl",
+      "untranslated": [],
+      "brokenImages": []
+    },
+    {
+      "name": "customer",
+      "width": 1600,
+      "lang": "en",
+      "state": "ready",
+      "overflow": false,
+      "headings": 1,
+      "direction": "ltr",
+      "untranslated": [],
+      "brokenImages": []
+    },
+    {
+      "name": "customer",
+      "width": 1600,
+      "lang": "ur",
+      "state": "ready",
+      "overflow": false,
+      "headings": 1,
+      "direction": "rtl",
+      "untranslated": [],
+      "brokenImages": []
+    },
+    {
+      "name": "setup",
+      "width": 320,
+      "lang": "en",
+      "state": "ready",
+      "overflow": false,
+      "headings": 1,
+      "direction": "ltr",
+      "untranslated": [],
+      "brokenImages": []
+    },
+    {
+      "name": "setup",
+      "width": 320,
+      "lang": "ur",
+      "state": "ready",
+      "overflow": false,
+      "headings": 1,
+      "direction": "rtl",
+      "untranslated": [],
+      "brokenImages": []
+    },
+    {
+      "name": "setup",
+      "width": 768,
+      "lang": "en",
+      "state": "ready",
+      "overflow": false,
+      "headings": 1,
+      "direction": "ltr",
+      "untranslated": [],
+      "brokenImages": []
+    },
+    {
+      "name": "setup",
+      "width": 768,
+      "lang": "ur",
+      "state": "ready",
+      "overflow": false,
+      "headings": 1,
+      "direction": "rtl",
+      "untranslated": [],
+      "brokenImages": []
+    },
+    {
+      "name": "setup",
+      "width": 1024,
+      "lang": "en",
+      "state": "ready",
+      "overflow": false,
+      "headings": 1,
+      "direction": "ltr",
+      "untranslated": [],
+      "brokenImages": []
+    },
+    {
+      "name": "setup",
+      "width": 1024,
+      "lang": "ur",
+      "state": "ready",
+      "overflow": false,
+      "headings": 1,
+      "direction": "rtl",
+      "untranslated": [],
+      "brokenImages": []
+    },
+    {
+      "name": "setup",
+      "width": 1600,
+      "lang": "en",
+      "state": "ready",
+      "overflow": false,
+      "headings": 1,
+      "direction": "ltr",
+      "untranslated": [],
+      "brokenImages": []
+    },
+    {
+      "name": "setup",
+      "width": 1600,
+      "lang": "ur",
+      "state": "ready",
+      "overflow": false,
+      "headings": 1,
+      "direction": "rtl",
+      "untranslated": [],
+      "brokenImages": []
+    },
+    {
+      "name": "settings",
+      "width": 320,
+      "lang": "en",
+      "state": "ready",
+      "overflow": false,
+      "headings": 1,
+      "direction": "ltr",
+      "untranslated": [],
+      "brokenImages": []
+    },
+    {
+      "name": "settings",
+      "width": 320,
+      "lang": "ur",
+      "state": "ready",
+      "overflow": false,
+      "headings": 1,
+      "direction": "rtl",
+      "untranslated": [],
+      "brokenImages": []
+    },
+    {
+      "name": "settings",
+      "width": 768,
+      "lang": "en",
+      "state": "ready",
+      "overflow": false,
+      "headings": 1,
+      "direction": "ltr",
+      "untranslated": [],
+      "brokenImages": []
+    },
+    {
+      "name": "settings",
+      "width": 768,
+      "lang": "ur",
+      "state": "ready",
+      "overflow": false,
+      "headings": 1,
+      "direction": "rtl",
+      "untranslated": [],
+      "brokenImages": []
+    },
+    {
+      "name": "settings",
+      "width": 1024,
+      "lang": "en",
+      "state": "ready",
+      "overflow": false,
+      "headings": 1,
+      "direction": "ltr",
+      "untranslated": [],
+      "brokenImages": []
+    },
+    {
+      "name": "settings",
+      "width": 1024,
+      "lang": "ur",
+      "state": "ready",
+      "overflow": false,
+      "headings": 1,
+      "direction": "rtl",
+      "untranslated": [],
+      "brokenImages": []
+    },
+    {
+      "name": "settings",
+      "width": 1600,
+      "lang": "en",
+      "state": "ready",
+      "overflow": false,
+      "headings": 1,
+      "direction": "ltr",
+      "untranslated": [],
+      "brokenImages": []
+    },
+    {
+      "name": "settings",
+      "width": 1600,
+      "lang": "ur",
+      "state": "ready",
+      "overflow": false,
+      "headings": 1,
+      "direction": "rtl",
+      "untranslated": [],
+      "brokenImages": []
+    },
+    {
+      "name": "billing",
+      "width": 320,
+      "lang": "en",
+      "state": "ready",
+      "overflow": false,
+      "headings": 1,
+      "direction": "ltr",
+      "untranslated": [],
+      "brokenImages": []
+    },
+    {
+      "name": "billing",
+      "width": 320,
+      "lang": "ur",
+      "state": "ready",
+      "overflow": false,
+      "headings": 1,
+      "direction": "rtl",
+      "untranslated": [],
+      "brokenImages": []
+    },
+    {
+      "name": "billing",
+      "width": 768,
+      "lang": "en",
+      "state": "ready",
+      "overflow": false,
+      "headings": 1,
+      "direction": "ltr",
+      "untranslated": [],
+      "brokenImages": []
+    },
+    {
+      "name": "billing",
+      "width": 768,
+      "lang": "ur",
+      "state": "ready",
+      "overflow": false,
+      "headings": 1,
+      "direction": "rtl",
+      "untranslated": [],
+      "brokenImages": []
+    },
+    {
+      "name": "billing",
+      "width": 1024,
+      "lang": "en",
+      "state": "ready",
+      "overflow": false,
+      "headings": 1,
+      "direction": "ltr",
+      "untranslated": [],
+      "brokenImages": []
+    },
+    {
+      "name": "billing",
+      "width": 1024,
+      "lang": "ur",
+      "state": "ready",
+      "overflow": false,
+      "headings": 1,
+      "direction": "rtl",
+      "untranslated": [],
+      "brokenImages": []
+    },
+    {
+      "name": "billing",
+      "width": 1600,
+      "lang": "en",
+      "state": "ready",
+      "overflow": false,
+      "headings": 1,
+      "direction": "ltr",
+      "untranslated": [],
+      "brokenImages": []
+    },
+    {
+      "name": "billing",
+      "width": 1600,
+      "lang": "ur",
+      "state": "ready",
+      "overflow": false,
+      "headings": 1,
+      "direction": "rtl",
+      "untranslated": [],
+      "brokenImages": []
+    },
+    {
+      "name": "mobile",
+      "width": 320,
+      "lang": "en",
+      "state": "ready",
+      "overflow": false,
+      "headings": 1,
+      "direction": "ltr",
+      "untranslated": [],
+      "brokenImages": []
+    },
+    {
+      "name": "mobile",
+      "width": 320,
+      "lang": "ur",
+      "state": "ready",
+      "overflow": false,
+      "headings": 1,
+      "direction": "rtl",
+      "untranslated": [],
+      "brokenImages": []
+    },
+    {
+      "name": "mobile",
+      "width": 768,
+      "lang": "en",
+      "state": "ready",
+      "overflow": false,
+      "headings": 1,
+      "direction": "ltr",
+      "untranslated": [],
+      "brokenImages": []
+    },
+    {
+      "name": "mobile",
+      "width": 768,
+      "lang": "ur",
+      "state": "ready",
+      "overflow": false,
+      "headings": 1,
+      "direction": "rtl",
+      "untranslated": [],
+      "brokenImages": []
+    },
+    {
+      "name": "mobile",
+      "width": 1024,
+      "lang": "en",
+      "state": "ready",
+      "overflow": false,
+      "headings": 1,
+      "direction": "ltr",
+      "untranslated": [],
+      "brokenImages": []
+    },
+    {
+      "name": "mobile",
+      "width": 1024,
+      "lang": "ur",
+      "state": "ready",
+      "overflow": false,
+      "headings": 1,
+      "direction": "rtl",
+      "untranslated": [],
+      "brokenImages": []
+    },
+    {
+      "name": "mobile",
+      "width": 1600,
+      "lang": "en",
+      "state": "ready",
+      "overflow": false,
+      "headings": 1,
+      "direction": "ltr",
+      "untranslated": [],
+      "brokenImages": []
+    },
+    {
+      "name": "mobile",
+      "width": 1600,
+      "lang": "ur",
+      "state": "ready",
+      "overflow": false,
+      "headings": 1,
+      "direction": "rtl",
+      "untranslated": [],
+      "brokenImages": []
+    },
+    {
+      "name": "reviews",
+      "width": 320,
+      "lang": "en",
+      "state": "ready",
+      "overflow": false,
+      "headings": 1,
+      "direction": "ltr",
+      "untranslated": [],
+      "brokenImages": []
+    },
+    {
+      "name": "reviews",
+      "width": 320,
+      "lang": "ur",
+      "state": "ready",
+      "overflow": false,
+      "headings": 1,
+      "direction": "rtl",
+      "untranslated": [],
+      "brokenImages": []
+    },
+    {
+      "name": "reviews",
+      "width": 768,
+      "lang": "en",
+      "state": "ready",
+      "overflow": false,
+      "headings": 1,
+      "direction": "ltr",
+      "untranslated": [],
+      "brokenImages": []
+    },
+    {
+      "name": "reviews",
+      "width": 768,
+      "lang": "ur",
+      "state": "ready",
+      "overflow": false,
+      "headings": 1,
+      "direction": "rtl",
+      "untranslated": [],
+      "brokenImages": []
+    },
+    {
+      "name": "reviews",
+      "width": 1024,
+      "lang": "en",
+      "state": "ready",
+      "overflow": false,
+      "headings": 1,
+      "direction": "ltr",
+      "untranslated": [],
+      "brokenImages": []
+    },
+    {
+      "name": "reviews",
+      "width": 1024,
+      "lang": "ur",
+      "state": "ready",
+      "overflow": false,
+      "headings": 1,
+      "direction": "rtl",
+      "untranslated": [],
+      "brokenImages": []
+    },
+    {
+      "name": "reviews",
+      "width": 1600,
+      "lang": "en",
+      "state": "ready",
+      "overflow": false,
+      "headings": 1,
+      "direction": "ltr",
+      "untranslated": [],
+      "brokenImages": []
+    },
+    {
+      "name": "reviews",
+      "width": 1600,
+      "lang": "ur",
+      "state": "ready",
+      "overflow": false,
+      "headings": 1,
+      "direction": "rtl",
+      "untranslated": [],
+      "brokenImages": []
+    },
+    {
+      "name": "manager",
+      "width": 320,
+      "lang": "en",
+      "state": "ready",
+      "overflow": false,
+      "headings": 1,
+      "direction": "ltr",
+      "untranslated": [],
+      "brokenImages": []
+    },
+    {
+      "name": "manager",
+      "width": 320,
+      "lang": "ur",
+      "state": "ready",
+      "overflow": false,
+      "headings": 1,
+      "direction": "rtl",
+      "untranslated": [],
+      "brokenImages": []
+    },
+    {
+      "name": "manager",
+      "width": 768,
+      "lang": "en",
+      "state": "ready",
+      "overflow": false,
+      "headings": 1,
+      "direction": "ltr",
+      "untranslated": [],
+      "brokenImages": []
+    },
+    {
+      "name": "manager",
+      "width": 768,
+      "lang": "ur",
+      "state": "ready",
+      "overflow": false,
+      "headings": 1,
+      "direction": "rtl",
+      "untranslated": [],
+      "brokenImages": []
+    },
+    {
+      "name": "manager",
+      "width": 1024,
+      "lang": "en",
+      "state": "ready",
+      "overflow": false,
+      "headings": 1,
+      "direction": "ltr",
+      "untranslated": [],
+      "brokenImages": []
+    },
+    {
+      "name": "manager",
+      "width": 1024,
+      "lang": "ur",
+      "state": "ready",
+      "overflow": false,
+      "headings": 1,
+      "direction": "rtl",
+      "untranslated": [],
+      "brokenImages": []
+    },
+    {
+      "name": "manager",
+      "width": 1600,
+      "lang": "en",
+      "state": "ready",
+      "overflow": false,
+      "headings": 1,
+      "direction": "ltr",
+      "untranslated": [],
+      "brokenImages": []
+    },
+    {
+      "name": "manager",
+      "width": 1600,
+      "lang": "ur",
+      "state": "ready",
+      "overflow": false,
+      "headings": 1,
+      "direction": "rtl",
+      "untranslated": [],
+      "brokenImages": []
+    },
+    {
+      "name": "platform",
+      "width": 390,
+      "lang": "en",
+      "state": "loading",
+      "overflow": false,
+      "headings": 0,
+      "direction": "ltr",
+      "untranslated": [],
+      "brokenImages": []
+    },
+    {
+      "name": "platform",
+      "width": 390,
+      "lang": "ur",
+      "state": "loading",
+      "overflow": false,
+      "headings": 0,
+      "direction": "rtl",
+      "untranslated": [],
+      "brokenImages": []
+    },
+    {
+      "name": "platform",
+      "width": 390,
+      "lang": "en",
+      "state": "empty",
+      "overflow": false,
+      "headings": 0,
+      "direction": "ltr",
+      "untranslated": [],
+      "brokenImages": []
+    },
+    {
+      "name": "platform",
+      "width": 390,
+      "lang": "ur",
+      "state": "empty",
+      "overflow": false,
+      "headings": 0,
+      "direction": "rtl",
+      "untranslated": [],
+      "brokenImages": []
+    },
+    {
+      "name": "platform",
+      "width": 390,
+      "lang": "en",
+      "state": "error",
+      "overflow": false,
+      "headings": 0,
+      "direction": "ltr",
+      "untranslated": [],
+      "brokenImages": []
+    },
+    {
+      "name": "platform",
+      "width": 390,
+      "lang": "ur",
+      "state": "error",
+      "overflow": false,
+      "headings": 0,
+      "direction": "rtl",
+      "untranslated": [],
+      "brokenImages": []
+    },
+    {
+      "name": "platform",
+      "width": 390,
+      "lang": "en",
+      "state": "denied",
+      "overflow": false,
+      "headings": 0,
+      "direction": "ltr",
+      "untranslated": [],
+      "brokenImages": []
+    },
+    {
+      "name": "platform",
+      "width": 390,
+      "lang": "ur",
+      "state": "denied",
+      "overflow": false,
+      "headings": 0,
+      "direction": "rtl",
+      "untranslated": [],
+      "brokenImages": []
+    },
+    {
+      "name": "platform",
+      "width": 390,
+      "lang": "en",
+      "state": "save-error",
+      "overflow": false,
+      "headings": 1,
+      "direction": "ltr",
+      "untranslated": [],
+      "brokenImages": []
+    },
+    {
+      "name": "platform",
+      "width": 390,
+      "lang": "ur",
+      "state": "save-error",
+      "overflow": false,
+      "headings": 1,
+      "direction": "rtl",
+      "untranslated": [],
+      "brokenImages": []
+    },
+    {
+      "name": "platform",
+      "width": 390,
+      "lang": "en",
+      "state": "conflict",
+      "overflow": false,
+      "headings": 1,
+      "direction": "ltr",
+      "untranslated": [],
+      "brokenImages": []
+    },
+    {
+      "name": "platform",
+      "width": 390,
+      "lang": "ur",
+      "state": "conflict",
+      "overflow": false,
+      "headings": 1,
+      "direction": "rtl",
+      "untranslated": [],
+      "brokenImages": []
+    },
+    {
+      "name": "platform",
+      "width": 390,
+      "lang": "en",
+      "state": "offline",
+      "overflow": false,
+      "headings": 1,
+      "direction": "ltr",
+      "untranslated": [],
+      "brokenImages": []
+    },
+    {
+      "name": "platform",
+      "width": 390,
+      "lang": "ur",
+      "state": "offline",
+      "overflow": false,
+      "headings": 1,
+      "direction": "rtl",
+      "untranslated": [],
+      "brokenImages": []
+    },
+    {
+      "name": "customer",
+      "width": 390,
+      "lang": "en",
+      "state": "loading",
+      "overflow": false,
+      "headings": 0,
+      "direction": "ltr",
+      "untranslated": [],
+      "brokenImages": []
+    },
+    {
+      "name": "customer",
+      "width": 390,
+      "lang": "ur",
+      "state": "loading",
+      "overflow": false,
+      "headings": 0,
+      "direction": "rtl",
+      "untranslated": [],
+      "brokenImages": []
+    },
+    {
+      "name": "customer",
+      "width": 390,
+      "lang": "en",
+      "state": "empty",
+      "overflow": false,
+      "headings": 0,
+      "direction": "ltr",
+      "untranslated": [],
+      "brokenImages": []
+    },
+    {
+      "name": "customer",
+      "width": 390,
+      "lang": "ur",
+      "state": "empty",
+      "overflow": false,
+      "headings": 0,
+      "direction": "rtl",
+      "untranslated": [],
+      "brokenImages": []
+    },
+    {
+      "name": "customer",
+      "width": 390,
+      "lang": "en",
+      "state": "error",
+      "overflow": false,
+      "headings": 0,
+      "direction": "ltr",
+      "untranslated": [],
+      "brokenImages": []
+    },
+    {
+      "name": "customer",
+      "width": 390,
+      "lang": "ur",
+      "state": "error",
+      "overflow": false,
+      "headings": 0,
+      "direction": "rtl",
+      "untranslated": [],
+      "brokenImages": []
+    },
+    {
+      "name": "customer",
+      "width": 390,
+      "lang": "en",
+      "state": "denied",
+      "overflow": false,
+      "headings": 0,
+      "direction": "ltr",
+      "untranslated": [],
+      "brokenImages": []
+    },
+    {
+      "name": "customer",
+      "width": 390,
+      "lang": "ur",
+      "state": "denied",
+      "overflow": false,
+      "headings": 0,
+      "direction": "rtl",
+      "untranslated": [],
+      "brokenImages": []
+    },
+    {
+      "name": "customer",
+      "width": 390,
+      "lang": "en",
+      "state": "save-error",
+      "overflow": false,
+      "headings": 1,
+      "direction": "ltr",
+      "untranslated": [],
+      "brokenImages": []
+    },
+    {
+      "name": "customer",
+      "width": 390,
+      "lang": "ur",
+      "state": "save-error",
+      "overflow": false,
+      "headings": 1,
+      "direction": "rtl",
+      "untranslated": [],
+      "brokenImages": []
+    },
+    {
+      "name": "customer",
+      "width": 390,
+      "lang": "en",
+      "state": "conflict",
+      "overflow": false,
+      "headings": 1,
+      "direction": "ltr",
+      "untranslated": [],
+      "brokenImages": []
+    },
+    {
+      "name": "customer",
+      "width": 390,
+      "lang": "ur",
+      "state": "conflict",
+      "overflow": false,
+      "headings": 1,
+      "direction": "rtl",
+      "untranslated": [],
+      "brokenImages": []
+    },
+    {
+      "name": "customer",
+      "width": 390,
+      "lang": "en",
+      "state": "offline",
+      "overflow": false,
+      "headings": 1,
+      "direction": "ltr",
+      "untranslated": [],
+      "brokenImages": []
+    },
+    {
+      "name": "customer",
+      "width": 390,
+      "lang": "ur",
+      "state": "offline",
+      "overflow": false,
+      "headings": 1,
+      "direction": "rtl",
+      "untranslated": [],
+      "brokenImages": []
+    },
+    {
+      "name": "setup",
+      "width": 390,
+      "lang": "en",
+      "state": "loading",
+      "overflow": false,
+      "headings": 0,
+      "direction": "ltr",
+      "untranslated": [],
+      "brokenImages": []
+    },
+    {
+      "name": "setup",
+      "width": 390,
+      "lang": "ur",
+      "state": "loading",
+      "overflow": false,
+      "headings": 0,
+      "direction": "rtl",
+      "untranslated": [],
+      "brokenImages": []
+    },
+    {
+      "name": "setup",
+      "width": 390,
+      "lang": "en",
+      "state": "empty",
+      "overflow": false,
+      "headings": 0,
+      "direction": "ltr",
+      "untranslated": [],
+      "brokenImages": []
+    },
+    {
+      "name": "setup",
+      "width": 390,
+      "lang": "ur",
+      "state": "empty",
+      "overflow": false,
+      "headings": 0,
+      "direction": "rtl",
+      "untranslated": [],
+      "brokenImages": []
+    },
+    {
+      "name": "setup",
+      "width": 390,
+      "lang": "en",
+      "state": "error",
+      "overflow": false,
+      "headings": 0,
+      "direction": "ltr",
+      "untranslated": [],
+      "brokenImages": []
+    },
+    {
+      "name": "setup",
+      "width": 390,
+      "lang": "ur",
+      "state": "error",
+      "overflow": false,
+      "headings": 0,
+      "direction": "rtl",
+      "untranslated": [],
+      "brokenImages": []
+    },
+    {
+      "name": "setup",
+      "width": 390,
+      "lang": "en",
+      "state": "denied",
+      "overflow": false,
+      "headings": 0,
+      "direction": "ltr",
+      "untranslated": [],
+      "brokenImages": []
+    },
+    {
+      "name": "setup",
+      "width": 390,
+      "lang": "ur",
+      "state": "denied",
+      "overflow": false,
+      "headings": 0,
+      "direction": "rtl",
+      "untranslated": [],
+      "brokenImages": []
+    },
+    {
+      "name": "setup",
+      "width": 390,
+      "lang": "en",
+      "state": "save-error",
+      "overflow": false,
+      "headings": 1,
+      "direction": "ltr",
+      "untranslated": [],
+      "brokenImages": []
+    },
+    {
+      "name": "setup",
+      "width": 390,
+      "lang": "ur",
+      "state": "save-error",
+      "overflow": false,
+      "headings": 1,
+      "direction": "rtl",
+      "untranslated": [],
+      "brokenImages": []
+    },
+    {
+      "name": "setup",
+      "width": 390,
+      "lang": "en",
+      "state": "conflict",
+      "overflow": false,
+      "headings": 1,
+      "direction": "ltr",
+      "untranslated": [],
+      "brokenImages": []
+    },
+    {
+      "name": "setup",
+      "width": 390,
+      "lang": "ur",
+      "state": "conflict",
+      "overflow": false,
+      "headings": 1,
+      "direction": "rtl",
+      "untranslated": [],
+      "brokenImages": []
+    },
+    {
+      "name": "setup",
+      "width": 390,
+      "lang": "en",
+      "state": "offline",
+      "overflow": false,
+      "headings": 1,
+      "direction": "ltr",
+      "untranslated": [],
+      "brokenImages": []
+    },
+    {
+      "name": "setup",
+      "width": 390,
+      "lang": "ur",
+      "state": "offline",
+      "overflow": false,
+      "headings": 1,
+      "direction": "rtl",
+      "untranslated": [],
+      "brokenImages": []
+    },
+    {
+      "name": "billing",
+      "width": 390,
+      "lang": "en",
+      "state": "loading",
+      "overflow": false,
+      "headings": 0,
+      "direction": "ltr",
+      "untranslated": [],
+      "brokenImages": []
+    },
+    {
+      "name": "billing",
+      "width": 390,
+      "lang": "ur",
+      "state": "loading",
+      "overflow": false,
+      "headings": 0,
+      "direction": "rtl",
+      "untranslated": [],
+      "brokenImages": []
+    },
+    {
+      "name": "billing",
+      "width": 390,
+      "lang": "en",
+      "state": "empty",
+      "overflow": false,
+      "headings": 0,
+      "direction": "ltr",
+      "untranslated": [],
+      "brokenImages": []
+    },
+    {
+      "name": "billing",
+      "width": 390,
+      "lang": "ur",
+      "state": "empty",
+      "overflow": false,
+      "headings": 0,
+      "direction": "rtl",
+      "untranslated": [],
+      "brokenImages": []
+    },
+    {
+      "name": "billing",
+      "width": 390,
+      "lang": "en",
+      "state": "error",
+      "overflow": false,
+      "headings": 0,
+      "direction": "ltr",
+      "untranslated": [],
+      "brokenImages": []
+    },
+    {
+      "name": "billing",
+      "width": 390,
+      "lang": "ur",
+      "state": "error",
+      "overflow": false,
+      "headings": 0,
+      "direction": "rtl",
+      "untranslated": [],
+      "brokenImages": []
+    },
+    {
+      "name": "billing",
+      "width": 390,
+      "lang": "en",
+      "state": "denied",
+      "overflow": false,
+      "headings": 0,
+      "direction": "ltr",
+      "untranslated": [],
+      "brokenImages": []
+    },
+    {
+      "name": "billing",
+      "width": 390,
+      "lang": "ur",
+      "state": "denied",
+      "overflow": false,
+      "headings": 0,
+      "direction": "rtl",
+      "untranslated": [],
+      "brokenImages": []
+    },
+    {
+      "name": "billing",
+      "width": 390,
+      "lang": "en",
+      "state": "save-error",
+      "overflow": false,
+      "headings": 1,
+      "direction": "ltr",
+      "untranslated": [],
+      "brokenImages": []
+    },
+    {
+      "name": "billing",
+      "width": 390,
+      "lang": "ur",
+      "state": "save-error",
+      "overflow": false,
+      "headings": 1,
+      "direction": "rtl",
+      "untranslated": [],
+      "brokenImages": []
+    },
+    {
+      "name": "billing",
+      "width": 390,
+      "lang": "en",
+      "state": "conflict",
+      "overflow": false,
+      "headings": 1,
+      "direction": "ltr",
+      "untranslated": [],
+      "brokenImages": []
+    },
+    {
+      "name": "billing",
+      "width": 390,
+      "lang": "ur",
+      "state": "conflict",
+      "overflow": false,
+      "headings": 1,
+      "direction": "rtl",
+      "untranslated": [],
+      "brokenImages": []
+    },
+    {
+      "name": "billing",
+      "width": 390,
+      "lang": "en",
+      "state": "offline",
+      "overflow": false,
+      "headings": 1,
+      "direction": "ltr",
+      "untranslated": [],
+      "brokenImages": []
+    },
+    {
+      "name": "billing",
+      "width": 390,
+      "lang": "ur",
+      "state": "offline",
+      "overflow": false,
+      "headings": 1,
+      "direction": "rtl",
+      "untranslated": [],
+      "brokenImages": []
+    },
+    {
+      "name": "mobile",
+      "width": 390,
+      "lang": "en",
+      "state": "loading",
+      "overflow": false,
+      "headings": 0,
+      "direction": "ltr",
+      "untranslated": [],
+      "brokenImages": []
+    },
+    {
+      "name": "mobile",
+      "width": 390,
+      "lang": "ur",
+      "state": "loading",
+      "overflow": false,
+      "headings": 0,
+      "direction": "rtl",
+      "untranslated": [],
+      "brokenImages": []
+    },
+    {
+      "name": "mobile",
+      "width": 390,
+      "lang": "en",
+      "state": "empty",
+      "overflow": false,
+      "headings": 0,
+      "direction": "ltr",
+      "untranslated": [],
+      "brokenImages": []
+    },
+    {
+      "name": "mobile",
+      "width": 390,
+      "lang": "ur",
+      "state": "empty",
+      "overflow": false,
+      "headings": 0,
+      "direction": "rtl",
+      "untranslated": [],
+      "brokenImages": []
+    },
+    {
+      "name": "mobile",
+      "width": 390,
+      "lang": "en",
+      "state": "error",
+      "overflow": false,
+      "headings": 0,
+      "direction": "ltr",
+      "untranslated": [],
+      "brokenImages": []
+    },
+    {
+      "name": "mobile",
+      "width": 390,
+      "lang": "ur",
+      "state": "error",
+      "overflow": false,
+      "headings": 0,
+      "direction": "rtl",
+      "untranslated": [],
+      "brokenImages": []
+    },
+    {
+      "name": "mobile",
+      "width": 390,
+      "lang": "en",
+      "state": "denied",
+      "overflow": false,
+      "headings": 0,
+      "direction": "ltr",
+      "untranslated": [],
+      "brokenImages": []
+    },
+    {
+      "name": "mobile",
+      "width": 390,
+      "lang": "ur",
+      "state": "denied",
+      "overflow": false,
+      "headings": 0,
+      "direction": "rtl",
+      "untranslated": [],
+      "brokenImages": []
+    },
+    {
+      "name": "mobile",
+      "width": 390,
+      "lang": "en",
+      "state": "save-error",
+      "overflow": false,
+      "headings": 1,
+      "direction": "ltr",
+      "untranslated": [],
+      "brokenImages": []
+    },
+    {
+      "name": "mobile",
+      "width": 390,
+      "lang": "ur",
+      "state": "save-error",
+      "overflow": false,
+      "headings": 1,
+      "direction": "rtl",
+      "untranslated": [],
+      "brokenImages": []
+    },
+    {
+      "name": "mobile",
+      "width": 390,
+      "lang": "en",
+      "state": "conflict",
+      "overflow": false,
+      "headings": 1,
+      "direction": "ltr",
+      "untranslated": [],
+      "brokenImages": []
+    },
+    {
+      "name": "mobile",
+      "width": 390,
+      "lang": "ur",
+      "state": "conflict",
+      "overflow": false,
+      "headings": 1,
+      "direction": "rtl",
+      "untranslated": [],
+      "brokenImages": []
+    },
+    {
+      "name": "mobile",
+      "width": 390,
+      "lang": "en",
+      "state": "offline",
+      "overflow": false,
+      "headings": 1,
+      "direction": "ltr",
+      "untranslated": [],
+      "brokenImages": []
+    },
+    {
+      "name": "mobile",
+      "width": 390,
+      "lang": "ur",
+      "state": "offline",
+      "overflow": false,
+      "headings": 1,
+      "direction": "rtl",
+      "untranslated": [],
+      "brokenImages": []
+    },
+    {
+      "name": "settings",
+      "width": 390,
+      "lang": "en",
+      "state": "loading",
+      "overflow": false,
+      "headings": 0,
+      "direction": "ltr",
+      "untranslated": [],
+      "brokenImages": []
+    },
+    {
+      "name": "settings",
+      "width": 390,
+      "lang": "ur",
+      "state": "loading",
+      "overflow": false,
+      "headings": 0,
+      "direction": "rtl",
+      "untranslated": [],
+      "brokenImages": []
+    },
+    {
+      "name": "settings",
+      "width": 390,
+      "lang": "en",
+      "state": "empty",
+      "overflow": false,
+      "headings": 0,
+      "direction": "ltr",
+      "untranslated": [],
+      "brokenImages": []
+    },
+    {
+      "name": "settings",
+      "width": 390,
+      "lang": "ur",
+      "state": "empty",
+      "overflow": false,
+      "headings": 0,
+      "direction": "rtl",
+      "untranslated": [],
+      "brokenImages": []
+    },
+    {
+      "name": "settings",
+      "width": 390,
+      "lang": "en",
+      "state": "error",
+      "overflow": false,
+      "headings": 0,
+      "direction": "ltr",
+      "untranslated": [],
+      "brokenImages": []
+    },
+    {
+      "name": "settings",
+      "width": 390,
+      "lang": "ur",
+      "state": "error",
+      "overflow": false,
+      "headings": 0,
+      "direction": "rtl",
+      "untranslated": [],
+      "brokenImages": []
+    },
+    {
+      "name": "settings",
+      "width": 390,
+      "lang": "en",
+      "state": "denied",
+      "overflow": false,
+      "headings": 0,
+      "direction": "ltr",
+      "untranslated": [],
+      "brokenImages": []
+    },
+    {
+      "name": "settings",
+      "width": 390,
+      "lang": "ur",
+      "state": "denied",
+      "overflow": false,
+      "headings": 0,
+      "direction": "rtl",
+      "untranslated": [],
+      "brokenImages": []
+    },
+    {
+      "name": "settings",
+      "width": 390,
+      "lang": "en",
+      "state": "save-error",
+      "overflow": false,
+      "headings": 1,
+      "direction": "ltr",
+      "untranslated": [],
+      "brokenImages": []
+    },
+    {
+      "name": "settings",
+      "width": 390,
+      "lang": "ur",
+      "state": "save-error",
+      "overflow": false,
+      "headings": 1,
+      "direction": "rtl",
+      "untranslated": [],
+      "brokenImages": []
+    },
+    {
+      "name": "settings",
+      "width": 390,
+      "lang": "en",
+      "state": "conflict",
+      "overflow": false,
+      "headings": 1,
+      "direction": "ltr",
+      "untranslated": [],
+      "brokenImages": []
+    },
+    {
+      "name": "settings",
+      "width": 390,
+      "lang": "ur",
+      "state": "conflict",
+      "overflow": false,
+      "headings": 1,
+      "direction": "rtl",
+      "untranslated": [],
+      "brokenImages": []
+    },
+    {
+      "name": "settings",
+      "width": 390,
+      "lang": "en",
+      "state": "offline",
+      "overflow": false,
+      "headings": 1,
+      "direction": "ltr",
+      "untranslated": [],
+      "brokenImages": []
+    },
+    {
+      "name": "settings",
+      "width": 390,
+      "lang": "ur",
+      "state": "offline",
+      "overflow": false,
+      "headings": 1,
+      "direction": "rtl",
+      "untranslated": [],
+      "brokenImages": []
+    },
+    {
+      "name": "attendance-case",
+      "width": 390,
+      "lang": "en",
+      "state": "loading",
+      "overflow": false,
+      "headings": 0,
+      "direction": "ltr",
+      "untranslated": [],
+      "brokenImages": []
+    },
+    {
+      "name": "attendance-case",
+      "width": 390,
+      "lang": "ur",
+      "state": "loading",
+      "overflow": false,
+      "headings": 0,
+      "direction": "rtl",
+      "untranslated": [],
+      "brokenImages": []
+    },
+    {
+      "name": "attendance-case",
+      "width": 390,
+      "lang": "en",
+      "state": "empty",
+      "overflow": false,
+      "headings": 0,
+      "direction": "ltr",
+      "untranslated": [],
+      "brokenImages": []
+    },
+    {
+      "name": "attendance-case",
+      "width": 390,
+      "lang": "ur",
+      "state": "empty",
+      "overflow": false,
+      "headings": 0,
+      "direction": "rtl",
+      "untranslated": [],
+      "brokenImages": []
+    },
+    {
+      "name": "attendance-case",
+      "width": 390,
+      "lang": "en",
+      "state": "error",
+      "overflow": false,
+      "headings": 0,
+      "direction": "ltr",
+      "untranslated": [],
+      "brokenImages": []
+    },
+    {
+      "name": "attendance-case",
+      "width": 390,
+      "lang": "ur",
+      "state": "error",
+      "overflow": false,
+      "headings": 0,
+      "direction": "rtl",
+      "untranslated": [],
+      "brokenImages": []
+    },
+    {
+      "name": "attendance-case",
+      "width": 390,
+      "lang": "en",
+      "state": "denied",
+      "overflow": false,
+      "headings": 0,
+      "direction": "ltr",
+      "untranslated": [],
+      "brokenImages": []
+    },
+    {
+      "name": "attendance-case",
+      "width": 390,
+      "lang": "ur",
+      "state": "denied",
+      "overflow": false,
+      "headings": 0,
+      "direction": "rtl",
+      "untranslated": [],
+      "brokenImages": []
+    },
+    {
+      "name": "attendance-case",
+      "width": 390,
+      "lang": "en",
+      "state": "save-error",
+      "overflow": false,
+      "headings": 1,
+      "direction": "ltr",
+      "untranslated": [],
+      "brokenImages": []
+    },
+    {
+      "name": "attendance-case",
+      "width": 390,
+      "lang": "ur",
+      "state": "save-error",
+      "overflow": false,
+      "headings": 1,
+      "direction": "rtl",
+      "untranslated": [],
+      "brokenImages": []
+    },
+    {
+      "name": "attendance-case",
+      "width": 390,
+      "lang": "en",
+      "state": "conflict",
+      "overflow": false,
+      "headings": 1,
+      "direction": "ltr",
+      "untranslated": [],
+      "brokenImages": []
+    },
+    {
+      "name": "attendance-case",
+      "width": 390,
+      "lang": "ur",
+      "state": "conflict",
+      "overflow": false,
+      "headings": 1,
+      "direction": "rtl",
+      "untranslated": [],
+      "brokenImages": []
+    },
+    {
+      "name": "attendance-case",
+      "width": 390,
+      "lang": "en",
+      "state": "offline",
+      "overflow": false,
+      "headings": 1,
+      "direction": "ltr",
+      "untranslated": [],
+      "brokenImages": []
+    },
+    {
+      "name": "attendance-case",
+      "width": 390,
+      "lang": "ur",
+      "state": "offline",
+      "overflow": false,
+      "headings": 1,
+      "direction": "rtl",
+      "untranslated": [],
+      "brokenImages": []
+    },
+    {
+      "name": "help",
+      "width": 390,
+      "lang": "en",
+      "state": "loading",
+      "overflow": false,
+      "headings": 0,
+      "direction": "ltr",
+      "untranslated": [],
+      "brokenImages": []
+    },
+    {
+      "name": "help",
+      "width": 390,
+      "lang": "ur",
+      "state": "loading",
+      "overflow": false,
+      "headings": 0,
+      "direction": "rtl",
+      "untranslated": [],
+      "brokenImages": []
+    },
+    {
+      "name": "help",
+      "width": 390,
+      "lang": "en",
+      "state": "empty",
+      "overflow": false,
+      "headings": 0,
+      "direction": "ltr",
+      "untranslated": [],
+      "brokenImages": []
+    },
+    {
+      "name": "help",
+      "width": 390,
+      "lang": "ur",
+      "state": "empty",
+      "overflow": false,
+      "headings": 0,
+      "direction": "rtl",
+      "untranslated": [],
+      "brokenImages": []
+    },
+    {
+      "name": "help",
+      "width": 390,
+      "lang": "en",
+      "state": "error",
+      "overflow": false,
+      "headings": 0,
+      "direction": "ltr",
+      "untranslated": [],
+      "brokenImages": []
+    },
+    {
+      "name": "help",
+      "width": 390,
+      "lang": "ur",
+      "state": "error",
+      "overflow": false,
+      "headings": 0,
+      "direction": "rtl",
+      "untranslated": [],
+      "brokenImages": []
+    },
+    {
+      "name": "help",
+      "width": 390,
+      "lang": "en",
+      "state": "denied",
+      "overflow": false,
+      "headings": 0,
+      "direction": "ltr",
+      "untranslated": [],
+      "brokenImages": []
+    },
+    {
+      "name": "help",
+      "width": 390,
+      "lang": "ur",
+      "state": "denied",
+      "overflow": false,
+      "headings": 0,
+      "direction": "rtl",
+      "untranslated": [],
+      "brokenImages": []
+    },
+    {
+      "name": "help",
+      "width": 390,
+      "lang": "en",
+      "state": "save-error",
+      "overflow": false,
+      "headings": 1,
+      "direction": "ltr",
+      "untranslated": [],
+      "brokenImages": []
+    },
+    {
+      "name": "help",
+      "width": 390,
+      "lang": "ur",
+      "state": "save-error",
+      "overflow": false,
+      "headings": 1,
+      "direction": "rtl",
+      "untranslated": [],
+      "brokenImages": []
+    },
+    {
+      "name": "help",
+      "width": 390,
+      "lang": "en",
+      "state": "conflict",
+      "overflow": false,
+      "headings": 1,
+      "direction": "ltr",
+      "untranslated": [],
+      "brokenImages": []
+    },
+    {
+      "name": "help",
+      "width": 390,
+      "lang": "ur",
+      "state": "conflict",
+      "overflow": false,
+      "headings": 1,
+      "direction": "rtl",
+      "untranslated": [],
+      "brokenImages": []
+    },
+    {
+      "name": "help",
+      "width": 390,
+      "lang": "en",
+      "state": "offline",
+      "overflow": false,
+      "headings": 1,
+      "direction": "ltr",
+      "untranslated": [],
+      "brokenImages": []
+    },
+    {
+      "name": "help",
+      "width": 390,
+      "lang": "ur",
+      "state": "offline",
+      "overflow": false,
+      "headings": 1,
+      "direction": "rtl",
+      "untranslated": [],
+      "brokenImages": []
+    },
+    {
+      "name": "customer-status-dialog",
+      "width": 390,
+      "lang": "en",
+      "state": "dialog",
+      "overflow": false,
+      "headings": 1,
+      "direction": "ltr",
+      "untranslated": [],
+      "brokenImages": []
+    },
+    {
+      "name": "customer-status-dialog",
+      "width": 390,
+      "lang": "ur",
+      "state": "dialog",
+      "overflow": false,
+      "headings": 1,
+      "direction": "rtl",
+      "untranslated": [],
+      "brokenImages": []
+    },
+    {
+      "name": "customer-status-dialog",
+      "width": 390,
+      "lang": "en",
+      "state": "dialog",
+      "overflow": false,
+      "headings": 1,
+      "direction": "ltr",
+      "untranslated": [],
+      "brokenImages": []
+    },
+    {
+      "name": "leads-lead-dialog",
+      "width": 390,
+      "lang": "en",
+      "state": "dialog",
+      "overflow": false,
+      "headings": 1,
+      "direction": "ltr",
+      "untranslated": [],
+      "brokenImages": []
+    },
+    {
+      "name": "service-reconcile",
+      "width": 390,
+      "lang": "en",
+      "state": "dialog",
+      "overflow": false,
+      "headings": 1,
+      "direction": "ltr",
+      "untranslated": [],
+      "brokenImages": []
+    },
+    {
+      "name": "service-runbook",
+      "width": 390,
+      "lang": "en",
+      "state": "dialog",
+      "overflow": false,
+      "headings": 1,
+      "direction": "ltr",
+      "untranslated": [],
+      "brokenImages": []
+    },
+    {
+      "name": "operator-security-mfa-dialog",
+      "width": 390,
+      "lang": "en",
+      "state": "dialog",
+      "overflow": false,
+      "headings": 1,
+      "direction": "ltr",
+      "untranslated": [],
+      "brokenImages": []
+    },
+    {
+      "name": "settings-contact-dialog",
+      "width": 390,
+      "lang": "en",
+      "state": "dialog",
+      "overflow": false,
+      "headings": 1,
+      "direction": "ltr",
+      "untranslated": [],
+      "brokenImages": []
+    },
+    {
+      "name": "billing-plans-dialog",
+      "width": 390,
+      "lang": "en",
+      "state": "dialog",
+      "overflow": false,
+      "headings": 1,
+      "direction": "ltr",
+      "untranslated": [],
+      "brokenImages": []
+    },
+    {
+      "name": "billing-cancel-dialog",
+      "width": 390,
+      "lang": "en",
+      "state": "dialog",
+      "overflow": false,
+      "headings": 1,
+      "direction": "ltr",
+      "untranslated": [],
+      "brokenImages": []
+    },
+    {
+      "name": "billing-portal-dialog",
+      "width": 390,
+      "lang": "en",
+      "state": "dialog",
+      "overflow": false,
+      "headings": 1,
+      "direction": "ltr",
+      "untranslated": [],
+      "brokenImages": []
+    },
+    {
+      "name": "workforce-worker-dialog",
+      "width": 390,
+      "lang": "en",
+      "state": "dialog",
+      "overflow": false,
+      "headings": 1,
+      "direction": "ltr",
+      "untranslated": [],
+      "brokenImages": []
+    },
+    {
+      "name": "workforce-transfer-dialog",
+      "width": 390,
+      "lang": "en",
+      "state": "dialog",
+      "overflow": false,
+      "headings": 1,
+      "direction": "ltr",
+      "untranslated": [],
+      "brokenImages": []
+    },
+    {
+      "name": "workforce-manager-dialog",
+      "width": 390,
+      "lang": "en",
+      "state": "dialog",
+      "overflow": false,
+      "headings": 1,
+      "direction": "ltr",
+      "untranslated": [],
+      "brokenImages": []
+    },
+    {
+      "name": "workforce-add-staff",
+      "width": 390,
+      "lang": "en",
+      "state": "dialog",
+      "overflow": false,
+      "headings": 1,
+      "direction": "ltr",
+      "untranslated": [],
+      "brokenImages": []
+    },
+    {
+      "name": "setup-setup:site",
+      "width": 390,
+      "lang": "en",
+      "state": "dialog",
+      "overflow": false,
+      "headings": 1,
+      "direction": "ltr",
+      "untranslated": [],
+      "brokenImages": []
+    },
+    {
+      "name": "setup-setup:team",
+      "width": 390,
+      "lang": "en",
+      "state": "dialog",
+      "overflow": false,
+      "headings": 1,
+      "direction": "ltr",
+      "untranslated": [],
+      "brokenImages": []
+    },
+    {
+      "name": "setup-setup:area",
+      "width": 390,
+      "lang": "en",
+      "state": "dialog",
+      "overflow": false,
+      "headings": 1,
+      "direction": "ltr",
+      "untranslated": [],
+      "brokenImages": []
+    },
+    {
+      "name": "setup-setup:task",
+      "width": 390,
+      "lang": "en",
+      "state": "dialog",
+      "overflow": false,
+      "headings": 1,
+      "direction": "ltr",
+      "untranslated": [],
+      "brokenImages": []
+    },
+    {
+      "name": "customer-status-dialog",
+      "width": 390,
+      "lang": "ur",
+      "state": "dialog",
+      "overflow": false,
+      "headings": 1,
+      "direction": "rtl",
+      "untranslated": [],
+      "brokenImages": []
+    },
+    {
+      "name": "leads-lead-dialog",
+      "width": 390,
+      "lang": "ur",
+      "state": "dialog",
+      "overflow": false,
+      "headings": 1,
+      "direction": "rtl",
+      "untranslated": [],
+      "brokenImages": []
+    },
+    {
+      "name": "service-reconcile",
+      "width": 390,
+      "lang": "ur",
+      "state": "dialog",
+      "overflow": false,
+      "headings": 1,
+      "direction": "rtl",
+      "untranslated": [],
+      "brokenImages": []
+    },
+    {
+      "name": "service-runbook",
+      "width": 390,
+      "lang": "ur",
+      "state": "dialog",
+      "overflow": false,
+      "headings": 1,
+      "direction": "rtl",
+      "untranslated": [],
+      "brokenImages": []
+    },
+    {
+      "name": "operator-security-mfa-dialog",
+      "width": 390,
+      "lang": "ur",
+      "state": "dialog",
+      "overflow": false,
+      "headings": 1,
+      "direction": "rtl",
+      "untranslated": [],
+      "brokenImages": []
+    },
+    {
+      "name": "settings-contact-dialog",
+      "width": 390,
+      "lang": "ur",
+      "state": "dialog",
+      "overflow": false,
+      "headings": 1,
+      "direction": "rtl",
+      "untranslated": [],
+      "brokenImages": []
+    },
+    {
+      "name": "billing-plans-dialog",
+      "width": 390,
+      "lang": "ur",
+      "state": "dialog",
+      "overflow": false,
+      "headings": 1,
+      "direction": "rtl",
+      "untranslated": [],
+      "brokenImages": []
+    },
+    {
+      "name": "billing-cancel-dialog",
+      "width": 390,
+      "lang": "ur",
+      "state": "dialog",
+      "overflow": false,
+      "headings": 1,
+      "direction": "rtl",
+      "untranslated": [],
+      "brokenImages": []
+    },
+    {
+      "name": "billing-portal-dialog",
+      "width": 390,
+      "lang": "ur",
+      "state": "dialog",
+      "overflow": false,
+      "headings": 1,
+      "direction": "rtl",
+      "untranslated": [],
+      "brokenImages": []
+    },
+    {
+      "name": "workforce-worker-dialog",
+      "width": 390,
+      "lang": "ur",
+      "state": "dialog",
+      "overflow": false,
+      "headings": 1,
+      "direction": "rtl",
+      "untranslated": [],
+      "brokenImages": []
+    },
+    {
+      "name": "workforce-transfer-dialog",
+      "width": 390,
+      "lang": "ur",
+      "state": "dialog",
+      "overflow": false,
+      "headings": 1,
+      "direction": "rtl",
+      "untranslated": [],
+      "brokenImages": []
+    },
+    {
+      "name": "workforce-manager-dialog",
+      "width": 390,
+      "lang": "ur",
+      "state": "dialog",
+      "overflow": false,
+      "headings": 1,
+      "direction": "rtl",
+      "untranslated": [],
+      "brokenImages": []
+    },
+    {
+      "name": "workforce-add-staff",
+      "width": 390,
+      "lang": "ur",
+      "state": "dialog",
+      "overflow": false,
+      "headings": 1,
+      "direction": "rtl",
+      "untranslated": [],
+      "brokenImages": []
+    },
+    {
+      "name": "setup-setup:site",
+      "width": 390,
+      "lang": "ur",
+      "state": "dialog",
+      "overflow": false,
+      "headings": 1,
+      "direction": "rtl",
+      "untranslated": [],
+      "brokenImages": []
+    },
+    {
+      "name": "setup-setup:team",
+      "width": 390,
+      "lang": "ur",
+      "state": "dialog",
+      "overflow": false,
+      "headings": 1,
+      "direction": "rtl",
+      "untranslated": [],
+      "brokenImages": []
+    },
+    {
+      "name": "setup-setup:area",
+      "width": 390,
+      "lang": "ur",
+      "state": "dialog",
+      "overflow": false,
+      "headings": 1,
+      "direction": "rtl",
+      "untranslated": [],
+      "brokenImages": []
+    },
+    {
+      "name": "setup-setup:task",
+      "width": 390,
+      "lang": "ur",
+      "state": "dialog",
+      "overflow": false,
+      "headings": 1,
+      "direction": "rtl",
+      "untranslated": [],
+      "brokenImages": []
+    }
+  ],
+  "states": [
+    {
+      "name": "platform",
+      "state": "loading",
+      "lang": "en",
+      "overflow": false
+    },
+    {
+      "name": "platform",
+      "state": "loading",
+      "lang": "ur",
+      "overflow": false
+    },
+    {
+      "name": "platform",
+      "state": "empty",
+      "lang": "en",
+      "overflow": false
+    },
+    {
+      "name": "platform",
+      "state": "empty",
+      "lang": "ur",
+      "overflow": false
+    },
+    {
+      "name": "platform",
+      "state": "error",
+      "lang": "en",
+      "overflow": false
+    },
+    {
+      "name": "platform",
+      "state": "error",
+      "lang": "ur",
+      "overflow": false
+    },
+    {
+      "name": "platform",
+      "state": "denied",
+      "lang": "en",
+      "overflow": false
+    },
+    {
+      "name": "platform",
+      "state": "denied",
+      "lang": "ur",
+      "overflow": false
+    },
+    {
+      "name": "platform",
+      "state": "save-error",
+      "lang": "en",
+      "overflow": false
+    },
+    {
+      "name": "platform",
+      "state": "save-error",
+      "lang": "ur",
+      "overflow": false
+    },
+    {
+      "name": "platform",
+      "state": "conflict",
+      "lang": "en",
+      "overflow": false
+    },
+    {
+      "name": "platform",
+      "state": "conflict",
+      "lang": "ur",
+      "overflow": false
+    },
+    {
+      "name": "platform",
+      "state": "offline",
+      "lang": "en",
+      "overflow": false
+    },
+    {
+      "name": "platform",
+      "state": "offline",
+      "lang": "ur",
+      "overflow": false
+    },
+    {
+      "name": "customer",
+      "state": "loading",
+      "lang": "en",
+      "overflow": false
+    },
+    {
+      "name": "customer",
+      "state": "loading",
+      "lang": "ur",
+      "overflow": false
+    },
+    {
+      "name": "customer",
+      "state": "empty",
+      "lang": "en",
+      "overflow": false
+    },
+    {
+      "name": "customer",
+      "state": "empty",
+      "lang": "ur",
+      "overflow": false
+    },
+    {
+      "name": "customer",
+      "state": "error",
+      "lang": "en",
+      "overflow": false
+    },
+    {
+      "name": "customer",
+      "state": "error",
+      "lang": "ur",
+      "overflow": false
+    },
+    {
+      "name": "customer",
+      "state": "denied",
+      "lang": "en",
+      "overflow": false
+    },
+    {
+      "name": "customer",
+      "state": "denied",
+      "lang": "ur",
+      "overflow": false
+    },
+    {
+      "name": "customer",
+      "state": "save-error",
+      "lang": "en",
+      "overflow": false
+    },
+    {
+      "name": "customer",
+      "state": "save-error",
+      "lang": "ur",
+      "overflow": false
+    },
+    {
+      "name": "customer",
+      "state": "conflict",
+      "lang": "en",
+      "overflow": false
+    },
+    {
+      "name": "customer",
+      "state": "conflict",
+      "lang": "ur",
+      "overflow": false
+    },
+    {
+      "name": "customer",
+      "state": "offline",
+      "lang": "en",
+      "overflow": false
+    },
+    {
+      "name": "customer",
+      "state": "offline",
+      "lang": "ur",
+      "overflow": false
+    },
+    {
+      "name": "setup",
+      "state": "loading",
+      "lang": "en",
+      "overflow": false
+    },
+    {
+      "name": "setup",
+      "state": "loading",
+      "lang": "ur",
+      "overflow": false
+    },
+    {
+      "name": "setup",
+      "state": "empty",
+      "lang": "en",
+      "overflow": false
+    },
+    {
+      "name": "setup",
+      "state": "empty",
+      "lang": "ur",
+      "overflow": false
+    },
+    {
+      "name": "setup",
+      "state": "error",
+      "lang": "en",
+      "overflow": false
+    },
+    {
+      "name": "setup",
+      "state": "error",
+      "lang": "ur",
+      "overflow": false
+    },
+    {
+      "name": "setup",
+      "state": "denied",
+      "lang": "en",
+      "overflow": false
+    },
+    {
+      "name": "setup",
+      "state": "denied",
+      "lang": "ur",
+      "overflow": false
+    },
+    {
+      "name": "setup",
+      "state": "save-error",
+      "lang": "en",
+      "overflow": false
+    },
+    {
+      "name": "setup",
+      "state": "save-error",
+      "lang": "ur",
+      "overflow": false
+    },
+    {
+      "name": "setup",
+      "state": "conflict",
+      "lang": "en",
+      "overflow": false
+    },
+    {
+      "name": "setup",
+      "state": "conflict",
+      "lang": "ur",
+      "overflow": false
+    },
+    {
+      "name": "setup",
+      "state": "offline",
+      "lang": "en",
+      "overflow": false
+    },
+    {
+      "name": "setup",
+      "state": "offline",
+      "lang": "ur",
+      "overflow": false
+    },
+    {
+      "name": "billing",
+      "state": "loading",
+      "lang": "en",
+      "overflow": false
+    },
+    {
+      "name": "billing",
+      "state": "loading",
+      "lang": "ur",
+      "overflow": false
+    },
+    {
+      "name": "billing",
+      "state": "empty",
+      "lang": "en",
+      "overflow": false
+    },
+    {
+      "name": "billing",
+      "state": "empty",
+      "lang": "ur",
+      "overflow": false
+    },
+    {
+      "name": "billing",
+      "state": "error",
+      "lang": "en",
+      "overflow": false
+    },
+    {
+      "name": "billing",
+      "state": "error",
+      "lang": "ur",
+      "overflow": false
+    },
+    {
+      "name": "billing",
+      "state": "denied",
+      "lang": "en",
+      "overflow": false
+    },
+    {
+      "name": "billing",
+      "state": "denied",
+      "lang": "ur",
+      "overflow": false
+    },
+    {
+      "name": "billing",
+      "state": "save-error",
+      "lang": "en",
+      "overflow": false
+    },
+    {
+      "name": "billing",
+      "state": "save-error",
+      "lang": "ur",
+      "overflow": false
+    },
+    {
+      "name": "billing",
+      "state": "conflict",
+      "lang": "en",
+      "overflow": false
+    },
+    {
+      "name": "billing",
+      "state": "conflict",
+      "lang": "ur",
+      "overflow": false
+    },
+    {
+      "name": "billing",
+      "state": "offline",
+      "lang": "en",
+      "overflow": false
+    },
+    {
+      "name": "billing",
+      "state": "offline",
+      "lang": "ur",
+      "overflow": false
+    },
+    {
+      "name": "mobile",
+      "state": "loading",
+      "lang": "en",
+      "overflow": false
+    },
+    {
+      "name": "mobile",
+      "state": "loading",
+      "lang": "ur",
+      "overflow": false
+    },
+    {
+      "name": "mobile",
+      "state": "empty",
+      "lang": "en",
+      "overflow": false
+    },
+    {
+      "name": "mobile",
+      "state": "empty",
+      "lang": "ur",
+      "overflow": false
+    },
+    {
+      "name": "mobile",
+      "state": "error",
+      "lang": "en",
+      "overflow": false
+    },
+    {
+      "name": "mobile",
+      "state": "error",
+      "lang": "ur",
+      "overflow": false
+    },
+    {
+      "name": "mobile",
+      "state": "denied",
+      "lang": "en",
+      "overflow": false
+    },
+    {
+      "name": "mobile",
+      "state": "denied",
+      "lang": "ur",
+      "overflow": false
+    },
+    {
+      "name": "mobile",
+      "state": "save-error",
+      "lang": "en",
+      "overflow": false
+    },
+    {
+      "name": "mobile",
+      "state": "save-error",
+      "lang": "ur",
+      "overflow": false
+    },
+    {
+      "name": "mobile",
+      "state": "conflict",
+      "lang": "en",
+      "overflow": false
+    },
+    {
+      "name": "mobile",
+      "state": "conflict",
+      "lang": "ur",
+      "overflow": false
+    },
+    {
+      "name": "mobile",
+      "state": "offline",
+      "lang": "en",
+      "overflow": false
+    },
+    {
+      "name": "mobile",
+      "state": "offline",
+      "lang": "ur",
+      "overflow": false
+    },
+    {
+      "name": "settings",
+      "state": "loading",
+      "lang": "en",
+      "overflow": false
+    },
+    {
+      "name": "settings",
+      "state": "loading",
+      "lang": "ur",
+      "overflow": false
+    },
+    {
+      "name": "settings",
+      "state": "empty",
+      "lang": "en",
+      "overflow": false
+    },
+    {
+      "name": "settings",
+      "state": "empty",
+      "lang": "ur",
+      "overflow": false
+    },
+    {
+      "name": "settings",
+      "state": "error",
+      "lang": "en",
+      "overflow": false
+    },
+    {
+      "name": "settings",
+      "state": "error",
+      "lang": "ur",
+      "overflow": false
+    },
+    {
+      "name": "settings",
+      "state": "denied",
+      "lang": "en",
+      "overflow": false
+    },
+    {
+      "name": "settings",
+      "state": "denied",
+      "lang": "ur",
+      "overflow": false
+    },
+    {
+      "name": "settings",
+      "state": "save-error",
+      "lang": "en",
+      "overflow": false
+    },
+    {
+      "name": "settings",
+      "state": "save-error",
+      "lang": "ur",
+      "overflow": false
+    },
+    {
+      "name": "settings",
+      "state": "conflict",
+      "lang": "en",
+      "overflow": false
+    },
+    {
+      "name": "settings",
+      "state": "conflict",
+      "lang": "ur",
+      "overflow": false
+    },
+    {
+      "name": "settings",
+      "state": "offline",
+      "lang": "en",
+      "overflow": false
+    },
+    {
+      "name": "settings",
+      "state": "offline",
+      "lang": "ur",
+      "overflow": false
+    },
+    {
+      "name": "attendance-case",
+      "state": "loading",
+      "lang": "en",
+      "overflow": false
+    },
+    {
+      "name": "attendance-case",
+      "state": "loading",
+      "lang": "ur",
+      "overflow": false
+    },
+    {
+      "name": "attendance-case",
+      "state": "empty",
+      "lang": "en",
+      "overflow": false
+    },
+    {
+      "name": "attendance-case",
+      "state": "empty",
+      "lang": "ur",
+      "overflow": false
+    },
+    {
+      "name": "attendance-case",
+      "state": "error",
+      "lang": "en",
+      "overflow": false
+    },
+    {
+      "name": "attendance-case",
+      "state": "error",
+      "lang": "ur",
+      "overflow": false
+    },
+    {
+      "name": "attendance-case",
+      "state": "denied",
+      "lang": "en",
+      "overflow": false
+    },
+    {
+      "name": "attendance-case",
+      "state": "denied",
+      "lang": "ur",
+      "overflow": false
+    },
+    {
+      "name": "attendance-case",
+      "state": "save-error",
+      "lang": "en",
+      "overflow": false
+    },
+    {
+      "name": "attendance-case",
+      "state": "save-error",
+      "lang": "ur",
+      "overflow": false
+    },
+    {
+      "name": "attendance-case",
+      "state": "conflict",
+      "lang": "en",
+      "overflow": false
+    },
+    {
+      "name": "attendance-case",
+      "state": "conflict",
+      "lang": "ur",
+      "overflow": false
+    },
+    {
+      "name": "attendance-case",
+      "state": "offline",
+      "lang": "en",
+      "overflow": false
+    },
+    {
+      "name": "attendance-case",
+      "state": "offline",
+      "lang": "ur",
+      "overflow": false
+    },
+    {
+      "name": "help",
+      "state": "loading",
+      "lang": "en",
+      "overflow": false
+    },
+    {
+      "name": "help",
+      "state": "loading",
+      "lang": "ur",
+      "overflow": false
+    },
+    {
+      "name": "help",
+      "state": "empty",
+      "lang": "en",
+      "overflow": false
+    },
+    {
+      "name": "help",
+      "state": "empty",
+      "lang": "ur",
+      "overflow": false
+    },
+    {
+      "name": "help",
+      "state": "error",
+      "lang": "en",
+      "overflow": false
+    },
+    {
+      "name": "help",
+      "state": "error",
+      "lang": "ur",
+      "overflow": false
+    },
+    {
+      "name": "help",
+      "state": "denied",
+      "lang": "en",
+      "overflow": false
+    },
+    {
+      "name": "help",
+      "state": "denied",
+      "lang": "ur",
+      "overflow": false
+    },
+    {
+      "name": "help",
+      "state": "save-error",
+      "lang": "en",
+      "overflow": false
+    },
+    {
+      "name": "help",
+      "state": "save-error",
+      "lang": "ur",
+      "overflow": false
+    },
+    {
+      "name": "help",
+      "state": "conflict",
+      "lang": "en",
+      "overflow": false
+    },
+    {
+      "name": "help",
+      "state": "conflict",
+      "lang": "ur",
+      "overflow": false
+    },
+    {
+      "name": "help",
+      "state": "offline",
+      "lang": "en",
+      "overflow": false
+    },
+    {
+      "name": "help",
+      "state": "offline",
+      "lang": "ur",
+      "overflow": false
+    }
+  ],
+  "axe": [
+    {
+      "key": "index-390-en",
+      "violations": []
+    },
+    {
+      "key": "index-390-ur",
+      "violations": []
+    },
+    {
+      "key": "platform-390-en",
+      "violations": []
+    },
+    {
+      "key": "platform-390-ur",
+      "violations": []
+    },
+    {
+      "key": "platform-1366-en",
+      "violations": []
+    },
+    {
+      "key": "platform-1366-ur",
+      "violations": []
+    },
+    {
+      "key": "customer-390-en",
+      "violations": []
+    },
+    {
+      "key": "customer-390-ur",
+      "violations": []
+    },
+    {
+      "key": "customer-1366-en",
+      "violations": []
+    },
+    {
+      "key": "customer-1366-ur",
+      "violations": []
+    },
+    {
+      "key": "operator-login-390-en",
+      "violations": []
+    },
+    {
+      "key": "operator-login-390-ur",
+      "violations": []
+    },
+    {
+      "key": "operator-security-390-en",
+      "violations": []
+    },
+    {
+      "key": "operator-security-390-ur",
+      "violations": []
+    },
+    {
+      "key": "service-390-en",
+      "violations": []
+    },
+    {
+      "key": "service-390-ur",
+      "violations": []
+    },
+    {
+      "key": "audit-390-en",
+      "violations": []
+    },
+    {
+      "key": "audit-390-ur",
+      "violations": []
+    },
+    {
+      "key": "leads-390-en",
+      "violations": []
+    },
+    {
+      "key": "leads-390-ur",
+      "violations": []
+    },
+    {
+      "key": "setup-390-en",
+      "violations": []
+    },
+    {
+      "key": "setup-390-ur",
+      "violations": []
+    },
+    {
+      "key": "setup-1366-en",
+      "violations": []
+    },
+    {
+      "key": "setup-1366-ur",
+      "violations": []
+    },
+    {
+      "key": "settings-390-en",
+      "violations": []
+    },
+    {
+      "key": "settings-390-ur",
+      "violations": []
+    },
+    {
+      "key": "billing-390-en",
+      "violations": []
+    },
+    {
+      "key": "billing-390-ur",
+      "violations": []
+    },
+    {
+      "key": "billing-1366-en",
+      "violations": []
+    },
+    {
+      "key": "billing-1366-ur",
+      "violations": []
+    },
+    {
+      "key": "workforce-390-en",
+      "violations": []
+    },
+    {
+      "key": "workforce-390-ur",
+      "violations": []
+    },
+    {
+      "key": "workforce-1366-en",
+      "violations": []
+    },
+    {
+      "key": "workforce-1366-ur",
+      "violations": []
+    },
+    {
+      "key": "attendance-case-390-en",
+      "violations": []
+    },
+    {
+      "key": "attendance-case-390-ur",
+      "violations": []
+    },
+    {
+      "key": "attendance-case-1366-en",
+      "violations": []
+    },
+    {
+      "key": "attendance-case-1366-ur",
+      "violations": []
+    },
+    {
+      "key": "help-390-en",
+      "violations": []
+    },
+    {
+      "key": "help-390-ur",
+      "violations": []
+    },
+    {
+      "key": "access-390-en",
+      "violations": []
+    },
+    {
+      "key": "access-390-ur",
+      "violations": []
+    },
+    {
+      "key": "overview-390-en",
+      "violations": []
+    },
+    {
+      "key": "overview-390-ur",
+      "violations": []
+    },
+    {
+      "key": "mobile-390-en",
+      "violations": []
+    },
+    {
+      "key": "mobile-390-ur",
+      "violations": []
+    },
+    {
+      "key": "mobile-1366-en",
+      "violations": []
+    },
+    {
+      "key": "mobile-1366-ur",
+      "violations": []
+    },
+    {
+      "key": "login-390-en",
+      "violations": []
+    },
+    {
+      "key": "login-390-ur",
+      "violations": []
+    },
+    {
+      "key": "recovery-390-en",
+      "violations": []
+    },
+    {
+      "key": "recovery-390-ur",
+      "violations": []
+    },
+    {
+      "key": "verify-390-en",
+      "violations": []
+    },
+    {
+      "key": "verify-390-ur",
+      "violations": []
+    },
+    {
+      "key": "handoff-390-en",
+      "violations": []
+    },
+    {
+      "key": "handoff-390-ur",
+      "violations": []
+    },
+    {
+      "key": "information-390-en",
+      "violations": []
+    },
+    {
+      "key": "information-390-ur",
+      "violations": []
+    },
+    {
+      "key": "decisions-390-en",
+      "violations": []
+    },
+    {
+      "key": "decisions-390-ur",
+      "violations": []
+    },
+    {
+      "key": "owner-390-en",
+      "violations": []
+    },
+    {
+      "key": "owner-390-ur",
+      "violations": []
+    },
+    {
+      "key": "manager-390-en",
+      "violations": []
+    },
+    {
+      "key": "manager-390-ur",
+      "violations": []
+    },
+    {
+      "key": "reviews-390-en",
+      "violations": []
+    },
+    {
+      "key": "reviews-390-ur",
+      "violations": []
+    },
+    {
+      "key": "location-390-en",
+      "violations": []
+    },
+    {
+      "key": "location-390-ur",
+      "violations": []
+    },
+    {
+      "key": "team-390-en",
+      "violations": []
+    },
+    {
+      "key": "team-390-ur",
+      "violations": []
+    },
+    {
+      "key": "attendance-390-en",
+      "violations": []
+    },
+    {
+      "key": "attendance-390-ur",
+      "violations": []
+    },
+    {
+      "key": "customer-reconcile-dialog-en",
+      "violations": []
+    },
+    {
+      "key": "customer-reconcile-dialog-ur",
+      "violations": []
+    },
+    {
+      "key": "customer-status-dialog-390-en",
+      "violations": []
+    },
+    {
+      "key": "customer-status-dialog-390-ur",
+      "violations": []
+    },
+    {
+      "key": "customer-reconcile-dialog-en",
+      "violations": []
+    },
+    {
+      "key": "customer-reconcile-dialog-ur",
+      "violations": []
+    },
+    {
+      "key": "customer-status-dialog-390-en",
+      "violations": []
+    },
+    {
+      "key": "leads-lead-dialog-390-en",
+      "violations": []
+    },
+    {
+      "key": "service-reconcile-390-en",
+      "violations": []
+    },
+    {
+      "key": "service-runbook-390-en",
+      "violations": []
+    },
+    {
+      "key": "operator-security-mfa-dialog-390-en",
+      "violations": []
+    },
+    {
+      "key": "settings-contact-dialog-390-en",
+      "violations": []
+    },
+    {
+      "key": "billing-plans-dialog-390-en",
+      "violations": []
+    },
+    {
+      "key": "billing-cancel-dialog-390-en",
+      "violations": []
+    },
+    {
+      "key": "billing-portal-dialog-390-en",
+      "violations": []
+    },
+    {
+      "key": "workforce-worker-dialog-390-en",
+      "violations": []
+    },
+    {
+      "key": "workforce-transfer-dialog-390-en",
+      "violations": []
+    },
+    {
+      "key": "workforce-manager-dialog-390-en",
+      "violations": []
+    },
+    {
+      "key": "workforce-add-staff-390-en",
+      "violations": []
+    },
+    {
+      "key": "setup-setup:site-390-en",
+      "violations": []
+    },
+    {
+      "key": "setup-setup:team-390-en",
+      "violations": []
+    },
+    {
+      "key": "setup-setup:area-390-en",
+      "violations": []
+    },
+    {
+      "key": "setup-setup:task-390-en",
+      "violations": []
+    },
+    {
+      "key": "customer-status-dialog-390-ur",
+      "violations": []
+    },
+    {
+      "key": "leads-lead-dialog-390-ur",
+      "violations": []
+    },
+    {
+      "key": "service-reconcile-390-ur",
+      "violations": []
+    },
+    {
+      "key": "service-runbook-390-ur",
+      "violations": []
+    },
+    {
+      "key": "operator-security-mfa-dialog-390-ur",
+      "violations": []
+    },
+    {
+      "key": "settings-contact-dialog-390-ur",
+      "violations": []
+    },
+    {
+      "key": "billing-plans-dialog-390-ur",
+      "violations": []
+    },
+    {
+      "key": "billing-cancel-dialog-390-ur",
+      "violations": []
+    },
+    {
+      "key": "billing-portal-dialog-390-ur",
+      "violations": []
+    },
+    {
+      "key": "workforce-worker-dialog-390-ur",
+      "violations": []
+    },
+    {
+      "key": "workforce-transfer-dialog-390-ur",
+      "violations": []
+    },
+    {
+      "key": "workforce-manager-dialog-390-ur",
+      "violations": []
+    },
+    {
+      "key": "workforce-add-staff-390-ur",
+      "violations": []
+    },
+    {
+      "key": "setup-setup:site-390-ur",
+      "violations": []
+    },
+    {
+      "key": "setup-setup:team-390-ur",
+      "violations": []
+    },
+    {
+      "key": "setup-setup:area-390-ur",
+      "violations": []
+    },
+    {
+      "key": "setup-setup:task-390-ur",
+      "violations": []
+    },
+    {
+      "key": "workforce-recorded-390-en",
+      "violations": []
+    },
+    {
+      "key": "workforce-recorded-390-ur",
+      "violations": []
+    }
+  ],
+  "interactions": [
+    {
+      "name": "Company search/filter/pagination en",
+      "pass": true
+    },
+    {
+      "name": "Account state/reason/confirmation/audit en",
+      "pass": true
+    },
+    {
+      "name": "Conflict and language keep modal draft en",
+      "pass": true
+    },
+    {
+      "name": "Complete resumable setup en",
+      "pass": true
+    },
+    {
+      "name": "Manager scope/hire site/security tabs en",
+      "pass": true
+    },
+    {
+      "name": "Attendance note and original facts en",
+      "pass": true
+    },
+    {
+      "name": "Billing lifecycle and no external checkout en",
+      "pass": true
+    },
+    {
+      "name": "Operator MFA and tenant role destinations en",
+      "pass": true
+    },
+    {
+      "name": "Recovery/verification/expired links en",
+      "pass": true
+    },
+    {
+      "name": "Lead handoff and support no false send en",
+      "pass": true
+    },
+    {
+      "name": "Staff complete day/lost-response/submit/checkout en",
+      "pass": true
+    },
+    {
+      "name": "Staff permissions/alerts/offline en",
+      "pass": true
+    },
+    {
+      "name": "Preserved Today/review draft workflow en",
+      "pass": true
+    },
+    {
+      "name": "Company search/filter/pagination ur",
+      "pass": true
+    },
+    {
+      "name": "Account state/reason/confirmation/audit ur",
+      "pass": true
+    },
+    {
+      "name": "Conflict and language keep modal draft ur",
+      "pass": true
+    },
+    {
+      "name": "Complete resumable setup ur",
+      "pass": true
+    },
+    {
+      "name": "Manager scope/hire site/security tabs ur",
+      "pass": true
+    },
+    {
+      "name": "Attendance note and original facts ur",
+      "pass": true
+    },
+    {
+      "name": "Billing lifecycle and no external checkout ur",
+      "pass": true
+    },
+    {
+      "name": "Operator MFA and tenant role destinations ur",
+      "pass": true
+    },
+    {
+      "name": "Recovery/verification/expired links ur",
+      "pass": true
+    },
+    {
+      "name": "Lead handoff and support no false send ur",
+      "pass": true
+    },
+    {
+      "name": "Staff complete day/lost-response/submit/checkout ur",
+      "pass": true
+    },
+    {
+      "name": "Staff permissions/alerts/offline ur",
+      "pass": true
+    },
+    {
+      "name": "Preserved Today/review draft workflow ur",
+      "pass": true
+    },
+    {
+      "name": "All dialog types on phone and keyboard en",
+      "pass": true
+    },
+    {
+      "name": "All dialog types on phone and keyboard ur",
+      "pass": true
+    },
+    {
+      "name": "Gallery and connected navigation targets",
+      "pass": true
+    },
+    {
+      "name": "Reviewer fixes: visible hires and attributed proposed handovers en",
+      "pass": true
+    },
+    {
+      "name": "Reviewer fixes: visible hires and attributed proposed handovers ur",
+      "pass": true
+    },
+    {
+      "name": "Keyboard modal focus/escape and reduced motion",
+      "pass": true
+    }
+  ],
+  "errors": [],
+  "failures": [],
+  "externalRequests": []
+}

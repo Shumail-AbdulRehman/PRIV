@@ -30,7 +30,8 @@
     "test:verification:latency": "tsx tests/directPhoto.latency.integration.ts",
     "test:staff-notifications:integration": "tsx tests/staffNotifications.integration.ts",
     "test:mobile:integration": "tsx tests/staffMobile.integration.ts",
-    "test:review-closure": "tsx tests/reviewClosure.integration.ts"
+    "test:review-closure": "tsx tests/reviewClosure.integration.ts",
+    "test:performance:integration": "tsx tests/companyPerformance.integration.ts"
   },
   "keywords": [],
   "author": "",

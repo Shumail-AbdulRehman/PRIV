@@ -81,13 +81,16 @@ export const editLocation = async (req: Request, res: Response) => {
 };
 
 export const getLocations = async (req: Request, res: Response) => {
-
+  const includeInactive = req.query.includeInactive;
+  if (includeInactive !== undefined && includeInactive !== "true" && includeInactive !== "false") {
+    throw new ApiError(400, "includeInactive must be true or false");
+  }
   const scopedLocationIds = getScopedLocationIds(req.user!);
 
   const locations = await prisma.location.findMany({
     where: {
       companyId: req.user!.companyId,
-      isActive: true,
+      ...(includeInactive === "true" ? {} : { isActive: true }),
       ...(scopedLocationIds ? { id: { in: scopedLocationIds } } : {}),
     },
     orderBy: { name: "asc" },
