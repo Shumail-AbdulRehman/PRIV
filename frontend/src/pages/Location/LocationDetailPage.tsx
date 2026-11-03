@@ -1,3 +1,4 @@
+import StaffImportDialog from "./StaffImportDialog";
 import { locationStatsFilter, type LocationHistoryPeriod } from "./locationStatsFilter";
 import TaskQr from '../Task/components/TaskQr';
 import OperationStatus from "@/components/common/OperationStatus";
@@ -435,6 +436,8 @@ const LocationDetailPage: React.FC = () => {
               <p>{t("Assigned staff and their shifts at this location")}</p>
             </div>
             {locationInfo.isActive ? (
+              <div className="flex flex-wrap gap-2">
+              <StaffImportDialog key={locationInfo.id} location={locationInfo}/>
               <Button
                 onClick={() => {
                   setStaffAdded(false);
@@ -444,6 +447,7 @@ const LocationDetailPage: React.FC = () => {
                 <Plus size={16} />
                 {t("Add staff")}
               </Button>
+              </div>
             ) : null}
           </div>
           {staffAdded ? (

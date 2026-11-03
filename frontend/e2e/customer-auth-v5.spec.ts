@@ -18,7 +18,11 @@ test('V5 customer auth pages render at matching desktop/phone English/Urdu sizes
    await page.goto(path);await expect(page.locator('.v5-auth h1')).toBeVisible();await page.evaluate(()=>document.fonts.ready);
    await page.screenshot({path:join(out,`app-${name}-${width}-${lang}.png`),fullPage:true});
    const geometry=await page.evaluate(()=>{const brand=document.querySelector('.v5-auth-brand')!.getBoundingClientRect(),title=document.querySelector('.v5-auth h1')!.getBoundingClientRect();return {brandToTitle:title.y-brand.bottom};});
-   expect(geometry.brandToTitle).toBeGreaterThanOrEqual(39);expect(geometry.brandToTitle).toBeLessThanOrEqual(41);
+   if(name==='login'){
+    expect(geometry.brandToTitle).toBeGreaterThan(0);
+    await expect(page.locator('.login-intro')).toBeVisible({visible:width>800});
+    await expect(page.getByRole('link',{name:lang==='ur'?'پلیٹ فارم مالک کا داخلہ':'Platform owner sign-in',exact:true})).toHaveAttribute('href','/platform/login');
+   }else{expect(geometry.brandToTitle).toBeGreaterThanOrEqual(39);expect(geometry.brandToTitle).toBeLessThanOrEqual(41);}
    const overflow=await page.evaluate(()=>document.documentElement.scrollWidth>innerWidth+1);results.push({name,path,prototype,width,lang,geometry,overflow,errors:[...errors]});expect(overflow).toBe(false);expect(errors).toEqual([]);errors.length=0;
    await expect(page.locator('.language-choice')).toHaveCount(1);await expect(page.locator('.auth-preview')).toHaveCount(0);
    const reference=await context.newPage();await reference.goto('file://'+join(root,`design/v5/${prototype}.html`)+`?lang=${lang}${name.endsWith('missing')?'&link=expired':''}`);await reference.evaluate(()=>document.fonts.ready);await reference.screenshot({path:join(out,`v5-${name}-${width}-${lang}.png`),fullPage:true});await reference.close();
@@ -66,6 +70,8 @@ test('actual owner recovery explains unavailable delivery without claiming a sen
 });
 test('real rejected sign-in remains on the form and permits a corrected retry',async({page})=>{
  await page.setViewportSize({width:1366,height:900});await page.goto('/login');await page.getByLabel('Email',{exact:true}).fill('no-account@example.invalid');await page.getByLabel('Password',{exact:true}).fill(randomBytes(20).toString('hex'));
+ await page.getByRole('button',{name:'Show password',exact:true}).click();await expect(page.getByLabel('Password',{exact:true})).toHaveAttribute('type','text');
+ await page.getByRole('button',{name:'Hide password',exact:true}).click();await expect(page.getByLabel('Password',{exact:true})).toHaveAttribute('type','password');
  await page.getByRole('button',{name:'Sign in',exact:true}).click();await expect(page.getByRole('alert')).toContainText('Email or password is incorrect.');await expect(page).toHaveURL(/login/);
  await page.getByLabel('Password',{exact:true}).clear();await page.screenshot({path:join(out,'app-login-denied-1366-en.png'),fullPage:true});
 });

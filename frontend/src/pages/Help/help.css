@@ -27,7 +27,7 @@
 html[dir=rtl] .v5-help-next svg { transform:rotate(180deg); }
 .workspace .v5-service-contact { margin-block:24px; }
 .workspace .v5-service-notice { padding:16px; background:var(--accent); border:1px solid var(--border); border-radius:7px; font-size:14px; }
-.workspace .v5-service-email { display:flex; flex-direction:column; align-items:flex-start; justify-content:center; gap:4px; padding-block:8px; overflow-wrap:anywhere; max-width:100%; }
+.workspace .v5-service-contact .v5-service-email { display:flex; flex-direction:column; align-items:flex-start; justify-content:center; gap:4px; padding-block:8px; overflow-wrap:anywhere; max-width:100%; }
 .workspace .v5-service-email bdi { max-width:100%; overflow-wrap:anywhere; }
 .workspace .v5-service-note { margin-top:12px; color:var(--muted-foreground); font-size:13px; }
 .workspace .v5-service-contact [role=alert] p { margin-bottom:12px; }
@@ -43,8 +43,8 @@ html[dir=rtl] .v5-help-next svg { transform:rotate(180deg); }
 .workspace .v5-information a { display:inline-flex; min-height:44px; align-items:center; color:var(--primary); text-decoration:underline; text-underline-offset:3px; }
 .workspace .v5-information .v5-service-contact { margin-block:0; }
 .workspace .v5-information .v5-service-email { display:flex; align-items:flex-start; }
-.workspace .v5-help-page .language-choice button { min-height:38px; }
-.workspace .v5-help-page .language-choice button[aria-pressed=true] { background:var(--accent); box-shadow:none; }
+.workspace.v5-help-page .language-choice button { min-height:44px; }
+.workspace.v5-help-page .language-choice button[aria-pressed=true] { background:var(--accent); box-shadow:none; }
 @media(max-width:900px) {
  .workspace .v5-help-split { grid-template-columns:1fr; }
  .workspace .v5-help-content { padding:24px; }
@@ -55,5 +55,5 @@ html[dir=rtl] .v5-help-next svg { transform:rotate(180deg); }
  .workspace .v5-help-heading h1 { font-size:27px; }
  .workspace .v5-help-panel>header,.workspace .v5-help-pad { padding:18px; }
  .workspace .v5-help-pad button,.workspace .v5-help-pad a,.workspace .v5-help-pad summary,.workspace .v5-information a { min-height:48px; }
- .workspace .v5-help-page .language-choice button { min-height:40px; }
+ .workspace.v5-help-page .language-choice button { min-height:48px; }
 }

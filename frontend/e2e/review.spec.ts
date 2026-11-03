@@ -51,7 +51,7 @@ test("real review UI separates missing upload/submission/review/verification and
   ).toBe("RESOLVED");
   await page.reload();
   await expect(
-    page.getByText("E2E missing evidence investigated without verification"),
+    page.getByRole("region", {name: "Decision recorded"}).getByText("E2E missing evidence investigated without verification"),
   ).toBeVisible();
 });
 test("real task QR is task-bound while retired review extensions remain denied", async ({

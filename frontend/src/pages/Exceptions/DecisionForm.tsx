@@ -9,7 +9,7 @@ import {closeException} from './api';
 import type {ExceptionDetail,ReviewClosureAction,PerformanceCategory} from './types';
 import {performanceCategoryLabels} from './performancePresentation';
 import {localTime} from '../Manager/operations';
-export default function DecisionForm({detail,onDone,nextReviewHref}:{detail:ExceptionDetail;onDone:(message?:string)=>Promise<void>;nextReviewHref?:string}){
+export default function DecisionForm({detail,onDone,nextReviewHref,unavailable=false}:{detail:ExceptionDetail;onDone:(message?:string)=>Promise<void>;nextReviewHref?:string;unavailable?:boolean}){
  const {t,language}=useLanguage(),online=useOnline();
  const actions=detail.closureActions??[];
  const staffOptions=detail.performanceStaffOptions??[];
@@ -20,7 +20,7 @@ export default function DecisionForm({detail,onDone,nextReviewHref}:{detail:Exce
  const stale=conflictVersion!==null && conflictVersion===detail.rowVersion;
  const pending=useRef<{body:string;requestId:string}|null>(null),saving=useRef(false);
  const mutation=useMutation({mutationFn:async()=>{
-  if(!online||!action||!actions.includes(action))throw new Error(t('Refresh this review before choosing an action.'));
+  if(unavailable||!online||!action||!actions.includes(action))throw new Error(t('Refresh this review before choosing an action.'));
   const input={expectedVersion:detail.rowVersion,action,note:note.trim(),...(action==='RECORD_PERFORMANCE_ISSUE'?{staffId:Number(staffId),category:category as PerformanceCategory}:{})};
   const body=JSON.stringify(input);if(pending.current?.body!==body)pending.current={body,requestId:crypto.randomUUID()};
   return closeException(detail.id,{...input,requestId:pending.current.requestId});
@@ -50,18 +50,20 @@ export default function DecisionForm({detail,onDone,nextReviewHref}:{detail:Exce
  if(detail.kind==='SETUP')return <p role="status">{t('Complete the room setup before reviewing task photos. No staff decision is available for this setup record.')}</p>;
  if(!actions.length)return <p role="status">{t('Review decisions could not be loaded. Refresh the page to continue.')}</p>;
  const performance=action==='RECORD_PERFORMANCE_ISSUE';
- const conflict=stale||(mutation.error as {response?:{status?:number}})?.response?.status===409;
+ const errorStatus=(mutation.error as {response?:{status?:number}})?.response?.status;
+ const conflict=stale;
  const field='min-h-12 w-full rounded-lg border border-border bg-background px-3 py-3 text-base';
  return <div className="ops-decision-actions ops-review-closure">
   {blocker.state==='blocked'&&<div role="alert" className="operations-notice"><p>{t('You have an unsaved note. Stay to save it or leave this review.')}</p><Button type="button" onClick={()=>blocker.reset()}>{t('Stay here')}</Button><Button type="button" variant="outline" onClick={()=>blocker.proceed()}>{t('Leave review')}</Button></div>}
   <h3>{t('Your decision')}</h3>
+  {unavailable&&<div className="operations-notice" role="alert"><p>{t('Review details could not refresh. Your note is kept. Refresh before saving a decision.')}</p><Button type="button" variant="outline" onClick={()=>void onDone()}>{t('Refresh review')}</Button></div>}
   <p className="text-sm text-muted-foreground">{t('Choose one outcome for the whole task review. It stays in exceptions until you save a decision.')}</p>
   <div className="ops-review-outcomes">
    {actions.includes('RESOLVE_REVIEW')&&<button type="button" className="ops-review-outcome" aria-label={t('Resolve review')} aria-pressed={action==='RESOLVE_REVIEW'} onClick={()=>{setAction('RESOLVE_REVIEW');mutation.reset();}} disabled={mutation.isPending}><CheckCircle2 size={20}/><span><strong>{t('Resolve review')}</strong><small>{t('Close this review without recording a staff performance issue.')}</small></span></button>}
    {actions.includes('RECORD_PERFORMANCE_ISSUE')&&<button type="button" className="ops-review-outcome" aria-label={t('Record staff performance issue')} aria-pressed={performance} onClick={()=>{setAction('RECORD_PERFORMANCE_ISSUE');mutation.reset();}} disabled={mutation.isPending}><ClipboardList size={20}/><span><strong>{t('Record staff performance issue')}</strong><small>{t('Save a staff KPI issue and close this review.')}</small></span></button>}
   </div>
   {!actions.includes('RECORD_PERFORMANCE_ISSUE')&&<p className="text-sm text-muted-foreground">{t(detail.performanceIssueRecorded?'A performance issue has already been recorded for this task.':'A performance issue needs a staff member assigned to this task.')}</p>}
-  {action&&<form className="ops-review-closure-form space-y-4" onSubmit={event=>{event.preventDefault();if(stale||!online||saving.current||mutation.isPending||!note.trim())return;saving.current=true;mutation.mutate();}}>
+  {action&&<form className="ops-review-closure-form space-y-4" onSubmit={event=>{event.preventDefault();if(unavailable||stale||!online||saving.current||mutation.isPending||!note.trim())return;saving.current=true;mutation.mutate();}}>
    <h4 className="font-semibold">{t(performance?'Record staff performance issue and close':'Resolve this task review')}</h4>
    {performance&&<>
     <label className="grid gap-2 text-sm font-medium">{t('Staff member')}<select aria-label={t('Staff member')} required className={field} value={staffId} onChange={event=>setStaffId(event.target.value)}><option value="">{t('Choose responsible staff member')}</option>{staffOptions.map(staff=><option key={staff.id} value={staff.id}>{staff.name}</option>)}</select></label>
@@ -70,8 +72,8 @@ export default function DecisionForm({detail,onDone,nextReviewHref}:{detail:Exce
    </>}
    <label className="grid gap-2 text-sm font-medium">{t(performance?'Performance note':'Resolution note')}<textarea aria-label={t(performance?'Performance note':'Resolution note')} required maxLength={1000} rows={3} className={field} value={note} onChange={event=>setNote(event.target.value)} placeholder={t(performance?'Describe the staff performance concern and what you checked.':'Explain why this review can be closed.')}/></label>
    <p className="text-sm text-muted-foreground">{t('This closes the review. Existing photos and task completion records stay as recorded.')}</p>
-   {mutation.isError&&<p role="alert" className="text-sm text-destructive">{conflict?t('This review changed. Refresh before saving. Your note is kept.'):(mutation.error as {response?:{data?:{message?:string}}}).response?.data?.message??t('Could not save your decision. Check your connection and try again.')}</p>}
-   <div className="flex flex-wrap gap-3">{conflict&&<Button type="button" variant="outline" onClick={()=>void onDone()}>{t('Refresh review')}</Button>}<Button type="submit" disabled={stale||!online||mutation.isPending||!note.trim()||!actions.includes(action)||(performance&&(!staffId||!category))}>{t(mutation.isPending?'Saving decision…':performance?'Record issue and close review':'Confirm resolution')}</Button><Button type="button" variant="ghost" disabled={mutation.isPending} onClick={()=>{setAction('');mutation.reset();}}>{t('Cancel')}</Button></div>
+   {mutation.isError&&(errorStatus!==409||stale)&&<p role="alert" className="text-sm text-destructive">{conflict?t('This review changed. Refresh before saving. Your note is kept.'):[401,403].includes(errorStatus??0)?t('You do not have access to save a decision for this review. Your note is kept.'):t('Could not save your decision. Check your connection and try again.')}</p>}
+   <div className="flex flex-wrap gap-3">{conflict&&!unavailable&&<Button type="button" variant="outline" onClick={()=>void onDone()}>{t('Refresh review')}</Button>}<Button type="submit" disabled={unavailable||stale||!online||mutation.isPending||!note.trim()||!actions.includes(action)||(performance&&(!staffId||!category))}>{t(mutation.isPending?'Saving decision…':performance?'Record issue and close review':'Confirm resolution')}</Button><Button type="button" variant="ghost" disabled={mutation.isPending} onClick={()=>{setAction('');mutation.reset();}}>{t('Cancel')}</Button></div>
   </form>}
  </div>;
 }

@@ -74,6 +74,38 @@ External release facts only: configured IdP/MFA/people, verified sender/support 
 
 ## Known gaps
 
+Latest single-spec continuation2026-10-29:36's local web behavior/V5 matrix is
+verified, but full36is Blocked on the existing qualified retained-media/privacy/
+native gate. Six remain30/34/36/37/40/41; no other unit started.450web/1444backend
+(+7existing SQL skips)/106native tests and15scoped browser cases pass;58observations/
+117PNGs. The original criterion stays unchecked. Current evidence/handoff:
+V5_REVIEWS.md and SESSION_HANDOFF.md. The following38checkpoint is historical.
+
+
+Spec36 continuation2026-10-29 extends the existing `evidence.service.ts` and
+`reviewClosure.integration.ts`. Two added no-consumer warnings are source-index
+false positives: evidence.route.ts already calls evidenceContent, and36directly runs
+the standalone closure integration test. No new endpoint is introduced. These are
+accepted alongside the ten existing warnings (12total); no unrelated spec/dependency
+is changed merely to silence them.
+
+Latest single-spec continuation2026-10-29:38's approved conditional web contract is
+Done; six remain30/34/36/37/40/41. Spec30stays Blocked;38's default unavailable
+states and production mail/legal/distribution/billing gates remain unchanged.
+32Help/436whole web/110focused backend, lint/types/build and18actual-public-surface
+visual observations pass;34PNGs inspected. Configured `.invalid` facts are fixtures,
+not real approval. See current PROGRESS/SESSION_HANDOFF/V5_HELP. Earlier seven-unit
+checkpoint below is historical. No new dependency edge or specification.
+
+Continuation2026-10-29:33/35applicable web acceptance complete. Final validator
+42specs/0errors/10warnings; remaining warnings are the existing decision/no-issue,
+actual transitive consumption edges, deliberately long single40 and terminal
+follow-up/verification reports described below. Native37new font/screens/cards
+are explicitly consumed by40source preview; no unreferenced runtime is introduced.
+Seven units remain30/34/36/37/38/40/41; native runtime and positive provider/mail/
+legal/support/photo/privacy/device/production qualification are not inferred from
+the source fixes, synthetic renders or successful builds.
+
 Final VERIFICATION.md is a terminal report consumed by human release review, not a runtime endpoint; its no-consumer warning is accepted. Recorded decision spec 00 has no GitHub issue: a planning record, not a code task. Code specs without issues remain Not started until local execution. Hot-file re-edit needs explicit ownership transfer at serialized integration units 18/26/27; amend/validate before editing, do not presume wave-safe wiring. Existing app.ts starts jobs on import: spec 03 must validate first. E2E flow table is deliberately the long spec. External provider/device/restore tests cannot be replaced by unit mocks. Existing dirty CI/dashboard work stays intact. No claim that unimplemented specs are complete.
 
 Spec25 directly consumes19 identity and24 operator audit typing;26 directly mounts24 routes even though25 also depends24. The validator flags these two transitive edges as redundant; retained because each records an actual consumed contract and imposes no additional execution wave.
@@ -106,3 +138,27 @@ rather than split into a second E2E spec. No extra architecture or dependency wa
 Spec40 remains the single integrated flow table; its additional correction logs may exceed130lines. This is an intentionally long E2E record already accepted above, not a reason to create a second E2E specification.
 
 V5 correction validator2026-10-22:42specs/0errors/12warnings. The additional long-spec40 warning is accepted because40 remains the sole integrated browser/screenshot harness by project contract; its explicit consumption and evidence log are retained rather than splitting browser ownership into another execution spec. Existing11warnings remain justified above.
+
+Spec32 V5 acceptance2026-10-29:15/27/28 remain the actual consumption dependencies; no graph edge or wave changed. Ownership of additive lifecycle DTO and serialized shell presentation transferred before editing. Current32webDone,9remain.86paired/state PNG artifacts and27+2actual browser cases do not qualify live Paddle or complete40. Existing12validator warnings remain documented above. Next33 is locally eligible via24/27; its positive IdP qualification stays external.
+
+## Additive feature42
+
+| Spec | Wave | Consumes |
+|---|---|---|
+| [42 — Location staff import](42-location-staff-import.md) | 7 | 09, 14, 17, 28, 31 |
+
+Spec42 consumes09attendance windows,14capacity transactions,17secure handoff,28location workspace and31staff management. Original40/41 gates retain numbering and scope; this post-plan feature uses their existing browser/release harness rather than replacing them. See docs/planning/location-staff-import-assessment.md.
+
+### Spec42 known gaps and validation notes
+
+The original40/41gate numbers remain frozen at user request;42 is a sequential additive feature after that plan. Its direct09/14/17dependencies name consumed behavior even where transitively implied. Issue108 may trigger the validator’s raw-colour heuristic; it is an issue number. Prior00missingissue,25/26/28/30/32/37redundantedges,36evidence/testconsumer,40length/defectledger and41finalreport warnings are inherited, not new feature failures. Copied local design/v5 references are validation inputs preserved byte-for-byte, not feature changes to commit.
+
+Spec42 latest user amendment adds a required Password column and immediate staff email/password login, superseding handoff-only initial access. Existing handoff remains recovery. File receipts use HMAC; previews/receipts/audits never contain passwords. User-authorized local5173/8080services now run the feature checkout.
+
+## Local platform login extension43
+
+[Spec43](43-local-platform-login.md) consumes19operator principal,27AuthShell,33Companies and35Service surfaces. It adds explicit local-only password sessions; it does not complete34provider/MFA acceptance. Existing shipped34 boundary is extended serially; blocked production qualification remains unchanged. No original spec is renumbered.
+
+### Spec43 known gaps
+
+The issue110 raw-colour warning is an issue identifier, not a colour. Its direct19dependency documents the principal/auth boundary consumed even where33/35 imply it transitively. The original44-plan gates remain40/41 at user-requested frozen numbering;43uses their existing browser harness as a scoped sequential extension. The explicit local-platform browser mode is opt-in; its positive test runs with HYGENE_E2E_LOCAL_PLATFORM=true, and the default suite retains provider-disabled behavior. Previous documented warnings remain accepted.

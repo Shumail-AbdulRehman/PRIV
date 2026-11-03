@@ -42,7 +42,7 @@ export async function getBillingLifecycle(actor: VerificationActor, deps: Deps =
         action: reservation.action.replace('_RESERVED', '_READY'), newValue: { path: ['reservationId'], equals: reservation.id } } }) : null;
     const reconciliationRequired = !!reservation && !ready;
     return {
-        company: { id: company.id, name: company.name, plan: company.plan, operationalStatus: company.operationalStatus },
+        company: { id: company.id, name: company.name, plan: company.plan, isActive: company.isActive, operationalStatus: company.operationalStatus },
         usage: { locations: await db.location.count({ where: { companyId: company.id, isActive: true } }),
             staff: await db.staff.count({ where: { companyId: company.id, isActive: true } }), managers: await db.manager.count({ where: { companyId: company.id, isActive: true } }) },
         limits: PLAN_DEFINITIONS[company.plan].limits,

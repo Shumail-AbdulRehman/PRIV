@@ -1,4 +1,11 @@
+# Latest local platform-owner checkpoint — 2026-10-31
+
+Spec43 is complete locally on implementation/spec-43-local-platform-login in the preserved v5-import-20261031 worktree. Read docs/implementation/LOCAL_PLATFORM_LOGIN.md. The user explicitly requested a random separate platform-owner email/password; private artifacts/launcher config are outside Git. Current local5173/8080services serve this version. Build local frontend with VITE_LOCAL_PLATFORM_LOGIN=true; production/default mode remains unavailable without qualified provider. Never turn a company ADMIN into a platform identity. Original34production/MFA and other five V5 gates remain unresolved. Heavy checks remain sequential, nice15/maxWorkers1.
+
 # Implementation agent guide
+
+## Latest additive feature checkpoint — 2026-10-31
+Spec42 location staff import with manager-provided spreadsheet passwords is complete locally in `/home/shumail/.local/share/hygene-ops/v5-import-20261031`, branch `implementation/spec-42-location-staff-import`, baseda8728ed (newer preserved acceptance stack). Read STAFF_IMPORT_RESULTS/TESTING and latest SESSION_HANDOFF. Original30/34/36/37stay Blocked,40In progress,41Not started. Root remains fix/v5-runtime-data-loading with user dirty runtime changes; user-authorized local services on5173/8080 now serve the feature worktree, with root source preserved. User reported laptop contention: execute heavy checks sequentially at nice15, maxWorkers1; never parallel full builds/suites on this laptop.
 
 ## Read before implementing
 1. PROGRESS.md is current state and outranks previous-session assumptions.
@@ -8,7 +15,20 @@
 
 ## Current checkpoint instruction — 2026-10-29
 
-Spec28 applicable web acceptance is complete; read the latest SESSION_HANDOFF for canonical root implementation/v5-continuation-final and persistent integration worktree.10specifications remain, next32consumes15/27/28. Operator34/review36 safe-state continuations retain external gates and independent draftPR95/96. Preserve supplied user performance work and unrelated root changes. Latest user authorizes continued work; historical STOPs do not reactivate. No production actions/merges or repeated discovery/design/audits.
+Verified current checkpoint:33/35applicable web acceptance complete;7units remain
+30/34/36/37/38/40/41. Coordinator `implementation/v5-remaining-checkpoint` contains
+preserved accepted28/32, platform fixes, native37source composition and30credential
+state evidence. Read its latest handoff. Native37and other external gates remain
+In progress. Original root and all prior overlays are byte-preserved; no merge/deploy.
+
+Latest user explicitly resumes approved remaining work. Coordinator is
+`implementation/v5-remaining-checkpoint`, based on verifiedadae1b9, in persistent
+`v5-remaining-20261029/coordinator`. Independent33/35 workers and QA have exclusive
+worktrees/ownership. Prior checkpoint below remains baseline history. Do not stop
+at an ordinary unit boundary; continue feasible approved work and retain external
+qualification limits. Root and all older worktrees remain preserved unchanged.
+
+Spec32 applicable web acceptance is complete;9specifications remain. Current continuation source is `implementation/v5-billing-acceptance` in `/home/shumail/.local/share/hygene-ops/v5-billing-20261029/implementation`, based on55061b8. Original root `fix/v5-runtime-data-loading` and dirty runtime/Maps/source work are preserved unchanged; do not overlay/discard them. Read the current branch handoff/progress before using old root checkpoints. Next33 consumes completed24/27 at approved scope; positive operator IdP remains external. No merge/deploy or live financial/provider operation.
 
 ## One spec per session
 Default one focused unit; the user explicitly authorizes sequential units in this session. Finish verification and update handoff after each. Do not restart discovery/design or add a new prototype. Preserve pre-existing dirty changes documented in the survey.

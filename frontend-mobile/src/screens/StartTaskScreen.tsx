@@ -1,4 +1,4 @@
-import { LanguageChoice } from "../components/LanguageChoice";
+import { StaffBrand } from "../components/StaffBrand";
 import { useLanguage } from "../i18n/LanguageProvider";
 import { useEffect, useRef, useState } from 'react';
 import { AppState, Linking, Platform, ScrollView, StyleSheet, View } from 'react-native';
@@ -105,10 +105,11 @@ export function StartTaskScreen({ route, navigation }: Props) {
   const timeZone = task?.location?.timezone ?? task?.template?.location?.timezone;
   const started = task?.status === 'IN_PROGRESS';
   return <ScrollView className="flex-1 bg-background" contentContainerStyle={{ padding: 20, gap: 20, paddingBottom: 36 }}>
-    <View className="items-center gap-3 py-4">
-      <View className="items-center justify-center rounded-full bg-accent" style={{width:88,height:88}}><Icon name="DoorOpen" size={40} className="text-primary"/></View>
-      <Text className="text-sm font-semibold text-muted-foreground">Cleaning task</Text>
-      <Text style={{textAlign:"center"}} className="text-3xl font-bold text-foreground">{task?.areaNameSnapshot ?? 'Your cleaning task'}</Text>
+    <StaffBrand />
+    <View className="gap-3">
+      <Text accessibilityRole="header" className="text-3xl font-bold text-foreground">{t(started ? 'Cleaning started' : 'Scan this task’s QR')}</Text>
+      <Text className="text-xl font-semibold text-foreground">{task?.areaNameSnapshot ?? t('Your cleaning task')}</Text>
+      <Text className="text-base leading-7 text-muted-foreground">{t(started ? 'Starting work is separate from submitting it. Scan the same task QR again when you are ready for photos.' : 'Use the code for this assigned task. A room code or another task cannot start this work.')}</Text>
       <View className="flex-row items-center gap-2">
         <Icon name={started ? 'CircleCheck' : 'QrCode'} size={16} className={started ? 'text-success' : 'text-primary'} />
         <Text className="text-sm font-semibold text-muted-foreground" accessibilityLiveRegion="polite">
@@ -116,7 +117,6 @@ export function StartTaskScreen({ route, navigation }: Props) {
         </Text>
       </View>
     </View>
-    <LanguageChoice/>
     {task ? <>
       <View className="gap-2 border-y border-border py-4">
         <Text className="text-lg font-semibold">{task.title}</Text>

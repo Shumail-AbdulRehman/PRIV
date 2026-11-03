@@ -20,3 +20,14 @@ Use these instead of another platform auth client, browser-token storage, provid
 - `frontend/e2e/operator-v5.spec.ts` is a Spec40-owned actual-route capture and
   denial harness, with evidence in `docs/implementation/v5-operator-evidence/`.
   No HTTP positive response is replaced; callback material remains untrusted.
+
+## Single-spec continuation — 2026-10-29
+
+No new runtime seam or provider adapter was needed. Existing operator session,
+public AuthShell, routes, translations and backend verifier remain the reusable
+contracts. Four additional OperatorLogin component regressions cover callback
+cache/company isolation, external return denial, late results and cancellation
+failure. Fresh actual API/SQL and V5 evidence is in
+`docs/implementation/v5-operator-acceptance/README.md`; exact provider prerequisites
+and local/external acceptance matrix are in the latest OPERATOR_UI.md entry.
+Full34is Blocked; never infer a trusted operator from these fixtures or env flags.

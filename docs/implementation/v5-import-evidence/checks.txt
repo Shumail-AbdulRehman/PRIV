@@ -1,0 +1,64 @@
+Final backend
+
+ RUN  v4.1.11 /home/shumail/.local/share/hygene-ops/v5-import-20261031/backend
+
+
+ Test Files  96 passed | 1 skipped (97)
+      Tests  1471 passed | 7 skipped (1478)
+   Start at  10:29:59
+   Duration  79.86s (transform 2.00s, setup 0ms, import 51.94s, tests 11.55s, environment 15ms)
+
+
+Focused backend
+
+ RUN  v4.1.11 /home/shumail/.local/share/hygene-ops/v5-import-20261031/backend
+
+
+ Test Files  3 passed (3)
+      Tests  42 passed (42)
+   Start at  10:24:26
+   Duration  4.47s (transform 145ms, setup 0ms, import 3.48s, tests 533ms, environment 0ms)
+
+
+Final web summary
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 3350.288681
+
+ RUN  v4.1.11 /home/shumail/.local/share/hygene-ops/v5-import-20261031/frontend
+
+
+ Test Files  29 passed (29)
+      Tests  394 passed (394)
+   Start at  10:21:56
+   Duration  87.46s (transform 2.10s, setup 3.92s, import 20.20s, tests 34.03s, environment 24.24s)
+
+
+Focused dialog
+
+ RUN  v4.1.11 /home/shumail/.local/share/hygene-ops/v5-import-20261031/frontend
+
+
+ Test Files  1 passed (1)
+      Tests  4 passed (4)
+   Start at  10:24:31
+   Duration  2.22s (transform 349ms, setup 148ms, import 646ms, tests 541ms, environment 733ms)
+
+
+Final real API/SQL/browser
+  - vite:css (35%)
+See https://rolldown.rs/options/checks#plugintimings for more details.
+
+✓ built in 12.95s
+
+Running 3 tests using 1 worker
+
+  ✓  1 e2e/staff-import.spec.ts:12:1 › location import uses real XLSX/CSV and persisted secure onboarding in English Urdu desktop phone (14.4s)
+  ✓  2 e2e/staff-import.spec.ts:49:1 › import denies unauthorized actors, serializes confirmation and rolls back a failed batch (913ms)
+Synthetic local 200-row committed import: 13383 ms
+  ✓  3 e2e/staff-import.spec.ts:76:1 › 200 employee batch fits existing Enterprise capacity and 500 row preview refuses excess capacity (13.6s)
+
+  3 passed (35.3s)
+
+Owned generated child databases remaining: 0. Proof PostgreSQL cluster stopped.

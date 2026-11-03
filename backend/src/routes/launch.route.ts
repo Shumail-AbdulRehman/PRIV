@@ -1,3 +1,4 @@
+import localOperatorSessionRouter from './localOperatorSession.route.js';
 import { Router } from 'express';
 import multer from 'multer';
 import { z } from 'zod';
@@ -14,6 +15,7 @@ import commonRouter from './common.route.js';
 // there is deliberately no tenant-auth wrapper around public/operator routes.
 const router = Router();
 router.use('/owner-identity', ownerIdentityRouter);
+router.use('/platform/session', localOperatorSessionRouter);
 router.use('/platform/companies', platformCompanyRouter);
 router.use('/platform/service', platformSupportRouter);
 router.use('/support', customerSupportRouter);

@@ -1,0 +1,62 @@
+[
+  {
+    "state": "pending",
+    "language": "en",
+    "width": 390,
+    "height": 900,
+    "provenance": "actual React; request paused before forwarding to actual private API; no response replacement",
+    "credentialFields": "empty",
+    "overflow": false,
+    "errors": []
+  },
+  {
+    "state": "denied",
+    "language": "en",
+    "width": 390,
+    "height": 900,
+    "provenance": "actual private API403 from synthetic incorrect current password; no mutation",
+    "credentialFields": "empty",
+    "overflow": false,
+    "errors": []
+  },
+  {
+    "state": "network-error",
+    "language": "en",
+    "width": 390,
+    "height": 900,
+    "provenance": "explicit transport abort; NOT server outage/provider proof",
+    "credentialFields": "empty",
+    "overflow": false,
+    "errors": []
+  },
+  {
+    "state": "pending",
+    "language": "ur",
+    "width": 390,
+    "height": 900,
+    "provenance": "actual React; request paused before forwarding to actual private API; no response replacement",
+    "credentialFields": "empty",
+    "overflow": false,
+    "errors": []
+  },
+  {
+    "state": "denied",
+    "language": "ur",
+    "width": 390,
+    "height": 900,
+    "provenance": "actual private API403 from synthetic incorrect current password; no mutation",
+    "credentialFields": "empty",
+    "overflow": false,
+    "errors": []
+  },
+  {
+    "state": "network-error",
+    "language": "ur",
+    "width": 390,
+    "height": 900,
+    "provenance": "explicit transport abort; NOT server outage/provider proof",
+    "credentialFields": "empty",
+    "overflow": false,
+    "errors": []
+  }
+]

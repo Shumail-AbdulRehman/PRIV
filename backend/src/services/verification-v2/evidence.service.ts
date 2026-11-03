@@ -71,7 +71,7 @@ export async function evidenceContent(actor:VerificationActor,assetId:string,var
  if(asset.taskInstanceId)await requireTaskAccess(actor,asset.taskInstanceId);
  else {requireOperationalRole(actor);await requireLocationAccess(actor,asset.locationId);}
  const restrictedReview=asset.privacyState==='HOLD'&&variant==='review'&&!!asset.taskInstanceId&&['ADMIN','MANAGER'].includes(actor.role);
- if((asset.deliveryType!=='authenticated'||!reviewableMedia(asset.privacyState))&&!restrictedReview)throw new ApiError(403,'Evidence is awaiting restricted privacy review');
+ if(asset.deliveryType!=='authenticated'||(!reviewableMedia(asset.privacyState)&&!restrictedReview))throw new ApiError(403,'Evidence is awaiting restricted privacy review');
  const publicId=variant==='original'?asset.originalPublicId:asset.sanitizedPublicId;
  if(!publicId)throw new ApiError(409,'Review image is not ready');
  if(variant==='original'&&actor.role!=='ADMIN')throw new ApiError(403,'Original evidence requires admin access');

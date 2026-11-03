@@ -1,4 +1,12 @@
 export const accountUrdu: Record<string, string> = {
+ 'About Hygene Ops':'Hygene Ops کے بارے میں',
+ 'Your team. Your day.':'آپ کی ٹیم۔ آپ کا دن۔',
+ 'One workspace.':'ایک ورک اسپیس۔',
+ 'Manage locations, staff and daily operations.':'مقامات، عملے اور روزمرہ کے کاموں کا انتظام کریں۔',
+ 'Managing customer companies?':'کسٹمر کمپنیوں کا انتظام کرنا ہے؟',
+ 'Platform owner sign-in':'پلیٹ فارم مالک کا داخلہ',
+ 'Show password':'پاس ورڈ دکھائیں',
+ 'Hide password':'پاس ورڈ چھپائیں',
  'Hygene Ops sign in': 'Hygene Ops میں سائن ان کریں',
  'Skip to content': 'اصل مواد پر جائیں',
  'Welcome back': 'خوش آمدید',

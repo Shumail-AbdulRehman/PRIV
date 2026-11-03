@@ -14,18 +14,25 @@ const originalInterval=setInterval,originalClear=clearInterval;
 globalThis.setInterval=callback=>{intervals.add(callback);return callback;};
 globalThis.clearInterval=callback=>intervals.delete(callback);
 let manifest,session,uploads,submissions,failUpload,found,deleted,resumes,activations;
+let cameraPermission,permissionRequests,permissionReads,permissionReadFailure,settingsOpened,settingsFailure,sessionsOpened;
 function reset(){
  const now=Date.now();resumes=0;activations=[];uploads=0;submissions=0;failUpload=true;found=null;deleted=[];
+ cameraPermission={granted:true,canAskAgain:true};permissionRequests=0;permissionReads=0;permissionReadFailure=false;settingsOpened=0;settingsFailure=false;sessionsOpened=0;
  manifest={photoChecking:{available:true},allowedActions:{createSession:true,renewSession:true,reworkSession:true,retakeSlots:true,upload:true},task:{id:7,title:'Sink task',status:'IN_PROGRESS',areaNameSnapshot:'Washroom'},staffSubmittedAt:null,sequentialChecks:true,pendingJobs:0,sessions:[],items:[{id:'item',nameSnapshot:'Sink 1',typeSnapshot:'SINK',mandatory:true,requirements:[{id:'required',mandatory:true,state:'MISSING',instructionsSnapshot:'Show basin, drain and tap.',decisionVersion:0}]}]};
  session={id:'session',taskInstanceId:7,state:'ACTIVE',serverTime:new Date(now).toISOString(),clientBootId:'boot',captureExpiresAt:new Date(now+600000).toISOString(),uploadExpiresAt:new Date(now+900000).toISOString(),sequentialChecks:true,requiredContextKeys:[],slots:[{id:'slot',requirementId:'required',nonce:'nonce',sequence:0,activatedAt:new Date(now).toISOString(),expiresAt:new Date(now+90000).toISOString()}]};
 }
 reset();
 globalThis.directUiMocks={
- rn:{View:'View',Text:'Text',Image:'Image',ScrollView:'ScrollView',StyleSheet:{absoluteFill:{}},Platform:{OS:'android'},Linking:{openSettings:async()=>{}},useWindowDimensions:()=>({width:360,height:800}),AppState:{currentState:'active',addEventListener:(_name,cb)=>{appListeners.add(cb);return{remove:()=>appListeners.delete(cb)};}}},
- camera:{CameraView:'CameraView',useCameraPermissions:()=>[{granted:true},async()=>({granted:true})]},
+ rn:{View:'View',Text:'Text',Image:'Image',ScrollView:'ScrollView',StyleSheet:{absoluteFill:{}},Platform:{OS:'android'},Linking:{openSettings:async()=>{settingsOpened++;if(settingsFailure)throw new Error('OS settings unavailable');}},useWindowDimensions:()=>({width:360,height:800}),AppState:{currentState:'active',addEventListener:(_name,cb)=>{appListeners.add(cb);return{remove:()=>appListeners.delete(cb)};}}},
+ camera:{CameraView:'CameraView',useCameraPermissions:()=>{
+  const [status,setStatus]=React.useState(cameraPermission);
+  const request=React.useCallback(async()=>{permissionRequests++;setStatus({...cameraPermission});return cameraPermission;},[]);
+  const read=React.useCallback(async()=>{permissionReads++;if(permissionReadFailure)throw new Error('Permission read failed');setStatus({...cameraPermission});return cameraPermission;},[]);
+  return[status,request,read];
+ }},
  fs:{File:class{constructor(uri){this.uri=uri;}exists=true;async bytes(){return new Uint8Array([1,2,3]);}delete(){deleted.push(this.uri);}}},
  quality:{captureClock:()=>({bootId:'boot',elapsedMs:1000}),inspectStill:async()=>({width:1800,height:1200,luminance:100,laplacianVariance:30,clipping:0})},
- api:{verificationManifest:async()=>structuredClone(manifest),openCaptureSession:async()=>structuredClone(session),activatePhoto:async(_sessionId,slotId)=>{activations.push(slotId);const slot=session.slots.find(s=>s.id===slotId);slot.activatedAt??=new Date().toISOString();return structuredClone(session);},resumeCapture:async()=>{resumes++;return structuredClone(session);},installationId:async()=> 'device',findUploadedPhoto:async()=>found,
+ api:{verificationManifest:async()=>structuredClone(manifest),openCaptureSession:async()=>{sessionsOpened++;return structuredClone(session);},activatePhoto:async(_sessionId,slotId)=>{activations.push(slotId);const slot=session.slots.find(s=>s.id===slotId);slot.activatedAt??=new Date().toISOString();return structuredClone(session);},resumeCapture:async()=>{resumes++;return structuredClone(session);},installationId:async()=> 'device',findUploadedPhoto:async()=>found,
  uploadPhoto:async()=>{uploads++;if(failUpload)throw new Error('Network error');manifest.items[0].requirements[0].state='REVIEW_REQUIRED';manifest.items[0].requirements[0].currentAttempt={id:'attempt',state:'REVIEW_REQUIRED'};session.slots[0].attemptId='attempt';return{attemptId:'attempt',state:'REVIEW_REQUIRED',storage:'cloud'};},
  finishSubmission:async()=>{submissions++;manifest.staffSubmittedAt=new Date().toISOString();return{};}},
 };
@@ -116,5 +123,84 @@ test('qualification changing during scanning closes camera without uploading',as
  reset();let r;
  try{r=await mount();await click(r,'Scan QR to take photos');manifest.photoChecking={available:false};await click(r,'Refresh results');assert.equal(r.root.findAllByType('CameraView').length,0);assert.equal(uploads,0);}
  finally{if(r)await flush(()=>r.unmount());}
+});
+test('permanently denied task camera has a reachable Settings action without repeated permission prompts',async()=>{
+ reset();cameraPermission={granted:false,canAskAgain:false};let r;
+ try{
+  r=await mount();await click(r,'Open camera settings');
+  assert.equal(settingsOpened,1);assert.equal(permissionRequests,0);assert.equal(sessionsOpened,0);assert.equal(uploads,0);
+  assert.equal(r.root.findAllByType('CameraView').length,0);
+ }finally{if(r)await flush(()=>r.unmount());}
+});
+test('denied task permission can be retried explicitly and granting it still requires the task QR',async()=>{
+ reset();cameraPermission={granted:false,canAskAgain:true};let r;
+ try{
+  r=await mount();await click(r,'Allow camera');
+  assert.equal(permissionRequests,1);assert.ok(JSON.stringify(r.toJSON()).includes('Allow camera access in Settings to take task photos.'));
+  assert.equal(sessionsOpened,0);assert.equal(r.root.findAllByType('CameraView').length,0);
+  cameraPermission={granted:true,canAskAgain:true};await click(r,'Allow camera');
+  assert.equal(permissionRequests,1,'an already granted OS permission needs no new prompt');assert.ok(r.root.findByType('CameraView'));assert.equal(sessionsOpened,0);assert.equal(uploads,0);
+ }finally{if(r)await flush(()=>r.unmount());}
+});
+test('returning from Settings refreshes permission and server authority without opening a session or uploading',async()=>{
+ reset();cameraPermission={granted:false,canAskAgain:false};let r;
+ try{
+  r=await mount();await click(r,'Open camera settings');
+  const readsBeforeReturn=permissionReads;
+  await flush(()=>{for(const cb of appListeners)cb('background');});
+  cameraPermission={granted:true,canAskAgain:true};manifest.allowedActions={};
+  await flush(()=>{for(const cb of appListeners)cb('active');});
+  assert.equal(permissionReads,readsBeforeReturn+1);assert.equal(permissionRequests,0);assert.equal(settingsOpened,1);
+  assert.equal(button(r,'Open camera settings'),undefined);assert.equal(button(r,'Scan QR to take photos'),undefined);
+  assert.ok(JSON.stringify(r.toJSON()).includes('Photo authority ended.'));
+  assert.equal(r.root.findAllByType('CameraView').length,0);assert.equal(sessionsOpened,0);assert.equal(uploads,0);
+ }finally{if(r)await flush(()=>r.unmount());}
+});
+test('settings failure leaves actionable guidance and never opens the task camera',async()=>{
+ reset();cameraPermission={granted:false,canAskAgain:false};settingsFailure=true;let r;
+ try{
+  r=await mount();await click(r,'Open camera settings');
+  assert.ok(JSON.stringify(r.toJSON()).includes('Open this app in your phone settings.'));
+  assert.equal(permissionRequests,0);assert.equal(r.root.findAllByType('CameraView').length,0);assert.equal(sessionsOpened,0);
+ }finally{if(r)await flush(()=>r.unmount());}
+});
+test('returning with granted permission keeps camera closed until staff explicitly continue',async()=>{
+ reset();cameraPermission={granted:false,canAskAgain:false};let r;
+ try{
+  r=await mount();await click(r,'Open camera settings');
+  const readsBeforeReturn=permissionReads;
+  await flush(()=>{for(const cb of appListeners)cb('background');});
+  cameraPermission={granted:true,canAskAgain:true};
+  await flush(()=>{for(const cb of appListeners)cb('active');});
+  assert.equal(permissionReads,readsBeforeReturn+1);assert.equal(r.root.findAllByType('CameraView').length,0);assert.equal(sessionsOpened,0);assert.equal(uploads,0);
+  await click(r,'Scan QR to take photos');assert.ok(r.root.findByType('CameraView'));assert.equal(sessionsOpened,0);
+ }finally{if(r)await flush(()=>r.unmount());}
+});
+test('revoking camera permission in Settings removes the scanner and exposes recovery',async()=>{
+ reset();let r;
+ try{
+  r=await mount();await click(r,'Scan QR to take photos');
+  await flush(()=>{for(const cb of appListeners)cb('background');});
+  assert.equal(r.root.findAllByType('CameraView').length,0);
+  cameraPermission={granted:false,canAskAgain:false};
+  await flush(()=>{for(const cb of appListeners)cb('active');});
+  assert.equal(r.root.findAllByType('CameraView').length,0);assert.ok(button(r,'Open camera settings'));
+  assert.equal(sessionsOpened,0);assert.equal(uploads,0);
+ }finally{if(r)await flush(()=>r.unmount());}
+});
+test('failed permission recheck pauses scanning and leaves a visible recovery message',async()=>{
+ reset();let r;
+ try{
+  r=await mount();await click(r,'Scan QR to take photos');
+  await flush(()=>{for(const cb of appListeners)cb('background');});
+  permissionReadFailure=true;
+  await flush(()=>{for(const cb of appListeners)cb('active');});
+  assert.equal(r.root.findAllByType('CameraView').length,0);
+  assert.ok(JSON.stringify(r.toJSON()).includes('Camera or task access could not be checked. Refresh results and try again.'));
+  assert.equal(sessionsOpened,0);assert.equal(uploads,0);
+  permissionReadFailure=false;cameraPermission={granted:false,canAskAgain:false};
+  await click(r,'Scan QR to take photos');
+  assert.equal(settingsOpened,1);assert.equal(r.root.findAllByType('CameraView').length,0);assert.equal(permissionRequests,0);
+ }finally{if(r)await flush(()=>r.unmount());}
 });
 test.after(()=>{hook.deregister();globalThis.setInterval=originalInterval;globalThis.clearInterval=originalClear;rmSync(directory,{recursive:true,force:true});});

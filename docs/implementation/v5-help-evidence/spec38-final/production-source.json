@@ -1,0 +1,10 @@
+{
+  "provenance": "Final runtime sources used by the accepted 18-observation capture, including existing Android-help fragment navigation. No runtime source change after capture.",
+  "files": {
+    "frontend/src/pages/Help/HelpPage.tsx": "800abd446e9554077cf30588b2adf640fc02a9715d95d2676b6840be9b4dea71",
+    "frontend/src/pages/Help/serviceInformation.ts": "967239080145a6b883ce24c2b148a40d626f505d8a1c9f6472ce0a5e01d628d8",
+    "frontend/src/pages/Help/help.css": "cd63d207685fbd9918c46b8a6f0e895e884096b4ebf3643c0c7bbb0df6987903",
+    "frontend/src/i18n/serviceTranslations.ts": "792eea37b95498495cbb7d3b1d7e557c112be530ff55dc0c9b6b4e7799a1bbe0",
+    "frontend/src/i18n/translations.ts": "cc76042fb3b8707ca93c58b6ebee104f9bb6d330cc769bfe52eacbb0ca50334b"
+  }
+}

@@ -47,3 +47,27 @@ it('keeps registration session-delivery failure unauthenticated with an accurate
 it('translates registration fields and validation using the shared public shell',async()=>{
  mount(<SignUp/>,{language:'ur',path:'/signup'});expect(screen.getByRole('heading',{name:'اپنا ورک اسپیس بنائیں'})).toBeInTheDocument();fireEvent.click(screen.getByRole('button',{name:'اکاؤنٹ بنائیں اور پلان چنیں'}));await screen.findByText('نام ضروری ہے');expect(screen.getByLabelText('پورا نام')).toHaveAttribute('aria-invalid','true');expect(screen.getByRole('link',{name:'Hygene Ops میں سائن ان کریں'})).toHaveAttribute('href','/login');expect(screen.getAllByRole('group',{name:'زبان'})).toHaveLength(1);
 });
+
+it('reveals and hides the existing password without submitting or changing credentials',()=>{
+ mount(<Login/>);const password=screen.getByLabelText('Password');
+ fireEvent.change(password,{target:{value:'Synthetic test password'}});
+ expect(password).toHaveAttribute('type','password');
+ fireEvent.click(screen.getByRole('button',{name:'Show password'}));
+ expect(password).toHaveAttribute('type','text');expect(password).toHaveValue('Synthetic test password');
+ expect(screen.getByRole('button',{name:'Hide password'})).toHaveAttribute('aria-pressed','true');
+ fireEvent.click(screen.getByRole('button',{name:'Hide password'}));
+ expect(password).toHaveAttribute('type','password');expect(api.post).not.toHaveBeenCalled();
+ expect(screen.getByRole('link',{name:'Platform owner sign-in'})).toHaveAttribute('href','/platform/login');
+ expect(screen.getByRole('link',{name:'Owner password recovery'})).toHaveAttribute('href','/recover-owner-account');
+ expect(screen.getAllByRole('group',{name:'Language'})).toHaveLength(1);
+});
+
+it('translates the split login, platform link and password visibility for Urdu',()=>{
+ mount(<Login/>,{language:'ur'});
+ expect(screen.getByRole('heading',{name:'خوش آمدید'})).toBeInTheDocument();
+ expect(screen.getByRole('link',{name:'پلیٹ فارم مالک کا داخلہ'})).toHaveAttribute('href','/platform/login');
+ fireEvent.click(screen.getByRole('button',{name:'پاس ورڈ دکھائیں'}));
+ expect(screen.getByLabelText('پاس ورڈ')).toHaveAttribute('type','text');
+ expect(screen.getByRole('button',{name:'پاس ورڈ چھپائیں'})).toBeInTheDocument();
+ expect(document.documentElement.dir).toBe('rtl');
+});

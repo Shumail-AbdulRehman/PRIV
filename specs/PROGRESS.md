@@ -2,13 +2,65 @@
 
 Source of truth for execution; latest user authorization supersedes old pending labels. Approved v5 preserved.
 
+**Latest login refinement — 2026-10-31:** `/login` now has a responsive blue/white
+split layout, password visibility and separate platform-owner sign-in link.
+Default shared auth layouts and authentication payloads remain unchanged.
+59focused,407React+64Node, lint/build,3isolated actual browser cases and8local
+EN/UR visual observations passed. Details: [LOGIN_UI_POLISH.md](../docs/implementation/LOGIN_UI_POLISH.md).
+Branch `ui/company-login-polish`; original spec statuses unchanged.
+
+**Latest focused refinement — 2026-10-31:** company list/details now expose real
+active manager/staff/location counts (owners excluded from managers). Inquiries,
+Service diagnostics and Administrative audit are temporarily hidden by navigation
+removal and frontend redirects; their protected APIs remain intact. Existing
+24/33/35 contracts refined under the plan-project single-session exception;
+no new numbered spec. Branch `feat/platform-company-overview`, basedf89c8e2.
+1491backend+7existing skips,64Node+405React,55/72focused,1real isolated SQL/browser,
+both builds/lint and8local EN/UR desktop/phone observations passed. Details:
+[PLATFORM_COMPANY_OVERVIEW.md](../docs/implementation/PLATFORM_COMPANY_OVERVIEW.md).
+No original specification status changed; no merge or deployment.
+
+**Latest Android testing build — 2026-10-29:** a fresh standalone APK is built,
+downloaded and independently inspected. Version **2.1.8/code11**, package
+`com.hygeneops.staff`, source `e73591e25406725cc354bf9b1f5e845da4b658bd` on
+`build/hygeneops-android-testing-20261029`, includes all latest Spec37 changes.
+Successful [run40923692593](https://github.com/Shumail-AbdulRehman/PRIV/actions/runs/40923692593)
+and OPEN/DRAFT [PR107](https://github.com/Shumail-AbdulRehman/PRIV/pull/107).
+APK: `/home/shumail/Downloads/HygeneOps-Latest.apk`, 57,454,943 bytes;
+SHA256 `166be51d90f6b52cf1582b4148988fb2d2502ae448096fb79fa59a01a37e8616`.
+No Metro required. Approved local development API: `http://192.168.100.95:8080/api`.
+115 mobile tests, types, Expo compatibility/Doctor18/18, hosted backend contracts,
+native compile/package and independent APK/native/font/signature/alignment checks
+pass. Zero ADB devices; no physical sensor/QR/upload/push/V5 acceptance is inferred.
+**Spec37 remains Blocked; all six unfinished statuses/counts below are unchanged.**
+No production change, backend deployment, PR merge, Play publication or OIDC work.
+Detailed provenance, installation and limits: [Android build report](../docs/verification/ANDROID_LATEST_20261029.md).
+The following Spec34 continuation and older APK references are historical.
+
 **V5 acceptance correction (2026-10-21): overall UI completion is INCOMPLETE.**
 The historical Done rows below record functional deliveries and earlier checks;
 they do not establish approved V5 visual implementation or verification. They are
 retained without erasing their logs. The current four-part per-page ledger is in
 [the V5 implementation record](../docs/implementation/V5_IMPLEMENTATION.md).
-Spec40 remains in progress and41 remains ineligible. Current correction branch:
-`implementation/v5-continuation-checkpoint` (persistent integration); current Spec28 issue55/PR97, operator59/PR95 and review84/PR96; prior workforce/shell/Settings/Help/auth histories retained. No previous UI screen is newly
+Spec40 remains in progress and41 remains ineligible. Current continuation branch:
+`implementation/spec-34-identity-qualification`, OPEN/DRAFT [PR106](https://github.com/Shumail-AbdulRehman/PRIV/pull/106), stacked on fetched `d25f411`
+(Spec37/OPEN DRAFT PR105). Only34was worked on. Its existing local unavailable
+operator boundary is implemented and verified; no auth runtime rewrite was needed.
+Four additional security regressions bring focused operator checks to21; whole
+web64Node+390React, backend1444passed+7existing integration skips,186focused
+backend checks, full frontend lint, both builds/TypeScript and strict browser
+TypeScript pass. Existing actualAPI/SQL/browser harness3/3passes21.7s. Fresh40PNG
+EN/UR1366/390paired evidence verifies public login/callback/no-session security
+and local cleanup; positive provider/security remains unverified.
+**34is Blocked** on approved browser OIDC/client/API/redirect/MFA/provisioned-account
+configuration and live qualification.30/36/37stay Blocked. Six remain:
+36Done(including00),1In progress,4Blocked,1Not started. No unblocked next unit;
+30is next numerically dependency-eligible but needs genuine owner-mail delivery.
+36/37also need external facts;40/41are ineligible. Latest OPERATOR_UI.md/handoff
+record exact limits. STOP after34; no next specification, merge or deployment.
+Accepted33/35
+remain Done with draftPR99/100; native draftPR101remains incomplete.
+Accepted28 issue55/PR97 and32 issue69/PR98, operator59/PR95 and review84/PR96; prior workforce/shell/Settings/Help/auth histories retained. No previous UI screen is newly
 marked visually verified merely because its existing tests pass.
 
 **Historical functional checkpoint (not V5 visual completion): Spec40 in progress** on `implementation/spec-40-launch-e2e`, issue79, draftPR81 https://github.com/Shumail-AbdulRehman/PRIV/pull/81 base39/dbbb51d. Decision00 and39of41execution/gate units remain Done;40is not complete and41is not eligible. Real persisted browser suite, guarded disposable DB and native templates implemented; full table/device/provider qualification remains incomplete and registration navigation has a confirmed failing regression. See `docs/implementation/E2E_RESULTS.md`. Latest user also requests fresh current-UI testing APK: independent build branch `build/hygeneops-android-testing-20261021`, draftPR80. Fresh testing APK completed and locally inspected: `frontend-mobile/build-output/HygeneOps-staff-2.1.7-ui-20261021.apk`, run39644524268 all3jobs passed; physical/provider qualification remains pending. No merge/deploy/provider activation; root dirty work preserved.
@@ -45,20 +97,26 @@ marked visually verified merely because its existing tests pass.
 | 27 | [Approved v5 shared shell and route composition](27-workspace-shell.md) | Done | 06 | Heavy | #35 | V5 shared web gate accepted: 3 browser cases, 40 paired/state PNGs; see current handoff |
 | 28 | [Real derived setup and operational dashboard](28-setup-ui.md) | Done | 12, 14, 15, 27 | Standard | #55 | V5 web accepted:64Node+318React;16API/SQL browser cases, paired ENUR desktop/phone; V5_SETUP.md |
 | 29 | [Attendance exception context UI](29-attendance-context-ui.md) | Done | 23, 27, 08 | Standard | #57 | V5 register/context accepted; API filters, immutable note/ack/retry/conflict and EN/UR renders verified |
-| 30 | [Account settings and recovery UI](30-account-ui.md) | In progress | 16, 17, 22, 27, 28 | Standard | #88 | V5 settings core correction; auth86/PR87 and historical58/PR62 retained; V5_SETTINGS.md; full30acceptance incomplete |
+| 30 | [Account settings and recovery UI](30-account-ui.md) | Blocked | 16, 17, 22, 27, 28 | Standard | #88 | No qualified owner-mail sender/origin/mailbox; delivered-link acceptance unverified. Existing implementation preserved; fresh26web+114backend tests pass; V5_SETTINGS.md/latest handoff |
 | 31 | [Workforce access and transfer UI](31-workforce-ui.md) | Done | 11, 17, 27 | Standard | #65 | V5 Team/detail/Managers/actions accepted; real hire/edit/quota/transfer/offboarding/recovery/handover verified |
-| 32 | [Real subscription lifecycle UI](32-billing-ui.md) | In progress | 15, 27, 28 | Standard | #69 |PR70;23focused;57+165web;109backend |
-| 33 | [Platform company workspace](33-platform-company-ui.md) | In progress | 24, 27 | Standard | #71 |PR72;11focused;57+176web;123backend; live auth gated |
-| 34 | [Platform sign-in and security workspace](34-platform-security-ui.md) | In progress | 19, 27 | Heavy | #59 |PR95;V5disabled-boundary17focused/3browser;IdPpositiveunqualified |
-| 35 | [Platform service audit and leads UI](35-platform-service-ui.md) | In progress | 25, 27 | Standard | #73 |PR74;22focused;57+198web;135backend; live auth gated |
-| 36 | [Truthful task and photo review UX](36-photo-review-ui.md) | In progress | 20, 21, 27 | Standard | #84 | Historical issue66/PR67 retained; PR96extendssetup/closed/held/paging;36focused/5browser;provider/nativeacceptanceincomplete |
-| 37 | [Native attendance/photo/account recovery](37-native-workflows.md) | In progress | 09, 17, 20, 21, 26 | Standard | #60 |101native/tsc/Expoexport; deviceunverified |
-| 38 | [Configured support and service information](38-service-information.md) | In progress | 27, 25 | Standard | #75 |PR76;16help+24billing;57+215web;109backend |
+| 32 | [Real subscription lifecycle UI](32-billing-ui.md) | Done | 15, 27, 28 | Standard | #69 | V5 web accepted:64Node+348React;1449backend/SQL;27+2actual browser;86paired/state PNGs; PR98; historicalPR70 retained |
+| 33 | [Platform company workspace](33-platform-company-ui.md) | Done | 24, 27 | Standard | #71 |PR99; V5 web accepted;18focused, paired ENUR/1366/390; actual SQL + guarded routes; positive IdP remains34/40 |
+| 34 | [Platform sign-in and security workspace](34-platform-security-ui.md) | Blocked | 19, 27 | Heavy | #59 | Draft PR106; existing safe boundary verified:21 focused/64Node+390React,1444 backend+7skips,3 actual API/SQL browser cases; approved IdP/MFA/client qualification absent; OPERATOR_UI.md |
+| 35 | [Platform service audit and leads UI](35-platform-service-ui.md) | Done | 25, 27 | Standard | #73 |PR100; V5 web accepted;27focused, paired ENUR/1366/390; actual SQL + guarded routes; positive IdP remains34/40 |
+| 36 | [Truthful task and photo review UX](36-photo-review-ui.md) | Blocked | 20, 21, 27 | Standard | #84 | Local web recovery/eligibility/keyboard/private delivery verified:50focused/450web/1444backend/15browser,58observations/117PNGs; full retained-media/privacy/native gate open; V5_REVIEWS.md/latest handoff |
+| 37 | [Native attendance/photo/account recovery](37-native-workflows.md) | Blocked | 09, 17, 20, 21, 26 | Standard | #60 |115native/51focused/169backend dependency checks; types/Expo export/Android JS bundle pass; physical V5/camera/GPS/QR/provider acceptance unavailable; NATIVE_RECOVERY.md |
+| 38 | [Configured support and service information](38-service-information.md) | Done | 27, 25 | Standard | #89 |32Help/64focused;64Node+372React;110backend;18public visual observations/34PNGs; V5_HELP.md. Live publication qualification remains39/40 |
 | 39 | [Launch operations and active CI proof](39-release-operations.md) | Done | 03, 26 | Heavy | #77 |PR78;13readiness;10SQL+7invariants;all4CIjobs pass; release blocked |
 | 40 | [Launch end-to-end suite](40-e2e-suite.md) | In progress | 01, 02, 03, 04, 05, 08, 07, 06, 09, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23, 24, 25, 26, 27, 28, 29, 30, 31, 32, 33, 34, 35, 36, 37, 38, 39 | Heavy | #79 | DraftPR81;29/30browser cases pass; APK built; full acceptance incomplete |
 | 41 | [Final clean verification pass](41-verification-pass.md) | Not started | 40 | Heavy | — | See spec |
 
+| 42 | [Location-based bulk staff import](42-location-staff-import.md) | Done | 09, 14, 17, 28, 31 | Heavy | #108 | 1478backend/7existing skips;64Node+395React;4real browser/SQL cases; direct spreadsheet-password login; original6gates unchanged |
+
+| 43 | [Local platform-owner login](43-local-platform-login.md) | Done | 19, 27, 33, 35 | Heavy | #110 | 1490backend/7existing skips;64Node+399React; real local login/logout/isolation verified; production34 blocked |
+
 ## Log
+
+- **2026-10-29 — Approved remaining-work continuation:** User authorizes implementation, parallel subagents, functional and rendered V5 checks. All refs/worktrees/dirty files inventoried and privately hashed/patched; no old work discarded. Baselineadae1b9 verified to contain completed28/32 and actual15/24/25/27 dependencies. Coordinator and independent33/35/QA worktrees created; hot-file ownership serialized before edits. Nine units remain30,33–38,40,41;33/35 selected for safe independent composition work. Full40incomplete/41ineligible; external provider/device/commercial facts cannot be invented. See planning/remaining-20261029.md and current handoff.
 
 - **2026-10-20** — Continued from approved scope/design. Generated source-grounded steering docs and implementation queue. No production data/config touched. Await initial validator before spec 01.
 - **2026-10-20** — Spec 01 complete locally: 9 regression tests, whole backend 591 tests, build passed. Next P0 historical scope (02).
@@ -167,3 +225,101 @@ Implementation `d64e0ea` published as OPEN/DRAFT [PR85](https://github.com/Shuma
 - **2026-10-29 — Independent partial continuations:** draftPR95(operator34) andPR96(review36) source/evidence integrated by explicit scoped cherry-picks after28.34/36stay In progress for named external gates; no provider identity/media/Android qualification is manufactured. Combined verification is recorded in current handoff. Spec28 current draftPR97 based verifiedworkforcefinal; no merges.
 
 - **2026-10-29 — Final combined checkpoint:** independent34/36source/evidence integrated;64Node+328React/27files, lint0, TS/private build and24actual lifecycle/workspace/operator/review browser cases pass. Replaced one stale browser heading selector, then24/24fresh gate passed.28Done;34/36remain In progress;10total remain. Rootpublication implementation/v5-continuation-final preserves adopted originals in narrowstash and unrelateddirtyinputs; SESSION_HANDOFF has exact recovery details. OwnedPGcleaned/stopped, zerochildDBs. Next32eligible; no merge/deploy.
+
+- **2026-10-29 — Spec32 V5 web complete:** Billing and actual owner suspended/inactive access consume verified15/27/28; no new dependency edge. Existing Paddle catalog/transaction/fresh portal safety preserved. Additive isActive DTO, no schema/migration/policy/provider change.70focused, whole64Node+348React/28files, lint0, TypeScript/exact web/private build;158focused backend,1449whole/95files/zero skips and actual billingSQL pass.27fresh actual browser cases plus2new access-state cases pass;86PNG artifacts paired1366/390ENUR and meaningful states inspected. Initial fixture/SQL-timezone issues resolved; visual class collision corrected and recaptured.33Done(including00),8Inprogress,1Notstarted:9remain (30,33,34,35,36,37,38,40,41). Next33eligible24/27 at approved safe scope; positive IdP remains external. No merge/deploy/live financial operation; root dirty runtime/Maps work byte-identical in original checkout. Current branch implementation/v5-billing-acceptance in persistent isolated worktree; publication and full handoff follow.
+
+- **2026-10-29 — Spec32 publication confirmed:** OPEN/DRAFT PR98 https://github.com/Shumail-AbdulRehman/PRIV/pull/98 base implementation/v5-continuation-final, branch implementation/v5-billing-acceptance. Local checks complete, hosted CI running when inspected; no merge/deploy.9remain; next33identified only.
+
+- **2026-10-29 — Platform web acceptance and native/account continuation:**33/35meet applicable web acceptance after64Node+360React/28files,45focused, lint0/strict types/exact production build,189backend+actual isolated SQL and20real React/API/SQL browser cases. Platform74observations/98PNGs bind paired ENUR1366/390 plus meaningful states; positive named-workspace transport is synthetic, actual guards remain fail-closed. Native37composition/font/header/help/start correction passes106tests/types/Expoexport and8RNWeb source-preview observations;37remains In progress without native runtime. Additional30own-password pending/denied/transport states inspected ENUR; delivered-link proof still external.35Done(including00),6Inprogress,1Notstarted;7remain30,34,36,37,38,40,41. Full40incomplete/41ineligible.
+
+- **2026-10-29 — Published review:**33PR99,35PR100and partial37PR101are OPEN/DRAFT, independent siblings on accepted billing branch/adae1b9. Combined source/evidence saved on implementation/v5-remaining-checkpoint; original root unchanged. No merge/deploy.
+
+- **2026-10-29 — Single-spec session stopped on30blocker:** independently fetched
+  refs/PRs and restored3c9367c; all16/17/22/27/28dependencies Done and present.
+  Selected only30(issue88), branch implementation/spec-30-delivery-qualification.
+  Existing account implementation preserved. Six required owner-mail settings
+  are absent in the checked session/repository; no verified sender/origin/real
+  mailbox workflow or delivered-link acceptance. Status30Blocked, not Done.
+  Fresh26account/token+114backend dependency tests pass, zero failures/skips;
+  backend TypeScript and frontend TypeScript/production build pass. Four historical
+  recovery screenshot pairs reinspected; no fresh/live/provider/device acceptance
+  inferred. Documentation-only continuation; no full suite/SQL/E2E run or production
+  change.35Done(including00),5In progress,1Blocked,1Not started:7remain. Resume30
+  after qualification facts are supplied; no other specification started. Full
+  commands, limits, preservation, commit/PR and strict STOP in latest handoff.
+
+- **2026-10-29 — Blocked30handoff published:**19a68cf on
+  implementation/spec-30-delivery-qualification; OPEN/DRAFT
+  [PR102](https://github.com/Shumail-AbdulRehman/PRIV/pull/102), base3c9367c checkpoint.
+  Issue88stays open; seven remain; no next unit started.
+
+- **2026-10-29 — Spec38 complete:** continued from2011a90 without repeating30.
+  Dependencies25/27 are Done; approved scope already permits unavailable facts.
+  Finished bounded cancellable contact reads, policy link accessible names, control
+  targets, contact alignment and public scroll/main-focus navigation. Narrow shared
+  vocabulary correction restores ten existing native entries in web, keeping the
+  parity test unchanged. Final32Help/64focused,64Node+372React whole web,110focused
+  backend, frontend lint0/TypeScript/production build and18public visual observations
+  pass;34PNGs inspected. Actual router/no-store/cookie omission; configured `.invalid`
+  values are fixtures, not mailbox/legal/device qualification. No SQL/production/
+  provider activation or other spec implementation.36Done(including00),4In progress,
+  1Blocked,1Not started:6remain30/34/36/37/40/41. Next dependency-eligible36identified
+  only. Strict STOP after publication; full commands/limits/evidence in V5_HELP and
+  latest SESSION_HANDOFF.
+
+- **2026-10-29 — Spec38 published:** implementation36fd568 on
+  implementation/spec-38-public-information; OPEN/DRAFT
+  [PR103](https://github.com/Shumail-AbdulRehman/PRIV/pull/103), base2011a90/PR102.
+  Six remain;30Blocked;36identified only. STOP, no next implementation begun.
+
+- **2026-10-29 — Spec36 only, local continuation verified/full acceptance Blocked:** baseline85e64f5/PR103 independently restored; original and20other present worktrees/797dirty paths preserved. Actual React review recovery/selected issue replacement/permission copy/keyboard photo focus and authenticated HOLD delivery guard fixed.50focused/450whole web,89focused/1444whole backend(+7existing skips),106native tests, backend/frontend/strict browser/native types, builds/lint,3actual SQL scripts and15guarded browser cases pass.58observations/117PNGs; paired V5/core/closed and changed states inspected. Full36not Done: real retained-media/privacy/native acceptance unavailable; no fake AI or guard bypass. Remaining6unchanged; next dependency-eligible37requires runtime. Only36implemented, no merge/deploy/production action. See current SESSION_HANDOFF and V5_REVIEWS.md.
+
+- **2026-10-29 — Spec36 publication and STOP:** implementationdc0b6a8 pushed; OPEN/DRAFT PR104 https://github.com/Shumail-AbdulRehman/PRIV/pull/104 confirmed base implementation/spec-38-public-information/85e64f5 (PR103). Full36Blocked; issue84open, six specifications remain. Final publication audit21other worktrees/797dirty paths has0mismatches. Only36implemented; no merge/deploy or next unit. Final documentation commit follows implementation.
+
+- **2026-10-29 — Spec37 only, local permission recovery verified/full acceptance Blocked:** latest d5098aa/PR104 and09/17/20/21/26dependencies independently verified;22other worktrees/798dirty paths preserved. Permanent task-camera denial now exposes Settings, explicit continue rereads OS permission, foreground rereads permission+authority with actionable EN/UR failure; attendance denial/retry regression coverage added.115whole native/51focused(overlap),169backend dependency tests/6files, native types, Expo web export and current Android Metro JS bundle pass. No physical device/AVD/native screenshots or live photo/push qualification; existing APK proven older. Physical build config correctly refuses missing device API URL.37Blocked,30/36Blocked unchanged;36Done(including00),2In progress,3Blocked,1Not started,6remain.34dependency-eligible but qualified IdP facts unavailable;40/41ineligible. NATIVE_RECOVERY/current handoff document exact remaining gates. STOP, no other spec/merge/deploy/production operation.
+
+- **2026-10-29 — Spec37 publication and STOP:** implementationa9879e4 pushed; OPEN/DRAFT PR105 https://github.com/Shumail-AbdulRehman/PRIV/pull/105 confirmed base implementation/spec-36-review-acceptance/d5098aa (PR104). Issue60open; full37Blocked; six remain. Validator42/0errors/12existing warnings, whitespace clean,22other worktrees/798dirty paths byte-identical. Final handoff documentation follows; no next unit, merge, deployment or production/provider operation.
+
+- **2026-10-29 — Specification34 only:** restored latest fetched PR105/d25f411,
+ independently confirmed previous115native/169backend logs and sixremaining.
+19/27Done and actual verifier/routes/shell present. Existing safe-disabled runtime
+ already covers independent requirements; added4security regression cases, no auth
+ rewrite/provider adapter/credential/guard change.21focused,64Node+390React,
+1444backend+7existing integration skips,186focused backend, full web lint,
+ both builds/types and browser types pass. Existing3caseactualAPI/SQL/browser
+ harness passes21.7s;40fresh paired/state EN/UR1366/390PNGs inspected with exact
+ source/reference/image hashes. Full34Blocked on selected/approved browser IdP
+ configuration, provisioned MFA subjects and real provider qualification; full
+ positive security/visual requirement remains unchecked. Current session has no
+PLATFORM_OIDCinputs and loads no root secrets.23other worktrees/799dirtypaths
+ preserve HEAD/status/bytes. OwnedPG56534stopped/zerochildDBs. Counts36Done,
+1In progress,4Blocked,1Not started: sixremain. Nextnumericallyeligible30is external
+ mailblocked;36/37externalblocked;40/41ineligible. STOP, nootherunit/merge/deploy.
+
+- **2026-10-29 — Spec34 publication:** verification commit `5e2668a` is pushed in OPEN/DRAFT [PR106](https://github.com/Shumail-AbdulRehman/PRIV/pull/106), based on Spec37/PR105. Full34 remains Blocked. Final documentation records this publication; no merge, deployment or next specification.
+
+- **2026-10-29 — User-authorized Android build:** latest dependency-complete298fad3
+ native source packaged at e73591e into actual standalone2.1.8/code11 APK. Hosted
+ run40923692593 passes all three jobs; first attempt stopped at Expo config Doctor
+ and was corrected using incoming config.115 mobile tests/types,18/18Doctor,
+1444 backend tests(+7 existing conditional skips), isolated SQL and native compile/
+ assembly pass. Independent local package, native/permission, four-font byte,
+ signature/hash/CRC/16KiB checks pass; testing certificate matches old UI APK.
+ Saved Downloads/HygeneOps-Latest.apk plus project copy; exact paths/hash/limits in
+ ANDROID_LATEST_20261029.md.24 other worktrees/800 dirty paths preserved. No device
+ connected or installed; provider/physical gates remain.37 Blocked, six remain.
+ DraftPR107 based106; no merge, deployment, production or OAuth/OIDC action.
+
+- **2026-10-31 — Additive42 complete locally:** issue108, isolated implementation/spec-42-location-staff-import baseda8728ed. Existing root fix/v5-runtime-data-loading/user overlays and all worktrees preserved. Real XLSX/CSV onboarding uses existing site/shift/capacity/password-handoff architecture; no migration/email dependency. Final checks and limits: docs/implementation/STAFF_IMPORT_RESULTS.md. Original six unresolved specs unchanged; no merge/deploy. After initial laptop contention all verification used nice15/singleworker, sequentially.
+
+- **2026-10-31 — Spec42 review:** source eed787a, OPEN/DRAFT [PR109](https://github.com/Shumail-AbdulRehman/PRIV/pull/109), stacked on preserved107branch; original root work preserved, no merge/deploy.
+
+- **2026-10-31 — Spec42 amendment in progress:** user explicitly authorizes Password column and immediate email/password login, superseding original no-password-sheet/handoff requirement. Existing hashing, tenant/site/capacity checks and atomic confirmation retained. Preview strips passwords and file receipts now use keyed HMAC. New tests and real import/login proof pending before completion.
+
+- **2026-10-31 — Spec42 Password amendment complete:**49focused backend/5dialog,1478full backend passed/7existing skips,64Node+395React,4real API/SQL/browser tests and builds/lint pass. New staff directly use spreadsheet Email+Password. No raw passwords in preview/token/audit/receipt; keyed HMAC file receipts. Updated local5173/8080services verified200. Original six unresolved V5 gates unchanged.
+
+- **2026-10-31 — Spec43 complete locally:** separate provisioned local platform-owner email/password, private bcrypt credential store, opaque platform cookie, strict loopback/development/origin/database gates, throttling/expiry/logout and existing metadata pages wired. Full1490backend/7existing skips,64Node+399React,1isolated browser plus actual provisioned local owner login pass. Credentials stay outside Git. Original six V5 gates remain unresolved; production auth/MFA unchanged.
+
+- **2026-10-31 — Focused platform refinement complete:** user-authorized active manager/staff/location aggregates in company register and account overview; owners excluded. Hide inquiry/diagnostics/audit navigation and redirect old URLs.55backend/72platform UI focused;1491full backend+7existing skips;64Node+405React;1isolated PostgreSQL/API/browser; touched lint/both builds;8actual EN/UR desktop/phone captures with no browser errors/overflow. Local services updated. See PLATFORM_COMPANY_OVERVIEW.md. No new numbered spec, migrations, original status changes, merge or deployment.
+
+- **2026-10-31 — Company login polish complete locally:** user-requested responsive desktop/photo and mobile form, password visibility, focused error styling and separate platform-owner sign-in link.59focused,407React+64Node, lint/build,3isolated real browser and8local EN/UR observations passed. No new specification or original status change; LOGIN_UI_POLISH.md records scope and verification.

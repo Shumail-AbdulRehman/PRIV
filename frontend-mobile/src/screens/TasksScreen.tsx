@@ -1,6 +1,6 @@
 import NetInfo from "@react-native-community/netinfo";
 import { useLanguage } from "../i18n/LanguageProvider";
-import { LanguageChoice } from "../components/LanguageChoice";
+import { StaffBrand } from "../components/StaffBrand";
 import {
   hasOpenCheckout,
   getRelevantAttendanceRecord,
@@ -126,7 +126,7 @@ export function TasksScreen() {
         <RefreshControl refreshing={refreshing} onRefresh={onRefresh} />
       }
     >
-      <LanguageChoice />
+      <StaffBrand />
       <ScreenHeader title={t("Today’s tasks")} subtitle={subtitle} />
       {!online ? <Text>{t("Internet needed to continue")}</Text> : null}
       {!checkedIn ? (

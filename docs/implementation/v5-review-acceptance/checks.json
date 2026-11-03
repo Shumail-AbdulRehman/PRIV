@@ -1,0 +1,55 @@
+{
+  "frontend": {
+    "node": 64,
+    "react": 386,
+    "reactFiles": 28,
+    "failed": 0,
+    "skipped": 0,
+    "command": "npm test --prefix frontend -- -- --maxWorkers=1"
+  },
+  "focusedReact": 50,
+  "focusedBackend": 89,
+  "backend": {
+    "passed": 1444,
+    "skipped": 7,
+    "filesPassed": 94,
+    "filesSkipped": 1
+  },
+  "native": {
+    "passed": 106,
+    "typecheck": "pass",
+    "runtimeVisualVerified": false
+  },
+  "browser": {
+    "passed": 15,
+    "skipped": 0,
+    "retries": 0,
+    "observations": 58,
+    "pngs": 117,
+    "durationMs": 185973.91
+  },
+  "sqlScripts": [
+    "launchPhoto.integration.ts",
+    "launchComposition.integration.ts",
+    "reviewClosure.integration.ts"
+  ],
+  "frontendLint": "pass",
+  "frontendBuild": "pass:14.13s",
+  "backendBuild": "pass",
+  "managedFrontendBuild": "pass:18.15s",
+  "strictBrowserTypecheck": "pass",
+  "validator": {
+    "specs": 42,
+    "errors": 0,
+    "warnings": 12
+  },
+  "preservation": {
+    "worktrees": 21,
+    "paths": 797,
+    "mismatches": 0
+  },
+  "fullSpec36Status": "Blocked",
+  "externalPhotoPrivacyQualified": false,
+  "productionActions": false,
+  "strictClosureTypecheck": "pass"
+}

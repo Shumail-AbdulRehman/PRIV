@@ -53,3 +53,7 @@ The actual React owner page reads `/subscription/manage/lifecycle` and configure
 Provider periods, status, scheduled change and last-event timestamps remain separate from workspace permissions; null dates stay unavailable. Counts use actual active resource data and show over-limit records without offering deletion. Catalog amounts use the currency's actual minor-unit precision; trial copy appears only from an actual provider trialPeriod. Existing activation configuration is the commercial qualification gate; this unit does not enable it or invent terms.
 
 Relevant local verification commands/counts and visual evidence are recorded in spec32 Log and inventory32. Network-mocked component/presentation checks do not qualify live Paddle checkout, payment, portal, webhooks or merchant/legal readiness; those gates remain39/40.
+
+## V5 web acceptance — 2026-10-29
+
+Spec32 now implements the approved billing main stack/help rail and actual owner inactive/suspended recovery composition. Lifecycle company DTO additively exposes existing isActive; no schema or access policy changes. Provider state remains separate from workspace permissions; active unpaid reads remain permitted by existing API. Matching actual React/private API/disposableSQL EN/UR desktop/phone evidence and executed checks are in [V5_BILLING.md](V5_BILLING.md). Configured-positive checkout/portal still require real external merchant/catalog/terms/sandbox qualification. No payment, live subscription, provider activation or production operation occurred.

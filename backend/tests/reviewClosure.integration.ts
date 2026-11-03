@@ -8,11 +8,14 @@ const url=new URL(source);
 if(url.hostname!=='127.0.0.1'||!url.pathname.startsWith('/priv_verification_test'))throw new Error('Only isolated local test databases are allowed');
 const database=`priv_verification_test_review_closure_${Date.now()}`;
 const admin=new pg.Client({connectionString:source});await admin.connect();await admin.query(`CREATE DATABASE "${database}"`);await admin.end();
-url.pathname='/'+database;process.env.DATABASE_URL=url.toString();process.env.NODE_ENV='test';process.env.ACCESS_TOKEN_SECRET='isolated-review-closure-secret';
+url.pathname='/'+database;process.env.DATABASE_URL=url.toString();process.env.NODE_ENV='test';process.env.ACCESS_TOKEN_SECRET='isolated-review-closure-secret';process.env.ACCESS_TOKEN_EXPIRY='30m';
+process.env.PADDLE_ENVIRONMENT='sandbox';
+process.env.PADDLE_PRICE_CATALOG_JSON=JSON.stringify([{plan:'STARTER',interval:'month',priceId:'pri_00000000000000000000000001'}]);
 const client=new pg.Client({connectionString:url.toString()});await client.connect();const root=new URL('../prisma/migrations/',import.meta.url);
 for(const name of (await readdir(root)).filter(name=>/^\d/.test(name)).sort())await client.query(await readFile(new URL(`${name}/migration.sql`,root),'utf8'));await client.end();
 const {prisma}=await import('../src/prisma/prisma.js');
-const {default:express}=await import('express');const {default:jwt}=await import('jsonwebtoken');
+const {default:express}=await import('express');
+const {generateAccessToken}=await import('../src/utils/auth.js');
 const {default:router}=await import('../src/routes/verificationException.route.js');
 const {default:staffRouter}=await import('../src/routes/staff.route.js');
 const {createArea}=await import('../src/services/area.service.js');
@@ -24,7 +27,16 @@ const {countReviews}=await import('../src/services/reviewList.service.js');
 const app=express();app.use(express.json());app.use((req,_res,next)=>{req.cookies={};next();});app.use('/api',router);app.use('/api/staff',staffRouter);
 app.use((error:any,_req:any,res:any,_next:any)=>res.status(error.statusCode??(error.name==='ZodError'?400:500)).json({message:error.message}));
 const server=app.listen(0,'127.0.0.1');await new Promise<void>(resolve=>server.once('listening',resolve));const base=`http://127.0.0.1:${(server.address() as {port:number}).port}/api`;
-const company=await prisma.company.create({data:{name:'Review closure test',subscriptionStatus:'ACTIVE'}});
+const company=await prisma.company.create({data:{name:'Review closure test'}});
+// A legacy subscriptionStatus flag is not work entitlement. Use the same
+// synthetic persisted billing contract as launchComposition and the E2E seed.
+async function entitleFixture(companyId:number) {
+ const now=new Date(),customerId='ctm_review_'+randomUUID(),subscriptionId='sub_review_'+randomUUID();
+ await prisma.paddleCustomer.create({data:{id:customerId,companyId,status:'active',paddleUpdatedAt:now,lastEventAt:now}});
+ await prisma.paddleSubscription.create({data:{id:subscriptionId,customerId,companyId,status:'active',priceId:'pri_00000000000000000000000001',productId:'pro_synthetic',currentBillingPeriodStart:new Date(+now-3600000),currentBillingPeriodEnd:new Date(+now+86400000),paddleUpdatedAt:now,lastEventAt:now}});
+ await prisma.company.update({where:{id:companyId},data:{billingCustomerId:customerId,billingSubscriptionId:subscriptionId}});
+}
+await entitleFixture(company.id);
 const location=await prisma.location.create({data:{companyId:company.id,name:'Review test site',address:'Isolated test',latitude:'0',longitude:'0',timezone:'Asia/Karachi'}});
 const owner=await prisma.manager.create({data:{companyId:company.id,name:'Owner',role:'ADMIN',email:randomUUID()+'@test.invalid',password:'test-only-password'}});
 const actor={id:owner.id,companyId:company.id,role:'ADMIN' as const};
@@ -34,7 +46,7 @@ const denied=await prisma.manager.create({data:{companyId:company.id,name:'Unsco
 const worker=await prisma.staff.create({data:{companyId:company.id,locationId:location.id,name:'Original worker',email:randomUUID()+'@test.invalid',password:'test-only-password'}});
 const otherWorker=await prisma.staff.create({data:{companyId:company.id,locationId:location.id,name:'Other worker',email:randomUUID()+'@test.invalid',password:'test-only-password'}});
 const area=await createArea(actor,location.id,{name:'Closure area',roomType:'WASHROOM',counts:[{fixtureType:'INDIAN_TOILET',count:1},{fixtureType:'SINK',count:1}]});
-const token=(id:number,role:string)=>jwt.sign({id,role},process.env.ACCESS_TOKEN_SECRET!,{expiresIn:'30m'});
+const token=(id:number,role:'ADMIN'|'MANAGER'|'STAFF')=>generateAccessToken({id,email:'fixture@test.invalid',name:'Synthetic fixture',credentialVersion:0},role);
 const ownerToken=token(owner.id,'ADMIN'),managerToken=token(manager.id,'MANAGER');
 async function request(path:string,body?:unknown,expected=200,auth=ownerToken){const result=await fetch(base+path,{method:body===undefined?'GET':'POST',headers:{Authorization:`Bearer ${auth}`,'Content-Type':'application/json'},...(body===undefined?{}:{body:JSON.stringify(body)})});const json=await result.json() as any;assert.equal(result.status,expected,JSON.stringify(json));return json.data;}
 async function newReview(title:string,staffId:number|null=worker.id){
@@ -56,6 +68,7 @@ try{
  await request(`/verification-exceptions/${first.review.id}/close`,input(first.review.rowVersion),403,token(worker.id,'STAFF'));
  await request(`/verification-exceptions/${first.review.id}/close`,input(first.review.rowVersion),403,token(denied.id,'MANAGER'));
  const foreign=await prisma.company.create({data:{name:'Foreign closure company'}});
+ await entitleFixture(foreign.id);
  const foreignOwner=await prisma.manager.create({data:{companyId:foreign.id,name:'Foreign owner',role:'ADMIN',email:randomUUID()+'@test.invalid',password:'test-only-password'}});
  await request(`/verification-exceptions/${first.review.id}/close`,input(first.review.rowVersion),404,token(foreignOwner.id,'ADMIN'));
  await request(`/verification-exceptions/${first.review.id}/close`,input(first.review.rowVersion,'RESOLVE_REVIEW',{note:' '}),400);

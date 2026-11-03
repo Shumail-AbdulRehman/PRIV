@@ -1,0 +1,74 @@
+[
+  {
+    "screen": "day",
+    "width": 390,
+    "height": 900,
+    "language": "en",
+    "overflow": false,
+    "errors": [],
+    "provenance": "actual RN Web export; synthetic stored identity/HTTP fixtures; NOT native runtime or device acceptance"
+  },
+  {
+    "screen": "tasks",
+    "width": 390,
+    "height": 900,
+    "language": "en",
+    "overflow": false,
+    "errors": [],
+    "provenance": "actual RN Web export; synthetic stored identity/HTTP fixtures; NOT native runtime or device acceptance"
+  },
+  {
+    "screen": "start",
+    "width": 390,
+    "height": 900,
+    "language": "en",
+    "overflow": false,
+    "errors": [],
+    "provenance": "actual RN Web export; synthetic stored identity/HTTP fixtures; NOT native runtime or device acceptance"
+  },
+  {
+    "screen": "help",
+    "width": 390,
+    "height": 900,
+    "language": "en",
+    "overflow": false,
+    "errors": [],
+    "provenance": "actual RN Web export; synthetic stored identity/HTTP fixtures; NOT native runtime or device acceptance"
+  },
+  {
+    "screen": "day",
+    "width": 390,
+    "height": 900,
+    "language": "ur",
+    "overflow": false,
+    "errors": [],
+    "provenance": "actual RN Web export; synthetic stored identity/HTTP fixtures; NOT native runtime or device acceptance"
+  },
+  {
+    "screen": "tasks",
+    "width": 390,
+    "height": 900,
+    "language": "ur",
+    "overflow": false,
+    "errors": [],
+    "provenance": "actual RN Web export; synthetic stored identity/HTTP fixtures; NOT native runtime or device acceptance"
+  },
+  {
+    "screen": "start",
+    "width": 390,
+    "height": 900,
+    "language": "ur",
+    "overflow": false,
+    "errors": [],
+    "provenance": "actual RN Web export; synthetic stored identity/HTTP fixtures; NOT native runtime or device acceptance"
+  },
+  {
+    "screen": "help",
+    "width": 390,
+    "height": 900,
+    "language": "ur",
+    "overflow": false,
+    "errors": [],
+    "provenance": "actual RN Web export; synthetic stored identity/HTTP fixtures; NOT native runtime or device acceptance"
+  }
+]

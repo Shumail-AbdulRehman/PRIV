@@ -62,6 +62,6 @@ test('replacement password preserves Unicode within server bcrypt byte limit', (
   assert.equal(validReplacementPassword('abcdefgh'),true);assert.equal(validReplacementPassword('a'.repeat(72)),true);assert.equal(validReplacementPassword('a'.repeat(73)),false);assert.equal(validReplacementPassword('پ'.repeat(36)),true);assert.equal(validReplacementPassword('پ'.repeat(37)),false);assert.equal(validReplacementPassword('short'),false);
 });
 test('recovery and authority copy translates into Urdu without changing task IDs', () => {
-  for(const key of ['Use manager access code','Submission receipt','Task photos are unavailable','Replace your password','Retry phone alerts'])assert.notEqual(translate(key,'ur'),key);
+  for(const key of ['Use manager access code','Submission receipt','Task photos are unavailable','Replace your password','Retry phone alerts','Open camera settings','Allow camera','Allow camera access in Settings to take task photos.','Camera or task access could not be checked. Refresh results and try again.'])assert.notEqual(translate(key,'ur'),key);
   assert.equal(translate('Task {id}','ur',{id:41}),'کام 41');
 });

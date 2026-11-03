@@ -58,6 +58,18 @@ describe('explicit qualified catalog and activation', () => {
     expect(JSON.stringify(result)).not.toContain('credential-fixture'); expect(JSON.stringify(result)).not.toContain('password');
     expect(m.priceGet).not.toHaveBeenCalled();
   });
+  it('retains owner recovery facts for a legacy inactive company while denying checkout before provider access', async () => {
+    m.owner.mockResolvedValue({ ...owner, company: { ...company, isActive: false, operationalStatus: 'ACTIVE' } });
+    const result = await getBillingLifecycle(actor, deps);
+    expect(result.company).toMatchObject({ id: actor.companyId, isActive: false, operationalStatus: 'ACTIVE' });
+    expect(result.checkoutAvailable).toBe(false);
+    expect(result.portalAvailable).toBe(true);
+    await expect(createBillingCheckout(actor, request, deps)).rejects.toMatchObject({ statusCode: 403, message: 'Company operations are suspended' });
+    expect(m.priceGet).not.toHaveBeenCalled();
+    expect(m.customerCreate).not.toHaveBeenCalled();
+    expect(m.transactionCreate).not.toHaveBeenCalled();
+    expect(m.auditCreate).not.toHaveBeenCalled();
+  });
   it('shows an unresolved request as unavailable rather than offering a duplicate checkout', async () => {
     m.auditFind.mockResolvedValueOnce({ id: 10, action: 'CHECKOUT_RESERVED' }).mockResolvedValueOnce(null);
     const result = await getBillingLifecycle(actor, deps);

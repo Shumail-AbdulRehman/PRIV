@@ -1,3 +1,12 @@
+# Latest build — 29 October 2026
+
+A fresh standalone2.1.8/code11 APK includes the latest Spec37 implementation.
+See [ANDROID_LATEST_20261029.md](ANDROID_LATEST_20261029.md) for exact source,
+paths, SHA256, passed build checks, installation and remaining device/provider gates.
+The older build record below is historical.
+
+---
+
 # Mobile UI APK — 2026-10-12
 
 Source snapshot: `369bf5e`, isolated branch `build/hygeneops-ui-native-20261012`. Build run: https://github.com/Shumail-AbdulRehman/PRIV/actions/runs/38256262582 . The original working tree and its uncommitted work were retained.

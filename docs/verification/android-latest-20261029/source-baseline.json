@@ -1,0 +1,18 @@
+{
+  "base": "298fad3816fc1b4634c26460b13ce6bb3ac02d01",
+  "mobile_implementation": "a9879e49c02cbd2cb4962993c44e51f996b26276",
+  "branch": "build/hygeneops-android-testing-20261029",
+  "apiBaseUrl": "http://192.168.100.95:8080/api",
+  "source_qualification": "all completed native changes included; full Spec37 remains blocked on physical/provider qualification",
+  "buildCommit": "e73591e25406725cc354bf9b1f5e845da4b658bd",
+  "runId": 40923692593,
+  "runUrl": "https://github.com/Shumail-AbdulRehman/PRIV/actions/runs/40923692593",
+  "appVersion": "2.1.8",
+  "versionCode": 11,
+  "expoVersion": "54.0.37",
+  "reactNativeVersion": "0.81.5",
+  "localMobileTests": 115,
+  "expoDoctor": "18/18 passed",
+  "buildMethod": "existing GitHub-hosted Expo prebuild and Gradle release workflow",
+  "localBackend": "approved restored local development copy; external push/billing disabled; no data changes"
+}

@@ -114,3 +114,74 @@ it('rapid duplicate save clicks issue only one pending mutation', async () => {
  mock.request.mockImplementation(async (...args) => { if (args[1]?.method === 'PATCH') await new Promise<void>(resolve => { finish = resolve; }); return normal(...args); });
  openInquiry(); await screen.findByLabelText('Reason'); draft(); const save = screen.getByRole('button', { name: 'Save handling' }); fireEvent.click(save); fireEvent.click(save); expect(mock.request.mock.calls.filter(([, options]) => options?.method === 'PATCH')).toHaveLength(1); finish!(); await screen.findByText('Handling saved. No message was sent and contact remains unverified.');
 });
+
+it('failed background inquiry refresh preserves the draft and requires a successful read before saving', async () => {
+  const normal = mock.request.getMockImplementation()!;
+  let unavailable = false;
+  mock.request.mockImplementation(async (...args) => {
+    if (unavailable && !args[1]?.method) throw { status: 503 };
+    return normal(...args);
+  });
+  openInquiry(); await screen.findByLabelText('Reason'); draft();
+  unavailable = true; fireEvent.click(screen.getByRole('button', { name: 'Refresh records' }));
+  await screen.findByText('These inquiry details could not be refreshed. Your draft is kept; refresh before saving.');
+  expect(screen.getByLabelText('Reason')).toHaveValue('Review requested setup');
+  expect(screen.getByLabelText('Handling status')).toHaveValue('IN_PROGRESS');
+  expect(screen.getByRole('button', { name: 'Save handling' })).toBeDisabled();
+  expect(mock.request.mock.calls.filter(([, options]) => options?.method === 'PATCH')).toHaveLength(0);
+  unavailable = false; fireEvent.click(screen.getByRole('button', { name: 'Retry' }));
+  await waitFor(() => expect(screen.getByRole('button', { name: 'Save handling' })).toBeEnabled());
+  expect(screen.getByLabelText('Reason')).toHaveValue('Review requested setup');
+  fireEvent.click(screen.getByRole('button', { name: 'Save handling' }));
+  await screen.findByText('Handling saved. No message was sent and contact remains unverified.');
+  expect(mock.request.mock.calls.filter(([, options]) => options?.method === 'PATCH')).toHaveLength(1);
+});
+
+it.each([401, 403])('explicit access denial %s supersedes cached inquiry facts and draft', async status => {
+  const normal = mock.request.getMockImplementation()!;
+  let denied = false;
+  mock.request.mockImplementation(async (...args) => { if (denied) throw { status }; return normal(...args); });
+  openInquiry(); await screen.findByLabelText('Reason'); draft();
+  denied = true; fireEvent.click(screen.getByRole('button', { name: 'Refresh records' }));
+  await screen.findByText('Platform access denied. Sign in with a provisioned operator account.');
+  expect(screen.queryByLabelText('Reason')).not.toBeInTheDocument();
+  expect(screen.queryByText('sender@example.invalid')).not.toBeInTheDocument();
+  expect(mock.request.mock.calls.filter(([, options]) => options?.method === 'PATCH')).toHaveLength(0);
+});
+
+it('support contact refresh hides the previous handoff until the new response is confirmed', async () => {
+  const normal = mock.request.getMockImplementation()!;
+  let refresh = false;
+  let finish: ((value: unknown) => void) | undefined;
+  mock.request.mockImplementation(async (...args) => {
+    if (args[0] !== '/support/contact') return normal(...args);
+    if (refresh) return new Promise(resolve => { finish = resolve; });
+    return { data: { available: true, email: 'support@example.invalid', channel: 'EMAIL', verification: 'OPERATOR_CONFIGURED' } };
+  });
+  mount(); await screen.findByRole('link', { name: /Open support email/ });
+  refresh = true; fireEvent.click(screen.getByRole('button', { name: 'Refresh support contact' }));
+  await screen.findByText('Loading support contact…');
+  expect(screen.queryByRole('link', { name: /Open support email/ })).not.toBeInTheDocument();
+  expect(screen.queryByText('Support contact is unavailable. No delivery channel has been qualified.')).not.toBeInTheDocument();
+  finish!({ data: { available: false, email: null, channel: null, verification: 'UNAVAILABLE' } });
+  await screen.findByText('Support contact is unavailable. No delivery channel has been qualified.');
+  expect(screen.queryByRole('link', { name: /Open support email/ })).not.toBeInTheDocument();
+});
+
+it('accepted handling remains recorded when its follow-up refresh fails without another mutation', async () => {
+  const normal = mock.request.getMockImplementation()!;
+  let refreshFails = false;
+  mock.request.mockImplementation(async (...args) => {
+    if (args[1]?.method === 'PATCH') { const result = await normal(...args); refreshFails = true; return result; }
+    if (refreshFails) throw { status: 503 };
+    return normal(...args);
+  });
+  openInquiry(); await screen.findByLabelText('Reason'); draft();
+  fireEvent.click(screen.getByRole('button', { name: 'Save handling' }));
+  await screen.findByText('Handling saved. No message was sent and contact remains unverified.');
+  await screen.findByText('These inquiry details could not be refreshed. Your draft is kept; refresh before saving.');
+  expect(screen.getByText('Recorded handling status').parentElement).toHaveTextContent('In progress');
+  expect(screen.getByLabelText('Reason')).toHaveValue('');
+  expect(screen.getByRole('button', { name: 'Save handling' })).toBeDisabled();
+  expect(mock.request.mock.calls.filter(([, options]) => options?.method === 'PATCH')).toHaveLength(1);
+});

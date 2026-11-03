@@ -19,11 +19,11 @@ const replacement={policyEligible:true,available:false,reason:'PHOTO_QUALIFICATI
 const attempt={id:'attempt',state:'REVIEW_REQUIRED',mediaAssetId:null,privacyState:'SAFE',receivedAt:'2026-10-21T04:00:00Z',createdAt:'2026-10-21T04:00:00Z',reviewSummary:{reasonCode:'SERVICE_FAILURE',cleanliness:null,dirtySurfaces:[],missingSurfaces:[]}};
 const fixture = ():ExceptionDetail => ({id:3,kind:'TASK',state:'MANAGER_REVIEW',priority:1,rowVersion:2,locationId:8,firstRaisedAt:'2026-10-21T04:00:00Z',updatedAt:'2026-10-21T04:00:00Z',location:{id:8,name:'Synthetic site',timezone:'Asia/Karachi'},area:{id:7,name:'Synthetic washroom'},task:{id:2,title:'Synthetic cleaning',status:'IN_PROGRESS',verificationState:'NEEDS_REVIEW',completionOutcome:null,shiftEnd:'2026-10-21T05:00:00Z',staffSubmittedAt:null},items:[{id:1,nameSnapshot:'Synthetic sink',sourceAreaItemId:1,requirements:[{id:'view',viewKey:'BASIN_TAP',state:'REVIEW_REQUIRED',decisionVersion:2,mandatory:true,instructionsSnapshot:'Show the sink',currentAttemptId:attempt.id,currentAttempt:attempt,replacement}]}],issues:[],allowedActions:[],closureActions:['RESOLVE_REVIEW','RECORD_PERFORMANCE_ISSUE'],performanceStaffOptions:[{id:4,name:'Synthetic staff'}],decisions:[],events:[]});
 let detail:ExceptionDetail;
-function mount(content:React.ReactNode, lang='en') {
+function mount(content:React.ReactNode, lang='en', entry='/exceptions/3?requirementId=view') {
  localStorage.setItem('hygene-ops.language',lang);
  const store=configureStore({reducer:{auth:authReducer}});store.dispatch(setUser({id:1,companyId:42,role:'MANAGER',name:'Synthetic reviewer',email:'fixture@example.invalid'}));
  const query=new QueryClient({defaultOptions:{queries:{retry:false,gcTime:0},mutations:{retry:false}}});
- const router=createMemoryRouter([{path:'/exceptions/:id',element:content}],{initialEntries:['/exceptions/3?requirementId=view']});
+ const router=createMemoryRouter([{path:'/exceptions/:id',element:content}],{initialEntries:[entry]});
  const view=render(<Provider store={store}><QueryClientProvider client={query}><LanguageProvider><div className="workspace"><RouterProvider router={router}/></div></LanguageProvider></QueryClientProvider></Provider>);
  return {...view,query};
 }
@@ -155,4 +155,52 @@ it('uses review vocabulary for Urdu queue tabs without leaking English or task-n
  const options=screen.getByRole('combobox',{name:'جائزے کی فہرست'});
  expect(within(options).getByRole('option',{name:reviewUrdu.pending})).toBeInTheDocument();
  expect(within(options).getByRole('option',{name:reviewUrdu.reviewed})).toBeInTheDocument();
+});
+
+it('shows replacement eligibility for the issue-selected view, not only a requirement bookmark',async()=>{
+ detail.issues=[{id:41,requirementId:'view',reasonCode:'SERVICE_FAILURE',state:'OPEN',occurrences:1,recommendedAction:'REVIEW',firstSeenAt:detail.firstRaisedAt,lastSeenAt:detail.updatedAt,latestAttempt:attempt}];
+ mount(<ExceptionDetailPage/>,'en','/exceptions/3?issueId=41');
+ await screen.findByRole('heading',{name:'Photo replacement'});
+ expect(screen.getByText('This failed view meets the recorded replacement rules, but new photo checking is unavailable. No replacement can be submitted now.')).toBeInTheDocument();
+});
+
+it('keeps a decision draft but prevents saving after a detail refresh fails, then recovers',async()=>{
+ const view=mount(<ExceptionDetailPage/>);
+ const note=await screen.findByRole('textbox',{name:'Resolution note'});
+ fireEvent.change(note,{target:{value:'Draft retained while details are unavailable'}});
+ api.get.mockImplementation(async(url:string)=>{if(url==='/verification-exceptions/3')throw {response:{status:503}};return {data:{data:url.endsWith('/next')?{nextId:null}:{cases:[structuredClone(detail)],queueCounts:{}}}};});
+ await act(async()=>{await view.query.invalidateQueries({queryKey:['exception']});});
+ await waitFor(()=>expect(screen.getByRole('button',{name:'Confirm resolution'})).toBeDisabled());
+ expect(note).toHaveValue('Draft retained while details are unavailable');
+ fireEvent.submit(note.closest('form')!);
+ expect(api.post.mock.calls.filter(([url])=>url.endsWith('/close'))).toHaveLength(0);
+ api.get.mockImplementation(async(url:string)=>({data:{data:url.endsWith('/next')?{nextId:null}:structuredClone(detail)}}));
+ fireEvent.click(screen.getByRole('button',{name:'Refresh review'}));
+ await waitFor(()=>expect(screen.getByRole('button',{name:'Confirm resolution'})).toBeEnabled());
+ expect(note).toHaveValue('Draft retained while details are unavailable');
+});
+
+it.each([401,403,404])('removes private cached detail after access becomes unavailable (%s)',async status=>{
+ const view=mount(<ExceptionDetailPage/>);await screen.findByRole('textbox',{name:'Resolution note'});
+ api.get.mockImplementation(async(url:string)=>{if(url==='/verification-exceptions/3')throw {response:{status}};return {data:{data:{nextId:null}}};});
+ await act(async()=>{await view.query.invalidateQueries({queryKey:['exception']});});
+ await waitFor(()=>expect(screen.queryByRole('textbox',{name:'Resolution note'})).not.toBeInTheDocument());
+ expect(screen.queryByText('Synthetic sink')).not.toBeInTheDocument();
+ expect(screen.getAllByRole('alert').some(node=>node.textContent?.includes(status===401?'Sign in again':status===403?'access to this review':'Review unavailable'))).toBe(true);
+});
+
+it('does not count a local or unconfirmed photo as a server upload receipt',()=>{
+ detail.items![0].requirements[0].currentAttempt={...attempt,receivedAt:null,state:'PROCESSING'};
+ mount(<LaunchReviewContext detail={detail}/>);
+ expect(screen.getByText('0 of 1 current views received')).toBeInTheDocument();
+ expect(screen.getByText('No task submission recorded')).toBeInTheDocument();expect(screen.getByText('Verified completion not recorded')).toBeInTheDocument();
+});
+it.each([
+ {processingAllowed:true,available:false,automaticApproval:false,policyEligible:false,policyReason:'CURRENT_SESSION_REQUIRED',message:'No current replacement authority is confirmed for this view.'},
+ {processingAllowed:true,available:true,automaticApproval:false,policyEligible:true,policyReason:'FRESH_TASK_QR_REQUIRED',message:'The assigned staff member must clean, then scan the task QR again.'},
+ {processingAllowed:true,available:true,automaticApproval:false,policyEligible:true,policyReason:'STAFF_CAPTURE_FLOW_REQUIRED',message:'Replacement is available only through the assigned staff capture flow.'},
+])('explains server replacement rules without granting manager authority: $policyReason',value=>{
+ mount(<LaunchReviewContext detail={detail} replacement={{...replacement,...value}}/>);
+ expect(screen.getByText(new RegExp(value.message.replace(/[.]/g,'\\.')))).toBeInTheDocument();
+ expect(screen.queryByRole('button')).not.toBeInTheDocument();expect(screen.queryByText('Verified completion recorded')).not.toBeInTheDocument();
 });

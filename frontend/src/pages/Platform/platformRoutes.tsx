@@ -1,4 +1,4 @@
-import ServicePage from './ServicePage';
+import { Navigate } from 'react-router-dom';
 import CompaniesPage from './CompaniesPage';
 import type { RouteObject } from 'react-router-dom';
 import OperatorLogin, { OperatorCallback, OperatorSecurity } from './OperatorLogin';
@@ -10,8 +10,9 @@ export const platformRoutes: RouteObject[] = [
   { path: '/platform/security', element: <OperatorSecurity /> },
   { path: '/platform/companies', element: <CompaniesPage /> },
   { path: '/platform/companies/:companyId', element: <CompaniesPage /> },
-  { path: '/platform/service', element: <ServicePage /> },
-  { path: '/platform/audit', element: <ServicePage initialView="audit" /> },
-  { path: '/platform/inquiries', element: <ServicePage initialView="inquiries" /> },
+  // Temporarily hidden from the platform UI; preserve the underlying services.
+  { path: '/platform/service', element: <Navigate to="/platform/companies" replace /> },
+  { path: '/platform/audit', element: <Navigate to="/platform/companies" replace /> },
+  { path: '/platform/inquiries', element: <Navigate to="/platform/companies" replace /> },
   { path: '/platform/*', element: <OperatorLogin /> },
 ];

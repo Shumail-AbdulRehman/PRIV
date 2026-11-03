@@ -1,0 +1,63 @@
+?? docs/planning/
+a8728ed docs: record verified Android 2.1.8 APK and installation handoff [skip ci]
+e73591e build: preserve Expo incoming static configuration for native preflight
+d78bbc3 build: prepare latest Spec37 standalone Android 2.1.8 testing APK
+298fad3 docs(spec34): record draft PR106 and blocked provider handoff
+5e2668a test(spec34): verify operator isolation and record IdP qualification blocker
+d25f411 docs(spec37): record draft PR105 and blocked native acceptance
+a9879e4 fix(spec37): recover denied camera access and verify native source
+d5098aa docs(spec36): record draft PR104 and blocked acceptance handoff
+dc0b6a8 fix(spec36): guard review recovery and private evidence inspection
+85e64f5 docs(spec38): record draft PR103 and completed handoff
+36fd568 feat(spec38): complete public service information web contract
+2011a90 docs(spec30): link blocked continuation draft review
+19a68cf docs(spec30): record blocked owner-link delivery qualification
+3c9367c docs: finalize verified V5 continuation and link independent draft reviews
+6c89bf1 docs: accept V5 platform web scope and record native account continuation proof
+/home/shumail/bkacup-16-oct-bkpriv/bk-Priv/PRIV                               55061b8 [fix/v5-runtime-data-loading]
+/home/shumail/.local/share/hygene-ops/v5-apk-20261029/implementation          a8728ed [build/hygeneops-android-testing-20261029]
+/home/shumail/.local/share/hygene-ops/v5-billing-20261029/implementation      adae1b9 [implementation/v5-billing-acceptance]
+/home/shumail/.local/share/hygene-ops/v5-continuation-20261028/forms          7455545 [implementation/v5-setup-forms]
+/home/shumail/.local/share/hygene-ops/v5-continuation-20261028/integrated     55061b8 [implementation/v5-continuation-checkpoint]
+/home/shumail/.local/share/hygene-ops/v5-continuation-20261028/locations      b4254cd [implementation/v5-locations]
+/home/shumail/.local/share/hygene-ops/v5-continuation-20261028/operator       7f0d059 [implementation/v5-operator-boundary]
+/home/shumail/.local/share/hygene-ops/v5-continuation-20261028/reviews        de9d602 [implementation/v5-review-states]
+/home/shumail/.local/share/hygene-ops/v5-continuation-20261028/setup          2aff5c5 [implementation/v5-setup-locations]
+/home/shumail/.local/share/hygene-ops/v5-import-20261031                      a8728ed [implementation/spec-42-location-staff-import]
+/home/shumail/.local/share/hygene-ops/v5-remaining-20261029/companies         ac62f9f [implementation/v5-platform-companies]
+/home/shumail/.local/share/hygene-ops/v5-remaining-20261029/coordinator       3c9367c [implementation/v5-remaining-checkpoint]
+/home/shumail/.local/share/hygene-ops/v5-remaining-20261029/native            ed39ead [implementation/v5-native-composition]
+/home/shumail/.local/share/hygene-ops/v5-remaining-20261029/qa                7a16718 [verification/v5-remaining-qa]
+/home/shumail/.local/share/hygene-ops/v5-remaining-20261029/service           5a63baa [implementation/v5-platform-service]
+/home/shumail/.local/share/hygene-ops/v5-spec30-20261029/implementation       2011a90 [implementation/spec-30-delivery-qualification]
+/home/shumail/.local/share/hygene-ops/v5-spec34-20261029/implementation       298fad3 [implementation/spec-34-identity-qualification]
+/home/shumail/.local/share/hygene-ops/v5-spec36-20261029/implementation       d5098aa [implementation/spec-36-review-acceptance]
+/home/shumail/.local/share/hygene-ops/v5-spec37-20261029/implementation       d25f411 [implementation/spec-37-native-acceptance]
+/home/shumail/.local/share/hygene-ops/v5-spec38-20261029/implementation       85e64f5 [implementation/spec-38-public-information]
+/home/shumail/.local/share/hygene-ops/v5-worktrees-20261028/attendance        c8a59e9 [implementation/v5-attendance-context]
+/home/shumail/.local/share/hygene-ops/v5-worktrees-20261028/coordinator       8ff718e [implementation/v5-workforce-checkpoint]
+/home/shumail/.local/share/hygene-ops/v5-worktrees-20261028/qa                cd8fb00 [verification/v5-team-workforce]
+/home/shumail/.local/share/hygene-ops/v5-worktrees-20261028/shell             d18a26b [implementation/v5-shell-acceptance]
+/home/shumail/.local/share/hygene-ops/v5-worktrees-20261028/workforce         a8d7f70 [implementation/v5-team-workforce]
+/home/shumail/.local/share/hygene-ops/v5-worktrees-20261028/workforce-review  33e73c2 [implementation/v5-workforce-reviewed]
+/tmp/hygene-apk-20261021                                                      d69d855 [build/hygeneops-android-testing-20261021] prunable
+/tmp/hygene-direct-apk-build-20261013                                         79e5ab6 [build/hygeneops-android-testing-direct-20261013] prunable
+/tmp/hygene-spec30                                                            5b8f830 [implementation/spec-30-account-ui] prunable
+/tmp/hygene-spec31                                                            325149f [implementation/spec-31-workforce-management] prunable
+/tmp/hygene-spec34                                                            97e84ff [implementation/spec-34-operator-ui] prunable
+/tmp/hygene-spec36                                                            628545f [implementation/spec-36-photo-review-clarity] prunable
+/tmp/hygene-spec37                                                            a4a3c5d [implementation/spec-37-native-workflows] prunable
+/tmp/hygene-spec40                                                            0d3971b (detached HEAD) prunable
+/tmp/hygene-ui-apk-build-20261012                                             89d43a8 [build/hygeneops-ui-native-small-20261012] prunable
+/tmp/hygene-v5-auth-clean-68709b1                                             68709b1 (detached HEAD) prunable
+/tmp/hygene-v5-clean-5313b73                                                  5313b73 (detached HEAD) prunable
+/tmp/hygene-v5-coordinator-20261026                                           8ff718e [implementation/v5-workforce-checkpoint] prunable
+/tmp/hygene-v5-help                                                           632ca25 [implementation/v5-help-information] prunable
+/tmp/hygene-v5-integrated                                                     07797d9 [implementation/v5-parallel-checkpoint] prunable
+/tmp/hygene-v5-qa                                                             34d256d [verification/v5-parallel-qa] prunable
+/tmp/hygene-v5-qa-20261026                                                    cd8fb00 [verification/v5-team-workforce] prunable
+/tmp/hygene-v5-review-clean-d64e0ea                                           d64e0ea (detached HEAD) prunable
+/tmp/hygene-v5-settings                                                       ede41ff [implementation/v5-organization-settings] prunable
+/tmp/hygene-v5-shell-20261026                                                 d18a26b [implementation/v5-shell-acceptance] prunable
+/tmp/hygene-v5-workforce-20261026                                             a8d7f70 [implementation/v5-team-workforce] prunable
+/tmp/hygeneops-actions-build                                                  79a1185 [build/hygeneops-android-testing-camera-crash-20261009] prunable

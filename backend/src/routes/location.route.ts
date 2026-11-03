@@ -1,3 +1,4 @@
+import staffImportRouter from "./staffImport.route.js";
 import { accountAccess } from '../middlewares/accountAccess.middleware.js';
 import taskReadinessRouter from "./taskReadiness.route.js";
 import { Router } from "express";
@@ -16,6 +17,7 @@ import { getLocationMapConfig } from "../controllers/mapConfig.controller.js";
 
 const router = Router();
 router.use(taskReadinessRouter);
+router.use(staffImportRouter);
 router.get("/map-config", verifyJwt, authorize("ADMIN", "MANAGER"), getLocationMapConfig);
 
 router.post("/", verifyJwt, authorize("ADMIN"), createLocation);

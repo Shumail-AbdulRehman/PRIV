@@ -1,4 +1,5 @@
 export const serviceUrdu: Record<string,string> = {
+ 'Read approved document: {document}':'منظور شدہ دستاویز پڑھیں: {document}',
  'A clear next step when work or account access gets stuck.':'کام یا اکاؤنٹ میں رکاوٹ آئے تو واضح اگلا قدم۔',
  'Contact Hygene Ops':'Hygene Ops سے رابطہ',
  'Use a customer account reference and describe the issue. Do not include passwords or workforce photos.':'کسٹمر اکاؤنٹ کا حوالہ اور مسئلے کی وضاحت دیں۔ پاس ورڈ یا کارکنوں کی تصاویر شامل نہ کریں۔',

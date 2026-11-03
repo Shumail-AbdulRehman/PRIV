@@ -1,5 +1,5 @@
 import { useEffect, type ReactNode } from 'react';
-import { Link } from 'react-router-dom';
+import { Link, useLocation } from 'react-router-dom';
 import { ArrowRight } from 'lucide-react';
 import { useLanguage } from '@/i18n/context';
 import AuthShell from '@/components/common/AuthShell';
@@ -12,6 +12,21 @@ import '@/workspace-refresh.css';
 import './help.css';
 
 type ServiceFacts = ReturnType<typeof useServiceInformation>;
+function useHelpNavigation(mainId: string) {
+  const { hash } = useLocation();
+  useEffect(() => {
+    const main = document.getElementById(mainId);
+    const section = hash.startsWith('#service-') ? document.getElementById(hash.slice(1)) : null;
+    if (section && main?.contains(section)) {
+      section.setAttribute('tabindex', '-1');
+      section.focus({ preventScroll: true });
+      section.scrollIntoView();
+      return;
+    }
+    window.scrollTo(0, 0);
+    main?.focus({ preventScroll: true });
+  }, [mainId, hash]);
+}
 function Panel({ title, children, id }: { title: string; children: ReactNode; id?: string }) {
   return <section className="v5-help-panel" id={id}><header><h2>{title}</h2></header><div className="v5-help-pad">{children}</div></section>;
 }
@@ -19,7 +34,7 @@ function SupportContact({ info }: { info: ServiceFacts }) {
   const { t } = useLanguage();
   return <div className="v5-service-contact" aria-busy={info.support.isFetching}>
     {info.support.isFetching ? <p role="status">{t('Loading support contact…')}</p> : null}
-    {info.support.isError ? <div role="alert"><p>{t('Support contact could not be loaded.')}</p><Button variant="outline" onClick={() => void info.support.refetch()}>{t('Retry support contact')}</Button></div> : info.support.data && !info.support.isFetching ? info.support.data.email ? <><a className="v5-service-email" href={`mailto:${encodeURIComponent(info.support.data.email)}`}>{t('Open support email')}<bdi>{info.support.data.email}</bdi></a><p className="v5-service-note">{t('This mailbox is operator configured. Opening email does not confirm message delivery.')}</p></> : <p className="v5-service-notice" role="status">{t('Support contact is unavailable. No delivery channel has been qualified.')}</p> : null}
+    {info.support.isError ? <div role="alert"><p>{t('Support contact could not be loaded.')}</p><Button variant="outline" disabled={info.support.isFetching} onClick={() => void info.support.refetch()}>{t('Retry support contact')}</Button></div> : info.support.data && !info.support.isFetching ? info.support.data.email ? <><a className="v5-service-email" href={`mailto:${encodeURIComponent(info.support.data.email)}`}>{t('Open support email')}<bdi>{info.support.data.email}</bdi></a><p className="v5-service-note">{t('This mailbox is operator configured. Opening email does not confirm message delivery.')}</p></> : <p className="v5-service-notice" role="status">{t('Support contact is unavailable. No delivery channel has been qualified.')}</p> : null}
   </div>;
 }
 function PhotoGuidance() {
@@ -32,6 +47,7 @@ function AndroidInformation({ info }: { info: ServiceFacts }) {
 }
 export default function HelpPage() {
   const { t } = useLanguage();
+  useHelpNavigation('help-content');
   const info = useServiceInformation();
   const title = t('Help & service information');
   useEffect(() => { document.title = `${title} | Hygene Ops`; }, [title]);
@@ -54,10 +70,11 @@ export default function HelpPage() {
 }
 export function ServiceInformationPage() {
   const { t } = useLanguage();
+  useHelpNavigation('auth-content');
   const info = useServiceInformation();
   return <AuthShell title={t('Service information')} subtitle={t('Support, current photo behavior and approved customer information.')} footer={<Link to="/help">{t('Help & service information')}</Link>}>
     <div className="v5-information">
-      <section aria-labelledby="service-policies-title" id="service-policies"><h2 id="service-policies-title">{t('Service and account closure')}</h2><p>{t('Only approved configured documents are linked here. No refund, retention period or deletion promise is inferred.')}</p><dl>{([{ key: 'terms', label: 'Service and billing terms' }, { key: 'privacy', label: 'Privacy information' }, { key: 'exit', label: 'Retention and account closure' }] as const).map(({ key, label }) => <div key={key}><dt>{t(label)}</dt><dd>{info[key] ? <a href={info[key]} rel="noreferrer">{t('Read approved document')}</a> : t('Approved document unavailable')}</dd></div>)}</dl>{!info.purchaseReady ? <p role="status">{t('New purchases are unavailable until approved customer policies and a support contact are available.')}</p> : <p>{t('Available documents do not confirm billing activation or production readiness.')}</p>}</section>
+      <section aria-labelledby="service-policies-title" id="service-policies"><h2 id="service-policies-title">{t('Service and account closure')}</h2><p>{t('Only approved configured documents are linked here. No refund, retention period or deletion promise is inferred.')}</p><dl>{([{ key: 'terms', label: 'Service and billing terms' }, { key: 'privacy', label: 'Privacy information' }, { key: 'exit', label: 'Retention and account closure' }] as const).map(({ key, label }) => <div key={key}><dt>{t(label)}</dt><dd>{info[key] ? <a href={info[key]} rel="noreferrer" aria-label={t('Read approved document: {document}', { document: t(label) })}>{t('Read approved document')}</a> : t('Approved document unavailable')}</dd></div>)}</dl>{!info.purchaseReady ? <p role="status">{t('New purchases are unavailable until approved customer policies and a support contact are available.')}</p> : <p>{t('Available documents do not confirm billing activation or production readiness.')}</p>}</section>
       <section aria-labelledby="service-photos-title" id="service-photos"><h2 id="service-photos-title">{t('Photos and privacy')}</h2><PhotoGuidance /></section>
       <section aria-labelledby="service-support-title" id="service-support"><h2 id="service-support-title">{t('Support contact')}</h2><SupportContact info={info} /></section>
       <section aria-labelledby="service-android-title" id="service-android"><h2 id="service-android-title">{t('Android app')}</h2><AndroidInformation info={info} /></section>

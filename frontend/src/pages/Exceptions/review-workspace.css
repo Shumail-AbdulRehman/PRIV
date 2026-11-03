@@ -64,7 +64,7 @@
 .workspace .v5-evidence-thumbnail,.workspace .v5-thumbnail-missing { display:flex; height:64px; width:100%; align-items:center; justify-content:center; background:var(--muted); border-radius:4px; overflow:hidden; font-size:10px; }
 .workspace .v5-evidence-thumbnail img { width:100%; height:100%; object-fit:cover; }
 .workspace .v5-evidence-toolbar { display:flex; align-items:center; gap:8px; flex-wrap:wrap; min-height:48px; padding:6px 10px; background:var(--muted); border:1px solid var(--border); border-radius:8px 8px 0 0; }
-.workspace .v5-evidence-toolbar button { min-width:36px; height:36px; padding:6px; }
+.workspace .v5-evidence-toolbar button { min-width:44px; min-height:44px; height:auto; padding:6px; }
 .workspace .v5-evidence-toolbar output { min-width:44px; font-size:12px; text-align:center; font-variant-numeric:tabular-nums; }
 .workspace .v5-evidence-toolbar button:last-child { margin-inline-start:auto; font-size:12px; }
 .workspace .v5-evidence-stage { height:330px; overflow:auto; background:var(--muted); border:1px solid var(--border); border-top:0; border-radius:0 0 8px 8px; }
@@ -150,3 +150,6 @@
 .workspace .v5-evidence-and-decision.v5-review-setup-layout { grid-template-columns:minmax(0,1fr); }
 .workspace .v5-saved-decision>a { min-height:44px; }
 @media(max-width:650px) { .workspace .v5-saved-decision>a { min-height:48px; } }
+
+@media(max-width:650px) { .workspace .v5-evidence-toolbar button { min-width:48px; min-height:48px; } }
+.workspace .v5-evidence-stage:focus-visible,.workspace .ops-image-zoom:focus-visible { outline:3px solid var(--primary); outline-offset:3px; }

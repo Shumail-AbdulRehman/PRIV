@@ -1,5 +1,7 @@
 # Spec24 reuse inventory
 
+- 2026-10-31 refinement: existing company summary DTO includes `counts: {managers, staff, locations}`. All counts filter isActive; managers additionally filter role MANAGER, excluding ADMIN owners. Select aggregate counts only, retaining operator guards and the bounded list query.
+
 - `backend/src/services/platformCompany.service.ts`: `listPlatformCompanies` (name/status filter, ID cursor, 25 default/50 maximum), `getPlatformCompany` (consistent whitelisted account/provider mirror + last20 platform status activity), `setPlatformCompanyStatus` (reason/expectedVersion, company-first lock, atomic conditional update + audit). All consume verified `OperatorPrincipal`; never a tenant ADMIN. Use for33; backend mounting remains26.
 - `backend/src/routes/platformCompany.route.ts`: separate operator-only router; GET `/`, GET `/:id`, PATCH `/:id/status`; `Cache-Control: private, no-store` also on denial. Mount at `/api/platform/companies` in26. No provider mutations, workforce access or tenant impersonation.
 - `backend/src/services/auditLog.service.ts`: existing helper now permits PLATFORM_OPERATOR. Status audit has null numeric actorId and `newValue.operator.{issuer,subject}`; durable DB timestamp, reason and before/after status/version. Do not map an operator to SYSTEM/tenant numeric IDs.

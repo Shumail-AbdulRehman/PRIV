@@ -1,13 +1,21 @@
 # Spec 37 — Native attendance/photo/account recovery
 
-**Status:** In progress
+**Status:** Blocked
 **Depends on:** Spec 09, Spec 17, Spec 20, Spec 21, Spec 26
 **Model:** Standard — `claude-sonnet-5-5` · `gpt-6.1-sol` · `gemini-3.8-flash`
 **Issue:** #60
-**Owns:** `frontend-mobile/src/launch/LaunchRecovery.tsx`, `frontend-mobile/src/launch/LaunchRecovery.test.ts`, `frontend-mobile/src/launch/launchApi.ts`, `frontend-mobile/src/launch/recoveryPolicy.ts`, `frontend-mobile/src/launch/launchTranslations.ts`, `frontend-mobile/tests/launchRecovery.test.mjs`, `frontend-mobile/tests/verificationLifecycle.test.mjs`, `frontend-mobile/src/auth/AuthContext.tsx`, `frontend-mobile/src/api/client.ts`, `frontend-mobile/src/api/client.test.ts`, `frontend-mobile/tests/credentialRecovery.test.mjs`, `frontend-mobile/tests/attendanceRecovery.test.mjs`, `frontend-mobile/src/navigation/AppNavigator.tsx`, `frontend-mobile/src/screens/LoginScreen.tsx`, `frontend-mobile/src/screens/HomeScreen.tsx`, `frontend-mobile/src/screens/HelpScreen.tsx`, `frontend-mobile/src/screens/verification/VerificationScreen.tsx`, `frontend-mobile/src/verification/types.ts`, `frontend-mobile/src/notifications/NotificationProvider.tsx`, `frontend-mobile/src/notifications/NotificationNavigation.tsx`, `frontend-mobile/src/types.ts`, `frontend-mobile/src/i18n/translations.ts`, `docs/implementation/NATIVE_RECOVERY.md`, `specs/inventory/37-native-workflows.md`, `frontend-mobile/global.css`, `frontend-mobile/src/theme.ts`, `frontend-mobile/App.tsx`, `frontend-mobile/src/navigation/StaffTabs.tsx`, `frontend-mobile/src/components/StaffBrand.tsx`, `frontend-mobile/src/components/PhotoCaptureControls.tsx`, `frontend-mobile/src/components/ui/button.tsx`
+**Owns:** `frontend-mobile/src/screens/TasksScreen.tsx`, `frontend-mobile/src/screens/StartTaskScreen.tsx`, `frontend-mobile/src/components/TaskCard.tsx`, `frontend-mobile/src/components/ui/card.tsx`, `frontend-mobile/src/components/ui/text.tsx`, `frontend-mobile/src/fonts.ts`, `frontend-mobile/assets/fonts/`, `frontend-mobile/package.json`, `frontend-mobile/package-lock.json`, `frontend-mobile/tests/nativeComposition.test.mjs`, `docs/implementation/V5_NATIVE_COMPOSITION.md`, `frontend-mobile/src/launch/LaunchRecovery.tsx`, `frontend-mobile/src/launch/LaunchRecovery.test.ts`, `frontend-mobile/src/launch/launchApi.ts`, `frontend-mobile/src/launch/recoveryPolicy.ts`, `frontend-mobile/src/launch/launchTranslations.ts`, `frontend-mobile/tests/launchRecovery.test.mjs`, `frontend-mobile/tests/verificationLifecycle.test.mjs`, `frontend-mobile/src/auth/AuthContext.tsx`, `frontend-mobile/src/api/client.ts`, `frontend-mobile/src/api/client.test.ts`, `frontend-mobile/tests/credentialRecovery.test.mjs`, `frontend-mobile/tests/attendanceRecovery.test.mjs`, `frontend-mobile/src/navigation/AppNavigator.tsx`, `frontend-mobile/src/screens/LoginScreen.tsx`, `frontend-mobile/src/screens/HomeScreen.tsx`, `frontend-mobile/src/screens/HelpScreen.tsx`, `frontend-mobile/src/screens/verification/VerificationScreen.tsx`, `frontend-mobile/src/verification/types.ts`, `frontend-mobile/src/notifications/NotificationProvider.tsx`, `frontend-mobile/src/notifications/NotificationNavigation.tsx`, `frontend-mobile/src/types.ts`, `frontend-mobile/src/i18n/translations.ts`, `docs/implementation/NATIVE_RECOVERY.md`, `specs/inventory/37-native-workflows.md`, `frontend-mobile/global.css`, `frontend-mobile/src/theme.ts`, `frontend-mobile/App.tsx`, `frontend-mobile/src/navigation/StaffTabs.tsx`, `frontend-mobile/src/components/StaffBrand.tsx`, `frontend-mobile/src/components/PhotoCaptureControls.tsx`, `frontend-mobile/src/components/ui/button.tsx`
 **Reuses:** `frontend-mobile/src/components/AttendanceCamera.tsx`, `frontend-mobile/src/notifications/NotificationProvider.tsx`, `frontend-mobile/src/notifications/NotificationNavigation.tsx`, `frontend-mobile/src/types.ts`, `DESIGN-SYSTEM.md#component-conventions`, `design/v5/mobile.html`
 
 ## Goal
+
+Continuation ownership additionally includes `frontend-mobile/src/screens/TasksScreen.tsx`,
+`frontend-mobile/src/screens/StartTaskScreen.tsx`, `frontend-mobile/src/components/TaskCard.tsx`,
+`frontend-mobile/src/components/ui/card.tsx`, `frontend-mobile/src/components/ui/text.tsx`,
+`frontend-mobile/src/fonts.ts`, `frontend-mobile/assets/fonts/`,
+`frontend-mobile/package.json`, `frontend-mobile/package-lock.json`,
+`frontend-mobile/tests/nativeComposition.test.mjs`, and
+`docs/implementation/V5_NATIVE_COMPOSITION.md`; these are exclusive37 paths.
 
 Native attendance/photo/account recovery in the existing application, with persisted behavior and explicit safety boundaries.
 
@@ -46,6 +54,8 @@ Integrate approved v5 native states into existing actual screens: role-correct s
 
 ## Log
 
+- **2026-10-29 — Approved composition continuation:** Independent source inspection against design/v5/mobile confirms remaining native hierarchy/header/help/task-start/font work beyond the earlier palette bridge. Separate persistent native worktree starts from verifiedadae1b9 plus common preservation metadata. Coordinator owns this scope; company/service/QA workers do not edit native source. Reuse existing attendance/QR/camera/authority/retry/API behavior; add only approved composition and bundled font loading, using the already installed Expo font version where necessary. Additional paths listed above transfer exclusively before edits. Actual native runtime/physical-device proof is unavailable, so37 remains In progress regardless of component/web-preview success. Issue60 reused; no provider/backend/production change.
+
 - **2026-10-21** — Claimed issue60 in isolated worktree based on Spec28/PR56. Consume26 real manifest permissions and forced-password denial; amend existing native screen/auth/client ownership before integration. No backend, provider, schema, new dependency or production change.
 
 - **2026-10-21** — Implemented actual staff login/handoff/self replacement with retained mandatory-change gate; exact persisted attendance/lost-response reads and checkout ID; server photo qualification/authority before permission/capture/upload, retained same-capture result/manual retry and immutable submission receipt; settings/push help with EN/UR.101 mobile tests/zero skips, TypeScript and Expo web export pass. Existing72 baseline plus29 cases at policy, form, AuthProvider, Home and Verification seams. No dependency/backend/database/provider change. No adb/emulator/device available; native runtime/font scale/permission/push/Android qualification remains39/40, explicitly not proven by web export or component trees. Docs NATIVE_RECOVERY.md and inventory37 contain proof/limits. Await independent finish source/component review and lead integration before Done; no push/PR from parallel worker.
@@ -59,3 +69,25 @@ Integrate approved v5 native states into existing actual screens: role-correct s
 - **2026-10-21 — Visual acceptance correction:** reopened for outstanding approved V5 acceptance. Historical functional checkmarks/logs are preserved; they do not certify visual fidelity. Current four-part status and evidence: docs/implementation/V5_IMPLEMENTATION.md. No prior visual requirement is newly verified by a build.
 
 - **2026-10-22 — Issue82 correction:** Existing NativeWind/navigation/native control colours now consume approved V5 palette via the new native prop bridge.101tests/typecheck/Expo web export pass. No connected device/emulator; native visual acceptance remains open. See docs/implementation/V5_IMPLEMENTATION.md for commands, counts, screenshots and intentional deviations. This log does not close the reopened full V5 acceptance criterion.
+
+- **2026-10-29 — Source composition verified:** My day hierarchy, consistent StaffBrand headers, task-bound QR heading, grouped alert/permission/account help,10pxpanels and bundled Inter/Noto Arabic with nonblocking ExpoFont14.0.12 direct declaration implemented. Alert retry now locks duplicate calls and handles thrown failures.106native tests/0skips; native and integrated tsc, Expo web export pass.8actual RNWeb synthetic source-preview observations ENUR390 and10images inspected, with explicit inert web-decoder fixture. Initial Latin serif fallback in Urdu corrected/recaptured. This is not native/device/camera/GPS/QR/push/large-text qualification;37remains In progress. See V5_NATIVE_COMPOSITION.md. No backend/provider/production change.
+
+- **2026-10-29 — Review publication:** OPEN/DRAFT PR101 https://github.com/Shumail-AbdulRehman/PRIV/pull/101, independently based accepted implementation/v5-billing-acceptance/adae1b9. No merge/deploy; scoped runtime hashes match this tested integrated checkpoint.
+
+- **2026-10-29 — Specification37 only, local recovery verified/full acceptance Blocked:** independently fetched/restored d5098aa/PR104; dependencies09/17/20/21/26Done and actual native/API contracts inspected. Reused issue60 and isolated implementation/spec-37-native-acceptance. Fixed permanent camera denial's unreachable Settings action, fresh OS permission on explicit continue, foreground permission/manifest recheck and bilingual failure recovery; added two attendance and seven task-camera component cases. Baseline106/final115native tests,51focused(overlapping),169backend dependency tests/6files, native TypeScript, Expo web export and real Metro Android JS bundle pass. Only owned source/test/doc paths changed; packages/lockfiles/backend/design unchanged. ADB37.0.1 exists outside PATH, devices list empty, no configured emulator/AVD; no native screenshots/physical GPS/camera/QR/permission/large-text/push proof. Old APK's hash matches d69d855 build,33native baseline files differ; not current-source acceptance. Physical API URL missing; provider privacy/identity/push qualification unavailable, safe-disabled processing preserved. First V5 criterion remains unchecked. Full requirements/acceptance matrix, commands, environment, precise blockers and STOP: NATIVE_RECOVERY.md/latest handoff. Six units remain,40/41ineligible; no next unit started.
+
+- **2026-10-29 — Publication/STOP:** implementationa9879e4 pushed in OPEN/DRAFT PR105 https://github.com/Shumail-AbdulRehman/PRIV/pull/105, base implementation/spec-36-review-acceptance/d5098aa (PR104). Issue60remains open;37Blocked, first V5 criterion unchecked; six remain. Validator42/0errors/12documented baseline warnings; whitespace clean; final22worktree/798path preservation audit0mismatches. Final publication handoff docs follow. No other unit/merge/deploy/production/provider action.
+
+- **2026-10-29 — Fresh standalone testing APK built:** user explicitly authorized
+ packaging the latest native source without completing37. Dependency-complete
+ base298fad3 includes a9879e4/aa1b6e2/643ac41; build branch
+ `build/hygeneops-android-testing-20261029`, exact compiled sourcee73591e.
+ Version2.1.8/code11, actual57,454,943-byte APK, no Metro; approved local API95:8080.
+ Hosted run40923692593 succeeds;115 mobile tests,18/18Doctor/types, backend contracts,
+ native compile/assembly, package/native/permissions/fonts/signature/hash/alignment
+ pass. Expo incoming-config and prior build compatibility fixes stay in isolated
+ build scope. Existing testing certificate matches the prior UI APK. Download:
+ `/home/shumail/Downloads/HygeneOps-Latest.apk`; SHA256 and all evidence in
+ docs/verification/ANDROID_LATEST_20261029.md. DraftPR107 based106, issue60 stays
+ open. Zero devices/installs; physical/provider/V5 qualification remains unverified,
+ first acceptance criterion unchecked, full37 still Blocked. No other spec completed.

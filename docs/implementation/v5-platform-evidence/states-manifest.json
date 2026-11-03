@@ -1,0 +1,174 @@
+{
+  "sourceRoot": "/home/shumail/.local/share/hygene-ops/v5-remaining-20261029/coordinator",
+  "revision": "416bf51d61f40bc81b53c78e58352d5274e9e8d7",
+  "source": {
+    "CompaniesPage.tsx": "14f55a099931bbf898f49871c1704c78cf9f830d4a42875f0cd5d04b150fdea6",
+    "companies.css": "81badb949b1b1082d98e5700fcc7c0c765798194d534956ae1bfdf023d4eab77",
+    "ServicePage.tsx": "d90bfa87c918934e825b12eb76fd4244059f4a8f1829d699427bf8f0cae48924",
+    "service.css": "c0aa57da7ab3835d0c59dddc6b756193761431b7a010f6d3775dbd40fa0425cc",
+    "operatorSession.ts": "8b30daf0c95f87e5cf9dfc651b417d5fbd58566b05331bb720f4eb4414db2e4f",
+    "OperatorLogin.tsx": "9ce45402bc1c02ecbbe6047bd21300f254b8248df73ac8de07a6144d4eeb3f49"
+  },
+  "provenance": "real named React components, test-only synthetic operatorRequest response store; no live provider/auth/SQL qualification",
+  "viewportHeights": 900,
+  "mode": "states",
+  "observations": 38,
+  "files": [
+    {
+      "name": "app-company-loading-390-en.png",
+      "sha256": "8a0aa62edebaec09077ff5bc317a0433afd5355b66e8146ef28399953779cc83",
+      "width": 390,
+      "height": 900
+    },
+    {
+      "name": "app-company-empty-390-en.png",
+      "sha256": "199b6ca3462534e07785eda4cf1c829e6af51f12483b100915789bad0247aa25",
+      "width": 390,
+      "height": 900
+    },
+    {
+      "name": "app-company-error-390-en.png",
+      "sha256": "7585b42bb9b3effb04f74f1bcf3aefd50566d5d03d1e8b85097c823211c4e10a",
+      "width": 390,
+      "height": 900
+    },
+    {
+      "name": "app-service-empty-390-en.png",
+      "sha256": "33d8ca3910039b1cdb6d9b01f1417331c7e24dfbc02432593c52335e3b876138",
+      "width": 390,
+      "height": 900
+    },
+    {
+      "name": "app-service-error-390-en.png",
+      "sha256": "7440f4e4867566a6c2230ac1df6d846d6e5ada3dd714f9f55d26d38e65bba7c0",
+      "width": 390,
+      "height": 900
+    },
+    {
+      "name": "app-service-unavailable-390-en.png",
+      "sha256": "3c83b5461f0612ef0a1029a35ce079ed646f9b60512b74528921f1b223d0d09a",
+      "width": 390,
+      "height": 900
+    },
+    {
+      "name": "app-company-loading-390-ur.png",
+      "sha256": "ecde024523658038009f503b1432c0b3afa9416c5cb862669fb9a2b01f7fee4c",
+      "width": 390,
+      "height": 900
+    },
+    {
+      "name": "app-company-empty-390-ur.png",
+      "sha256": "772ca3105445a31efbce7cd046ad989aa96728afda455f803c95122a05809897",
+      "width": 390,
+      "height": 900
+    },
+    {
+      "name": "app-company-error-390-ur.png",
+      "sha256": "365930b497acb11c5e3597a08ee0cc4805193802123f8e0f4268095336d8aa9f",
+      "width": 390,
+      "height": 900
+    },
+    {
+      "name": "app-service-empty-390-ur.png",
+      "sha256": "babb8c670b38a8ae1609f591d2da687a0f2ea96b261d608c47efdf33e32f4596",
+      "width": 390,
+      "height": 900
+    },
+    {
+      "name": "app-service-error-390-ur.png",
+      "sha256": "838e5ccab1064940e4b1e96218148a33b0471237a49cdd3ff4f1edd276857bcd",
+      "width": 390,
+      "height": 900
+    },
+    {
+      "name": "app-service-unavailable-390-ur.png",
+      "sha256": "4aef061366c495c98220f3559b9620eb951e3de321b4ff77f001079da43fc37e",
+      "width": 390,
+      "height": 900
+    },
+    {
+      "name": "app-company-conflict-390-en.png",
+      "sha256": "f8244e7e2f6ecff5f1515234deae7ebf66ce81240b75869100758bc4c2aa0dec",
+      "width": 390,
+      "height": 900
+    },
+    {
+      "name": "app-inquiry-conflict-390-en.png",
+      "sha256": "a3e217eafe2cc190585347cfebf9b978a52a94fbf9142a1bb6361d4789a8e551",
+      "width": 390,
+      "height": 900
+    },
+    {
+      "name": "app-company-uncertain-390-en.png",
+      "sha256": "b227bbeff58bbf607bc3c2d65b0816bdfe17e881e8e77796d1a7827a5ebbe103",
+      "width": 390,
+      "height": 900
+    },
+    {
+      "name": "app-inquiry-uncertain-390-en.png",
+      "sha256": "258e8208c43b4554c0c2291856284e71842b0c4ce97a2e43cc0e14cc2a3c6d65",
+      "width": 390,
+      "height": 900
+    },
+    {
+      "name": "app-company-pending-390-en.png",
+      "sha256": "156a841e67843e8c188f2445a72d27635d42b1c7102170a531c9ebfa053e39b2",
+      "width": 390,
+      "height": 900
+    },
+    {
+      "name": "app-inquiry-pending-390-en.png",
+      "sha256": "a2dc27e0cddcb3666d112dd778bde65d0b833a6b7802885a7b526cf4bbc6ec8b",
+      "width": 390,
+      "height": 900
+    },
+    {
+      "name": "app-company-conflict-390-ur.png",
+      "sha256": "f605c59275ff671e38ebb7f15bc69e423a7d9a3b48720dead045ce6582e4ca58",
+      "width": 390,
+      "height": 900
+    },
+    {
+      "name": "app-inquiry-conflict-390-ur.png",
+      "sha256": "46d0f19eefa2fdde38687e74c25b4593d284ca0b2442fe0dabf5a74de582b976",
+      "width": 390,
+      "height": 900
+    },
+    {
+      "name": "app-company-uncertain-390-ur.png",
+      "sha256": "4f1ed70611f7c2a129f3c55dde5f90d17b65da48fd93db68274e1c1fa2cf416b",
+      "width": 390,
+      "height": 900
+    },
+    {
+      "name": "app-inquiry-uncertain-390-ur.png",
+      "sha256": "5e319501a9279d422c9d6eb202ad2bb3984fc6f70e9c129eb3efa1f8777ed972",
+      "width": 390,
+      "height": 900
+    },
+    {
+      "name": "app-company-pending-390-ur.png",
+      "sha256": "a29bda58efc024ab6c02f3cc0ad1b39b68339c91f9b9780885c0e9caae413128",
+      "width": 390,
+      "height": 900
+    },
+    {
+      "name": "app-inquiry-pending-390-ur.png",
+      "sha256": "43effe4f44ae045e703e22df8a32bc29b3615301b2d390d29497e15d01035a2f",
+      "width": 390,
+      "height": 900
+    },
+    {
+      "name": "app-service-support-refresh-error-390-en.png",
+      "sha256": "ec0f4d17ce19b21859fa14de7ecce36f5544562bf9ce6e717dfdee54c419d57c",
+      "width": 390,
+      "height": 900
+    },
+    {
+      "name": "app-service-support-refresh-error-390-ur.png",
+      "sha256": "21883228354cec2f94868ada1b15cf8625874f60cdf5d7c5eadc19fc624009ed",
+      "width": 390,
+      "height": 900
+    }
+  ]
+}

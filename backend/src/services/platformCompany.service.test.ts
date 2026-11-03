@@ -7,6 +7,7 @@ const date = new Date('2026-10-20T00:00:00Z');
 function harness() {
     let company: any = { id: 1, name: 'Synthetic company', plan: 'STARTER', isActive: true, operationalStatus: 'ACTIVE', accountVersion: 0,
         createdAt: date, updatedAt: date, subscriptionStatus: 'CANCELLED', billingCustomerId: null, billingSubscriptionId: null,
+        _count: { managers: 2, staff: 37, locations: 5 },
         suspendedAt: null, suspensionReason: null, password: 'PRIVATE', staff: ['PRIVATE'], verificationPolicy: { secret: 'PRIVATE' } };
     let audits: any[] = [];
     const tx = {
@@ -47,7 +48,7 @@ describe('platform company metadata boundary', () => {
         const h = harness(); h.tx.company.findMany.mockResolvedValueOnce([h.company, { ...h.company, id: 2 }]);
         const result = await listPlatformCompanies(actor, { q: ' Synthetic ', status: 'ACTIVE', after: '4', limit: '1' }, h.db);
         expect(result.nextCursor).toBe('1'); expect(result.items).toHaveLength(1);
-        expect(Object.keys(result.items[0]!).sort()).toEqual(['id', 'name', 'plan', 'isActive', 'operationalStatus', 'accountVersion', 'createdAt', 'updatedAt'].sort());
+        expect(Object.keys(result.items[0]!).sort()).toEqual(['id', 'name', 'plan', 'isActive', 'operationalStatus', 'accountVersion', 'createdAt', 'updatedAt', 'counts'].sort());
         expect(h.tx.company.findMany).toHaveBeenCalledWith(expect.objectContaining({ take: 2, orderBy: { id: 'asc' }, where: {
             name: { contains: 'Synthetic', mode: 'insensitive' }, operationalStatus: 'ACTIVE', id: { gt: 4 },
         } }));
@@ -57,6 +58,22 @@ describe('platform company metadata boundary', () => {
         const h = harness(); h.tx.company.findMany.mockResolvedValueOnce([]);
         expect(await listPlatformCompanies(actor, {}, h.db)).toEqual({ items: [], nextCursor: null });
         expect(h.tx.company.findMany).toHaveBeenCalledWith(expect.objectContaining({ take: 26 }));
+    });
+    it('returns per-company aggregate counts with active filters and excludes owners without fetching identities', async () => {
+        const h = harness();
+        h.tx.company.findMany.mockResolvedValueOnce([h.company, { ...h.company, id: 2, _count: { managers: 0, staff: 0, locations: 0 } }]);
+        const result = await listPlatformCompanies(actor, {}, h.db);
+        expect(result.items.map(row => row.counts)).toEqual([{ managers: 2, staff: 37, locations: 5 }, { managers: 0, staff: 0, locations: 0 }]);
+        const counts = { select: {
+            managers: { where: { isActive: true, role: 'MANAGER' } },
+            staff: { where: { isActive: true } }, locations: { where: { isActive: true } },
+        } };
+        expect(h.tx.company.findMany).toHaveBeenCalledOnce();
+        expect(h.tx.company.findMany).toHaveBeenCalledWith(expect.objectContaining({ select: expect.objectContaining({ _count: counts }) }));
+        const detail = await getPlatformCompany(actor, 1, h.db);
+        expect(detail.company.counts).toEqual(result.items[0]!.counts);
+        expect(h.tx.company.findUnique).toHaveBeenCalledWith(expect.objectContaining({ select: expect.objectContaining({ _count: counts }) }));
+        expect(JSON.stringify(detail)).not.toContain('PRIVATE');
     });
     it.each([{ limit: '0' }, { limit: '51' }, { limit: 10 }, { limit: ['1'] }, { after: '-1' }, { after: '2147483648' },
         { after: '1.2' }, { q: 'a'.repeat(101) }, { q: {} }, { status: 'DELETED' }, { include: 'staff' }])('rejects unbounded or unsupported filters %j', async input => {

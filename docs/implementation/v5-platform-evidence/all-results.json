@@ -1,0 +1,4898 @@
+[
+  {
+    "name": "company-list",
+    "width": 1366,
+    "height": 900,
+    "language": "en",
+    "provenance": "named real React workspace; synthetic operatorRequest response store",
+    "overflow": false,
+    "buttonTargets": [
+      {
+        "text": "English",
+        "width": 63,
+        "height": 48,
+        "close": false
+      },
+      {
+        "text": "اردو",
+        "width": 38,
+        "height": 48,
+        "close": false
+      },
+      {
+        "text": "Refresh",
+        "width": 106,
+        "height": 44,
+        "close": false
+      },
+      {
+        "text": "Apply filters",
+        "width": 112,
+        "height": 48,
+        "close": false
+      },
+      {
+        "text": "Clear filters",
+        "width": 108,
+        "height": 48,
+        "close": false
+      },
+      {
+        "text": "Next page",
+        "width": 99,
+        "height": 48,
+        "close": false
+      }
+    ],
+    "h1": [
+      "Platform companies",
+      "Customer companies"
+    ],
+    "scrollY": 0,
+    "errors": [],
+    "apiRequests": [],
+    "remoteRequests": [],
+    "requests": [
+      {
+        "path": "/platform/companies?limit=25",
+        "method": "GET"
+      }
+    ]
+  },
+  {
+    "name": "company-account",
+    "width": 1366,
+    "height": 900,
+    "language": "en",
+    "provenance": "named real React workspace; synthetic operatorRequest response store",
+    "overflow": false,
+    "buttonTargets": [
+      {
+        "text": "English",
+        "width": 63,
+        "height": 48,
+        "close": false
+      },
+      {
+        "text": "اردو",
+        "width": 38,
+        "height": 48,
+        "close": false
+      },
+      {
+        "text": "Refresh",
+        "width": 106,
+        "height": 44,
+        "close": false
+      },
+      {
+        "text": "Account",
+        "width": 59,
+        "height": 48,
+        "close": false
+      },
+      {
+        "text": "Billing",
+        "width": 43,
+        "height": 48,
+        "close": false
+      },
+      {
+        "text": "Activity",
+        "width": 54,
+        "height": 48,
+        "close": false
+      },
+      {
+        "text": "Suspend company",
+        "width": 179,
+        "height": 48,
+        "close": false
+      }
+    ],
+    "h1": [
+      "Platform companies",
+      "Synthetic Facilities"
+    ],
+    "scrollY": 0,
+    "errors": [],
+    "apiRequests": [],
+    "remoteRequests": [],
+    "requests": [
+      {
+        "path": "/platform/companies/42",
+        "method": "GET"
+      }
+    ]
+  },
+  {
+    "name": "company-billing",
+    "width": 1366,
+    "height": 900,
+    "language": "en",
+    "provenance": "named real React workspace; synthetic operatorRequest response store",
+    "overflow": false,
+    "buttonTargets": [
+      {
+        "text": "English",
+        "width": 63,
+        "height": 48,
+        "close": false
+      },
+      {
+        "text": "اردو",
+        "width": 38,
+        "height": 48,
+        "close": false
+      },
+      {
+        "text": "Refresh",
+        "width": 106,
+        "height": 44,
+        "close": false
+      },
+      {
+        "text": "Account",
+        "width": 58,
+        "height": 48,
+        "close": false
+      },
+      {
+        "text": "Billing",
+        "width": 43,
+        "height": 48,
+        "close": false
+      },
+      {
+        "text": "Activity",
+        "width": 54,
+        "height": 48,
+        "close": false
+      }
+    ],
+    "h1": [
+      "Platform companies",
+      "Synthetic Facilities"
+    ],
+    "scrollY": 0,
+    "errors": [],
+    "apiRequests": [],
+    "remoteRequests": [],
+    "requests": [
+      {
+        "path": "/platform/companies/42",
+        "method": "GET"
+      }
+    ]
+  },
+  {
+    "name": "company-activity",
+    "width": 1366,
+    "height": 900,
+    "language": "en",
+    "provenance": "named real React workspace; synthetic operatorRequest response store",
+    "overflow": false,
+    "buttonTargets": [
+      {
+        "text": "English",
+        "width": 63,
+        "height": 48,
+        "close": false
+      },
+      {
+        "text": "اردو",
+        "width": 38,
+        "height": 48,
+        "close": false
+      },
+      {
+        "text": "Refresh",
+        "width": 106,
+        "height": 44,
+        "close": false
+      },
+      {
+        "text": "Account",
+        "width": 58,
+        "height": 48,
+        "close": false
+      },
+      {
+        "text": "Billing",
+        "width": 43,
+        "height": 48,
+        "close": false
+      },
+      {
+        "text": "Activity",
+        "width": 54,
+        "height": 48,
+        "close": false
+      }
+    ],
+    "h1": [
+      "Platform companies",
+      "Synthetic Facilities"
+    ],
+    "scrollY": 0,
+    "errors": [],
+    "apiRequests": [],
+    "remoteRequests": [],
+    "requests": [
+      {
+        "path": "/platform/companies/42",
+        "method": "GET"
+      }
+    ]
+  },
+  {
+    "name": "service-diagnostics",
+    "width": 1366,
+    "height": 900,
+    "language": "en",
+    "provenance": "named real React workspace; synthetic operatorRequest response store",
+    "overflow": false,
+    "buttonTargets": [
+      {
+        "text": "English",
+        "width": 63,
+        "height": 48,
+        "close": false
+      },
+      {
+        "text": "اردو",
+        "width": 38,
+        "height": 48,
+        "close": false
+      },
+      {
+        "text": "Service diagnostics",
+        "width": 134,
+        "height": 48,
+        "close": false
+      },
+      {
+        "text": "Administrative audit",
+        "width": 131,
+        "height": 48,
+        "close": false
+      },
+      {
+        "text": "Customer inquiries",
+        "width": 124,
+        "height": 48,
+        "close": false
+      },
+      {
+        "text": "Refresh observations",
+        "width": 198,
+        "height": 48,
+        "close": false
+      },
+      {
+        "text": "Refresh support contact",
+        "width": 193,
+        "height": 48,
+        "close": false
+      }
+    ],
+    "h1": [
+      "Platform service",
+      "Service diagnostics"
+    ],
+    "scrollY": 0,
+    "errors": [],
+    "apiRequests": [],
+    "remoteRequests": [],
+    "requests": [
+      {
+        "path": "/platform/service/diagnostics",
+        "method": "GET"
+      },
+      {
+        "path": "/support/contact",
+        "method": "GET"
+      }
+    ]
+  },
+  {
+    "name": "service-audit",
+    "width": 1366,
+    "height": 900,
+    "language": "en",
+    "provenance": "named real React workspace; synthetic operatorRequest response store",
+    "overflow": false,
+    "buttonTargets": [
+      {
+        "text": "English",
+        "width": 63,
+        "height": 48,
+        "close": false
+      },
+      {
+        "text": "اردو",
+        "width": 38,
+        "height": 48,
+        "close": false
+      },
+      {
+        "text": "Refresh records",
+        "width": 161,
+        "height": 48,
+        "close": false
+      },
+      {
+        "text": "Service diagnostics",
+        "width": 130,
+        "height": 108,
+        "close": false
+      },
+      {
+        "text": "Administrative audit",
+        "width": 136,
+        "height": 108,
+        "close": false
+      },
+      {
+        "text": "Customer inquiries",
+        "width": 124,
+        "height": 108,
+        "close": false
+      },
+      {
+        "text": "Apply filters",
+        "width": 112,
+        "height": 48,
+        "close": false
+      },
+      {
+        "text": "Next page",
+        "width": 99,
+        "height": 48,
+        "close": false
+      }
+    ],
+    "h1": [
+      "Platform service",
+      "Administrative audit"
+    ],
+    "scrollY": 0,
+    "errors": [],
+    "apiRequests": [],
+    "remoteRequests": [],
+    "requests": [
+      {
+        "path": "/platform/service/audit?limit=25",
+        "method": "GET"
+      }
+    ]
+  },
+  {
+    "name": "service-inquiries",
+    "width": 1366,
+    "height": 900,
+    "language": "en",
+    "provenance": "named real React workspace; synthetic operatorRequest response store",
+    "overflow": false,
+    "buttonTargets": [
+      {
+        "text": "English",
+        "width": 63,
+        "height": 48,
+        "close": false
+      },
+      {
+        "text": "اردو",
+        "width": 38,
+        "height": 48,
+        "close": false
+      },
+      {
+        "text": "Refresh records",
+        "width": 161,
+        "height": 48,
+        "close": false
+      },
+      {
+        "text": "Service diagnostics",
+        "width": 130,
+        "height": 96,
+        "close": false
+      },
+      {
+        "text": "Administrative audit",
+        "width": 131,
+        "height": 96,
+        "close": false
+      },
+      {
+        "text": "Customer inquiries",
+        "width": 129,
+        "height": 96,
+        "close": false
+      },
+      {
+        "text": "Apply filters",
+        "width": 112,
+        "height": 48,
+        "close": false
+      },
+      {
+        "text": "Next page",
+        "width": 99,
+        "height": 48,
+        "close": false
+      }
+    ],
+    "h1": [
+      "Platform service",
+      "Customer inquiries"
+    ],
+    "scrollY": 0,
+    "errors": [],
+    "apiRequests": [],
+    "remoteRequests": [],
+    "requests": [
+      {
+        "path": "/platform/service/inquiries?limit=25",
+        "method": "GET"
+      }
+    ]
+  },
+  {
+    "name": "service-handling",
+    "width": 1366,
+    "height": 900,
+    "language": "en",
+    "provenance": "named real React workspace; synthetic operatorRequest response store",
+    "overflow": false,
+    "buttonTargets": [
+      {
+        "text": "English",
+        "width": 63,
+        "height": 48,
+        "close": false
+      },
+      {
+        "text": "اردو",
+        "width": 38,
+        "height": 48,
+        "close": false
+      },
+      {
+        "text": "Refresh records",
+        "width": 161,
+        "height": 48,
+        "close": false
+      },
+      {
+        "text": "Service diagnostics",
+        "width": 130,
+        "height": 48,
+        "close": false
+      },
+      {
+        "text": "Administrative audit",
+        "width": 131,
+        "height": 48,
+        "close": false
+      },
+      {
+        "text": "Customer inquiries",
+        "width": 129,
+        "height": 48,
+        "close": false
+      },
+      {
+        "text": "Save handling",
+        "width": 290,
+        "height": 48,
+        "close": false
+      }
+    ],
+    "h1": [
+      "Platform service",
+      "Customer inquiries"
+    ],
+    "scrollY": 0,
+    "errors": [],
+    "apiRequests": [],
+    "remoteRequests": [],
+    "requests": [
+      {
+        "path": "/platform/service/inquiries/00000000-0000-4000-8000-000000000001",
+        "method": "GET"
+      }
+    ]
+  },
+  {
+    "name": "company-list",
+    "width": 1366,
+    "height": 900,
+    "language": "ur",
+    "provenance": "named real React workspace; synthetic operatorRequest response store",
+    "overflow": false,
+    "buttonTargets": [
+      {
+        "text": "English",
+        "width": 59,
+        "height": 48,
+        "close": false
+      },
+      {
+        "text": "اردو",
+        "width": 39,
+        "height": 48,
+        "close": false
+      },
+      {
+        "text": "تازہ کریں",
+        "width": 105,
+        "height": 44,
+        "close": false
+      },
+      {
+        "text": "فلٹر لگائیں",
+        "width": 93,
+        "height": 48,
+        "close": false
+      },
+      {
+        "text": "فلٹر صاف کریں",
+        "width": 119,
+        "height": 48,
+        "close": false
+      },
+      {
+        "text": "اگلا صفحہ",
+        "width": 90,
+        "height": 48,
+        "close": false
+      }
+    ],
+    "h1": [
+      "پلیٹ فارم کی کمپنیاں",
+      "کسٹمر کمپنیاں"
+    ],
+    "scrollY": 0,
+    "errors": [],
+    "apiRequests": [],
+    "remoteRequests": [],
+    "requests": [
+      {
+        "path": "/platform/companies?limit=25",
+        "method": "GET"
+      }
+    ]
+  },
+  {
+    "name": "company-account",
+    "width": 1366,
+    "height": 900,
+    "language": "ur",
+    "provenance": "named real React workspace; synthetic operatorRequest response store",
+    "overflow": false,
+    "buttonTargets": [
+      {
+        "text": "English",
+        "width": 59,
+        "height": 48,
+        "close": false
+      },
+      {
+        "text": "اردو",
+        "width": 39,
+        "height": 48,
+        "close": false
+      },
+      {
+        "text": "تازہ کریں",
+        "width": 105,
+        "height": 44,
+        "close": false
+      },
+      {
+        "text": "اکاؤنٹ",
+        "width": 43,
+        "height": 48,
+        "close": false
+      },
+      {
+        "text": "بلنگ",
+        "width": 29,
+        "height": 48,
+        "close": false
+      },
+      {
+        "text": "سرگرمی",
+        "width": 50,
+        "height": 48,
+        "close": false
+      },
+      {
+        "text": "کمپنی معطل کریں",
+        "width": 161,
+        "height": 48,
+        "close": false
+      }
+    ],
+    "h1": [
+      "پلیٹ فارم کی کمپنیاں",
+      "Synthetic Facilities"
+    ],
+    "scrollY": 0,
+    "errors": [],
+    "apiRequests": [],
+    "remoteRequests": [],
+    "requests": [
+      {
+        "path": "/platform/companies/42",
+        "method": "GET"
+      }
+    ]
+  },
+  {
+    "name": "company-billing",
+    "width": 1366,
+    "height": 900,
+    "language": "ur",
+    "provenance": "named real React workspace; synthetic operatorRequest response store",
+    "overflow": false,
+    "buttonTargets": [
+      {
+        "text": "English",
+        "width": 59,
+        "height": 48,
+        "close": false
+      },
+      {
+        "text": "اردو",
+        "width": 39,
+        "height": 48,
+        "close": false
+      },
+      {
+        "text": "تازہ کریں",
+        "width": 105,
+        "height": 44,
+        "close": false
+      },
+      {
+        "text": "اکاؤنٹ",
+        "width": 43,
+        "height": 48,
+        "close": false
+      },
+      {
+        "text": "بلنگ",
+        "width": 29,
+        "height": 48,
+        "close": false
+      },
+      {
+        "text": "سرگرمی",
+        "width": 50,
+        "height": 48,
+        "close": false
+      }
+    ],
+    "h1": [
+      "پلیٹ فارم کی کمپنیاں",
+      "Synthetic Facilities"
+    ],
+    "scrollY": 0,
+    "errors": [],
+    "apiRequests": [],
+    "remoteRequests": [],
+    "requests": [
+      {
+        "path": "/platform/companies/42",
+        "method": "GET"
+      }
+    ]
+  },
+  {
+    "name": "company-activity",
+    "width": 1366,
+    "height": 900,
+    "language": "ur",
+    "provenance": "named real React workspace; synthetic operatorRequest response store",
+    "overflow": false,
+    "buttonTargets": [
+      {
+        "text": "English",
+        "width": 59,
+        "height": 48,
+        "close": false
+      },
+      {
+        "text": "اردو",
+        "width": 39,
+        "height": 48,
+        "close": false
+      },
+      {
+        "text": "تازہ کریں",
+        "width": 105,
+        "height": 44,
+        "close": false
+      },
+      {
+        "text": "اکاؤنٹ",
+        "width": 43,
+        "height": 48,
+        "close": false
+      },
+      {
+        "text": "بلنگ",
+        "width": 29,
+        "height": 48,
+        "close": false
+      },
+      {
+        "text": "سرگرمی",
+        "width": 50,
+        "height": 48,
+        "close": false
+      }
+    ],
+    "h1": [
+      "پلیٹ فارم کی کمپنیاں",
+      "Synthetic Facilities"
+    ],
+    "scrollY": 0,
+    "errors": [],
+    "apiRequests": [],
+    "remoteRequests": [],
+    "requests": [
+      {
+        "path": "/platform/companies/42",
+        "method": "GET"
+      }
+    ]
+  },
+  {
+    "name": "service-diagnostics",
+    "width": 1366,
+    "height": 900,
+    "language": "ur",
+    "provenance": "named real React workspace; synthetic operatorRequest response store",
+    "overflow": false,
+    "buttonTargets": [
+      {
+        "text": "English",
+        "width": 59,
+        "height": 48,
+        "close": false
+      },
+      {
+        "text": "اردو",
+        "width": 39,
+        "height": 48,
+        "close": false
+      },
+      {
+        "text": "سروس کی تشخیص",
+        "width": 120,
+        "height": 48,
+        "close": false
+      },
+      {
+        "text": "انتظامی سرگرمیوں کا ریکارڈ",
+        "width": 152,
+        "height": 48,
+        "close": false
+      },
+      {
+        "text": "کسٹمر کی درخواستیں",
+        "width": 121,
+        "height": 48,
+        "close": false
+      },
+      {
+        "text": "مشاہدات تازہ کریں",
+        "width": 164,
+        "height": 48,
+        "close": false
+      },
+      {
+        "text": "سپورٹ کا رابطہ تازہ کریں",
+        "width": 178,
+        "height": 48,
+        "close": false
+      }
+    ],
+    "h1": [
+      "پلیٹ فارم کی سروس",
+      "سروس کی تشخیص"
+    ],
+    "scrollY": 0,
+    "errors": [],
+    "apiRequests": [],
+    "remoteRequests": [],
+    "requests": [
+      {
+        "path": "/platform/service/diagnostics",
+        "method": "GET"
+      },
+      {
+        "path": "/support/contact",
+        "method": "GET"
+      }
+    ]
+  },
+  {
+    "name": "service-audit",
+    "width": 1366,
+    "height": 900,
+    "language": "ur",
+    "provenance": "named real React workspace; synthetic operatorRequest response store",
+    "overflow": false,
+    "buttonTargets": [
+      {
+        "text": "English",
+        "width": 59,
+        "height": 48,
+        "close": false
+      },
+      {
+        "text": "اردو",
+        "width": 39,
+        "height": 48,
+        "close": false
+      },
+      {
+        "text": "ریکارڈ تازہ کریں",
+        "width": 142,
+        "height": 48,
+        "close": false
+      },
+      {
+        "text": "سروس کی تشخیص",
+        "width": 112,
+        "height": 97,
+        "close": false
+      },
+      {
+        "text": "انتظامی سرگرمیوں کا ریکارڈ",
+        "width": 161,
+        "height": 97,
+        "close": false
+      },
+      {
+        "text": "کسٹمر کی درخواستیں",
+        "width": 121,
+        "height": 97,
+        "close": false
+      },
+      {
+        "text": "فلٹر لگائیں",
+        "width": 93,
+        "height": 48,
+        "close": false
+      },
+      {
+        "text": "اگلا صفحہ",
+        "width": 90,
+        "height": 48,
+        "close": false
+      }
+    ],
+    "h1": [
+      "پلیٹ فارم کی سروس",
+      "انتظامی سرگرمیوں کا ریکارڈ"
+    ],
+    "scrollY": 0,
+    "errors": [],
+    "apiRequests": [],
+    "remoteRequests": [],
+    "requests": [
+      {
+        "path": "/platform/service/audit?limit=25",
+        "method": "GET"
+      }
+    ]
+  },
+  {
+    "name": "service-inquiries",
+    "width": 1366,
+    "height": 900,
+    "language": "ur",
+    "provenance": "named real React workspace; synthetic operatorRequest response store",
+    "overflow": false,
+    "buttonTargets": [
+      {
+        "text": "English",
+        "width": 59,
+        "height": 48,
+        "close": false
+      },
+      {
+        "text": "اردو",
+        "width": 39,
+        "height": 48,
+        "close": false
+      },
+      {
+        "text": "ریکارڈ تازہ کریں",
+        "width": 142,
+        "height": 48,
+        "close": false
+      },
+      {
+        "text": "سروس کی تشخیص",
+        "width": 112,
+        "height": 91,
+        "close": false
+      },
+      {
+        "text": "انتظامی سرگرمیوں کا ریکارڈ",
+        "width": 152,
+        "height": 91,
+        "close": false
+      },
+      {
+        "text": "کسٹمر کی درخواستیں",
+        "width": 129,
+        "height": 91,
+        "close": false
+      },
+      {
+        "text": "فلٹر لگائیں",
+        "width": 93,
+        "height": 48,
+        "close": false
+      },
+      {
+        "text": "اگلا صفحہ",
+        "width": 90,
+        "height": 48,
+        "close": false
+      }
+    ],
+    "h1": [
+      "پلیٹ فارم کی سروس",
+      "کسٹمر کی درخواستیں"
+    ],
+    "scrollY": 0,
+    "errors": [],
+    "apiRequests": [],
+    "remoteRequests": [],
+    "requests": [
+      {
+        "path": "/platform/service/inquiries?limit=25",
+        "method": "GET"
+      }
+    ]
+  },
+  {
+    "name": "service-handling",
+    "width": 1366,
+    "height": 900,
+    "language": "ur",
+    "provenance": "named real React workspace; synthetic operatorRequest response store",
+    "overflow": false,
+    "buttonTargets": [
+      {
+        "text": "English",
+        "width": 59,
+        "height": 48,
+        "close": false
+      },
+      {
+        "text": "اردو",
+        "width": 39,
+        "height": 48,
+        "close": false
+      },
+      {
+        "text": "ریکارڈ تازہ کریں",
+        "width": 142,
+        "height": 48,
+        "close": false
+      },
+      {
+        "text": "سروس کی تشخیص",
+        "width": 112,
+        "height": 48,
+        "close": false
+      },
+      {
+        "text": "انتظامی سرگرمیوں کا ریکارڈ",
+        "width": 152,
+        "height": 48,
+        "close": false
+      },
+      {
+        "text": "کسٹمر کی درخواستیں",
+        "width": 129,
+        "height": 48,
+        "close": false
+      },
+      {
+        "text": "کارروائی محفوظ کریں",
+        "width": 290,
+        "height": 48,
+        "close": false
+      }
+    ],
+    "h1": [
+      "پلیٹ فارم کی سروس",
+      "کسٹمر کی درخواستیں"
+    ],
+    "scrollY": 0,
+    "errors": [],
+    "apiRequests": [],
+    "remoteRequests": [],
+    "requests": [
+      {
+        "path": "/platform/service/inquiries/00000000-0000-4000-8000-000000000001",
+        "method": "GET"
+      }
+    ]
+  },
+  {
+    "name": "company-list",
+    "width": 390,
+    "height": 900,
+    "language": "en",
+    "provenance": "named real React workspace; synthetic operatorRequest response store",
+    "overflow": false,
+    "buttonTargets": [
+      {
+        "text": "English",
+        "width": 59,
+        "height": 48,
+        "close": false
+      },
+      {
+        "text": "اردو",
+        "width": 34,
+        "height": 48,
+        "close": false
+      },
+      {
+        "text": "Platform navigation",
+        "width": 185,
+        "height": 48,
+        "close": false
+      },
+      {
+        "text": "Refresh",
+        "width": 106,
+        "height": 48,
+        "close": false
+      },
+      {
+        "text": "Apply filters",
+        "width": 146,
+        "height": 48,
+        "close": false
+      },
+      {
+        "text": "Clear filters",
+        "width": 146,
+        "height": 48,
+        "close": false
+      },
+      {
+        "text": "Next page",
+        "width": 99,
+        "height": 48,
+        "close": false
+      }
+    ],
+    "h1": [
+      "Platform companies",
+      "Customer companies"
+    ],
+    "scrollY": 0,
+    "errors": [],
+    "apiRequests": [],
+    "remoteRequests": [],
+    "requests": [
+      {
+        "path": "/platform/companies?limit=25",
+        "method": "GET"
+      }
+    ]
+  },
+  {
+    "name": "company-account",
+    "width": 390,
+    "height": 900,
+    "language": "en",
+    "provenance": "named real React workspace; synthetic operatorRequest response store",
+    "overflow": false,
+    "buttonTargets": [
+      {
+        "text": "English",
+        "width": 59,
+        "height": 48,
+        "close": false
+      },
+      {
+        "text": "اردو",
+        "width": 34,
+        "height": 48,
+        "close": false
+      },
+      {
+        "text": "Platform navigation",
+        "width": 185,
+        "height": 48,
+        "close": false
+      },
+      {
+        "text": "Refresh",
+        "width": 106,
+        "height": 48,
+        "close": false
+      },
+      {
+        "text": "Account",
+        "width": 113,
+        "height": 48,
+        "close": false
+      },
+      {
+        "text": "Billing",
+        "width": 113,
+        "height": 48,
+        "close": false
+      },
+      {
+        "text": "Activity",
+        "width": 113,
+        "height": 48,
+        "close": false
+      },
+      {
+        "text": "Suspend company",
+        "width": 179,
+        "height": 48,
+        "close": false
+      }
+    ],
+    "h1": [
+      "Platform companies",
+      "Synthetic Facilities"
+    ],
+    "scrollY": 0,
+    "errors": [],
+    "apiRequests": [],
+    "remoteRequests": [],
+    "requests": [
+      {
+        "path": "/platform/companies/42",
+        "method": "GET"
+      }
+    ]
+  },
+  {
+    "name": "company-billing",
+    "width": 390,
+    "height": 900,
+    "language": "en",
+    "provenance": "named real React workspace; synthetic operatorRequest response store",
+    "overflow": false,
+    "buttonTargets": [
+      {
+        "text": "English",
+        "width": 59,
+        "height": 48,
+        "close": false
+      },
+      {
+        "text": "اردو",
+        "width": 34,
+        "height": 48,
+        "close": false
+      },
+      {
+        "text": "Platform navigation",
+        "width": 185,
+        "height": 48,
+        "close": false
+      },
+      {
+        "text": "Refresh",
+        "width": 106,
+        "height": 48,
+        "close": false
+      },
+      {
+        "text": "Account",
+        "width": 113,
+        "height": 48,
+        "close": false
+      },
+      {
+        "text": "Billing",
+        "width": 113,
+        "height": 48,
+        "close": false
+      },
+      {
+        "text": "Activity",
+        "width": 113,
+        "height": 48,
+        "close": false
+      }
+    ],
+    "h1": [
+      "Platform companies",
+      "Synthetic Facilities"
+    ],
+    "scrollY": 0,
+    "errors": [],
+    "apiRequests": [],
+    "remoteRequests": [],
+    "requests": [
+      {
+        "path": "/platform/companies/42",
+        "method": "GET"
+      }
+    ]
+  },
+  {
+    "name": "company-activity",
+    "width": 390,
+    "height": 900,
+    "language": "en",
+    "provenance": "named real React workspace; synthetic operatorRequest response store",
+    "overflow": false,
+    "buttonTargets": [
+      {
+        "text": "English",
+        "width": 59,
+        "height": 48,
+        "close": false
+      },
+      {
+        "text": "اردو",
+        "width": 34,
+        "height": 48,
+        "close": false
+      },
+      {
+        "text": "Platform navigation",
+        "width": 185,
+        "height": 48,
+        "close": false
+      },
+      {
+        "text": "Refresh",
+        "width": 106,
+        "height": 48,
+        "close": false
+      },
+      {
+        "text": "Account",
+        "width": 113,
+        "height": 48,
+        "close": false
+      },
+      {
+        "text": "Billing",
+        "width": 113,
+        "height": 48,
+        "close": false
+      },
+      {
+        "text": "Activity",
+        "width": 113,
+        "height": 48,
+        "close": false
+      }
+    ],
+    "h1": [
+      "Platform companies",
+      "Synthetic Facilities"
+    ],
+    "scrollY": 0,
+    "errors": [],
+    "apiRequests": [],
+    "remoteRequests": [],
+    "requests": [
+      {
+        "path": "/platform/companies/42",
+        "method": "GET"
+      }
+    ]
+  },
+  {
+    "name": "service-diagnostics",
+    "width": 390,
+    "height": 900,
+    "language": "en",
+    "provenance": "named real React workspace; synthetic operatorRequest response store",
+    "overflow": false,
+    "buttonTargets": [
+      {
+        "text": "English",
+        "width": 59,
+        "height": 48,
+        "close": false
+      },
+      {
+        "text": "اردو",
+        "width": 34,
+        "height": 48,
+        "close": false
+      },
+      {
+        "text": "Platform navigation",
+        "width": 185,
+        "height": 48,
+        "close": false
+      },
+      {
+        "text": "Service diagnostics",
+        "width": 134,
+        "height": 48,
+        "close": false
+      },
+      {
+        "text": "Administrative audit",
+        "width": 131,
+        "height": 48,
+        "close": false
+      },
+      {
+        "text": "Customer inquiries",
+        "width": 124,
+        "height": 48,
+        "close": false
+      },
+      {
+        "text": "Refresh observations",
+        "width": 320,
+        "height": 48,
+        "close": false
+      },
+      {
+        "text": "Refresh support contact",
+        "width": 193,
+        "height": 48,
+        "close": false
+      }
+    ],
+    "h1": [
+      "Platform service",
+      "Service diagnostics"
+    ],
+    "scrollY": 0,
+    "errors": [],
+    "apiRequests": [],
+    "remoteRequests": [],
+    "requests": [
+      {
+        "path": "/platform/service/diagnostics",
+        "method": "GET"
+      },
+      {
+        "path": "/support/contact",
+        "method": "GET"
+      }
+    ]
+  },
+  {
+    "name": "service-audit",
+    "width": 390,
+    "height": 900,
+    "language": "en",
+    "provenance": "named real React workspace; synthetic operatorRequest response store",
+    "overflow": false,
+    "buttonTargets": [
+      {
+        "text": "English",
+        "width": 59,
+        "height": 48,
+        "close": false
+      },
+      {
+        "text": "اردو",
+        "width": 34,
+        "height": 48,
+        "close": false
+      },
+      {
+        "text": "Platform navigation",
+        "width": 185,
+        "height": 48,
+        "close": false
+      },
+      {
+        "text": "Refresh records",
+        "width": 358,
+        "height": 48,
+        "close": false
+      },
+      {
+        "text": "Service diagnostics",
+        "width": 130,
+        "height": 48,
+        "close": false
+      },
+      {
+        "text": "Administrative audit",
+        "width": 136,
+        "height": 48,
+        "close": false
+      },
+      {
+        "text": "Customer inquiries",
+        "width": 124,
+        "height": 48,
+        "close": false
+      },
+      {
+        "text": "Apply filters",
+        "width": 320,
+        "height": 48,
+        "close": false
+      },
+      {
+        "text": "Next page",
+        "width": 358,
+        "height": 48,
+        "close": false
+      }
+    ],
+    "h1": [
+      "Platform service",
+      "Administrative audit"
+    ],
+    "scrollY": 0,
+    "errors": [],
+    "apiRequests": [],
+    "remoteRequests": [],
+    "requests": [
+      {
+        "path": "/platform/service/audit?limit=25",
+        "method": "GET"
+      }
+    ]
+  },
+  {
+    "name": "service-inquiries",
+    "width": 390,
+    "height": 900,
+    "language": "en",
+    "provenance": "named real React workspace; synthetic operatorRequest response store",
+    "overflow": false,
+    "buttonTargets": [
+      {
+        "text": "English",
+        "width": 59,
+        "height": 48,
+        "close": false
+      },
+      {
+        "text": "اردو",
+        "width": 34,
+        "height": 48,
+        "close": false
+      },
+      {
+        "text": "Platform navigation",
+        "width": 185,
+        "height": 48,
+        "close": false
+      },
+      {
+        "text": "Refresh records",
+        "width": 358,
+        "height": 48,
+        "close": false
+      },
+      {
+        "text": "Service diagnostics",
+        "width": 130,
+        "height": 48,
+        "close": false
+      },
+      {
+        "text": "Administrative audit",
+        "width": 131,
+        "height": 48,
+        "close": false
+      },
+      {
+        "text": "Customer inquiries",
+        "width": 129,
+        "height": 48,
+        "close": false
+      },
+      {
+        "text": "Apply filters",
+        "width": 320,
+        "height": 48,
+        "close": false
+      },
+      {
+        "text": "Next page",
+        "width": 358,
+        "height": 48,
+        "close": false
+      }
+    ],
+    "h1": [
+      "Platform service",
+      "Customer inquiries"
+    ],
+    "scrollY": 0,
+    "errors": [],
+    "apiRequests": [],
+    "remoteRequests": [],
+    "requests": [
+      {
+        "path": "/platform/service/inquiries?limit=25",
+        "method": "GET"
+      }
+    ]
+  },
+  {
+    "name": "service-handling",
+    "width": 390,
+    "height": 900,
+    "language": "en",
+    "provenance": "named real React workspace; synthetic operatorRequest response store",
+    "overflow": false,
+    "buttonTargets": [
+      {
+        "text": "English",
+        "width": 59,
+        "height": 48,
+        "close": false
+      },
+      {
+        "text": "اردو",
+        "width": 34,
+        "height": 48,
+        "close": false
+      },
+      {
+        "text": "Platform navigation",
+        "width": 185,
+        "height": 48,
+        "close": false
+      },
+      {
+        "text": "Refresh records",
+        "width": 358,
+        "height": 48,
+        "close": false
+      },
+      {
+        "text": "Service diagnostics",
+        "width": 130,
+        "height": 48,
+        "close": false
+      },
+      {
+        "text": "Administrative audit",
+        "width": 131,
+        "height": 48,
+        "close": false
+      },
+      {
+        "text": "Customer inquiries",
+        "width": 129,
+        "height": 48,
+        "close": false
+      },
+      {
+        "text": "Save handling",
+        "width": 320,
+        "height": 48,
+        "close": false
+      }
+    ],
+    "h1": [
+      "Platform service",
+      "Customer inquiries"
+    ],
+    "scrollY": 0,
+    "errors": [],
+    "apiRequests": [],
+    "remoteRequests": [],
+    "requests": [
+      {
+        "path": "/platform/service/inquiries/00000000-0000-4000-8000-000000000001",
+        "method": "GET"
+      }
+    ]
+  },
+  {
+    "name": "company-list",
+    "width": 390,
+    "height": 900,
+    "language": "ur",
+    "provenance": "named real React workspace; synthetic operatorRequest response store",
+    "overflow": false,
+    "buttonTargets": [
+      {
+        "text": "English",
+        "width": 55,
+        "height": 48,
+        "close": false
+      },
+      {
+        "text": "اردو",
+        "width": 35,
+        "height": 48,
+        "close": false
+      },
+      {
+        "text": "پلیٹ فارم نیویگیشن",
+        "width": 174,
+        "height": 48,
+        "close": false
+      },
+      {
+        "text": "تازہ کریں",
+        "width": 105,
+        "height": 48,
+        "close": false
+      },
+      {
+        "text": "فلٹر لگائیں",
+        "width": 146,
+        "height": 48,
+        "close": false
+      },
+      {
+        "text": "فلٹر صاف کریں",
+        "width": 146,
+        "height": 48,
+        "close": false
+      },
+      {
+        "text": "اگلا صفحہ",
+        "width": 90,
+        "height": 48,
+        "close": false
+      }
+    ],
+    "h1": [
+      "پلیٹ فارم کی کمپنیاں",
+      "کسٹمر کمپنیاں"
+    ],
+    "scrollY": 0,
+    "errors": [],
+    "apiRequests": [],
+    "remoteRequests": [],
+    "requests": [
+      {
+        "path": "/platform/companies?limit=25",
+        "method": "GET"
+      }
+    ]
+  },
+  {
+    "name": "company-account",
+    "width": 390,
+    "height": 900,
+    "language": "ur",
+    "provenance": "named real React workspace; synthetic operatorRequest response store",
+    "overflow": false,
+    "buttonTargets": [
+      {
+        "text": "English",
+        "width": 55,
+        "height": 48,
+        "close": false
+      },
+      {
+        "text": "اردو",
+        "width": 35,
+        "height": 48,
+        "close": false
+      },
+      {
+        "text": "پلیٹ فارم نیویگیشن",
+        "width": 174,
+        "height": 48,
+        "close": false
+      },
+      {
+        "text": "تازہ کریں",
+        "width": 105,
+        "height": 48,
+        "close": false
+      },
+      {
+        "text": "اکاؤنٹ",
+        "width": 113,
+        "height": 48,
+        "close": false
+      },
+      {
+        "text": "بلنگ",
+        "width": 113,
+        "height": 48,
+        "close": false
+      },
+      {
+        "text": "سرگرمی",
+        "width": 113,
+        "height": 48,
+        "close": false
+      },
+      {
+        "text": "کمپنی معطل کریں",
+        "width": 161,
+        "height": 48,
+        "close": false
+      }
+    ],
+    "h1": [
+      "پلیٹ فارم کی کمپنیاں",
+      "Synthetic Facilities"
+    ],
+    "scrollY": 0,
+    "errors": [],
+    "apiRequests": [],
+    "remoteRequests": [],
+    "requests": [
+      {
+        "path": "/platform/companies/42",
+        "method": "GET"
+      }
+    ]
+  },
+  {
+    "name": "company-billing",
+    "width": 390,
+    "height": 900,
+    "language": "ur",
+    "provenance": "named real React workspace; synthetic operatorRequest response store",
+    "overflow": false,
+    "buttonTargets": [
+      {
+        "text": "English",
+        "width": 55,
+        "height": 48,
+        "close": false
+      },
+      {
+        "text": "اردو",
+        "width": 35,
+        "height": 48,
+        "close": false
+      },
+      {
+        "text": "پلیٹ فارم نیویگیشن",
+        "width": 174,
+        "height": 48,
+        "close": false
+      },
+      {
+        "text": "تازہ کریں",
+        "width": 105,
+        "height": 48,
+        "close": false
+      },
+      {
+        "text": "اکاؤنٹ",
+        "width": 113,
+        "height": 48,
+        "close": false
+      },
+      {
+        "text": "بلنگ",
+        "width": 113,
+        "height": 48,
+        "close": false
+      },
+      {
+        "text": "سرگرمی",
+        "width": 113,
+        "height": 48,
+        "close": false
+      }
+    ],
+    "h1": [
+      "پلیٹ فارم کی کمپنیاں",
+      "Synthetic Facilities"
+    ],
+    "scrollY": 0,
+    "errors": [],
+    "apiRequests": [],
+    "remoteRequests": [],
+    "requests": [
+      {
+        "path": "/platform/companies/42",
+        "method": "GET"
+      }
+    ]
+  },
+  {
+    "name": "company-activity",
+    "width": 390,
+    "height": 900,
+    "language": "ur",
+    "provenance": "named real React workspace; synthetic operatorRequest response store",
+    "overflow": false,
+    "buttonTargets": [
+      {
+        "text": "English",
+        "width": 55,
+        "height": 48,
+        "close": false
+      },
+      {
+        "text": "اردو",
+        "width": 35,
+        "height": 48,
+        "close": false
+      },
+      {
+        "text": "پلیٹ فارم نیویگیشن",
+        "width": 174,
+        "height": 48,
+        "close": false
+      },
+      {
+        "text": "تازہ کریں",
+        "width": 105,
+        "height": 48,
+        "close": false
+      },
+      {
+        "text": "اکاؤنٹ",
+        "width": 113,
+        "height": 48,
+        "close": false
+      },
+      {
+        "text": "بلنگ",
+        "width": 113,
+        "height": 48,
+        "close": false
+      },
+      {
+        "text": "سرگرمی",
+        "width": 113,
+        "height": 48,
+        "close": false
+      }
+    ],
+    "h1": [
+      "پلیٹ فارم کی کمپنیاں",
+      "Synthetic Facilities"
+    ],
+    "scrollY": 0,
+    "errors": [],
+    "apiRequests": [],
+    "remoteRequests": [],
+    "requests": [
+      {
+        "path": "/platform/companies/42",
+        "method": "GET"
+      }
+    ]
+  },
+  {
+    "name": "service-diagnostics",
+    "width": 390,
+    "height": 900,
+    "language": "ur",
+    "provenance": "named real React workspace; synthetic operatorRequest response store",
+    "overflow": false,
+    "buttonTargets": [
+      {
+        "text": "English",
+        "width": 55,
+        "height": 48,
+        "close": false
+      },
+      {
+        "text": "اردو",
+        "width": 35,
+        "height": 48,
+        "close": false
+      },
+      {
+        "text": "پلیٹ فارم نیویگیشن",
+        "width": 174,
+        "height": 48,
+        "close": false
+      },
+      {
+        "text": "سروس کی تشخیص",
+        "width": 120,
+        "height": 48,
+        "close": false
+      },
+      {
+        "text": "انتظامی سرگرمیوں کا ریکارڈ",
+        "width": 152,
+        "height": 48,
+        "close": false
+      },
+      {
+        "text": "کسٹمر کی درخواستیں",
+        "width": 121,
+        "height": 48,
+        "close": false
+      },
+      {
+        "text": "مشاہدات تازہ کریں",
+        "width": 320,
+        "height": 48,
+        "close": false
+      },
+      {
+        "text": "سپورٹ کا رابطہ تازہ کریں",
+        "width": 178,
+        "height": 48,
+        "close": false
+      }
+    ],
+    "h1": [
+      "پلیٹ فارم کی سروس",
+      "سروس کی تشخیص"
+    ],
+    "scrollY": 0,
+    "errors": [],
+    "apiRequests": [],
+    "remoteRequests": [],
+    "requests": [
+      {
+        "path": "/platform/service/diagnostics",
+        "method": "GET"
+      },
+      {
+        "path": "/support/contact",
+        "method": "GET"
+      }
+    ]
+  },
+  {
+    "name": "service-audit",
+    "width": 390,
+    "height": 900,
+    "language": "ur",
+    "provenance": "named real React workspace; synthetic operatorRequest response store",
+    "overflow": false,
+    "buttonTargets": [
+      {
+        "text": "English",
+        "width": 55,
+        "height": 48,
+        "close": false
+      },
+      {
+        "text": "اردو",
+        "width": 35,
+        "height": 48,
+        "close": false
+      },
+      {
+        "text": "پلیٹ فارم نیویگیشن",
+        "width": 174,
+        "height": 48,
+        "close": false
+      },
+      {
+        "text": "ریکارڈ تازہ کریں",
+        "width": 358,
+        "height": 48,
+        "close": false
+      },
+      {
+        "text": "سروس کی تشخیص",
+        "width": 112,
+        "height": 48,
+        "close": false
+      },
+      {
+        "text": "انتظامی سرگرمیوں کا ریکارڈ",
+        "width": 161,
+        "height": 48,
+        "close": false
+      },
+      {
+        "text": "کسٹمر کی درخواستیں",
+        "width": 121,
+        "height": 48,
+        "close": false
+      },
+      {
+        "text": "فلٹر لگائیں",
+        "width": 320,
+        "height": 48,
+        "close": false
+      },
+      {
+        "text": "اگلا صفحہ",
+        "width": 358,
+        "height": 48,
+        "close": false
+      }
+    ],
+    "h1": [
+      "پلیٹ فارم کی سروس",
+      "انتظامی سرگرمیوں کا ریکارڈ"
+    ],
+    "scrollY": 0,
+    "errors": [],
+    "apiRequests": [],
+    "remoteRequests": [],
+    "requests": [
+      {
+        "path": "/platform/service/audit?limit=25",
+        "method": "GET"
+      }
+    ]
+  },
+  {
+    "name": "service-inquiries",
+    "width": 390,
+    "height": 900,
+    "language": "ur",
+    "provenance": "named real React workspace; synthetic operatorRequest response store",
+    "overflow": false,
+    "buttonTargets": [
+      {
+        "text": "English",
+        "width": 55,
+        "height": 48,
+        "close": false
+      },
+      {
+        "text": "اردو",
+        "width": 35,
+        "height": 48,
+        "close": false
+      },
+      {
+        "text": "پلیٹ فارم نیویگیشن",
+        "width": 174,
+        "height": 48,
+        "close": false
+      },
+      {
+        "text": "ریکارڈ تازہ کریں",
+        "width": 358,
+        "height": 48,
+        "close": false
+      },
+      {
+        "text": "سروس کی تشخیص",
+        "width": 112,
+        "height": 48,
+        "close": false
+      },
+      {
+        "text": "انتظامی سرگرمیوں کا ریکارڈ",
+        "width": 152,
+        "height": 48,
+        "close": false
+      },
+      {
+        "text": "کسٹمر کی درخواستیں",
+        "width": 129,
+        "height": 48,
+        "close": false
+      },
+      {
+        "text": "فلٹر لگائیں",
+        "width": 320,
+        "height": 48,
+        "close": false
+      },
+      {
+        "text": "اگلا صفحہ",
+        "width": 358,
+        "height": 48,
+        "close": false
+      }
+    ],
+    "h1": [
+      "پلیٹ فارم کی سروس",
+      "کسٹمر کی درخواستیں"
+    ],
+    "scrollY": 0,
+    "errors": [],
+    "apiRequests": [],
+    "remoteRequests": [],
+    "requests": [
+      {
+        "path": "/platform/service/inquiries?limit=25",
+        "method": "GET"
+      }
+    ]
+  },
+  {
+    "name": "service-handling",
+    "width": 390,
+    "height": 900,
+    "language": "ur",
+    "provenance": "named real React workspace; synthetic operatorRequest response store",
+    "overflow": false,
+    "buttonTargets": [
+      {
+        "text": "English",
+        "width": 55,
+        "height": 48,
+        "close": false
+      },
+      {
+        "text": "اردو",
+        "width": 35,
+        "height": 48,
+        "close": false
+      },
+      {
+        "text": "پلیٹ فارم نیویگیشن",
+        "width": 174,
+        "height": 48,
+        "close": false
+      },
+      {
+        "text": "ریکارڈ تازہ کریں",
+        "width": 358,
+        "height": 48,
+        "close": false
+      },
+      {
+        "text": "سروس کی تشخیص",
+        "width": 112,
+        "height": 48,
+        "close": false
+      },
+      {
+        "text": "انتظامی سرگرمیوں کا ریکارڈ",
+        "width": 152,
+        "height": 48,
+        "close": false
+      },
+      {
+        "text": "کسٹمر کی درخواستیں",
+        "width": 129,
+        "height": 48,
+        "close": false
+      },
+      {
+        "text": "کارروائی محفوظ کریں",
+        "width": 320,
+        "height": 48,
+        "close": false
+      }
+    ],
+    "h1": [
+      "پلیٹ فارم کی سروس",
+      "کسٹمر کی درخواستیں"
+    ],
+    "scrollY": 0,
+    "errors": [],
+    "apiRequests": [],
+    "remoteRequests": [],
+    "requests": [
+      {
+        "path": "/platform/service/inquiries/00000000-0000-4000-8000-000000000001",
+        "method": "GET"
+      }
+    ]
+  },
+  {
+    "name": "company-loading",
+    "width": 390,
+    "height": 900,
+    "language": "en",
+    "provenance": "named real React workspace; synthetic operatorRequest response store",
+    "overflow": false,
+    "buttonTargets": [
+      {
+        "text": "English",
+        "width": 59,
+        "height": 48,
+        "close": false
+      },
+      {
+        "text": "اردو",
+        "width": 34,
+        "height": 48,
+        "close": false
+      },
+      {
+        "text": "Platform navigation",
+        "width": 185,
+        "height": 48,
+        "close": false
+      },
+      {
+        "text": "Refresh",
+        "width": 106,
+        "height": 48,
+        "close": false
+      },
+      {
+        "text": "Apply filters",
+        "width": 146,
+        "height": 48,
+        "close": false
+      },
+      {
+        "text": "Clear filters",
+        "width": 146,
+        "height": 48,
+        "close": false
+      }
+    ],
+    "h1": [
+      "Platform companies",
+      "Customer companies"
+    ],
+    "scrollY": 0,
+    "errors": [],
+    "apiRequests": [],
+    "remoteRequests": [],
+    "requests": [
+      {
+        "path": "/platform/companies?limit=25",
+        "method": "GET"
+      }
+    ]
+  },
+  {
+    "name": "company-empty",
+    "width": 390,
+    "height": 900,
+    "language": "en",
+    "provenance": "named real React workspace; synthetic operatorRequest response store",
+    "overflow": false,
+    "buttonTargets": [
+      {
+        "text": "English",
+        "width": 59,
+        "height": 48,
+        "close": false
+      },
+      {
+        "text": "اردو",
+        "width": 34,
+        "height": 48,
+        "close": false
+      },
+      {
+        "text": "Platform navigation",
+        "width": 185,
+        "height": 48,
+        "close": false
+      },
+      {
+        "text": "Refresh",
+        "width": 106,
+        "height": 48,
+        "close": false
+      },
+      {
+        "text": "Apply filters",
+        "width": 146,
+        "height": 48,
+        "close": false
+      },
+      {
+        "text": "Clear filters",
+        "width": 146,
+        "height": 48,
+        "close": false
+      }
+    ],
+    "h1": [
+      "Platform companies",
+      "Customer companies"
+    ],
+    "scrollY": 0,
+    "errors": [],
+    "apiRequests": [],
+    "remoteRequests": [],
+    "requests": [
+      {
+        "path": "/platform/companies?limit=25",
+        "method": "GET"
+      }
+    ]
+  },
+  {
+    "name": "company-error",
+    "width": 390,
+    "height": 900,
+    "language": "en",
+    "provenance": "named real React workspace; synthetic operatorRequest response store",
+    "overflow": false,
+    "buttonTargets": [
+      {
+        "text": "English",
+        "width": 59,
+        "height": 48,
+        "close": false
+      },
+      {
+        "text": "اردو",
+        "width": 34,
+        "height": 48,
+        "close": false
+      },
+      {
+        "text": "Platform navigation",
+        "width": 185,
+        "height": 48,
+        "close": false
+      },
+      {
+        "text": "Refresh",
+        "width": 106,
+        "height": 48,
+        "close": false
+      },
+      {
+        "text": "Retry",
+        "width": 66,
+        "height": 48,
+        "close": false
+      },
+      {
+        "text": "Apply filters",
+        "width": 146,
+        "height": 48,
+        "close": false
+      },
+      {
+        "text": "Clear filters",
+        "width": 146,
+        "height": 48,
+        "close": false
+      }
+    ],
+    "h1": [
+      "Platform companies",
+      "Customer companies"
+    ],
+    "scrollY": 0,
+    "errors": [],
+    "apiRequests": [],
+    "remoteRequests": [],
+    "requests": [
+      {
+        "path": "/platform/companies?limit=25",
+        "method": "GET"
+      }
+    ]
+  },
+  {
+    "name": "service-empty",
+    "width": 390,
+    "height": 900,
+    "language": "en",
+    "provenance": "named real React workspace; synthetic operatorRequest response store",
+    "overflow": false,
+    "buttonTargets": [
+      {
+        "text": "English",
+        "width": 59,
+        "height": 48,
+        "close": false
+      },
+      {
+        "text": "اردو",
+        "width": 34,
+        "height": 48,
+        "close": false
+      },
+      {
+        "text": "Platform navigation",
+        "width": 185,
+        "height": 48,
+        "close": false
+      },
+      {
+        "text": "Refresh records",
+        "width": 358,
+        "height": 48,
+        "close": false
+      },
+      {
+        "text": "Service diagnostics",
+        "width": 130,
+        "height": 48,
+        "close": false
+      },
+      {
+        "text": "Administrative audit",
+        "width": 131,
+        "height": 48,
+        "close": false
+      },
+      {
+        "text": "Customer inquiries",
+        "width": 129,
+        "height": 48,
+        "close": false
+      },
+      {
+        "text": "Apply filters",
+        "width": 320,
+        "height": 48,
+        "close": false
+      }
+    ],
+    "h1": [
+      "Platform service",
+      "Customer inquiries"
+    ],
+    "scrollY": 0,
+    "errors": [],
+    "apiRequests": [],
+    "remoteRequests": [],
+    "requests": [
+      {
+        "path": "/platform/service/inquiries?limit=25",
+        "method": "GET"
+      }
+    ]
+  },
+  {
+    "name": "service-error",
+    "width": 390,
+    "height": 900,
+    "language": "en",
+    "provenance": "named real React workspace; synthetic operatorRequest response store",
+    "overflow": false,
+    "buttonTargets": [
+      {
+        "text": "English",
+        "width": 59,
+        "height": 48,
+        "close": false
+      },
+      {
+        "text": "اردو",
+        "width": 34,
+        "height": 48,
+        "close": false
+      },
+      {
+        "text": "Platform navigation",
+        "width": 185,
+        "height": 48,
+        "close": false
+      },
+      {
+        "text": "Service diagnostics",
+        "width": 134,
+        "height": 48,
+        "close": false
+      },
+      {
+        "text": "Administrative audit",
+        "width": 131,
+        "height": 48,
+        "close": false
+      },
+      {
+        "text": "Customer inquiries",
+        "width": 124,
+        "height": 48,
+        "close": false
+      },
+      {
+        "text": "Retry",
+        "width": 324,
+        "height": 48,
+        "close": false
+      },
+      {
+        "text": "Retry support contact",
+        "width": 177,
+        "height": 48,
+        "close": false
+      }
+    ],
+    "h1": [
+      "Platform service",
+      "Service diagnostics"
+    ],
+    "scrollY": 0,
+    "errors": [],
+    "apiRequests": [],
+    "remoteRequests": [],
+    "requests": [
+      {
+        "path": "/platform/service/diagnostics",
+        "method": "GET"
+      },
+      {
+        "path": "/support/contact",
+        "method": "GET"
+      }
+    ]
+  },
+  {
+    "name": "service-unavailable",
+    "width": 390,
+    "height": 900,
+    "language": "en",
+    "provenance": "named real React workspace; synthetic operatorRequest response store",
+    "overflow": false,
+    "buttonTargets": [
+      {
+        "text": "English",
+        "width": 59,
+        "height": 48,
+        "close": false
+      },
+      {
+        "text": "اردو",
+        "width": 34,
+        "height": 48,
+        "close": false
+      },
+      {
+        "text": "Platform navigation",
+        "width": 185,
+        "height": 48,
+        "close": false
+      },
+      {
+        "text": "Service diagnostics",
+        "width": 134,
+        "height": 48,
+        "close": false
+      },
+      {
+        "text": "Administrative audit",
+        "width": 131,
+        "height": 48,
+        "close": false
+      },
+      {
+        "text": "Customer inquiries",
+        "width": 124,
+        "height": 48,
+        "close": false
+      },
+      {
+        "text": "Refresh observations",
+        "width": 320,
+        "height": 48,
+        "close": false
+      },
+      {
+        "text": "Refresh support contact",
+        "width": 193,
+        "height": 48,
+        "close": false
+      }
+    ],
+    "h1": [
+      "Platform service",
+      "Service diagnostics"
+    ],
+    "scrollY": 0,
+    "errors": [],
+    "apiRequests": [],
+    "remoteRequests": [],
+    "requests": [
+      {
+        "path": "/platform/service/diagnostics",
+        "method": "GET"
+      },
+      {
+        "path": "/support/contact",
+        "method": "GET"
+      }
+    ]
+  },
+  {
+    "name": "company-loading",
+    "width": 390,
+    "height": 900,
+    "language": "ur",
+    "provenance": "named real React workspace; synthetic operatorRequest response store",
+    "overflow": false,
+    "buttonTargets": [
+      {
+        "text": "English",
+        "width": 55,
+        "height": 48,
+        "close": false
+      },
+      {
+        "text": "اردو",
+        "width": 35,
+        "height": 48,
+        "close": false
+      },
+      {
+        "text": "پلیٹ فارم نیویگیشن",
+        "width": 174,
+        "height": 48,
+        "close": false
+      },
+      {
+        "text": "تازہ کریں",
+        "width": 105,
+        "height": 48,
+        "close": false
+      },
+      {
+        "text": "فلٹر لگائیں",
+        "width": 146,
+        "height": 48,
+        "close": false
+      },
+      {
+        "text": "فلٹر صاف کریں",
+        "width": 146,
+        "height": 48,
+        "close": false
+      }
+    ],
+    "h1": [
+      "پلیٹ فارم کی کمپنیاں",
+      "کسٹمر کمپنیاں"
+    ],
+    "scrollY": 0,
+    "errors": [],
+    "apiRequests": [],
+    "remoteRequests": [],
+    "requests": [
+      {
+        "path": "/platform/companies?limit=25",
+        "method": "GET"
+      }
+    ]
+  },
+  {
+    "name": "company-empty",
+    "width": 390,
+    "height": 900,
+    "language": "ur",
+    "provenance": "named real React workspace; synthetic operatorRequest response store",
+    "overflow": false,
+    "buttonTargets": [
+      {
+        "text": "English",
+        "width": 55,
+        "height": 48,
+        "close": false
+      },
+      {
+        "text": "اردو",
+        "width": 35,
+        "height": 48,
+        "close": false
+      },
+      {
+        "text": "پلیٹ فارم نیویگیشن",
+        "width": 174,
+        "height": 48,
+        "close": false
+      },
+      {
+        "text": "تازہ کریں",
+        "width": 105,
+        "height": 48,
+        "close": false
+      },
+      {
+        "text": "فلٹر لگائیں",
+        "width": 146,
+        "height": 48,
+        "close": false
+      },
+      {
+        "text": "فلٹر صاف کریں",
+        "width": 146,
+        "height": 48,
+        "close": false
+      }
+    ],
+    "h1": [
+      "پلیٹ فارم کی کمپنیاں",
+      "کسٹمر کمپنیاں"
+    ],
+    "scrollY": 0,
+    "errors": [],
+    "apiRequests": [],
+    "remoteRequests": [],
+    "requests": [
+      {
+        "path": "/platform/companies?limit=25",
+        "method": "GET"
+      }
+    ]
+  },
+  {
+    "name": "company-error",
+    "width": 390,
+    "height": 900,
+    "language": "ur",
+    "provenance": "named real React workspace; synthetic operatorRequest response store",
+    "overflow": false,
+    "buttonTargets": [
+      {
+        "text": "English",
+        "width": 55,
+        "height": 48,
+        "close": false
+      },
+      {
+        "text": "اردو",
+        "width": 35,
+        "height": 48,
+        "close": false
+      },
+      {
+        "text": "پلیٹ فارم نیویگیشن",
+        "width": 174,
+        "height": 48,
+        "close": false
+      },
+      {
+        "text": "تازہ کریں",
+        "width": 105,
+        "height": 48,
+        "close": false
+      },
+      {
+        "text": "دوبارہ کوشش کریں",
+        "width": 143,
+        "height": 48,
+        "close": false
+      },
+      {
+        "text": "فلٹر لگائیں",
+        "width": 146,
+        "height": 48,
+        "close": false
+      },
+      {
+        "text": "فلٹر صاف کریں",
+        "width": 146,
+        "height": 48,
+        "close": false
+      }
+    ],
+    "h1": [
+      "پلیٹ فارم کی کمپنیاں",
+      "کسٹمر کمپنیاں"
+    ],
+    "scrollY": 0,
+    "errors": [],
+    "apiRequests": [],
+    "remoteRequests": [],
+    "requests": [
+      {
+        "path": "/platform/companies?limit=25",
+        "method": "GET"
+      }
+    ]
+  },
+  {
+    "name": "service-empty",
+    "width": 390,
+    "height": 900,
+    "language": "ur",
+    "provenance": "named real React workspace; synthetic operatorRequest response store",
+    "overflow": false,
+    "buttonTargets": [
+      {
+        "text": "English",
+        "width": 55,
+        "height": 48,
+        "close": false
+      },
+      {
+        "text": "اردو",
+        "width": 35,
+        "height": 48,
+        "close": false
+      },
+      {
+        "text": "پلیٹ فارم نیویگیشن",
+        "width": 174,
+        "height": 48,
+        "close": false
+      },
+      {
+        "text": "ریکارڈ تازہ کریں",
+        "width": 358,
+        "height": 48,
+        "close": false
+      },
+      {
+        "text": "سروس کی تشخیص",
+        "width": 112,
+        "height": 48,
+        "close": false
+      },
+      {
+        "text": "انتظامی سرگرمیوں کا ریکارڈ",
+        "width": 152,
+        "height": 48,
+        "close": false
+      },
+      {
+        "text": "کسٹمر کی درخواستیں",
+        "width": 129,
+        "height": 48,
+        "close": false
+      },
+      {
+        "text": "فلٹر لگائیں",
+        "width": 320,
+        "height": 48,
+        "close": false
+      }
+    ],
+    "h1": [
+      "پلیٹ فارم کی سروس",
+      "کسٹمر کی درخواستیں"
+    ],
+    "scrollY": 0,
+    "errors": [],
+    "apiRequests": [],
+    "remoteRequests": [],
+    "requests": [
+      {
+        "path": "/platform/service/inquiries?limit=25",
+        "method": "GET"
+      }
+    ]
+  },
+  {
+    "name": "service-error",
+    "width": 390,
+    "height": 900,
+    "language": "ur",
+    "provenance": "named real React workspace; synthetic operatorRequest response store",
+    "overflow": false,
+    "buttonTargets": [
+      {
+        "text": "English",
+        "width": 55,
+        "height": 48,
+        "close": false
+      },
+      {
+        "text": "اردو",
+        "width": 35,
+        "height": 48,
+        "close": false
+      },
+      {
+        "text": "پلیٹ فارم نیویگیشن",
+        "width": 174,
+        "height": 48,
+        "close": false
+      },
+      {
+        "text": "سروس کی تشخیص",
+        "width": 120,
+        "height": 48,
+        "close": false
+      },
+      {
+        "text": "انتظامی سرگرمیوں کا ریکارڈ",
+        "width": 152,
+        "height": 48,
+        "close": false
+      },
+      {
+        "text": "کسٹمر کی درخواستیں",
+        "width": 121,
+        "height": 48,
+        "close": false
+      },
+      {
+        "text": "دوبارہ کوشش کریں",
+        "width": 324,
+        "height": 48,
+        "close": false
+      },
+      {
+        "text": "مدد کا رابطہ دوبارہ لوڈ کریں",
+        "width": 191,
+        "height": 48,
+        "close": false
+      }
+    ],
+    "h1": [
+      "پلیٹ فارم کی سروس",
+      "سروس کی تشخیص"
+    ],
+    "scrollY": 0,
+    "errors": [],
+    "apiRequests": [],
+    "remoteRequests": [],
+    "requests": [
+      {
+        "path": "/platform/service/diagnostics",
+        "method": "GET"
+      },
+      {
+        "path": "/support/contact",
+        "method": "GET"
+      }
+    ]
+  },
+  {
+    "name": "service-unavailable",
+    "width": 390,
+    "height": 900,
+    "language": "ur",
+    "provenance": "named real React workspace; synthetic operatorRequest response store",
+    "overflow": false,
+    "buttonTargets": [
+      {
+        "text": "English",
+        "width": 55,
+        "height": 48,
+        "close": false
+      },
+      {
+        "text": "اردو",
+        "width": 35,
+        "height": 48,
+        "close": false
+      },
+      {
+        "text": "پلیٹ فارم نیویگیشن",
+        "width": 174,
+        "height": 48,
+        "close": false
+      },
+      {
+        "text": "سروس کی تشخیص",
+        "width": 120,
+        "height": 48,
+        "close": false
+      },
+      {
+        "text": "انتظامی سرگرمیوں کا ریکارڈ",
+        "width": 152,
+        "height": 48,
+        "close": false
+      },
+      {
+        "text": "کسٹمر کی درخواستیں",
+        "width": 121,
+        "height": 48,
+        "close": false
+      },
+      {
+        "text": "مشاہدات تازہ کریں",
+        "width": 320,
+        "height": 48,
+        "close": false
+      },
+      {
+        "text": "سپورٹ کا رابطہ تازہ کریں",
+        "width": 178,
+        "height": 48,
+        "close": false
+      }
+    ],
+    "h1": [
+      "پلیٹ فارم کی سروس",
+      "سروس کی تشخیص"
+    ],
+    "scrollY": 0,
+    "errors": [],
+    "apiRequests": [],
+    "remoteRequests": [],
+    "requests": [
+      {
+        "path": "/platform/service/diagnostics",
+        "method": "GET"
+      },
+      {
+        "path": "/support/contact",
+        "method": "GET"
+      }
+    ]
+  },
+  {
+    "name": "company-conflict",
+    "width": 390,
+    "height": 900,
+    "language": "en",
+    "provenance": "named real React workspace; synthetic operatorRequest response store",
+    "overflow": false,
+    "buttonTargets": [
+      {
+        "text": "English",
+        "width": 59,
+        "height": 48,
+        "close": false
+      },
+      {
+        "text": "اردو",
+        "width": 34,
+        "height": 48,
+        "close": false
+      },
+      {
+        "text": "Platform navigation",
+        "width": 185,
+        "height": 48,
+        "close": false
+      },
+      {
+        "text": "Refresh",
+        "width": 106,
+        "height": 48,
+        "close": false
+      },
+      {
+        "text": "Account",
+        "width": 113,
+        "height": 48,
+        "close": false
+      },
+      {
+        "text": "Billing",
+        "width": 113,
+        "height": 48,
+        "close": false
+      },
+      {
+        "text": "Activity",
+        "width": 113,
+        "height": 48,
+        "close": false
+      },
+      {
+        "text": "Review pending status change",
+        "width": 260,
+        "height": 48,
+        "close": false
+      },
+      {
+        "text": "Cancel",
+        "width": 326,
+        "height": 48,
+        "close": false
+      },
+      {
+        "text": "Refresh company",
+        "width": 326,
+        "height": 48,
+        "close": false
+      },
+      {
+        "text": "Confirm status change",
+        "width": 326,
+        "height": 48,
+        "close": false
+      },
+      {
+        "text": "Close",
+        "width": 28,
+        "height": 28,
+        "close": true
+      }
+    ],
+    "h1": [
+      "Platform companies",
+      "Synthetic Facilities"
+    ],
+    "scrollY": 1088,
+    "errors": [],
+    "apiRequests": [],
+    "remoteRequests": [],
+    "requests": [
+      {
+        "path": "/platform/companies/42",
+        "method": "GET"
+      },
+      {
+        "path": "/platform/companies/42/status",
+        "method": "PATCH",
+        "body": {
+          "operationalStatus": "SUSPENDED",
+          "expectedVersion": 3,
+          "reason": "Synthetic reviewed request"
+        }
+      }
+    ]
+  },
+  {
+    "name": "company-conflict-synthetic-reload",
+    "width": 390,
+    "height": 900,
+    "language": "en",
+    "provenance": "in-memory synthetic fixture survives React reload; NOT SQL persistence",
+    "changes": 1,
+    "patches": 2,
+    "requests": [
+      {
+        "path": "/platform/companies/42",
+        "method": "GET"
+      },
+      {
+        "path": "/platform/companies/42/status",
+        "method": "PATCH",
+        "body": {
+          "operationalStatus": "SUSPENDED",
+          "expectedVersion": 3,
+          "reason": "Synthetic reviewed request"
+        }
+      },
+      {
+        "path": "/platform/companies/42",
+        "method": "GET"
+      },
+      {
+        "path": "/platform/companies/42/status",
+        "method": "PATCH",
+        "body": {
+          "operationalStatus": "SUSPENDED",
+          "expectedVersion": 4,
+          "reason": "Synthetic reviewed request"
+        }
+      },
+      {
+        "path": "/platform/companies/42",
+        "method": "GET"
+      }
+    ]
+  },
+  {
+    "name": "inquiry-conflict",
+    "width": 390,
+    "height": 900,
+    "language": "en",
+    "provenance": "named real React workspace; synthetic operatorRequest response store",
+    "overflow": false,
+    "buttonTargets": [
+      {
+        "text": "English",
+        "width": 59,
+        "height": 48,
+        "close": false
+      },
+      {
+        "text": "اردو",
+        "width": 34,
+        "height": 48,
+        "close": false
+      },
+      {
+        "text": "Platform navigation",
+        "width": 185,
+        "height": 48,
+        "close": false
+      },
+      {
+        "text": "Refresh records",
+        "width": 358,
+        "height": 48,
+        "close": false
+      },
+      {
+        "text": "Service diagnostics",
+        "width": 130,
+        "height": 48,
+        "close": false
+      },
+      {
+        "text": "Administrative audit",
+        "width": 131,
+        "height": 48,
+        "close": false
+      },
+      {
+        "text": "Customer inquiries",
+        "width": 129,
+        "height": 48,
+        "close": false
+      },
+      {
+        "text": "Refresh inquiry",
+        "width": 290,
+        "height": 48,
+        "close": false
+      },
+      {
+        "text": "Save handling",
+        "width": 320,
+        "height": 48,
+        "close": false
+      }
+    ],
+    "h1": [
+      "Platform service",
+      "Customer inquiries"
+    ],
+    "scrollY": 1095,
+    "errors": [],
+    "apiRequests": [],
+    "remoteRequests": [],
+    "requests": [
+      {
+        "path": "/platform/service/inquiries/00000000-0000-4000-8000-000000000001",
+        "method": "GET"
+      },
+      {
+        "path": "/platform/service/inquiries/00000000-0000-4000-8000-000000000001",
+        "method": "PATCH",
+        "body": {
+          "status": "IN_PROGRESS",
+          "ownership": "SELF",
+          "expectedVersion": 0,
+          "reason": "Synthetic reviewed request"
+        }
+      }
+    ]
+  },
+  {
+    "name": "inquiry-conflict-synthetic-reload",
+    "width": 390,
+    "height": 900,
+    "language": "en",
+    "provenance": "in-memory synthetic fixture survives React reload; NOT SQL persistence",
+    "changes": 1,
+    "patches": 2,
+    "requests": [
+      {
+        "path": "/platform/service/inquiries/00000000-0000-4000-8000-000000000001",
+        "method": "GET"
+      },
+      {
+        "path": "/platform/service/inquiries/00000000-0000-4000-8000-000000000001",
+        "method": "PATCH",
+        "body": {
+          "status": "IN_PROGRESS",
+          "ownership": "SELF",
+          "expectedVersion": 0,
+          "reason": "Synthetic reviewed request"
+        }
+      },
+      {
+        "path": "/platform/service/inquiries/00000000-0000-4000-8000-000000000001",
+        "method": "GET"
+      },
+      {
+        "path": "/platform/service/inquiries/00000000-0000-4000-8000-000000000001",
+        "method": "PATCH",
+        "body": {
+          "status": "IN_PROGRESS",
+          "ownership": "SELF",
+          "expectedVersion": 1,
+          "reason": "Synthetic reviewed request"
+        }
+      },
+      {
+        "path": "/platform/service/inquiries/00000000-0000-4000-8000-000000000001",
+        "method": "GET"
+      }
+    ]
+  },
+  {
+    "name": "company-uncertain",
+    "width": 390,
+    "height": 900,
+    "language": "en",
+    "provenance": "named real React workspace; synthetic operatorRequest response store",
+    "overflow": false,
+    "buttonTargets": [
+      {
+        "text": "English",
+        "width": 59,
+        "height": 48,
+        "close": false
+      },
+      {
+        "text": "اردو",
+        "width": 34,
+        "height": 48,
+        "close": false
+      },
+      {
+        "text": "Platform navigation",
+        "width": 185,
+        "height": 48,
+        "close": false
+      },
+      {
+        "text": "Refresh",
+        "width": 106,
+        "height": 48,
+        "close": false
+      },
+      {
+        "text": "Account",
+        "width": 113,
+        "height": 48,
+        "close": false
+      },
+      {
+        "text": "Billing",
+        "width": 113,
+        "height": 48,
+        "close": false
+      },
+      {
+        "text": "Activity",
+        "width": 113,
+        "height": 48,
+        "close": false
+      },
+      {
+        "text": "Review pending status change",
+        "width": 260,
+        "height": 48,
+        "close": false
+      },
+      {
+        "text": "Cancel",
+        "width": 326,
+        "height": 48,
+        "close": false
+      },
+      {
+        "text": "Refresh company",
+        "width": 326,
+        "height": 48,
+        "close": false
+      },
+      {
+        "text": "Confirm status change",
+        "width": 326,
+        "height": 48,
+        "close": false
+      },
+      {
+        "text": "Close",
+        "width": 28,
+        "height": 28,
+        "close": true
+      }
+    ],
+    "h1": [
+      "Platform companies",
+      "Synthetic Facilities"
+    ],
+    "scrollY": 1088,
+    "errors": [],
+    "apiRequests": [],
+    "remoteRequests": [],
+    "requests": [
+      {
+        "path": "/platform/companies/42",
+        "method": "GET"
+      },
+      {
+        "path": "/platform/companies/42/status",
+        "method": "PATCH",
+        "body": {
+          "operationalStatus": "SUSPENDED",
+          "expectedVersion": 3,
+          "reason": "Synthetic reviewed request"
+        }
+      }
+    ]
+  },
+  {
+    "name": "company-uncertain-synthetic-reload",
+    "width": 390,
+    "height": 900,
+    "language": "en",
+    "provenance": "in-memory synthetic fixture survives React reload; NOT SQL persistence",
+    "changes": 1,
+    "patches": 2,
+    "requests": [
+      {
+        "path": "/platform/companies/42",
+        "method": "GET"
+      },
+      {
+        "path": "/platform/companies/42/status",
+        "method": "PATCH",
+        "body": {
+          "operationalStatus": "SUSPENDED",
+          "expectedVersion": 3,
+          "reason": "Synthetic reviewed request"
+        }
+      },
+      {
+        "path": "/platform/companies/42",
+        "method": "GET"
+      },
+      {
+        "path": "/platform/companies/42/status",
+        "method": "PATCH",
+        "body": {
+          "operationalStatus": "SUSPENDED",
+          "expectedVersion": 4,
+          "reason": "Synthetic reviewed request"
+        }
+      },
+      {
+        "path": "/platform/companies/42",
+        "method": "GET"
+      }
+    ]
+  },
+  {
+    "name": "inquiry-uncertain",
+    "width": 390,
+    "height": 900,
+    "language": "en",
+    "provenance": "named real React workspace; synthetic operatorRequest response store",
+    "overflow": false,
+    "buttonTargets": [
+      {
+        "text": "English",
+        "width": 59,
+        "height": 48,
+        "close": false
+      },
+      {
+        "text": "اردو",
+        "width": 34,
+        "height": 48,
+        "close": false
+      },
+      {
+        "text": "Platform navigation",
+        "width": 185,
+        "height": 48,
+        "close": false
+      },
+      {
+        "text": "Refresh records",
+        "width": 358,
+        "height": 48,
+        "close": false
+      },
+      {
+        "text": "Service diagnostics",
+        "width": 130,
+        "height": 48,
+        "close": false
+      },
+      {
+        "text": "Administrative audit",
+        "width": 131,
+        "height": 48,
+        "close": false
+      },
+      {
+        "text": "Customer inquiries",
+        "width": 129,
+        "height": 48,
+        "close": false
+      },
+      {
+        "text": "Refresh inquiry",
+        "width": 290,
+        "height": 48,
+        "close": false
+      },
+      {
+        "text": "Save handling",
+        "width": 320,
+        "height": 48,
+        "close": false
+      }
+    ],
+    "h1": [
+      "Platform service",
+      "Customer inquiries"
+    ],
+    "scrollY": 1095,
+    "errors": [],
+    "apiRequests": [],
+    "remoteRequests": [],
+    "requests": [
+      {
+        "path": "/platform/service/inquiries/00000000-0000-4000-8000-000000000001",
+        "method": "GET"
+      },
+      {
+        "path": "/platform/service/inquiries/00000000-0000-4000-8000-000000000001",
+        "method": "PATCH",
+        "body": {
+          "status": "IN_PROGRESS",
+          "ownership": "SELF",
+          "expectedVersion": 0,
+          "reason": "Synthetic reviewed request"
+        }
+      }
+    ]
+  },
+  {
+    "name": "inquiry-uncertain-synthetic-reload",
+    "width": 390,
+    "height": 900,
+    "language": "en",
+    "provenance": "in-memory synthetic fixture survives React reload; NOT SQL persistence",
+    "changes": 1,
+    "patches": 2,
+    "requests": [
+      {
+        "path": "/platform/service/inquiries/00000000-0000-4000-8000-000000000001",
+        "method": "GET"
+      },
+      {
+        "path": "/platform/service/inquiries/00000000-0000-4000-8000-000000000001",
+        "method": "PATCH",
+        "body": {
+          "status": "IN_PROGRESS",
+          "ownership": "SELF",
+          "expectedVersion": 0,
+          "reason": "Synthetic reviewed request"
+        }
+      },
+      {
+        "path": "/platform/service/inquiries/00000000-0000-4000-8000-000000000001",
+        "method": "GET"
+      },
+      {
+        "path": "/platform/service/inquiries/00000000-0000-4000-8000-000000000001",
+        "method": "PATCH",
+        "body": {
+          "status": "IN_PROGRESS",
+          "ownership": "SELF",
+          "expectedVersion": 1,
+          "reason": "Synthetic reviewed request"
+        }
+      },
+      {
+        "path": "/platform/service/inquiries/00000000-0000-4000-8000-000000000001",
+        "method": "GET"
+      }
+    ]
+  },
+  {
+    "name": "company-pending",
+    "width": 390,
+    "height": 900,
+    "language": "en",
+    "provenance": "named real React workspace; synthetic operatorRequest response store",
+    "overflow": false,
+    "buttonTargets": [
+      {
+        "text": "English",
+        "width": 59,
+        "height": 48,
+        "close": false
+      },
+      {
+        "text": "اردو",
+        "width": 34,
+        "height": 48,
+        "close": false
+      },
+      {
+        "text": "Platform navigation",
+        "width": 185,
+        "height": 48,
+        "close": false
+      },
+      {
+        "text": "Refresh",
+        "width": 106,
+        "height": 48,
+        "close": false
+      },
+      {
+        "text": "Account",
+        "width": 113,
+        "height": 48,
+        "close": false
+      },
+      {
+        "text": "Billing",
+        "width": 113,
+        "height": 48,
+        "close": false
+      },
+      {
+        "text": "Activity",
+        "width": 113,
+        "height": 48,
+        "close": false
+      },
+      {
+        "text": "Suspend company",
+        "width": 179,
+        "height": 48,
+        "close": false
+      },
+      {
+        "text": "Cancel",
+        "width": 326,
+        "height": 48,
+        "close": false
+      },
+      {
+        "text": "Saving…",
+        "width": 326,
+        "height": 48,
+        "close": false
+      }
+    ],
+    "h1": [
+      "Platform companies",
+      "Synthetic Facilities"
+    ],
+    "scrollY": 1088,
+    "errors": [],
+    "apiRequests": [],
+    "remoteRequests": [],
+    "requests": [
+      {
+        "path": "/platform/companies/42",
+        "method": "GET"
+      },
+      {
+        "path": "/platform/companies/42/status",
+        "method": "PATCH",
+        "body": {
+          "operationalStatus": "SUSPENDED",
+          "expectedVersion": 3,
+          "reason": "Synthetic reviewed request"
+        }
+      }
+    ]
+  },
+  {
+    "name": "company-pending-synthetic-reload",
+    "width": 390,
+    "height": 900,
+    "language": "en",
+    "provenance": "in-memory synthetic fixture survives React reload; NOT SQL persistence",
+    "changes": 1,
+    "patches": 1,
+    "requests": [
+      {
+        "path": "/platform/companies/42",
+        "method": "GET"
+      },
+      {
+        "path": "/platform/companies/42/status",
+        "method": "PATCH",
+        "body": {
+          "operationalStatus": "SUSPENDED",
+          "expectedVersion": 3,
+          "reason": "Synthetic reviewed request"
+        }
+      },
+      {
+        "path": "/platform/companies/42",
+        "method": "GET"
+      }
+    ]
+  },
+  {
+    "name": "inquiry-pending",
+    "width": 390,
+    "height": 900,
+    "language": "en",
+    "provenance": "named real React workspace; synthetic operatorRequest response store",
+    "overflow": false,
+    "buttonTargets": [
+      {
+        "text": "English",
+        "width": 59,
+        "height": 48,
+        "close": false
+      },
+      {
+        "text": "اردو",
+        "width": 34,
+        "height": 48,
+        "close": false
+      },
+      {
+        "text": "Platform navigation",
+        "width": 185,
+        "height": 48,
+        "close": false
+      },
+      {
+        "text": "Refresh records",
+        "width": 358,
+        "height": 48,
+        "close": false
+      },
+      {
+        "text": "Service diagnostics",
+        "width": 130,
+        "height": 48,
+        "close": false
+      },
+      {
+        "text": "Administrative audit",
+        "width": 131,
+        "height": 48,
+        "close": false
+      },
+      {
+        "text": "Customer inquiries",
+        "width": 129,
+        "height": 48,
+        "close": false
+      },
+      {
+        "text": "Saving…",
+        "width": 320,
+        "height": 48,
+        "close": false
+      }
+    ],
+    "h1": [
+      "Platform service",
+      "Customer inquiries"
+    ],
+    "scrollY": 1095,
+    "errors": [],
+    "apiRequests": [],
+    "remoteRequests": [],
+    "requests": [
+      {
+        "path": "/platform/service/inquiries/00000000-0000-4000-8000-000000000001",
+        "method": "GET"
+      },
+      {
+        "path": "/platform/service/inquiries/00000000-0000-4000-8000-000000000001",
+        "method": "PATCH",
+        "body": {
+          "status": "IN_PROGRESS",
+          "ownership": "SELF",
+          "expectedVersion": 0,
+          "reason": "Synthetic reviewed request"
+        }
+      }
+    ]
+  },
+  {
+    "name": "inquiry-pending-synthetic-reload",
+    "width": 390,
+    "height": 900,
+    "language": "en",
+    "provenance": "in-memory synthetic fixture survives React reload; NOT SQL persistence",
+    "changes": 1,
+    "patches": 1,
+    "requests": [
+      {
+        "path": "/platform/service/inquiries/00000000-0000-4000-8000-000000000001",
+        "method": "GET"
+      },
+      {
+        "path": "/platform/service/inquiries/00000000-0000-4000-8000-000000000001",
+        "method": "PATCH",
+        "body": {
+          "status": "IN_PROGRESS",
+          "ownership": "SELF",
+          "expectedVersion": 0,
+          "reason": "Synthetic reviewed request"
+        }
+      },
+      {
+        "path": "/platform/service/inquiries/00000000-0000-4000-8000-000000000001",
+        "method": "GET"
+      }
+    ]
+  },
+  {
+    "name": "company-conflict",
+    "width": 390,
+    "height": 900,
+    "language": "ur",
+    "provenance": "named real React workspace; synthetic operatorRequest response store",
+    "overflow": false,
+    "buttonTargets": [
+      {
+        "text": "English",
+        "width": 55,
+        "height": 48,
+        "close": false
+      },
+      {
+        "text": "اردو",
+        "width": 35,
+        "height": 48,
+        "close": false
+      },
+      {
+        "text": "پلیٹ فارم نیویگیشن",
+        "width": 174,
+        "height": 48,
+        "close": false
+      },
+      {
+        "text": "تازہ کریں",
+        "width": 105,
+        "height": 48,
+        "close": false
+      },
+      {
+        "text": "اکاؤنٹ",
+        "width": 113,
+        "height": 48,
+        "close": false
+      },
+      {
+        "text": "بلنگ",
+        "width": 113,
+        "height": 48,
+        "close": false
+      },
+      {
+        "text": "سرگرمی",
+        "width": 113,
+        "height": 48,
+        "close": false
+      },
+      {
+        "text": "زیرِ التوا حالت کی تبدیلی کا جائزہ لیں",
+        "width": 266,
+        "height": 48,
+        "close": false
+      },
+      {
+        "text": "منسوخ کریں",
+        "width": 326,
+        "height": 48,
+        "close": false
+      },
+      {
+        "text": "کمپنی کا ریکارڈ تازہ کریں",
+        "width": 326,
+        "height": 48,
+        "close": false
+      },
+      {
+        "text": "حالت کی تبدیلی کی تصدیق کریں",
+        "width": 326,
+        "height": 48,
+        "close": false
+      },
+      {
+        "text": "بند کریں",
+        "width": 28,
+        "height": 28,
+        "close": true
+      }
+    ],
+    "h1": [
+      "پلیٹ فارم کی کمپنیاں",
+      "Synthetic Facilities"
+    ],
+    "scrollY": 1040,
+    "errors": [],
+    "apiRequests": [],
+    "remoteRequests": [],
+    "requests": [
+      {
+        "path": "/platform/companies/42",
+        "method": "GET"
+      },
+      {
+        "path": "/platform/companies/42/status",
+        "method": "PATCH",
+        "body": {
+          "operationalStatus": "SUSPENDED",
+          "expectedVersion": 3,
+          "reason": "Synthetic reviewed request"
+        }
+      }
+    ]
+  },
+  {
+    "name": "company-conflict-synthetic-reload",
+    "width": 390,
+    "height": 900,
+    "language": "ur",
+    "provenance": "in-memory synthetic fixture survives React reload; NOT SQL persistence",
+    "changes": 1,
+    "patches": 2,
+    "requests": [
+      {
+        "path": "/platform/companies/42",
+        "method": "GET"
+      },
+      {
+        "path": "/platform/companies/42/status",
+        "method": "PATCH",
+        "body": {
+          "operationalStatus": "SUSPENDED",
+          "expectedVersion": 3,
+          "reason": "Synthetic reviewed request"
+        }
+      },
+      {
+        "path": "/platform/companies/42",
+        "method": "GET"
+      },
+      {
+        "path": "/platform/companies/42/status",
+        "method": "PATCH",
+        "body": {
+          "operationalStatus": "SUSPENDED",
+          "expectedVersion": 4,
+          "reason": "Synthetic reviewed request"
+        }
+      },
+      {
+        "path": "/platform/companies/42",
+        "method": "GET"
+      }
+    ]
+  },
+  {
+    "name": "inquiry-conflict",
+    "width": 390,
+    "height": 900,
+    "language": "ur",
+    "provenance": "named real React workspace; synthetic operatorRequest response store",
+    "overflow": false,
+    "buttonTargets": [
+      {
+        "text": "English",
+        "width": 55,
+        "height": 48,
+        "close": false
+      },
+      {
+        "text": "اردو",
+        "width": 35,
+        "height": 48,
+        "close": false
+      },
+      {
+        "text": "پلیٹ فارم نیویگیشن",
+        "width": 174,
+        "height": 48,
+        "close": false
+      },
+      {
+        "text": "ریکارڈ تازہ کریں",
+        "width": 358,
+        "height": 48,
+        "close": false
+      },
+      {
+        "text": "سروس کی تشخیص",
+        "width": 112,
+        "height": 48,
+        "close": false
+      },
+      {
+        "text": "انتظامی سرگرمیوں کا ریکارڈ",
+        "width": 152,
+        "height": 48,
+        "close": false
+      },
+      {
+        "text": "کسٹمر کی درخواستیں",
+        "width": 129,
+        "height": 48,
+        "close": false
+      },
+      {
+        "text": "درخواست تازہ کریں",
+        "width": 290,
+        "height": 48,
+        "close": false
+      },
+      {
+        "text": "کارروائی محفوظ کریں",
+        "width": 320,
+        "height": 48,
+        "close": false
+      }
+    ],
+    "h1": [
+      "پلیٹ فارم کی سروس",
+      "کسٹمر کی درخواستیں"
+    ],
+    "scrollY": 1210,
+    "errors": [],
+    "apiRequests": [],
+    "remoteRequests": [],
+    "requests": [
+      {
+        "path": "/platform/service/inquiries/00000000-0000-4000-8000-000000000001",
+        "method": "GET"
+      },
+      {
+        "path": "/platform/service/inquiries/00000000-0000-4000-8000-000000000001",
+        "method": "PATCH",
+        "body": {
+          "status": "IN_PROGRESS",
+          "ownership": "SELF",
+          "expectedVersion": 0,
+          "reason": "Synthetic reviewed request"
+        }
+      }
+    ]
+  },
+  {
+    "name": "inquiry-conflict-synthetic-reload",
+    "width": 390,
+    "height": 900,
+    "language": "ur",
+    "provenance": "in-memory synthetic fixture survives React reload; NOT SQL persistence",
+    "changes": 1,
+    "patches": 2,
+    "requests": [
+      {
+        "path": "/platform/service/inquiries/00000000-0000-4000-8000-000000000001",
+        "method": "GET"
+      },
+      {
+        "path": "/platform/service/inquiries/00000000-0000-4000-8000-000000000001",
+        "method": "PATCH",
+        "body": {
+          "status": "IN_PROGRESS",
+          "ownership": "SELF",
+          "expectedVersion": 0,
+          "reason": "Synthetic reviewed request"
+        }
+      },
+      {
+        "path": "/platform/service/inquiries/00000000-0000-4000-8000-000000000001",
+        "method": "GET"
+      },
+      {
+        "path": "/platform/service/inquiries/00000000-0000-4000-8000-000000000001",
+        "method": "PATCH",
+        "body": {
+          "status": "IN_PROGRESS",
+          "ownership": "SELF",
+          "expectedVersion": 1,
+          "reason": "Synthetic reviewed request"
+        }
+      },
+      {
+        "path": "/platform/service/inquiries/00000000-0000-4000-8000-000000000001",
+        "method": "GET"
+      }
+    ]
+  },
+  {
+    "name": "company-uncertain",
+    "width": 390,
+    "height": 900,
+    "language": "ur",
+    "provenance": "named real React workspace; synthetic operatorRequest response store",
+    "overflow": false,
+    "buttonTargets": [
+      {
+        "text": "English",
+        "width": 55,
+        "height": 48,
+        "close": false
+      },
+      {
+        "text": "اردو",
+        "width": 35,
+        "height": 48,
+        "close": false
+      },
+      {
+        "text": "پلیٹ فارم نیویگیشن",
+        "width": 174,
+        "height": 48,
+        "close": false
+      },
+      {
+        "text": "تازہ کریں",
+        "width": 105,
+        "height": 48,
+        "close": false
+      },
+      {
+        "text": "اکاؤنٹ",
+        "width": 113,
+        "height": 48,
+        "close": false
+      },
+      {
+        "text": "بلنگ",
+        "width": 113,
+        "height": 48,
+        "close": false
+      },
+      {
+        "text": "سرگرمی",
+        "width": 113,
+        "height": 48,
+        "close": false
+      },
+      {
+        "text": "زیرِ التوا حالت کی تبدیلی کا جائزہ لیں",
+        "width": 266,
+        "height": 48,
+        "close": false
+      },
+      {
+        "text": "منسوخ کریں",
+        "width": 326,
+        "height": 48,
+        "close": false
+      },
+      {
+        "text": "کمپنی کا ریکارڈ تازہ کریں",
+        "width": 326,
+        "height": 48,
+        "close": false
+      },
+      {
+        "text": "حالت کی تبدیلی کی تصدیق کریں",
+        "width": 326,
+        "height": 48,
+        "close": false
+      },
+      {
+        "text": "بند کریں",
+        "width": 28,
+        "height": 28,
+        "close": true
+      }
+    ],
+    "h1": [
+      "پلیٹ فارم کی کمپنیاں",
+      "Synthetic Facilities"
+    ],
+    "scrollY": 1040,
+    "errors": [],
+    "apiRequests": [],
+    "remoteRequests": [],
+    "requests": [
+      {
+        "path": "/platform/companies/42",
+        "method": "GET"
+      },
+      {
+        "path": "/platform/companies/42/status",
+        "method": "PATCH",
+        "body": {
+          "operationalStatus": "SUSPENDED",
+          "expectedVersion": 3,
+          "reason": "Synthetic reviewed request"
+        }
+      }
+    ]
+  },
+  {
+    "name": "company-uncertain-synthetic-reload",
+    "width": 390,
+    "height": 900,
+    "language": "ur",
+    "provenance": "in-memory synthetic fixture survives React reload; NOT SQL persistence",
+    "changes": 1,
+    "patches": 2,
+    "requests": [
+      {
+        "path": "/platform/companies/42",
+        "method": "GET"
+      },
+      {
+        "path": "/platform/companies/42/status",
+        "method": "PATCH",
+        "body": {
+          "operationalStatus": "SUSPENDED",
+          "expectedVersion": 3,
+          "reason": "Synthetic reviewed request"
+        }
+      },
+      {
+        "path": "/platform/companies/42",
+        "method": "GET"
+      },
+      {
+        "path": "/platform/companies/42/status",
+        "method": "PATCH",
+        "body": {
+          "operationalStatus": "SUSPENDED",
+          "expectedVersion": 4,
+          "reason": "Synthetic reviewed request"
+        }
+      },
+      {
+        "path": "/platform/companies/42",
+        "method": "GET"
+      }
+    ]
+  },
+  {
+    "name": "inquiry-uncertain",
+    "width": 390,
+    "height": 900,
+    "language": "ur",
+    "provenance": "named real React workspace; synthetic operatorRequest response store",
+    "overflow": false,
+    "buttonTargets": [
+      {
+        "text": "English",
+        "width": 55,
+        "height": 48,
+        "close": false
+      },
+      {
+        "text": "اردو",
+        "width": 35,
+        "height": 48,
+        "close": false
+      },
+      {
+        "text": "پلیٹ فارم نیویگیشن",
+        "width": 174,
+        "height": 48,
+        "close": false
+      },
+      {
+        "text": "ریکارڈ تازہ کریں",
+        "width": 358,
+        "height": 48,
+        "close": false
+      },
+      {
+        "text": "سروس کی تشخیص",
+        "width": 112,
+        "height": 48,
+        "close": false
+      },
+      {
+        "text": "انتظامی سرگرمیوں کا ریکارڈ",
+        "width": 152,
+        "height": 48,
+        "close": false
+      },
+      {
+        "text": "کسٹمر کی درخواستیں",
+        "width": 129,
+        "height": 48,
+        "close": false
+      },
+      {
+        "text": "درخواست تازہ کریں",
+        "width": 290,
+        "height": 48,
+        "close": false
+      },
+      {
+        "text": "کارروائی محفوظ کریں",
+        "width": 320,
+        "height": 48,
+        "close": false
+      }
+    ],
+    "h1": [
+      "پلیٹ فارم کی سروس",
+      "کسٹمر کی درخواستیں"
+    ],
+    "scrollY": 1210,
+    "errors": [],
+    "apiRequests": [],
+    "remoteRequests": [],
+    "requests": [
+      {
+        "path": "/platform/service/inquiries/00000000-0000-4000-8000-000000000001",
+        "method": "GET"
+      },
+      {
+        "path": "/platform/service/inquiries/00000000-0000-4000-8000-000000000001",
+        "method": "PATCH",
+        "body": {
+          "status": "IN_PROGRESS",
+          "ownership": "SELF",
+          "expectedVersion": 0,
+          "reason": "Synthetic reviewed request"
+        }
+      }
+    ]
+  },
+  {
+    "name": "inquiry-uncertain-synthetic-reload",
+    "width": 390,
+    "height": 900,
+    "language": "ur",
+    "provenance": "in-memory synthetic fixture survives React reload; NOT SQL persistence",
+    "changes": 1,
+    "patches": 2,
+    "requests": [
+      {
+        "path": "/platform/service/inquiries/00000000-0000-4000-8000-000000000001",
+        "method": "GET"
+      },
+      {
+        "path": "/platform/service/inquiries/00000000-0000-4000-8000-000000000001",
+        "method": "PATCH",
+        "body": {
+          "status": "IN_PROGRESS",
+          "ownership": "SELF",
+          "expectedVersion": 0,
+          "reason": "Synthetic reviewed request"
+        }
+      },
+      {
+        "path": "/platform/service/inquiries/00000000-0000-4000-8000-000000000001",
+        "method": "GET"
+      },
+      {
+        "path": "/platform/service/inquiries/00000000-0000-4000-8000-000000000001",
+        "method": "PATCH",
+        "body": {
+          "status": "IN_PROGRESS",
+          "ownership": "SELF",
+          "expectedVersion": 1,
+          "reason": "Synthetic reviewed request"
+        }
+      },
+      {
+        "path": "/platform/service/inquiries/00000000-0000-4000-8000-000000000001",
+        "method": "GET"
+      }
+    ]
+  },
+  {
+    "name": "company-pending",
+    "width": 390,
+    "height": 900,
+    "language": "ur",
+    "provenance": "named real React workspace; synthetic operatorRequest response store",
+    "overflow": false,
+    "buttonTargets": [
+      {
+        "text": "English",
+        "width": 55,
+        "height": 48,
+        "close": false
+      },
+      {
+        "text": "اردو",
+        "width": 35,
+        "height": 48,
+        "close": false
+      },
+      {
+        "text": "پلیٹ فارم نیویگیشن",
+        "width": 174,
+        "height": 48,
+        "close": false
+      },
+      {
+        "text": "تازہ کریں",
+        "width": 105,
+        "height": 48,
+        "close": false
+      },
+      {
+        "text": "اکاؤنٹ",
+        "width": 113,
+        "height": 48,
+        "close": false
+      },
+      {
+        "text": "بلنگ",
+        "width": 113,
+        "height": 48,
+        "close": false
+      },
+      {
+        "text": "سرگرمی",
+        "width": 113,
+        "height": 48,
+        "close": false
+      },
+      {
+        "text": "کمپنی معطل کریں",
+        "width": 161,
+        "height": 48,
+        "close": false
+      },
+      {
+        "text": "منسوخ کریں",
+        "width": 326,
+        "height": 48,
+        "close": false
+      },
+      {
+        "text": "محفوظ ہو رہا ہے…",
+        "width": 326,
+        "height": 48,
+        "close": false
+      }
+    ],
+    "h1": [
+      "پلیٹ فارم کی کمپنیاں",
+      "Synthetic Facilities"
+    ],
+    "scrollY": 1040,
+    "errors": [],
+    "apiRequests": [],
+    "remoteRequests": [],
+    "requests": [
+      {
+        "path": "/platform/companies/42",
+        "method": "GET"
+      },
+      {
+        "path": "/platform/companies/42/status",
+        "method": "PATCH",
+        "body": {
+          "operationalStatus": "SUSPENDED",
+          "expectedVersion": 3,
+          "reason": "Synthetic reviewed request"
+        }
+      }
+    ]
+  },
+  {
+    "name": "company-pending-synthetic-reload",
+    "width": 390,
+    "height": 900,
+    "language": "ur",
+    "provenance": "in-memory synthetic fixture survives React reload; NOT SQL persistence",
+    "changes": 1,
+    "patches": 1,
+    "requests": [
+      {
+        "path": "/platform/companies/42",
+        "method": "GET"
+      },
+      {
+        "path": "/platform/companies/42/status",
+        "method": "PATCH",
+        "body": {
+          "operationalStatus": "SUSPENDED",
+          "expectedVersion": 3,
+          "reason": "Synthetic reviewed request"
+        }
+      },
+      {
+        "path": "/platform/companies/42",
+        "method": "GET"
+      }
+    ]
+  },
+  {
+    "name": "inquiry-pending",
+    "width": 390,
+    "height": 900,
+    "language": "ur",
+    "provenance": "named real React workspace; synthetic operatorRequest response store",
+    "overflow": false,
+    "buttonTargets": [
+      {
+        "text": "English",
+        "width": 55,
+        "height": 48,
+        "close": false
+      },
+      {
+        "text": "اردو",
+        "width": 35,
+        "height": 48,
+        "close": false
+      },
+      {
+        "text": "پلیٹ فارم نیویگیشن",
+        "width": 174,
+        "height": 48,
+        "close": false
+      },
+      {
+        "text": "ریکارڈ تازہ کریں",
+        "width": 358,
+        "height": 48,
+        "close": false
+      },
+      {
+        "text": "سروس کی تشخیص",
+        "width": 112,
+        "height": 48,
+        "close": false
+      },
+      {
+        "text": "انتظامی سرگرمیوں کا ریکارڈ",
+        "width": 152,
+        "height": 48,
+        "close": false
+      },
+      {
+        "text": "کسٹمر کی درخواستیں",
+        "width": 129,
+        "height": 48,
+        "close": false
+      },
+      {
+        "text": "محفوظ ہو رہا ہے…",
+        "width": 320,
+        "height": 48,
+        "close": false
+      }
+    ],
+    "h1": [
+      "پلیٹ فارم کی سروس",
+      "کسٹمر کی درخواستیں"
+    ],
+    "scrollY": 1210,
+    "errors": [],
+    "apiRequests": [],
+    "remoteRequests": [],
+    "requests": [
+      {
+        "path": "/platform/service/inquiries/00000000-0000-4000-8000-000000000001",
+        "method": "GET"
+      },
+      {
+        "path": "/platform/service/inquiries/00000000-0000-4000-8000-000000000001",
+        "method": "PATCH",
+        "body": {
+          "status": "IN_PROGRESS",
+          "ownership": "SELF",
+          "expectedVersion": 0,
+          "reason": "Synthetic reviewed request"
+        }
+      }
+    ]
+  },
+  {
+    "name": "inquiry-pending-synthetic-reload",
+    "width": 390,
+    "height": 900,
+    "language": "ur",
+    "provenance": "in-memory synthetic fixture survives React reload; NOT SQL persistence",
+    "changes": 1,
+    "patches": 1,
+    "requests": [
+      {
+        "path": "/platform/service/inquiries/00000000-0000-4000-8000-000000000001",
+        "method": "GET"
+      },
+      {
+        "path": "/platform/service/inquiries/00000000-0000-4000-8000-000000000001",
+        "method": "PATCH",
+        "body": {
+          "status": "IN_PROGRESS",
+          "ownership": "SELF",
+          "expectedVersion": 0,
+          "reason": "Synthetic reviewed request"
+        }
+      },
+      {
+        "path": "/platform/service/inquiries/00000000-0000-4000-8000-000000000001",
+        "method": "GET"
+      }
+    ]
+  },
+  {
+    "name": "service-support-refresh-error",
+    "width": 390,
+    "height": 900,
+    "language": "en",
+    "provenance": "named real React workspace; synthetic operatorRequest response store",
+    "overflow": false,
+    "buttonTargets": [
+      {
+        "text": "English",
+        "width": 59,
+        "height": 48,
+        "close": false
+      },
+      {
+        "text": "اردو",
+        "width": 34,
+        "height": 48,
+        "close": false
+      },
+      {
+        "text": "Platform navigation",
+        "width": 185,
+        "height": 48,
+        "close": false
+      },
+      {
+        "text": "Service diagnostics",
+        "width": 134,
+        "height": 48,
+        "close": false
+      },
+      {
+        "text": "Administrative audit",
+        "width": 131,
+        "height": 48,
+        "close": false
+      },
+      {
+        "text": "Customer inquiries",
+        "width": 124,
+        "height": 48,
+        "close": false
+      },
+      {
+        "text": "Refresh observations",
+        "width": 320,
+        "height": 48,
+        "close": false
+      },
+      {
+        "text": "Retry support contact",
+        "width": 177,
+        "height": 48,
+        "close": false
+      }
+    ],
+    "h1": [
+      "Platform service",
+      "Service diagnostics"
+    ],
+    "scrollY": 708,
+    "errors": [],
+    "apiRequests": [],
+    "remoteRequests": [],
+    "requests": [
+      {
+        "path": "/platform/service/diagnostics",
+        "method": "GET"
+      },
+      {
+        "path": "/support/contact",
+        "method": "GET"
+      },
+      {
+        "path": "/support/contact",
+        "method": "GET"
+      }
+    ]
+  },
+  {
+    "name": "service-support-refresh-error",
+    "width": 390,
+    "height": 900,
+    "language": "ur",
+    "provenance": "named real React workspace; synthetic operatorRequest response store",
+    "overflow": false,
+    "buttonTargets": [
+      {
+        "text": "English",
+        "width": 55,
+        "height": 48,
+        "close": false
+      },
+      {
+        "text": "اردو",
+        "width": 35,
+        "height": 48,
+        "close": false
+      },
+      {
+        "text": "پلیٹ فارم نیویگیشن",
+        "width": 174,
+        "height": 48,
+        "close": false
+      },
+      {
+        "text": "سروس کی تشخیص",
+        "width": 120,
+        "height": 48,
+        "close": false
+      },
+      {
+        "text": "انتظامی سرگرمیوں کا ریکارڈ",
+        "width": 152,
+        "height": 48,
+        "close": false
+      },
+      {
+        "text": "کسٹمر کی درخواستیں",
+        "width": 121,
+        "height": 48,
+        "close": false
+      },
+      {
+        "text": "مشاہدات تازہ کریں",
+        "width": 320,
+        "height": 48,
+        "close": false
+      },
+      {
+        "text": "مدد کا رابطہ دوبارہ لوڈ کریں",
+        "width": 191,
+        "height": 48,
+        "close": false
+      }
+    ],
+    "h1": [
+      "پلیٹ فارم کی سروس",
+      "سروس کی تشخیص"
+    ],
+    "scrollY": 764,
+    "errors": [],
+    "apiRequests": [],
+    "remoteRequests": [],
+    "requests": [
+      {
+        "path": "/platform/service/diagnostics",
+        "method": "GET"
+      },
+      {
+        "path": "/support/contact",
+        "method": "GET"
+      },
+      {
+        "path": "/support/contact",
+        "method": "GET"
+      }
+    ]
+  },
+  {
+    "name": "guarded-route",
+    "width": 1366,
+    "height": 900,
+    "language": "en",
+    "provenance": "actual default React router and unmodified fail-closed operator boundary; no fixture transport invoked",
+    "overflow": false,
+    "buttonTargets": [
+      {
+        "text": "Continue with identity provider",
+        "width": 374,
+        "height": 44,
+        "close": false
+      },
+      {
+        "text": "English",
+        "width": 63,
+        "height": 44,
+        "close": false
+      },
+      {
+        "text": "اردو",
+        "width": 38,
+        "height": 44,
+        "close": false
+      }
+    ],
+    "h1": [
+      "Platform operator sign-in"
+    ],
+    "scrollY": 0,
+    "errors": [],
+    "apiRequests": [],
+    "remoteRequests": [],
+    "requests": []
+  },
+  {
+    "name": "guarded-route",
+    "width": 1366,
+    "height": 900,
+    "language": "ur",
+    "provenance": "actual default React router and unmodified fail-closed operator boundary; no fixture transport invoked",
+    "overflow": false,
+    "buttonTargets": [
+      {
+        "text": "شناخت فراہم کنندہ کے ذریعے جاری رکھیں",
+        "width": 374,
+        "height": 44,
+        "close": false
+      },
+      {
+        "text": "English",
+        "width": 59,
+        "height": 44,
+        "close": false
+      },
+      {
+        "text": "اردو",
+        "width": 39,
+        "height": 44,
+        "close": false
+      }
+    ],
+    "h1": [
+      "پلیٹ فارم آپریٹر کا داخلہ"
+    ],
+    "scrollY": 0,
+    "errors": [],
+    "apiRequests": [],
+    "remoteRequests": [],
+    "requests": []
+  },
+  {
+    "name": "guarded-route",
+    "width": 390,
+    "height": 900,
+    "language": "en",
+    "provenance": "actual default React router and unmodified fail-closed operator boundary; no fixture transport invoked",
+    "overflow": false,
+    "buttonTargets": [
+      {
+        "text": "Continue with identity provider",
+        "width": 304,
+        "height": 48,
+        "close": false
+      },
+      {
+        "text": "English",
+        "width": 59,
+        "height": 48,
+        "close": false
+      },
+      {
+        "text": "اردو",
+        "width": 34,
+        "height": 48,
+        "close": false
+      }
+    ],
+    "h1": [
+      "Platform operator sign-in"
+    ],
+    "scrollY": 0,
+    "errors": [],
+    "apiRequests": [],
+    "remoteRequests": [],
+    "requests": []
+  },
+  {
+    "name": "guarded-route",
+    "width": 390,
+    "height": 900,
+    "language": "ur",
+    "provenance": "actual default React router and unmodified fail-closed operator boundary; no fixture transport invoked",
+    "overflow": false,
+    "buttonTargets": [
+      {
+        "text": "شناخت فراہم کنندہ کے ذریعے جاری رکھیں",
+        "width": 304,
+        "height": 48,
+        "close": false
+      },
+      {
+        "text": "English",
+        "width": 55,
+        "height": 48,
+        "close": false
+      },
+      {
+        "text": "اردو",
+        "width": 35,
+        "height": 48,
+        "close": false
+      }
+    ],
+    "h1": [
+      "پلیٹ فارم آپریٹر کا داخلہ"
+    ],
+    "scrollY": 0,
+    "errors": [],
+    "apiRequests": [],
+    "remoteRequests": [],
+    "requests": []
+  }
+]

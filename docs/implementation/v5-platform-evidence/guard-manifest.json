@@ -1,0 +1,42 @@
+{
+  "sourceRoot": "/home/shumail/.local/share/hygene-ops/v5-remaining-20261029/coordinator",
+  "revision": "c4c6ebd83f0142a299f738997078040f2c7239b1",
+  "source": {
+    "CompaniesPage.tsx": "14f55a099931bbf898f49871c1704c78cf9f830d4a42875f0cd5d04b150fdea6",
+    "companies.css": "81badb949b1b1082d98e5700fcc7c0c765798194d534956ae1bfdf023d4eab77",
+    "ServicePage.tsx": "d90bfa87c918934e825b12eb76fd4244059f4a8f1829d699427bf8f0cae48924",
+    "service.css": "c0aa57da7ab3835d0c59dddc6b756193761431b7a010f6d3775dbd40fa0425cc",
+    "operatorSession.ts": "8b30daf0c95f87e5cf9dfc651b417d5fbd58566b05331bb720f4eb4414db2e4f",
+    "OperatorLogin.tsx": "9ce45402bc1c02ecbbe6047bd21300f254b8248df73ac8de07a6144d4eeb3f49"
+  },
+  "provenance": "real named React components, test-only synthetic operatorRequest response store; no live provider/auth/SQL qualification",
+  "viewportHeights": 900,
+  "mode": "guard",
+  "observations": 4,
+  "files": [
+    {
+      "name": "app-guarded-route-1366-en.png",
+      "sha256": "b94d0c15e339eaeefc12b964e68e5af94c06d2d508052e892f315b0175fe82df",
+      "width": 1366,
+      "height": 900
+    },
+    {
+      "name": "app-guarded-route-1366-ur.png",
+      "sha256": "f9920036b59449bce929e78a42239c23a45d7d1edca36143ec926cc49668e891",
+      "width": 1366,
+      "height": 900
+    },
+    {
+      "name": "app-guarded-route-390-en.png",
+      "sha256": "fe7825f61077b9882e604462cd0d66787d26640c60b5e4b0b73d25dc28caa135",
+      "width": 390,
+      "height": 900
+    },
+    {
+      "name": "app-guarded-route-390-ur.png",
+      "sha256": "1e091d42a09fe6b4e603e0843cf0c3664a083f54ac0ef5f840c442300474a778",
+      "width": 390,
+      "height": 900
+    }
+  ]
+}

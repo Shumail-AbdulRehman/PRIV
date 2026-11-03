@@ -1,3 +1,4 @@
+import { insertStaff } from "../services/staffProvisioning.service.js";
 import { requireLocationAccess } from '../services/verification-v2/authorization.service.js';
 import { withAccountCapacity } from '../services/accountAccess.service.js';
 import { deactivateWorkforce } from '../services/workforceLifecycle.service.js';
@@ -103,8 +104,7 @@ export const createStaff = async (req: Request, res: Response) => {
     throw new ApiError(400, "Validation failed", errors);
   }
 
-  const { name, email, phone, password, locationId, shiftStart, shiftEnd } =
-    result.data;
+  const { email, locationId } = result.data;
 
   const existingStaff = await prisma.staff.findUnique({ where: { email } });
   if (existingStaff)
@@ -117,18 +117,7 @@ export const createStaff = async (req: Request, res: Response) => {
       const location=await requireLocationAccess(req.user!,locationId,tx);
       if(!location.isActive) throw new ApiError(403,'Location is inactive');
     }
-    return tx.staff.create({
-    data: {
-      name,
-      email,
-      phone,
-      password,
-      companyId: req.user!.companyId,
-      locationId: locationId || null,
-      shiftStart: shiftStart || null,
-      shiftEnd: shiftEnd || null,
-    },
-    });
+    return insertStaff(tx, req.user!.companyId, result.data);
   });
 
   const { password: _, ...safeStaff } = staff;
