@@ -1,5 +1,18 @@
 # Hygene Ops interface system
 
+## Overview performance dashboard, 2026-10-19
+
+Overview is a company/location performance report; Today remains the daily work
+and attendance workspace. Overview uses 7/30-day periods ending on the selected
+local date, weighted attendance/submission rates, daily rate trends, a work-status
+donut, a location comparison chart and a searchable table of every scoped location.
+Missing denominators display an em dash/No data, never a fabricated zero rate.
+The location status column is for the selected day, while the rates cover the
+whole period. Submission remains distinct from verified/exception completion.
+Use restrained teal and blue for series, amber/red for task states, no decorative
+chart animation, and a daily-figures table as an accessible chart alternative.
+
+
 Updated 2026-10-11. Applies to authenticated web operations and the staff app. Read `PRODUCT.md` and `PROJECT_CONTEXT.md` before changing workflows. Implementation and validation: `docs/UX_REDESIGN.md`.
 
 ## Audience and direction

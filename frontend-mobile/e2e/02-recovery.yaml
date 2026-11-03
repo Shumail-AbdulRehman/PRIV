@@ -1,0 +1,15 @@
+appId: ${APP_ID}
+name: Consume an actual manager-issued one-use test credential
+---
+- launchApp:
+    clearState: false
+- tapOn: "Use manager access code"
+- tapOn: "One-use access code"
+- inputText: ${E2E_ONE_USE_CODE}
+- tapOn: "New password"
+- inputText: ${E2E_REPLACEMENT_PASSWORD}
+- tapOn: "Confirm new password"
+- inputText: ${E2E_REPLACEMENT_PASSWORD}
+- hideKeyboard
+- tapOn: "Save password and sign in"
+- assertVisible: "Password replaced. Sign in with your new password."

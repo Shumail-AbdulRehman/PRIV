@@ -6,8 +6,10 @@ import { Button } from "@/components/ui/button";
 import type { LocationScope } from "@/pages/Manager/operations";
 export default function ScopeFilters({
   locations,
+  localDate,
 }: {
   locations: LocationScope[];
+  localDate?: string;
 }) {
   const { t } = useLanguage();
   const role = useSelector((s: RootState) => s.auth.user?.role);
@@ -52,7 +54,7 @@ export default function ScopeFilters({
           aria-label={t("Date")}
           type="date"
           value={
-            params.get("date") === "today" ? "" : (params.get("date") ?? "")
+            !params.get("date") || params.get("date") === "today" ? (localDate ?? "") : (params.get("date") ?? "")
           }
           onChange={(e) => update("date", e.target.value || "today")}
         />

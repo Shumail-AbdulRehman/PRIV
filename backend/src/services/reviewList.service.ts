@@ -10,6 +10,7 @@ import type { VerificationActor } from "./verification-v2/authorization.service.
 export const reviewQuery = z.object({
   locationId: z.coerce.number().int().positive().optional(),
   areaId: z.coerce.number().int().positive().optional(),
+  reasonCode: z.string().trim().min(1).max(80).optional(),
   queue: z
     .enum(["needs-me", "staff", "service", "resolved"])
     .default("needs-me"),
@@ -65,6 +66,7 @@ async function reviewScope(actor: VerificationActor, q: z.infer<typeof reviewQue
         companyId: actor.companyId,
         locationId: { in: locations.map((l) => l.id) },
         ...(q.areaId ? { areaId: q.areaId } : {}),
+        ...(q.reasonCode ? { issues: { some: { reasonCode: q.reasonCode } } } : {}),
       },
       search,
       period,

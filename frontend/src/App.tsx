@@ -1,3 +1,5 @@
+import { OwnSecurityPage } from './pages/Account/AccountPages';
+import { requiresPasswordChange } from './pages/Account/api';
 import './App.css';
 import { Outlet, Navigate, useLocation } from 'react-router-dom';
 import useAuth from '@/hooks/useAuth';
@@ -25,9 +27,11 @@ export const ProtectedRoute = ({ children }: { children: React.ReactNode }) => {
 
 export const GuestRoute = ({ children }: { children: React.ReactNode }) => {
 
-  const { isAuthenticated } = useAuth();
+  const { isAuthenticated, user } = useAuth();
   const location = useLocation();
-  const destination = location.state?.from === "/welcome" ? "/welcome" : "/dashboard";
+  // Signup and the mutation callback must agree after Redux establishes a session.
+  const destination = location.pathname === "/signup" && user?.role === "ADMIN"
+    ? "/subscription" : location.state?.from === "/welcome" ? "/welcome" : "/dashboard";
   if (isAuthenticated) return <Navigate to={destination} replace />;
 
 
@@ -81,6 +85,9 @@ function App() {
 }
 
 
+  if (requiresPasswordChange(getCurrentUserQuery.error) && !['/verify-owner-email', '/reset-owner-password', '/recover-owner-account'].includes(window.location.pathname)) {
+    return <OwnSecurityPage forced />;
+  }
   return <Outlet />;
 }
 

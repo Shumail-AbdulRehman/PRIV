@@ -135,9 +135,7 @@ export const assertCompanyCanAdd = async (
 ) => {
   const { company, definition } = await getCompanyPlan(companyId);
 
-  const hasAccess = company.billingSubscriptionId
-    ? await companyHasPaidAccess(companyId)
-    : company.subscriptionStatus === "ACTIVE";
+  const hasAccess = await companyHasPaidAccess(companyId);
   if (!hasAccess) {
     throw new ApiError(403, "Your subscription is not active. Contact your company administrator.");
   }
@@ -159,8 +157,6 @@ export const assertCompanyCanAdd = async (
 
 export const companyHasFeature = async (companyId: number, feature: PlanFeature) => {
   const { company, definition } = await getCompanyPlan(companyId);
-  const hasAccess = company.billingSubscriptionId
-    ? await companyHasPaidAccess(companyId)
-    : company.subscriptionStatus === "ACTIVE";
+  const hasAccess = await companyHasPaidAccess(companyId);
   return hasAccess && definition.features[feature];
 };

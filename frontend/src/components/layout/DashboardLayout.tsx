@@ -6,26 +6,31 @@ import { Suspense, useEffect, useState } from "react";
 import { Link, Outlet, useLocation } from "react-router-dom";
 import { useSelector } from "react-redux";
 import type { RootState } from "@/store/store";
-import { Menu, ChevronRight, Building2 } from "lucide-react";
+import { Menu, ChevronRight } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import Sidebar from "./Sidebar";
+import { useSubscription } from "@/pages/Subscription/queries";
 import "@/workspace.css";
 import "@/workspace-refresh.css";
 
 const TITLES: Record<string, string> = {
   dashboard: "Overview",
+  setup: "Setup",
   "today-status": "Today",
   locations: "Locations",
   staff: "Team",
   attendance: "Attendance",
   managers: "Managers",
   subscription: "Plan & billing",
-  exceptions: "Reviews",
+  exceptions: "Photo Reviews",
   verification: "Task photos",
   areas: "Room",
+  settings: "Settings",
 };
 export default function DashboardLayout() {
   const { t } = useLanguage();
+  const subscription = useSubscription();
+  const companyName = subscription.data?.company?.name;
   const user = useSelector((s: RootState) => s.auth.user);
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
   const { pathname } = useLocation();
@@ -40,25 +45,28 @@ export default function DashboardLayout() {
         <a href="#workspace-content" className="workspace-skip">
           {t("Skip to content")}
         </a>
-        <Sidebar open={isSidebarOpen} onClose={() => setIsSidebarOpen(false)} />
+        <Sidebar companyName={companyName} open={isSidebarOpen} onClose={() => setIsSidebarOpen(false)} />
         <div className="workspace-main">
           <header className="workspace-topbar">
             <div className="workspace-topbar-leading">
               <Button
                 variant="ghost"
                 size="icon"
-                className="lg:hidden"
+                className="workspace-menu-trigger"
                 id="workspace-menu-trigger"
                 aria-label={t("Open navigation")}
+                aria-expanded={isSidebarOpen}
+                aria-controls="workspace-mobile-menu"
+                aria-haspopup="dialog"
                 onClick={() => setIsSidebarOpen(true)}
               >
-                <Menu size={20} />
+                <Menu size={20} aria-hidden="true" />
               </Button>
               <nav
                 aria-label={t("Breadcrumb")}
                 className="workspace-breadcrumb"
               >
-                <Building2 size={16} aria-hidden="true" />
+                <span className="workspace-company-crumb">{companyName || t("Company workspace")}<span aria-hidden="true"> / </span></span>
                 <Link
                   to={
                     section === "areas"

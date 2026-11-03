@@ -1,3 +1,5 @@
+import { assertAccountCompletion } from '../accountAccess.service.js';
+import { ApiError } from '../../utils/ApiError.js';
 import { reviewableMedia } from "./evidenceBuffer.js";
 import type { VerificationTransaction } from "./transaction.js";
 import { lockTask } from "./captureSession.service.js";
@@ -53,7 +55,7 @@ export async function finalizeTask(
       isActive: true,
       locationId: task.locationId,
       companyId: task.location.companyId,
-      company: { isActive: true },
+      company: { isActive: true, operationalStatus: "ACTIVE" },
     },
   });
   if (!staff || !task.location.isActive) return null;
@@ -62,6 +64,10 @@ export async function finalizeTask(
       a.staffId === task.staffId && ["STARTED", "ASSIGNED"].includes(a.status),
   );
   if (!assignment) return null;
+  // Submitted work may finish via its saved job; the exact persisted start grant
+  // is still required after entitlement expires. Legacy starts gain no credit.
+  try { await assertAccountCompletion({id:task.staffId,companyId:task.location.companyId,role:'STAFF'}, {kind:'task',id:task.id}, tx, new Date(), true); }
+  catch(error) { if(error instanceof ApiError && [403,404,409].includes(error.statusCode))return null;throw error; }
   for (const item of task.verificationItems) {
     const state = itemState(item.requirements);
     if (item.state !== state)

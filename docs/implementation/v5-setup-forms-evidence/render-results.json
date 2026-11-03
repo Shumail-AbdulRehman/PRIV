@@ -1,0 +1,34 @@
+[
+  {
+    "width": 1366,
+    "lang": "en",
+    "errors": [],
+    "source": "actual area/create schedule APIs, persisted SQL and setup reload; untouched V5 reference",
+    "areaId": 3,
+    "templateId": 2
+  },
+  {
+    "width": 1366,
+    "lang": "ur",
+    "errors": [],
+    "source": "actual area/create schedule APIs, persisted SQL and setup reload; untouched V5 reference",
+    "areaId": 4,
+    "templateId": 3
+  },
+  {
+    "width": 390,
+    "lang": "en",
+    "errors": [],
+    "source": "actual area/create schedule APIs, persisted SQL and setup reload; untouched V5 reference",
+    "areaId": 5,
+    "templateId": 4
+  },
+  {
+    "width": 390,
+    "lang": "ur",
+    "errors": [],
+    "source": "actual area/create schedule APIs, persisted SQL and setup reload; untouched V5 reference",
+    "areaId": 6,
+    "templateId": 5
+  }
+]

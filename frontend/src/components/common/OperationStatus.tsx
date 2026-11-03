@@ -11,7 +11,7 @@ export default function OperationStatus({
     state ?? "",
   )
     ? "danger"
-    : ["IN_PROGRESS", "PROCESSING", "CAPTURING"].includes(state ?? "")
+    : ["IN_PROGRESS", "PROCESSING", "CAPTURING", "SUBMITTED"].includes(state ?? "")
       ? "progress"
       : [
             "PASSED",

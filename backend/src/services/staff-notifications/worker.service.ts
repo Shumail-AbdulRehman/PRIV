@@ -68,7 +68,7 @@ export async function deliverStaffNotifications(
           include: {
             staff: {
               include: {
-                company: { select: { isActive: true } },
+                company: { select: { isActive: true, operationalStatus: true } },
                 location: { select: { timezone: true, isActive: true } },
               },
             },
@@ -87,6 +87,7 @@ export async function deliverStaffNotifications(
       staff.companyId === n.companyId &&
       staff.isActive &&
       staff.company.isActive &&
+      staff.company.operationalStatus === "ACTIVE" &&
       !!session &&
       session.sessionHash === d.sessionHash &&
       d.sessionExpiresAt > now &&

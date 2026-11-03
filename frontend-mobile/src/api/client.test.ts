@@ -113,7 +113,7 @@ test("login rejection preserves the server error without refreshing a session", 
   try {
     for (const token of [null, "stale-access-token"]) {
       accessToken = token;
-      await assert.rejects(client.post("/staff/staff-login", { email: "staff@example.com", password: "wrong" }), error => {
+      for (const path of ['/staff/staff-login', '/common/security/handoff/complete']) await assert.rejects(client.post(path, {}), error => {
         assert.ok(axios.isAxiosError(error));
         assert.equal(error.response?.status, 401);
         assert.equal(error.response?.data.message, "Invalid email or password");

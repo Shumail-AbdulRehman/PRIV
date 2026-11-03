@@ -1,3 +1,4 @@
+vi.mock('../services/accountAccess.service.js',()=>({assertAccountAction:vi.fn(async()=>({})),assertAccountCompletion:vi.fn(async()=>({})),recordWorkEntitlement:vi.fn(async()=>{})}));
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import type { Request, Response } from 'express';
 const mocks=vi.hoisted(()=>({access:vi.fn(),lock:vi.fn(),update:vi.fn(),start:vi.fn(),initial:vi.fn(),area:vi.fn(),areaLock:vi.fn(),audit:vi.fn(),requirements:vi.fn()}));

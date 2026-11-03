@@ -66,6 +66,7 @@ export type VerificationException = {
   };
   taskInstance?: VerificationException["task"];
 };
+export type ReviewReplacement = { policyEligible: boolean; available: boolean; processingAllowed: boolean; automaticApproval: boolean; reason: string; policyReason: string };
 export type ExceptionDetail = VerificationException & {
   serverTime?: string;
   closureActions?: ReviewClosureAction[];
@@ -78,7 +79,7 @@ export type ExceptionDetail = VerificationException & {
     sourceAreaItemId: number;
     mandatory?: boolean;
     requirements: Array<
-      EvidenceRequirement & { allowedActions?: ExceptionAction[] }
+      EvidenceRequirement & { allowedActions?: ExceptionAction[]; replacement?: ReviewReplacement }
     >;
   }>;
   standards?: Array<{

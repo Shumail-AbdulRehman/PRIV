@@ -1,3 +1,7 @@
+import { requireLocationAccess } from '../services/verification-v2/authorization.service.js';
+import { withAccountCapacity } from '../services/accountAccess.service.js';
+import { deactivateWorkforce } from '../services/workforceLifecycle.service.js';
+import { attendancePhotoPresentation } from "../services/attendanceMedia.service.js";
 import {staffPerformanceReports} from '../services/verification-v2/reviewClosure.service.js';
 import { Request, Response } from "express";
 import {
@@ -25,9 +29,7 @@ import {
 } from "../utils/dateTime.js";
 import { syncTodaysOpenAttendanceWindow } from "../utils/syncAttendanceWindow.js";
 import { getCookieOptions } from "../utils/cookies.js";
-import { permanentlyDelete } from "../services/deletion.service.js";
 import { getScopedLocationIds, assertLocationAccess } from "../utils/scope.js";
-import { assertCompanyCanAdd } from "../services/subscription.service.js";
 
 export const loginStaff = async (req: Request, res: Response) => {
   const result = staffLoginSchema.safeParse(req.body);
@@ -108,23 +110,14 @@ export const createStaff = async (req: Request, res: Response) => {
   if (existingStaff)
     throw new ApiError(409, "Staff with this email already exists");
 
-  await assertCompanyCanAdd(req.user!.companyId, "staff");
+  if (req.user!.role === "MANAGER" && !locationId) throw new ApiError(403, "Choose an assigned site when creating staff");
 
-  if (locationId) {
-    const location = await prisma.location.findUnique({
-      where: { id: locationId },
-    });
-    if (
-      !location ||
-      location.companyId !== req.user!.companyId ||
-      !location.isActive
-    ) {
-      throw new ApiError(404, "Location not found in your company");
+  const staff = await withAccountCapacity(req.user!, 'staff', async tx => {
+    if(locationId) {
+      const location=await requireLocationAccess(req.user!,locationId,tx);
+      if(!location.isActive) throw new ApiError(403,'Location is inactive');
     }
-    assertLocationAccess(req.user!, locationId);
-  }
-
-  const staff = await prisma.staff.create({
+    return tx.staff.create({
     data: {
       name,
       email,
@@ -135,6 +128,7 @@ export const createStaff = async (req: Request, res: Response) => {
       shiftStart: shiftStart || null,
       shiftEnd: shiftEnd || null,
     },
+    });
   });
 
   const { password: _, ...safeStaff } = staff;
@@ -175,8 +169,8 @@ export const getStaff = async (req: Request, res: Response) => {
 };
 
 export const deleteStaff = async (req: Request, res: Response) => {
-  await permanentlyDelete("staff", Number(req.params.id), req.user!);
-  res.status(200).json(new ApiResponse(200, {}, "Deleted permanently"));
+  const result = await deactivateWorkforce(req.user!, "staff", Number(req.params.id), req.body);
+  res.status(200).json(new ApiResponse(200, result, "Staff deactivated; history preserved"));
 };
 
 export const getStaffById = async (req: Request, res: Response) => {
@@ -254,33 +248,8 @@ export const getStaffByLocation = async (req: Request, res: Response) => {
     .json(new ApiResponse(200, staff, "Staff fetched successfully"));
 };
 
-export const getProfile = async (req: Request, res: Response) => {
-  const staff = await prisma.staff.findUnique({
-    where: { id: req.user!.id },
-    select: {
-      id: true,
-      name: true,
-      email: true,
-      phone: true,
-      role: true,
-      isActive: true,
-      companyId: true,
-      locationId: true,
-      createdAt: true,
-      updatedAt: true,
-      shiftStart: true,
-      shiftEnd: true,
-    },
-  });
-
-  if (!staff) {
-    throw new ApiError(404, "Staff not found");
-  }
-
-  res
-    .status(200)
-    .json(new ApiResponse(200, staff, "Profile fetched successfully"));
-};
+// Retain the legacy export for internal callers with the same actor-safe contract.
+export { getStaffSelfProfile as getProfile } from "./staffSelf.controller.js";
 
 export const editStaff = async (req: Request, res: Response) => {
   const staffId = Number(req.params.id);
@@ -322,7 +291,6 @@ export const editStaff = async (req: Request, res: Response) => {
     }
   }
 
-  console.log("staff data::", result.data);
 
   const shiftChanged =
     result.data.shiftStart !== undefined || result.data.shiftEnd !== undefined;
@@ -368,7 +336,7 @@ export const editStaff = async (req: Request, res: Response) => {
 
   const updated = await prisma.staff.update({
     where: { id: staffId },
-    data: result.data,
+    data: { ...result.data, ...(result.data.email && result.data.email !== staff.email ? { credentialVersion: { increment: 1 }, refreshToken: null } : {}) },
     select: {
       id: true,
       name: true,
@@ -400,8 +368,11 @@ export const editStaff = async (req: Request, res: Response) => {
 };
 
 export const getStaffDetails = async (req: Request, res: Response) => {
+  if (!req.user) throw new ApiError(401, "Sign in to continue");
+  if (req.user.role !== "ADMIN" && req.user.role !== "MANAGER")
+    throw new ApiError(403, "Manager or owner account required");
   const staffId = Number(req.params.id);
-  if (isNaN(staffId)) throw new ApiError(400, "Invalid staff id");
+  if (!Number.isSafeInteger(staffId) || staffId < 1) throw new ApiError(400, "Invalid staff id");
 
   const monthParam = req.query.month as string | undefined;
   const dateFromParam = req.query.dateFrom as string | undefined;
@@ -494,8 +465,17 @@ export const getStaffDetails = async (req: Request, res: Response) => {
     periodLabel = `${dateFromParam} to ${dateToParam}`;
   }
 
+  // A worker's current site does not authorize their previous sites. Apply
+  // the same record-location boundary to both rows and every aggregate.
+  const scopedLocationIds = getScopedLocationIds(req.user);
+  const historyScope = {
+    location: { companyId: req.user.companyId },
+    ...(scopedLocationIds === null ? {} : { locationId: { in: scopedLocationIds } }),
+  };
+
   const taskInstanceWhere = {
     staffId,
+    ...historyScope,
     isActive: true,
     ...(dateFilter
       ? {
@@ -512,6 +492,7 @@ export const getStaffDetails = async (req: Request, res: Response) => {
 
   const attendanceWhere = {
     staffId,
+    ...historyScope,
     ...(dateFilter
       ? {
           OR: [
@@ -536,7 +517,7 @@ export const getStaffDetails = async (req: Request, res: Response) => {
     lateAttendanceCount,
   ] = await Promise.all([
     prisma.taskTemplate.findMany({
-      where: { staffId, isActive: true },
+      where: { staffId, isActive: true, ...historyScope },
       orderBy: { createdAt: "desc" },
       select: {
         id: true,
@@ -594,7 +575,7 @@ export const getStaffDetails = async (req: Request, res: Response) => {
       },
     }),
     prisma.taskTemplate.count({
-      where: { staffId, isActive: true },
+      where: { staffId, isActive: true, ...historyScope },
     }),
     prisma.taskInstance.groupBy({
       by: ["status", "staffSubmittedAt"],
@@ -614,8 +595,7 @@ export const getStaffDetails = async (req: Request, res: Response) => {
     }),
     prisma.attendance.count({
       where: {
-        ...attendanceWhere,
-        OR: [{ status: "LATE" }, { isLateCheckIn: true }],
+        AND: [attendanceWhere, { OR: [{ status: "LATE" }, { isLateCheckIn: true }] }],
       },
     }),
   ]);
@@ -670,7 +650,7 @@ export const getStaffDetails = async (req: Request, res: Response) => {
         ...staff,
         taskTemplates,
         taskInstances: taskInstances.map(managerTaskPresentation),
-        attendances,
+        attendances: attendances.map(attendancePhotoPresentation),
         taskStats,
         attendanceStats,
         performanceIssues,

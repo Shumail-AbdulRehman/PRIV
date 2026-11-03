@@ -1,3 +1,6 @@
+import { writeAuditLog } from "./auditLog.service.js";
+import { configuredPlanForPrice } from "../config/paddle.js";
+import { ApiError } from "../utils/ApiError.js";
 import {
   EventName,
   type CustomerNotification,
@@ -6,20 +9,11 @@ import {
   type SubscriptionNotification,
   type TransactionNotification,
 } from "@paddle/paddle-node-sdk";
-import { Prisma } from "@prisma/client";
 import { prisma } from "../prisma/prisma.js";
-import type { PlanCode } from "./subscription.service.js";
 
 type SubscriptionPayload = SubscriptionNotification | SubscriptionCreatedNotification;
 
-const PRICE_TO_PLAN: Record<string, PlanCode> = {
-  pri_01m26dxq2nvjb2ak7jt4gym22g: "STARTER",
-  pri_01m26dxqw2hx8kk0tc70wg5t29: "STARTER",
-  pri_01m26dxtv0k73yk444nc0vvqjj: "PRO",
-  pri_01m26dxvj8cmtdtr7a660mqa2h: "PRO",
-  pri_01m26dxxw7h9ma5xxcmsc0axgp: "ADVANCED",
-  pri_01m26dxyqpqr2cmr8cwez9am00: "ADVANCED",
-};
+type Db = Omit<typeof prisma, '$connect' | '$disconnect' | '$on' | '$transaction' | '$use' | '$extends'>;
 
 const epoch = new Date(0);
 
@@ -29,16 +23,9 @@ const shouldApplyEntityVersion = (
   current: { paddleUpdatedAt: Date; lastEventAt: Date } | null,
   paddleUpdatedAt: Date,
   eventAt: Date,
-) => !current
-  || paddleUpdatedAt > current.paddleUpdatedAt
-  || (paddleUpdatedAt.getTime() === current.paddleUpdatedAt.getTime() && eventAt >= current.lastEventAt);
+) => !current || eventAt > current.lastEventAt
+  || (eventAt.getTime() === current.lastEventAt.getTime() && paddleUpdatedAt >= current.paddleUpdatedAt);
 
-const asCompanyId = (customData: unknown) => {
-  if (!customData || typeof customData !== "object") return undefined;
-  const value = (customData as Record<string, unknown>).companyId;
-  const parsed = typeof value === "number" ? value : Number.parseInt(String(value ?? ""), 10);
-  return Number.isSafeInteger(parsed) && parsed > 0 ? parsed : undefined;
-};
 
 export const subscriptionGrantsPaidAccess = (status: string) =>
   status.toLowerCase() === "active" || status.toLowerCase() === "trialing";
@@ -49,119 +36,48 @@ const toCompanyStatus = (status: string): "ACTIVE" | "PAST_DUE" | "CANCELLED" =>
   return "CANCELLED";
 };
 
-const ensureCustomerExists = async (customerId: string, eventAt: Date) => {
-  const existing = await prisma.paddleCustomer.findUnique({ where: { id: customerId } });
-  if (existing) return existing;
+const ensureCustomerExists = async (customerId: string, client: Db) => client.paddleCustomer.upsert({
+  where: { id: customerId },
+  create: { id: customerId, status: 'unknown', paddleUpdatedAt: epoch, lastEventAt: epoch }, update: {},
+});
 
-  try {
-    return await prisma.paddleCustomer.create({
-      data: {
-        id: customerId,
-        status: "unknown",
-        paddleUpdatedAt: epoch,
-        lastEventAt: eventAt,
-      },
-    });
-  } catch (error) {
-    if (error instanceof Prisma.PrismaClientKnownRequestError && error.code === "P2002") {
-      return prisma.paddleCustomer.findUniqueOrThrow({ where: { id: customerId } });
-    }
-    throw error;
-  }
+// Only a canonical server-established customer relationship grants tenant linkage.
+// Signed events still contain customer-editable customData; email is not ownership.
+const resolveCompanyId = async (customerId: string, client: Db) => {
+  const company = await client.company.findFirst({ where: { billingCustomerId: customerId }, select: { id: true } });
+  return company?.id;
+};
+const linkCustomerToCompany = async (customerId: string, companyId: number, client: Db) => {
+  const customer = await client.paddleCustomer.findUniqueOrThrow({ where: { id: customerId } });
+  if (customer.companyId !== null && customer.companyId !== companyId) throw new ApiError(409, 'Billing customer linkage requires review');
+  await client.paddleCustomer.update({ where: { id: customerId }, data: { companyId } });
+  await client.paddleSubscription.updateMany({ where: { customerId, companyId: null }, data: { companyId } });
+  await client.paddleTransaction.updateMany({ where: { customerId, companyId: null }, data: { companyId } });
 };
 
-const resolveCompanyId = async (
-  customerId: string,
-  claimedCompanyId?: number,
-) => {
-  const linkedCompany = await prisma.company.findFirst({
-    where: { billingCustomerId: customerId },
-    select: { id: true },
-  });
-  if (linkedCompany) return linkedCompany.id;
-
-  const mirroredCustomer = await prisma.paddleCustomer.findUnique({
-    where: { id: customerId },
-    select: { companyId: true, email: true },
-  });
-  if (mirroredCustomer?.companyId) return mirroredCustomer.companyId;
-
-  if (claimedCompanyId) {
-    const claimedCompany = await prisma.company.findUnique({
-      where: { id: claimedCompanyId },
-      select: {
-        id: true,
-        billingCustomerId: true,
-        managers: {
-          where: { role: "ADMIN", isActive: true },
-          select: { email: true },
-        },
-      },
-    });
-    const emailMatchesAdmin = mirroredCustomer?.email && claimedCompany?.managers.some(
-      (manager) => manager.email.toLowerCase() === mirroredCustomer.email!.toLowerCase(),
-    );
-
-    if (claimedCompany && !claimedCompany.billingCustomerId && emailMatchesAdmin) {
-      return claimedCompany.id;
-    }
-  }
-
-  if (mirroredCustomer?.email) {
-    const admin = await prisma.manager.findFirst({
-      where: {
-        role: "ADMIN",
-        isActive: true,
-        email: { equals: mirroredCustomer.email, mode: "insensitive" },
-        company: { billingCustomerId: null },
-      },
-      select: { companyId: true },
-    });
-    return admin?.companyId;
-  }
-
-  return undefined;
-};
-
-const linkCustomerToCompany = async (customerId: string, companyId: number) => {
-  await prisma.$transaction([
-    prisma.paddleCustomer.update({
-      where: { id: customerId },
-      data: { companyId },
-    }),
-    prisma.company.update({
-      where: { id: companyId },
-      data: { billingCustomerId: customerId },
-    }),
-    prisma.paddleSubscription.updateMany({
-      where: { customerId, companyId: null },
-      data: { companyId },
-    }),
-    prisma.paddleTransaction.updateMany({
-      where: { customerId, companyId: null },
-      data: { companyId },
-    }),
-  ]);
-};
-
-const syncCompanyAccess = async (companyId: number) => {
-  const subscriptions = await prisma.paddleSubscription.findMany({
-    where: { companyId },
-    orderBy: [{ paddleUpdatedAt: "desc" }, { updatedAt: "desc" }],
+const syncCompanyAccess = async (companyId: number, client: Db) => {
+  const company = await client.company.findUniqueOrThrow({ where: { id: companyId } });
+  if (!company.billingCustomerId) return;
+  const subscriptions = await client.paddleSubscription.findMany({
+    where: { companyId, customerId: company.billingCustomerId! },
+    orderBy: [{ lastEventAt: "desc" }, { paddleUpdatedAt: "desc" }],
   });
   if (subscriptions.length === 0) return;
 
-  const effectiveSubscription = subscriptions.find((subscription) =>
-    subscriptionGrantsPaidAccess(subscription.status)
-  ) ?? subscriptions[0];
-  const plan = PRICE_TO_PLAN[effectiveSubscription.priceId];
+  const { subscriptionWindow } = await import('./accountAccess.service.js');
+  const now = Date.now();
+  const effectiveSubscription = subscriptions.find(subscription => {
+    const window = subscriptionWindow({ company: { ...company, billingSubscriptionId: subscription.id }, subscription });
+    return configuredPlanForPrice(subscription.priceId) && subscriptionGrantsPaidAccess(subscription.status) && window && window.start <= now && now < window.end;
+  }) ?? subscriptions[0]!;
+  const plan = configuredPlanForPrice(effectiveSubscription.priceId);
 
-  await prisma.company.update({
+  await client.company.update({
     where: { id: companyId },
     data: {
       billingCustomerId: effectiveSubscription.customerId,
       billingSubscriptionId: effectiveSubscription.id,
-      subscriptionStatus: toCompanyStatus(effectiveSubscription.status),
+      subscriptionStatus: plan ? toCompanyStatus(effectiveSubscription.status) : "CANCELLED",
       ...(plan ? { plan } : {}),
       planUpdatedAt: new Date(),
     },
@@ -169,23 +85,20 @@ const syncCompanyAccess = async (companyId: number) => {
 };
 
 export const companyHasPaidAccess = async (companyId: number) => {
-  const subscription = await prisma.paddleSubscription.findFirst({
-    where: {
-      companyId,
-      status: { in: ["active", "trialing"] },
-    },
-    select: { status: true },
-  });
-
-  return subscription ? subscriptionGrantsPaidAccess(subscription.status) : false;
+  // Existing feature/quota consumers use the same exact-customer/current-period policy.
+  const { readAccountState, subscriptionWindow } = await import('./accountAccess.service.js');
+  const state = await readAccountState(companyId);
+  const window = subscriptionWindow(state), now = Date.now();
+  return !!(window && state.company.isActive && state.company.operationalStatus === 'ACTIVE' &&
+    subscriptionGrantsPaidAccess(state.subscription!.status) && window.start <= now && now < window.end);
 };
 
-const handleCustomer = async (data: CustomerNotification, eventAt: Date) => {
+const handleCustomer = async (data: CustomerNotification, eventAt: Date, client: Db) => {
   const paddleUpdatedAt = new Date(data.updatedAt);
-  const current = await prisma.paddleCustomer.findUnique({ where: { id: data.id } });
+  const current = await client.paddleCustomer.findUnique({ where: { id: data.id } });
 
   if (shouldApplyEntityVersion(current, paddleUpdatedAt, eventAt)) {
-    await prisma.paddleCustomer.upsert({
+    await client.paddleCustomer.upsert({
       where: { id: data.id },
       create: {
         id: data.id,
@@ -209,10 +122,10 @@ const handleCustomer = async (data: CustomerNotification, eventAt: Date) => {
     });
   }
 
-  const companyId = await resolveCompanyId(data.id, asCompanyId(data.customData));
+  const companyId = await resolveCompanyId(data.id, client);
   if (companyId) {
-    await linkCustomerToCompany(data.id, companyId);
-    await syncCompanyAccess(companyId);
+    await linkCustomerToCompany(data.id, companyId, client);
+    await syncCompanyAccess(companyId, client);
   }
 };
 
@@ -223,17 +136,18 @@ const subscriptionItem = (data: SubscriptionPayload) => {
   return { priceId: item.price.id, productId: item.price.productId };
 };
 
-const handleSubscription = async (data: SubscriptionPayload, eventAt: Date) => {
-  await ensureCustomerExists(data.customerId, eventAt);
-  const companyId = await resolveCompanyId(data.customerId, asCompanyId(data.customData));
-  if (companyId) await linkCustomerToCompany(data.customerId, companyId);
+const handleSubscription = async (data: SubscriptionPayload, eventAt: Date, client: Db) => {
+  await ensureCustomerExists(data.customerId, client);
+  const companyId = await resolveCompanyId(data.customerId, client);
+  if (companyId) await linkCustomerToCompany(data.customerId, companyId, client);
 
   const { priceId, productId } = subscriptionItem(data);
   const paddleUpdatedAt = new Date(data.updatedAt);
-  const current = await prisma.paddleSubscription.findUnique({ where: { id: data.id } });
+  const current = await client.paddleSubscription.findUnique({ where: { id: data.id } });
 
+  if (current && (current.customerId !== data.customerId || (current.companyId !== null && companyId !== undefined && current.companyId !== companyId))) throw new ApiError(409, "Billing subscription linkage requires review");
   if (shouldApplyEntityVersion(current, paddleUpdatedAt, eventAt)) {
-    await prisma.paddleSubscription.upsert({
+    await client.paddleSubscription.upsert({
       where: { id: data.id },
       create: {
         id: data.id,
@@ -271,53 +185,54 @@ const handleSubscription = async (data: SubscriptionPayload, eventAt: Date) => {
     });
   }
 
-  if (companyId) await syncCompanyAccess(companyId);
+  if (companyId) await syncCompanyAccess(companyId, client);
 };
 
 const ensureSubscriptionExistsFromTransaction = async (
   data: TransactionNotification,
-  eventAt: Date,
-  companyId?: number,
+  companyId: number | undefined,
+  client: Db,
 ) => {
   if (!data.subscriptionId || !data.customerId) return;
-  const existing = await prisma.paddleSubscription.findUnique({ where: { id: data.subscriptionId } });
+  const existing = await client.paddleSubscription.findUnique({ where: { id: data.subscriptionId } });
   if (existing) return;
 
   const price = data.items.find((item) => item.price)?.price;
   if (!price) return;
 
-  try {
-    await prisma.paddleSubscription.create({
-      data: {
-        id: data.subscriptionId,
-        customerId: data.customerId,
-        companyId,
-        status: "unknown",
-        priceId: price.id,
-        productId: price.productId,
-        paddleUpdatedAt: epoch,
-        lastEventAt: eventAt,
-      },
-    });
-  } catch (error) {
-    if (!(error instanceof Prisma.PrismaClientKnownRequestError && error.code === "P2002")) {
-      throw error;
-    }
-  }
+  await client.paddleSubscription.upsert({ where: { id: data.subscriptionId },
+    create: { id: data.subscriptionId, customerId: data.customerId, companyId, status: 'unknown', priceId: price.id, productId: price.productId, paddleUpdatedAt: epoch, lastEventAt: epoch }, update: {},
+  });
 };
 
-const handleTransactionCompleted = async (data: TransactionNotification, eventAt: Date) => {
-  if (data.customerId) await ensureCustomerExists(data.customerId, eventAt);
+async function acknowledgeCheckout(data: TransactionNotification, companyId: number, client: Db) {
+  const metadata = data.customData as Record<string, unknown> | null;
+  const reservationId = metadata?.checkoutReservationId;
+  if (typeof reservationId !== 'number' || !Number.isSafeInteger(reservationId) || reservationId < 1) return;
+  const reservation = await client.auditLog.findFirst({ where: { id: reservationId, companyId, entityType: 'BILLING_OPERATION', entityId: companyId, action: 'CHECKOUT_RESERVED' } });
+  if (!reservation) return;
+  const requested = reservation.newValue as Record<string, unknown> | null;
+  if (data.items.length !== 1 || data.items[0]?.quantity !== 1 || data.items[0]?.price?.id !== requested?.priceId) throw new ApiError(409, 'Billing checkout correlation requires review');
+  const ready = await client.auditLog.findFirst({ where: { companyId, entityType: 'BILLING_OPERATION', entityId: companyId, action: 'CHECKOUT_READY', newValue: { path: ['reservationId'], equals: reservationId } } });
+  if (ready) {
+    if ((ready.newValue as Record<string, unknown> | null)?.transactionId !== data.id) throw new ApiError(409, 'Billing checkout correlation requires review');
+    return;
+  }
+  await writeAuditLog({ companyId, actorType: 'SYSTEM', entityType: 'BILLING_OPERATION', entityId: companyId, action: 'CHECKOUT_READY', newValue: { reservationId, transactionId: data.id, confirmedByProvider: true } }, client);
+}
+
+const handleTransactionCompleted = async (data: TransactionNotification, eventAt: Date, client: Db) => {
+  if (data.customerId) await ensureCustomerExists(data.customerId, client);
   const companyId = data.customerId
-    ? await resolveCompanyId(data.customerId, asCompanyId(data.customData))
+    ? await resolveCompanyId(data.customerId, client)
     : undefined;
-  if (data.customerId && companyId) await linkCustomerToCompany(data.customerId, companyId);
-  await ensureSubscriptionExistsFromTransaction(data, eventAt, companyId);
+  if (data.customerId && companyId) await linkCustomerToCompany(data.customerId, companyId, client);
+  await ensureSubscriptionExistsFromTransaction(data, companyId, client);
 
   const paddleUpdatedAt = new Date(data.updatedAt);
-  const current = await prisma.paddleTransaction.findUnique({ where: { id: data.id } });
+  const current = await client.paddleTransaction.findUnique({ where: { id: data.id } });
   if (shouldApplyEntityVersion(current, paddleUpdatedAt, eventAt)) {
-    await prisma.paddleTransaction.upsert({
+    await client.paddleTransaction.upsert({
       where: { id: data.id },
       create: {
         id: data.id,
@@ -347,41 +262,48 @@ const handleTransactionCompleted = async (data: TransactionNotification, eventAt
     });
   }
 
-  if (companyId) await syncCompanyAccess(companyId);
+  if (companyId) { await acknowledgeCheckout(data, companyId, client); await syncCompanyAccess(companyId, client); }
 };
 
-export const processPaddleEvent = async (event: EventEntity) => {
-  const alreadyProcessed = await prisma.paddleWebhookEvent.findUnique({
-    where: { id: event.eventId },
-    select: { id: true },
-  });
-  if (alreadyProcessed) return { duplicate: true };
-
+export const processPaddleEvent = async (event: EventEntity, db: Pick<typeof prisma, '$transaction'> = prisma) => {
   const eventAt = new Date(event.occurredAt);
-  switch (event.eventType) {
-    case EventName.CustomerCreated:
-    case EventName.CustomerUpdated:
-      await handleCustomer(event.data, eventAt);
-      break;
-    case EventName.SubscriptionCreated:
-    case EventName.SubscriptionUpdated:
-    case EventName.SubscriptionCanceled:
-      await handleSubscription(event.data, eventAt);
-      break;
-    case EventName.TransactionCompleted:
-      await handleTransactionCompleted(event.data, eventAt);
-      break;
-    default:
-      break;
-  }
-
-  await prisma.paddleWebhookEvent.create({
-    data: {
-      id: event.eventId,
-      eventType: event.eventType,
-      occurredAt: eventAt,
-    },
+  if (!event.eventId || !Number.isFinite(+eventAt)) throw new ApiError(400, 'Invalid billing event');
+  return db.$transaction(async client => {
+    await client.$queryRaw`SELECT pg_advisory_xact_lock(hashtextextended(${event.eventId}, 1515))::text`;
+    if (await client.paddleWebhookEvent.findUnique({ where: { id: event.eventId }, select: { id: true } })) return { duplicate: true };
+    const data = event.data;
+    const customerId = event.eventType.startsWith('customer.') ? data.id : 'customerId' in data ? data.customerId : null;
+    if (typeof customerId === 'string') {
+      const companyId = await resolveCompanyId(customerId, client);
+      if (companyId) await client.$queryRaw`SELECT id FROM "Company" WHERE id=${companyId} FOR UPDATE`;
+      // Serialize distinct events for the same provider customer, including unlinked mirrors.
+      await client.$queryRaw`SELECT pg_advisory_xact_lock(hashtextextended(${customerId}, 1516))::text`;
+    }
+    switch (event.eventType) {
+      case EventName.CustomerCreated:
+      case EventName.CustomerUpdated:
+        await handleCustomer(event.data, eventAt, client); break;
+      case EventName.SubscriptionCreated:
+      case EventName.SubscriptionUpdated:
+      case EventName.SubscriptionCanceled:
+      case EventName.SubscriptionActivated:
+      case EventName.SubscriptionPastDue:
+      case EventName.SubscriptionPaused:
+      case EventName.SubscriptionResumed:
+      case EventName.SubscriptionTrialing:
+        await handleSubscription(event.data, eventAt, client); break;
+      case EventName.TransactionCreated:
+      case EventName.TransactionUpdated:
+      case EventName.TransactionCanceled:
+      case EventName.TransactionPaid:
+      case EventName.TransactionReady:
+      case EventName.TransactionBilled:
+      case EventName.TransactionPastDue:
+      case EventName.TransactionCompleted:
+        await handleTransactionCompleted(event.data, eventAt, client); break;
+      default: break;
+    }
+    await client.paddleWebhookEvent.create({ data: { id: event.eventId, eventType: event.eventType, occurredAt: eventAt } });
+    return { duplicate: false };
   });
-
-  return { duplicate: false };
 };

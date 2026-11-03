@@ -1,6 +1,6 @@
 import { useMutation, useQuery } from "@tanstack/react-query";
 import useAuth from "@/hooks/useAuth";
-import { createCustomerPortalSession, getPricingContext, getSubscription } from "./api";
+import { createCustomerPortalSession, getPricingContext, getSubscription, getBillingLifecycle } from "./api";
 
 export const subscriptionQueryKey = ["subscription"] as const;
 
@@ -30,3 +30,13 @@ export const useCustomerPortalSession = () => {
     mutationFn: createCustomerPortalSession,
   });
 };
+
+export const billingLifecycleKey = (companyId?:number, ownerId?:number) => ['billing-lifecycle',companyId,ownerId] as const;
+export function useBillingLifecycle({poll=false}:{poll?:boolean}={}) {
+ const {user}=useAuth();
+ return useQuery({
+  queryKey:billingLifecycleKey(user?.companyId,user?.id), queryFn:({signal})=>getBillingLifecycle(signal),
+  enabled:user?.role==='ADMIN',retry:false,staleTime:0,refetchOnWindowFocus:true,
+  refetchInterval:poll ? query=>query.state.error?false:query.state.data?.providerState==='AWAITING_PROVIDER'||query.state.data?.reconciliationRequired?5000:false : false,
+ });
+}

@@ -14,6 +14,7 @@ cron.schedule("2 */6 * * *", async () => {
         const eligibleStaff = await prisma.staff.findMany({
             where: {
                 isActive: true,
+                company: { isActive: true, operationalStatus: "ACTIVE" },
                 locationId: { not: null },
                 shiftStart: { not: null },
                 shiftEnd: { not: null },
@@ -31,34 +32,6 @@ cron.schedule("2 */6 * * *", async () => {
             },
         });
 
-        const attendanceToCreate = [];
-
-        for (const staff of eligibleStaff) {
-            if (!staff.location) continue;
-
-            const { date, expectedStart, expectedEnd } = resolveZonedAttendanceWindow({
-                baseDate: now,
-                shiftStart: staff.shiftStart!,
-                shiftEnd: staff.shiftEnd!,
-                timeZone: staff.location.timezone,
-            });
-
-            attendanceToCreate.push({
-                    staffId: staff.id,
-                    locationId: staff.locationId!,
-                    date,
-                    expectedStart,
-                    expectedEnd,
-                    status: "ABSENT" as const,
-            });
-        }
-
-        const { count: created } = attendanceToCreate.length
-            ? await prisma.attendance.createMany({
-                data: attendanceToCreate,
-                skipDuplicates: true,
-            })
-            : { count: 0 };
 
         for (const staff of eligibleStaff) {
             await syncTodaysOpenAttendanceWindow({
@@ -70,7 +43,7 @@ cron.schedule("2 */6 * * *", async () => {
             });
         }
 
-        console.log(`Attendance records created: ${created}`);
+        console.log(`Attendance preparation checked ${eligibleStaff.length} eligible staff`);
     } catch (error) {
         console.error("Attendance cron error:", error);
     }

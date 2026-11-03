@@ -1,0 +1,865 @@
+{
+  "layouts": [
+    {
+      "screen": "owner",
+      "width": 320,
+      "lang": "en",
+      "overflow": false,
+      "h1": 1,
+      "missing": []
+    },
+    {
+      "screen": "owner",
+      "width": 320,
+      "lang": "ur",
+      "overflow": false,
+      "h1": 1,
+      "missing": []
+    },
+    {
+      "screen": "owner",
+      "width": 390,
+      "lang": "en",
+      "overflow": false,
+      "h1": 1,
+      "missing": []
+    },
+    {
+      "screen": "owner",
+      "width": 390,
+      "lang": "en",
+      "zoom": "root text 200%",
+      "overflow": false
+    },
+    {
+      "screen": "owner",
+      "width": 390,
+      "lang": "ur",
+      "overflow": false,
+      "h1": 1,
+      "missing": []
+    },
+    {
+      "screen": "owner",
+      "width": 768,
+      "lang": "en",
+      "overflow": false,
+      "h1": 1,
+      "missing": []
+    },
+    {
+      "screen": "owner",
+      "width": 768,
+      "lang": "ur",
+      "overflow": false,
+      "h1": 1,
+      "missing": []
+    },
+    {
+      "screen": "owner",
+      "width": 1440,
+      "lang": "en",
+      "overflow": false,
+      "h1": 1,
+      "missing": []
+    },
+    {
+      "screen": "owner",
+      "width": 1440,
+      "lang": "ur",
+      "overflow": false,
+      "h1": 1,
+      "missing": []
+    },
+    {
+      "screen": "manager",
+      "width": 320,
+      "lang": "en",
+      "overflow": false,
+      "h1": 1,
+      "missing": []
+    },
+    {
+      "screen": "manager",
+      "width": 320,
+      "lang": "ur",
+      "overflow": false,
+      "h1": 1,
+      "missing": []
+    },
+    {
+      "screen": "manager",
+      "width": 390,
+      "lang": "en",
+      "overflow": false,
+      "h1": 1,
+      "missing": []
+    },
+    {
+      "screen": "manager",
+      "width": 390,
+      "lang": "en",
+      "zoom": "root text 200%",
+      "overflow": false
+    },
+    {
+      "screen": "manager",
+      "width": 390,
+      "lang": "ur",
+      "overflow": false,
+      "h1": 1,
+      "missing": []
+    },
+    {
+      "screen": "manager",
+      "width": 768,
+      "lang": "en",
+      "overflow": false,
+      "h1": 1,
+      "missing": []
+    },
+    {
+      "screen": "manager",
+      "width": 768,
+      "lang": "ur",
+      "overflow": false,
+      "h1": 1,
+      "missing": []
+    },
+    {
+      "screen": "manager",
+      "width": 1440,
+      "lang": "en",
+      "overflow": false,
+      "h1": 1,
+      "missing": []
+    },
+    {
+      "screen": "manager",
+      "width": 1440,
+      "lang": "ur",
+      "overflow": false,
+      "h1": 1,
+      "missing": []
+    },
+    {
+      "screen": "team",
+      "width": 320,
+      "lang": "en",
+      "overflow": false,
+      "h1": 1,
+      "missing": []
+    },
+    {
+      "screen": "team",
+      "width": 320,
+      "lang": "ur",
+      "overflow": false,
+      "h1": 1,
+      "missing": []
+    },
+    {
+      "screen": "team",
+      "width": 390,
+      "lang": "en",
+      "overflow": false,
+      "h1": 1,
+      "missing": []
+    },
+    {
+      "screen": "team",
+      "width": 390,
+      "lang": "en",
+      "zoom": "root text 200%",
+      "overflow": false
+    },
+    {
+      "screen": "team",
+      "width": 390,
+      "lang": "ur",
+      "overflow": false,
+      "h1": 1,
+      "missing": []
+    },
+    {
+      "screen": "team",
+      "width": 768,
+      "lang": "en",
+      "overflow": false,
+      "h1": 1,
+      "missing": []
+    },
+    {
+      "screen": "team",
+      "width": 768,
+      "lang": "ur",
+      "overflow": false,
+      "h1": 1,
+      "missing": []
+    },
+    {
+      "screen": "team",
+      "width": 1440,
+      "lang": "en",
+      "overflow": false,
+      "h1": 1,
+      "missing": []
+    },
+    {
+      "screen": "team",
+      "width": 1440,
+      "lang": "ur",
+      "overflow": false,
+      "h1": 1,
+      "missing": []
+    },
+    {
+      "screen": "location",
+      "width": 320,
+      "lang": "en",
+      "overflow": false,
+      "h1": 1,
+      "missing": []
+    },
+    {
+      "screen": "location",
+      "width": 320,
+      "lang": "ur",
+      "overflow": false,
+      "h1": 1,
+      "missing": []
+    },
+    {
+      "screen": "location",
+      "width": 390,
+      "lang": "en",
+      "overflow": false,
+      "h1": 1,
+      "missing": []
+    },
+    {
+      "screen": "location",
+      "width": 390,
+      "lang": "en",
+      "zoom": "root text 200%",
+      "overflow": false
+    },
+    {
+      "screen": "location",
+      "width": 390,
+      "lang": "ur",
+      "overflow": false,
+      "h1": 1,
+      "missing": []
+    },
+    {
+      "screen": "location",
+      "width": 768,
+      "lang": "en",
+      "overflow": false,
+      "h1": 1,
+      "missing": []
+    },
+    {
+      "screen": "location",
+      "width": 768,
+      "lang": "ur",
+      "overflow": false,
+      "h1": 1,
+      "missing": []
+    },
+    {
+      "screen": "location",
+      "width": 1440,
+      "lang": "en",
+      "overflow": false,
+      "h1": 1,
+      "missing": []
+    },
+    {
+      "screen": "location",
+      "width": 1440,
+      "lang": "ur",
+      "overflow": false,
+      "h1": 1,
+      "missing": []
+    },
+    {
+      "screen": "attendance",
+      "width": 320,
+      "lang": "en",
+      "overflow": false,
+      "h1": 1,
+      "missing": []
+    },
+    {
+      "screen": "attendance",
+      "width": 320,
+      "lang": "ur",
+      "overflow": false,
+      "h1": 1,
+      "missing": []
+    },
+    {
+      "screen": "attendance",
+      "width": 390,
+      "lang": "en",
+      "overflow": false,
+      "h1": 1,
+      "missing": []
+    },
+    {
+      "screen": "attendance",
+      "width": 390,
+      "lang": "en",
+      "zoom": "root text 200%",
+      "overflow": false
+    },
+    {
+      "screen": "attendance",
+      "width": 390,
+      "lang": "ur",
+      "overflow": false,
+      "h1": 1,
+      "missing": []
+    },
+    {
+      "screen": "attendance",
+      "width": 768,
+      "lang": "en",
+      "overflow": false,
+      "h1": 1,
+      "missing": []
+    },
+    {
+      "screen": "attendance",
+      "width": 768,
+      "lang": "ur",
+      "overflow": false,
+      "h1": 1,
+      "missing": []
+    },
+    {
+      "screen": "attendance",
+      "width": 1440,
+      "lang": "en",
+      "overflow": false,
+      "h1": 1,
+      "missing": []
+    },
+    {
+      "screen": "attendance",
+      "width": 1440,
+      "lang": "ur",
+      "overflow": false,
+      "h1": 1,
+      "missing": []
+    },
+    {
+      "screen": "mobile",
+      "width": 320,
+      "lang": "en",
+      "overflow": false,
+      "h1": 1,
+      "missing": []
+    },
+    {
+      "screen": "mobile",
+      "width": 320,
+      "lang": "ur",
+      "overflow": false,
+      "h1": 1,
+      "missing": []
+    },
+    {
+      "screen": "mobile",
+      "width": 390,
+      "lang": "en",
+      "overflow": false,
+      "h1": 1,
+      "missing": []
+    },
+    {
+      "screen": "mobile",
+      "width": 390,
+      "lang": "en",
+      "zoom": "root text 200%",
+      "overflow": false
+    },
+    {
+      "screen": "mobile",
+      "width": 390,
+      "lang": "ur",
+      "overflow": false,
+      "h1": 1,
+      "missing": []
+    },
+    {
+      "screen": "mobile",
+      "width": 768,
+      "lang": "en",
+      "overflow": false,
+      "h1": 1,
+      "missing": []
+    },
+    {
+      "screen": "mobile",
+      "width": 768,
+      "lang": "ur",
+      "overflow": false,
+      "h1": 1,
+      "missing": []
+    },
+    {
+      "screen": "mobile",
+      "width": 1440,
+      "lang": "en",
+      "overflow": false,
+      "h1": 1,
+      "missing": []
+    },
+    {
+      "screen": "mobile",
+      "width": 1440,
+      "lang": "ur",
+      "overflow": false,
+      "h1": 1,
+      "missing": []
+    },
+    {
+      "screen": "handoff",
+      "width": 320,
+      "lang": "en",
+      "overflow": false,
+      "h1": 1,
+      "missing": []
+    },
+    {
+      "screen": "handoff",
+      "width": 320,
+      "lang": "ur",
+      "overflow": false,
+      "h1": 1,
+      "missing": []
+    },
+    {
+      "screen": "handoff",
+      "width": 390,
+      "lang": "en",
+      "overflow": false,
+      "h1": 1,
+      "missing": []
+    },
+    {
+      "screen": "handoff",
+      "width": 390,
+      "lang": "en",
+      "zoom": "root text 200%",
+      "overflow": false
+    },
+    {
+      "screen": "handoff",
+      "width": 390,
+      "lang": "ur",
+      "overflow": false,
+      "h1": 1,
+      "missing": []
+    },
+    {
+      "screen": "handoff",
+      "width": 768,
+      "lang": "en",
+      "overflow": false,
+      "h1": 1,
+      "missing": []
+    },
+    {
+      "screen": "handoff",
+      "width": 768,
+      "lang": "ur",
+      "overflow": false,
+      "h1": 1,
+      "missing": []
+    },
+    {
+      "screen": "handoff",
+      "width": 1440,
+      "lang": "en",
+      "overflow": false,
+      "h1": 1,
+      "missing": []
+    },
+    {
+      "screen": "handoff",
+      "width": 1440,
+      "lang": "ur",
+      "overflow": false,
+      "h1": 1,
+      "missing": []
+    },
+    {
+      "screen": "recovery",
+      "width": 320,
+      "lang": "en",
+      "overflow": false,
+      "h1": 1,
+      "missing": []
+    },
+    {
+      "screen": "recovery",
+      "width": 320,
+      "lang": "ur",
+      "overflow": false,
+      "h1": 1,
+      "missing": []
+    },
+    {
+      "screen": "recovery",
+      "width": 390,
+      "lang": "en",
+      "overflow": false,
+      "h1": 1,
+      "missing": []
+    },
+    {
+      "screen": "recovery",
+      "width": 390,
+      "lang": "en",
+      "zoom": "root text 200%",
+      "overflow": false
+    },
+    {
+      "screen": "recovery",
+      "width": 390,
+      "lang": "ur",
+      "overflow": false,
+      "h1": 1,
+      "missing": []
+    },
+    {
+      "screen": "recovery",
+      "width": 768,
+      "lang": "en",
+      "overflow": false,
+      "h1": 1,
+      "missing": []
+    },
+    {
+      "screen": "recovery",
+      "width": 768,
+      "lang": "ur",
+      "overflow": false,
+      "h1": 1,
+      "missing": []
+    },
+    {
+      "screen": "recovery",
+      "width": 1440,
+      "lang": "en",
+      "overflow": false,
+      "h1": 1,
+      "missing": []
+    },
+    {
+      "screen": "recovery",
+      "width": 1440,
+      "lang": "ur",
+      "overflow": false,
+      "h1": 1,
+      "missing": []
+    }
+  ],
+  "states": [
+    {
+      "screen": "owner",
+      "state": "loading",
+      "overflow": false
+    },
+    {
+      "screen": "owner",
+      "state": "empty",
+      "overflow": false
+    },
+    {
+      "screen": "owner",
+      "state": "error",
+      "overflow": false
+    },
+    {
+      "screen": "owner",
+      "state": "stale",
+      "overflow": false
+    },
+    {
+      "screen": "owner",
+      "state": "denied",
+      "overflow": false
+    },
+    {
+      "screen": "manager",
+      "state": "loading",
+      "overflow": false
+    },
+    {
+      "screen": "manager",
+      "state": "empty",
+      "overflow": false
+    },
+    {
+      "screen": "manager",
+      "state": "error",
+      "overflow": false
+    },
+    {
+      "screen": "manager",
+      "state": "stale",
+      "overflow": false
+    },
+    {
+      "screen": "manager",
+      "state": "denied",
+      "overflow": false
+    },
+    {
+      "screen": "team",
+      "state": "loading",
+      "overflow": false
+    },
+    {
+      "screen": "team",
+      "state": "empty",
+      "overflow": false
+    },
+    {
+      "screen": "team",
+      "state": "error",
+      "overflow": false
+    },
+    {
+      "screen": "team",
+      "state": "stale",
+      "overflow": false
+    },
+    {
+      "screen": "team",
+      "state": "denied",
+      "overflow": false
+    },
+    {
+      "screen": "location",
+      "state": "loading",
+      "overflow": false
+    },
+    {
+      "screen": "location",
+      "state": "empty",
+      "overflow": false
+    },
+    {
+      "screen": "location",
+      "state": "error",
+      "overflow": false
+    },
+    {
+      "screen": "location",
+      "state": "stale",
+      "overflow": false
+    },
+    {
+      "screen": "location",
+      "state": "denied",
+      "overflow": false
+    },
+    {
+      "screen": "attendance",
+      "state": "loading",
+      "overflow": false
+    },
+    {
+      "screen": "attendance",
+      "state": "empty",
+      "overflow": false
+    },
+    {
+      "screen": "attendance",
+      "state": "error",
+      "overflow": false
+    },
+    {
+      "screen": "attendance",
+      "state": "stale",
+      "overflow": false
+    },
+    {
+      "screen": "attendance",
+      "state": "denied",
+      "overflow": false
+    },
+    {
+      "screen": "mobile",
+      "state": "loading",
+      "overflow": false
+    },
+    {
+      "screen": "mobile",
+      "state": "empty",
+      "overflow": false
+    },
+    {
+      "screen": "mobile",
+      "state": "error",
+      "overflow": false
+    },
+    {
+      "screen": "mobile",
+      "state": "stale",
+      "overflow": false
+    },
+    {
+      "screen": "mobile",
+      "state": "denied",
+      "overflow": false
+    }
+  ],
+  "interactions": [
+    "Owner: search and 30-day daily figures",
+    "Manager: reason-first review, note/closure, no owner billing",
+    "Team: errors and owner optional-site creation",
+    "Location: all five tabs",
+    "Attendance: range validation and protected-photo affordance",
+    "Mobile: permission denied, two QR scans, failed-photo proposal, lost-response result lookup, 3 photos and submission",
+    "Recovery: neutral demo acknowledgement"
+  ],
+  "axe": [
+    {
+      "key": "owner-390-en",
+      "violations": []
+    },
+    {
+      "key": "owner-390-ur",
+      "violations": []
+    },
+    {
+      "key": "owner-1440-en",
+      "violations": []
+    },
+    {
+      "key": "owner-1440-ur",
+      "violations": []
+    },
+    {
+      "key": "manager-390-en",
+      "violations": []
+    },
+    {
+      "key": "manager-390-ur",
+      "violations": []
+    },
+    {
+      "key": "manager-1440-en",
+      "violations": []
+    },
+    {
+      "key": "manager-1440-ur",
+      "violations": []
+    },
+    {
+      "key": "team-390-en",
+      "violations": []
+    },
+    {
+      "key": "team-390-ur",
+      "violations": []
+    },
+    {
+      "key": "team-1440-en",
+      "violations": []
+    },
+    {
+      "key": "team-1440-ur",
+      "violations": []
+    },
+    {
+      "key": "location-390-en",
+      "violations": []
+    },
+    {
+      "key": "location-390-ur",
+      "violations": []
+    },
+    {
+      "key": "location-1440-en",
+      "violations": []
+    },
+    {
+      "key": "location-1440-ur",
+      "violations": []
+    },
+    {
+      "key": "attendance-390-en",
+      "violations": []
+    },
+    {
+      "key": "attendance-390-ur",
+      "violations": []
+    },
+    {
+      "key": "attendance-1440-en",
+      "violations": []
+    },
+    {
+      "key": "attendance-1440-ur",
+      "violations": []
+    },
+    {
+      "key": "mobile-390-en",
+      "violations": []
+    },
+    {
+      "key": "mobile-390-ur",
+      "violations": []
+    },
+    {
+      "key": "mobile-1440-en",
+      "violations": []
+    },
+    {
+      "key": "mobile-1440-ur",
+      "violations": []
+    },
+    {
+      "key": "handoff-390-en",
+      "violations": []
+    },
+    {
+      "key": "handoff-390-ur",
+      "violations": []
+    },
+    {
+      "key": "handoff-1440-en",
+      "violations": []
+    },
+    {
+      "key": "handoff-1440-ur",
+      "violations": []
+    },
+    {
+      "key": "recovery-390-en",
+      "violations": []
+    },
+    {
+      "key": "recovery-390-ur",
+      "violations": []
+    },
+    {
+      "key": "recovery-1440-en",
+      "violations": []
+    },
+    {
+      "key": "recovery-1440-ur",
+      "violations": []
+    }
+  ],
+  "untranslated": [],
+  "errors": []
+}

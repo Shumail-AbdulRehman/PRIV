@@ -1,0 +1,44 @@
+/* Approved design/v5/settings.html composition; tokens inherited from workspace. */
+.workspace .settings-v5 { min-width: 0; }
+.workspace .settings-heading { margin-block-end: 24px; }
+.workspace .settings-heading p { margin-block-start: 8px; color: var(--muted-foreground); }
+.workspace .settings-tabs { display: flex; gap: 16px; border-block-end: 1px solid var(--border); margin-block-end: 24px; overflow-x: auto; }
+.workspace .settings-tabs button { min-height: 48px; padding: 12px 3px; border: 0; border-block-end: 2px solid transparent; color: var(--muted-foreground); background: transparent; font-size: 14px; white-space: nowrap; cursor: pointer; }
+.workspace .settings-tabs button[aria-pressed="true"] { border-color: var(--primary); color: var(--primary); font-weight: 600; }
+.workspace .settings-tabs button:hover { color: var(--primary-dark); }
+.workspace .settings-tabs button:focus-visible, .workspace .settings-text-link:focus-visible { outline: 3px solid var(--ring); outline-offset: 3px; }
+.workspace .settings-split { display: grid; grid-template-columns: minmax(0, 1fr) 300px; gap: 24px; align-items: start; }
+.workspace .settings-panel { min-width: 0; border: 1px solid var(--border); border-radius: 10px; background: var(--card); overflow: hidden; }
+.workspace .settings-panel > header { padding: 20px 24px; border-block-end: 1px solid var(--border); }
+.workspace .settings-panel-body { padding: 24px; }
+.workspace .settings-panel-body p { overflow-wrap: anywhere; }
+.workspace .settings-panel .account-form { max-width: none; }
+.workspace .settings-organization-form > label { max-width: 480px; }
+.workspace .settings-panel .account-form label { font-size: 14px; }
+.workspace .settings-panel .account-form input { width: 100%; min-width: 0; border-radius: 7px; }
+.workspace .settings-panel .account-form button, .workspace .settings-state button, .workspace .settings-reload { min-height: 48px; height: auto; white-space: normal; }
+.workspace .settings-supporting { color: var(--muted-foreground); margin-block-end: 24px; }
+.workspace .settings-panel-body > p + .settings-supporting { margin-block-start: 16px; }
+.workspace .settings-notice { padding: 16px 18px; background: var(--accent); border: 1px solid var(--border); border-radius: 7px; font-size: 14px; }
+.workspace .settings-reload { margin-block-start: 12px; padding-inline-start: 0; color: var(--primary); }
+.workspace .settings-state { display: grid; justify-items: start; gap: 16px; }
+.workspace .settings-text-link { display: flex; align-items: center; min-height: 48px; width: fit-content; color: var(--primary); font-size: 14px; text-underline-offset: 4px; }
+.workspace .settings-text-link:hover { text-decoration: underline; }
+.workspace .settings-facts { margin: 0; }
+.workspace .settings-facts > div { display: grid; grid-template-columns: minmax(130px, 1fr) minmax(0, 1.5fr); gap: 16px; padding-block: 13px; border-block-end: 1px solid var(--border); }
+.workspace .settings-facts > div:last-child { border: 0; }
+.workspace .settings-facts dt { font-size: 14px; color: var(--muted-foreground); }
+.workspace .settings-facts dd { margin: 0; overflow-wrap: anywhere; }
+.workspace .settings-verification { margin-block-start: 24px; padding-block-start: 24px; border-block-start: 1px solid var(--border); }
+.workspace .settings-verification h3 { margin-block-end: 16px; }
+.workspace .settings-verification > p { margin-block-end: 16px; }
+.workspace .settings-verification .account-form { max-width: 480px; margin-block-start: 16px; }
+.workspace .settings-panel-body > .settings-notice { margin-block: 16px; }
+.workspace .settings-v5 [hidden] { display: none; }
+@media (max-width: 900px) { .workspace .settings-split { grid-template-columns: minmax(0, 1fr); } }
+@media (max-width: 620px) {
+ .workspace .settings-panel > header, .workspace .settings-panel-body { padding: 18px; }
+ .workspace .settings-facts > div { grid-template-columns: minmax(0, 1fr); gap: 6px; }
+ .workspace .settings-panel .account-form button { width: 100%; }
+ .workspace .settings-tabs { gap: 16px; }
+}

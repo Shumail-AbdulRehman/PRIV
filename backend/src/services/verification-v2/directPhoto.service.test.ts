@@ -1,3 +1,5 @@
+import { requireLaunchPhotoQualification } from './launchQualification.js';
+vi.mock('./launchQualification.js',()=>({requireLaunchPhotoQualification:vi.fn()}));
 import {beforeEach,expect,it,vi} from 'vitest';
 const m=vi.hoisted(()=>({attempt:null as any,store:vi.fn(),access:vi.fn(),decision:vi.fn(),finalize:vi.fn()}));
 vi.mock('../../prisma/prisma.js',()=>({prisma:{
@@ -15,7 +17,7 @@ vi.mock('./bufferedPhoto.provider.js',()=>({BufferedClefProvider:class{},buffere
 import {processDirectPhoto,directPhotoStatus} from './directPhoto.service.js';
 const actor={id:1,companyId:1,role:'STAFF' as const};
 const clean={originality:'DIRECT' as const,objectMatch:'MATCH' as const,viewMatch:'MATCH' as const,cleanliness:{verdict:'CLEAN' as const,surfaces:[{surface:'basin',verdict:'CLEAN' as const}],confidence:.99,reasonCode:'CLEAN' as const},metadata:{} as any};
-beforeEach(()=>{vi.clearAllMocks();m.attempt={id:'a',staffId:1,committedHash:'hash',state:'RESERVED',session:{taskInstanceId:7,task:{locationId:2}},requirement:{id:'r',viewKey:'basin',item:{typeSnapshot:'SINK',rubricSnapshot:{version:1}}},media:null,qualityResult:null};m.store.mockResolvedValue({asset_id:'cloud'});m.decision.mockImplementation(async(_tx,_id,state)=>{m.attempt.state=state;});});
+beforeEach(()=>{vi.clearAllMocks();vi.mocked(requireLaunchPhotoQualification).mockReset();m.attempt={id:'a',staffId:1,committedHash:'hash',state:'RESERVED',session:{taskInstanceId:7,task:{locationId:2}},requirement:{id:'r',viewKey:'basin',item:{typeSnapshot:'SINK',rubricSnapshot:{version:1}}},media:null,qualityResult:null};m.store.mockResolvedValue({asset_id:'cloud'});m.decision.mockImplementation(async(_tx,_id,state)=>{m.attempt.state=state;});});
 it('finishes AI then protected cloud storage before returning, with no job queue',async()=>{
  const provider={evaluate:vi.fn(async()=>clean)};
  const result=await processDirectPhoto(actor,'a',Buffer.from('photo'),provider,m.store);
@@ -95,4 +97,20 @@ it('cannot publish or overwrite a cached assessment after losing request ownersh
  await expect(processDirectPhoto(actor,'a',Buffer.from('photo'),provider,m.store)).rejects.toMatchObject({statusCode:409});
  expect(m.attempt.directAssessment).toBeUndefined();expect(m.store).not.toHaveBeenCalled();expect(m.decision).not.toHaveBeenCalled();
  expect(m.attempt.directProcessingToken).toBe('replacement-request');
+});
+
+it('fails unavailable before AI/storage when real active qualification is absent, and keeps same-capture retry',async()=>{
+ const actual=await vi.importActual<typeof import('./launchQualification.js')>('./launchQualification.js');
+ vi.mocked(requireLaunchPhotoQualification).mockImplementation(actual.requireLaunchPhotoQualification);
+ const provider={evaluate:vi.fn(async()=>clean)};
+ await expect(processDirectPhoto(actor,'a',Buffer.from('photo'),provider,m.store)).rejects.toMatchObject({statusCode:503,errors:[{code:'PHOTO_QUALIFICATION_UNAVAILABLE'}]});
+ expect(provider.evaluate).not.toHaveBeenCalled();expect(m.store).not.toHaveBeenCalled();expect(m.decision).not.toHaveBeenCalled();expect(m.finalize).not.toHaveBeenCalled();
+ expect(m.attempt).toMatchObject({state:'RESERVED',media:null,directProcessingToken:null});
+});
+it('completed immutable result reconciliation remains available even when new processing is unqualified',async()=>{
+ m.attempt.state='REVIEW_REQUIRED';m.attempt.media={privacyState:'HOLD',deliveryType:'authenticated'};
+ vi.mocked(requireLaunchPhotoQualification).mockImplementation(()=>{throw new Error('unqualified');});
+ const provider={evaluate:vi.fn(async()=>clean)};
+ expect((await processDirectPhoto(actor,'a',Buffer.from('photo'),provider,m.store)).state).toBe('REVIEW_REQUIRED');
+ expect(requireLaunchPhotoQualification).not.toHaveBeenCalled();expect(provider.evaluate).not.toHaveBeenCalled();expect(m.store).not.toHaveBeenCalled();
 });

@@ -8,6 +8,12 @@ datasource db {
 }
 
 model Company {
+  operationalStatus     CompanyOperationalStatus @default(ACTIVE)
+  accountVersion        Int                      @default(0)
+  suspendedAt           DateTime?
+  suspensionReason      String?
+  credentialTokens      CredentialToken[]
+  attendanceAnnotations AttendanceAnnotation[]
   verificationPolicy    Json?
   id                    Int                  @id @default(autoincrement())
   name                  String
@@ -106,6 +112,10 @@ model PaddleWebhookEvent {
 }
 
 model Manager {
+  credentialVersion  Int               @default(0)
+  mustChangePassword Boolean           @default(false)
+  emailVerifiedAt    DateTime?
+  credentialTokens   CredentialToken[] @relation("ManagerCredentialTokens")
   id                Int               @id @default(autoincrement())
   name              String
   email             String            @unique
@@ -118,9 +128,13 @@ model Manager {
   assignedLocations ManagerLocation[]
   createdAt         DateTime          @default(now())
   updatedAt         DateTime          @updatedAt
+  @@unique([id, companyId])
 }
 
 model Staff {
+  credentialVersion  Int                     @default(0)
+  mustChangePassword Boolean                 @default(false)
+  credentialTokens   CredentialToken[]       @relation("StaffCredentialTokens")
   id                 Int                     @id @default(autoincrement())
   name               String
   email              String                  @unique
@@ -149,6 +163,7 @@ model Staff {
   @@index([companyId])
   @@index([locationId])
   @@index([isActive])
+  @@unique([id, companyId])
 }
 
 model Location {
@@ -389,6 +404,7 @@ model AuditLog {
 }
 
 model Attendance {
+  annotations   AttendanceAnnotation[]
   id            Int              @id @default(autoincrement())
   staff         Staff            @relation(fields: [staffId], references: [id])
   staffId       Int
@@ -1031,4 +1047,62 @@ model StaffPushDelivery {
 
   @@unique([notificationId, deviceId])
   @@index([status, availableAt])
+}
+
+
+// Local single-use credential actions; external delivery is configured separately.
+enum CredentialTokenPurpose {
+  VERIFY_OWNER_EMAIL
+  RESET_OWNER_PASSWORD
+  STAFF_ACCESS_HANDOFF
+}
+
+enum CompanyOperationalStatus {
+  ACTIVE
+  SUSPENDED
+}
+
+enum AttendanceAnnotationKind {
+  NOTE
+  ACKNOWLEDGEMENT
+}
+
+model CredentialToken {
+  id          String                 @id @default(uuid())
+  tokenHash   String                 @unique @db.Char(64)
+  purpose     CredentialTokenPurpose
+  companyId   Int
+  company     Company                @relation(fields: [companyId], references: [id], onDelete: Restrict)
+  managerId   Int?
+  manager     Manager?               @relation("ManagerCredentialTokens", fields: [managerId, companyId], references: [id, companyId], onDelete: Restrict)
+  staffId     Int?
+  staff       Staff?                 @relation("StaffCredentialTokens", fields: [staffId, companyId], references: [id, companyId], onDelete: Restrict)
+  targetEmail String?
+  expiresAt   DateTime
+  consumedAt  DateTime?
+  createdAt   DateTime               @default(now())
+
+  @@index([companyId, purpose, expiresAt])
+  @@index([managerId, purpose])
+  @@index([staffId, purpose])
+}
+
+model AttendanceAnnotation {
+  id           String                   @id @default(uuid())
+  companyId    Int
+  company      Company                  @relation(fields: [companyId], references: [id], onDelete: Restrict)
+  attendanceId Int
+  attendance   Attendance               @relation(fields: [attendanceId], references: [id], onDelete: Restrict)
+  actorRole    Role
+  actorId      Int
+  kind         AttendanceAnnotationKind @default(NOTE)
+  reason       String                   @db.VarChar(1000)
+  requestId    String                   @db.Uuid
+  parentId     String?
+  parent       AttendanceAnnotation?    @relation("AnnotationReplies", fields: [parentId], references: [id], onDelete: Restrict)
+  replies      AttendanceAnnotation[]   @relation("AnnotationReplies")
+  createdAt    DateTime                 @default(now())
+
+  @@unique([companyId, actorRole, actorId, requestId])
+  @@index([attendanceId, createdAt])
 }

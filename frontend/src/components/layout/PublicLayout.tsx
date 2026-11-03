@@ -1,3 +1,4 @@
+import { useLanguage } from "@/i18n/context";
 import { Link, Outlet, useLocation } from "react-router-dom";
 import { useEffect } from "react";
 import { ArrowUpRight } from "lucide-react";
@@ -5,6 +6,7 @@ import { PublicNavbar } from "./PublicNavbar";
 import BrandLogo from "@/components/common/BrandLogo";
 
 export function PublicLayout() {
+  const { t } = useLanguage();
   const { pathname, hash } = useLocation();
   useEffect(() => {
     if (hash) {
@@ -57,6 +59,7 @@ export function PublicLayout() {
                 Create an account <ArrowUpRight size={13} />
               </Link>
               <Link to="/login">Log in</Link>
+              <Link to="/help">{t("Help & service information")}</Link>
               <Link to="/features#how-it-works">How it works</Link>
             </div>
           </div>

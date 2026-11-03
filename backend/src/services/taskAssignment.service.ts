@@ -1,3 +1,4 @@
+import { jobAccountAllowed } from './launchJobs.service.js';
 import { prisma } from "../prisma/prisma.js";
 import { getZonedClockMinutes } from "../utils/dateTime.js";
 import { writeAuditLog } from "./auditLog.service.js";
@@ -246,6 +247,7 @@ export const ensureCurrentAssignmentForTask = async (
 };
 
 const ensureAssignmentForTask = async (task: TaskForAssignment, reason: string) => {
+  if (!await jobAccountAllowed(task.location.companyId,'MANAGE_WORK')) return null;
   if (!task.staffId) {
     const automaticAssignmentEnabled = await companyHasFeature(
       task.location.companyId,
@@ -275,6 +277,7 @@ const ensureAssignmentForTask = async (task: TaskForAssignment, reason: string) 
       const fresh=await getTaskWithCompany(task.id,tx as DbClient);
       if(!fresh||!isTaskAssignable(fresh)||fresh.staffId!==task.staffId)return null;
       if(!await tx.staff.findFirst({where:{id:staffId,isActive:true,locationId:fresh.locationId,companyId:fresh.location.companyId}}))return null;
+      if (!await jobAccountAllowed(fresh.location.companyId,'MANAGE_WORK',tx)) return null;
       const current = await getCurrentAssignment(task.id, tx as DbClient);
       if (current) {
         return current;
@@ -426,6 +429,7 @@ export const markCurrentAssignmentsForTasks = async (
   await client.taskAssignment.updateMany({
     where: {
       taskInstanceId: { in: taskInstanceIds },
+      taskInstance: {location:{company:{isActive:true,operationalStatus:"ACTIVE"}}},
       isCurrent: true,
       status: { in: ["ASSIGNED", "STARTED"] },
     },
@@ -507,6 +511,7 @@ export const reassignExpiredAssignments = async (graceMinutes: number) => {
 
     await prisma.$transaction(async (tx) => {
       await tx.$queryRaw`SELECT id FROM "TaskInstance" WHERE id=${task.id} FOR UPDATE`;
+      if (!await jobAccountAllowed(task.location.companyId,'MANAGE_WORK',tx,now)) return;
       const stillCurrent = await tx.taskAssignment.findFirst({
         where: {
           id: assignment.id,

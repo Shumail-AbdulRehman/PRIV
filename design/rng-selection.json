@@ -1,0 +1,14 @@
+{
+  "seed": 3836,
+  "hero": "Cinematic Center",
+  "font": "Outfit",
+  "components": [
+    "Inline Typography Images",
+    "Horizontal Accordions",
+    "Infinite Marquee"
+  ],
+  "gsap": [
+    "Card Stacking",
+    "Scrubbing Text"
+  ]
+}

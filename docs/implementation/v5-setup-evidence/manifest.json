@@ -1,0 +1,200 @@
+{
+  "sourceRevision": "e212e40c8bf3062e621fa708a29790e9f1a90ba4",
+  "date": "2026-10-29",
+  "source": "actual private production React/API and disposable synthetic PostgreSQL; immutable V5 references",
+  "capture": "settled animation frames; no traces/video/auth state",
+  "images": [
+    {
+      "file": "app-setup-1366-en-full.png",
+      "width": 1366,
+      "height": 1185,
+      "sha256": "5b4dabe13a7a88a19cae30fa7266364e8bddbf8b8e6d95372d1e18c8f383f2f4",
+      "kind": "actual",
+      "supplementalFullPage": true
+    },
+    {
+      "file": "app-setup-1366-en.png",
+      "width": 1366,
+      "height": 900,
+      "sha256": "b192165f10dfaaecfbdaf2744a750746978a1cfe232bb410de8f8d9786d43b20",
+      "kind": "actual",
+      "supplementalFullPage": false
+    },
+    {
+      "file": "app-setup-1366-ur-full.png",
+      "width": 1366,
+      "height": 1259,
+      "sha256": "8c0ee5ed200dc6aae6c3a15e5e6b133f668631b0bc79ced8b2ec1ba096dcd4d9",
+      "kind": "actual",
+      "supplementalFullPage": true
+    },
+    {
+      "file": "app-setup-1366-ur.png",
+      "width": 1366,
+      "height": 900,
+      "sha256": "c4636bb5c90efe761f16227e11322efb2d91d9b881db32e9a2dc457ad153ed4a",
+      "kind": "actual",
+      "supplementalFullPage": false
+    },
+    {
+      "file": "app-setup-390-en-full.png",
+      "width": 390,
+      "height": 2310,
+      "sha256": "c3f9f0b215a12d19c7850bc577821ae1261e65dc16281cdac9ea500edc2e6be4",
+      "kind": "actual",
+      "supplementalFullPage": true
+    },
+    {
+      "file": "app-setup-390-en.png",
+      "width": 390,
+      "height": 900,
+      "sha256": "2af0dc41797a5b0af3897185f6dee6b9a6858943ec7fda8774be2d3014cd98ec",
+      "kind": "actual",
+      "supplementalFullPage": false
+    },
+    {
+      "file": "app-setup-390-ur-full.png",
+      "width": 390,
+      "height": 2281,
+      "sha256": "bfb5d4f0699657485452966d2baa89113ca351bad1f0e18cc6006beaad086430",
+      "kind": "actual",
+      "supplementalFullPage": true
+    },
+    {
+      "file": "app-setup-390-ur.png",
+      "width": 390,
+      "height": 900,
+      "sha256": "86703f27383ad758b2377332e222ef7ce22fb883538c29748e2a7dc4bdab69f0",
+      "kind": "actual",
+      "supplementalFullPage": false
+    },
+    {
+      "file": "app-setup-empty-manager-390-en.png",
+      "width": 390,
+      "height": 1875,
+      "sha256": "2914366d0d3bcf80d894faf8c649261a66c3c7cd82ff55a4d3bdbf0334291c97",
+      "kind": "actual",
+      "supplementalFullPage": true
+    },
+    {
+      "file": "app-setup-empty-manager-390-ur.png",
+      "width": 390,
+      "height": 1815,
+      "sha256": "97f6f393ce122a4eb9975a7e657a6f5213f5dd02907e4bbbd62c83beaf632aa3",
+      "kind": "actual",
+      "supplementalFullPage": true
+    },
+    {
+      "file": "app-setup-empty-owner-390-en.png",
+      "width": 390,
+      "height": 2333,
+      "sha256": "271e11955347e1bce72164f5ece25d9d66aa8eb40a25f95dba9f17c67e5c06c9",
+      "kind": "actual",
+      "supplementalFullPage": true
+    },
+    {
+      "file": "app-setup-empty-owner-390-ur.png",
+      "width": 390,
+      "height": 2262,
+      "sha256": "804d7bb5b85c25f964e7ae6ec4311b8dcdb8e0759608334d45f795f6ff704eeb",
+      "kind": "actual",
+      "supplementalFullPage": true
+    },
+    {
+      "file": "app-setup-loading-390-en.png",
+      "width": 390,
+      "height": 1407,
+      "sha256": "eb48fdf1ed7483d032f43de7bc4b057230b2f373c1db6112dd73226e9c580bd0",
+      "kind": "actual",
+      "supplementalFullPage": true
+    },
+    {
+      "file": "app-setup-manager-1366-en.png",
+      "width": 1366,
+      "height": 1185,
+      "sha256": "b07a9aea7b3e5b13652fcaa559f9d06cfc48766f31507266a188eb304ef334b3",
+      "kind": "actual",
+      "supplementalFullPage": true
+    },
+    {
+      "file": "app-setup-network-error-390-en.png",
+      "width": 390,
+      "height": 1299,
+      "sha256": "09881779fe2eadd7e852440340398b55d9491690e914fc458dbbcfd9e33d439e",
+      "kind": "actual",
+      "supplementalFullPage": true
+    },
+    {
+      "file": "app-setup-readonly-390-en.png",
+      "width": 390,
+      "height": 2446,
+      "sha256": "1c9547feaacc8325e1d594c21d61ab499c2ec4adf251f7f5aa80cbaa84499584",
+      "kind": "actual",
+      "supplementalFullPage": true
+    },
+    {
+      "file": "v5-setup-1366-en-full.png",
+      "width": 1366,
+      "height": 1011,
+      "sha256": "408ddcb4f48e331f88dad34d9c2cd4f7f71a29445fd19a0bb36cad83383cb625",
+      "kind": "reference",
+      "supplementalFullPage": true
+    },
+    {
+      "file": "v5-setup-1366-en.png",
+      "width": 1366,
+      "height": 900,
+      "sha256": "e6220d8c3608dcba293005e5429a88162d3c00750d3ed5343b82f63fb4f0f0b0",
+      "kind": "reference",
+      "supplementalFullPage": false
+    },
+    {
+      "file": "v5-setup-1366-ur-full.png",
+      "width": 1366,
+      "height": 1042,
+      "sha256": "47ef68a329932de6050a8592f09d63c8e1eafd94e7ddb28452aca30b7a5a8f46",
+      "kind": "reference",
+      "supplementalFullPage": true
+    },
+    {
+      "file": "v5-setup-1366-ur.png",
+      "width": 1366,
+      "height": 900,
+      "sha256": "07dc611fdcc87fa8123bf32b042242455d26c73618668479e9f2cf20e5d44849",
+      "kind": "reference",
+      "supplementalFullPage": false
+    },
+    {
+      "file": "v5-setup-390-en-full.png",
+      "width": 390,
+      "height": 2036,
+      "sha256": "50e6d2ce446f72456f55babd37bcb8801be928932338f8e990436d541a81eaa7",
+      "kind": "reference",
+      "supplementalFullPage": true
+    },
+    {
+      "file": "v5-setup-390-en.png",
+      "width": 390,
+      "height": 900,
+      "sha256": "13a0adee82513328b6ebe60fdd9e9f0e59045b433f460d1c8d6cc11fadda759d",
+      "kind": "reference",
+      "supplementalFullPage": false
+    },
+    {
+      "file": "v5-setup-390-ur-full.png",
+      "width": 390,
+      "height": 2117,
+      "sha256": "164163015a594a9d359fc4e0a0d764c0660d21b9990dd92d9c3c11ede5037d4d",
+      "kind": "reference",
+      "supplementalFullPage": true
+    },
+    {
+      "file": "v5-setup-390-ur.png",
+      "width": 390,
+      "height": 900,
+      "sha256": "7755ce7f7ecf8dcb130086ba420d650030e2313090bbb8c1bd90e35a62cb271c",
+      "kind": "reference",
+      "supplementalFullPage": false
+    }
+  ]
+}

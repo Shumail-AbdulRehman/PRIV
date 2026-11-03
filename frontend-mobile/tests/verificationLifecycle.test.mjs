@@ -16,7 +16,7 @@ globalThis.clearInterval=callback=>intervals.delete(callback);
 let manifest,session,uploads,submissions,failUpload,found,deleted,resumes,activations;
 function reset(){
  const now=Date.now();resumes=0;activations=[];uploads=0;submissions=0;failUpload=true;found=null;deleted=[];
- manifest={task:{id:7,title:'Sink task',status:'IN_PROGRESS',areaNameSnapshot:'Washroom'},staffSubmittedAt:null,sequentialChecks:true,pendingJobs:0,sessions:[],items:[{id:'item',nameSnapshot:'Sink 1',typeSnapshot:'SINK',mandatory:true,requirements:[{id:'required',mandatory:true,state:'MISSING',instructionsSnapshot:'Show basin, drain and tap.',decisionVersion:0}]}]};
+ manifest={photoChecking:{available:true},allowedActions:{createSession:true,renewSession:true,reworkSession:true,retakeSlots:true,upload:true},task:{id:7,title:'Sink task',status:'IN_PROGRESS',areaNameSnapshot:'Washroom'},staffSubmittedAt:null,sequentialChecks:true,pendingJobs:0,sessions:[],items:[{id:'item',nameSnapshot:'Sink 1',typeSnapshot:'SINK',mandatory:true,requirements:[{id:'required',mandatory:true,state:'MISSING',instructionsSnapshot:'Show basin, drain and tap.',decisionVersion:0}]}]};
  session={id:'session',taskInstanceId:7,state:'ACTIVE',serverTime:new Date(now).toISOString(),clientBootId:'boot',captureExpiresAt:new Date(now+600000).toISOString(),uploadExpiresAt:new Date(now+900000).toISOString(),sequentialChecks:true,requiredContextKeys:[],slots:[{id:'slot',requirementId:'required',nonce:'nonce',sequence:0,activatedAt:new Date(now).toISOString(),expiresAt:new Date(now+90000).toISOString()}]};
 }
 reset();
@@ -99,5 +99,22 @@ for(const [state,label] of [['CLEANING_REQUIRED','Clean items, then scan QR'],['
   r=await mount();await photograph(r);
   assert.ok(button(r,label));assert.equal(button(r,'Continue photos'),undefined);assert.equal(button(r,'Submit work'),undefined);assert.equal(resumes,0);
  }finally{globalThis.directUiMocks.api.uploadPhoto=original;if(r)await flush(()=>r.unmount());}
+});
+test('unqualified or missing photo capability never prompts camera or creates a session',async()=>{
+ for(const qualification of [false,undefined]){
+  reset();manifest.photoChecking=qualification===undefined?undefined:{available:false};let r;
+  try{r=await mount();assert.equal(button(r,'Scan QR to take photos'),undefined);assert.equal(r.root.findAllByType('CameraView').length,0);assert.ok(JSON.stringify(r.toJSON()).includes('Task photos are unavailable'));assert.ok(button(r,'Refresh results'));assert.equal(uploads,0);}
+  finally{if(r)await flush(()=>r.unmount());}
+ }
+});
+test('server receipt survives leaving and reloading and is not verification credit',async()=>{
+ reset();manifest.staffSubmittedAt='2026-10-21T09:00:00.000Z';manifest.photoChecking={available:false};let r;
+ try{r=await mount();assert.ok(JSON.stringify(r.toJSON()).includes('Submission receipt'));assert.ok(JSON.stringify(r.toJSON()).includes('Your work has been submitted. Your manager may still need to review it.'));assert.equal(button(r,'Submit work'),undefined);await flush(()=>r.unmount());r=await mount();assert.ok(JSON.stringify(r.toJSON()).includes('Submission receipt'));assert.equal(submissions,0);}
+ finally{if(r)await flush(()=>r.unmount());}
+});
+test('qualification changing during scanning closes camera without uploading',async()=>{
+ reset();let r;
+ try{r=await mount();await click(r,'Scan QR to take photos');manifest.photoChecking={available:false};await click(r,'Refresh results');assert.equal(r.root.findAllByType('CameraView').length,0);assert.equal(uploads,0);}
+ finally{if(r)await flush(()=>r.unmount());}
 });
 test.after(()=>{hook.deregister();globalThis.setInterval=originalInterval;globalThis.clearInterval=originalClear;rmSync(directory,{recursive:true,force:true});});

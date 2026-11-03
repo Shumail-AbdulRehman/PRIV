@@ -8,13 +8,14 @@ import { acknowledgePhoneAlert } from "./api";
 export const staffNavigation =
   createNavigationContainerRef<RootStackParamList>();
 export function NotificationNavigation({ ready }: { ready: boolean }) {
-  const { user, isBootstrapping } = useAuth(),
+  const { user, isBootstrapping, passwordChangeRequired } = useAuth(),
     { pending, consume } = useNotifications();
   useEffect(() => {
     if (
       !ready ||
       !staffNavigation.isReady() ||
       isBootstrapping ||
+      passwordChangeRequired ||
       !user ||
       !pending
     )
@@ -28,6 +29,6 @@ export function NotificationNavigation({ ready }: { ready: boolean }) {
     });
     void acknowledgePhoneAlert(pending.notificationId, `${user.companyId}_${user.id}`).catch(() => {});
     consume();
-  }, [ready, isBootstrapping, user, pending, consume]);
+  }, [ready, isBootstrapping, passwordChangeRequired, user, pending, consume]);
   return null;
 }

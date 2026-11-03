@@ -1,3 +1,4 @@
+import { requireLaunchPhotoQualification } from './launchQualification.js';
 import { randomUUID } from 'node:crypto';
 import { Prisma } from '@prisma/client';
 import { prisma } from '../../prisma/prisma.js';
@@ -59,6 +60,8 @@ export async function processDirectPhoto(actor: VerificationActor, attemptId: st
   }));
   if(claim.finished)return directPhotoStatus(actor,attemptId);
   try {
+    requireLaunchPhotoQualification(claim.attempt.requirement?.item.typeSnapshot ?? 'ROOM_CONTEXT',
+      (claim.attempt.requirement?.item.rubricSnapshot as {version?:number}|undefined)?.version ?? 1);
     const cached=claim.attempt.directAssessment as {assessment?:BufferedAssessment;evaluatorVersion?:string}|null;
     const evaluatorVersion=bufferedEvaluatorVersion();
     let assessment=cached?.evaluatorVersion===evaluatorVersion?cached.assessment:undefined;

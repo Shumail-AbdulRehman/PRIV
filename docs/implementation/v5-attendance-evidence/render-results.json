@@ -1,0 +1,34 @@
+[
+  {
+    "width": 1366,
+    "lang": "en",
+    "route": "/attendance",
+    "overflow": false,
+    "errors": [],
+    "source": "Actual API and synthetic SQL; original record and attributable note stay separate. Dialog preserves existing app entry vs reference full-page."
+  },
+  {
+    "width": 1366,
+    "lang": "ur",
+    "route": "/attendance",
+    "overflow": false,
+    "errors": [],
+    "source": "Actual API and synthetic SQL; original record and attributable note stay separate. Dialog preserves existing app entry vs reference full-page."
+  },
+  {
+    "width": 390,
+    "lang": "en",
+    "route": "/attendance",
+    "overflow": false,
+    "errors": [],
+    "source": "Actual API and synthetic SQL; original record and attributable note stay separate. Dialog preserves existing app entry vs reference full-page."
+  },
+  {
+    "width": 390,
+    "lang": "ur",
+    "route": "/attendance",
+    "overflow": false,
+    "errors": [],
+    "source": "Actual API and synthetic SQL; original record and attributable note stay separate. Dialog preserves existing app entry vs reference full-page."
+  }
+]

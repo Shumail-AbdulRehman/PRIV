@@ -1,3 +1,4 @@
+vi.mock('./launchJobs.service.js',()=>({jobAccountAllowed:vi.fn(async()=>true)}));
 import { beforeEach, afterEach, describe, expect, it, vi } from 'vitest';
 
 const m = vi.hoisted(() => ({

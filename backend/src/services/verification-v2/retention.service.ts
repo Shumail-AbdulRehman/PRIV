@@ -1,3 +1,4 @@
+import { deactivateWorkforce } from '../workforceLifecycle.service.js';
 import {prisma} from '../../prisma/prisma.js';
 import {ApiError} from '../../utils/ApiError.js';
 import {writeAuditLog} from '../auditLog.service.js';
@@ -13,20 +14,17 @@ export async function assertDeletionAllowed(tx:VerificationTransaction,entity:Re
  if(entity==='manager')retained=await tx.verificationDecision.count({where:{actorManagerId:id}})>0||await tx.areaStandardPhoto.count({where:{createdByManagerId:id}})>0||await tx.exceptionReadReceipt.count({where:{managerId:id}})>0;
  if(retained)throw new ApiError(409,'Verification history is retained. Archive or deactivate this record instead.',[{code:'EVIDENCE_RETAINED',archivePath:`/${entity==='taskTemplate'?'task-template':entity}/${id}/archive`}]);
 }
-export async function archiveRetainedEntity(entity:RetainedEntity,id:number,actor:VerificationActor) {
+export async function archiveRetainedEntity(entity:RetainedEntity,id:number,actor:VerificationActor, raw?:unknown) {
+ if(entity==='staff'||entity==='manager')return deactivateWorkforce(actor,entity,id,raw);
  requireOperationalRole(actor);await requireActiveActor(actor);
  if(entity==='taskTemplate')return deleteCleaningSchedule(id,actor);
- if((entity==='location'||entity==='manager')&&actor.role!=='ADMIN')throw new ApiError(403,'Admin account required');
+ if(entity==='location'&&actor.role!=='ADMIN')throw new ApiError(403,'Admin account required');
  return prisma.$transaction(async tx=>{
   let locationId:number|null=null;
   if(entity==='location'){const row=await tx.location.findFirst({where:{id,companyId:actor.companyId}});if(!row)throw new ApiError(404,'Location not found');locationId=row.id;}
-  if(entity==='staff'){const row=await tx.staff.findFirst({where:{id,companyId:actor.companyId}});if(!row)throw new ApiError(404,'Staff not found');locationId=row.locationId;if(locationId===null&&actor.role==='MANAGER')throw new ApiError(403,'Staff location access required');}
-  if(entity==='manager'){if(id===actor.id)throw new ApiError(400,'You cannot deactivate your own account');if(!await tx.manager.findFirst({where:{id,companyId:actor.companyId,role:'MANAGER'}}))throw new ApiError(404,'Manager not found');}
   if(locationId!==null)await requireLocationAccess(actor,locationId);
   if(entity==='location')await tx.location.update({where:{id},data:{isActive:false}});
-  if(entity==='staff')await tx.staff.update({where:{id},data:{isActive:false,refreshToken:null}});
-  if(entity==='manager')await tx.manager.update({where:{id},data:{isActive:false,refreshToken:null}});
-  if(entity==='location'||entity==='staff')await tx.captureSession.updateMany({where:{state:{in:['ACTIVE','PAUSED']},...(entity==='staff'?{staffId:id}:{task:{locationId:id}})},data:{state:'REVOKED',closedAt:new Date(),rowVersion:{increment:1}}});
+  if(entity==='location')await tx.captureSession.updateMany({where:{state:{in:['ACTIVE','PAUSED']},task:{locationId:id}},data:{state:'REVOKED',closedAt:new Date(),rowVersion:{increment:1}}});
   await writeAuditLog({companyId:actor.companyId,actorType:actor.role,actorId:actor.id,entityType:entity,entityId:id,action:'ARCHIVE',reason:'Preserve inventory verification history'},tx);
   return {id,isActive:false,evidenceRetained:true};
  });

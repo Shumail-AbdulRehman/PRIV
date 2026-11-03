@@ -8,7 +8,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import StatusBadge from "@/components/common/StatusBadge";
 import DataTable from "@/components/common/DataTable";
-import { useLanguage } from "@/i18n/context";
+import { useSetupFormText } from "./areaFormText";
 import OperationsState from "../Manager/OperationsState";
 import { useAreas } from "./queries";
 
@@ -17,7 +17,7 @@ export default function LocationAreasTab({
 }: {
   locationId: number;
 }) {
-  const { t } = useLanguage();
+  const t = useSetupFormText();
   const query = useAreas(locationId);
   const [params, setParams] = useSearchParams();
   const selectedId = Number(params.get('area'));
@@ -48,7 +48,7 @@ export default function LocationAreasTab({
             {t("Add an area once, then reuse it in cleaning schedules.")}
           </p>
         </div>
-        <Button onClick={() => edit()}><Plus size={16} />{t("Add area template")}</Button>
+        <Button type="button" onClick={() => edit()}><Plus size={16} />{t("Add area template")}</Button>
       </div>
       {(creating || editing) && <AreaTemplateForm key={creating ? 'new' : selectedId} locationId={locationId} areaId={creating ? undefined : selectedId} close={close} created={edit} />}
       <div className="ops-toolbar">
@@ -96,7 +96,7 @@ export default function LocationAreasTab({
                   <Layers size={18} />
                   <div>
                     <strong>{a.name}</strong>
-                    <p>{t(a.roomType.replaceAll("_", " ").toLowerCase())}</p>
+                    <p>{t(a.roomType === "WASHROOM" ? "Washroom" : a.roomType === "GENERAL" ? "General room" : a.roomType.replaceAll("_", " ").toLowerCase())}</p>
                   </div>
                 </div>
               ),
@@ -117,7 +117,7 @@ export default function LocationAreasTab({
               key: "action",
               header: "Action",
               render: (a) => (
-                <Button variant="outline" onClick={() => edit(a.id)} aria-label={t('Edit {name}', {name: a.name})}><Pencil size={14} />{t("Edit area")}</Button>
+                <Button type="button" variant="outline" onClick={() => edit(a.id)} aria-label={t('Edit {name}', {name: a.name})}><Pencil size={14} />{t("Edit area")}</Button>
               ),
             },
           ]}

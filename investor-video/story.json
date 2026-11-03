@@ -1,0 +1,50 @@
+{
+  "title": "Hygene Ops — Cleaning operations, connected.",
+  "duration": 90,
+  "width": 1920,
+  "height": 1080,
+  "fps": 30,
+  "voice": "en-GB-RyanNeural",
+  "scenes": [
+    {
+      "id": "opening", "start": 0, "end": 9, "voiceStart": 0.6,
+      "label": "Cleaning operations, connected",
+      "narration": "Hygene Ops connects your buildings, teams, and daily cleaning operations."
+    },
+    {
+      "id": "overview", "start": 9, "end": 21, "voiceStart": 9.15,
+      "label": "One centralized dashboard",
+      "narration": "With Hygene Ops, managers can oversee multiple locations, monitor staff attendance, and manage daily operations from one centralized dashboard."
+    },
+    {
+      "id": "pivot", "start": 21, "end": 25, "voiceStart": 21.2,
+      "label": "Configure once. Repeat automatically.",
+      "narration": "But here's where things get smarter."
+    },
+    {
+      "id": "automation", "start": 25, "end": 46, "voiceStart": 25.2,
+      "label": "Automatic task scheduling and assignment",
+      "narration": "Instead of manually assigning repetitive cleaning tasks every day, managers can configure recurring schedules, allowing Hygene Ops to automatically generate tasks for their teams."
+    },
+    {
+      "id": "mobile", "start": 46, "end": 59, "voiceStart": 46.2,
+      "label": "The assignment becomes action",
+      "narration": "Employees simply open the mobile app, view their assignments, complete their work, and submit photographic proof."
+    },
+    {
+      "id": "monitor", "start": 59, "end": 68, "voiceStart": 59.2,
+      "label": "See progress. Spot exceptions.",
+      "narration": "Managers can track progress and quickly identify missed or incomplete tasks."
+    },
+    {
+      "id": "planned", "start": 68, "end": 81, "voiceStart": 68.25,
+      "label": "Planned AI cleaning verification",
+      "narration": "Next, planned AI cleaning verification could help assess photographic evidence and reduce manual review requirements, with managers overseeing exceptions."
+    },
+    {
+      "id": "closing", "start": 81, "end": 90, "voiceStart": 81.3,
+      "label": "The cleaning operations platform",
+      "narration": "Hygene Ops. The connected platform for cleaning operations."
+    }
+  ]
+}

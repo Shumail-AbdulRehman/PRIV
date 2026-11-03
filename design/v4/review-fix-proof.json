@@ -1,0 +1,54 @@
+{
+  "en": {
+    "photoIdentity": [
+      "Floor",
+      "Basin",
+      "Toilet"
+    ],
+    "before": {
+      "backendStatus": "IN_PROGRESS",
+      "staffSubmittedAt": "10:12"
+    },
+    "after": {
+      "backendStatus": "IN_PROGRESS",
+      "staffSubmittedAt": "10:12",
+      "savedDecision": {
+        "action": "performance",
+        "staffName": "Adeel Raza",
+        "category": "MISSING_PHOTOS",
+        "note": "Demo: checked the required views with Adeel.",
+        "recordedAt": "10:30",
+        "managerName": "Hamza Khalid"
+      },
+      "reviewedAt": "10:30",
+      "time": "10:12"
+    },
+    "passed": true
+  },
+  "ur": {
+    "photoIdentity": [
+      "فرش",
+      "بیسن",
+      "ٹوائلٹ"
+    ],
+    "before": {
+      "backendStatus": "IN_PROGRESS",
+      "staffSubmittedAt": "10:12"
+    },
+    "after": {
+      "backendStatus": "IN_PROGRESS",
+      "staffSubmittedAt": "10:12",
+      "savedDecision": {
+        "action": "performance",
+        "staffName": "Adeel Raza",
+        "category": "MISSING_PHOTOS",
+        "note": "Demo: checked the required views with Adeel.",
+        "recordedAt": "10:30",
+        "managerName": "Hamza Khalid"
+      },
+      "reviewedAt": "10:30",
+      "time": "10:12"
+    },
+    "passed": true
+  }
+}

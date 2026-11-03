@@ -15,6 +15,7 @@ export async function runStartupCron(now = new Date()): Promise<void> {
         const eligibleStaff = await prisma.staff.findMany({
             where: {
                 isActive: true,
+                company: { isActive: true, operationalStatus: "ACTIVE" },
                 locationId: { not: null },
                 shiftStart: { not: null },
                 shiftEnd: { not: null },
@@ -32,34 +33,6 @@ export async function runStartupCron(now = new Date()): Promise<void> {
             },
         });
 
-        const attendanceToCreate = [];
-
-        for (const staff of eligibleStaff) {
-            if (!staff.location) continue;
-
-            const { date, expectedStart, expectedEnd } = resolveZonedAttendanceWindow({
-                baseDate: now,
-                shiftStart: staff.shiftStart!,
-                shiftEnd: staff.shiftEnd!,
-                timeZone: staff.location.timezone,
-            });
-
-            attendanceToCreate.push({
-                    staffId: staff.id,
-                    locationId: staff.locationId!,
-                    date,
-                    expectedStart,
-                    expectedEnd,
-                    status: "ABSENT" as const,
-            });
-        }
-
-        const { count: attendanceCreated } = attendanceToCreate.length
-            ? await prisma.attendance.createMany({
-                data: attendanceToCreate,
-                skipDuplicates: true,
-            })
-            : { count: 0 };
 
         for (const staff of eligibleStaff) {
             await syncTodaysOpenAttendanceWindow({
@@ -176,9 +149,9 @@ export async function runStartupCron(now = new Date()): Promise<void> {
 
         const assignmentsEnsured = await ensureAssignmentsForToday();
 
-        if (attendanceCreated > 0 || tasksCreated > 0) {
+        if (tasksCreated > 0) {
             console.log(
-                `Startup cron: created ${attendanceCreated} attendance record(s), ${tasksCreated} task instance(s), ensured ${assignmentsEnsured} assignment(s) for today.`
+                `Startup cron: prepared attendance windows and created ${tasksCreated} task instance(s), ensured ${assignmentsEnsured} assignment(s) for today.`
             );
         } else {
             console.log(`Startup cron: all today's records already exist; ensured ${assignmentsEnsured} assignment(s).`);

@@ -1,19 +1,22 @@
 import { z } from "zod";
 
-export const checkInSchema = z.object({
-    latitude: z.coerce.number({ message: "Latitude is required" }),
-    longitude: z.coerce.number({ message: "Longitude is required" }),
-    accuracy: z.coerce.number().min(0).optional(),
-});
-
+// Multipart coordinates are decimal strings; reject blank/null/boolean/array
+// coercions, which otherwise silently turn missing geography into zero.
+const numericCoordinate = z.union([
+  z.number(),
+  z.string().trim().min(1).regex(/^-?(?:\d+(?:\.\d*)?|\.\d+)(?:[eE][+-]?\d+)?$/),
+]).transform(Number);
+const geography = {
+  latitude: numericCoordinate.pipe(z.number().finite().min(-90).max(90)),
+  longitude: numericCoordinate.pipe(z.number().finite().min(-180).max(180)),
+  accuracy: numericCoordinate.pipe(z.number().finite().min(0).max(200, "Wait for location accuracy of 200 metres or better")).optional(),
+};
+export const checkInSchema = z.object(geography);
 export type CheckInInput = z.infer<typeof checkInSchema>;
-
 export const checkOutSchema = z.object({
-    latitude: z.coerce.number({ message: "Latitude is required" }),
-    longitude: z.coerce.number({ message: "Longitude is required" }),
-    accuracy: z.coerce.number().min(0).optional(),
+  ...geography,
+  attendanceId: numericCoordinate.pipe(z.number().int().positive()).optional(),
 });
-
 export type CheckOutInput = z.infer<typeof checkOutSchema>;
 
 export const assignShiftSchema = z.object({

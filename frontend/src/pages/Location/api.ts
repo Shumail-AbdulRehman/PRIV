@@ -1,8 +1,11 @@
 import { client } from "../../api/client.js";
 import type { CreateLocationInput } from "./types.js";
 
-export const getLocations = async () => {
-  const res = await client.get("/location/");
+export const getLocations = async (includeInactive = false, signal?: AbortSignal) => {
+  const res = await client.get("/location/", {
+    params: includeInactive ? { includeInactive: true } : undefined,
+    signal,
+  });
   return res.data;
 };
 

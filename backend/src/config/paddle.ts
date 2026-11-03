@@ -27,5 +27,35 @@ export const getPaddleClient = () => {
   return paddleClient;
 };
 
-export const getPaddleWebhookSecret = () =>
-  requireEnvironmentVariable("PADDLE_WEBHOOK_SECRET");
+export const getPaddleWebhookSecret = () => {
+  const secret = requireEnvironmentVariable("PADDLE_WEBHOOK_SECRET");
+  if (secret.length < 32 || /changeme|placeholder|your[_-]|example/i.test(secret)) throw new Error('Billing webhook verification is unavailable');
+  return secret;
+};
+
+// Environment-owned catalog only. Never infer a price or enable a trial locally.
+export type PaddleCatalogEntry = { plan: 'STARTER' | 'PRO' | 'ADVANCED'; interval: 'month' | 'year'; priceId: string };
+export function getPaddleCatalog(env: NodeJS.ProcessEnv = process.env): PaddleCatalogEntry[] {
+  if (!['sandbox', 'production'].includes(env.PADDLE_ENVIRONMENT ?? '')) throw new Error('Billing environment is unavailable');
+  let input: unknown;
+  try { input = JSON.parse(env.PADDLE_PRICE_CATALOG_JSON ?? 'null'); } catch { throw new Error('Billing catalog is unavailable'); }
+  if (!Array.isArray(input) || input.length < 1 || input.length > 6) throw new Error('Billing catalog is unavailable');
+  const seenPrices = new Set<string>(), seenPlans = new Set<string>();
+  return input.map(value => {
+    if (!value || typeof value !== 'object' || Array.isArray(value) || Object.keys(value).some(key => !['plan', 'interval', 'priceId'].includes(key)) ||
+      !['STARTER', 'PRO', 'ADVANCED'].includes(value.plan) || !['month', 'year'].includes(value.interval) ||
+      typeof value.priceId !== 'string' || !/^pri_[a-z0-9]{26}$/.test(value.priceId) ||
+      seenPrices.has(value.priceId) || seenPlans.has(`${value.plan}:${value.interval}`)) throw new Error('Billing catalog is unavailable');
+    seenPrices.add(value.priceId); seenPlans.add(`${value.plan}:${value.interval}`);
+    return { plan: value.plan, interval: value.interval, priceId: value.priceId };
+  });
+}
+export function configuredPlanForPrice(priceId: string) {
+  try { return getPaddleCatalog().find(entry => entry.priceId === priceId)?.plan; } catch { return undefined; }
+}
+export function requireBillingActivation() {
+  if (process.env.PADDLE_BILLING_ENABLED !== 'true') throw new Error('Billing is not activated');
+  getPaddleEnvironment(); getPaddleCatalog();
+  const apiKey = requireEnvironmentVariable('PADDLE_API_KEY');
+  if (apiKey.length < 32 || /changeme|placeholder|your[_-]|example/i.test(apiKey)) throw new Error('Billing credentials are unavailable');
+}

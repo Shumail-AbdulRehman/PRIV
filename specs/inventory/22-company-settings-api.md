@@ -1,0 +1,7 @@
+# Spec22 reuse inventory
+
+- `backend/src/services/companySettings.service.ts`: `getCompanySettings(actor)` and `updateCompanySettings(actor,{name,expectedVersion})`; exact persisted active ADMIN/company check and existing READ_OPERATIONAL policy. Active unentitled owners can rename; suspended/inactive company settings denied. No company ID accepted from path/body, no provider calls.
+- Reuses `companyRegistrationSchema.shape.companyName`: trimmed2–160 characters, Unicode/Urdu accepted. No approved verified Company contact columns exist, so only name is editable. Owner email/recovery remain16/30; no speculative schema or unverified contact mutation.
+- DTO `{id,name,accountVersion,updatedAt}`, save `{company,changed}`. Shared accountVersion guard/increment under company-first lock; stale409, same-name/current-version no-op, audit failure rolls back. Settings and platform status invalidate each other's stale drafts safely. Audit COMPANY_SETTINGS/COMPANY_NAME_UPDATED has tenant ADMIN actor, before/after name/version and DB timestamp.
+- `backend/src/routes/companySettings.route.ts`: tenant JWT + ADMIN only, denies operator context, private/no-store; GET/PATCH `/`. Mount at `/api/company/settings` in26; consumed by account UI30. Router intentionally unmounted until composition26.
+- `backend/tests/companySettings.integration.ts`: guarded COMPANY_SETTINGS_TEST_DATABASE_URL for real owner/tenant denial, concurrent rename/status conflict and audit rollback. Never load .env to choose target or use production data. No new dependency or migration.

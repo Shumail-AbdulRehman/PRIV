@@ -4,7 +4,7 @@ type PrismaClientLike = Pick<typeof prisma, "auditLog">;
 
 type AuditLogInput = {
   companyId?: number | null;
-  actorType: "SYSTEM" | "ADMIN" | "MANAGER" | "STAFF";
+  actorType: "SYSTEM" | "ADMIN" | "MANAGER" | "STAFF" | "PLATFORM_OPERATOR";
   actorId?: number | null;
   entityType: string;
   entityId: number;

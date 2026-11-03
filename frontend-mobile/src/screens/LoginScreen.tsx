@@ -1,3 +1,5 @@
+import { LaunchRecovery } from "../launch/LaunchRecovery";
+import { useLanguage } from "../i18n/LanguageProvider";
 import { LanguageChoice } from "../components/LanguageChoice";
 import { useEffect, useState } from "react";
 import {
@@ -21,6 +23,9 @@ import { Card, CardContent } from "../components/ui/card";
 
 export function LoginScreen() {
   const { login } = useAuth();
+  const { t } = useLanguage();
+  const [handoff, setHandoff] = useState(false);
+  const [recovered, setRecovered] = useState(false);
   const insets = useSafeAreaInsets();
   const [keyboardHeight, setKeyboardHeight] = useState(0);
   useEffect(() => {
@@ -134,7 +139,8 @@ export function LoginScreen() {
           </Text>
         </View>
 
-        <Card>
+        {recovered ? <Text accessibilityLiveRegion="polite" className="text-base font-semibold">{t('Password replaced. Sign in with your new password.')}</Text> : null}
+        {handoff ? <LaunchRecovery handoff onCancel={() => setHandoff(false)} onComplete={() => {setPassword('');setHandoff(false);setRecovered(true);}} /> : <Card>
           <CardContent className="gap-4 p-5">
             <View className="gap-1.5">
               <Text className="text-sm font-medium text-foreground">Email</Text>
@@ -176,6 +182,8 @@ export function LoginScreen() {
               <Text className="text-sm text-destructive">{lastError}</Text>
             ) : null}
 
+            <Button variant="outline" disabled={loading} onPress={() => {setPassword('');setHandoff(true);}}>{t('Use manager access code')}</Button>
+            <Text className="text-base text-muted-foreground">{t('Forgot your password? Ask your assigned manager for a one-use access code.')}</Text>
             <Button
               variant="ghost"
               onPress={() => setShowServerSettings((value) => !value)}
@@ -237,7 +245,7 @@ export function LoginScreen() {
               </View>
             ) : null}
           </CardContent>
-        </Card>
+        </Card>}
       </ScrollView>
     </KeyboardAvoidingView>
   );

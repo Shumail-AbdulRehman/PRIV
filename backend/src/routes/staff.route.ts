@@ -1,3 +1,5 @@
+import { accountAccess } from '../middlewares/accountAccess.middleware.js';
+import { getStaffSelfProfile } from "../controllers/staffSelf.controller.js";
 import { Router } from "express";
 import {
   loginStaff,
@@ -6,7 +8,6 @@ import {
   deleteStaff,
   getStaffById,
   getStaffByLocation,
-  getProfile,
   editStaff,
   getStaffDetails,
 } from "../controllers/staff.controller.js";
@@ -24,7 +25,7 @@ router.post(
 );
 
 router.get("/", verifyJwt, authorize("ADMIN", "MANAGER"), getStaff);
-router.get("/profile/me", verifyJwt, getProfile);
+router.get("/profile/me", verifyJwt, authorize("STAFF"), getStaffSelfProfile);
 router.get(
   "/details/:id",
   verifyJwt,
@@ -39,7 +40,7 @@ router.get(
 );
 
 router.get("/:id", verifyJwt, authorize("ADMIN", "MANAGER"), getStaffById);
-router.delete("/:id", verifyJwt, authorize("ADMIN", "MANAGER"), deleteStaff);
-router.patch("/:id", verifyJwt, authorize("ADMIN", "MANAGER"), editStaff);
+router.delete("/:id", verifyJwt, authorize("ADMIN", "MANAGER"), accountAccess('MANAGE_WORK'), deleteStaff);
+router.patch("/:id", verifyJwt, authorize("ADMIN", "MANAGER"), accountAccess('MANAGE_WORK'), editStaff);
 
 export default router;

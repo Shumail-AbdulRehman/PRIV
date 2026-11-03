@@ -1,0 +1,3 @@
+/* animate: feedback only; existing v4 motion retained in inherited views. */
+@media(hover:hover) and (pointer:fine){.btn{transition:transform 120ms var(--ease-out),background-color 120ms ease}.btn:active{transform:scale(.985)}.btn:focus-visible:active{transform:none}}
+@media(prefers-reduced-motion:reduce){.btn{transition:none!important;transform:none!important}}

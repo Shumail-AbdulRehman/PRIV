@@ -1,0 +1,15 @@
+{
+  "seed": 1804,
+  "hero": "Editorial split",
+  "font": "Outfit",
+  "componentIdeas": [
+    "Marquee",
+    "Carousel",
+    "Inline images"
+  ],
+  "motionIdeas": [
+    "Scrubbing",
+    "Scale/fade"
+  ],
+  "overrides": "User-pinned enterprise blue/white, compact operations layout, Inter permitted; restrained motion, no marketing hero/AIDA/GSAP."
+}

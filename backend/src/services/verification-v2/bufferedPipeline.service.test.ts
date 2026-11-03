@@ -1,3 +1,5 @@
+import { requireLaunchPhotoQualification } from './launchQualification.js';
+vi.mock('./launchQualification.js',()=>({requireLaunchPhotoQualification:vi.fn()}));
 import { beforeEach, expect, it, vi } from 'vitest';
 vi.mock('../../prisma/prisma.js', () => ({ prisma: { verificationAttempt: { findUniqueOrThrow: vi.fn() }, verificationJob: { findFirst: vi.fn(), updateMany: vi.fn() } } }));
 vi.mock('./pipeline.service.js', () => ({ applyDecision: vi.fn() }));
@@ -16,7 +18,7 @@ function assessment(verdict: 'CLEAN' | 'DIRTY' | 'CANNOT_ASSESS' = 'CLEAN', orig
 }
 let tx: any;
 beforeEach(() => {
-  vi.clearAllMocks();
+  vi.clearAllMocks();vi.mocked(requireLaunchPhotoQualification).mockReset();
   vi.mocked(prisma.verificationAttempt.findUniqueOrThrow).mockResolvedValue({ id: 'attempt', committedHash: 'hash', session: { taskInstanceId: 7 }, media: { id: 'asset', companyId: 1, deliveryType: 'authenticated', privacyState: 'BUFFERED', originalPublicId: 'verification/1/attempts/attempt/original' }, qualityResult: { acceptable: true }, requirement: { viewKey: 'basin_tap', item: { typeSnapshot: 'SINK', rubricSnapshot: { version: 1 } } } } as any);
   vi.mocked(prisma.verificationJob.findFirst).mockResolvedValue({ id: 'job' } as any);
   vi.mocked(prisma.verificationJob.updateMany).mockResolvedValue({ count: 1 });
@@ -68,4 +70,12 @@ it('lost publication retains the temporary buffer', async () => {
 it('known visible dirt takes precedence over an uncertain origin and never enters storage', () => {
   expect(bufferedDecision(assessment('DIRTY', 'UNCERTAIN'), false)).toMatchObject({ state: 'CLEANING_REQUIRED', keep: false });
   expect(bufferedDecision(assessment('CLEAN'), false)).toMatchObject({ state: 'REVIEW_REQUIRED', keep: true });
+});
+
+it('real active qualification blocks buffered replay including a cached approval, before reading or storing bytes',async()=>{
+ const actual=await vi.importActual<typeof import('./launchQualification.js')>('./launchQualification.js');
+ vi.mocked(requireLaunchPhotoQualification).mockImplementation(actual.requireLaunchPhotoQualification);
+ const storage=io(),provider={evaluate:vi.fn(async()=>assessment())};
+ await expect(processBufferedPhoto({...job(),result:{decision:{state:'PASSED',reason:'CLEAN',keep:true}}},provider,storage)).rejects.toMatchObject({statusCode:503});
+ expect(storage.read).not.toHaveBeenCalled();expect(storage.store).not.toHaveBeenCalled();expect(storage.remove).not.toHaveBeenCalled();expect(provider.evaluate).not.toHaveBeenCalled();expect(publishJobResult).not.toHaveBeenCalled();
 });

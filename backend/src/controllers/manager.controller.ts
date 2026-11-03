@@ -1,9 +1,9 @@
-import { permanentlyDelete } from "../services/deletion.service.js";
+import { withAccountCapacity, assertAccountAction } from '../services/accountAccess.service.js';
+import { deactivateWorkforce } from '../services/workforceLifecycle.service.js';
 import { managerTaskPresentation } from "../services/verification-v2/sequentialPolicy.js";
 import { Request, Response } from "express";
 import jwt from "jsonwebtoken";
 import {
-    managerSignupSchema,
     managerLoginSchema,
     createManagerSchema,
     updateManagerSchema,
@@ -17,79 +17,13 @@ import { getScopedLocationIds, assertLocationAccess } from "../utils/scope.js";
 import { generateAccessToken, generateRefreshToken, isPasswordCorrect } from "../utils/auth.js";
 import { TokenPayload } from "../types/jwt.js";
 import { getCookieOptions } from "../utils/cookies.js";
-import { assertCompanyCanAdd } from "../services/subscription.service.js";
 
 const TASK_START_GRACE_MINUTES = 5;
 
 
 
 
-export const signupManager = async (req: Request, res: Response) => {
-
-    const result = managerSignupSchema.safeParse(req.body);
-
-    if (!result.success) {
-        const errors = result.error.issues.map(e => ({
-            field: e.path.join("."),
-            message: e.message
-        }));
-        throw new ApiError(400, "Validation failed", errors);
-    }
-
-    const { name, email, password, companyName } = result.data;
-
-    const existingManager = await prisma.manager.findUnique({
-        where: { email }
-    });
-
-    if (existingManager) {
-        throw new ApiError(409, "Manager with this email already exists");
-    }
-
-
-
-    const company = await prisma.company.create({
-        data: { name: companyName }
-    });
-
-    const manager = await prisma.manager.create({
-        data: {
-            name,
-            email,
-            password,
-            role: "ADMIN",
-            companyId: company.id
-        }
-    });
-
-    const accessToken = generateAccessToken(manager, manager.role);
-    const refreshToken = generateRefreshToken(manager, manager.role);
-
-    await prisma.manager.update({
-        where: { id: manager.id },
-        data: { refreshToken }
-    });
-
-    const cookieOptions = getCookieOptions();
-
-    res
-        .status(201)
-        .cookie("accessToken", accessToken, cookieOptions)
-        .cookie("refreshToken", refreshToken, cookieOptions)
-        .json(
-            new ApiResponse(
-                201,
-                {
-                    id: manager.id,
-                    name: manager.name,
-                    email: manager.email,
-                    role: manager.role,
-                    companyId: manager.companyId
-                },
-                "Manager registered successfully"
-            )
-        );
-};
+export { signupCompany as signupManager } from "./companyRegistration.controller.js";
 
 export const loginManager = async (req: Request, res: Response) => {
 
@@ -498,8 +432,6 @@ export const createManager = async (req: Request, res: Response) => {
     const { name, email, password, locationIds } = result.data;
     const companyId = req.user!.companyId;
 
-    await assertCompanyCanAdd(companyId, "managers");
-
     const existingManager = await prisma.manager.findUnique({
         where: { email }
     });
@@ -532,7 +464,7 @@ export const createManager = async (req: Request, res: Response) => {
         throw new ApiError(409, `These locations are already assigned to another manager: ${conflicts.join(", ")}`);
     }
 
-    const manager = await prisma.$transaction(async (tx) => {
+    const manager = await withAccountCapacity(req.user!, 'managers', async (tx) => {
         const created = await tx.manager.create({
             data: {
                 name,
@@ -605,6 +537,7 @@ export const getManagers = async (req: Request, res: Response) => {
 };
 
 export const updateManager = async (req: Request, res: Response) => {
+    await assertAccountAction(req.user!, "MANAGE_WORK");
 
     const managerId = Number(req.params.id);
 
@@ -624,6 +557,7 @@ export const updateManager = async (req: Request, res: Response) => {
 
     const { name, email, password, locationIds } = result.data;
     const companyId = req.user!.companyId;
+    if (password !== undefined) throw new ApiError(400, 'Use your own password security settings. Manager password reset by another account is unavailable.');
 
     const target = await prisma.manager.findFirst({
         where: { id: managerId, companyId, role: "MANAGER" },
@@ -676,6 +610,8 @@ export const updateManager = async (req: Request, res: Response) => {
                 ...(name !== undefined ? { name } : {}),
                 ...(email !== undefined ? { email } : {}),
                 ...(password !== undefined ? { password } : {}),
+                ...(password !== undefined || (email !== undefined && email !== target.email) || uniqueLocationIds !== undefined
+                    ? { credentialVersion: { increment: 1 }, refreshToken: null } : {}),
             },
         });
 
@@ -706,6 +642,7 @@ export const updateManager = async (req: Request, res: Response) => {
 };
 
 export const deleteManager = async (req: Request, res: Response) => {
-  await permanentlyDelete("manager", Number(req.params.id), req.user!);
-  res.status(200).json(new ApiResponse(200, {}, "Manager deleted permanently"));
+  await assertAccountAction(req.user!, "MANAGE_WORK");
+  const result = await deactivateWorkforce(req.user!, "manager", Number(req.params.id), req.body);
+  res.status(200).json(new ApiResponse(200, result, "Manager deactivated; history preserved"));
 };

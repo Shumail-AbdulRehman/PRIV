@@ -1,0 +1,9 @@
+[Unit]
+Description=HygeneOps V5 matching-checkout local backend
+Requires=hygeneops-local-postgresql.service
+After=hygeneops-local-postgresql.service
+
+[Service]
+WorkingDirectory=%h/.local/share/hygene-ops/local-development
+ExecStart=
+ExecStart=@NODE@ @ROOT@/scripts/local-development.mjs backend

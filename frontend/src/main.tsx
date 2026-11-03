@@ -1,4 +1,9 @@
-import { ExceptionInboxPage, ExceptionDetailPage, VerificationHistoryPage, AreaSetupPage, AreaDetailPage, LocationsPage, LocationDetailPage, DashboardPage, StaffPage, StaffDetailPage, AttendancePage, TodayStatusPage, ManagersPage, SubscriptionPage } from "./routes/workspacePages";
+import HelpPage, { ServiceInformationPage } from './pages/Help/HelpPage';
+import './pages/Account/linkToken';
+import { OwnSecurityPage, OwnerRecoveryPage, OwnerLinkPage } from './pages/Account/AccountPages';
+import { WorkspaceAudience, WorkspaceRouteError } from "./routes/launchPages";
+import { platformRoutes } from "./pages/Platform/platformRoutes";
+import { workspaceRoutes } from "./routes/workspaceRoutes";
 import '@fontsource/noto-sans-arabic/arabic-400.css';
 import '@fontsource/noto-sans-arabic/arabic-600.css';
 import { LanguageProvider } from './i18n/LanguageProvider';
@@ -19,7 +24,6 @@ import FeaturesPage from './pages/Landing/FeaturesPage.tsx';
 import PricingPage from './pages/Pricing/PricingPage.tsx';
 import WelcomePage from './pages/Pricing/WelcomePage.tsx';
 import ChoosePlanPage from './pages/Pricing/ChoosePlanPage.tsx';
-import WorkspaceGate from './components/onboarding/WorkspaceGate.tsx';
 
 const queryClient = new QueryClient({
   defaultOptions: {
@@ -34,10 +38,18 @@ const queryClient = new QueryClient({
 });
 
 const router = createBrowserRouter([
+  ...platformRoutes,
+  { path: '/help', element: <HelpPage /> },
+  { path: '/service-information', element: <ServiceInformationPage /> },
   {
     path: '/',
     element: <App />,
+    errorElement: <WorkspaceRouteError />,
     children: [
+      { path: 'account/security', element: <OwnSecurityPage /> },
+      { path: 'recover-owner-account', element: <OwnerRecoveryPage /> },
+      { path: 'verify-owner-email', element: <OwnerLinkPage kind="verify" /> },
+      { path: 'reset-owner-password', element: <OwnerLinkPage kind="reset" /> },
       {
         element: <PublicLayout />,
         children: [
@@ -67,39 +79,10 @@ const router = createBrowserRouter([
       {
         element: (
           <ProtectedRoute>
-            <WorkspaceGate><DashboardLayout /></WorkspaceGate>
+            <WorkspaceAudience><DashboardLayout /></WorkspaceAudience>
           </ProtectedRoute>
         ),
-        children: [
-          {path:'exceptions',element:<RequireRole roles={['ADMIN','MANAGER']}><ExceptionInboxPage/></RequireRole>},
-          {path:'exceptions/:id',element:<RequireRole roles={['ADMIN','MANAGER']}><ExceptionDetailPage/></RequireRole>},
-          {path:'verification/:id',element:<RequireRole roles={['ADMIN','MANAGER']}><VerificationHistoryPage/></RequireRole>},
-          { path: 'dashboard', element: <DashboardPage /> },
-          { path: 'today-status', element: <TodayStatusPage /> },
-          { path: 'locations', element: <LocationsPage /> },
-          { path: 'locations/:locationId/areas/new', element: <RequireRole roles={['ADMIN', 'MANAGER']}><AreaSetupPage /></RequireRole> },
-          { path: 'areas/:id', element: <RequireRole roles={['ADMIN', 'MANAGER']}><AreaDetailPage /></RequireRole> },
-          { path: 'locations/:id', element: <LocationDetailPage /> },
-          { path: 'staff', element: <StaffPage /> },
-          { path: 'staff/:id', element: <StaffDetailPage /> },
-          { path: 'attendance', element: <AttendancePage /> },
-          {
-            path: 'subscription',
-            element: (
-              <RequireRole roles={['ADMIN', 'MANAGER']}>
-                <SubscriptionPage />
-              </RequireRole>
-            ),
-          },
-          {
-            path: 'managers',
-            element: (
-              <RequireRole roles={['ADMIN']}>
-                <ManagersPage />
-              </RequireRole>
-            ),
-          },
-        ],
+        children: workspaceRoutes,
       },
     ],
   },

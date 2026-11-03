@@ -38,3 +38,5 @@ export const ManagersPage = lazy(
 export const SubscriptionPage = lazy(
   () => import("../pages/Subscription/SubscriptionPage.tsx"),
 );
+
+export const SetupPage = lazy(() => import('../pages/Setup/SetupPage'));

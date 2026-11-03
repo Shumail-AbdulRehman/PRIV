@@ -10,6 +10,7 @@ cron.schedule("7-59/15 * * * *", async () => {
 
     const missedTaskIds = await prisma.taskInstance.findMany({
       where: {
+        location: {company:{isActive:true,operationalStatus:"ACTIVE"}},
         shiftEnd: { lt: now },
         status: "PENDING",
         verificationVersion: 1,
@@ -20,6 +21,7 @@ cron.schedule("7-59/15 * * * *", async () => {
 
     const missedTasks = await prisma.taskInstance.updateMany({
       where: {
+        location: {company:{isActive:true,operationalStatus:"ACTIVE"}},
         id: { in: missedTaskIds.map((task) => task.id) },
       },
       data: {
@@ -36,6 +38,7 @@ cron.schedule("7-59/15 * * * *", async () => {
     
     const incompleteTaskIds = await prisma.taskInstance.findMany({
       where: {
+        location: {company:{isActive:true,operationalStatus:"ACTIVE"}},
         shiftEnd: { lt: now },
         status: "IN_PROGRESS",
         completedAt: null,
@@ -47,6 +50,7 @@ cron.schedule("7-59/15 * * * *", async () => {
 
     const incompleteTasks = await prisma.taskInstance.updateMany({
       where: {
+        location: {company:{isActive:true,operationalStatus:"ACTIVE"}},
         id: { in: incompleteTaskIds.map((task) => task.id) },
       },
       data: {

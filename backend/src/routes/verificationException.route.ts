@@ -1,3 +1,5 @@
+import { reviewReplacementContext } from '../services/verification-v2/launchReviewContext.js';
+import { accountAccess } from '../middlewares/accountAccess.middleware.js';
 import {closeReview, reviewClosureActions} from '../services/verification-v2/reviewClosure.service.js';
 import { reviewEvidenceSummary } from '../services/verification-v2/reviewEvidenceSummary.js';
 import { reviewableMedia } from "../services/verification-v2/evidenceBuffer.js";
@@ -44,7 +46,7 @@ router.post("/task-instance/:taskId/verification-issues", async (req) => {
  await requireTaskAccess(req.user!,idSchema.parse(req.params.taskId),{staffMutation:true});
  throw new ApiError(410,"Complete and upload all required photos. Staff exception requests are no longer available.",[{code:'REQUIRED_PHOTOS_ONLY'}]);
 });
-router.post('/verification-exceptions/:id/close', async(req,res) => {
+router.post('/verification-exceptions/:id/close', accountAccess('MANAGE_WORK'), async(req,res) => {
   res.json({success:true,data:await closeReview(req.user!,idSchema.parse(req.params.id),req.body)});
 });
 router.get("/verification-exceptions/:id/next", async (req, res) =>
@@ -317,6 +319,7 @@ router.get("/verification-exceptions/:id", async (req, res) => {
               startedAt: true,
               staffSubmittedAt: true,
               assignmentEpoch: true,
+              staffId: true,
               shiftStart: true,
               areaId: true,
               policySnapshot: true,
@@ -442,8 +445,9 @@ router.get("/verification-exceptions/:id", async (req, res) => {
       },
       session: { taskInstanceId: c.taskInstanceId ?? -1 },
     },
-    include: { media: { select: { privacyState: true } } },
+    include: { media: { select: { privacyState: true } }, slot: { select: { generation: true } }, session: {select:{id:true,taskInstanceId:true,staffId:true,assignmentId:true,assignmentEpoch:true,captureExpiresAt:true,uploadExpiresAt:true,state:true}} },
   });
+  const currentAssignment = task?.staffId ? await prisma.taskAssignment.findFirst({where:{taskInstanceId:task.id,staffId:task.staffId,isCurrent:true},select:{id:true}}) : null;
   const serverTime = new Date();
   const captureAvailable =
     mutable &&
@@ -585,6 +589,11 @@ router.get("/verification-exceptions/:id", async (req, res) => {
           );
           return {
             ...r,
+            replacement: reviewReplacementContext(task && task.staffId && currentAttempt ? {
+              task, staffId: task.staffId, now: serverTime, session: currentAttempt.session,
+              requirement: {...r, item: {mandatory:item.mandatory}}, attempt: currentAttempt,
+              expectedGeneration: r.decisionVersion, cleaning: r.state === "CLEANING_REQUIRED",
+            } : null, item.typeSnapshot, currentAssignment?.id ?? null),
             currentAttempt: currentAttempt
               ? {
                   id: currentAttempt.id,
@@ -623,7 +632,7 @@ router.get("/verification-exceptions/:id", async (req, res) => {
     },
   });
 });
-router.post("/verification-exceptions/:id/actions", async (req, res) =>
+router.post("/verification-exceptions/:id/actions", accountAccess('MANAGE_WORK'), async (req, res) =>
   res.json({
     success: true,
     data: await managerDecision(
@@ -633,7 +642,7 @@ router.post("/verification-exceptions/:id/actions", async (req, res) =>
     ),
   }),
 );
-router.post("/verification-exceptions/:id/read", async (req, res) => {
+router.post("/verification-exceptions/:id/read", accountAccess('MANAGE_WORK'), async (req, res) => {
   const receipt = await prisma.$transaction(async (tx) => {
     const id = idSchema.parse(req.params.id);
     await caseAccess(req.user!, id, tx);

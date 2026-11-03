@@ -1,0 +1,15 @@
+[Unit]
+Description=HygeneOps existing local development PostgreSQL
+
+[Service]
+Type=simple
+WorkingDirectory=%h/.local/share/hygene-ops/local-development
+ExecStart=@NODE@ @ROOT@/scripts/local-development.mjs database
+ExecStartPost=@NODE@ @ROOT@/scripts/local-development.mjs database-ready
+KillSignal=SIGINT
+TimeoutStopSec=45
+Restart=on-failure
+RestartSec=5
+
+[Install]
+WantedBy=default.target

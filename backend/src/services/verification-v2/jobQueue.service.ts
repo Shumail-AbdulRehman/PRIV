@@ -1,3 +1,4 @@
+import { jobAccountAllowed } from '../launchJobs.service.js';
 import {jobTiming,verificationEvent} from './latency.js';
 import {raiseIssue} from './exception.service.js';
 import {finalizeTask} from './completion.service.js';
@@ -22,7 +23,8 @@ export async function claimVerificationJob():Promise<VerificationJob|null> {
   const jobs=await tx.$queryRaw<VerificationJob[]>`
    WITH candidate AS (
     SELECT j.id FROM "VerificationJob" j
-    WHERE ((j.state IN ('PENDING','RETRY_WAIT') AND j."availableAt"<=NOW())
+    WHERE EXISTS (SELECT 1 FROM "Company" c WHERE c.id=j."companyId" AND c."isActive" AND c."operationalStatus"='ACTIVE')
+     AND ((j.state IN ('PENDING','RETRY_WAIT') AND j."availableAt"<=NOW())
       OR (j.state='RUNNING' AND j."leaseUntil"<=NOW()))
      AND (SELECT count(*) FROM "VerificationJob" WHERE state='RUNNING' AND "leaseUntil">NOW())<4
      AND (SELECT count(*) FROM "VerificationJob" busy WHERE busy."companyId"=j."companyId" AND busy.state='RUNNING' AND busy."leaseUntil">NOW())<2
@@ -44,6 +46,7 @@ export async function publishJobResult(job:VerificationJob,result:Prisma.InputJs
  const structured=result&&typeof result==='object'&&!Array.isArray(result)?result:{};
  const finalResult={...structured,timing:{...jobTiming(job.result),...jobTiming(result),publishedAt:new Date().toISOString()}};
  return prisma.$transaction(async tx=>{
+  if(!await jobAccountAllowed(job.companyId,'READ_OPERATIONAL',tx))return false;
   const updated=await tx.verificationJob.updateMany({where:{id:job.id,state:'RUNNING',leaseToken:job.leaseToken,leaseUntil:{gt:new Date()}},data:{state:'SUCCEEDED',result:finalResult,finishedAt:new Date(),leaseUntil:null,leaseToken:null}});
   if(!updated.count)return false;
   if(apply)await apply(tx);
@@ -56,6 +59,7 @@ export async function failVerificationJob(job:VerificationJob,code='SERVICE_FAIL
  verificationEvent('JOB_FAILURE',{attemptId:job.attemptId,jobId:job.id,stage:job.stage},{code,claimCount:job.attempts,exhausted});
  const delay=RETRY_DELAYS_MS[Math.min(job.attempts-1,RETRY_DELAYS_MS.length-1)]!;
  return prisma.$transaction(async tx=>{
+  if(!await jobAccountAllowed(job.companyId,'READ_OPERATIONAL',tx))return false;
   const preserved=job.stage==='PHOTO'?(await tx.verificationJob.findUnique({where:{id:job.id},select:{result:true}}))?.result:job.result;
   const changed=await tx.verificationJob.updateMany({where:{id:job.id,state:'RUNNING',leaseToken:job.leaseToken,leaseUntil:{gt:new Date()}},data:{state:exhausted?'FAILED':'RETRY_WAIT',lastErrorCode:code,result:JSON.parse(JSON.stringify({...(preserved as object ?? {}),...metadata,timing:jobTiming(job.result),retryCount:Math.max(0,job.attempts-1),lastErrorCode:code})) as Prisma.InputJsonValue,availableAt:new Date(Date.now()+delay*(.9+.2*random())),finishedAt:exhausted?new Date():null,leaseUntil:null,leaseToken:null}});
   if(changed.count&&exhausted){

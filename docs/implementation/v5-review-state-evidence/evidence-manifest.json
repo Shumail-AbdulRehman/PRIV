@@ -1,0 +1,494 @@
+{
+  "sourceRevision": "10fb4a4",
+  "scope": "Spec36 recorded review states; Spec40 managed browser harness",
+  "referenceHashes": {
+    "design/v5/reviews.html": "9933b58d119194d3c619ccfbf0189b518ea13f529f0017dbb2db090844e7fe2e",
+    "design/v5/app.js": "e0601aa429d0ad63106cdb258434913dd306d6b505f8097ef0771e862dbe5424",
+    "design/v5/style.css": "30e51a84e7cec61b7c5779b655ef7381221650ea4e00875e8c0fee95a1f658d2",
+    "design/v5/motion.css": "182818709f8b768af0f2d171df24bcc4812bc7c393e4fbea2e7a6da60eb36adb"
+  },
+  "images": [
+    {
+      "file": "app-closed-1366-en.png",
+      "width": 1366,
+      "height": 2009,
+      "viewport": {
+        "width": 1366,
+        "height": 900
+      },
+      "sha256": "96bbb11534033ead869cbda13f1494505d9a352cca64f0a34da6afa7a030748c",
+      "source": "actual built React application",
+      "fullPage": true
+    },
+    {
+      "file": "app-closed-1366-ur.png",
+      "width": 1366,
+      "height": 2066,
+      "viewport": {
+        "width": 1366,
+        "height": 900
+      },
+      "sha256": "ec4e7c30a8d25ff664206e7632d3daebeccc9e0dd811f4b2e7c7bcb3de060926",
+      "source": "actual built React application",
+      "fullPage": true
+    },
+    {
+      "file": "app-closed-390-en.png",
+      "width": 390,
+      "height": 2128,
+      "viewport": {
+        "width": 390,
+        "height": 900
+      },
+      "sha256": "7f919bd3c19c41ac29d0ce6be61f4ab9f4b8a556fd71c4b93204f05ddc9eee78",
+      "source": "actual built React application",
+      "fullPage": true
+    },
+    {
+      "file": "app-closed-390-ur.png",
+      "width": 390,
+      "height": 2165,
+      "viewport": {
+        "width": 390,
+        "height": 900
+      },
+      "sha256": "12108f3f2984fb65ab5dfd38533a231484dc7e20712a06491082b5775a12abb9",
+      "source": "actual built React application",
+      "fullPage": true
+    },
+    {
+      "file": "app-closed-decision-1366-en.png",
+      "width": 1366,
+      "height": 900,
+      "viewport": {
+        "width": 1366,
+        "height": 900
+      },
+      "sha256": "8163c0d9d9703a56f64882ce6807b61b5030d1032eee345e28a42bccb2ab1d5d",
+      "source": "actual built React application",
+      "fullPage": false
+    },
+    {
+      "file": "app-closed-decision-1366-ur.png",
+      "width": 1366,
+      "height": 900,
+      "viewport": {
+        "width": 1366,
+        "height": 900
+      },
+      "sha256": "d307e8ff06feaba9906ab8d8b3b98e59cdb2013c8e191b400f6b6bff34464f1f",
+      "source": "actual built React application",
+      "fullPage": false
+    },
+    {
+      "file": "app-closed-decision-390-en.png",
+      "width": 390,
+      "height": 900,
+      "viewport": {
+        "width": 390,
+        "height": 900
+      },
+      "sha256": "877efe26a2e918c8dbc7e9b6dcf62ed5ea61b355d551f6e122ab3c158e7f7137",
+      "source": "actual built React application",
+      "fullPage": false
+    },
+    {
+      "file": "app-closed-decision-390-ur.png",
+      "width": 390,
+      "height": 900,
+      "viewport": {
+        "width": 390,
+        "height": 900
+      },
+      "sha256": "8abc912c3da6872105fd615327d820443d5db68b70436e927b6c7ccb5f5eb1c5",
+      "source": "actual built React application",
+      "fullPage": false
+    },
+    {
+      "file": "app-held-site-denied-1366-en.png",
+      "width": 1366,
+      "height": 900,
+      "viewport": {
+        "width": 1366,
+        "height": 900
+      },
+      "sha256": "02a6b040d2c4ce7492720535ccdd3108158a0e068998d1feddccc9720ef28d49",
+      "source": "actual built React application",
+      "fullPage": true
+    },
+    {
+      "file": "app-held-site-denied-1366-ur.png",
+      "width": 1366,
+      "height": 900,
+      "viewport": {
+        "width": 1366,
+        "height": 900
+      },
+      "sha256": "65f4c63c2d62decae56d9d34f7636b9ce63358f4244ce5902cee4a70914649b7",
+      "source": "actual built React application",
+      "fullPage": true
+    },
+    {
+      "file": "app-held-site-denied-390-en.png",
+      "width": 390,
+      "height": 900,
+      "viewport": {
+        "width": 390,
+        "height": 900
+      },
+      "sha256": "bf42249cda71472540fcae0f9eb152aa4350c0e37fe07e92671cc1014209571a",
+      "source": "actual built React application",
+      "fullPage": true
+    },
+    {
+      "file": "app-held-site-denied-390-ur.png",
+      "width": 390,
+      "height": 900,
+      "viewport": {
+        "width": 390,
+        "height": 900
+      },
+      "sha256": "e83f125d95b69ed18b787daffe8aa88d6a2dffe055c6887ba6a59aa494ebcdd1",
+      "source": "actual built React application",
+      "fullPage": true
+    },
+    {
+      "file": "app-held-unavailable-1366-en.png",
+      "width": 1366,
+      "height": 2368,
+      "viewport": {
+        "width": 1366,
+        "height": 900
+      },
+      "sha256": "467ac0f83361be01ebadb31e73f9f024b57fdd69941c78b60565d8071b0e27a7",
+      "source": "actual built React application",
+      "fullPage": true
+    },
+    {
+      "file": "app-held-unavailable-1366-ur.png",
+      "width": 1366,
+      "height": 2384,
+      "viewport": {
+        "width": 1366,
+        "height": 900
+      },
+      "sha256": "b1a17c7e83d550ec8352223c212d8844ce2fbd5eab508328102c5919b1d909dd",
+      "source": "actual built React application",
+      "fullPage": true
+    },
+    {
+      "file": "app-held-unavailable-390-en.png",
+      "width": 390,
+      "height": 2555,
+      "viewport": {
+        "width": 390,
+        "height": 900
+      },
+      "sha256": "3434c9d10ae17d4cbee0b1cdad9199a4340f29fa1035d49230865aadb2786759",
+      "source": "actual built React application",
+      "fullPage": true
+    },
+    {
+      "file": "app-held-unavailable-390-ur.png",
+      "width": 390,
+      "height": 2604,
+      "viewport": {
+        "width": 390,
+        "height": 900
+      },
+      "sha256": "4e637fa37a623295ea2c37d66862b837652c2e657220b1b643eca16b44c5090f",
+      "source": "actual built React application",
+      "fullPage": true
+    },
+    {
+      "file": "app-large-queue-page1-1366-en.png",
+      "width": 1366,
+      "height": 1570,
+      "viewport": {
+        "width": 1366,
+        "height": 900
+      },
+      "sha256": "99954b706c13d6136c92ad00dc3148b6a53122935a056b300513c6aad2b74acf",
+      "source": "actual built React application",
+      "fullPage": true
+    },
+    {
+      "file": "app-large-queue-page1-1366-ur.png",
+      "width": 1366,
+      "height": 1605,
+      "viewport": {
+        "width": 1366,
+        "height": 900
+      },
+      "sha256": "1a2491473932191ed8682b610c88e82162100a77ff49fdcc4bd39a762c65c626",
+      "source": "actual built React application",
+      "fullPage": true
+    },
+    {
+      "file": "app-large-queue-page1-390-en.png",
+      "width": 390,
+      "height": 4048,
+      "viewport": {
+        "width": 390,
+        "height": 900
+      },
+      "sha256": "397a88bea7c0f19aeb87ec5fba84afbdcc7f20b3ae109269e7cf0888ff31a46c",
+      "source": "actual built React application",
+      "fullPage": true
+    },
+    {
+      "file": "app-large-queue-page1-390-ur.png",
+      "width": 390,
+      "height": 4287,
+      "viewport": {
+        "width": 390,
+        "height": 900
+      },
+      "sha256": "93b722d3a085b0f7c05acb7689105a5e13ea34f64c21c085f648d97f18573743",
+      "source": "actual built React application",
+      "fullPage": true
+    },
+    {
+      "file": "app-large-queue-page2-1366-en.png",
+      "width": 1366,
+      "height": 1496,
+      "viewport": {
+        "width": 1366,
+        "height": 900
+      },
+      "sha256": "da9a1bd76fa6ad0e0a23776a30804a705274ef97be1c8d48a0b5248fa3261add",
+      "source": "actual built React application",
+      "fullPage": true
+    },
+    {
+      "file": "app-large-queue-page2-1366-ur.png",
+      "width": 1366,
+      "height": 1582,
+      "viewport": {
+        "width": 1366,
+        "height": 900
+      },
+      "sha256": "e4f11572049821a015cecd65e9250802e12984d42f0d5d7fc566acae38eda944",
+      "source": "actual built React application",
+      "fullPage": true
+    },
+    {
+      "file": "app-large-queue-page2-390-en.png",
+      "width": 390,
+      "height": 1570,
+      "viewport": {
+        "width": 390,
+        "height": 900
+      },
+      "sha256": "48cd4dd292c6125a5d7bcbb051946c4ac891ec6a8c0e06d39ed8bcc35f6c5d35",
+      "source": "actual built React application",
+      "fullPage": true
+    },
+    {
+      "file": "app-large-queue-page2-390-ur.png",
+      "width": 390,
+      "height": 1656,
+      "viewport": {
+        "width": 390,
+        "height": 900
+      },
+      "sha256": "c20814003f088269fabdd1c13fe1f7b4f30f72356aeb7ef106c34c42d4d330e9",
+      "source": "actual built React application",
+      "fullPage": true
+    },
+    {
+      "file": "app-loading-1366-en.png",
+      "width": 1366,
+      "height": 900,
+      "viewport": {
+        "width": 1366,
+        "height": 900
+      },
+      "sha256": "4e778ae6f3e5d6d1bf767b3a1ad6bc1b72dccbb116c0237dfee1915c64d059f9",
+      "source": "actual built React application",
+      "fullPage": true
+    },
+    {
+      "file": "app-loading-1366-ur.png",
+      "width": 1366,
+      "height": 900,
+      "viewport": {
+        "width": 1366,
+        "height": 900
+      },
+      "sha256": "069763a66a9dfeb74366e2949eea476c05ae3ae22eee55632274637fed363c43",
+      "source": "actual built React application",
+      "fullPage": true
+    },
+    {
+      "file": "app-loading-390-en.png",
+      "width": 390,
+      "height": 900,
+      "viewport": {
+        "width": 390,
+        "height": 900
+      },
+      "sha256": "edc6f76603e21afd3e0bd674d328723a17de167e64d146f13d94abff59b11ae0",
+      "source": "actual built React application",
+      "fullPage": true
+    },
+    {
+      "file": "app-loading-390-ur.png",
+      "width": 390,
+      "height": 900,
+      "viewport": {
+        "width": 390,
+        "height": 900
+      },
+      "sha256": "d297c4702f7b68eb851d5e021528f7b91aaee946e4429d57710f4b2d626881a1",
+      "source": "actual built React application",
+      "fullPage": true
+    },
+    {
+      "file": "app-network-error-1366-en.png",
+      "width": 1366,
+      "height": 900,
+      "viewport": {
+        "width": 1366,
+        "height": 900
+      },
+      "sha256": "00f807d7beb83388634c4b5800c2c83d0d9f7e90794e79188a075856a33e8e18",
+      "source": "actual built React application",
+      "fullPage": true
+    },
+    {
+      "file": "app-network-error-1366-ur.png",
+      "width": 1366,
+      "height": 900,
+      "viewport": {
+        "width": 1366,
+        "height": 900
+      },
+      "sha256": "ffdaed05622b2ce68c3cb47d5f8ea280d22cda916c2ab5a81297c39a74b79b22",
+      "source": "actual built React application",
+      "fullPage": true
+    },
+    {
+      "file": "app-network-error-390-en.png",
+      "width": 390,
+      "height": 900,
+      "viewport": {
+        "width": 390,
+        "height": 900
+      },
+      "sha256": "9ca5cd4129309a5d3071613fbb5a34448652a08ad6751ab483d63136d1a3aea7",
+      "source": "actual built React application",
+      "fullPage": true
+    },
+    {
+      "file": "app-network-error-390-ur.png",
+      "width": 390,
+      "height": 900,
+      "viewport": {
+        "width": 390,
+        "height": 900
+      },
+      "sha256": "dfed387314968c30804f3d1e4095965ff3381c08b57800f71a649f20d5449702",
+      "source": "actual built React application",
+      "fullPage": true
+    },
+    {
+      "file": "app-setup-1366-en.png",
+      "width": 1366,
+      "height": 1570,
+      "viewport": {
+        "width": 1366,
+        "height": 900
+      },
+      "sha256": "c67cae67708ccfa5fbbc63ff3f2ad3efb7551a6c5b80ad79c2d64300208d3ecb",
+      "source": "actual built React application",
+      "fullPage": true
+    },
+    {
+      "file": "app-setup-1366-ur.png",
+      "width": 1366,
+      "height": 1605,
+      "viewport": {
+        "width": 1366,
+        "height": 900
+      },
+      "sha256": "c2320fe69b024682876fb36be5312d04eaaafe2aabd110e0354e29b5f97c61b0",
+      "source": "actual built React application",
+      "fullPage": true
+    },
+    {
+      "file": "app-setup-390-en.png",
+      "width": 390,
+      "height": 900,
+      "viewport": {
+        "width": 390,
+        "height": 900
+      },
+      "sha256": "d1df61ee8899e12c47e3e63934774dae43d27e0270d2a3586b4257a6bec06bba",
+      "source": "actual built React application",
+      "fullPage": true
+    },
+    {
+      "file": "app-setup-390-ur.png",
+      "width": 390,
+      "height": 900,
+      "viewport": {
+        "width": 390,
+        "height": 900
+      },
+      "sha256": "24d76e0f3d2f57f93b7d6919078c03de0c883cb7d5c73710f19e8ac6a2c6c514",
+      "source": "actual built React application",
+      "fullPage": true
+    },
+    {
+      "file": "v5-closed-1366-en.png",
+      "width": 1366,
+      "height": 2021,
+      "viewport": {
+        "width": 1366,
+        "height": 900
+      },
+      "sha256": "f38fad9682921b8d27940c2f688ed29b0820995a5953dbb6a12a924bafa9f7b1",
+      "source": "approved V5 reference",
+      "fullPage": true
+    },
+    {
+      "file": "v5-closed-1366-ur.png",
+      "width": 1366,
+      "height": 2136,
+      "viewport": {
+        "width": 1366,
+        "height": 900
+      },
+      "sha256": "d7fb203408e9e38f8826588432c8115f1de1f16e6eddaf28599fe84151ef9dcf",
+      "source": "approved V5 reference",
+      "fullPage": true
+    },
+    {
+      "file": "v5-closed-390-en.png",
+      "width": 390,
+      "height": 2024,
+      "viewport": {
+        "width": 390,
+        "height": 900
+      },
+      "sha256": "f40868b1a7258b3755bcda7cc3d789a16c3fe589b10af3de6cb0b06250511aff",
+      "source": "approved V5 reference",
+      "fullPage": true
+    },
+    {
+      "file": "v5-closed-390-ur.png",
+      "width": 390,
+      "height": 2061,
+      "viewport": {
+        "width": 390,
+        "height": 900
+      },
+      "sha256": "7d95176d83469f4deaff5f9e0422612d9d8560cd0eda7a41e0d99ad0f22eef14",
+      "source": "approved V5 reference",
+      "fullPage": true
+    }
+  ],
+  "combinedVerificationRevision": "19e2144",
+  "combinedVerification": "2026-10-29:24 actual browser cases pass in combined checkout; provider/media/native limits retained"
+}

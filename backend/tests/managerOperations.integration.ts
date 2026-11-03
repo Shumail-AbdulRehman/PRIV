@@ -39,6 +39,15 @@ const now = new Date("2026-10-11T19:15:00Z");
 const company = await prisma.company.create({
   data: { name: "Manager integration", subscriptionStatus: "ACTIVE" },
 });
+// Current account policy uses provider-mirrored entitlement, not legacy subscriptionStatus.
+// Synthetic rows/catalog are local to this newly created disposable database.
+const billingNow = new Date(), priceId = 'pri_00000000000000000000000001';
+process.env.PADDLE_ENVIRONMENT = 'sandbox';
+process.env.PADDLE_PRICE_CATALOG_JSON = JSON.stringify([{plan:'STARTER',interval:'month',priceId}]);
+const customerId = `ctm_manager_fixture_${company.id}`, subscriptionId = `sub_manager_fixture_${company.id}`;
+await prisma.paddleCustomer.create({data:{id:customerId,companyId:company.id,status:'active',paddleUpdatedAt:billingNow,lastEventAt:billingNow}});
+await prisma.paddleSubscription.create({data:{id:subscriptionId,customerId,companyId:company.id,status:'active',priceId,productId:'pro_manager_fixture',currentBillingPeriodStart:new Date(+billingNow-3600000),currentBillingPeriodEnd:new Date(+billingNow+3600000),paddleUpdatedAt:billingNow,lastEventAt:billingNow}});
+await prisma.company.update({where:{id:company.id},data:{billingCustomerId:customerId,billingSubscriptionId:subscriptionId}});
 const foreign = await prisma.company.create({ data: { name: "Other tenant" } });
 const location = await prisma.location.create({
   data: {
@@ -396,10 +405,11 @@ const server = app.listen(0, "127.0.0.1");
 await new Promise<void>((resolve) => server.once("listening", resolve));
 const address = server.address() as { port: number };
 const base = `http://127.0.0.1:${address.port}/api`;
-const token = jwt.sign(
-  { id: manager.id, role: "MANAGER" },
-  process.env.ACCESS_TOKEN_SECRET,
-);
+process.env.ACCESS_TOKEN_EXPIRY = '15m';
+const { generateAccessToken } = await import('../src/utils/auth.js');
+const legacyToken = jwt.sign({id:manager.id,role:'MANAGER'},process.env.ACCESS_TOKEN_SECRET);
+assert.equal((await fetch(`${base}/verification-exceptions/count?queue=needs-me`,{headers:{Authorization:`Bearer ${legacyToken}`}})).status,401);
+const token = generateAccessToken(manager, 'MANAGER');
 const headers = {
   Authorization: `Bearer ${token}`,
   "Content-Type": "application/json",
@@ -484,10 +494,7 @@ assert.equal(
   await prisma.verificationDecision.count({ where: { exceptionId: c.id } }),
   1,
 );
-const deniedToken = jwt.sign(
-  { id: adminActor.id, role: "ADMIN" },
-  process.env.ACCESS_TOKEN_SECRET,
-);
+const deniedToken = generateAccessToken({...adminActor,name:'Synthetic foreign owner',email:'foreign-manager-fixture@example.invalid'},'ADMIN');
 assert.equal(
   (
     await fetch(`${base}/verification-exceptions/${c.id}`, {

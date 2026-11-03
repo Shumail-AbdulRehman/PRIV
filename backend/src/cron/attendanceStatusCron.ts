@@ -7,6 +7,7 @@ cron.schedule("5-59/10 * * * *", async () => {
 
     const missedCheckout = await prisma.attendance.updateMany({
       where: {
+        location: {company:{isActive:true,operationalStatus:"ACTIVE"}},
         expectedEnd: { lt: now },
         checkOutTime: null,
         status: { in: ["CHECKED_IN", "LATE"] },

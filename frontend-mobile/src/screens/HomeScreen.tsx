@@ -1,3 +1,5 @@
+import { readAttendance } from "../launch/launchApi";
+import { attendanceResult, reconcileAttendance } from "../launch/recoveryPolicy";
 import NetInfo from "@react-native-community/netinfo";
 import { useLanguage } from "../i18n/LanguageProvider";
 import { StaffBrand } from "../components/StaffBrand";
@@ -306,6 +308,7 @@ export function HomeScreen() {
   const [, requestCameraPermission] = useCameraPermissions();
   const [attendanceCapture, setAttendanceCapture] = useState<{
     mode: AttendanceActionMode;
+    expected: AttendanceRecord;
     coords: Awaited<ReturnType<typeof currentLocation>>;
   } | null>(null);
   const staffId = user?.id;
@@ -344,6 +347,12 @@ export function HomeScreen() {
         return;
       }
       setSubmittingMode(mode);
+      const expected = getRelevantAttendanceRecord(attendanceRecords, now);
+      if (!expected) throw new Error(t('Refresh to load your shift before continuing.'));
+      const refreshed = await readAttendance();
+      const latest = attendanceResult(refreshed, expected, mode);
+      queryClient.setQueryData(staffQueryKeys.attendance(staffId), refreshed);
+      if (latest.recorded) { setNotice(t(mode === 'check-in' ? 'Check-in recorded.' : 'Check-out recorded.')); return; }
 
       const cameraPermission = await requestCameraPermission();
 
@@ -403,7 +412,7 @@ export function HomeScreen() {
         }
       }
 
-      setAttendanceCapture({ mode, coords });
+      setAttendanceCapture({ mode, coords, expected });
     } catch (error: any) {
       const detail =
         error?.code === "ERR_NETWORK"
@@ -420,7 +429,7 @@ export function HomeScreen() {
 
   const submitAttendanceSelfie = async (uri: string) => {
     if (!attendanceCapture) return;
-    const { mode, coords } = attendanceCapture;
+    const { mode, coords, expected } = attendanceCapture;
     try {
       const formData = new FormData();
       formData.append("latitude", String(coords.coords.latitude));
@@ -431,7 +440,8 @@ export function HomeScreen() {
         createImagePart(uri, `${mode}.jpg`, "image/jpeg"),
       );
 
-      await uploadFormData(`/attendance/${mode}`, formData, 60000);
+      if (mode === 'check-out') formData.append('attendanceId', String(expected.id));
+      await reconcileAttendance(readAttendance, () => uploadFormData(`/attendance/${mode}`, formData, 60000), expected, mode);
       setAttendanceCapture(null);
       await Promise.all([
         queryClient.invalidateQueries({

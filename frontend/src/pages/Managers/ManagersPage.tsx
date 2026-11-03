@@ -1,27 +1,23 @@
-import DeleteButton from "@/components/common/DeleteButton";
+import '../Staff/workforce-v5.css';
+import ManagerAccessActions from "./ManagerAccessActions";
 import { useState } from "react";
 import { Link } from "react-router-dom";
 import {
   MapPin,
   Pencil,
   Plus,
-  UserCheck,
-  Users,
-  Search,
   ShieldCheck,
 } from "lucide-react";
 import PageHeader from "@/components/common/PageHeader";
-import StatCard from "@/components/common/StatCard";
 import EmptyState from "@/components/common/EmptyState";
-import LoadingSpinner from "@/components/common/LoadingSpinner";
-import DataTable from "@/components/common/DataTable";
+import DataTable, { type Column } from "@/components/common/DataTable";
 import StatusBadge from "@/components/common/StatusBadge";
 import OperationsState from "../Manager/OperationsState";
 import { useLanguage } from "@/i18n/context";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { useGetLocations } from "../Location/queries";
-import { useGetManagers, useDeleteManager } from "./queries";
+import { useGetManagers } from "./queries";
 import ManagerFormDialog from "./ManagerFormDialog";
 import type { LocationWithCounts } from "../Location/types";
 import type { Manager } from "./types";
@@ -29,17 +25,16 @@ import type { Manager } from "./types";
 export default function ManagersPage() {
   const { t } = useLanguage();
   const getManagers = useGetManagers(),
-    getLocations = useGetLocations(),
-    deleteManager = useDeleteManager();
+    getLocations = useGetLocations();
   const [dialogOpen, setDialogOpen] = useState(false);
   const [editingManager, setEditingManager] = useState<Manager | null>(null);
   const [search, setSearch] = useState("");
   const [status, setStatus] = useState("all");
   const [success, setSuccess] = useState("");
   if (getManagers.isPending || getLocations.isPending)
-    return <LoadingSpinner fullScreen />;
-  if (getManagers.isError || getLocations.isError)
-    return (
+    return <div className="workforce-page"><PageHeader title="Managers"/><OperationsState loading skeleton="table"/></div>;
+  if ((getManagers.isError&&!getManagers.data) || (getLocations.isError&&!getLocations.data))
+  return (
       <div className="ops-page">
         <PageHeader title="Managers" />
         <OperationsState
@@ -56,11 +51,11 @@ export default function ManagersPage() {
     getLocations.data?.data ?? []
   ).filter((loc: LocationWithCounts) => loc.isActive);
   const covered = new Set(
-    managers.flatMap((m) => m.locations.map((l) => l.id)),
+    managers.filter(m=>m.isActive).flatMap((m) => m.locations.map((l) => l.id)),
   );
   const taken = new Map<number, string>();
   for (const m of managers) {
-    if (m.id === editingManager?.id) continue;
+    if (!m.isActive || m.id === editingManager?.id) continue;
     for (const l of m.locations) taken.set(l.id, m.name);
   }
   const openCreate = () => {
@@ -74,72 +69,7 @@ export default function ManagersPage() {
         .toLowerCase()
         .includes(search.toLowerCase()),
   );
-  return (
-    <div className="space-y-6">
-      <PageHeader
-        title="Managers"
-        subtitle="Give each manager access to the locations they look after."
-        action={
-          locations.length ? (
-            <Button onClick={openCreate}>
-              <Plus size={16} />
-              {t("Add manager")}
-            </Button>
-          ) : undefined
-        }
-      />
-      {success ? (
-        <p className="ops-save-result" role="status">
-          {t(success)}
-        </p>
-      ) : null}
-      <div className="grid gap-4 sm:grid-cols-3">
-        <StatCard label="Total managers" value={managers.length} icon={Users} />
-        <StatCard
-          label="Active managers"
-          value={managers.filter((m) => m.isActive).length}
-          icon={UserCheck}
-          tone="emerald"
-        />
-        <StatCard
-          label="Locations covered"
-          value={covered.size}
-          icon={MapPin}
-          tone="sky"
-        />
-      </div>
-      {locations.length ? (
-        <>
-          <div className="ops-toolbar">
-            <label className="ops-search">
-              <span className="flex items-center gap-2">
-                <Search size={14} />
-                {t("Search managers")}
-              </span>
-              <Input
-                value={search}
-                onChange={(e) => setSearch(e.target.value)}
-                placeholder={t("Search by name, email or location")}
-              />
-            </label>
-            <label>
-              {t("Account status")}
-              <select
-                value={status}
-                onChange={(e) => setStatus(e.target.value)}
-              >
-                <option value="all">{t("All accounts")}</option>
-                <option value="active">{t("Active")}</option>
-                <option value="inactive">{t("Inactive")}</option>
-              </select>
-            </label>
-          </div>
-          <DataTable
-            data={filtered}
-            pageSize={20}
-            rowKey={(m) => m.id}
-            emptyMessage="No managers match these filters."
-            columns={[
+  const columns:Column<Manager>[]=[
               {
                 key: "name",
                 header: "Manager",
@@ -156,7 +86,7 @@ export default function ManagersPage() {
                     </span>
                     <div>
                       <strong>{m.name}</strong>
-                      <p>{m.email}</p>
+                      <p><bdi dir="ltr">{m.email}</bdi></p>
                     </div>
                   </div>
                 ),
@@ -192,6 +122,7 @@ export default function ManagersPage() {
                   <div className="flex gap-2">
                     <Button
                       variant="outline"
+                      disabled={!m.isActive}
                       onClick={() => {
                         setEditingManager(m);
                         setDialogOpen(true);
@@ -200,20 +131,80 @@ export default function ManagersPage() {
                       <Pencil size={14} />
                       {t("Edit")}
                     </Button>
-                    <DeleteButton
-                      name={m.name}
-                      description="Their manager account and location access will be removed."
-                      onDelete={async () => {
-                        await deleteManager.mutateAsync(m.id);
-                        setSuccess("Manager removed.");
-                      }}
-                    />
+                    <ManagerAccessActions manager={m} />
+
                   </div>
                 ),
               },
-            ]}
+            ];
+  return (
+    <div className="workforce-page">
+      <PageHeader
+        title="Managers"
+        subtitle="Give each manager access to the locations they look after."
+        action={
+          locations.length ? (
+            <Button onClick={openCreate}>
+              <Plus size={16} />
+              {t("Add manager")}
+            </Button>
+          ) : undefined
+        }
+      />
+      {success ? (
+        <p className="ops-save-result" role="status">
+          {t(success)}
+        </p>
+      ) : null}
+      <OperationsState error={getManagers.isError?getManagers.error:getLocations.isError?getLocations.error:undefined} retry={()=>{void getManagers.refetch();void getLocations.refetch();}}/>
+      <dl className="workforce-summary workforce-manager-summary" aria-label={t('Manager summary')}>
+        <div><dt>{t('Total managers')}</dt><dd>{managers.length}</dd><p>{t('Company manager accounts')}</p></div>
+        <div><dt>{t('Active managers')}</dt><dd>{managers.filter(m=>m.isActive).length}</dd><p>{t('Assigned-site access')}</p></div>
+        <div><dt>{t('Locations covered')}</dt><dd>{covered.size}</dd><p>{t('One active manager per location')}</p></div>
+      </dl>
+      {locations.length||managers.length ? (
+        <section className="workforce-panel workforce-directory">
+          <div className="workforce-panel-heading"><h2>{t('Manager assignments')}</h2><p>{t('Review access and the sites assigned to each manager.')}</p></div>
+          <div className="workforce-toolbar">
+            <label className="">
+              <span className="flex items-center gap-2">
+                {t("Search managers")}
+              </span>
+              <Input
+                aria-label={t("Search managers")}
+                value={search}
+                onChange={(e) => setSearch(e.target.value)}
+                placeholder={t("Search by name, email or location")}
+              />
+            </label>
+            <label>
+              {t("Account status")}
+              <select
+                aria-label={t("Account status")}
+                value={status}
+                onChange={(e) => setStatus(e.target.value)}
+              >
+                <option value="all">{t("All accounts")}</option>
+                <option value="active">{t("Active")}</option>
+                <option value="inactive">{t("Inactive")}</option>
+              </select>
+            </label>
+          </div>
+          <DataTable
+            data={filtered}
+            pageSize={20}
+            rowKey={(m) => m.id}
+            emptyMessage="No managers match these filters."
+            columns={columns}
+            mobileRender={manager=><div className="workforce-mobile-record">
+              {columns[0].render(manager)}
+              <div><p className="workforce-help">{t('Assigned locations')}</p>{columns[1].render(manager)}</div>
+              {columns[2].render(manager)}
+              {columns[3].render(manager)}
+            </div>}
           />
-        </>
+          <div className="workforce-panel-footer"><span>{t('{shown} of {total} managers',{shown:filtered.length,total:managers.length})}</span><Link to="/staff">{t('Back to team')}</Link></div>
+        </section>
       ) : (
         <EmptyState
           icon={<MapPin />}
@@ -225,7 +216,7 @@ export default function ManagersPage() {
           }
         />
       )}
-      <div className="directory-guide">
+      <div className="workforce-access-context flex items-start gap-3">
         <ShieldCheck size={23} />
         <div>
           <strong>{t("Access follows assigned locations")}</strong>

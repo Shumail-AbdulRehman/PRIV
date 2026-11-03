@@ -26,7 +26,7 @@ const isFormData = (value: unknown): value is FormData =>
   typeof FormData !== "undefined" && value instanceof FormData;
 
 const isLoginRequest = (url?: string) =>
-  url?.split("?")[0].replace(/\/+$/, "").endsWith("/staff/staff-login") === true;
+  ['/staff/staff-login', '/common/security/handoff/complete'].some(path => url?.split('?')[0].replace(/\/+$/, '').endsWith(path) === true);
 
 const setHeader = (
   config: InternalAxiosRequestConfig,

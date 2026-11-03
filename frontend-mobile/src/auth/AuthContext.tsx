@@ -8,6 +8,7 @@ import {
 } from "react";
 import { Platform } from "react-native";
 import * as SecureStore from "expo-secure-store";
+import { passwordChangeRequired as requiresReplacement } from "../launch/recoveryPolicy";
 import { setCaptureAccount } from "../verification/captureAccount";
 import { clearPhoneAlerts } from '../notifications/native';
 import AsyncStorage from "@react-native-async-storage/async-storage";
@@ -22,6 +23,7 @@ import type { ApiEnvelope, AuthSession, AuthTokens, StaffUser } from "../types";
 type AuthContextValue = {
   user: StaffUser | null;
   isBootstrapping: boolean;
+  passwordChangeRequired: boolean;
   login: (email: string, password: string) => Promise<void>;
   logout: () => Promise<void>;
   refreshCurrentUser: () => Promise<void>;
@@ -52,18 +54,21 @@ const persistSession = async (session: AuthSession) => {
 
 export function AuthProvider({ children }: PropsWithChildren) {
   const queryClient = useQueryClient();
+  const [passwordChangeRequired, setPasswordChangeRequired] = useState(false);
   const [session, setSession] = useState<AuthSession>(emptySession);
   const [isBootstrapping, setIsBootstrapping] = useState(true);
   const sessionRef = useRef<AuthSession>(emptySession);
 
   const applySession = async (nextSession: AuthSession) => {
     await persistSession(nextSession);
+    setPasswordChangeRequired(nextSession.passwordChangeRequired === true);
     setCaptureAccount(nextSession.user);
     sessionRef.current = nextSession;
     setSession(nextSession);
   };
 
   const clearSession = async () => {
+    setPasswordChangeRequired(false);
     setCaptureAccount(null);
     await clearPhoneAlerts();
     await applySession(emptySession);
@@ -80,11 +85,19 @@ export function AuthProvider({ children }: PropsWithChildren) {
   };
 
   const refreshCurrentUser = async () => {
-    const response = await client.get<ApiEnvelope<StaffUser>>("/common/get-current-user");
-    await applySession({
-      ...sessionRef.current,
-      user: response.data.data,
-    });
+    try {
+      const response = await client.get<ApiEnvelope<StaffUser>>("/common/get-current-user");
+      if (response.data.data.role !== 'STAFF') throw new Error('Use a staff account in this app.');
+      setPasswordChangeRequired(false);
+      await applySession({ ...sessionRef.current, user: response.data.data, passwordChangeRequired: false });
+    } catch (error) {
+      if (requiresReplacement(error)) {
+        setPasswordChangeRequired(true);
+        await applySession({ ...sessionRef.current, passwordChangeRequired: true });
+        return;
+      }
+      throw error;
+    }
   };
 
   useEffect(() => {
@@ -110,6 +123,8 @@ export function AuthProvider({ children }: PropsWithChildren) {
         }
 
         const parsed = JSON.parse(storedSession) as AuthSession;
+        if (parsed.user?.role !== 'STAFF') { await clearSession(); return; }
+        setPasswordChangeRequired(parsed.passwordChangeRequired === true);
         setCaptureAccount(parsed.user);
         sessionRef.current = parsed;
         setSession(parsed);
@@ -121,7 +136,7 @@ export function AuthProvider({ children }: PropsWithChildren) {
       } catch (error) {
         const status = (error as { response?: { status?: number } }).response?.status;
         // A disconnected phone retains its account and already-issued capture sessions.
-        if (status === 401 || status === 403 || error instanceof SyntaxError) await clearSession();
+        if (status === 401 || error instanceof SyntaxError) await clearSession();
       } finally {
         setIsBootstrapping(false);
       }
@@ -143,16 +158,19 @@ export function AuthProvider({ children }: PropsWithChildren) {
     });
 
     const { accessToken, refreshToken, ...user } = response.data.data;
-
+    if (user.role !== 'STAFF') throw new Error('Use a staff account in this app.');
+    setIsBootstrapping(true);
     setCaptureAccount(null);
     queryClient.clear();
-    await applySession({
-      user,
-      accessToken,
-      refreshToken,
-    });
-
-    await queryClient.invalidateQueries({ queryKey: ["staff"] });
+    try {
+      await applySession({ user, accessToken, refreshToken, passwordChangeRequired: false });
+      try { await refreshCurrentUser(); }
+      catch (error) {
+        if ((error as {response?:{status?:number}})?.response?.status === 401) { await clearSession(); throw error; }
+        // A suspended account or disconnected phone retains its own-security path.
+      }
+      await queryClient.invalidateQueries({ queryKey: ["staff"] });
+    } finally { setIsBootstrapping(false); }
   };
 
   const logout = async () => {
@@ -172,6 +190,7 @@ export function AuthProvider({ children }: PropsWithChildren) {
       value={{
         user: session.user,
         isBootstrapping,
+        passwordChangeRequired,
         login,
         logout,
         refreshCurrentUser,

@@ -1,3 +1,4 @@
+import { recordWorkEntitlement } from '../services/accountAccess.service.js';
 import {finishStaffSubmission} from '../services/verification-v2/staffSubmission.service.js';
 import {staffTaskPresentation,managerTaskPresentation} from '../services/verification-v2/sequentialPolicy.js';
 import { requireTaskAccess, requireLocationAccess } from '../services/verification-v2/authorization.service.js';
@@ -109,6 +110,7 @@ export const startTask = async (req: Request, res: Response) => {
       lateMinutes: isLate ? Math.floor((+now - +task.shiftStart) / 60000) : 0,
       rowVersion: { increment: 1 },
     } });
+    await recordWorkEntitlement(req.user!, {kind:'task',id:taskId}, tx, now);
     await markCurrentAssignmentStarted(taskId, req.user!.id, now, tx as typeof prisma);
     await writeAuditLog({ companyId: req.user!.companyId, actorType: 'STAFF', actorId: req.user!.id,
       entityType: 'TASK_INSTANCE', entityId: taskId, action: 'TASK_STARTED_AREA_QR',

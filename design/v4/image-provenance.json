@@ -1,0 +1,21 @@
+{
+  "tool": "built-in image_gen.imagegen",
+  "purpose": "Synthetic non-sensitive offline prototype examples; not workforce evidence",
+  "assets": [
+    {
+      "file": "basin.webp",
+      "prompt": "Use case: photorealistic-natural. Asset: fictional cleaning evidence sample for an offline SaaS prototype. Generate one realistic horizontal smartphone photograph, landscape 4:3 framing, of a white ceramic basin in an ordinary well-kept modern office washroom in Pakistan, chrome tap, pale gray tiled backsplash, full basin and inside surface visible, neutral overhead light, natural phone-photo texture, practical unstyled photograph rather than luxury advertising. No people, hands, face, mirror reflections, text, logos, watermark or UI. No collage. This is a synthetic non-sensitive example, not documentation of a real facility.",
+      "derivative": "1400px-wide WebP quality 88 using already-installed Sharp; original PNG retained in Codex generated_images"
+    },
+    {
+      "file": "floor.webp",
+      "prompt": "Use case: photorealistic-natural. Asset: fictional cleaning evidence sample for an offline SaaS prototype. Generate one realistic horizontal smartphone photograph, landscape 4:3 framing, looking down at light gray tiled office-washroom floor and wall junction, a few small pieces of tissue and modest dirt marks clearly visible near a corner, believable mild cleaning issue, bright even natural overhead light, practical phone photo rather than dramatic advertising. No people, feet, hands, bodily substances, faces, mirrors, text, logos, watermark or UI. No collage. Synthetic sample only.",
+      "derivative": "1400px-wide WebP quality 88 using already-installed Sharp; original PNG retained in Codex generated_images"
+    },
+    {
+      "file": "toilet.webp",
+      "prompt": "Use case: photorealistic-natural. Asset: fictional cleaning evidence sample for an offline SaaS prototype. Generate one realistic portrait smartphone photograph, 3:4 framing, of a clean white ceramic toilet in a simple modern office washroom, bowl and rim clearly visible, lid up, pale gray tiled wall and blue-gray partition, neutral even overhead light, practical phone-photo texture. No people, hands, bodily substances, reflections of people, text, logo, watermark or UI. No collage. Synthetic non-sensitive sample only.",
+      "derivative": "1400px-wide WebP quality 88 using already-installed Sharp; original PNG retained in Codex generated_images"
+    }
+  ]
+}

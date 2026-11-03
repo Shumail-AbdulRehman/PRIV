@@ -1,0 +1,17 @@
+.operator-content:has(.platform-company-workspace) { width:min(100%,1600px); }
+.platform-company-links { display:flex; gap:16px; flex-wrap:wrap; align-items:center; }
+.platform-company-links a { display:inline-flex; min-height:48px; align-items:center; color:var(--primary); text-decoration:underline; text-underline-offset:3px; }
+.platform-company-workspace a { color:var(--primary); }
+.platform-company-filters { display:flex; flex-wrap:wrap; gap:16px; align-items:end; }
+.platform-company-filters label { display:grid; gap:8px; }
+.platform-company-filters select { min-height:48px; border:1px solid var(--border); background:var(--card); border-radius:7px; padding:10px; }
+.platform-company-facts { display:grid; grid-template-columns:repeat(2,minmax(0,1fr)); gap:24px; margin-block:16px; }
+.platform-company-facts dt { color:var(--muted-foreground); }
+.platform-company-facts dd { margin-block-start:6px; overflow-wrap:anywhere; }
+.platform-company-workspace .ops-panel-body>p { margin-block:16px; }
+.platform-company-workspace h2 { font-size:24px; font-weight:650; }
+.platform-company-workspace h3 { font-size:19px; font-weight:650; }
+.platform-company-dialog [data-slot="button"],.platform-company-dialog input { min-height:48px; }
+@media(max-width:620px) { .platform-company-facts { grid-template-columns:minmax(0,1fr); } }
+.platform-company-dialog [data-slot="dialog-title"] { padding-inline-end:40px; }
+.platform-company-dialog [data-slot="dialog-close"] { right:auto; left:auto; inset-inline-end:8px; }
