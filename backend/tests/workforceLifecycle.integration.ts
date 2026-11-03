@@ -33,7 +33,9 @@ try {
     await prisma.company.update({where:{id:owner.companyId},data:{billingCustomerId:customerId,billingSubscriptionId:subscriptionId}});
     const location = (name: string) => prisma.location.create({ data: { name, address: 'Isolated fixture', latitude: '31', longitude: '74', companyId: owner.companyId, timezone: 'UTC' } });
     const siteA = await location('Source fixture'), siteB = await location('Destination fixture');
-    const createStaff = (name: string) => prisma.staff.create({ data: { name, email: `${suffix}-${name}@example.invalid`, password: 'synthetic-worker-password', companyId: owner.companyId, locationId: siteA.id, shiftStart: start, shiftEnd: end, refreshToken: 'synthetic-obsolete-refresh' } });
+    // These are incumbent workers, including the retained shift from yesterday.
+    // Their onboarding must predate the shifts that this lifecycle fixture exercises.
+    const createStaff = (name: string) => prisma.staff.create({ data: { name, email: `${suffix}-${name}@example.invalid`, password: 'synthetic-worker-password', companyId: owner.companyId, locationId: siteA.id, shiftStart: start, shiftEnd: end, createdAt: new Date(+start - 2 * 86400000), refreshToken: 'synthetic-obsolete-refresh' } });
     const worker = await createStaff('transfer');
     const actor = { id: worker.id, companyId: owner.companyId, role: 'STAFF' as const };
     const oldAccess = generateAccessToken(worker, 'STAFF');
@@ -73,7 +75,7 @@ try {
     assert.equal(await prisma.staffPushDevice.count({ where: { staffId: worker.id, enabled: true } }), 0);
     await assert.rejects(verifyJwt({ cookies: {}, header: () => `Bearer ${oldAccess}` } as unknown as Request, {} as Response, () => { throw new Error('Old transfer token must not authorize'); }));
     const checkedIn = await createStaff('checked-in');
-    await prisma.$transaction(async tx => { await tx.$queryRaw`SELECT id FROM "Staff" WHERE id=${checkedIn.id} FOR UPDATE`; await prepareStaffAttendance(tx, checkedIn.id, now); });
+    await prisma.$transaction(async tx => { await tx.$queryRaw`SELECT id FROM "Staff" WHERE id=${checkedIn.id} FOR UPDATE`; assert.equal(await prepareStaffAttendance(tx, checkedIn.id, now), 'READY'); });
     const checkedInActor = { ...actor, id: checkedIn.id };
     await recordAttendance(checkedInActor, 'check-in', { latitude: 31, longitude: 74 }, Buffer.from('fixture'), now, prisma, async () => `attendance:v1:${owner.companyId}:${checkedIn.id}:${randomUUID()}`);
     await assert.rejects(transferStaff(owner, checkedIn.id, siteB.id, { reason: 'Must reject open shift', expectedLocationId: siteA.id }), error => (error as { statusCode?: number }).statusCode === 409);
