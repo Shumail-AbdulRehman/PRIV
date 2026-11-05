@@ -24,6 +24,9 @@ import FeaturesPage from './pages/Landing/FeaturesPage.tsx';
 import PricingPage from './pages/Pricing/PricingPage.tsx';
 import WelcomePage from './pages/Pricing/WelcomePage.tsx';
 import ChoosePlanPage from './pages/Pricing/ChoosePlanPage.tsx';
+import { installModuleLoadRecovery } from './lib/moduleLoadRecovery';
+
+installModuleLoadRecovery();
 
 const queryClient = new QueryClient({
   defaultOptions: {

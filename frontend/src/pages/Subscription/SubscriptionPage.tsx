@@ -1,6 +1,6 @@
 import { useServiceInformation, getPublicSupport } from '../Help/serviceInformation';
 import { useEffect, useRef, useState } from 'react';
-import { Link, useSearchParams } from 'react-router-dom';
+import { Link, Navigate, useSearchParams } from 'react-router-dom';
 import { useQuery } from '@tanstack/react-query';
 import { CreditCard, LifeBuoy, RefreshCw, ShieldCheck } from 'lucide-react';
 import { SkeletonLine } from '@/components/common/LoadingSkeleton';
@@ -37,6 +37,10 @@ function OwnerBilling({activationReturn}:{activationReturn:boolean}) {
  const service=useServiceInformation();
  const data=query.data;
  const linked=data?.providerState==='MIRRORED';
+ const sandboxCheckout=(record:typeof data)=>record?.billingEnvironment==='sandbox'&&import.meta.env.VITE_PADDLE_ENVIRONMENT==='sandbox'&&import.meta.env.VITE_PADDLE_CLIENT_TOKEN?.trim().startsWith('test_');
+ const sandbox=!!sandboxCheckout(data);
+ const environmentMatches=!data?.billingEnvironment||data.billingEnvironment===import.meta.env.VITE_PADDLE_ENVIRONMENT;
+ const purchaseReady=environmentMatches&&(sandbox||service.purchaseReady);
  const catalog=useQuery({queryKey:['billing-catalog',user!.companyId,user!.id],queryFn:({signal})=>getBillingCatalog(signal),enabled:data?.company.id===user!.companyId&&!query.isError&&!!data?.checkoutAvailable&&data.billingConfigured&&!linked&&!data.reconciliationRequired&&!uncertain,retry:false,staleTime:0});
  const refresh=async()=>{
   const result=await query.refetch();
@@ -58,7 +62,8 @@ function OwnerBilling({activationReturn}:{activationReturn:boolean}) {
     const {url}=await prepareBillingPortal(abort.signal);
     if(alive.current)navigateToBillingPortal(url);
    }else{
-    if(!service.purchaseReady||!(await getPublicSupport(abort.signal)).email)throw new Error('CHECKOUT_UNAVAILABLE');
+    if(fresh.billingEnvironment&&fresh.billingEnvironment!==import.meta.env.VITE_PADDLE_ENVIRONMENT)throw new Error('CHECKOUT_UNAVAILABLE');
+    if(!sandboxCheckout(fresh)&&(!service.purchaseReady||!(await getPublicSupport(abort.signal)).email))throw new Error('CHECKOUT_UNAVAILABLE');
     if(!entry||!fresh.checkoutAvailable||fresh.providerState==='MIRRORED'||fresh.reconciliationRequired||uncertain)throw new Error('CHECKOUT_UNAVAILABLE');
     const paddle=await getPaddle(); // Missing browser configuration never reserves a purchase.
     if(!alive.current)return;
@@ -94,8 +99,9 @@ function OwnerBilling({activationReturn}:{activationReturn:boolean}) {
   : current?.subscription?.status==='active'?'success'
   : current?.subscription?.status==='trialing'?'progress'
   : ['past_due','paused'].includes(current?.subscription?.status??'')?'attention':'neutral';
+ if(activationReturn&&!query.isError&&current?.subscription?.catalogQualified&&['active','trialing'].includes(current.subscription.status)&&current.company.isActive&&current.company.operationalStatus==='ACTIVE')return <Navigate to="/dashboard" replace/>;
  return <div className="ops-page billing-page">
-  <PageHeader title="Plan & billing" subtitle="Provider billing records, current capacity and available account actions." action={<div className="billing-header-actions">
+  <PageHeader title={current&&!linked?'Choose your plan':'Plan & billing'} subtitle={current&&!linked?'Choose a plan, enter your card in Paddle, then continue to your workspace.':'Provider billing records, current capacity and available account actions.'} action={<div className="billing-header-actions">
    {current?.portalAvailable?<Button variant="outline" disabled={busy||query.isError} onClick={()=>void act('portal')}><CreditCard size={16} aria-hidden="true"/>{t(busy?'Opening…':'Manage billing in Paddle')}</Button>:null}
    <Button variant="outline" disabled={query.isFetching||busy} onClick={()=>void refresh()}><RefreshCw size={16} aria-hidden="true"/>{t(query.isFetching?'Refreshing…':'Refresh billing status')}</Button>
   </div>}/>
@@ -105,12 +111,29 @@ function OwnerBilling({activationReturn}:{activationReturn:boolean}) {
     {query.isError?<section role="alert" className="ops-panel billing-load-error"><h2>{t('Billing records could not load')}</h2><p>{t('Billing records could not be loaded. Your account security remains available. Refresh to try again.')}</p></section>:null}
     {data&&!current?<p role="alert" className="billing-notice">{t('Billing records do not match the current workspace. Refresh your account.')}</p>:null}
     {current?<>
+     {current.billingEnvironment==='sandbox'?<p role="status" className="billing-notice billing-notice-info">{t('Sandbox payments: use a Paddle test card. No real money is charged.')}</p>:null}
+     {current.subscription?.catalogQualified&&['active','trialing'].includes(current.subscription.status)&&current.company.isActive&&current.company.operationalStatus==='ACTIVE'?<Link className="billing-rail-link" to="/dashboard">{t('Continue to workspace')}</Link>:null}
      {query.isError?<p role="status" className="billing-notice">{t('Showing previously loaded billing records. Refresh before taking any action.')}</p>:null}
      {!current.company.isActive||current.company.operationalStatus==='SUSPENDED'?<p className="billing-notice" role="status">{t('Company operations are suspended. Owner billing and account security remain available. Payment does not remove an administrative suspension.')}</p>:null}
      {current.reconciliationRequired||uncertain?<p className="billing-notice" role="status">{t('A billing request needs reconciliation. Do not start another purchase. Refresh status or contact your configured support channel.')}</p>:null}
      {current.providerState==='AWAITING_PROVIDER'||(activationReturn&&!linked)?<p className="billing-notice" role="status">{t('Activation is awaiting provider synchronization. Completing checkout does not confirm an active subscription. Do not pay again.')}</p>:null}
      {notice?<p role="status" className="billing-notice billing-notice-info">{t(notice)}</p>:null}
      {error?<p role="alert" className="billing-notice">{t(error)}</p>:null}
+     {!linked?<section className="ops-panel billing-panel" aria-labelledby="billing-offers-heading">
+      <header className="billing-panel-heading"><h2 id="billing-offers-heading">{t('Available billing options')}</h2></header>
+      <div className="billing-panel-body billing-options">
+       {!environmentMatches?<p role="status">{t('Checkout is temporarily unavailable. Refresh the page or contact support.')}</p>:null}
+       {!purchaseReady&&environmentMatches?<p role="status">{t('New purchases are unavailable until approved customer policies and a support contact are available.')} <Link to="/help">{t('Help & service information')}</Link></p>:null}
+       {!current.billingConfigured?<p role="status">{t('Checkout is unavailable until the billing catalog and commercial terms are approved and configured.')}</p>:!current.ownerVerified&&!sandbox?<p>{t('Verify your owner email in Settings before starting checkout.')}</p>:!current.checkoutAvailable?<p>{t('New checkout is unavailable for this account. Refresh billing status before continuing.')}</p>:null}
+       {catalog.isFetching?<p role="status">{t('Loading configured provider prices…')}</p>:null}
+       {catalog.isError?<p role="alert">{t('Configured prices could not be loaded. Checkout is unavailable. Refresh billing status to try again.')}</p>:null}
+       {current.checkoutAvailable&&!catalog.isFetching&&!catalog.isError&&catalog.data?.length===0?<p>{t('No approved provider prices are available. Checkout is disabled.')}</p>:null}
+       {!!catalog.data?.length&&!catalog.isError&&!catalog.isFetching&&current.checkoutAvailable&&!uncertain?<div className="billing-offers">{catalog.data.map(entry=>{
+        const price=providerPrice(entry,language),same=prepared?.plan===entry.plan&&prepared.interval===entry.interval;
+        return <div key={`${entry.plan}:${entry.interval}`}><div><h3><bdi>{entry.plan}</bdi> · {t(entry.interval==='month'?'Monthly':'Yearly')}</h3><p>{price??t('Provider price unavailable')} · {t('Final total and taxes are shown by Paddle before confirmation.')}</p>{entry.trialPeriod?<p>{t('Provider trial')}: <bdi>{entry.trialPeriod.frequency} {entry.trialPeriod.interval}</bdi></p>:null}</div><Button disabled={!purchaseReady||busy||query.isError||!price||!!prepared&&!same} onClick={()=>void act('checkout',entry)}>{t(busy?'Opening…':same?'Reopen existing checkout':'Continue to checkout')}</Button></div>;
+       })}</div>:null}
+      </div>
+     </section>:null}
      <section className="ops-panel billing-panel" aria-labelledby="billing-record-heading">
       <header className="billing-panel-heading"><h2 id="billing-record-heading">{t('Your subscription')}</h2></header>
       <div className="billing-panel-body">
@@ -142,20 +165,7 @@ function OwnerBilling({activationReturn}:{activationReturn:boolean}) {
        <p className="billing-explanation">{t('Only the latest recorded provider event is shown here. Invoices and payment totals are available in the billing portal when configured.')}</p>
       </div>
      </section>
-     {!linked?<section className="ops-panel billing-panel" aria-labelledby="billing-offers-heading">
-      <header className="billing-panel-heading"><h2 id="billing-offers-heading">{t('Available billing options')}</h2></header>
-      <div className="billing-panel-body billing-options">
-       {!service.purchaseReady?<p role="status">{t('New purchases are unavailable until approved customer policies and a support contact are available.')} <Link to="/help">{t('Help & service information')}</Link></p>:null}
-       {!current.billingConfigured?<p role="status">{t('Checkout is unavailable until the billing catalog and commercial terms are approved and configured.')}</p>:!current.ownerVerified?<p>{t('Verify your owner email in Settings before starting checkout.')}</p>:!current.checkoutAvailable?<p>{t('New checkout is unavailable for this account. Refresh billing status before continuing.')}</p>:null}
-       {catalog.isFetching?<p role="status">{t('Loading configured provider prices…')}</p>:null}
-       {catalog.isError?<p role="alert">{t('Configured prices could not be loaded. Checkout is unavailable. Refresh billing status to try again.')}</p>:null}
-       {current.checkoutAvailable&&!catalog.isFetching&&!catalog.isError&&catalog.data?.length===0?<p>{t('No approved provider prices are available. Checkout is disabled.')}</p>:null}
-       {!!catalog.data?.length&&!catalog.isError&&!catalog.isFetching&&current.checkoutAvailable&&!uncertain?<div className="billing-offers">{catalog.data.map(entry=>{
-        const price=providerPrice(entry,language),same=prepared?.plan===entry.plan&&prepared.interval===entry.interval;
-        return <div key={`${entry.plan}:${entry.interval}`}><div><h3><bdi>{entry.plan}</bdi> · {t(entry.interval==='month'?'Monthly':'Yearly')}</h3><p>{price??t('Provider price unavailable')} · {t('Final total and taxes are shown by Paddle before confirmation.')}</p>{entry.trialPeriod?<p>{t('Provider trial')}: <bdi>{entry.trialPeriod.frequency} {entry.trialPeriod.interval}</bdi></p>:null}</div><Button disabled={!service.purchaseReady||busy||query.isError||!price||!!prepared&&!same} onClick={()=>void act('checkout',entry)}>{t(busy?'Opening…':same?'Reopen existing checkout':'Continue to checkout')}</Button></div>;
-       })}</div>:null}
-      </div>
-     </section>:null}
+
     </>:null}
    </div>
    <aside className="billing-aside" aria-label={t('Billing guidance')}>

@@ -12,7 +12,7 @@ process.env.PADDLE_CHECKOUT_URL = 'https://workspace.example.invalid/choose-plan
 const { prisma } = await import('../src/prisma/prisma.js');
 const { registerCompany } = await import('../src/services/companyRegistration.service.js');
 const { processPaddleEvent, companyHasPaidAccess } = await import('../src/services/paddleFulfillment.service.js');
-const { createBillingCheckout } = await import('../src/services/billingLifecycle.service.js');
+const { createBillingCheckout, getBillingLifecycle } = await import('../src/services/billingLifecycle.service.js');
 const suffix = randomUUID(), now = new Date();
 const providerId = (prefix: string) => `${prefix}_${randomUUID().replaceAll('-', '').slice(0, 26)}`;
 const customerId = providerId('ctm'), subscriptionId = providerId('sub');
@@ -67,7 +67,8 @@ try {
     assert.equal(await companyHasPaidAccess(owner.companyId), false);
     // Concurrent application checkout requests use the real company lock and
     // audit reservation, with a no-network provider seam returning only a draft.
-    await prisma.manager.update({ where: { id: other.id }, data: { emailVerifiedAt: now } });
+    assert.equal((await prisma.manager.findUniqueOrThrow({ where: { id: other.id } })).emailVerifiedAt, null);
+    assert.equal((await getBillingLifecycle(other)).checkoutAvailable, true, 'sandbox owner does not need email verification');
     const checkoutCustomer = providerId('ctm');
     await prisma.company.update({ where: { id: other.companyId }, data: { billingCustomerId: checkoutCustomer } });
     await prisma.paddleCustomer.create({ data: { id: checkoutCustomer, companyId: other.companyId, status: 'active', paddleUpdatedAt: now, lastEventAt: now } });
@@ -80,6 +81,8 @@ try {
     assert(checkouts.some(result => result.status === 'fulfilled'));
     assert.equal((await createBillingCheckout(other, { plan: 'STARTER', interval: 'month' }, { db: prisma, provider })).transactionId, draftId);
     assert.equal(creates, 1);
+    assert.equal((await getBillingLifecycle(other)).onboardingRequired, true, 'a draft customer is not an active subscription');
+    assert.equal((await prisma.manager.findUniqueOrThrow({ where: { id: other.id } })).emailVerifiedAt, null);
     const uncertain = await registerCompany({ name: 'Synthetic uncertain owner', companyName: 'Synthetic recovery fixture', email: `${suffix}-uncertain@example.invalid`, password: 'synthetic-owner-password' });
     const uncertainCustomer = providerId('ctm'), uncertainDraft = providerId('txn');
     await prisma.manager.update({ where: { id: uncertain.id }, data: { emailVerifiedAt: now } });

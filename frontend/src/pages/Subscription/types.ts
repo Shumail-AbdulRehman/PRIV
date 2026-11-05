@@ -53,6 +53,7 @@ export type BillingLifecycle = {
  limits:PlanDefinition['limits'];
  subscription:null|{status:string;plan:PlanCode|null;catalogQualified:boolean;periodStart:string|null;periodEnd:string|null;scheduledChangeAction:string|null;scheduledChangeAt:string|null;lastEventAt:string};
  reconciliationRequired:boolean;billingConfigured:boolean;ownerVerified:boolean;
+ billingEnvironment?:'sandbox'|'production'|null;onboardingRequired?:boolean;
  providerState:'MIRRORED'|'AWAITING_PROVIDER'|'NOT_LINKED';portalAvailable:boolean;checkoutAvailable:boolean;
 };
 

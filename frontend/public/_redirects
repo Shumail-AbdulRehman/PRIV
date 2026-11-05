@@ -1,1 +1,3 @@
+# Existing files are served normally; missing build assets must not become HTML.
+/assets/* /asset-not-found.txt 404
 /* /index.html 200

@@ -20,6 +20,8 @@ async function ownerAccount(actor: VerificationActor, db: Pick<Db, 'manager'> | 
     if (!owner) throw new ApiError(403, 'Active company owner required');
     return owner;
 }
+// Sandbox onboarding deliberately skips email verification; live checkout still requires it.
+const verificationSatisfied = (owner: { emailVerifiedAt: Date | null }) => process.env.PADDLE_ENVIRONMENT === 'sandbox' || !!owner.emailVerifiedAt;
 function activated() { try { requireBillingActivation(); } catch { throw unavailable(); } }
 function provider(deps: Deps) { try { return (deps.provider ?? getPaddleClient)(); } catch { throw unavailable(); } }
 async function callProvider<T>(call: () => Promise<T>) {
@@ -52,9 +54,11 @@ export async function getBillingLifecycle(actor: VerificationActor, deps: Deps =
             lastEventAt: subscription.lastEventAt } : null,
         reconciliationRequired,
         billingConfigured: enabled, ownerVerified: !!owner.emailVerifiedAt,
+        billingEnvironment: enabled ? process.env.PADDLE_ENVIRONMENT : null,
+        onboardingRequired: !company.billingSubscriptionId || subscription?.status === 'unknown',
         providerState: subscription ? 'MIRRORED' : company.billingCustomerId ? 'AWAITING_PROVIDER' : 'NOT_LINKED',
         portalAvailable: enabled && !!company.billingCustomerId,
-        checkoutAvailable: enabled && !reconciliationRequired && !!owner.emailVerifiedAt && company.isActive && company.operationalStatus === 'ACTIVE' && !company.billingSubscriptionId,
+        checkoutAvailable: enabled && !reconciliationRequired && verificationSatisfied(owner) && company.isActive && company.operationalStatus === 'ACTIVE' && !company.billingSubscriptionId,
     };
 }
 
@@ -94,7 +98,7 @@ async function reserve(actor: VerificationActor, action: 'CUSTOMER_CREATE' | 'CH
     return db.$transaction(async tx => {
         await tx.$queryRaw`SELECT id FROM "Company" WHERE id=${actor.companyId} FOR UPDATE`;
         const owner = await ownerAccount(actor, tx);
-        if (!owner.emailVerifiedAt || !owner.company.isActive || owner.company.operationalStatus !== 'ACTIVE') throw new ApiError(403, 'Verified active company access required');
+        if (!verificationSatisfied(owner) || !owner.company.isActive || owner.company.operationalStatus !== 'ACTIVE') throw new ApiError(403, 'Verified active company access required');
         if (action === 'CUSTOMER_CREATE' && owner.company.billingCustomerId) return { existingCustomerId: owner.company.billingCustomerId };
         if (owner.company.billingSubscriptionId && action === 'CHECKOUT') throw conflict('Use the billing portal to manage the linked subscription.');
         const prior = await tx.auditLog.findFirst({ where: { companyId: actor.companyId, entityType: 'BILLING_OPERATION', entityId: actor.companyId, action: `${action}_RESERVED` }, orderBy: { id: 'desc' } });
@@ -118,7 +122,7 @@ export async function createBillingCheckout(actor: VerificationActor, raw: unkno
     const parsed = checkoutInput.safeParse(raw);
     if (!parsed.success) throw new ApiError(400, 'Choose an available plan and billing interval');
     const db = deps.db ?? prisma, owner = await ownerAccount(actor, db); activated();
-    if (!owner.emailVerifiedAt) throw new ApiError(403, 'Verify your account email before starting checkout');
+    if (!verificationSatisfied(owner)) throw new ApiError(403, 'Verify your account email before starting checkout');
     if (!owner.company.isActive || owner.company.operationalStatus !== 'ACTIVE') throw new ApiError(403, 'Company operations are suspended');
     if (owner.company.billingSubscriptionId) throw conflict('Use the billing portal to manage the linked subscription.');
     let checkout: URL;

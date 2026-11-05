@@ -77,3 +77,8 @@ it('distinguishes an unavailable check and explicitly retries real lifecycle sta
 it('shows pending access without asserting suspension or mounting operational data', () => {
   boundary.get.mockReturnValue(new Promise(() => {})); mount(); expect(screen.getByRole('status')).toHaveTextContent('Checking workspace access'); expect(screen.queryByText('Operational records')).not.toBeInTheDocument();
 });
+
+it('keeps a newly created provider customer in onboarding until its subscription is linked', async () => {
+ lifecycle.company.operationalStatus='ACTIVE';lifecycle.providerState='AWAITING_PROVIDER';lifecycle.onboardingRequired=true;
+ mount();await screen.findByRole('heading',{name:'Plan selection'});expect(screen.queryByText('Operational records')).not.toBeInTheDocument();
+});

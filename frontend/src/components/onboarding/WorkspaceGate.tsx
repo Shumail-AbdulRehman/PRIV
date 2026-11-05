@@ -17,7 +17,7 @@ function OwnerWorkspaceGate({ children }: { children: React.ReactNode }) {
   const status = (query.error as { response?: { status?: number } } | null)?.response?.status;
   const denied = status === 401 || status === 403;
   if (matches && query.data && !suspended && !denied) {
-    if (query.data.providerState === 'NOT_LINKED' && !query.data.subscription) {
+    if (query.data.onboardingRequired ?? (query.data.providerState === 'NOT_LINKED' && !query.data.subscription)) {
       if (!query.isError) return <Navigate to="/subscription" replace />;
     } else {
       return children;

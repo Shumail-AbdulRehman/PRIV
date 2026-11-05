@@ -1,4 +1,10 @@
 export const billingUrdu:Record<string,string> = {
+ 'Checkout is temporarily unavailable. Refresh the page or contact support.': 'چیک آؤٹ عارضی طور پر دستیاب نہیں۔ صفحہ تازہ کریں یا مدد حاصل کریں۔',
+ 'Choose your plan': 'اپنا پلان منتخب کریں',
+ 'Choose a plan, enter your card in Paddle, then continue to your workspace.': 'پلان منتخب کریں، پیڈل میں کارڈ درج کریں، پھر اپنی ورک اسپیس پر جائیں۔',
+ 'Sandbox payments: use a Paddle test card. No real money is charged.': 'آزمائشی ادائیگیاں: پیڈل کا ٹیسٹ کارڈ استعمال کریں۔ حقیقی رقم وصول نہیں ہوگی۔',
+ 'Continue to workspace': 'ورک اسپیس پر جائیں',
+
  'Account access needs attention':'اکاؤنٹ کی رسائی پر توجہ درکار ہے',
  'Company operations are suspended':'کمپنی کے کام معطل ہیں',
  'Your next step':'آپ کا اگلا قدم',

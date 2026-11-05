@@ -76,6 +76,13 @@ describe('explicit qualified catalog and activation', () => {
     expect(result.reconciliationRequired).toBe(true); expect(result.checkoutAvailable).toBe(false);
     expect(m.transactionCreate).not.toHaveBeenCalled();
   });
+  it('does not treat an early transaction placeholder as completed onboarding', async () => {
+    m.owner.mockResolvedValue({ ...owner, company: { ...company, billingSubscriptionId: 'sub_fixture' } });
+    m.subscription.mockResolvedValue({ status: 'unknown', priceId });
+    expect(await getBillingLifecycle(actor, deps)).toMatchObject({ providerState: 'MIRRORED', onboardingRequired: true, checkoutAvailable: false });
+    m.subscription.mockResolvedValue({ status: 'trialing', priceId });
+    expect(await getBillingLifecycle(actor, deps)).toMatchObject({ onboardingRequired: false });
+  });
   it('reads actual provider amount/currency/trial facts without local price arithmetic', async () => {
     m.priceGet.mockResolvedValueOnce({ id: priceId, productId, status: 'active', billingCycle: { interval: 'month', frequency: 1 }, unitPrice: { amount: '0', currencyCode: 'PKR' }, trialPeriod: { interval: 'day', frequency: 5 } });
     expect(await getBillingCatalog(actor, deps)).toEqual([{ plan: 'STARTER', interval: 'month', priceId, productId, amount: '0', currencyCode: 'PKR', trialPeriod: { interval: 'day', frequency: 5 } }]);
@@ -118,10 +125,25 @@ describe('checkout request safety around Paddle', () => {
   });
   it('does not call any provider when activation, verified ownership or return URL is unavailable', async () => {
     vi.stubEnv('PADDLE_BILLING_ENABLED', 'false'); await expect(createBillingCheckout(actor, request, deps)).rejects.toMatchObject({ statusCode: 503 });
-    vi.stubEnv('PADDLE_BILLING_ENABLED', 'true'); m.owner.mockResolvedValueOnce({ ...owner, emailVerifiedAt: null });
+    vi.stubEnv('PADDLE_BILLING_ENABLED', 'true'); vi.stubEnv('PADDLE_ENVIRONMENT', 'production'); m.owner.mockResolvedValueOnce({ ...owner, emailVerifiedAt: null });
     await expect(createBillingCheckout(actor, request, deps)).rejects.toMatchObject({ statusCode: 403 });
     vi.stubEnv('PADDLE_CHECKOUT_URL', ''); await expect(createBillingCheckout(actor, request, deps)).rejects.toMatchObject({ statusCode: 503 });
     expect(m.priceGet).not.toHaveBeenCalled(); expect(m.customerCreate).not.toHaveBeenCalled(); expect(m.transactionCreate).not.toHaveBeenCalled(); expect(m.auditCreate).not.toHaveBeenCalled();
+  });
+  it('allows an unverified sandbox owner through both checkout reservation locks without marking the email verified', async () => {
+    m.owner.mockResolvedValue({ ...owner, emailVerifiedAt: null });
+    const lifecycle = await getBillingLifecycle(actor, deps);
+    expect(lifecycle).toMatchObject({ billingEnvironment: 'sandbox', ownerVerified: false, checkoutAvailable: true, onboardingRequired: true });
+    expect(await createBillingCheckout(actor, request, deps)).toEqual({ transactionId, reused: false });
+    expect(m.transactionCreate).toHaveBeenCalledOnce();
+  });
+  it('requires verification in production and denies an owner who becomes unverified under the reservation lock', async () => {
+    vi.stubEnv('PADDLE_ENVIRONMENT', 'production');
+    m.owner.mockResolvedValue({ ...owner, emailVerifiedAt: null });
+    expect(await getBillingLifecycle(actor, deps)).toMatchObject({ billingEnvironment: 'production', ownerVerified: false, checkoutAvailable: false });
+    m.owner.mockResolvedValueOnce(owner).mockResolvedValueOnce(owner);
+    await expect(createBillingCheckout(actor, request, deps)).rejects.toMatchObject({ statusCode: 403 });
+    expect(m.transactionCreate).not.toHaveBeenCalled();
   });
   it('uses the portal for any linked subscription rather than creating another purchase', async () => {
     m.owner.mockResolvedValue({ ...owner, company: { ...company, billingSubscriptionId: 'sub_fixture' } });

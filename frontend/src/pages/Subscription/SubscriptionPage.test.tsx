@@ -33,7 +33,7 @@ beforeEach(()=>{m.commercialReady=true;
  m.get.mockImplementation(async(url:string)=>({data:{data:url==='/common/get-current-user'?owner:url.endsWith('/catalog')?structuredClone(catalog):structuredClone(lifecycle)}}));
  m.post.mockResolvedValue({data:{data:{transactionId,reused:false}}});m.paddle.mockResolvedValue({Checkout:{open:m.open}});
 });
-afterEach(()=>vi.restoreAllMocks());
+afterEach(()=>{vi.restoreAllMocks();vi.unstubAllEnvs();});
 function enableCheckout(){lifecycle.billingConfigured=true;lifecycle.checkoutAvailable=true;}
 function linked(){lifecycle.billingConfigured=true;lifecycle.portalAvailable=true;lifecycle.checkoutAvailable=false;lifecycle.providerState='MIRRORED';lifecycle.subscription={status:'active',plan:'PRO',catalogQualified:true,periodStart:'2026-10-01T00:00:00Z',periodEnd:'2026-11-01T00:00:00Z',scheduledChangeAction:'cancel',scheduledChangeAt:'2026-11-01T00:00:00Z',lastEventAt:'2026-10-20T03:00:00Z'};}
 it.each(['MANAGER','STAFF'] as const)('denies %s before any billing request',role=>{
@@ -61,7 +61,7 @@ it('reopens the prepared transaction without another POST, cache or browser pers
  enableCheckout();const {query}=mount();fireEvent.click(await screen.findByRole('button',{name:'Continue to checkout'}));const reopen=await screen.findByRole('button',{name:'Reopen existing checkout'});await waitFor(()=>expect(reopen).toBeEnabled());fireEvent.click(reopen);await waitFor(()=>expect(m.open).toHaveBeenCalledTimes(2));expect(m.post).toHaveBeenCalledTimes(1);expect(query.getMutationCache().getAll()).toHaveLength(0);expect(JSON.stringify(query.getQueryCache().getAll().map(q=>q.state.data))).not.toContain(transactionId);expect(localStorage.getItem('transactionId')).toBeNull();
 });
 it('awaiting webhook remains pending on checkout return and refresh observes real mirror only',async()=>{
- lifecycle.providerState='AWAITING_PROVIDER';mount(<Routes><Route path="/" element={<WelcomePage/>}/><Route path="/subscription" element={<SubscriptionPage/>}/></Routes>);await screen.findByText(/Activation is awaiting provider synchronization/);expect(screen.queryByText('Active',{exact:true})).not.toBeInTheDocument();linked();fireEvent.click(screen.getByRole('button',{name:'Refresh billing status'}));await screen.findByText('Active',{exact:true});expect(screen.queryByText(/Activation is awaiting provider synchronization/)).not.toBeInTheDocument();
+ lifecycle.providerState='AWAITING_PROVIDER';mount(<Routes><Route path="/" element={<WelcomePage/>}/><Route path="/subscription" element={<SubscriptionPage/>}/><Route path="/dashboard" element={<h1>Workspace ready</h1>}/></Routes>);await screen.findByText(/Activation is awaiting provider synchronization/);expect(screen.queryByText('Active',{exact:true})).not.toBeInTheDocument();linked();fireEvent.click(screen.getByRole('button',{name:'Refresh billing status'}));await screen.findByRole('heading',{name:'Workspace ready'});expect(screen.queryByText(/Activation is awaiting provider synchronization/)).not.toBeInTheDocument();
 });
 it('unresolved reservation never exposes new checkout',async()=>{
  enableCheckout();lifecycle.reconciliationRequired=true;lifecycle.checkoutAvailable=false;mount();await screen.findByText(/A billing request needs reconciliation/);expect(screen.queryByRole('button',{name:'Continue to checkout'})).not.toBeInTheDocument();expect(m.paddle).not.toHaveBeenCalled();
@@ -177,4 +177,33 @@ it('inactive company receives suspension guidance without losing its billing and
  await screen.findByText(/Payment does not remove an administrative suspension/);
  expect(screen.getByRole('button',{name:'Manage billing in Paddle'})).toBeEnabled();
  expect(screen.getByRole('link',{name:'Your account security'})).toHaveAttribute('href','/account/security');
+});
+
+it('shows plan choice first and opens sandbox checkout for an unverified owner without live-policy readiness',async()=>{
+ enableCheckout();lifecycle.billingEnvironment='sandbox';lifecycle.ownerVerified=false;m.commercialReady=false;
+ vi.stubEnv('VITE_PADDLE_ENVIRONMENT','sandbox');vi.stubEnv('VITE_PADDLE_CLIENT_TOKEN','test_synthetic');
+ mount();await screen.findByRole('heading',{name:'Choose your plan'});
+ const options=screen.getByRole('region',{name:'Available billing options'});
+ expect(options.compareDocumentPosition(screen.getByRole('region',{name:'Your subscription'}))&Node.DOCUMENT_POSITION_FOLLOWING).toBeTruthy();
+ expect(screen.getByText(/Sandbox payments: use a Paddle test card/)).toBeInTheDocument();
+ expect(screen.queryByText(/Verify your owner email/)).not.toBeInTheDocument();
+ fireEvent.click(await screen.findByRole('button',{name:'Continue to checkout'}));
+ await waitFor(()=>expect(m.open).toHaveBeenCalledOnce());
+ expect(m.post).toHaveBeenCalledWith('/subscription/manage/checkout',{plan:'PRO',interval:'month'},expect.any(Object));
+});
+it.each(['production',undefined] as const)('does not waive live purchase readiness when backend environment is %s',async(environment)=>{
+ enableCheckout();lifecycle.billingEnvironment=environment;m.commercialReady=false;
+ vi.stubEnv('VITE_PADDLE_ENVIRONMENT','sandbox');vi.stubEnv('VITE_PADDLE_CLIENT_TOKEN','test_synthetic');
+ mount();expect(await screen.findByRole('button',{name:'Continue to checkout'})).toBeDisabled();
+ expect(screen.queryByText(/Sandbox payments: use a Paddle test card/)).not.toBeInTheDocument();
+ expect(m.post).not.toHaveBeenCalled();
+});
+it('does not waive purchase readiness for mismatched browser/provider environments',async()=>{
+ enableCheckout();lifecycle.billingEnvironment='sandbox';m.commercialReady=true;
+ vi.stubEnv('VITE_PADDLE_ENVIRONMENT','production');vi.stubEnv('VITE_PADDLE_CLIENT_TOKEN','live_synthetic');
+ mount();expect(await screen.findByRole('button',{name:'Continue to checkout'})).toBeDisabled();expect(m.post).not.toHaveBeenCalled();
+});
+it.each(['unqualified','suspended'])('does not leave activation return for a %s subscription',async(condition)=>{
+ linked();if(condition==='unqualified')lifecycle.subscription!.catalogQualified=false;else lifecycle.company.operationalStatus='SUSPENDED';mount(<SubscriptionPage activationReturn/>);
+ await screen.findByRole('heading',{name:'Plan & billing'});expect(screen.queryByRole('link',{name:'Continue to workspace'})).not.toBeInTheDocument();
 });

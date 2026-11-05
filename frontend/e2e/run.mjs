@@ -63,6 +63,9 @@ const env = {
     { plan: "ADVANCED", interval: "month", priceId: "pri_00000000000000000000000003" },
   ]),
   PADDLE_BILLING_ENABLED: "false",
+  // Browser checkout tests intercept the provider; never load private .env tokens.
+  VITE_PADDLE_ENVIRONMENT: "sandbox",
+  VITE_PADDLE_CLIENT_TOKEN: "test_isolated_browser_fixture",
   HYGENE_E2E_BACKEND_ORIGIN: `http://127.0.0.1:${backendPort}`,
   HYGENE_E2E_WEB_ORIGIN: `http://127.0.0.1:${webPort}`,
   HYGENE_E2E_MANIFEST: join(directory, "fixture.json"),

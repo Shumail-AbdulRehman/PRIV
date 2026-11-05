@@ -54,6 +54,7 @@
  .workspace .billing-usage > div { gap:12px; align-items:flex-start; }
  .workspace .billing-usage dd { max-width:45%; }
  .workspace .billing-activity-row { flex-wrap:wrap; }
- .workspace .billing-header-actions { gap:8px; }
+ .workspace .billing-header-actions { gap:8px; inline-size:100%; }
+ .workspace .billing-page .page-header-actions { inline-size:100%; }
  .workspace .billing-header-actions [data-slot=button] { flex:1; }
 }
