@@ -2,7 +2,7 @@ import { configureStore } from '@reduxjs/toolkit';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { act, fireEvent, render, screen } from '@testing-library/react';
 import { Provider } from 'react-redux';
-import { MemoryRouter } from 'react-router-dom';
+import { MemoryRouter, Route, Routes } from 'react-router-dom';
 import { beforeEach, expect, it, vi } from 'vitest';
 import authReducer, { setUser, type AuthUser } from '@/store/slices/authSlice';
 import { LanguageProvider } from '@/i18n/LanguageProvider';
@@ -17,7 +17,7 @@ function mount({ path = '/dashboard', role = 'ADMIN', language = 'en' }: { path?
   const store = configureStore({ reducer: { auth: authReducer } });
   store.dispatch(setUser({ id: 7, companyId: 42, role, name: 'Test owner', email: 'owner@example.invalid' }));
   const query = new QueryClient({ defaultOptions: { queries: { retry: false, gcTime: 0 } } });
-  return { ...render(<Provider store={store}><QueryClientProvider client={query}><LanguageProvider><MemoryRouter initialEntries={[path]}><WorkspaceGate><h1>Operational records</h1></WorkspaceGate></MemoryRouter></LanguageProvider></QueryClientProvider></Provider>), query };
+  return { ...render(<Provider store={store}><QueryClientProvider client={query}><LanguageProvider><MemoryRouter initialEntries={[path]}><Routes><Route path={path} element={<WorkspaceGate><h1>Operational records</h1></WorkspaceGate>} />{path !== "/subscription" && <Route path="/subscription" element={<h1>Plan selection</h1>} />}</Routes></MemoryRouter></LanguageProvider></QueryClientProvider></Provider>), query };
 }
 beforeEach(() => {
   vi.clearAllMocks(); localStorage.clear();
@@ -36,9 +36,20 @@ it.each(['/subscription', '/settings', '/settings/security'])('keeps safe destin
 it.each(['MANAGER', 'STAFF'] as const)('does not request owner billing for %s', role => {
   mount({ role }); expect(screen.getByText('Operational records')).toBeInTheDocument(); expect(boundary.get).not.toHaveBeenCalled();
 });
-it('permits active unpaid read-only operations without inventing subscription policy', async () => {
-  lifecycle.company.operationalStatus = 'ACTIVE'; mount(); await screen.findByText('Operational records');
-  expect(screen.queryByText('Company operations are suspended')).not.toBeInTheDocument();
+it.each(['/dashboard', '/staff', '/locations', '/choose-plan'])('sends an owner with no billing account from %s to plan selection', async path => {
+  lifecycle.company.operationalStatus = 'ACTIVE'; mount({ path });
+  await screen.findByRole('heading', { name: 'Plan selection' });
+  expect(screen.queryByText('Operational records')).not.toBeInTheDocument();
+});
+it.each(['active', 'trialing', 'past_due', 'canceled', 'paused'])('preserves read access for an existing %s subscription', async status => {
+  lifecycle.company.operationalStatus = 'ACTIVE'; lifecycle.providerState = 'MIRRORED';
+  lifecycle.subscription = { status, plan: 'PRO', catalogQualified: true, periodStart: null, periodEnd: null, scheduledChangeAction: null, scheduledChangeAt: null, lastEventAt: '2026-11-05T00:00:00Z' };
+  mount(); await screen.findByText('Operational records');
+  expect(screen.queryByText('Plan selection')).not.toBeInTheDocument();
+});
+it('does not restart onboarding for a provider account awaiting synchronization', async () => {
+  lifecycle.company.operationalStatus = 'ACTIVE'; lifecycle.providerState = 'AWAITING_PROVIDER';
+  mount(); await screen.findByText('Operational records');
 });
 it('uses actual inactive company state even when its legacy operational status is active', async () => {
   lifecycle.company.isActive = false; lifecycle.company.operationalStatus = 'ACTIVE';
@@ -46,7 +57,7 @@ it('uses actual inactive company state even when its legacy operational status i
   expect(screen.queryByText('Operational records')).not.toBeInTheDocument();
 });
 it('an explicit authorization denial supersedes a previously active snapshot', async () => {
-  lifecycle.company.operationalStatus = 'ACTIVE'; const { query } = mount();
+  lifecycle.company.operationalStatus = 'ACTIVE'; lifecycle.providerState = 'AWAITING_PROVIDER'; const { query } = mount();
   await screen.findByText('Operational records');
   boundary.get.mockRejectedValue({ response: { status: 403 } });
   await act(async () => { await query.refetchQueries(); });
@@ -60,7 +71,7 @@ it('distinguishes an unavailable check and explicitly retries real lifecycle sta
   boundary.get.mockRejectedValue(new Error('private provider detail')); mount();
   expect(await screen.findByRole('alert')).toHaveTextContent('Billing, security and help remain available');
   expect(screen.queryByText('private provider detail')).not.toBeInTheDocument();
-  lifecycle.company.operationalStatus = 'ACTIVE'; boundary.get.mockResolvedValue({ data: { data: lifecycle } });
+  lifecycle.company.operationalStatus = 'ACTIVE'; lifecycle.providerState = 'AWAITING_PROVIDER'; boundary.get.mockResolvedValue({ data: { data: lifecycle } });
   fireEvent.click(screen.getByRole('button', { name: 'Refresh workspace access' })); await screen.findByText('Operational records');
 });
 it('shows pending access without asserting suspension or mounting operational data', () => {

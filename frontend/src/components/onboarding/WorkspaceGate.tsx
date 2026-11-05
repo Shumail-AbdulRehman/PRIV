@@ -1,4 +1,4 @@
-import { Link, useLocation } from 'react-router-dom';
+import { Link, Navigate, useLocation } from 'react-router-dom';
 import useAuth from '@/hooks/useAuth';
 import { useLanguage } from '@/i18n/context';
 import PageHeader from '@/components/common/PageHeader';
@@ -6,8 +6,8 @@ import { Button } from '@/components/ui/button';
 import { useBillingLifecycle } from '@/pages/Subscription/queries';
 import './workspace-access.css';
 
-// Presentation only: provider state must never block permitted operational reads.
-// The API continues to enforce all permissions.
+// First-time owners complete billing onboarding before entering operations.
+// Existing subscribers retain operational reads; API permissions remain authoritative.
 function OwnerWorkspaceGate({ children }: { children: React.ReactNode }) {
   const { user } = useAuth();
   const { t } = useLanguage();
@@ -16,7 +16,13 @@ function OwnerWorkspaceGate({ children }: { children: React.ReactNode }) {
   const suspended = matches && (!query.data?.company.isActive || query.data?.company.operationalStatus === 'SUSPENDED');
   const status = (query.error as { response?: { status?: number } } | null)?.response?.status;
   const denied = status === 401 || status === 403;
-  if (matches && !suspended && !denied) return children;
+  if (matches && query.data && !suspended && !denied) {
+    if (query.data.providerState === 'NOT_LINKED' && !query.data.subscription) {
+      if (!query.isError) return <Navigate to="/subscription" replace />;
+    } else {
+      return children;
+    }
+  }
 
   return <div className="ops-page owner-access-page">
     <PageHeader subtitle={suspended ? 'Owner billing, account security and help remain available when company operations are restricted.' : undefined} title={suspended ? 'Account access needs attention' : query.isPending ? 'Checking workspace access…' : 'Workspace access could not be checked'} />

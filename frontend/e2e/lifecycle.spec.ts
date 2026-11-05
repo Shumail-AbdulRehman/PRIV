@@ -314,4 +314,17 @@ test("registration CTA lands in canonical billing after durable account creation
   await page.getByRole("button", { name: /Create account/i }).click();
   expect((await response).status()).toBe(201);
   await expect(page).toHaveURL(/subscription/);
+  // A reload, direct operational URL or later sign-in must not skip onboarding.
+  for (const path of ['/dashboard', '/staff']) {
+    await page.goto(path);
+    await expect(page).toHaveURL(/subscription/);
+  }
+  await page.getByRole('button', { name: 'Sign out', exact: true }).click();
+  await expect(page).toHaveURL(/login/);
+  await page.getByLabel('Email', { exact: true }).fill('billing-landing@example.invalid');
+  await page.getByLabel('Password', { exact: true }).fill(fixture.password);
+  await page.getByRole('button', { name: 'Sign in', exact: true }).click();
+  await expect(page).toHaveURL(/subscription/);
+  const rows = await sql('SELECT c."billingCustomerId", c."billingSubscriptionId", c."subscriptionStatus" FROM "Company" c JOIN "Manager" m ON m."companyId"=c.id WHERE m.email=$1', ['billing-landing@example.invalid']);
+  expect(rows).toEqual([{ billingCustomerId: null, billingSubscriptionId: null, subscriptionStatus: 'CANCELLED' }]);
 });
