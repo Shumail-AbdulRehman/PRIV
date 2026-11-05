@@ -31,9 +31,9 @@ test('new owner recovers a stale billing chunk, selects a sandbox plan and waits
     const response = await route.fetch();
     const payload = await response.json();
     payload.data = { ...payload.data, billingConfigured: true, billingEnvironment: 'sandbox',
-      ownerVerified: false, checkoutAvailable: !activated, onboardingRequired: !activated,
-      providerState: activated ? 'MIRRORED' : awaiting ? 'AWAITING_PROVIDER' : 'NOT_LINKED',
-      subscription: activated ? { status: 'active', plan: 'PRO', catalogQualified: true } : null };
+      ownerVerified: false, checkoutAvailable: !awaiting && !activated, onboardingRequired: !activated,
+      providerState: activated || awaiting ? 'MIRRORED' : 'NOT_LINKED',
+      subscription: activated ? { status: 'active', plan: 'PRO', catalogQualified: true } : awaiting ? { status: 'unknown', plan: null, catalogQualified: false } : null };
     await route.fulfill({ response, json: payload });
   });
   await page.route('**/subscription/manage/catalog', route => route.fulfill({ json: { data: [

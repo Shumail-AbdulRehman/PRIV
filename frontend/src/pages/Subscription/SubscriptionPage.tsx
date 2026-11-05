@@ -116,7 +116,7 @@ function OwnerBilling({activationReturn}:{activationReturn:boolean}) {
      {query.isError?<p role="status" className="billing-notice">{t('Showing previously loaded billing records. Refresh before taking any action.')}</p>:null}
      {!current.company.isActive||current.company.operationalStatus==='SUSPENDED'?<p className="billing-notice" role="status">{t('Company operations are suspended. Owner billing and account security remain available. Payment does not remove an administrative suspension.')}</p>:null}
      {current.reconciliationRequired||uncertain?<p className="billing-notice" role="status">{t('A billing request needs reconciliation. Do not start another purchase. Refresh status or contact your configured support channel.')}</p>:null}
-     {current.providerState==='AWAITING_PROVIDER'||(activationReturn&&!linked)?<p className="billing-notice" role="status">{t('Activation is awaiting provider synchronization. Completing checkout does not confirm an active subscription. Do not pay again.')}</p>:null}
+     {current.providerState==='AWAITING_PROVIDER'||current.subscription?.status==='unknown'||(activationReturn&&!linked)?<p className="billing-notice" role="status">{t('Activation is awaiting provider synchronization. Completing checkout does not confirm an active subscription. Do not pay again.')}</p>:null}
      {notice?<p role="status" className="billing-notice billing-notice-info">{t(notice)}</p>:null}
      {error?<p role="alert" className="billing-notice">{t(error)}</p>:null}
      {!linked?<section className="ops-panel billing-panel" aria-labelledby="billing-offers-heading">

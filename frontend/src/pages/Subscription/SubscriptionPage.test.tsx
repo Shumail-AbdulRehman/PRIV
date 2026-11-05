@@ -207,3 +207,12 @@ it.each(['unqualified','suspended'])('does not leave activation return for a %s 
  linked();if(condition==='unqualified')lifecycle.subscription!.catalogQualified=false;else lifecycle.company.operationalStatus='SUSPENDED';mount(<SubscriptionPage activationReturn/>);
  await screen.findByRole('heading',{name:'Plan & billing'});expect(screen.queryByRole('link',{name:'Continue to workspace'})).not.toBeInTheDocument();
 });
+
+it('shows pending activation without a second purchase for an early transaction subscription placeholder',async()=>{
+ linked();lifecycle.subscription!.status='unknown';lifecycle.subscription!.catalogQualified=false;lifecycle.onboardingRequired=true;
+ mount(<SubscriptionPage activationReturn/>);
+ await screen.findByText(/Activation is awaiting provider synchronization/);
+ expect(screen.queryByRole('button',{name:'Continue to checkout'})).not.toBeInTheDocument();
+ expect(screen.queryByRole('link',{name:'Continue to workspace'})).not.toBeInTheDocument();
+ expect(m.post).not.toHaveBeenCalled();
+});

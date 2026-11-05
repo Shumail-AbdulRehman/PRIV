@@ -37,6 +37,10 @@ export function useBillingLifecycle({poll=false}:{poll?:boolean}={}) {
  return useQuery({
   queryKey:billingLifecycleKey(user?.companyId,user?.id), queryFn:({signal})=>getBillingLifecycle(signal),
   enabled:user?.role==='ADMIN',retry:false,staleTime:0,refetchOnWindowFocus:true,
-  refetchInterval:poll ? query=>query.state.error?false:query.state.data?.providerState==='AWAITING_PROVIDER'||query.state.data?.reconciliationRequired?5000:false : false,
+  refetchInterval:poll ? ({state})=>{
+   if(state.error)return false;
+   const pending=state.data?.providerState==='AWAITING_PROVIDER'||state.data?.subscription?.status==='unknown'||state.data?.reconciliationRequired;
+   return pending?5000:false;
+  } : false,
  });
 }

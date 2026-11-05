@@ -8,7 +8,7 @@ The deployed browser requested an old hashed SubscriptionPage JavaScript chunk. 
 
 The earlier billing rewrite replaced the old plan picker with the canonical owner billing page. That page required verified email and production policy/support readiness, and the server requires an explicitly enabled price catalog. The sandbox had six active recurring prices, but the local backend environment lacked the catalog and activation flag. These are distinct from the stale-module crash; Heroku configuration must also be checked.
 
-New owners now remain in onboarding until a subscription is linked, including after a Paddle customer/draft transaction exists. Sandbox owners skip email verification without marking their email verified. The policy/support purchase gate is skipped only when the server reports sandbox and the browser uses sandbox credentials. Live checkout retains its verification and policy requirements. Checkout returns wait for a qualified active/trialing provider subscription, then continue to the dashboard.
+New owners now remain in onboarding until a subscription is linked, including after a Paddle customer/draft transaction exists. Sandbox owners skip email verification without marking their email verified. The policy/support purchase gate is skipped only when the server reports sandbox and the browser uses sandbox credentials. Live checkout retains its verification and policy requirements. Checkout returns wait for a qualified active/trialing provider subscription, then continue to the dashboard. If a transaction event arrives before the full subscription event, polling continues through the temporary unknown subscription record and a second purchase stays unavailable.
 
 ## Heroku: cleanops
 
