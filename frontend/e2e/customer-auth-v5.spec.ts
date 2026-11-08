@@ -4,7 +4,7 @@ import {mkdir,writeFile} from 'node:fs/promises';
 import {fileURLToPath} from 'node:url';
 import {join} from 'node:path';
 const root=fileURLToPath(new URL('../../',import.meta.url));
-const out=join(root,'docs/implementation/v5-auth-evidence');
+const out=join(root,'frontend/e2e/.artifacts/auth-evidence');
 // Credential workflows never persist traces, videos or automatic failure captures.
 // Explicit captures below have empty password fields and scrubbed fragment URLs.
 test.use({trace:'off',screenshot:'off',video:'off'});
@@ -15,17 +15,17 @@ test('V5 customer auth pages render at matching desktop/phone English/Urdu sizes
   const context=await browser.newContext({viewport:{width,height:900}});const page=await context.newPage();const errors:string[]=[];page.on('pageerror',e=>errors.push(e.message));
   await page.addInitScript(value=>localStorage.setItem('hygene-ops.language',value),lang);
   for(const [name,path,prototype]of routes){
-   await page.goto(path);await expect(page.locator('.v5-auth h1')).toBeVisible();await page.evaluate(()=>document.fonts.ready);
+   await page.goto(path);await expect(page.locator(name==='signup'?'.billing-onboarding h1':'.v5-auth h1')).toBeVisible();await page.evaluate(()=>document.fonts.ready);
    await page.screenshot({path:join(out,`app-${name}-${width}-${lang}.png`),fullPage:true});
-   const geometry=await page.evaluate(()=>{const brand=document.querySelector('.v5-auth-brand')!.getBoundingClientRect(),title=document.querySelector('.v5-auth h1')!.getBoundingClientRect();return {brandToTitle:title.y-brand.bottom};});
+   const geometry=await page.evaluate(signup=>{const brand=document.querySelector(signup?'.billing-brand':'.v5-auth-brand')!.getBoundingClientRect(),title=document.querySelector(signup?'.billing-onboarding h1':'.v5-auth h1')!.getBoundingClientRect();return {brandToTitle:title.y-brand.bottom};},name==='signup');
    if(name==='login'){
     expect(geometry.brandToTitle).toBeGreaterThan(0);
     await expect(page.locator('.login-intro')).toBeVisible({visible:width>800});
     await expect(page.getByRole('link',{name:lang==='ur'?'پلیٹ فارم مالک کا داخلہ':'Platform owner sign-in',exact:true})).toHaveAttribute('href','/platform/login');
-   }else{expect(geometry.brandToTitle).toBeGreaterThanOrEqual(39);expect(geometry.brandToTitle).toBeLessThanOrEqual(41);}
+   }else if(name!=='signup'){expect(geometry.brandToTitle).toBeGreaterThanOrEqual(39);expect(geometry.brandToTitle).toBeLessThanOrEqual(41);}
    const overflow=await page.evaluate(()=>document.documentElement.scrollWidth>innerWidth+1);results.push({name,path,prototype,width,lang,geometry,overflow,errors:[...errors]});expect(overflow).toBe(false);expect(errors).toEqual([]);errors.length=0;
    await expect(page.locator('.language-choice')).toHaveCount(1);await expect(page.locator('.auth-preview')).toHaveCount(0);
-   const reference=await context.newPage();await reference.goto('file://'+join(root,`design/v5/${prototype}.html`)+`?lang=${lang}${name.endsWith('missing')?'&link=expired':''}`);await reference.evaluate(()=>document.fonts.ready);await reference.screenshot({path:join(out,`v5-${name}-${width}-${lang}.png`),fullPage:true});await reference.close();
+   const reference=await context.newPage();await reference.goto('file://'+(name==='signup'?join(root,'design/billing-onboarding/revision-2/v3/account.html'):join(root,`design/v5/${prototype}.html`))+`?lang=${lang}${name.endsWith('missing')?'&link=expired':''}`);await reference.evaluate(()=>document.fonts.ready);await reference.screenshot({path:join(out,`v5-${name}-${width}-${lang}.png`),fullPage:true});await reference.close();
   }
   // A shaped but never-issued synthetic link exercises the real form and real denial.
   // Its fragment is scrubbed before React/API reads; no token is written to artifacts.

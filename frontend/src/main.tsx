@@ -9,7 +9,7 @@ import '@fontsource/noto-sans-arabic/arabic-600.css';
 import { LanguageProvider } from './i18n/LanguageProvider';
 import { createRoot } from 'react-dom/client';
 import './index.css';
-import App, { GuestRoute, ProtectedRoute, RequireRole } from './App.tsx';
+import App, { GuestRoute, ProtectedRoute } from './App.tsx';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { createBrowserRouter, RouterProvider } from 'react-router-dom';
 import { Provider } from 'react-redux';
@@ -22,8 +22,8 @@ import Login from './pages/Login/LoginPage.tsx';
 import LandingPage from './pages/Landing/LandingPage.tsx';
 import FeaturesPage from './pages/Landing/FeaturesPage.tsx';
 import PricingPage from './pages/Pricing/PricingPage.tsx';
-import WelcomePage from './pages/Pricing/WelcomePage.tsx';
-import ChoosePlanPage from './pages/Pricing/ChoosePlanPage.tsx';
+import { billingRoutes } from './pages/Subscription/onboarding/billingRoutes';
+import WorkspaceGate from './components/onboarding/WorkspaceGate';
 import { installModuleLoadRecovery } from './lib/moduleLoadRecovery';
 
 installModuleLoadRecovery();
@@ -53,14 +53,13 @@ const router = createBrowserRouter([
       { path: 'recover-owner-account', element: <OwnerRecoveryPage /> },
       { path: 'verify-owner-email', element: <OwnerLinkPage kind="verify" /> },
       { path: 'reset-owner-password', element: <OwnerLinkPage kind="reset" /> },
+      ...billingRoutes,
       {
         element: <PublicLayout />,
         children: [
           { index: true, element: <LandingPage /> },
           { path: 'features', element: <FeaturesPage /> },
           { path: 'pricing', element: <PricingPage /> },
-          { path: 'welcome', element: <RequireRole roles={['ADMIN']}><WelcomePage /></RequireRole> },
-          { path: 'choose-plan', element: <RequireRole roles={['ADMIN']}><ChoosePlanPage /></RequireRole> },
         ],
       },
       {
@@ -82,7 +81,7 @@ const router = createBrowserRouter([
       {
         element: (
           <ProtectedRoute>
-            <WorkspaceAudience><DashboardLayout /></WorkspaceAudience>
+            <WorkspaceGate><WorkspaceAudience><DashboardLayout /></WorkspaceAudience></WorkspaceGate>
           </ProtectedRoute>
         ),
         children: workspaceRoutes,

@@ -106,11 +106,11 @@ test('Photo Reviews and task-photo bookmarks load persisted queue and detail con
   const [record] = await sql('SELECT e.state,e."areaId",a.name AS "areaName" FROM "VerificationException" e JOIN "Area" a ON a.id=e."areaId" WHERE e.id=$1', [fixture.review.id]);
   const queue = record.state === 'RESOLVED' ? 'resolved' : 'needs-me';
   const detail = browserRead<{ id: number; items: unknown[]; location: Site }>(page, `/verification-exceptions/${fixture.review.id}`);
-  const reviews = await visit<{ cases: Array<{ id: number }>; total: number; locations: Site[] }>(page, `/exceptions/${fixture.review.id}?queue=${queue}&period=all`, '/verification-exceptions');
+  const reviews = await visit<{ cases: Array<{ id: number }>; total: number; locations: Site[] }>(page, `/exceptions/${fixture.review.id}?queue=${queue}&period=all`, '/verification-exceptions', {queue,period:'all'});
   expect(reviews.cases.map(review => review.id)).toContain(fixture.review.id);
   expect((await detail).location.id).toBe(fixture.site.A);
   await expect(page.locator('.v5-review-content')).toBeVisible();
-  await expect(page.locator('.v5-queue-record').filter({ hasText: record.areaName })).toBeVisible();
+  await expect(page.locator(`.v5-queue-record[data-review-id="${fixture.review.id}"]`).filter({ hasText: record.areaName })).toBeVisible();
   await healthy(page);
   const task = browserRead<{ id: number; verificationVersion: number }>(page, `/task-instance/${fixture.review.taskId}`);
   await page.goto('/verification/' + fixture.review.taskId);
@@ -235,8 +235,8 @@ test('Plan and Billing displays persisted provider linkage and capacity without 
     (SELECT count(*)::int FROM "Manager" WHERE "companyId"=$1 AND "isActive") AS managers`, [fixture.company.A]);
   expect(lifecycle.usage).toEqual(usage);
   await expect(page.getByRole('heading', { name: 'Your subscription', exact: true })).toBeVisible();
-  await expect(page.locator('.billing-facts')).toContainText('Active');
-  await expect(page.locator('.billing-usage')).toContainText(String(usage.staff));
+  await expect(page.locator('.billing-account-facts')).toContainText('Active');
+  await expect(page.getByText('Workspace usage',{exact:true})).toBeVisible();await expect(page.getByText(new RegExp(`^${usage.staff} / `))).toBeVisible();
   await healthy(page);
 });
 

@@ -1,0 +1,16 @@
+{
+  "specCount": 20,
+  "lineRange": [
+    47,
+    86
+  ],
+  "semanticIssues": [],
+  "missingReviewLinks": [],
+  "approvedV3FingerprintMatches": true,
+  "trackedChanges": [
+    ".gitignore"
+  ],
+  "applicationSourceChanges": [],
+  "testCases": 76,
+  "browserFlowRows": 30
+}

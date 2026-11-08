@@ -1,0 +1,362 @@
+{
+  "focusSequences": [
+    {
+      "screen": "account",
+      "sequence": [
+        {
+          "tag": "BUTTON",
+          "id": "close-help",
+          "text": "",
+          "inside": true,
+          "backgroundInert": true
+        },
+        {
+          "tag": "BUTTON",
+          "id": "back-from-help",
+          "text": "Back to setup",
+          "inside": true,
+          "backgroundInert": true
+        },
+        {
+          "tag": "BUTTON",
+          "id": "",
+          "text": "Contact support",
+          "inside": true,
+          "backgroundInert": true
+        },
+        {
+          "tag": "BODY",
+          "id": "",
+          "text": "[document body focus boundary]",
+          "inside": false,
+          "backgroundInert": true
+        },
+        {
+          "tag": "BUTTON",
+          "id": "close-help",
+          "text": "",
+          "inside": true,
+          "backgroundInert": true
+        },
+        {
+          "tag": "BUTTON",
+          "id": "back-from-help",
+          "text": "Back to setup",
+          "inside": true,
+          "backgroundInert": true
+        },
+        {
+          "tag": "BUTTON",
+          "id": "",
+          "text": "Contact support",
+          "inside": true,
+          "backgroundInert": true
+        },
+        {
+          "tag": "BODY",
+          "id": "",
+          "text": "[document body focus boundary]",
+          "inside": false,
+          "backgroundInert": true
+        },
+        {
+          "tag": "BUTTON",
+          "id": "close-help",
+          "text": "",
+          "inside": true,
+          "backgroundInert": true
+        },
+        {
+          "tag": "BUTTON",
+          "id": "back-from-help",
+          "text": "Back to setup",
+          "inside": true,
+          "backgroundInert": true
+        },
+        {
+          "tag": "BUTTON",
+          "id": "",
+          "text": "Contact support",
+          "inside": true,
+          "backgroundInert": true
+        },
+        {
+          "tag": "BODY",
+          "id": "",
+          "text": "[document body focus boundary]",
+          "inside": false,
+          "backgroundInert": true
+        },
+        {
+          "tag": "BUTTON",
+          "id": "close-help",
+          "text": "",
+          "inside": true,
+          "backgroundInert": true
+        },
+        {
+          "tag": "BUTTON",
+          "id": "back-from-help",
+          "text": "Back to setup",
+          "inside": true,
+          "backgroundInert": true
+        },
+        {
+          "tag": "BUTTON",
+          "id": "",
+          "text": "Contact support",
+          "inside": true,
+          "backgroundInert": true
+        },
+        {
+          "tag": "BODY",
+          "id": "",
+          "text": "[document body focus boundary]",
+          "inside": false,
+          "backgroundInert": true
+        }
+      ],
+      "backgroundInteractiveFocus": []
+    },
+    {
+      "screen": "payment",
+      "sequence": [
+        {
+          "tag": "BUTTON",
+          "id": "close-checkout",
+          "text": "",
+          "inside": true,
+          "backgroundInert": true
+        },
+        {
+          "tag": "A",
+          "id": "",
+          "text": "Preview successful checkout",
+          "inside": true,
+          "backgroundInert": true
+        },
+        {
+          "tag": "BUTTON",
+          "id": "simulate-decline",
+          "text": "Card declined",
+          "inside": true,
+          "backgroundInert": true
+        },
+        {
+          "tag": "A",
+          "id": "",
+          "text": "Response lost",
+          "inside": true,
+          "backgroundInert": true
+        },
+        {
+          "tag": "BODY",
+          "id": "",
+          "text": "[document body focus boundary]",
+          "inside": false,
+          "backgroundInert": true
+        },
+        {
+          "tag": "BUTTON",
+          "id": "close-checkout",
+          "text": "",
+          "inside": true,
+          "backgroundInert": true
+        },
+        {
+          "tag": "A",
+          "id": "",
+          "text": "Preview successful checkout",
+          "inside": true,
+          "backgroundInert": true
+        },
+        {
+          "tag": "BUTTON",
+          "id": "simulate-decline",
+          "text": "Card declined",
+          "inside": true,
+          "backgroundInert": true
+        },
+        {
+          "tag": "A",
+          "id": "",
+          "text": "Response lost",
+          "inside": true,
+          "backgroundInert": true
+        },
+        {
+          "tag": "BODY",
+          "id": "",
+          "text": "[document body focus boundary]",
+          "inside": false,
+          "backgroundInert": true
+        },
+        {
+          "tag": "BUTTON",
+          "id": "close-checkout",
+          "text": "",
+          "inside": true,
+          "backgroundInert": true
+        },
+        {
+          "tag": "A",
+          "id": "",
+          "text": "Preview successful checkout",
+          "inside": true,
+          "backgroundInert": true
+        },
+        {
+          "tag": "BUTTON",
+          "id": "simulate-decline",
+          "text": "Card declined",
+          "inside": true,
+          "backgroundInert": true
+        },
+        {
+          "tag": "A",
+          "id": "",
+          "text": "Response lost",
+          "inside": true,
+          "backgroundInert": true
+        },
+        {
+          "tag": "BODY",
+          "id": "",
+          "text": "[document body focus boundary]",
+          "inside": false,
+          "backgroundInert": true
+        },
+        {
+          "tag": "BUTTON",
+          "id": "close-checkout",
+          "text": "",
+          "inside": true,
+          "backgroundInert": true
+        }
+      ],
+      "backgroundInteractiveFocus": []
+    }
+  ],
+  "radioFocus": [
+    {
+      "lang": "en",
+      "active": true,
+      "focusVisible": true,
+      "cardOutline": "solid",
+      "outlineWidth": "2px"
+    },
+    {
+      "lang": "ur",
+      "active": true,
+      "focusVisible": true,
+      "cardOutline": "solid",
+      "outlineWidth": "2px"
+    }
+  ],
+  "overlays": [
+    {
+      "screen": "account",
+      "injected": true,
+      "error": null,
+      "state": {
+        "detectorFunction": "function",
+        "overlayNodes": [
+          {
+            "tag": "DIV",
+            "id": "",
+            "className": "impeccable-overlay impeccable-banner"
+          }
+        ],
+        "messages": []
+      },
+      "consoleMessages": [
+        {
+          "type": "startGroup",
+          "text": "%c[impeccable] 1 anti-pattern found color: oklch(84% 0.19 80.46); font-weight: bold"
+        },
+        {
+          "type": "log",
+          "text": "%coverused-font%c Primary font: inter (100% of text) color: oklch(84% 0.19 80.46); font-weight: bold color: inherit JSHandle@node"
+        },
+        {
+          "type": "endGroup",
+          "text": "console.groupEnd"
+        }
+      ]
+    },
+    {
+      "screen": "index",
+      "injected": true,
+      "error": null,
+      "state": {
+        "detectorFunction": "function",
+        "overlayNodes": [
+          {
+            "tag": "DIV",
+            "id": "",
+            "className": "impeccable-overlay impeccable-banner"
+          }
+        ],
+        "messages": []
+      },
+      "consoleMessages": [
+        {
+          "type": "startGroup",
+          "text": "%c[impeccable] 1 anti-pattern found color: oklch(84% 0.19 80.46); font-weight: bold"
+        },
+        {
+          "type": "log",
+          "text": "%coverused-font%c Primary font: inter (100% of text) color: oklch(84% 0.19 80.46); font-weight: bold color: inherit JSHandle@node"
+        },
+        {
+          "type": "endGroup",
+          "text": "console.groupEnd"
+        }
+      ]
+    },
+    {
+      "screen": "payment",
+      "injected": true,
+      "error": null,
+      "state": {
+        "detectorFunction": "function",
+        "overlayNodes": [
+          {
+            "tag": "DIV",
+            "id": "",
+            "className": "impeccable-overlay impeccable-visible"
+          },
+          {
+            "tag": "DIV",
+            "id": "",
+            "className": "impeccable-label"
+          },
+          {
+            "tag": "DIV",
+            "id": "",
+            "className": "impeccable-overlay impeccable-banner"
+          }
+        ],
+        "messages": []
+      },
+      "consoleMessages": [
+        {
+          "type": "startGroup",
+          "text": "%c[impeccable] 2 anti-patterns found color: oklch(84% 0.19 80.46); font-weight: bold"
+        },
+        {
+          "type": "log",
+          "text": "%cicon-tile-stack%c 46x46px icon tile above h2 \"Add your payment method\" color: oklch(84% 0.19 80.46); font-weight: bold color: inherit JSHandle@node"
+        },
+        {
+          "type": "log",
+          "text": "%coverused-font%c Primary font: inter (100% of text) color: oklch(84% 0.19 80.46); font-weight: bold color: inherit JSHandle@node"
+        },
+        {
+          "type": "endGroup",
+          "text": "console.groupEnd"
+        }
+      ]
+    }
+  ]
+}

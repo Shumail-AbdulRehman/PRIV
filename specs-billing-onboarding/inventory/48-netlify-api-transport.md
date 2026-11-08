@@ -1,0 +1,15 @@
+# Spec 48 — Netlify browser API transport
+
+`frontend/public/_redirects` adds `/api/* https://cleanops-2f9dbc8f50cd.herokuapp.com/api/:splat 200` as the first rule. API paths retain exactly one /api prefix and select the existing Heroku origin; the existing non-forced missing-asset404 and SPA200 fallbacks remain unchanged. No endpoint, backend instance, cookie/CORS configuration or native-origin change is introduced. Browser clients must use VITE_API_BASE_URL=/api in the release build to use this path; source fallback is not proof of Netlify build settings.
+
+`frontend/tests/billing-proxy.test.mjs` supplies17 Node configuration-contract tests for ordering, representative billing/refresh/unknown API paths, nested path/query forwarding (repeated/encoded/empty query values), unknown assets, existing static files, application deep links and an unrelated similarly named path. Its small first-match/static/splat reader is test-local and accepts only this file's three-column rule syntax. It is not a Netlify emulator; external200 means proxy selection, not asserted upstream success. Tests do not fabricate a provider response or demonstrate actual upstream404, Set-Cookie, request-body or refresh delivery.
+
+Reuse `frontend/src/api/client.ts` for relative /api and withCredentials; `backend/src/utils/cookies.ts` remains the httpOnly/secure/path/sameSite authority. Keep direct Heroku webhook URLs and native API settings. No token storage workaround or new runtime proxy package is needed.
+
+## Release handoff to61/63
+
+The existing backend/SANDBOX_BILLING.md currently instructs an absolute browser API URL;61 owns replacing that instruction with VITE_API_BASE_URL=/api and requiring a fresh Netlify build. Do not change that deployment setting or claim its current value here. Record matched frontend/backend release SHAs, ensure dist/_redirects is published, and retain previous deployment/config revisions for non-destructive rollback.
+
+Authorized deployed qualification must verify: request URL remains on the frontend origin; signup/login Cookie/Set-Cookie behavior without printing values; secure/httpOnly/path attributes; credentials persist through reload and serialized refresh with blocked third-party cookies; upstream401/403/404/body/headers remain API responses rather than index.html; query and mutation request bodies reach the intended backend; no sensitive billing response is cached; assets/deep links retain correct behavior. Preserve backend CORS allowlist and direct signed webhook delivery. These are pending external checks, not local unit evidence. Browser/SQL/provider acceptance remains owned by62/60/63.
+
+Platform references checked2026-11-07: [rewrites/proxies and shadowing](https://docs.netlify.com/manage/routing/redirects/rewrites-proxies/), [splat/query options](https://docs.netlify.com/manage/routing/redirects/redirect-options/), [request chain](https://docs.netlify.com/resources/troubleshooting/request-chain/). Required commands/results are recorded in the spec48 Log after completion.

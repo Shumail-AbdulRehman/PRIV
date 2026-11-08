@@ -1,3 +1,2 @@
-import { Navigate } from 'react-router-dom';
-// One authenticated billing surface owns server catalog, linkage and checkout.
-export default function ChoosePlanPage() { return <Navigate to="/subscription" replace/>; }
+import SubscriptionPage from '../Subscription/SubscriptionPage';
+export default function ChoosePlanPage(){return <SubscriptionPage/>;}

@@ -50,8 +50,20 @@ export function getPaddleCatalog(env: NodeJS.ProcessEnv = process.env): PaddleCa
     return { plan: value.plan, interval: value.interval, priceId: value.priceId };
   });
 }
+export function configuredEntryForPrice(priceId: string): PaddleCatalogEntry | undefined {
+  try { return getPaddleCatalog().find(entry => entry.priceId === priceId); } catch { return undefined; }
+}
 export function configuredPlanForPrice(priceId: string) {
-  try { return getPaddleCatalog().find(entry => entry.priceId === priceId)?.plan; } catch { return undefined; }
+  return configuredEntryForPrice(priceId)?.plan;
+}
+
+/** Checkout preparation has stricter prerequisites than catalog/portal reads. */
+export function getPaddleCheckoutUrl(): URL {
+  try {
+    const url = new URL(process.env.PADDLE_CHECKOUT_URL ?? '');
+    if (url.protocol !== 'https:' || url.username || url.password || url.hash || url.search) throw new Error();
+    return url;
+  } catch { throw new Error('Billing checkout configuration is unavailable'); }
 }
 export function requireBillingActivation() {
   if (process.env.PADDLE_BILLING_ENABLED !== 'true') throw new Error('Billing is not activated');

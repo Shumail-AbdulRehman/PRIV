@@ -121,7 +121,7 @@ test('V5 public and safe-disabled platform routes have paired evidence without b
    const ref=await context.newPage();await ref.goto('file://'+join(root,`design/v5/${prototype}.html`)+`?lang=${language}`);await ref.screenshot({path:join(out,`v5-${name}-${width}-${language}.png`),fullPage:true});await ref.close();
   }
   await enter(page,'/dashboard','transfer',language);
-  await expect(page.getByRole('heading',{name:language==='en'?'Use the Android app':'اینڈرائیڈ ایپ استعمال کریں'})).toBeVisible();
+  await expect(page.getByRole('heading',{name:language==='en'?'Your working day is in the app.':'آپ کا کام ایپ میں ہے۔'})).toBeVisible();
   await page.screenshot({path:join(out,`app-handoff-${width}-${language}.png`),fullPage:true});
   const ref=await context.newPage();await ref.goto('file://'+join(root,'design/v5/handoff.html')+`?lang=${language}`);await ref.screenshot({path:join(out,`v5-handoff-${width}-${language}.png`),fullPage:true});await context.close();
  }

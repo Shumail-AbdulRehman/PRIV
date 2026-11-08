@@ -1,0 +1,17 @@
+{
+  "preservedStages": {
+    "design/billing-onboarding": {
+      "v1": true,
+      "v2": true
+    },
+    "design/billing-onboarding/revision-2": {
+      "v1": true,
+      "v2": true
+    }
+  },
+  "trackedDiffFiles": [],
+  "missingReviewLinks": [],
+  "previewHTTP": 200,
+  "applicationChanged": false,
+  "designApproval": "pending"
+}

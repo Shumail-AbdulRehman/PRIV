@@ -1,3 +1,3 @@
-import { Navigate } from 'react-router-dom';
-// A checkout return inspects provider facts; its URL never proves payment.
-export default function WelcomePage() { return <Navigate to="/subscription?activation=pending" replace/>; }
+import SubscriptionPage from '../Subscription/SubscriptionPage';
+// Return URLs request server confirmation; they never establish entitlement.
+export default function WelcomePage(){return <SubscriptionPage activationReturn/>;}

@@ -1,4 +1,4 @@
-import { test, expect, enter, backend } from './fixtures';
+import { test, expect, enter, backend, sql, fixture } from './fixtures';
 import { mkdir, writeFile } from 'node:fs/promises';
 import { fileURLToPath } from 'node:url';
 import { join } from 'node:path';
@@ -16,6 +16,7 @@ test('V5 shared owner and manager shell matches approved desktop phone English U
   test.setTimeout(120000);
   await mkdir(out, { recursive: true });
   const observations: unknown[] = [];
+  const [company]=await sql('SELECT name FROM "Company" WHERE id=$1',[fixture.company.A]);
   for (const who of ['ownerA', 'managerA']) for (const width of [1366, 390]) for (const lang of ['en', 'ur']) {
     const context = await browser.newContext({ viewport: { width, height: 900 } });
     const page = await context.newPage();
@@ -24,7 +25,7 @@ test('V5 shared owner and manager shell matches approved desktop phone English U
     await enter(page, '/today-status', who, lang);
     await expect(page.getByRole('heading', { name: lang === 'en' ? 'Team attendance' : 'ٹیم کی حاضری' })).toBeVisible();
     await page.evaluate(() => document.fonts.ready);
-    await expect(page.locator('.workspace-role strong')).toHaveText('E2E company A');
+    await expect(page.locator('.workspace-role strong')).toHaveText(company.name);
     await noOverflow(page);
     for (const button of await page.locator('.workspace-topbar .language-choice button').all()) {
       expect((await button.boundingBox())!.height).toBeGreaterThanOrEqual(width === 390 ? 48 : 44);

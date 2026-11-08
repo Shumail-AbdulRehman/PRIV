@@ -40,3 +40,6 @@ export const SubscriptionPage = lazy(
 );
 
 export const SetupPage = lazy(() => import('../pages/Setup/SetupPage'));
+
+export const WelcomePage = lazy(() => import('../pages/Pricing/WelcomePage'));
+export const ChoosePlanPage = lazy(() => import('../pages/Pricing/ChoosePlanPage'));

@@ -27,11 +27,12 @@ export const ProtectedRoute = ({ children }: { children: React.ReactNode }) => {
 
 export const GuestRoute = ({ children }: { children: React.ReactNode }) => {
 
-  const { isAuthenticated, user } = useAuth();
+  const { isAuthenticated, user, isLoading } = useAuth();
   const location = useLocation();
+  if (isLoading) return <LoadingSpinner fullScreen />;
   // Signup and the mutation callback must agree after Redux establishes a session.
   const destination = location.pathname === "/signup" && user?.role === "ADMIN"
-    ? "/subscription" : location.state?.from === "/welcome" ? "/welcome" : "/dashboard";
+    ? "/choose-plan" : location.state?.from === "/welcome" ? "/welcome" : "/dashboard";
   if (isAuthenticated) return <Navigate to={destination} replace />;
 
 

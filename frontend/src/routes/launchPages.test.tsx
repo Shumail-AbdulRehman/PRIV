@@ -9,9 +9,10 @@ import { LanguageProvider } from '../i18n/LanguageProvider';
 import { ProtectedRoute } from '../App';
 import DashboardLayout from '../components/layout/DashboardLayout';
 import { workspaceRoutes } from './workspaceRoutes';
+import { billingRoutes } from '../pages/Subscription/onboarding/billingRoutes';
 import { PlatformUnavailable, WorkspaceAudience, WorkspaceRouteError } from './launchPages';
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogTitle } from '../components/ui/dialog';
-vi.mock('../api/client', () => ({client: {get: async (url: string) => ({data: {data: url === '/subscription/manage/lifecycle' ? {company:{id:42,name:'Synthetic saved company',plan:'PRO',isActive:true,operationalStatus:'ACTIVE'},usage:{locations:1,staff:1,managers:1},limits:{locations:5,staff:25,managers:3},subscription:null,reconciliationRequired:false,billingConfigured:false,ownerVerified:false,providerState:'AWAITING_PROVIDER',portalAvailable:false,checkoutAvailable:false} : url === '/company/settings' ? {id:42,name:'Synthetic saved company',accountVersion:1,updatedAt:'2026-10-21T00:00:00Z'} : {emailVerified:true,deliveryConfigured:false,bootstrapRequired:false}}})}}));
+vi.mock('../api/client', () => ({client: {get: async (url: string) => ({data: {data: url === '/subscription/manage/lifecycle' ? {company:{id:42,name:'Synthetic saved company',plan:'PRO',isActive:true,operationalStatus:'ACTIVE'},usage:{locations:1,staff:1,managers:1},limits:{locations:5,staff:25,managers:3},subscription:null,reconciliationRequired:false,billingConfigured:false,ownerVerified:false,providerState:'AWAITING_PROVIDER',onboardingRequired:false,portalAvailable:false,checkoutAvailable:false} : url === '/company/settings' ? {id:42,name:'Synthetic saved company',accountVersion:1,updatedAt:'2026-10-21T00:00:00Z'} : {emailVerified:true,deliveryConfigured:false,bootstrapRequired:false}}})}}));
 const m = vi.hoisted(() => ({ logout: { mutate: vi.fn(), isPending: false, isError: false } }));
 vi.mock('../queries/auth', () => ({ useLogout: () => m.logout, useGetCurrentUser: vi.fn() }));
 vi.mock('../pages/Exceptions/queries', () => ({ useExceptionCount: () => ({ data: { total: 2 } }) }));
@@ -23,6 +24,7 @@ function mount(role: AuthUser['role'] | null = 'ADMIN', path = '/dashboard', lan
   const store = configureStore({ reducer: { auth: authReducer } });
   if (role) store.dispatch(setUser({ id: 7, role, name: 'Synthetic workspace account', email: 'fixture@example.invalid', companyId: 42 }));
   const router = createMemoryRouter([
+    ...billingRoutes,
     { path: '/', element: <ProtectedRoute><WorkspaceAudience><DashboardLayout /></WorkspaceAudience></ProtectedRoute>, children: workspaceRoutes, errorElement: <WorkspaceRouteError /> },
     { path: '/platform/*', element: <PlatformUnavailable /> },
     { path: '/login', element: <h1>Sign in fixture</h1> },

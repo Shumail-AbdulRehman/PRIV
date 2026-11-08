@@ -12,7 +12,7 @@ const m=vi.hoisted(()=>({get:vi.fn()}));
 vi.mock('@/api/client',()=>({client:{get:m.get}}));
 let saved:SetupReadiness;
 const site=(change:Partial<SetupSite>={}):SetupSite=>({id:20,name:'Synthetic Karachi site',timezone:'Asia/Karachi',setupReady:false,reasons:[],counts:{staffWithShift:0,activeAreas:0,readySchedules:0,tasksToday:0,unassignedTasksToday:0},...change});
-const billing={ownerVerified:true,billingConfigured:true,company:{plan:'PRO'}};
+const billing={ownerVerified:true,billingConfigured:true,company:{id:42,name:'Synthetic company',plan:'PRO',isActive:true,operationalStatus:'ACTIVE'},usage:{locations:1,staff:0,managers:1},limits:{locations:5,staff:25,managers:3},subscription:null,reconciliationRequired:false,providerState:'NOT_LINKED',portalAvailable:false,checkoutAvailable:false};
 function mount(role:AuthUser['role']='ADMIN',language='en',path='/setup') {
  localStorage.setItem('hygene-ops.language',language);
  const store=configureStore({reducer:{auth:authReducer}});store.dispatch(setUser({id:7,role,name:'Synthetic account',email:'fixture@example.invalid',companyId:42}));

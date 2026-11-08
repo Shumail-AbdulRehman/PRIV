@@ -17,6 +17,8 @@ test("public assistance reaches real backend without a tenant session", async ({
       "Support contact is unavailable. No delivery channel has been qualified.",
     ),
   ).toBeVisible();
+  await page.getByRole("link", {name:"Review information",exact:true}).click();
+  await expect(page.getByRole("heading", {name:"Service information",exact:true})).toBeVisible();
   await expect(page.getByText("Approved document unavailable")).toHaveCount(3);
   await expect(page.getByText(/New purchases are unavailable/)).toBeVisible();
 });
@@ -35,7 +37,7 @@ for (const path of [
       });
       await page.goto(path);
       await expect(
-        page.getByRole("heading", { name: "Platform sign in" }),
+        page.getByRole("heading", { name: "Platform operator sign-in" }),
       ).toBeVisible();
       await expect(
         page.getByRole("button", { name: "Continue with identity provider" }),

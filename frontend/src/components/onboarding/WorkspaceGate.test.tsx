@@ -28,7 +28,7 @@ it('renders actual suspended-owner recovery without mounting operational childre
   mount(); await screen.findByRole('heading', { name: 'Account access needs attention' });
   expect(screen.queryByText('Operational records')).not.toBeInTheDocument();
   expect(screen.getByRole('status')).toHaveTextContent('Payment does not remove an administrative suspension');
-  for (const [name, href] of [['Open Plan & billing', '/subscription'], ['Your account security', '/account/security'], ['Get help', '/help']]) expect(screen.getByRole('link', { name })).toHaveAttribute('href', href);
+  for (const [name, href] of [['Open Plan & billing', '/subscription'], ['Your account security', '/account/security']]) expect(screen.getByRole('link', { name })).toHaveAttribute('href', href);
 });
 it.each(['/subscription', '/settings', '/settings/security'])('keeps safe destination %s independent of operational check', path => {
   mount({ path }); expect(screen.getByText('Operational records')).toBeInTheDocument(); expect(boundary.get).not.toHaveBeenCalled();
@@ -48,7 +48,7 @@ it.each(['active', 'trialing', 'past_due', 'canceled', 'paused'])('preserves rea
   expect(screen.queryByText('Plan selection')).not.toBeInTheDocument();
 });
 it('does not restart onboarding for a provider account awaiting synchronization', async () => {
-  lifecycle.company.operationalStatus = 'ACTIVE'; lifecycle.providerState = 'AWAITING_PROVIDER';
+  lifecycle.company.operationalStatus = 'ACTIVE'; lifecycle.providerState = 'AWAITING_PROVIDER'; lifecycle.onboardingRequired=false;
   mount(); await screen.findByText('Operational records');
 });
 it('uses actual inactive company state even when its legacy operational status is active', async () => {
@@ -57,7 +57,7 @@ it('uses actual inactive company state even when its legacy operational status i
   expect(screen.queryByText('Operational records')).not.toBeInTheDocument();
 });
 it('an explicit authorization denial supersedes a previously active snapshot', async () => {
-  lifecycle.company.operationalStatus = 'ACTIVE'; lifecycle.providerState = 'AWAITING_PROVIDER'; const { query } = mount();
+  lifecycle.company.operationalStatus = 'ACTIVE'; lifecycle.providerState = 'AWAITING_PROVIDER'; lifecycle.onboardingRequired=false; const { query } = mount();
   await screen.findByText('Operational records');
   boundary.get.mockRejectedValue({ response: { status: 403 } });
   await act(async () => { await query.refetchQueries(); });
@@ -65,13 +65,13 @@ it('an explicit authorization denial supersedes a previously active snapshot', a
   expect(screen.queryByText('Operational records')).not.toBeInTheDocument();
 });
 it('does not trust another company lifecycle or expose its operational subtree', async () => {
-  lifecycle.company.id = 99; mount(); expect(await screen.findByRole('alert')).toHaveTextContent('do not match'); expect(screen.queryByText('Operational records')).not.toBeInTheDocument();
+  lifecycle.company.id = 99; mount(); expect(await screen.findByRole('alert')).toHaveTextContent('Refresh workspace access'); expect(screen.queryByText('Operational records')).not.toBeInTheDocument();
 });
 it('distinguishes an unavailable check and explicitly retries real lifecycle state', async () => {
   boundary.get.mockRejectedValue(new Error('private provider detail')); mount();
-  expect(await screen.findByRole('alert')).toHaveTextContent('Billing, security and help remain available');
+  expect(await screen.findByRole('alert')).toHaveTextContent('Billing and account security remain available');
   expect(screen.queryByText('private provider detail')).not.toBeInTheDocument();
-  lifecycle.company.operationalStatus = 'ACTIVE'; lifecycle.providerState = 'AWAITING_PROVIDER'; boundary.get.mockResolvedValue({ data: { data: lifecycle } });
+  lifecycle.company.operationalStatus = 'ACTIVE'; lifecycle.providerState = 'AWAITING_PROVIDER'; lifecycle.onboardingRequired=false; boundary.get.mockResolvedValue({ data: { data: lifecycle } });
   fireEvent.click(screen.getByRole('button', { name: 'Refresh workspace access' })); await screen.findByText('Operational records');
 });
 it('shows pending access without asserting suspension or mounting operational data', () => {
@@ -82,3 +82,5 @@ it('keeps a newly created provider customer in onboarding until its subscription
  lifecycle.company.operationalStatus='ACTIVE';lifecycle.providerState='AWAITING_PROVIDER';lifecycle.onboardingRequired=true;
  mount();await screen.findByRole('heading',{name:'Plan selection'});expect(screen.queryByText('Operational records')).not.toBeInTheDocument();
 });
+
+it('an early unknown mirrored subscription cannot mount operations',async()=>{lifecycle.company.operationalStatus='ACTIVE';lifecycle.providerState='MIRRORED';lifecycle.onboardingRequired=true;lifecycle.subscription={status:'unknown',plan:null,catalogQualified:false,periodStart:null,periodEnd:null,scheduledChangeAction:null,scheduledChangeAt:null,lastEventAt:'2026-11-08T00:00:00Z'};mount();await screen.findByRole('heading',{name:'Plan selection'});expect(screen.queryByText('Operational records')).not.toBeInTheDocument();});

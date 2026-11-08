@@ -98,3 +98,10 @@ frontend-mobile/google-services.json
 !docs/MOBILE_QUERY_OPTIMIZATION.md
 !docs/verification/TASK_QR_AREA_TEMPLATE_2026-10-18.md
 !docs/OVERVIEW_PERFORMANCE.md
+
+# Billing onboarding design and implementation handoff
+!specs-billing-onboarding/**/*.md
+!docs/plan-project/billing-onboarding/**/*.md
+!design/billing-onboarding/**/*.md
+!docs/implementation/billing-deployment-checklist.md
+!docs/implementation/billing-final-verification.md

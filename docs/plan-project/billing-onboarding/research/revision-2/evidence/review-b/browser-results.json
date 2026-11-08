@@ -1,0 +1,5643 @@
+{
+  "base": "http://127.0.0.1:56789/revision-2/v3/",
+  "started": "2026-11-06T11:53:49.319Z",
+  "matrix": [
+    {
+      "screen": "account",
+      "lang": "en",
+      "width": 320,
+      "documentWidth": 320,
+      "bodyWidth": 320,
+      "dir": "ltr",
+      "title": "Let’s set up your workspace",
+      "overflow": [],
+      "support": [
+        {
+          "selector": "span.sandbox",
+          "fontSize": "11px",
+          "lineHeight": "17.05px",
+          "text": "Sandbox · test cards only"
+        },
+        {
+          "selector": "p",
+          "fontSize": "14px",
+          "lineHeight": "23.8px",
+          "text": "Create your owner account. Then choose a plan for your company."
+        },
+        {
+          "selector": "span",
+          "fontSize": "12px",
+          "lineHeight": "21.6px",
+          "text": "Create your account first. Your plan and payment come next."
+        }
+      ],
+      "primary": [
+        {
+          "text": "Create account & continue",
+          "top": 712,
+          "height": 48,
+          "bottom": 760
+        }
+      ]
+    },
+    {
+      "screen": "index",
+      "lang": "en",
+      "width": 320,
+      "documentWidth": 320,
+      "bodyWidth": 320,
+      "dir": "ltr",
+      "title": "Choose your workspace plan",
+      "overflow": [],
+      "support": [
+        {
+          "selector": "span.sandbox",
+          "fontSize": "11px",
+          "lineHeight": "17.05px",
+          "text": "Sandbox · test cards only"
+        },
+        {
+          "selector": "p",
+          "fontSize": "13px",
+          "lineHeight": "22.1px",
+          "text": "A plan that fits the team you have today."
+        },
+        {
+          "selector": "p.plan-description",
+          "fontSize": "12px",
+          "lineHeight": "20.4px",
+          "text": "For an owner-led team"
+        },
+        {
+          "selector": "span",
+          "fontSize": "11px",
+          "lineHeight": "17.6px",
+          "text": "per workspace / month"
+        },
+        {
+          "selector": "li",
+          "fontSize": "12px",
+          "lineHeight": "19.8px",
+          "text": "1 location"
+        },
+        {
+          "selector": "li",
+          "fontSize": "12px",
+          "lineHeight": "19.8px",
+          "text": "3 staff members"
+        },
+        {
+          "selector": "li",
+          "fontSize": "12px",
+          "lineHeight": "19.8px",
+          "text": "1 manager seatOwner included"
+        },
+        {
+          "selector": "p.plan-description",
+          "fontSize": "12px",
+          "lineHeight": "20.4px",
+          "text": "For teams across locations"
+        },
+        {
+          "selector": "span",
+          "fontSize": "11px",
+          "lineHeight": "17.6px",
+          "text": "per workspace / month"
+        },
+        {
+          "selector": "li",
+          "fontSize": "12px",
+          "lineHeight": "19.8px",
+          "text": "5 locations"
+        },
+        {
+          "selector": "li",
+          "fontSize": "12px",
+          "lineHeight": "19.8px",
+          "text": "25 staff members"
+        },
+        {
+          "selector": "li",
+          "fontSize": "12px",
+          "lineHeight": "19.8px",
+          "text": "3 manager seatsOwner included"
+        },
+        {
+          "selector": "p.plan-description",
+          "fontSize": "12px",
+          "lineHeight": "20.4px",
+          "text": "For a larger operation"
+        },
+        {
+          "selector": "span",
+          "fontSize": "11px",
+          "lineHeight": "17.6px",
+          "text": "per workspace / month"
+        },
+        {
+          "selector": "li",
+          "fontSize": "12px",
+          "lineHeight": "19.8px",
+          "text": "20 locations"
+        },
+        {
+          "selector": "li",
+          "fontSize": "12px",
+          "lineHeight": "19.8px",
+          "text": "200 staff members"
+        },
+        {
+          "selector": "li",
+          "fontSize": "12px",
+          "lineHeight": "19.8px",
+          "text": "20 manager seatsOwner included"
+        },
+        {
+          "selector": "p#owner-note.owner-note",
+          "fontSize": "12px",
+          "lineHeight": "18.6px",
+          "text": "Manager seats include the company owner."
+        },
+        {
+          "selector": "span",
+          "fontSize": "12px",
+          "lineHeight": "21.6px",
+          "text": "Card details stay with Paddle."
+        }
+      ],
+      "primary": [
+        {
+          "text": "Continue with Pro",
+          "top": 1021,
+          "height": 48,
+          "bottom": 1069
+        }
+      ]
+    },
+    {
+      "screen": "payment",
+      "lang": "en",
+      "width": 320,
+      "documentWidth": 320,
+      "bodyWidth": 320,
+      "dir": "ltr",
+      "title": "Finish setting up",
+      "overflow": [],
+      "support": [
+        {
+          "selector": "span.sandbox",
+          "fontSize": "11px",
+          "lineHeight": "17.05px",
+          "text": "Sandbox · test cards only"
+        },
+        {
+          "selector": "p",
+          "fontSize": "13px",
+          "lineHeight": "22.1px",
+          "text": "Review your plan, then add a test card in Paddle."
+        },
+        {
+          "selector": "li",
+          "fontSize": "12px",
+          "lineHeight": "18px",
+          "text": "5 locations"
+        },
+        {
+          "selector": "li",
+          "fontSize": "12px",
+          "lineHeight": "18px",
+          "text": "25 staff members"
+        },
+        {
+          "selector": "li",
+          "fontSize": "12px",
+          "lineHeight": "18px",
+          "text": "3 manager seatsOwner included"
+        },
+        {
+          "selector": "p.small-note",
+          "fontSize": "12px",
+          "lineHeight": "21.6px",
+          "text": "This is the recurring plan price, not a confirmed amount due today."
+        },
+        {
+          "selector": "p",
+          "fontSize": "12px",
+          "lineHeight": "18.6px",
+          "text": "Expiry: any future date · CVC: 100"
+        },
+        {
+          "selector": "p",
+          "fontSize": "12px",
+          "lineHeight": "18.6px",
+          "text": "No real charge in sandbox."
+        },
+        {
+          "selector": "p.small-note",
+          "fontSize": "12px",
+          "lineHeight": "21.6px",
+          "text": "You can close checkout and return here."
+        },
+        {
+          "selector": "span",
+          "fontSize": "12px",
+          "lineHeight": "21.6px",
+          "text": "Card details stay with Paddle."
+        }
+      ],
+      "primary": [
+        {
+          "text": "Continue to secure checkout",
+          "top": 1093,
+          "height": 48,
+          "bottom": 1141
+        }
+      ]
+    },
+    {
+      "screen": "activation",
+      "lang": "en",
+      "width": 320,
+      "documentWidth": 320,
+      "bodyWidth": 320,
+      "dir": "ltr",
+      "title": "Confirming your subscription",
+      "overflow": [],
+      "support": [
+        {
+          "selector": "span.sandbox",
+          "fontSize": "11px",
+          "lineHeight": "17.05px",
+          "text": "Sandbox · test cards only"
+        },
+        {
+          "selector": "p",
+          "fontSize": "13px",
+          "lineHeight": "22.1px",
+          "text": "Your checkout is complete. We’re waiting for confirmation before opening your workspace."
+        },
+        {
+          "selector": "p",
+          "fontSize": "12px",
+          "lineHeight": "18.6px",
+          "text": "Details submitted securely to Paddle"
+        },
+        {
+          "selector": "p",
+          "fontSize": "12px",
+          "lineHeight": "18.6px",
+          "text": "Waiting for your subscription to be verified"
+        },
+        {
+          "selector": "p",
+          "fontSize": "12px",
+          "lineHeight": "18.6px",
+          "text": "Available after subscription confirmation"
+        },
+        {
+          "selector": "p.small-note",
+          "fontSize": "12px",
+          "lineHeight": "21.6px",
+          "text": "Do not enter your card again while confirmation is pending."
+        },
+        {
+          "selector": "span",
+          "fontSize": "12px",
+          "lineHeight": "21.6px",
+          "text": "Card details stay with Paddle."
+        }
+      ],
+      "primary": [
+        {
+          "text": "Refresh status",
+          "top": 691,
+          "height": 48,
+          "bottom": 739
+        }
+      ]
+    },
+    {
+      "screen": "billing",
+      "lang": "en",
+      "width": 320,
+      "documentWidth": 320,
+      "bodyWidth": 320,
+      "dir": "ltr",
+      "title": "Billing & subscription",
+      "overflow": [],
+      "support": [
+        {
+          "selector": "span.sandbox",
+          "fontSize": "11px",
+          "lineHeight": "17.05px",
+          "text": "Sandbox · test cards only"
+        },
+        {
+          "selector": "p",
+          "fontSize": "13px",
+          "lineHeight": "22.1px",
+          "text": "Manage your plan and payment details."
+        },
+        {
+          "selector": "p.small-note",
+          "fontSize": "12px",
+          "lineHeight": "21.6px",
+          "text": "Manager seats include the company owner."
+        },
+        {
+          "selector": "span",
+          "fontSize": "12px",
+          "lineHeight": "21.6px",
+          "text": "Card details stay with Paddle."
+        }
+      ],
+      "primary": [
+        {
+          "text": "Manage in Paddle",
+          "top": 652,
+          "height": 48,
+          "bottom": 700
+        }
+      ]
+    },
+    {
+      "screen": "recovery",
+      "lang": "en",
+      "width": 320,
+      "documentWidth": 320,
+      "bodyWidth": 320,
+      "dir": "ltr",
+      "title": "Let’s get you back to checkout",
+      "overflow": [],
+      "support": [
+        {
+          "selector": "span.sandbox",
+          "fontSize": "11px",
+          "lineHeight": "17.05px",
+          "text": "Sandbox · test cards only"
+        },
+        {
+          "selector": "p",
+          "fontSize": "13px",
+          "lineHeight": "22.1px",
+          "text": "Your account is saved. Your selected plan is still here."
+        },
+        {
+          "selector": "span",
+          "fontSize": "12px",
+          "lineHeight": "21.6px",
+          "text": "Card details stay with Paddle."
+        }
+      ],
+      "primary": [
+        {
+          "text": "Try checkout again",
+          "top": 623,
+          "height": 48,
+          "bottom": 671
+        }
+      ]
+    },
+    {
+      "screen": "account",
+      "lang": "ur",
+      "width": 320,
+      "documentWidth": 320,
+      "bodyWidth": 320,
+      "dir": "rtl",
+      "title": "اپنی ورک اسپیس ترتیب دیں",
+      "overflow": [],
+      "support": [
+        {
+          "selector": "span.sandbox",
+          "fontSize": "11px",
+          "lineHeight": "17.05px",
+          "text": "سینڈ باکس · صرف ٹیسٹ کارڈ"
+        },
+        {
+          "selector": "p",
+          "fontSize": "14px",
+          "lineHeight": "23.8px",
+          "text": "مالک کا اکاؤنٹ بنائیں۔ پھر اپنی کمپنی کے لیے پلان منتخب کریں۔"
+        },
+        {
+          "selector": "span",
+          "fontSize": "12px",
+          "lineHeight": "21.6px",
+          "text": "پہلے اپنا اکاؤنٹ بنائیں۔ پھر پلان اور ادائیگی کا مرحلہ آئے گا۔"
+        }
+      ],
+      "primary": [
+        {
+          "text": "اکاؤنٹ بنائیں اور جاری رکھیں",
+          "top": 712,
+          "height": 48,
+          "bottom": 760
+        }
+      ]
+    },
+    {
+      "screen": "index",
+      "lang": "ur",
+      "width": 320,
+      "documentWidth": 320,
+      "bodyWidth": 320,
+      "dir": "rtl",
+      "title": "اپنی ورک اسپیس کا پلان منتخب کریں",
+      "overflow": [],
+      "support": [
+        {
+          "selector": "span.sandbox",
+          "fontSize": "11px",
+          "lineHeight": "17.05px",
+          "text": "سینڈ باکس · صرف ٹیسٹ کارڈ"
+        },
+        {
+          "selector": "p",
+          "fontSize": "13px",
+          "lineHeight": "22.1px",
+          "text": "آج کی ٹیم کی ضرورت کے مطابق پلان۔"
+        },
+        {
+          "selector": "p.plan-description",
+          "fontSize": "12px",
+          "lineHeight": "20.4px",
+          "text": "مالک کی نگرانی والی ٹیم کے لیے"
+        },
+        {
+          "selector": "span",
+          "fontSize": "11px",
+          "lineHeight": "17.6px",
+          "text": "فی ورک اسپیس / ماہ"
+        },
+        {
+          "selector": "li",
+          "fontSize": "12px",
+          "lineHeight": "19.8px",
+          "text": "1 مقام"
+        },
+        {
+          "selector": "li",
+          "fontSize": "12px",
+          "lineHeight": "19.8px",
+          "text": "3 عملے کے افراد"
+        },
+        {
+          "selector": "li",
+          "fontSize": "12px",
+          "lineHeight": "19.8px",
+          "text": "1 مینیجر نشستمالک شامل ہے"
+        },
+        {
+          "selector": "p.plan-description",
+          "fontSize": "12px",
+          "lineHeight": "20.4px",
+          "text": "مختلف مقامات کی ٹیموں کے لیے"
+        },
+        {
+          "selector": "span",
+          "fontSize": "11px",
+          "lineHeight": "17.6px",
+          "text": "فی ورک اسپیس / ماہ"
+        },
+        {
+          "selector": "li",
+          "fontSize": "12px",
+          "lineHeight": "19.8px",
+          "text": "5 مقامات"
+        },
+        {
+          "selector": "li",
+          "fontSize": "12px",
+          "lineHeight": "19.8px",
+          "text": "25 عملے کے افراد"
+        },
+        {
+          "selector": "li",
+          "fontSize": "12px",
+          "lineHeight": "19.8px",
+          "text": "3 مینیجر نشستیںمالک شامل ہے"
+        },
+        {
+          "selector": "p.plan-description",
+          "fontSize": "12px",
+          "lineHeight": "20.4px",
+          "text": "بڑے کاروبار کے لیے"
+        },
+        {
+          "selector": "span",
+          "fontSize": "11px",
+          "lineHeight": "17.6px",
+          "text": "فی ورک اسپیس / ماہ"
+        },
+        {
+          "selector": "li",
+          "fontSize": "12px",
+          "lineHeight": "19.8px",
+          "text": "20 مقامات"
+        },
+        {
+          "selector": "li",
+          "fontSize": "12px",
+          "lineHeight": "19.8px",
+          "text": "200 عملے کے افراد"
+        },
+        {
+          "selector": "li",
+          "fontSize": "12px",
+          "lineHeight": "19.8px",
+          "text": "20 مینیجر نشستیںمالک شامل ہے"
+        },
+        {
+          "selector": "p#owner-note.owner-note",
+          "fontSize": "12px",
+          "lineHeight": "18.6px",
+          "text": "مینیجر نشستوں میں کمپنی کا مالک شامل ہے۔"
+        },
+        {
+          "selector": "span",
+          "fontSize": "12px",
+          "lineHeight": "21.6px",
+          "text": "کارڈ کی تفصیل پیڈل کے پاس رہتی ہے۔"
+        }
+      ],
+      "primary": [
+        {
+          "text": "اس پلان کے ساتھ جاری رکھیں: Pro",
+          "top": 1003,
+          "height": 48,
+          "bottom": 1051
+        }
+      ]
+    },
+    {
+      "screen": "payment",
+      "lang": "ur",
+      "width": 320,
+      "documentWidth": 320,
+      "bodyWidth": 320,
+      "dir": "rtl",
+      "title": "سیٹ اپ مکمل کریں",
+      "overflow": [],
+      "support": [
+        {
+          "selector": "span.sandbox",
+          "fontSize": "11px",
+          "lineHeight": "17.05px",
+          "text": "سینڈ باکس · صرف ٹیسٹ کارڈ"
+        },
+        {
+          "selector": "p",
+          "fontSize": "13px",
+          "lineHeight": "22.1px",
+          "text": "اپنا پلان دیکھیں، پھر پیڈل میں ٹیسٹ کارڈ شامل کریں۔"
+        },
+        {
+          "selector": "li",
+          "fontSize": "12px",
+          "lineHeight": "18px",
+          "text": "5 مقامات"
+        },
+        {
+          "selector": "li",
+          "fontSize": "12px",
+          "lineHeight": "18px",
+          "text": "25 عملے کے افراد"
+        },
+        {
+          "selector": "li",
+          "fontSize": "12px",
+          "lineHeight": "18px",
+          "text": "3 مینیجر نشستیںمالک شامل ہے"
+        },
+        {
+          "selector": "p.small-note",
+          "fontSize": "12px",
+          "lineHeight": "21.6px",
+          "text": "یہ پلان کی مستقل قیمت ہے، آج واجب الادا حتمی رقم نہیں۔"
+        },
+        {
+          "selector": "p",
+          "fontSize": "12px",
+          "lineHeight": "18.6px",
+          "text": "میعاد: مستقبل کی تاریخ · سی وی سی: 100"
+        },
+        {
+          "selector": "p",
+          "fontSize": "12px",
+          "lineHeight": "18.6px",
+          "text": "سینڈ باکس میں حقیقی رقم وصول نہیں ہوتی۔"
+        },
+        {
+          "selector": "p.small-note",
+          "fontSize": "12px",
+          "lineHeight": "21.6px",
+          "text": "چیک آؤٹ بند کر کے یہاں واپس آ سکتے ہیں۔"
+        },
+        {
+          "selector": "span",
+          "fontSize": "12px",
+          "lineHeight": "21.6px",
+          "text": "کارڈ کی تفصیل پیڈل کے پاس رہتی ہے۔"
+        }
+      ],
+      "primary": [
+        {
+          "text": "محفوظ چیک آؤٹ کی طرف جائیں",
+          "top": 1055,
+          "height": 48,
+          "bottom": 1103
+        }
+      ]
+    },
+    {
+      "screen": "activation",
+      "lang": "ur",
+      "width": 320,
+      "documentWidth": 320,
+      "bodyWidth": 320,
+      "dir": "rtl",
+      "title": "آپ کی سبسکرپشن کی تصدیق جاری ہے",
+      "overflow": [],
+      "support": [
+        {
+          "selector": "span.sandbox",
+          "fontSize": "11px",
+          "lineHeight": "17.05px",
+          "text": "سینڈ باکس · صرف ٹیسٹ کارڈ"
+        },
+        {
+          "selector": "p",
+          "fontSize": "13px",
+          "lineHeight": "22.1px",
+          "text": "چیک آؤٹ مکمل ہے۔ ورک اسپیس کھولنے سے پہلے تصدیق کا انتظار ہے۔"
+        },
+        {
+          "selector": "p",
+          "fontSize": "12px",
+          "lineHeight": "18.6px",
+          "text": "تفصیل محفوظ طریقے سے پیڈل میں جمع ہو گئی"
+        },
+        {
+          "selector": "p",
+          "fontSize": "12px",
+          "lineHeight": "18.6px",
+          "text": "سبسکرپشن کی تصدیق کا انتظار"
+        },
+        {
+          "selector": "p",
+          "fontSize": "12px",
+          "lineHeight": "18.6px",
+          "text": "سبسکرپشن کی تصدیق کے بعد دستیاب"
+        },
+        {
+          "selector": "p.small-note",
+          "fontSize": "12px",
+          "lineHeight": "21.6px",
+          "text": "تصدیق کے انتظار میں کارڈ دوبارہ درج نہ کریں۔"
+        },
+        {
+          "selector": "span",
+          "fontSize": "12px",
+          "lineHeight": "21.6px",
+          "text": "کارڈ کی تفصیل پیڈل کے پاس رہتی ہے۔"
+        }
+      ],
+      "primary": [
+        {
+          "text": "حالت تازہ کریں",
+          "top": 691,
+          "height": 48,
+          "bottom": 739
+        }
+      ]
+    },
+    {
+      "screen": "billing",
+      "lang": "ur",
+      "width": 320,
+      "documentWidth": 320,
+      "bodyWidth": 320,
+      "dir": "rtl",
+      "title": "بلنگ اور سبسکرپشن",
+      "overflow": [],
+      "support": [
+        {
+          "selector": "span.sandbox",
+          "fontSize": "11px",
+          "lineHeight": "17.05px",
+          "text": "سینڈ باکس · صرف ٹیسٹ کارڈ"
+        },
+        {
+          "selector": "p",
+          "fontSize": "13px",
+          "lineHeight": "22.1px",
+          "text": "اپنے پلان اور ادائیگی کی تفصیل سنبھالیں۔"
+        },
+        {
+          "selector": "p.small-note",
+          "fontSize": "12px",
+          "lineHeight": "21.6px",
+          "text": "مینیجر نشستوں میں کمپنی کا مالک شامل ہے۔"
+        },
+        {
+          "selector": "span",
+          "fontSize": "12px",
+          "lineHeight": "21.6px",
+          "text": "کارڈ کی تفصیل پیڈل کے پاس رہتی ہے۔"
+        }
+      ],
+      "primary": [
+        {
+          "text": "پیڈل میں سنبھالیں",
+          "top": 652,
+          "height": 48,
+          "bottom": 700
+        }
+      ]
+    },
+    {
+      "screen": "recovery",
+      "lang": "ur",
+      "width": 320,
+      "documentWidth": 320,
+      "bodyWidth": 320,
+      "dir": "rtl",
+      "title": "چیک آؤٹ پر واپس جائیں",
+      "overflow": [],
+      "support": [
+        {
+          "selector": "span.sandbox",
+          "fontSize": "11px",
+          "lineHeight": "17.05px",
+          "text": "سینڈ باکس · صرف ٹیسٹ کارڈ"
+        },
+        {
+          "selector": "p",
+          "fontSize": "13px",
+          "lineHeight": "22.1px",
+          "text": "آپ کا اکاؤنٹ محفوظ ہے۔ منتخب پلان موجود ہے۔"
+        },
+        {
+          "selector": "span",
+          "fontSize": "12px",
+          "lineHeight": "21.6px",
+          "text": "کارڈ کی تفصیل پیڈل کے پاس رہتی ہے۔"
+        }
+      ],
+      "primary": [
+        {
+          "text": "چیک آؤٹ دوبارہ کھولیں",
+          "top": 541,
+          "height": 48,
+          "bottom": 589
+        }
+      ]
+    },
+    {
+      "screen": "account",
+      "lang": "en",
+      "width": 390,
+      "documentWidth": 390,
+      "bodyWidth": 390,
+      "dir": "ltr",
+      "title": "Let’s set up your workspace",
+      "overflow": [],
+      "support": [
+        {
+          "selector": "span.sandbox",
+          "fontSize": "11px",
+          "lineHeight": "17.05px",
+          "text": "Sandbox · test cards only"
+        },
+        {
+          "selector": "p",
+          "fontSize": "14px",
+          "lineHeight": "23.8px",
+          "text": "Create your owner account. Then choose a plan for your company."
+        },
+        {
+          "selector": "span",
+          "fontSize": "12px",
+          "lineHeight": "21.6px",
+          "text": "Create your account first. Your plan and payment come next."
+        }
+      ],
+      "primary": [
+        {
+          "text": "Create account & continue",
+          "top": 679,
+          "height": 48,
+          "bottom": 727
+        }
+      ]
+    },
+    {
+      "screen": "index",
+      "lang": "en",
+      "width": 390,
+      "documentWidth": 390,
+      "bodyWidth": 390,
+      "dir": "ltr",
+      "title": "Choose your workspace plan",
+      "overflow": [],
+      "support": [
+        {
+          "selector": "span.sandbox",
+          "fontSize": "11px",
+          "lineHeight": "17.05px",
+          "text": "Sandbox · test cards only"
+        },
+        {
+          "selector": "p",
+          "fontSize": "13px",
+          "lineHeight": "22.1px",
+          "text": "A plan that fits the team you have today."
+        },
+        {
+          "selector": "p.plan-description",
+          "fontSize": "12px",
+          "lineHeight": "20.4px",
+          "text": "For an owner-led team"
+        },
+        {
+          "selector": "span",
+          "fontSize": "12px",
+          "lineHeight": "19.2px",
+          "text": "per workspace / month"
+        },
+        {
+          "selector": "li",
+          "fontSize": "12px",
+          "lineHeight": "19.8px",
+          "text": "1 location"
+        },
+        {
+          "selector": "li",
+          "fontSize": "12px",
+          "lineHeight": "19.8px",
+          "text": "3 staff members"
+        },
+        {
+          "selector": "li",
+          "fontSize": "12px",
+          "lineHeight": "19.8px",
+          "text": "1 manager seatOwner included"
+        },
+        {
+          "selector": "p.plan-description",
+          "fontSize": "12px",
+          "lineHeight": "20.4px",
+          "text": "For teams across locations"
+        },
+        {
+          "selector": "span",
+          "fontSize": "12px",
+          "lineHeight": "19.2px",
+          "text": "per workspace / month"
+        },
+        {
+          "selector": "li",
+          "fontSize": "12px",
+          "lineHeight": "19.8px",
+          "text": "5 locations"
+        },
+        {
+          "selector": "li",
+          "fontSize": "12px",
+          "lineHeight": "19.8px",
+          "text": "25 staff members"
+        },
+        {
+          "selector": "li",
+          "fontSize": "12px",
+          "lineHeight": "19.8px",
+          "text": "3 manager seatsOwner included"
+        },
+        {
+          "selector": "p.plan-description",
+          "fontSize": "12px",
+          "lineHeight": "20.4px",
+          "text": "For a larger operation"
+        },
+        {
+          "selector": "span",
+          "fontSize": "12px",
+          "lineHeight": "19.2px",
+          "text": "per workspace / month"
+        },
+        {
+          "selector": "li",
+          "fontSize": "12px",
+          "lineHeight": "19.8px",
+          "text": "20 locations"
+        },
+        {
+          "selector": "li",
+          "fontSize": "12px",
+          "lineHeight": "19.8px",
+          "text": "200 staff members"
+        },
+        {
+          "selector": "li",
+          "fontSize": "12px",
+          "lineHeight": "19.8px",
+          "text": "20 manager seatsOwner included"
+        },
+        {
+          "selector": "p#owner-note.owner-note",
+          "fontSize": "12px",
+          "lineHeight": "18.6px",
+          "text": "Manager seats include the company owner."
+        },
+        {
+          "selector": "span",
+          "fontSize": "12px",
+          "lineHeight": "21.6px",
+          "text": "Card details stay with Paddle."
+        }
+      ],
+      "primary": [
+        {
+          "text": "Continue with Pro",
+          "top": 996,
+          "height": 48,
+          "bottom": 1044
+        }
+      ]
+    },
+    {
+      "screen": "payment",
+      "lang": "en",
+      "width": 390,
+      "documentWidth": 390,
+      "bodyWidth": 390,
+      "dir": "ltr",
+      "title": "Finish setting up",
+      "overflow": [],
+      "support": [
+        {
+          "selector": "span.sandbox",
+          "fontSize": "11px",
+          "lineHeight": "17.05px",
+          "text": "Sandbox · test cards only"
+        },
+        {
+          "selector": "p",
+          "fontSize": "13px",
+          "lineHeight": "22.1px",
+          "text": "Review your plan, then add a test card in Paddle."
+        },
+        {
+          "selector": "li",
+          "fontSize": "12px",
+          "lineHeight": "18px",
+          "text": "5 locations"
+        },
+        {
+          "selector": "li",
+          "fontSize": "12px",
+          "lineHeight": "18px",
+          "text": "25 staff members"
+        },
+        {
+          "selector": "li",
+          "fontSize": "12px",
+          "lineHeight": "18px",
+          "text": "3 manager seatsOwner included"
+        },
+        {
+          "selector": "p.small-note",
+          "fontSize": "12px",
+          "lineHeight": "21.6px",
+          "text": "This is the recurring plan price, not a confirmed amount due today."
+        },
+        {
+          "selector": "p",
+          "fontSize": "12px",
+          "lineHeight": "18.6px",
+          "text": "Expiry: any future date · CVC: 100"
+        },
+        {
+          "selector": "p",
+          "fontSize": "12px",
+          "lineHeight": "18.6px",
+          "text": "No real charge in sandbox."
+        },
+        {
+          "selector": "p.small-note",
+          "fontSize": "12px",
+          "lineHeight": "21.6px",
+          "text": "You can close checkout and return here."
+        },
+        {
+          "selector": "span",
+          "fontSize": "12px",
+          "lineHeight": "21.6px",
+          "text": "Card details stay with Paddle."
+        }
+      ],
+      "primary": [
+        {
+          "text": "Continue to secure checkout",
+          "top": 1069,
+          "height": 48,
+          "bottom": 1117
+        }
+      ]
+    },
+    {
+      "screen": "activation",
+      "lang": "en",
+      "width": 390,
+      "documentWidth": 390,
+      "bodyWidth": 390,
+      "dir": "ltr",
+      "title": "Confirming your subscription",
+      "overflow": [],
+      "support": [
+        {
+          "selector": "span.sandbox",
+          "fontSize": "11px",
+          "lineHeight": "17.05px",
+          "text": "Sandbox · test cards only"
+        },
+        {
+          "selector": "p",
+          "fontSize": "13px",
+          "lineHeight": "22.1px",
+          "text": "Your checkout is complete. We’re waiting for confirmation before opening your workspace."
+        },
+        {
+          "selector": "p",
+          "fontSize": "12px",
+          "lineHeight": "18.6px",
+          "text": "Details submitted securely to Paddle"
+        },
+        {
+          "selector": "p",
+          "fontSize": "12px",
+          "lineHeight": "18.6px",
+          "text": "Waiting for your subscription to be verified"
+        },
+        {
+          "selector": "p",
+          "fontSize": "12px",
+          "lineHeight": "18.6px",
+          "text": "Available after subscription confirmation"
+        },
+        {
+          "selector": "p.small-note",
+          "fontSize": "12px",
+          "lineHeight": "21.6px",
+          "text": "Do not enter your card again while confirmation is pending."
+        },
+        {
+          "selector": "span",
+          "fontSize": "12px",
+          "lineHeight": "21.6px",
+          "text": "Card details stay with Paddle."
+        }
+      ],
+      "primary": [
+        {
+          "text": "Refresh status",
+          "top": 658,
+          "height": 48,
+          "bottom": 706
+        }
+      ]
+    },
+    {
+      "screen": "billing",
+      "lang": "en",
+      "width": 390,
+      "documentWidth": 390,
+      "bodyWidth": 390,
+      "dir": "ltr",
+      "title": "Billing & subscription",
+      "overflow": [],
+      "support": [
+        {
+          "selector": "span.sandbox",
+          "fontSize": "11px",
+          "lineHeight": "17.05px",
+          "text": "Sandbox · test cards only"
+        },
+        {
+          "selector": "p",
+          "fontSize": "13px",
+          "lineHeight": "22.1px",
+          "text": "Manage your plan and payment details."
+        },
+        {
+          "selector": "p.small-note",
+          "fontSize": "12px",
+          "lineHeight": "21.6px",
+          "text": "Manager seats include the company owner."
+        },
+        {
+          "selector": "span",
+          "fontSize": "12px",
+          "lineHeight": "21.6px",
+          "text": "Card details stay with Paddle."
+        }
+      ],
+      "primary": [
+        {
+          "text": "Manage in Paddle",
+          "top": 655,
+          "height": 48,
+          "bottom": 703
+        }
+      ]
+    },
+    {
+      "screen": "recovery",
+      "lang": "en",
+      "width": 390,
+      "documentWidth": 390,
+      "bodyWidth": 390,
+      "dir": "ltr",
+      "title": "Let’s get you back to checkout",
+      "overflow": [],
+      "support": [
+        {
+          "selector": "span.sandbox",
+          "fontSize": "11px",
+          "lineHeight": "17.05px",
+          "text": "Sandbox · test cards only"
+        },
+        {
+          "selector": "p",
+          "fontSize": "13px",
+          "lineHeight": "22.1px",
+          "text": "Your account is saved. Your selected plan is still here."
+        },
+        {
+          "selector": "span",
+          "fontSize": "12px",
+          "lineHeight": "21.6px",
+          "text": "Card details stay with Paddle."
+        }
+      ],
+      "primary": [
+        {
+          "text": "Try checkout again",
+          "top": 610,
+          "height": 48,
+          "bottom": 658
+        }
+      ]
+    },
+    {
+      "screen": "account",
+      "lang": "ur",
+      "width": 390,
+      "documentWidth": 390,
+      "bodyWidth": 390,
+      "dir": "rtl",
+      "title": "اپنی ورک اسپیس ترتیب دیں",
+      "overflow": [],
+      "support": [
+        {
+          "selector": "span.sandbox",
+          "fontSize": "11px",
+          "lineHeight": "17.05px",
+          "text": "سینڈ باکس · صرف ٹیسٹ کارڈ"
+        },
+        {
+          "selector": "p",
+          "fontSize": "14px",
+          "lineHeight": "23.8px",
+          "text": "مالک کا اکاؤنٹ بنائیں۔ پھر اپنی کمپنی کے لیے پلان منتخب کریں۔"
+        },
+        {
+          "selector": "span",
+          "fontSize": "12px",
+          "lineHeight": "21.6px",
+          "text": "پہلے اپنا اکاؤنٹ بنائیں۔ پھر پلان اور ادائیگی کا مرحلہ آئے گا۔"
+        }
+      ],
+      "primary": [
+        {
+          "text": "اکاؤنٹ بنائیں اور جاری رکھیں",
+          "top": 715,
+          "height": 48,
+          "bottom": 763
+        }
+      ]
+    },
+    {
+      "screen": "index",
+      "lang": "ur",
+      "width": 390,
+      "documentWidth": 390,
+      "bodyWidth": 390,
+      "dir": "rtl",
+      "title": "اپنی ورک اسپیس کا پلان منتخب کریں",
+      "overflow": [],
+      "support": [
+        {
+          "selector": "span.sandbox",
+          "fontSize": "11px",
+          "lineHeight": "17.05px",
+          "text": "سینڈ باکس · صرف ٹیسٹ کارڈ"
+        },
+        {
+          "selector": "p",
+          "fontSize": "13px",
+          "lineHeight": "22.1px",
+          "text": "آج کی ٹیم کی ضرورت کے مطابق پلان۔"
+        },
+        {
+          "selector": "p.plan-description",
+          "fontSize": "12px",
+          "lineHeight": "20.4px",
+          "text": "مالک کی نگرانی والی ٹیم کے لیے"
+        },
+        {
+          "selector": "span",
+          "fontSize": "12px",
+          "lineHeight": "19.2px",
+          "text": "فی ورک اسپیس / ماہ"
+        },
+        {
+          "selector": "li",
+          "fontSize": "12px",
+          "lineHeight": "19.8px",
+          "text": "1 مقام"
+        },
+        {
+          "selector": "li",
+          "fontSize": "12px",
+          "lineHeight": "19.8px",
+          "text": "3 عملے کے افراد"
+        },
+        {
+          "selector": "li",
+          "fontSize": "12px",
+          "lineHeight": "19.8px",
+          "text": "1 مینیجر نشستمالک شامل ہے"
+        },
+        {
+          "selector": "p.plan-description",
+          "fontSize": "12px",
+          "lineHeight": "20.4px",
+          "text": "مختلف مقامات کی ٹیموں کے لیے"
+        },
+        {
+          "selector": "span",
+          "fontSize": "12px",
+          "lineHeight": "19.2px",
+          "text": "فی ورک اسپیس / ماہ"
+        },
+        {
+          "selector": "li",
+          "fontSize": "12px",
+          "lineHeight": "19.8px",
+          "text": "5 مقامات"
+        },
+        {
+          "selector": "li",
+          "fontSize": "12px",
+          "lineHeight": "19.8px",
+          "text": "25 عملے کے افراد"
+        },
+        {
+          "selector": "li",
+          "fontSize": "12px",
+          "lineHeight": "19.8px",
+          "text": "3 مینیجر نشستیںمالک شامل ہے"
+        },
+        {
+          "selector": "p.plan-description",
+          "fontSize": "12px",
+          "lineHeight": "20.4px",
+          "text": "بڑے کاروبار کے لیے"
+        },
+        {
+          "selector": "span",
+          "fontSize": "12px",
+          "lineHeight": "19.2px",
+          "text": "فی ورک اسپیس / ماہ"
+        },
+        {
+          "selector": "li",
+          "fontSize": "12px",
+          "lineHeight": "19.8px",
+          "text": "20 مقامات"
+        },
+        {
+          "selector": "li",
+          "fontSize": "12px",
+          "lineHeight": "19.8px",
+          "text": "200 عملے کے افراد"
+        },
+        {
+          "selector": "li",
+          "fontSize": "12px",
+          "lineHeight": "19.8px",
+          "text": "20 مینیجر نشستیںمالک شامل ہے"
+        },
+        {
+          "selector": "p#owner-note.owner-note",
+          "fontSize": "12px",
+          "lineHeight": "18.6px",
+          "text": "مینیجر نشستوں میں کمپنی کا مالک شامل ہے۔"
+        },
+        {
+          "selector": "span",
+          "fontSize": "12px",
+          "lineHeight": "21.6px",
+          "text": "کارڈ کی تفصیل پیڈل کے پاس رہتی ہے۔"
+        }
+      ],
+      "primary": [
+        {
+          "text": "اس پلان کے ساتھ جاری رکھیں: Pro",
+          "top": 992,
+          "height": 48,
+          "bottom": 1040
+        }
+      ]
+    },
+    {
+      "screen": "payment",
+      "lang": "ur",
+      "width": 390,
+      "documentWidth": 390,
+      "bodyWidth": 390,
+      "dir": "rtl",
+      "title": "سیٹ اپ مکمل کریں",
+      "overflow": [],
+      "support": [
+        {
+          "selector": "span.sandbox",
+          "fontSize": "11px",
+          "lineHeight": "17.05px",
+          "text": "سینڈ باکس · صرف ٹیسٹ کارڈ"
+        },
+        {
+          "selector": "p",
+          "fontSize": "13px",
+          "lineHeight": "22.1px",
+          "text": "اپنا پلان دیکھیں، پھر پیڈل میں ٹیسٹ کارڈ شامل کریں۔"
+        },
+        {
+          "selector": "li",
+          "fontSize": "12px",
+          "lineHeight": "18px",
+          "text": "5 مقامات"
+        },
+        {
+          "selector": "li",
+          "fontSize": "12px",
+          "lineHeight": "18px",
+          "text": "25 عملے کے افراد"
+        },
+        {
+          "selector": "li",
+          "fontSize": "12px",
+          "lineHeight": "18px",
+          "text": "3 مینیجر نشستیںمالک شامل ہے"
+        },
+        {
+          "selector": "p.small-note",
+          "fontSize": "12px",
+          "lineHeight": "21.6px",
+          "text": "یہ پلان کی مستقل قیمت ہے، آج واجب الادا حتمی رقم نہیں۔"
+        },
+        {
+          "selector": "p",
+          "fontSize": "12px",
+          "lineHeight": "18.6px",
+          "text": "میعاد: مستقبل کی تاریخ · سی وی سی: 100"
+        },
+        {
+          "selector": "p",
+          "fontSize": "12px",
+          "lineHeight": "18.6px",
+          "text": "سینڈ باکس میں حقیقی رقم وصول نہیں ہوتی۔"
+        },
+        {
+          "selector": "p.small-note",
+          "fontSize": "12px",
+          "lineHeight": "21.6px",
+          "text": "چیک آؤٹ بند کر کے یہاں واپس آ سکتے ہیں۔"
+        },
+        {
+          "selector": "span",
+          "fontSize": "12px",
+          "lineHeight": "21.6px",
+          "text": "کارڈ کی تفصیل پیڈل کے پاس رہتی ہے۔"
+        }
+      ],
+      "primary": [
+        {
+          "text": "محفوظ چیک آؤٹ کی طرف جائیں",
+          "top": 1029,
+          "height": 48,
+          "bottom": 1077
+        }
+      ]
+    },
+    {
+      "screen": "activation",
+      "lang": "ur",
+      "width": 390,
+      "documentWidth": 390,
+      "bodyWidth": 390,
+      "dir": "rtl",
+      "title": "آپ کی سبسکرپشن کی تصدیق جاری ہے",
+      "overflow": [],
+      "support": [
+        {
+          "selector": "span.sandbox",
+          "fontSize": "11px",
+          "lineHeight": "17.05px",
+          "text": "سینڈ باکس · صرف ٹیسٹ کارڈ"
+        },
+        {
+          "selector": "p",
+          "fontSize": "13px",
+          "lineHeight": "22.1px",
+          "text": "چیک آؤٹ مکمل ہے۔ ورک اسپیس کھولنے سے پہلے تصدیق کا انتظار ہے۔"
+        },
+        {
+          "selector": "p",
+          "fontSize": "12px",
+          "lineHeight": "18.6px",
+          "text": "تفصیل محفوظ طریقے سے پیڈل میں جمع ہو گئی"
+        },
+        {
+          "selector": "p",
+          "fontSize": "12px",
+          "lineHeight": "18.6px",
+          "text": "سبسکرپشن کی تصدیق کا انتظار"
+        },
+        {
+          "selector": "p",
+          "fontSize": "12px",
+          "lineHeight": "18.6px",
+          "text": "سبسکرپشن کی تصدیق کے بعد دستیاب"
+        },
+        {
+          "selector": "p.small-note",
+          "fontSize": "12px",
+          "lineHeight": "21.6px",
+          "text": "تصدیق کے انتظار میں کارڈ دوبارہ درج نہ کریں۔"
+        },
+        {
+          "selector": "span",
+          "fontSize": "12px",
+          "lineHeight": "21.6px",
+          "text": "کارڈ کی تفصیل پیڈل کے پاس رہتی ہے۔"
+        }
+      ],
+      "primary": [
+        {
+          "text": "حالت تازہ کریں",
+          "top": 694,
+          "height": 48,
+          "bottom": 742
+        }
+      ]
+    },
+    {
+      "screen": "billing",
+      "lang": "ur",
+      "width": 390,
+      "documentWidth": 390,
+      "bodyWidth": 390,
+      "dir": "rtl",
+      "title": "بلنگ اور سبسکرپشن",
+      "overflow": [],
+      "support": [
+        {
+          "selector": "span.sandbox",
+          "fontSize": "11px",
+          "lineHeight": "17.05px",
+          "text": "سینڈ باکس · صرف ٹیسٹ کارڈ"
+        },
+        {
+          "selector": "p",
+          "fontSize": "13px",
+          "lineHeight": "22.1px",
+          "text": "اپنے پلان اور ادائیگی کی تفصیل سنبھالیں۔"
+        },
+        {
+          "selector": "p.small-note",
+          "fontSize": "12px",
+          "lineHeight": "21.6px",
+          "text": "مینیجر نشستوں میں کمپنی کا مالک شامل ہے۔"
+        },
+        {
+          "selector": "span",
+          "fontSize": "12px",
+          "lineHeight": "21.6px",
+          "text": "کارڈ کی تفصیل پیڈل کے پاس رہتی ہے۔"
+        }
+      ],
+      "primary": [
+        {
+          "text": "پیڈل میں سنبھالیں",
+          "top": 655,
+          "height": 48,
+          "bottom": 703
+        }
+      ]
+    },
+    {
+      "screen": "recovery",
+      "lang": "ur",
+      "width": 390,
+      "documentWidth": 390,
+      "bodyWidth": 390,
+      "dir": "rtl",
+      "title": "چیک آؤٹ پر واپس جائیں",
+      "overflow": [],
+      "support": [
+        {
+          "selector": "span.sandbox",
+          "fontSize": "11px",
+          "lineHeight": "17.05px",
+          "text": "سینڈ باکس · صرف ٹیسٹ کارڈ"
+        },
+        {
+          "selector": "p",
+          "fontSize": "13px",
+          "lineHeight": "22.1px",
+          "text": "آپ کا اکاؤنٹ محفوظ ہے۔ منتخب پلان موجود ہے۔"
+        },
+        {
+          "selector": "span",
+          "fontSize": "12px",
+          "lineHeight": "21.6px",
+          "text": "کارڈ کی تفصیل پیڈل کے پاس رہتی ہے۔"
+        }
+      ],
+      "primary": [
+        {
+          "text": "چیک آؤٹ دوبارہ کھولیں",
+          "top": 550,
+          "height": 48,
+          "bottom": 598
+        }
+      ]
+    },
+    {
+      "screen": "account",
+      "lang": "en",
+      "width": 768,
+      "documentWidth": 768,
+      "bodyWidth": 768,
+      "dir": "ltr",
+      "title": "Let’s set up your workspace",
+      "overflow": [],
+      "support": [
+        {
+          "selector": "span.sandbox",
+          "fontSize": "12px",
+          "lineHeight": "18.6px",
+          "text": "Sandbox · test cards only"
+        },
+        {
+          "selector": "p",
+          "fontSize": "14px",
+          "lineHeight": "23.8px",
+          "text": "Create your owner account. Then choose a plan for your company."
+        },
+        {
+          "selector": "span",
+          "fontSize": "12px",
+          "lineHeight": "18.6px",
+          "text": "Create your account first. Your plan and payment come next."
+        }
+      ],
+      "primary": [
+        {
+          "text": "Create account & continue",
+          "top": 663,
+          "height": 48,
+          "bottom": 711
+        }
+      ]
+    },
+    {
+      "screen": "index",
+      "lang": "en",
+      "width": 768,
+      "documentWidth": 768,
+      "bodyWidth": 768,
+      "dir": "ltr",
+      "title": "Choose your workspace plan",
+      "overflow": [],
+      "support": [
+        {
+          "selector": "span.sandbox",
+          "fontSize": "12px",
+          "lineHeight": "18.6px",
+          "text": "Sandbox · test cards only"
+        },
+        {
+          "selector": "p",
+          "fontSize": "15px",
+          "lineHeight": "25.5px",
+          "text": "A plan that fits the team you have today."
+        },
+        {
+          "selector": "p.plan-description",
+          "fontSize": "13px",
+          "lineHeight": "20.8px",
+          "text": "For an owner-led team"
+        },
+        {
+          "selector": "span",
+          "fontSize": "12px",
+          "lineHeight": "18.6px",
+          "text": "per workspace / month"
+        },
+        {
+          "selector": "li",
+          "fontSize": "13px",
+          "lineHeight": "19.5px",
+          "text": "1 location"
+        },
+        {
+          "selector": "li",
+          "fontSize": "13px",
+          "lineHeight": "19.5px",
+          "text": "3 staff members"
+        },
+        {
+          "selector": "li",
+          "fontSize": "13px",
+          "lineHeight": "19.5px",
+          "text": "1 manager seatOwner included"
+        },
+        {
+          "selector": "p.plan-description",
+          "fontSize": "13px",
+          "lineHeight": "20.8px",
+          "text": "For teams across locations"
+        },
+        {
+          "selector": "span",
+          "fontSize": "12px",
+          "lineHeight": "18.6px",
+          "text": "per workspace / month"
+        },
+        {
+          "selector": "li",
+          "fontSize": "13px",
+          "lineHeight": "19.5px",
+          "text": "5 locations"
+        },
+        {
+          "selector": "li",
+          "fontSize": "13px",
+          "lineHeight": "19.5px",
+          "text": "25 staff members"
+        },
+        {
+          "selector": "li",
+          "fontSize": "13px",
+          "lineHeight": "19.5px",
+          "text": "3 manager seatsOwner included"
+        },
+        {
+          "selector": "p.plan-description",
+          "fontSize": "13px",
+          "lineHeight": "20.8px",
+          "text": "For a larger operation"
+        },
+        {
+          "selector": "span",
+          "fontSize": "12px",
+          "lineHeight": "18.6px",
+          "text": "per workspace / month"
+        },
+        {
+          "selector": "li",
+          "fontSize": "13px",
+          "lineHeight": "19.5px",
+          "text": "20 locations"
+        },
+        {
+          "selector": "li",
+          "fontSize": "13px",
+          "lineHeight": "19.5px",
+          "text": "200 staff members"
+        },
+        {
+          "selector": "li",
+          "fontSize": "13px",
+          "lineHeight": "19.5px",
+          "text": "20 manager seatsOwner included"
+        },
+        {
+          "selector": "p#owner-note.owner-note",
+          "fontSize": "12px",
+          "lineHeight": "18.6px",
+          "text": "Manager seats include the company owner."
+        },
+        {
+          "selector": "span",
+          "fontSize": "12px",
+          "lineHeight": "18.6px",
+          "text": "Card details stay with Paddle."
+        }
+      ],
+      "primary": [
+        {
+          "text": "Continue with Pro",
+          "top": 926,
+          "height": 48,
+          "bottom": 974
+        }
+      ]
+    },
+    {
+      "screen": "payment",
+      "lang": "en",
+      "width": 768,
+      "documentWidth": 768,
+      "bodyWidth": 768,
+      "dir": "ltr",
+      "title": "Finish setting up",
+      "overflow": [],
+      "support": [
+        {
+          "selector": "span.sandbox",
+          "fontSize": "12px",
+          "lineHeight": "18.6px",
+          "text": "Sandbox · test cards only"
+        },
+        {
+          "selector": "p",
+          "fontSize": "15px",
+          "lineHeight": "25.5px",
+          "text": "Review your plan, then add a test card in Paddle."
+        },
+        {
+          "selector": "li",
+          "fontSize": "13px",
+          "lineHeight": "19.5px",
+          "text": "5 locations"
+        },
+        {
+          "selector": "li",
+          "fontSize": "13px",
+          "lineHeight": "19.5px",
+          "text": "25 staff members"
+        },
+        {
+          "selector": "li",
+          "fontSize": "13px",
+          "lineHeight": "19.5px",
+          "text": "3 manager seatsOwner included"
+        },
+        {
+          "selector": "p.small-note",
+          "fontSize": "12px",
+          "lineHeight": "21.6px",
+          "text": "This is the recurring plan price, not a confirmed amount due today."
+        },
+        {
+          "selector": "p",
+          "fontSize": "12px",
+          "lineHeight": "18.6px",
+          "text": "Expiry: any future date · CVC: 100"
+        },
+        {
+          "selector": "p",
+          "fontSize": "12px",
+          "lineHeight": "18.6px",
+          "text": "No real charge in sandbox."
+        },
+        {
+          "selector": "p.small-note",
+          "fontSize": "12px",
+          "lineHeight": "21.6px",
+          "text": "You can close checkout and return here."
+        },
+        {
+          "selector": "span",
+          "fontSize": "12px",
+          "lineHeight": "18.6px",
+          "text": "Card details stay with Paddle."
+        }
+      ],
+      "primary": [
+        {
+          "text": "Continue to secure checkout",
+          "top": 743,
+          "height": 48,
+          "bottom": 791
+        }
+      ]
+    },
+    {
+      "screen": "activation",
+      "lang": "en",
+      "width": 768,
+      "documentWidth": 768,
+      "bodyWidth": 768,
+      "dir": "ltr",
+      "title": "Confirming your subscription",
+      "overflow": [],
+      "support": [
+        {
+          "selector": "span.sandbox",
+          "fontSize": "12px",
+          "lineHeight": "18.6px",
+          "text": "Sandbox · test cards only"
+        },
+        {
+          "selector": "p",
+          "fontSize": "14px",
+          "lineHeight": "23.8px",
+          "text": "Your checkout is complete. We’re waiting for confirmation before opening your workspace."
+        },
+        {
+          "selector": "p",
+          "fontSize": "12px",
+          "lineHeight": "18.6px",
+          "text": "Details submitted securely to Paddle"
+        },
+        {
+          "selector": "p",
+          "fontSize": "12px",
+          "lineHeight": "18.6px",
+          "text": "Waiting for your subscription to be verified"
+        },
+        {
+          "selector": "p",
+          "fontSize": "12px",
+          "lineHeight": "18.6px",
+          "text": "Available after subscription confirmation"
+        },
+        {
+          "selector": "p.small-note",
+          "fontSize": "12px",
+          "lineHeight": "21.6px",
+          "text": "Do not enter your card again while confirmation is pending."
+        },
+        {
+          "selector": "span",
+          "fontSize": "12px",
+          "lineHeight": "18.6px",
+          "text": "Card details stay with Paddle."
+        }
+      ],
+      "primary": [
+        {
+          "text": "Refresh status",
+          "top": 725,
+          "height": 48,
+          "bottom": 773
+        }
+      ]
+    },
+    {
+      "screen": "billing",
+      "lang": "en",
+      "width": 768,
+      "documentWidth": 768,
+      "bodyWidth": 768,
+      "dir": "ltr",
+      "title": "Billing & subscription",
+      "overflow": [],
+      "support": [
+        {
+          "selector": "span.sandbox",
+          "fontSize": "12px",
+          "lineHeight": "18.6px",
+          "text": "Sandbox · test cards only"
+        },
+        {
+          "selector": "p",
+          "fontSize": "15px",
+          "lineHeight": "25.5px",
+          "text": "Manage your plan and payment details."
+        },
+        {
+          "selector": "p.small-note",
+          "fontSize": "12px",
+          "lineHeight": "21.6px",
+          "text": "Manager seats include the company owner."
+        },
+        {
+          "selector": "span",
+          "fontSize": "12px",
+          "lineHeight": "18.6px",
+          "text": "Card details stay with Paddle."
+        }
+      ],
+      "primary": [
+        {
+          "text": "Manage in Paddle",
+          "top": 562,
+          "height": 48,
+          "bottom": 610
+        }
+      ]
+    },
+    {
+      "screen": "recovery",
+      "lang": "en",
+      "width": 768,
+      "documentWidth": 768,
+      "bodyWidth": 768,
+      "dir": "ltr",
+      "title": "Let’s get you back to checkout",
+      "overflow": [],
+      "support": [
+        {
+          "selector": "span.sandbox",
+          "fontSize": "12px",
+          "lineHeight": "18.6px",
+          "text": "Sandbox · test cards only"
+        },
+        {
+          "selector": "p",
+          "fontSize": "14px",
+          "lineHeight": "23.8px",
+          "text": "Your account is saved. Your selected plan is still here."
+        },
+        {
+          "selector": "span",
+          "fontSize": "12px",
+          "lineHeight": "18.6px",
+          "text": "Card details stay with Paddle."
+        }
+      ],
+      "primary": [
+        {
+          "text": "Try checkout again",
+          "top": 603,
+          "height": 48,
+          "bottom": 651
+        }
+      ]
+    },
+    {
+      "screen": "account",
+      "lang": "ur",
+      "width": 768,
+      "documentWidth": 768,
+      "bodyWidth": 768,
+      "dir": "rtl",
+      "title": "اپنی ورک اسپیس ترتیب دیں",
+      "overflow": [],
+      "support": [
+        {
+          "selector": "span.sandbox",
+          "fontSize": "12px",
+          "lineHeight": "18.6px",
+          "text": "سینڈ باکس · صرف ٹیسٹ کارڈ"
+        },
+        {
+          "selector": "p",
+          "fontSize": "14px",
+          "lineHeight": "23.8px",
+          "text": "مالک کا اکاؤنٹ بنائیں۔ پھر اپنی کمپنی کے لیے پلان منتخب کریں۔"
+        },
+        {
+          "selector": "span",
+          "fontSize": "12px",
+          "lineHeight": "18.6px",
+          "text": "پہلے اپنا اکاؤنٹ بنائیں۔ پھر پلان اور ادائیگی کا مرحلہ آئے گا۔"
+        }
+      ],
+      "primary": [
+        {
+          "text": "اکاؤنٹ بنائیں اور جاری رکھیں",
+          "top": 643,
+          "height": 48,
+          "bottom": 691
+        }
+      ]
+    },
+    {
+      "screen": "index",
+      "lang": "ur",
+      "width": 768,
+      "documentWidth": 768,
+      "bodyWidth": 768,
+      "dir": "rtl",
+      "title": "اپنی ورک اسپیس کا پلان منتخب کریں",
+      "overflow": [],
+      "support": [
+        {
+          "selector": "span.sandbox",
+          "fontSize": "12px",
+          "lineHeight": "18.6px",
+          "text": "سینڈ باکس · صرف ٹیسٹ کارڈ"
+        },
+        {
+          "selector": "p",
+          "fontSize": "15px",
+          "lineHeight": "25.5px",
+          "text": "آج کی ٹیم کی ضرورت کے مطابق پلان۔"
+        },
+        {
+          "selector": "p.plan-description",
+          "fontSize": "13px",
+          "lineHeight": "20.8px",
+          "text": "مالک کی نگرانی والی ٹیم کے لیے"
+        },
+        {
+          "selector": "span",
+          "fontSize": "12px",
+          "lineHeight": "18.6px",
+          "text": "فی ورک اسپیس / ماہ"
+        },
+        {
+          "selector": "li",
+          "fontSize": "13px",
+          "lineHeight": "19.5px",
+          "text": "1 مقام"
+        },
+        {
+          "selector": "li",
+          "fontSize": "13px",
+          "lineHeight": "19.5px",
+          "text": "3 عملے کے افراد"
+        },
+        {
+          "selector": "li",
+          "fontSize": "13px",
+          "lineHeight": "19.5px",
+          "text": "1 مینیجر نشستمالک شامل ہے"
+        },
+        {
+          "selector": "p.plan-description",
+          "fontSize": "13px",
+          "lineHeight": "20.8px",
+          "text": "مختلف مقامات کی ٹیموں کے لیے"
+        },
+        {
+          "selector": "span",
+          "fontSize": "12px",
+          "lineHeight": "18.6px",
+          "text": "فی ورک اسپیس / ماہ"
+        },
+        {
+          "selector": "li",
+          "fontSize": "13px",
+          "lineHeight": "19.5px",
+          "text": "5 مقامات"
+        },
+        {
+          "selector": "li",
+          "fontSize": "13px",
+          "lineHeight": "19.5px",
+          "text": "25 عملے کے افراد"
+        },
+        {
+          "selector": "li",
+          "fontSize": "13px",
+          "lineHeight": "19.5px",
+          "text": "3 مینیجر نشستیںمالک شامل ہے"
+        },
+        {
+          "selector": "p.plan-description",
+          "fontSize": "13px",
+          "lineHeight": "20.8px",
+          "text": "بڑے کاروبار کے لیے"
+        },
+        {
+          "selector": "span",
+          "fontSize": "12px",
+          "lineHeight": "18.6px",
+          "text": "فی ورک اسپیس / ماہ"
+        },
+        {
+          "selector": "li",
+          "fontSize": "13px",
+          "lineHeight": "19.5px",
+          "text": "20 مقامات"
+        },
+        {
+          "selector": "li",
+          "fontSize": "13px",
+          "lineHeight": "19.5px",
+          "text": "200 عملے کے افراد"
+        },
+        {
+          "selector": "li",
+          "fontSize": "13px",
+          "lineHeight": "19.5px",
+          "text": "20 مینیجر نشستیںمالک شامل ہے"
+        },
+        {
+          "selector": "p#owner-note.owner-note",
+          "fontSize": "12px",
+          "lineHeight": "18.6px",
+          "text": "مینیجر نشستوں میں کمپنی کا مالک شامل ہے۔"
+        },
+        {
+          "selector": "span",
+          "fontSize": "12px",
+          "lineHeight": "18.6px",
+          "text": "کارڈ کی تفصیل پیڈل کے پاس رہتی ہے۔"
+        }
+      ],
+      "primary": [
+        {
+          "text": "اس پلان کے ساتھ جاری رکھیں: Pro",
+          "top": 921,
+          "height": 48,
+          "bottom": 969
+        }
+      ]
+    },
+    {
+      "screen": "payment",
+      "lang": "ur",
+      "width": 768,
+      "documentWidth": 768,
+      "bodyWidth": 768,
+      "dir": "rtl",
+      "title": "سیٹ اپ مکمل کریں",
+      "overflow": [],
+      "support": [
+        {
+          "selector": "span.sandbox",
+          "fontSize": "12px",
+          "lineHeight": "18.6px",
+          "text": "سینڈ باکس · صرف ٹیسٹ کارڈ"
+        },
+        {
+          "selector": "p",
+          "fontSize": "15px",
+          "lineHeight": "25.5px",
+          "text": "اپنا پلان دیکھیں، پھر پیڈل میں ٹیسٹ کارڈ شامل کریں۔"
+        },
+        {
+          "selector": "li",
+          "fontSize": "13px",
+          "lineHeight": "19.5px",
+          "text": "5 مقامات"
+        },
+        {
+          "selector": "li",
+          "fontSize": "13px",
+          "lineHeight": "19.5px",
+          "text": "25 عملے کے افراد"
+        },
+        {
+          "selector": "li",
+          "fontSize": "13px",
+          "lineHeight": "19.5px",
+          "text": "3 مینیجر نشستیںمالک شامل ہے"
+        },
+        {
+          "selector": "p.small-note",
+          "fontSize": "12px",
+          "lineHeight": "21.6px",
+          "text": "یہ پلان کی مستقل قیمت ہے، آج واجب الادا حتمی رقم نہیں۔"
+        },
+        {
+          "selector": "p",
+          "fontSize": "12px",
+          "lineHeight": "18.6px",
+          "text": "میعاد: مستقبل کی تاریخ · سی وی سی: 100"
+        },
+        {
+          "selector": "p",
+          "fontSize": "12px",
+          "lineHeight": "18.6px",
+          "text": "سینڈ باکس میں حقیقی رقم وصول نہیں ہوتی۔"
+        },
+        {
+          "selector": "p.small-note",
+          "fontSize": "12px",
+          "lineHeight": "21.6px",
+          "text": "چیک آؤٹ بند کر کے یہاں واپس آ سکتے ہیں۔"
+        },
+        {
+          "selector": "span",
+          "fontSize": "12px",
+          "lineHeight": "18.6px",
+          "text": "کارڈ کی تفصیل پیڈل کے پاس رہتی ہے۔"
+        }
+      ],
+      "primary": [
+        {
+          "text": "محفوظ چیک آؤٹ کی طرف جائیں",
+          "top": 736,
+          "height": 48,
+          "bottom": 784
+        }
+      ]
+    },
+    {
+      "screen": "activation",
+      "lang": "ur",
+      "width": 768,
+      "documentWidth": 768,
+      "bodyWidth": 768,
+      "dir": "rtl",
+      "title": "آپ کی سبسکرپشن کی تصدیق جاری ہے",
+      "overflow": [],
+      "support": [
+        {
+          "selector": "span.sandbox",
+          "fontSize": "12px",
+          "lineHeight": "18.6px",
+          "text": "سینڈ باکس · صرف ٹیسٹ کارڈ"
+        },
+        {
+          "selector": "p",
+          "fontSize": "14px",
+          "lineHeight": "23.8px",
+          "text": "چیک آؤٹ مکمل ہے۔ ورک اسپیس کھولنے سے پہلے تصدیق کا انتظار ہے۔"
+        },
+        {
+          "selector": "p",
+          "fontSize": "12px",
+          "lineHeight": "18.6px",
+          "text": "تفصیل محفوظ طریقے سے پیڈل میں جمع ہو گئی"
+        },
+        {
+          "selector": "p",
+          "fontSize": "12px",
+          "lineHeight": "18.6px",
+          "text": "سبسکرپشن کی تصدیق کا انتظار"
+        },
+        {
+          "selector": "p",
+          "fontSize": "12px",
+          "lineHeight": "18.6px",
+          "text": "سبسکرپشن کی تصدیق کے بعد دستیاب"
+        },
+        {
+          "selector": "p.small-note",
+          "fontSize": "12px",
+          "lineHeight": "21.6px",
+          "text": "تصدیق کے انتظار میں کارڈ دوبارہ درج نہ کریں۔"
+        },
+        {
+          "selector": "span",
+          "fontSize": "12px",
+          "lineHeight": "18.6px",
+          "text": "کارڈ کی تفصیل پیڈل کے پاس رہتی ہے۔"
+        }
+      ],
+      "primary": [
+        {
+          "text": "حالت تازہ کریں",
+          "top": 694,
+          "height": 48,
+          "bottom": 742
+        }
+      ]
+    },
+    {
+      "screen": "billing",
+      "lang": "ur",
+      "width": 768,
+      "documentWidth": 768,
+      "bodyWidth": 768,
+      "dir": "rtl",
+      "title": "بلنگ اور سبسکرپشن",
+      "overflow": [],
+      "support": [
+        {
+          "selector": "span.sandbox",
+          "fontSize": "12px",
+          "lineHeight": "18.6px",
+          "text": "سینڈ باکس · صرف ٹیسٹ کارڈ"
+        },
+        {
+          "selector": "p",
+          "fontSize": "15px",
+          "lineHeight": "25.5px",
+          "text": "اپنے پلان اور ادائیگی کی تفصیل سنبھالیں۔"
+        },
+        {
+          "selector": "p.small-note",
+          "fontSize": "12px",
+          "lineHeight": "21.6px",
+          "text": "مینیجر نشستوں میں کمپنی کا مالک شامل ہے۔"
+        },
+        {
+          "selector": "span",
+          "fontSize": "12px",
+          "lineHeight": "18.6px",
+          "text": "کارڈ کی تفصیل پیڈل کے پاس رہتی ہے۔"
+        }
+      ],
+      "primary": [
+        {
+          "text": "پیڈل میں سنبھالیں",
+          "top": 555,
+          "height": 48,
+          "bottom": 603
+        }
+      ]
+    },
+    {
+      "screen": "recovery",
+      "lang": "ur",
+      "width": 768,
+      "documentWidth": 768,
+      "bodyWidth": 768,
+      "dir": "rtl",
+      "title": "چیک آؤٹ پر واپس جائیں",
+      "overflow": [],
+      "support": [
+        {
+          "selector": "span.sandbox",
+          "fontSize": "12px",
+          "lineHeight": "18.6px",
+          "text": "سینڈ باکس · صرف ٹیسٹ کارڈ"
+        },
+        {
+          "selector": "p",
+          "fontSize": "14px",
+          "lineHeight": "23.8px",
+          "text": "آپ کا اکاؤنٹ محفوظ ہے۔ منتخب پلان موجود ہے۔"
+        },
+        {
+          "selector": "span",
+          "fontSize": "12px",
+          "lineHeight": "18.6px",
+          "text": "کارڈ کی تفصیل پیڈل کے پاس رہتی ہے۔"
+        }
+      ],
+      "primary": [
+        {
+          "text": "چیک آؤٹ دوبارہ کھولیں",
+          "top": 596,
+          "height": 48,
+          "bottom": 644
+        }
+      ]
+    },
+    {
+      "screen": "account",
+      "lang": "en",
+      "width": 1366,
+      "documentWidth": 1366,
+      "bodyWidth": 1366,
+      "dir": "ltr",
+      "title": "Let’s set up your workspace",
+      "overflow": [],
+      "support": [
+        {
+          "selector": "span.sandbox",
+          "fontSize": "12px",
+          "lineHeight": "18.6px",
+          "text": "Sandbox · test cards only"
+        },
+        {
+          "selector": "p",
+          "fontSize": "14px",
+          "lineHeight": "23.8px",
+          "text": "Create your owner account. Then choose a plan for your company."
+        },
+        {
+          "selector": "span",
+          "fontSize": "12px",
+          "lineHeight": "18.6px",
+          "text": "Create your account first. Your plan and payment come next."
+        }
+      ],
+      "primary": [
+        {
+          "text": "Create account & continue",
+          "top": 620,
+          "height": 48,
+          "bottom": 668
+        }
+      ]
+    },
+    {
+      "screen": "index",
+      "lang": "en",
+      "width": 1366,
+      "documentWidth": 1366,
+      "bodyWidth": 1366,
+      "dir": "ltr",
+      "title": "Choose your workspace plan",
+      "overflow": [],
+      "support": [
+        {
+          "selector": "span.sandbox",
+          "fontSize": "12px",
+          "lineHeight": "18.6px",
+          "text": "Sandbox · test cards only"
+        },
+        {
+          "selector": "p",
+          "fontSize": "15px",
+          "lineHeight": "25.5px",
+          "text": "A plan that fits the team you have today."
+        },
+        {
+          "selector": "p.plan-description",
+          "fontSize": "13px",
+          "lineHeight": "20.8px",
+          "text": "For an owner-led team"
+        },
+        {
+          "selector": "span",
+          "fontSize": "12px",
+          "lineHeight": "18.6px",
+          "text": "per workspace / month"
+        },
+        {
+          "selector": "li",
+          "fontSize": "13px",
+          "lineHeight": "19.5px",
+          "text": "1 location"
+        },
+        {
+          "selector": "li",
+          "fontSize": "13px",
+          "lineHeight": "19.5px",
+          "text": "3 staff members"
+        },
+        {
+          "selector": "li",
+          "fontSize": "13px",
+          "lineHeight": "19.5px",
+          "text": "1 manager seatOwner included"
+        },
+        {
+          "selector": "p.plan-description",
+          "fontSize": "13px",
+          "lineHeight": "20.8px",
+          "text": "For teams across locations"
+        },
+        {
+          "selector": "span",
+          "fontSize": "12px",
+          "lineHeight": "18.6px",
+          "text": "per workspace / month"
+        },
+        {
+          "selector": "li",
+          "fontSize": "13px",
+          "lineHeight": "19.5px",
+          "text": "5 locations"
+        },
+        {
+          "selector": "li",
+          "fontSize": "13px",
+          "lineHeight": "19.5px",
+          "text": "25 staff members"
+        },
+        {
+          "selector": "li",
+          "fontSize": "13px",
+          "lineHeight": "19.5px",
+          "text": "3 manager seatsOwner included"
+        },
+        {
+          "selector": "p.plan-description",
+          "fontSize": "13px",
+          "lineHeight": "20.8px",
+          "text": "For a larger operation"
+        },
+        {
+          "selector": "span",
+          "fontSize": "12px",
+          "lineHeight": "18.6px",
+          "text": "per workspace / month"
+        },
+        {
+          "selector": "li",
+          "fontSize": "13px",
+          "lineHeight": "19.5px",
+          "text": "20 locations"
+        },
+        {
+          "selector": "li",
+          "fontSize": "13px",
+          "lineHeight": "19.5px",
+          "text": "200 staff members"
+        },
+        {
+          "selector": "li",
+          "fontSize": "13px",
+          "lineHeight": "19.5px",
+          "text": "20 manager seatsOwner included"
+        },
+        {
+          "selector": "p#owner-note.owner-note",
+          "fontSize": "12px",
+          "lineHeight": "18.6px",
+          "text": "Manager seats include the company owner."
+        },
+        {
+          "selector": "span",
+          "fontSize": "12px",
+          "lineHeight": "18.6px",
+          "text": "Card details stay with Paddle."
+        }
+      ],
+      "primary": [
+        {
+          "text": "Continue with Pro",
+          "top": 803,
+          "height": 48,
+          "bottom": 851
+        }
+      ]
+    },
+    {
+      "screen": "payment",
+      "lang": "en",
+      "width": 1366,
+      "documentWidth": 1366,
+      "bodyWidth": 1366,
+      "dir": "ltr",
+      "title": "Finish setting up",
+      "overflow": [],
+      "support": [
+        {
+          "selector": "span.sandbox",
+          "fontSize": "12px",
+          "lineHeight": "18.6px",
+          "text": "Sandbox · test cards only"
+        },
+        {
+          "selector": "p",
+          "fontSize": "15px",
+          "lineHeight": "25.5px",
+          "text": "Review your plan, then add a test card in Paddle."
+        },
+        {
+          "selector": "li",
+          "fontSize": "13px",
+          "lineHeight": "19.5px",
+          "text": "5 locations"
+        },
+        {
+          "selector": "li",
+          "fontSize": "13px",
+          "lineHeight": "19.5px",
+          "text": "25 staff members"
+        },
+        {
+          "selector": "li",
+          "fontSize": "13px",
+          "lineHeight": "19.5px",
+          "text": "3 manager seatsOwner included"
+        },
+        {
+          "selector": "p.small-note",
+          "fontSize": "12px",
+          "lineHeight": "21.6px",
+          "text": "This is the recurring plan price, not a confirmed amount due today."
+        },
+        {
+          "selector": "p",
+          "fontSize": "12px",
+          "lineHeight": "18.6px",
+          "text": "Expiry: any future date · CVC: 100"
+        },
+        {
+          "selector": "p",
+          "fontSize": "12px",
+          "lineHeight": "18.6px",
+          "text": "No real charge in sandbox."
+        },
+        {
+          "selector": "p.small-note",
+          "fontSize": "12px",
+          "lineHeight": "21.6px",
+          "text": "You can close checkout and return here."
+        },
+        {
+          "selector": "span",
+          "fontSize": "12px",
+          "lineHeight": "18.6px",
+          "text": "Card details stay with Paddle."
+        }
+      ],
+      "primary": [
+        {
+          "text": "Continue to secure checkout",
+          "top": 693,
+          "height": 48,
+          "bottom": 741
+        }
+      ]
+    },
+    {
+      "screen": "activation",
+      "lang": "en",
+      "width": 1366,
+      "documentWidth": 1366,
+      "bodyWidth": 1366,
+      "dir": "ltr",
+      "title": "Confirming your subscription",
+      "overflow": [],
+      "support": [
+        {
+          "selector": "span.sandbox",
+          "fontSize": "12px",
+          "lineHeight": "18.6px",
+          "text": "Sandbox · test cards only"
+        },
+        {
+          "selector": "p",
+          "fontSize": "14px",
+          "lineHeight": "23.8px",
+          "text": "Your checkout is complete. We’re waiting for confirmation before opening your workspace."
+        },
+        {
+          "selector": "p",
+          "fontSize": "12px",
+          "lineHeight": "18.6px",
+          "text": "Details submitted securely to Paddle"
+        },
+        {
+          "selector": "p",
+          "fontSize": "12px",
+          "lineHeight": "18.6px",
+          "text": "Waiting for your subscription to be verified"
+        },
+        {
+          "selector": "p",
+          "fontSize": "12px",
+          "lineHeight": "18.6px",
+          "text": "Available after subscription confirmation"
+        },
+        {
+          "selector": "p.small-note",
+          "fontSize": "12px",
+          "lineHeight": "21.6px",
+          "text": "Do not enter your card again while confirmation is pending."
+        },
+        {
+          "selector": "span",
+          "fontSize": "12px",
+          "lineHeight": "18.6px",
+          "text": "Card details stay with Paddle."
+        }
+      ],
+      "primary": [
+        {
+          "text": "Refresh status",
+          "top": 671,
+          "height": 48,
+          "bottom": 719
+        }
+      ]
+    },
+    {
+      "screen": "billing",
+      "lang": "en",
+      "width": 1366,
+      "documentWidth": 1366,
+      "bodyWidth": 1366,
+      "dir": "ltr",
+      "title": "Billing & subscription",
+      "overflow": [],
+      "support": [
+        {
+          "selector": "span.sandbox",
+          "fontSize": "12px",
+          "lineHeight": "18.6px",
+          "text": "Sandbox · test cards only"
+        },
+        {
+          "selector": "p",
+          "fontSize": "15px",
+          "lineHeight": "25.5px",
+          "text": "Manage your plan and payment details."
+        },
+        {
+          "selector": "p.small-note",
+          "fontSize": "12px",
+          "lineHeight": "21.6px",
+          "text": "Manager seats include the company owner."
+        },
+        {
+          "selector": "span",
+          "fontSize": "12px",
+          "lineHeight": "18.6px",
+          "text": "Card details stay with Paddle."
+        }
+      ],
+      "primary": [
+        {
+          "text": "Manage in Paddle",
+          "top": 511,
+          "height": 48,
+          "bottom": 559
+        }
+      ]
+    },
+    {
+      "screen": "recovery",
+      "lang": "en",
+      "width": 1366,
+      "documentWidth": 1366,
+      "bodyWidth": 1366,
+      "dir": "ltr",
+      "title": "Let’s get you back to checkout",
+      "overflow": [],
+      "support": [
+        {
+          "selector": "span.sandbox",
+          "fontSize": "12px",
+          "lineHeight": "18.6px",
+          "text": "Sandbox · test cards only"
+        },
+        {
+          "selector": "p",
+          "fontSize": "14px",
+          "lineHeight": "23.8px",
+          "text": "Your account is saved. Your selected plan is still here."
+        },
+        {
+          "selector": "span",
+          "fontSize": "12px",
+          "lineHeight": "18.6px",
+          "text": "Card details stay with Paddle."
+        }
+      ],
+      "primary": [
+        {
+          "text": "Try checkout again",
+          "top": 549,
+          "height": 48,
+          "bottom": 597
+        }
+      ]
+    },
+    {
+      "screen": "account",
+      "lang": "ur",
+      "width": 1366,
+      "documentWidth": 1366,
+      "bodyWidth": 1366,
+      "dir": "rtl",
+      "title": "اپنی ورک اسپیس ترتیب دیں",
+      "overflow": [],
+      "support": [
+        {
+          "selector": "span.sandbox",
+          "fontSize": "12px",
+          "lineHeight": "18.6px",
+          "text": "سینڈ باکس · صرف ٹیسٹ کارڈ"
+        },
+        {
+          "selector": "p",
+          "fontSize": "14px",
+          "lineHeight": "23.8px",
+          "text": "مالک کا اکاؤنٹ بنائیں۔ پھر اپنی کمپنی کے لیے پلان منتخب کریں۔"
+        },
+        {
+          "selector": "span",
+          "fontSize": "12px",
+          "lineHeight": "18.6px",
+          "text": "پہلے اپنا اکاؤنٹ بنائیں۔ پھر پلان اور ادائیگی کا مرحلہ آئے گا۔"
+        }
+      ],
+      "primary": [
+        {
+          "text": "اکاؤنٹ بنائیں اور جاری رکھیں",
+          "top": 627,
+          "height": 48,
+          "bottom": 675
+        }
+      ]
+    },
+    {
+      "screen": "index",
+      "lang": "ur",
+      "width": 1366,
+      "documentWidth": 1366,
+      "bodyWidth": 1366,
+      "dir": "rtl",
+      "title": "اپنی ورک اسپیس کا پلان منتخب کریں",
+      "overflow": [],
+      "support": [
+        {
+          "selector": "span.sandbox",
+          "fontSize": "12px",
+          "lineHeight": "18.6px",
+          "text": "سینڈ باکس · صرف ٹیسٹ کارڈ"
+        },
+        {
+          "selector": "p",
+          "fontSize": "15px",
+          "lineHeight": "25.5px",
+          "text": "آج کی ٹیم کی ضرورت کے مطابق پلان۔"
+        },
+        {
+          "selector": "p.plan-description",
+          "fontSize": "13px",
+          "lineHeight": "20.8px",
+          "text": "مالک کی نگرانی والی ٹیم کے لیے"
+        },
+        {
+          "selector": "span",
+          "fontSize": "12px",
+          "lineHeight": "18.6px",
+          "text": "فی ورک اسپیس / ماہ"
+        },
+        {
+          "selector": "li",
+          "fontSize": "13px",
+          "lineHeight": "19.5px",
+          "text": "1 مقام"
+        },
+        {
+          "selector": "li",
+          "fontSize": "13px",
+          "lineHeight": "19.5px",
+          "text": "3 عملے کے افراد"
+        },
+        {
+          "selector": "li",
+          "fontSize": "13px",
+          "lineHeight": "19.5px",
+          "text": "1 مینیجر نشستمالک شامل ہے"
+        },
+        {
+          "selector": "p.plan-description",
+          "fontSize": "13px",
+          "lineHeight": "20.8px",
+          "text": "مختلف مقامات کی ٹیموں کے لیے"
+        },
+        {
+          "selector": "span",
+          "fontSize": "12px",
+          "lineHeight": "18.6px",
+          "text": "فی ورک اسپیس / ماہ"
+        },
+        {
+          "selector": "li",
+          "fontSize": "13px",
+          "lineHeight": "19.5px",
+          "text": "5 مقامات"
+        },
+        {
+          "selector": "li",
+          "fontSize": "13px",
+          "lineHeight": "19.5px",
+          "text": "25 عملے کے افراد"
+        },
+        {
+          "selector": "li",
+          "fontSize": "13px",
+          "lineHeight": "19.5px",
+          "text": "3 مینیجر نشستیںمالک شامل ہے"
+        },
+        {
+          "selector": "p.plan-description",
+          "fontSize": "13px",
+          "lineHeight": "20.8px",
+          "text": "بڑے کاروبار کے لیے"
+        },
+        {
+          "selector": "span",
+          "fontSize": "12px",
+          "lineHeight": "18.6px",
+          "text": "فی ورک اسپیس / ماہ"
+        },
+        {
+          "selector": "li",
+          "fontSize": "13px",
+          "lineHeight": "19.5px",
+          "text": "20 مقامات"
+        },
+        {
+          "selector": "li",
+          "fontSize": "13px",
+          "lineHeight": "19.5px",
+          "text": "200 عملے کے افراد"
+        },
+        {
+          "selector": "li",
+          "fontSize": "13px",
+          "lineHeight": "19.5px",
+          "text": "20 مینیجر نشستیںمالک شامل ہے"
+        },
+        {
+          "selector": "p#owner-note.owner-note",
+          "fontSize": "12px",
+          "lineHeight": "18.6px",
+          "text": "مینیجر نشستوں میں کمپنی کا مالک شامل ہے۔"
+        },
+        {
+          "selector": "span",
+          "fontSize": "12px",
+          "lineHeight": "18.6px",
+          "text": "کارڈ کی تفصیل پیڈل کے پاس رہتی ہے۔"
+        }
+      ],
+      "primary": [
+        {
+          "text": "اس پلان کے ساتھ جاری رکھیں: Pro",
+          "top": 803,
+          "height": 48,
+          "bottom": 851
+        }
+      ]
+    },
+    {
+      "screen": "payment",
+      "lang": "ur",
+      "width": 1366,
+      "documentWidth": 1366,
+      "bodyWidth": 1366,
+      "dir": "rtl",
+      "title": "سیٹ اپ مکمل کریں",
+      "overflow": [],
+      "support": [
+        {
+          "selector": "span.sandbox",
+          "fontSize": "12px",
+          "lineHeight": "18.6px",
+          "text": "سینڈ باکس · صرف ٹیسٹ کارڈ"
+        },
+        {
+          "selector": "p",
+          "fontSize": "15px",
+          "lineHeight": "25.5px",
+          "text": "اپنا پلان دیکھیں، پھر پیڈل میں ٹیسٹ کارڈ شامل کریں۔"
+        },
+        {
+          "selector": "li",
+          "fontSize": "13px",
+          "lineHeight": "19.5px",
+          "text": "5 مقامات"
+        },
+        {
+          "selector": "li",
+          "fontSize": "13px",
+          "lineHeight": "19.5px",
+          "text": "25 عملے کے افراد"
+        },
+        {
+          "selector": "li",
+          "fontSize": "13px",
+          "lineHeight": "19.5px",
+          "text": "3 مینیجر نشستیںمالک شامل ہے"
+        },
+        {
+          "selector": "p.small-note",
+          "fontSize": "12px",
+          "lineHeight": "21.6px",
+          "text": "یہ پلان کی مستقل قیمت ہے، آج واجب الادا حتمی رقم نہیں۔"
+        },
+        {
+          "selector": "p",
+          "fontSize": "12px",
+          "lineHeight": "18.6px",
+          "text": "میعاد: مستقبل کی تاریخ · سی وی سی: 100"
+        },
+        {
+          "selector": "p",
+          "fontSize": "12px",
+          "lineHeight": "18.6px",
+          "text": "سینڈ باکس میں حقیقی رقم وصول نہیں ہوتی۔"
+        },
+        {
+          "selector": "p.small-note",
+          "fontSize": "12px",
+          "lineHeight": "21.6px",
+          "text": "چیک آؤٹ بند کر کے یہاں واپس آ سکتے ہیں۔"
+        },
+        {
+          "selector": "span",
+          "fontSize": "12px",
+          "lineHeight": "18.6px",
+          "text": "کارڈ کی تفصیل پیڈل کے پاس رہتی ہے۔"
+        }
+      ],
+      "primary": [
+        {
+          "text": "محفوظ چیک آؤٹ کی طرف جائیں",
+          "top": 670,
+          "height": 48,
+          "bottom": 718
+        }
+      ]
+    },
+    {
+      "screen": "activation",
+      "lang": "ur",
+      "width": 1366,
+      "documentWidth": 1366,
+      "bodyWidth": 1366,
+      "dir": "rtl",
+      "title": "آپ کی سبسکرپشن کی تصدیق جاری ہے",
+      "overflow": [],
+      "support": [
+        {
+          "selector": "span.sandbox",
+          "fontSize": "12px",
+          "lineHeight": "18.6px",
+          "text": "سینڈ باکس · صرف ٹیسٹ کارڈ"
+        },
+        {
+          "selector": "p",
+          "fontSize": "14px",
+          "lineHeight": "23.8px",
+          "text": "چیک آؤٹ مکمل ہے۔ ورک اسپیس کھولنے سے پہلے تصدیق کا انتظار ہے۔"
+        },
+        {
+          "selector": "p",
+          "fontSize": "12px",
+          "lineHeight": "18.6px",
+          "text": "تفصیل محفوظ طریقے سے پیڈل میں جمع ہو گئی"
+        },
+        {
+          "selector": "p",
+          "fontSize": "12px",
+          "lineHeight": "18.6px",
+          "text": "سبسکرپشن کی تصدیق کا انتظار"
+        },
+        {
+          "selector": "p",
+          "fontSize": "12px",
+          "lineHeight": "18.6px",
+          "text": "سبسکرپشن کی تصدیق کے بعد دستیاب"
+        },
+        {
+          "selector": "p.small-note",
+          "fontSize": "12px",
+          "lineHeight": "21.6px",
+          "text": "تصدیق کے انتظار میں کارڈ دوبارہ درج نہ کریں۔"
+        },
+        {
+          "selector": "span",
+          "fontSize": "12px",
+          "lineHeight": "18.6px",
+          "text": "کارڈ کی تفصیل پیڈل کے پاس رہتی ہے۔"
+        }
+      ],
+      "primary": [
+        {
+          "text": "حالت تازہ کریں",
+          "top": 647,
+          "height": 48,
+          "bottom": 695
+        }
+      ]
+    },
+    {
+      "screen": "billing",
+      "lang": "ur",
+      "width": 1366,
+      "documentWidth": 1366,
+      "bodyWidth": 1366,
+      "dir": "rtl",
+      "title": "بلنگ اور سبسکرپشن",
+      "overflow": [],
+      "support": [
+        {
+          "selector": "span.sandbox",
+          "fontSize": "12px",
+          "lineHeight": "18.6px",
+          "text": "سینڈ باکس · صرف ٹیسٹ کارڈ"
+        },
+        {
+          "selector": "p",
+          "fontSize": "15px",
+          "lineHeight": "25.5px",
+          "text": "اپنے پلان اور ادائیگی کی تفصیل سنبھالیں۔"
+        },
+        {
+          "selector": "p.small-note",
+          "fontSize": "12px",
+          "lineHeight": "21.6px",
+          "text": "مینیجر نشستوں میں کمپنی کا مالک شامل ہے۔"
+        },
+        {
+          "selector": "span",
+          "fontSize": "12px",
+          "lineHeight": "18.6px",
+          "text": "کارڈ کی تفصیل پیڈل کے پاس رہتی ہے۔"
+        }
+      ],
+      "primary": [
+        {
+          "text": "پیڈل میں سنبھالیں",
+          "top": 511,
+          "height": 48,
+          "bottom": 559
+        }
+      ]
+    },
+    {
+      "screen": "recovery",
+      "lang": "ur",
+      "width": 1366,
+      "documentWidth": 1366,
+      "bodyWidth": 1366,
+      "dir": "rtl",
+      "title": "چیک آؤٹ پر واپس جائیں",
+      "overflow": [],
+      "support": [
+        {
+          "selector": "span.sandbox",
+          "fontSize": "12px",
+          "lineHeight": "18.6px",
+          "text": "سینڈ باکس · صرف ٹیسٹ کارڈ"
+        },
+        {
+          "selector": "p",
+          "fontSize": "14px",
+          "lineHeight": "23.8px",
+          "text": "آپ کا اکاؤنٹ محفوظ ہے۔ منتخب پلان موجود ہے۔"
+        },
+        {
+          "selector": "span",
+          "fontSize": "12px",
+          "lineHeight": "18.6px",
+          "text": "کارڈ کی تفصیل پیڈل کے پاس رہتی ہے۔"
+        }
+      ],
+      "primary": [
+        {
+          "text": "چیک آؤٹ دوبارہ کھولیں",
+          "top": 549,
+          "height": 48,
+          "bottom": 597
+        }
+      ]
+    },
+    {
+      "screen": "index",
+      "state": "loading",
+      "lang": "ur",
+      "width": 320,
+      "documentWidth": 320,
+      "bodyWidth": 320,
+      "dir": "rtl",
+      "title": "اپنی ورک اسپیس کا پلان منتخب کریں",
+      "overflow": [],
+      "support": [
+        {
+          "selector": "span.sandbox",
+          "fontSize": "11px",
+          "lineHeight": "17.05px",
+          "text": "سینڈ باکس · صرف ٹیسٹ کارڈ"
+        },
+        {
+          "selector": "p",
+          "fontSize": "13px",
+          "lineHeight": "22.1px",
+          "text": "آج کی ٹیم کی ضرورت کے مطابق پلان۔"
+        },
+        {
+          "selector": "span",
+          "fontSize": "12px",
+          "lineHeight": "21.6px",
+          "text": "کارڈ کی تفصیل پیڈل کے پاس رہتی ہے۔"
+        }
+      ],
+      "primary": [
+        {
+          "text": "ادائیگی کی طرف جائیں",
+          "top": 707,
+          "height": 48,
+          "bottom": 755
+        }
+      ]
+    },
+    {
+      "screen": "index",
+      "state": "unavailable",
+      "lang": "ur",
+      "width": 320,
+      "documentWidth": 320,
+      "bodyWidth": 320,
+      "dir": "rtl",
+      "title": "اپنی ورک اسپیس کا پلان منتخب کریں",
+      "overflow": [],
+      "support": [
+        {
+          "selector": "span.sandbox",
+          "fontSize": "11px",
+          "lineHeight": "17.05px",
+          "text": "سینڈ باکس · صرف ٹیسٹ کارڈ"
+        },
+        {
+          "selector": "p",
+          "fontSize": "13px",
+          "lineHeight": "22.1px",
+          "text": "آج کی ٹیم کی ضرورت کے مطابق پلان۔"
+        },
+        {
+          "selector": "span",
+          "fontSize": "12px",
+          "lineHeight": "21.6px",
+          "text": "کارڈ کی تفصیل پیڈل کے پاس رہتی ہے۔"
+        }
+      ],
+      "primary": [
+        {
+          "text": "دوبارہ کوشش کریں",
+          "top": 505,
+          "height": 48,
+          "bottom": 553
+        },
+        {
+          "text": "مدد حاصل کریں",
+          "top": 565,
+          "height": 48,
+          "bottom": 613
+        }
+      ]
+    },
+    {
+      "screen": "activation",
+      "state": "ready",
+      "lang": "ur",
+      "width": 320,
+      "documentWidth": 320,
+      "bodyWidth": 320,
+      "dir": "rtl",
+      "title": "آپ کی ورک اسپیس تیار ہے",
+      "overflow": [],
+      "support": [
+        {
+          "selector": "span.sandbox",
+          "fontSize": "11px",
+          "lineHeight": "17.05px",
+          "text": "سینڈ باکس · صرف ٹیسٹ کارڈ"
+        },
+        {
+          "selector": "p",
+          "fontSize": "13px",
+          "lineHeight": "22.1px",
+          "text": "پہلا مقام ترتیب دیں اور اپنی ٹیم شامل کریں۔"
+        },
+        {
+          "selector": "p",
+          "fontSize": "12px",
+          "lineHeight": "18.6px",
+          "text": "تفصیل محفوظ طریقے سے پیڈل میں جمع ہو گئی"
+        },
+        {
+          "selector": "p",
+          "fontSize": "12px",
+          "lineHeight": "18.6px",
+          "text": "آپ کا پلان استعمال کے لیے تیار ہے"
+        },
+        {
+          "selector": "p",
+          "fontSize": "12px",
+          "lineHeight": "18.6px",
+          "text": "اب اپنے مقامات اور ٹیم ترتیب دے سکتے ہیں۔"
+        },
+        {
+          "selector": "span",
+          "fontSize": "12px",
+          "lineHeight": "21.6px",
+          "text": "آپ کی ورک اسپیس تیار ہے"
+        }
+      ],
+      "primary": [
+        {
+          "text": "ورک اسپیس کھولیں",
+          "top": 633,
+          "height": 48,
+          "bottom": 681
+        }
+      ]
+    },
+    {
+      "screen": "recovery",
+      "state": "uncertain",
+      "lang": "ur",
+      "width": 320,
+      "documentWidth": 320,
+      "bodyWidth": 320,
+      "dir": "rtl",
+      "title": "ادائیگی کی حالت دیکھیں",
+      "overflow": [],
+      "support": [
+        {
+          "selector": "span.sandbox",
+          "fontSize": "11px",
+          "lineHeight": "17.05px",
+          "text": "سینڈ باکس · صرف ٹیسٹ کارڈ"
+        },
+        {
+          "selector": "p",
+          "fontSize": "13px",
+          "lineHeight": "22.1px",
+          "text": "ممکن ہے ادائیگی جمع ہو چکی ہو۔ دوبارہ کوشش سے پہلے حالت دیکھیں۔"
+        },
+        {
+          "selector": "span",
+          "fontSize": "12px",
+          "lineHeight": "21.6px",
+          "text": "کارڈ کی تفصیل پیڈل کے پاس رہتی ہے۔"
+        }
+      ],
+      "primary": [
+        {
+          "text": "سبسکرپشن کی حالت دیکھیں",
+          "top": 585,
+          "height": 48,
+          "bottom": 633
+        }
+      ]
+    }
+  ],
+  "checks": [
+    {
+      "name": "native radio semantics en",
+      "pass": true,
+      "detail": [
+        {
+          "type": "radio",
+          "name": "Starter. 1 Locations, 3 Staff, 1 Manager seats. $29 per month",
+          "describedby": "owner-note",
+          "checked": false
+        },
+        {
+          "type": "radio",
+          "name": "Pro. 5 Locations, 25 Staff, 3 Manager seats. $79 per month",
+          "describedby": "owner-note",
+          "checked": true
+        },
+        {
+          "type": "radio",
+          "name": "Enterprise. 20 Locations, 200 Staff, 20 Manager seats. $199 per month",
+          "describedby": "owner-note",
+          "checked": false
+        }
+      ]
+    },
+    {
+      "name": "radio ArrowRight selection and focus en",
+      "pass": true,
+      "detail": [
+        {
+          "value": "STARTER",
+          "checked": false,
+          "focused": false
+        },
+        {
+          "value": "PRO",
+          "checked": false,
+          "focused": false
+        },
+        {
+          "value": "ADVANCED",
+          "checked": true,
+          "focused": true
+        }
+      ]
+    },
+    {
+      "name": "radio ArrowLeft reverses en",
+      "pass": true,
+      "detail": [
+        {
+          "value": "STARTER",
+          "checked": false,
+          "focused": false
+        },
+        {
+          "value": "PRO",
+          "checked": true,
+          "focused": true
+        },
+        {
+          "value": "ADVANCED",
+          "checked": false,
+          "focused": false
+        }
+      ]
+    },
+    {
+      "name": "radio Space selection en",
+      "pass": true,
+      "detail": {
+        "focus": "STARTER"
+      }
+    },
+    {
+      "name": "year interval focus en",
+      "pass": true,
+      "detail": {
+        "interval": "year",
+        "pressed": "true"
+      }
+    },
+    {
+      "name": "plan/interval retained in payment URL en",
+      "pass": true,
+      "detail": "payment.html?plan=STARTER&interval=year&lang=en"
+    },
+    {
+      "name": "plan focus indicator en",
+      "pass": true,
+      "detail": {
+        "note": "Radio focus appearance recorded by CSS :has(input:focus-visible); screenshot after interval interaction."
+      }
+    },
+    {
+      "name": "native radio semantics ur",
+      "pass": true,
+      "detail": [
+        {
+          "type": "radio",
+          "name": "Starter. 1 مقامات, 3 عملہ, 1 مینیجر نشستیں. $29 فی ماہ",
+          "describedby": "owner-note",
+          "checked": false
+        },
+        {
+          "type": "radio",
+          "name": "Pro. 5 مقامات, 25 عملہ, 3 مینیجر نشستیں. $79 فی ماہ",
+          "describedby": "owner-note",
+          "checked": true
+        },
+        {
+          "type": "radio",
+          "name": "Enterprise. 20 مقامات, 200 عملہ, 20 مینیجر نشستیں. $199 فی ماہ",
+          "describedby": "owner-note",
+          "checked": false
+        }
+      ]
+    },
+    {
+      "name": "radio ArrowRight selection and focus ur",
+      "pass": true,
+      "detail": [
+        {
+          "value": "STARTER",
+          "checked": true,
+          "focused": true
+        },
+        {
+          "value": "PRO",
+          "checked": false,
+          "focused": false
+        },
+        {
+          "value": "ADVANCED",
+          "checked": false,
+          "focused": false
+        }
+      ]
+    },
+    {
+      "name": "radio ArrowLeft reverses ur",
+      "pass": true,
+      "detail": [
+        {
+          "value": "STARTER",
+          "checked": false,
+          "focused": false
+        },
+        {
+          "value": "PRO",
+          "checked": true,
+          "focused": true
+        },
+        {
+          "value": "ADVANCED",
+          "checked": false,
+          "focused": false
+        }
+      ]
+    },
+    {
+      "name": "radio Space selection ur",
+      "pass": true,
+      "detail": {
+        "focus": "STARTER"
+      }
+    },
+    {
+      "name": "year interval focus ur",
+      "pass": true,
+      "detail": {
+        "interval": "year",
+        "pressed": "true"
+      }
+    },
+    {
+      "name": "plan/interval retained in payment URL ur",
+      "pass": true,
+      "detail": "payment.html?plan=STARTER&interval=year&lang=ur"
+    },
+    {
+      "name": "plan focus indicator ur",
+      "pass": true,
+      "detail": {
+        "note": "Radio focus appearance recorded by CSS :has(input:focus-visible); screenshot after interval interaction."
+      }
+    },
+    {
+      "name": "language switch preserves all form values",
+      "pass": true,
+      "detail": {
+        "name": true,
+        "company": true,
+        "email": true,
+        "password": true
+      }
+    },
+    {
+      "name": "language button keeps focus",
+      "pass": true,
+      "detail": {
+        "lang": "ur",
+        "dir": "rtl",
+        "active": "ur"
+      }
+    },
+    {
+      "name": "language roundtrip preserves form",
+      "pass": true,
+      "detail": {}
+    },
+    {
+      "name": "account form field labels",
+      "pass": true,
+      "detail": {
+        "snapshot": "- text: Full name\n- textbox \"Full name\":\n  - /placeholder: Your name\n  - text: Ayesha Khan\n- text: Company name\n- textbox \"Company name\":\n  - /placeholder: Your company\n  - text: Example Workspace\n- text: Work email\n- textbox \"Work email\":\n  - /placeholder: you@company.com\n  - text: owner@example.test\n- text: Password\n- textbox \"Password\":\n  - /placeholder: At least 6 characters\n  - text: test-only-secret\n- button \"Create account & continue\"\n- paragraph:\n  - text: Already have an account?\n  - button \"Sign in\""
+      }
+    },
+    {
+      "name": "help native modal focus",
+      "pass": true,
+      "detail": {
+        "open": true,
+        "focus": "close-help"
+      }
+    },
+    {
+      "name": "help Tab focus stays inside dialog",
+      "pass": false,
+      "detail": {}
+    },
+    {
+      "name": "help Escape dismiss/restore",
+      "pass": true,
+      "detail": {}
+    },
+    {
+      "name": "help preserves form",
+      "pass": true,
+      "detail": {}
+    },
+    {
+      "name": "checkout modal focus",
+      "pass": true,
+      "detail": "close-checkout"
+    },
+    {
+      "name": "checkout Tab focus containment",
+      "pass": false,
+      "detail": {}
+    },
+    {
+      "name": "decline alert displayed",
+      "pass": true,
+      "detail": "براہ کرم پیڈل کا دوسرا ٹیسٹ کارڈ آزمائیں۔"
+    },
+    {
+      "name": "checkout Escape dismiss/restore",
+      "pass": true,
+      "detail": {}
+    },
+    {
+      "name": "checkout reopens same plan",
+      "pass": true,
+      "detail": {}
+    },
+    {
+      "name": "loading has busy status and disabled CTA en",
+      "pass": true,
+      "detail": {
+        "text": "Loading your plans\n\nFetching the latest prices for your workspace.\n\nContinue to payment"
+      }
+    },
+    {
+      "name": "unavailable has alert/help/retry en",
+      "pass": true,
+      "detail": {}
+    },
+    {
+      "name": "retry retains selected plan/interval en",
+      "pass": true,
+      "detail": {}
+    },
+    {
+      "name": "pending has no workspace/payment CTA en",
+      "pass": true,
+      "detail": {}
+    },
+    {
+      "name": "pending refresh announces status en",
+      "pass": true,
+      "detail": "Payment is still being confirmed."
+    },
+    {
+      "name": "ready has workspace CTA en",
+      "pass": true,
+      "detail": {}
+    },
+    {
+      "name": "workspace CTA explicitly preview en",
+      "pass": true,
+      "detail": "Design preview: Workspace setup. No external action was taken."
+    },
+    {
+      "name": "uncertain recovery checks status before new payment en",
+      "pass": true,
+      "detail": {
+        "href": "activation.html?plan=ADVANCED&interval=year&lang=en",
+        "text": "Check your payment status\n\nYour payment may already be submitted. Check the status before trying again.\n\nE\nEnterprise\n\nBilled yearly\n\n$1,990\nCheck your subscription before opening checkout again.\n\nDo not enter your card again while confirmation is pending.\n\nCheck subscription status\nYour account is safe\n\nNo need to sign up again. You can still sign in and manage your own account.\n\nAccount securityGet help"
+      }
+    },
+    {
+      "name": "recovery retains selection and gives status route en",
+      "pass": true,
+      "detail": {}
+    },
+    {
+      "name": "loading has busy status and disabled CTA ur",
+      "pass": true,
+      "detail": {
+        "text": "آپ کے پلان لوڈ ہو رہے ہیں\n\nآپ کی ورک اسپیس کے لیے تازہ قیمتیں حاصل ہو رہی ہیں۔\n\nادائیگی کی طرف جائیں"
+      }
+    },
+    {
+      "name": "unavailable has alert/help/retry ur",
+      "pass": true,
+      "detail": {}
+    },
+    {
+      "name": "retry retains selected plan/interval ur",
+      "pass": true,
+      "detail": {}
+    },
+    {
+      "name": "pending has no workspace/payment CTA ur",
+      "pass": true,
+      "detail": {}
+    },
+    {
+      "name": "pending refresh announces status ur",
+      "pass": true,
+      "detail": "ادائیگی کی تصدیق جاری ہے۔"
+    },
+    {
+      "name": "ready has workspace CTA ur",
+      "pass": true,
+      "detail": {}
+    },
+    {
+      "name": "workspace CTA explicitly preview ur",
+      "pass": true,
+      "detail": "Design preview: Workspace setup. No external action was taken."
+    },
+    {
+      "name": "uncertain recovery checks status before new payment ur",
+      "pass": true,
+      "detail": {
+        "href": "activation.html?plan=ADVANCED&interval=year&lang=ur",
+        "text": "ادائیگی کی حالت دیکھیں\n\nممکن ہے ادائیگی جمع ہو چکی ہو۔ دوبارہ کوشش سے پہلے حالت دیکھیں۔\n\nE\nEnterprise\n\nسالانہ بلنگ\n\n$1,990\nچیک آؤٹ دوبارہ کھولنے سے پہلے سبسکرپشن دیکھیں۔\n\nتصدیق کے انتظار میں کارڈ دوبارہ درج نہ کریں۔\n\nسبسکرپشن کی حالت دیکھیں\nآپ کا اکاؤنٹ محفوظ ہے\n\nدوبارہ اکاؤنٹ بنانے کی ضرورت نہیں۔ سائن اِن اور اپنا اکاؤنٹ سنبھال سکتے ہیں۔\n\nاکاؤنٹ کی سیکیورٹیمدد حاصل کریں"
+      }
+    },
+    {
+      "name": "recovery retains selection and gives status route ur",
+      "pass": true,
+      "detail": {}
+    },
+    {
+      "name": "mutable browser injection preflight",
+      "pass": true,
+      "detail": {
+        "title": "[Assessment B] Choose your workspace plan · Hygene Ops preview",
+        "scriptAdded": true,
+        "scriptExecuted": true
+      }
+    }
+  ],
+  "requests": [
+    {
+      "url": "http://127.0.0.1:56789/revision-2/v3/account.html?lang=en",
+      "method": "GET"
+    },
+    {
+      "url": "http://127.0.0.1:56789/revision-2/v3/style.css",
+      "method": "GET"
+    },
+    {
+      "url": "http://127.0.0.1:56789/revision-2/v3/app.js",
+      "method": "GET"
+    },
+    {
+      "url": "http://127.0.0.1:56789/assets/mark.svg",
+      "method": "GET"
+    },
+    {
+      "url": "http://127.0.0.1:56789/assets/inter.woff2",
+      "method": "GET"
+    },
+    {
+      "url": "http://127.0.0.1:56789/revision-2/v3/index.html?lang=en",
+      "method": "GET"
+    },
+    {
+      "url": "http://127.0.0.1:56789/revision-2/v3/style.css",
+      "method": "GET"
+    },
+    {
+      "url": "http://127.0.0.1:56789/revision-2/v3/app.js",
+      "method": "GET"
+    },
+    {
+      "url": "http://127.0.0.1:56789/assets/mark.svg",
+      "method": "GET"
+    },
+    {
+      "url": "http://127.0.0.1:56789/assets/inter.woff2",
+      "method": "GET"
+    },
+    {
+      "url": "http://127.0.0.1:56789/revision-2/v3/payment.html?lang=en",
+      "method": "GET"
+    },
+    {
+      "url": "http://127.0.0.1:56789/revision-2/v3/style.css",
+      "method": "GET"
+    },
+    {
+      "url": "http://127.0.0.1:56789/revision-2/v3/app.js",
+      "method": "GET"
+    },
+    {
+      "url": "http://127.0.0.1:56789/assets/mark.svg",
+      "method": "GET"
+    },
+    {
+      "url": "http://127.0.0.1:56789/assets/inter.woff2",
+      "method": "GET"
+    },
+    {
+      "url": "http://127.0.0.1:56789/revision-2/v3/activation.html?lang=en",
+      "method": "GET"
+    },
+    {
+      "url": "http://127.0.0.1:56789/revision-2/v3/style.css",
+      "method": "GET"
+    },
+    {
+      "url": "http://127.0.0.1:56789/revision-2/v3/app.js",
+      "method": "GET"
+    },
+    {
+      "url": "http://127.0.0.1:56789/assets/mark.svg",
+      "method": "GET"
+    },
+    {
+      "url": "http://127.0.0.1:56789/assets/inter.woff2",
+      "method": "GET"
+    },
+    {
+      "url": "http://127.0.0.1:56789/revision-2/v3/billing.html?lang=en",
+      "method": "GET"
+    },
+    {
+      "url": "http://127.0.0.1:56789/revision-2/v3/style.css",
+      "method": "GET"
+    },
+    {
+      "url": "http://127.0.0.1:56789/revision-2/v3/app.js",
+      "method": "GET"
+    },
+    {
+      "url": "http://127.0.0.1:56789/assets/mark.svg",
+      "method": "GET"
+    },
+    {
+      "url": "http://127.0.0.1:56789/assets/inter.woff2",
+      "method": "GET"
+    },
+    {
+      "url": "http://127.0.0.1:56789/revision-2/v3/recovery.html?lang=en",
+      "method": "GET"
+    },
+    {
+      "url": "http://127.0.0.1:56789/revision-2/v3/style.css",
+      "method": "GET"
+    },
+    {
+      "url": "http://127.0.0.1:56789/revision-2/v3/app.js",
+      "method": "GET"
+    },
+    {
+      "url": "http://127.0.0.1:56789/assets/mark.svg",
+      "method": "GET"
+    },
+    {
+      "url": "http://127.0.0.1:56789/assets/inter.woff2",
+      "method": "GET"
+    },
+    {
+      "url": "http://127.0.0.1:56789/revision-2/v3/account.html?lang=ur",
+      "method": "GET"
+    },
+    {
+      "url": "http://127.0.0.1:56789/revision-2/v3/style.css",
+      "method": "GET"
+    },
+    {
+      "url": "http://127.0.0.1:56789/revision-2/v3/app.js",
+      "method": "GET"
+    },
+    {
+      "url": "http://127.0.0.1:56789/assets/mark.svg",
+      "method": "GET"
+    },
+    {
+      "url": "http://127.0.0.1:56789/assets/inter.woff2",
+      "method": "GET"
+    },
+    {
+      "url": "http://127.0.0.1:56789/assets/arabic-600.woff2",
+      "method": "GET"
+    },
+    {
+      "url": "http://127.0.0.1:56789/assets/arabic-400.woff2",
+      "method": "GET"
+    },
+    {
+      "url": "http://127.0.0.1:56789/revision-2/v3/index.html?lang=ur",
+      "method": "GET"
+    },
+    {
+      "url": "http://127.0.0.1:56789/revision-2/v3/style.css",
+      "method": "GET"
+    },
+    {
+      "url": "http://127.0.0.1:56789/revision-2/v3/app.js",
+      "method": "GET"
+    },
+    {
+      "url": "http://127.0.0.1:56789/assets/mark.svg",
+      "method": "GET"
+    },
+    {
+      "url": "http://127.0.0.1:56789/assets/inter.woff2",
+      "method": "GET"
+    },
+    {
+      "url": "http://127.0.0.1:56789/assets/arabic-400.woff2",
+      "method": "GET"
+    },
+    {
+      "url": "http://127.0.0.1:56789/assets/arabic-600.woff2",
+      "method": "GET"
+    },
+    {
+      "url": "http://127.0.0.1:56789/revision-2/v3/payment.html?lang=ur",
+      "method": "GET"
+    },
+    {
+      "url": "http://127.0.0.1:56789/revision-2/v3/style.css",
+      "method": "GET"
+    },
+    {
+      "url": "http://127.0.0.1:56789/revision-2/v3/app.js",
+      "method": "GET"
+    },
+    {
+      "url": "http://127.0.0.1:56789/assets/mark.svg",
+      "method": "GET"
+    },
+    {
+      "url": "http://127.0.0.1:56789/assets/inter.woff2",
+      "method": "GET"
+    },
+    {
+      "url": "http://127.0.0.1:56789/assets/arabic-400.woff2",
+      "method": "GET"
+    },
+    {
+      "url": "http://127.0.0.1:56789/assets/arabic-600.woff2",
+      "method": "GET"
+    },
+    {
+      "url": "http://127.0.0.1:56789/revision-2/v3/activation.html?lang=ur",
+      "method": "GET"
+    },
+    {
+      "url": "http://127.0.0.1:56789/revision-2/v3/style.css",
+      "method": "GET"
+    },
+    {
+      "url": "http://127.0.0.1:56789/revision-2/v3/app.js",
+      "method": "GET"
+    },
+    {
+      "url": "http://127.0.0.1:56789/assets/mark.svg",
+      "method": "GET"
+    },
+    {
+      "url": "http://127.0.0.1:56789/assets/inter.woff2",
+      "method": "GET"
+    },
+    {
+      "url": "http://127.0.0.1:56789/assets/arabic-400.woff2",
+      "method": "GET"
+    },
+    {
+      "url": "http://127.0.0.1:56789/assets/arabic-600.woff2",
+      "method": "GET"
+    },
+    {
+      "url": "http://127.0.0.1:56789/revision-2/v3/billing.html?lang=ur",
+      "method": "GET"
+    },
+    {
+      "url": "http://127.0.0.1:56789/revision-2/v3/style.css",
+      "method": "GET"
+    },
+    {
+      "url": "http://127.0.0.1:56789/revision-2/v3/app.js",
+      "method": "GET"
+    },
+    {
+      "url": "http://127.0.0.1:56789/assets/mark.svg",
+      "method": "GET"
+    },
+    {
+      "url": "http://127.0.0.1:56789/assets/inter.woff2",
+      "method": "GET"
+    },
+    {
+      "url": "http://127.0.0.1:56789/assets/arabic-400.woff2",
+      "method": "GET"
+    },
+    {
+      "url": "http://127.0.0.1:56789/assets/arabic-600.woff2",
+      "method": "GET"
+    },
+    {
+      "url": "http://127.0.0.1:56789/revision-2/v3/recovery.html?lang=ur",
+      "method": "GET"
+    },
+    {
+      "url": "http://127.0.0.1:56789/revision-2/v3/style.css",
+      "method": "GET"
+    },
+    {
+      "url": "http://127.0.0.1:56789/revision-2/v3/app.js",
+      "method": "GET"
+    },
+    {
+      "url": "http://127.0.0.1:56789/assets/mark.svg",
+      "method": "GET"
+    },
+    {
+      "url": "http://127.0.0.1:56789/assets/inter.woff2",
+      "method": "GET"
+    },
+    {
+      "url": "http://127.0.0.1:56789/assets/arabic-400.woff2",
+      "method": "GET"
+    },
+    {
+      "url": "http://127.0.0.1:56789/assets/arabic-600.woff2",
+      "method": "GET"
+    },
+    {
+      "url": "http://127.0.0.1:56789/revision-2/v3/account.html?lang=en",
+      "method": "GET"
+    },
+    {
+      "url": "http://127.0.0.1:56789/revision-2/v3/style.css",
+      "method": "GET"
+    },
+    {
+      "url": "http://127.0.0.1:56789/revision-2/v3/app.js",
+      "method": "GET"
+    },
+    {
+      "url": "http://127.0.0.1:56789/assets/mark.svg",
+      "method": "GET"
+    },
+    {
+      "url": "http://127.0.0.1:56789/assets/inter.woff2",
+      "method": "GET"
+    },
+    {
+      "url": "http://127.0.0.1:56789/assets/arabic-400.woff2",
+      "method": "GET"
+    },
+    {
+      "url": "http://127.0.0.1:56789/assets/arabic-600.woff2",
+      "method": "GET"
+    },
+    {
+      "url": "http://127.0.0.1:56789/revision-2/v3/index.html?lang=en",
+      "method": "GET"
+    },
+    {
+      "url": "http://127.0.0.1:56789/revision-2/v3/style.css",
+      "method": "GET"
+    },
+    {
+      "url": "http://127.0.0.1:56789/revision-2/v3/app.js",
+      "method": "GET"
+    },
+    {
+      "url": "http://127.0.0.1:56789/assets/mark.svg",
+      "method": "GET"
+    },
+    {
+      "url": "http://127.0.0.1:56789/assets/inter.woff2",
+      "method": "GET"
+    },
+    {
+      "url": "http://127.0.0.1:56789/assets/arabic-400.woff2",
+      "method": "GET"
+    },
+    {
+      "url": "http://127.0.0.1:56789/assets/arabic-600.woff2",
+      "method": "GET"
+    },
+    {
+      "url": "http://127.0.0.1:56789/revision-2/v3/payment.html?lang=en",
+      "method": "GET"
+    },
+    {
+      "url": "http://127.0.0.1:56789/revision-2/v3/style.css",
+      "method": "GET"
+    },
+    {
+      "url": "http://127.0.0.1:56789/revision-2/v3/app.js",
+      "method": "GET"
+    },
+    {
+      "url": "http://127.0.0.1:56789/assets/mark.svg",
+      "method": "GET"
+    },
+    {
+      "url": "http://127.0.0.1:56789/assets/inter.woff2",
+      "method": "GET"
+    },
+    {
+      "url": "http://127.0.0.1:56789/assets/arabic-400.woff2",
+      "method": "GET"
+    },
+    {
+      "url": "http://127.0.0.1:56789/assets/arabic-600.woff2",
+      "method": "GET"
+    },
+    {
+      "url": "http://127.0.0.1:56789/revision-2/v3/activation.html?lang=en",
+      "method": "GET"
+    },
+    {
+      "url": "http://127.0.0.1:56789/revision-2/v3/style.css",
+      "method": "GET"
+    },
+    {
+      "url": "http://127.0.0.1:56789/revision-2/v3/app.js",
+      "method": "GET"
+    },
+    {
+      "url": "http://127.0.0.1:56789/assets/mark.svg",
+      "method": "GET"
+    },
+    {
+      "url": "http://127.0.0.1:56789/assets/inter.woff2",
+      "method": "GET"
+    },
+    {
+      "url": "http://127.0.0.1:56789/assets/arabic-400.woff2",
+      "method": "GET"
+    },
+    {
+      "url": "http://127.0.0.1:56789/assets/arabic-600.woff2",
+      "method": "GET"
+    },
+    {
+      "url": "http://127.0.0.1:56789/revision-2/v3/billing.html?lang=en",
+      "method": "GET"
+    },
+    {
+      "url": "http://127.0.0.1:56789/revision-2/v3/style.css",
+      "method": "GET"
+    },
+    {
+      "url": "http://127.0.0.1:56789/revision-2/v3/app.js",
+      "method": "GET"
+    },
+    {
+      "url": "http://127.0.0.1:56789/assets/mark.svg",
+      "method": "GET"
+    },
+    {
+      "url": "http://127.0.0.1:56789/assets/inter.woff2",
+      "method": "GET"
+    },
+    {
+      "url": "http://127.0.0.1:56789/assets/arabic-400.woff2",
+      "method": "GET"
+    },
+    {
+      "url": "http://127.0.0.1:56789/assets/arabic-600.woff2",
+      "method": "GET"
+    },
+    {
+      "url": "http://127.0.0.1:56789/revision-2/v3/recovery.html?lang=en",
+      "method": "GET"
+    },
+    {
+      "url": "http://127.0.0.1:56789/revision-2/v3/style.css",
+      "method": "GET"
+    },
+    {
+      "url": "http://127.0.0.1:56789/revision-2/v3/app.js",
+      "method": "GET"
+    },
+    {
+      "url": "http://127.0.0.1:56789/assets/mark.svg",
+      "method": "GET"
+    },
+    {
+      "url": "http://127.0.0.1:56789/assets/inter.woff2",
+      "method": "GET"
+    },
+    {
+      "url": "http://127.0.0.1:56789/assets/arabic-400.woff2",
+      "method": "GET"
+    },
+    {
+      "url": "http://127.0.0.1:56789/assets/arabic-600.woff2",
+      "method": "GET"
+    },
+    {
+      "url": "http://127.0.0.1:56789/revision-2/v3/account.html?lang=ur",
+      "method": "GET"
+    },
+    {
+      "url": "http://127.0.0.1:56789/revision-2/v3/style.css",
+      "method": "GET"
+    },
+    {
+      "url": "http://127.0.0.1:56789/revision-2/v3/app.js",
+      "method": "GET"
+    },
+    {
+      "url": "http://127.0.0.1:56789/assets/mark.svg",
+      "method": "GET"
+    },
+    {
+      "url": "http://127.0.0.1:56789/assets/inter.woff2",
+      "method": "GET"
+    },
+    {
+      "url": "http://127.0.0.1:56789/assets/arabic-400.woff2",
+      "method": "GET"
+    },
+    {
+      "url": "http://127.0.0.1:56789/assets/arabic-600.woff2",
+      "method": "GET"
+    },
+    {
+      "url": "http://127.0.0.1:56789/revision-2/v3/index.html?lang=ur",
+      "method": "GET"
+    },
+    {
+      "url": "http://127.0.0.1:56789/revision-2/v3/style.css",
+      "method": "GET"
+    },
+    {
+      "url": "http://127.0.0.1:56789/revision-2/v3/app.js",
+      "method": "GET"
+    },
+    {
+      "url": "http://127.0.0.1:56789/assets/mark.svg",
+      "method": "GET"
+    },
+    {
+      "url": "http://127.0.0.1:56789/assets/inter.woff2",
+      "method": "GET"
+    },
+    {
+      "url": "http://127.0.0.1:56789/assets/arabic-400.woff2",
+      "method": "GET"
+    },
+    {
+      "url": "http://127.0.0.1:56789/assets/arabic-600.woff2",
+      "method": "GET"
+    },
+    {
+      "url": "http://127.0.0.1:56789/revision-2/v3/payment.html?lang=ur",
+      "method": "GET"
+    },
+    {
+      "url": "http://127.0.0.1:56789/revision-2/v3/style.css",
+      "method": "GET"
+    },
+    {
+      "url": "http://127.0.0.1:56789/revision-2/v3/app.js",
+      "method": "GET"
+    },
+    {
+      "url": "http://127.0.0.1:56789/assets/mark.svg",
+      "method": "GET"
+    },
+    {
+      "url": "http://127.0.0.1:56789/assets/inter.woff2",
+      "method": "GET"
+    },
+    {
+      "url": "http://127.0.0.1:56789/assets/arabic-400.woff2",
+      "method": "GET"
+    },
+    {
+      "url": "http://127.0.0.1:56789/assets/arabic-600.woff2",
+      "method": "GET"
+    },
+    {
+      "url": "http://127.0.0.1:56789/revision-2/v3/activation.html?lang=ur",
+      "method": "GET"
+    },
+    {
+      "url": "http://127.0.0.1:56789/revision-2/v3/style.css",
+      "method": "GET"
+    },
+    {
+      "url": "http://127.0.0.1:56789/revision-2/v3/app.js",
+      "method": "GET"
+    },
+    {
+      "url": "http://127.0.0.1:56789/assets/mark.svg",
+      "method": "GET"
+    },
+    {
+      "url": "http://127.0.0.1:56789/assets/inter.woff2",
+      "method": "GET"
+    },
+    {
+      "url": "http://127.0.0.1:56789/assets/arabic-400.woff2",
+      "method": "GET"
+    },
+    {
+      "url": "http://127.0.0.1:56789/assets/arabic-600.woff2",
+      "method": "GET"
+    },
+    {
+      "url": "http://127.0.0.1:56789/revision-2/v3/billing.html?lang=ur",
+      "method": "GET"
+    },
+    {
+      "url": "http://127.0.0.1:56789/revision-2/v3/style.css",
+      "method": "GET"
+    },
+    {
+      "url": "http://127.0.0.1:56789/revision-2/v3/app.js",
+      "method": "GET"
+    },
+    {
+      "url": "http://127.0.0.1:56789/assets/mark.svg",
+      "method": "GET"
+    },
+    {
+      "url": "http://127.0.0.1:56789/assets/inter.woff2",
+      "method": "GET"
+    },
+    {
+      "url": "http://127.0.0.1:56789/assets/arabic-400.woff2",
+      "method": "GET"
+    },
+    {
+      "url": "http://127.0.0.1:56789/assets/arabic-600.woff2",
+      "method": "GET"
+    },
+    {
+      "url": "http://127.0.0.1:56789/revision-2/v3/recovery.html?lang=ur",
+      "method": "GET"
+    },
+    {
+      "url": "http://127.0.0.1:56789/revision-2/v3/style.css",
+      "method": "GET"
+    },
+    {
+      "url": "http://127.0.0.1:56789/revision-2/v3/app.js",
+      "method": "GET"
+    },
+    {
+      "url": "http://127.0.0.1:56789/assets/mark.svg",
+      "method": "GET"
+    },
+    {
+      "url": "http://127.0.0.1:56789/assets/inter.woff2",
+      "method": "GET"
+    },
+    {
+      "url": "http://127.0.0.1:56789/assets/arabic-400.woff2",
+      "method": "GET"
+    },
+    {
+      "url": "http://127.0.0.1:56789/assets/arabic-600.woff2",
+      "method": "GET"
+    },
+    {
+      "url": "http://127.0.0.1:56789/revision-2/v3/account.html?lang=en",
+      "method": "GET"
+    },
+    {
+      "url": "http://127.0.0.1:56789/revision-2/v3/style.css",
+      "method": "GET"
+    },
+    {
+      "url": "http://127.0.0.1:56789/revision-2/v3/app.js",
+      "method": "GET"
+    },
+    {
+      "url": "http://127.0.0.1:56789/assets/mark.svg",
+      "method": "GET"
+    },
+    {
+      "url": "http://127.0.0.1:56789/assets/inter.woff2",
+      "method": "GET"
+    },
+    {
+      "url": "http://127.0.0.1:56789/assets/arabic-400.woff2",
+      "method": "GET"
+    },
+    {
+      "url": "http://127.0.0.1:56789/assets/arabic-600.woff2",
+      "method": "GET"
+    },
+    {
+      "url": "http://127.0.0.1:56789/revision-2/v3/index.html?lang=en",
+      "method": "GET"
+    },
+    {
+      "url": "http://127.0.0.1:56789/revision-2/v3/style.css",
+      "method": "GET"
+    },
+    {
+      "url": "http://127.0.0.1:56789/revision-2/v3/app.js",
+      "method": "GET"
+    },
+    {
+      "url": "http://127.0.0.1:56789/assets/mark.svg",
+      "method": "GET"
+    },
+    {
+      "url": "http://127.0.0.1:56789/assets/inter.woff2",
+      "method": "GET"
+    },
+    {
+      "url": "http://127.0.0.1:56789/assets/arabic-400.woff2",
+      "method": "GET"
+    },
+    {
+      "url": "http://127.0.0.1:56789/assets/arabic-600.woff2",
+      "method": "GET"
+    },
+    {
+      "url": "http://127.0.0.1:56789/revision-2/v3/payment.html?lang=en",
+      "method": "GET"
+    },
+    {
+      "url": "http://127.0.0.1:56789/revision-2/v3/style.css",
+      "method": "GET"
+    },
+    {
+      "url": "http://127.0.0.1:56789/revision-2/v3/app.js",
+      "method": "GET"
+    },
+    {
+      "url": "http://127.0.0.1:56789/assets/mark.svg",
+      "method": "GET"
+    },
+    {
+      "url": "http://127.0.0.1:56789/assets/inter.woff2",
+      "method": "GET"
+    },
+    {
+      "url": "http://127.0.0.1:56789/assets/arabic-400.woff2",
+      "method": "GET"
+    },
+    {
+      "url": "http://127.0.0.1:56789/assets/arabic-600.woff2",
+      "method": "GET"
+    },
+    {
+      "url": "http://127.0.0.1:56789/revision-2/v3/activation.html?lang=en",
+      "method": "GET"
+    },
+    {
+      "url": "http://127.0.0.1:56789/revision-2/v3/style.css",
+      "method": "GET"
+    },
+    {
+      "url": "http://127.0.0.1:56789/revision-2/v3/app.js",
+      "method": "GET"
+    },
+    {
+      "url": "http://127.0.0.1:56789/assets/mark.svg",
+      "method": "GET"
+    },
+    {
+      "url": "http://127.0.0.1:56789/assets/inter.woff2",
+      "method": "GET"
+    },
+    {
+      "url": "http://127.0.0.1:56789/assets/arabic-400.woff2",
+      "method": "GET"
+    },
+    {
+      "url": "http://127.0.0.1:56789/assets/arabic-600.woff2",
+      "method": "GET"
+    },
+    {
+      "url": "http://127.0.0.1:56789/revision-2/v3/billing.html?lang=en",
+      "method": "GET"
+    },
+    {
+      "url": "http://127.0.0.1:56789/revision-2/v3/style.css",
+      "method": "GET"
+    },
+    {
+      "url": "http://127.0.0.1:56789/revision-2/v3/app.js",
+      "method": "GET"
+    },
+    {
+      "url": "http://127.0.0.1:56789/assets/mark.svg",
+      "method": "GET"
+    },
+    {
+      "url": "http://127.0.0.1:56789/assets/inter.woff2",
+      "method": "GET"
+    },
+    {
+      "url": "http://127.0.0.1:56789/assets/arabic-400.woff2",
+      "method": "GET"
+    },
+    {
+      "url": "http://127.0.0.1:56789/assets/arabic-600.woff2",
+      "method": "GET"
+    },
+    {
+      "url": "http://127.0.0.1:56789/revision-2/v3/recovery.html?lang=en",
+      "method": "GET"
+    },
+    {
+      "url": "http://127.0.0.1:56789/revision-2/v3/style.css",
+      "method": "GET"
+    },
+    {
+      "url": "http://127.0.0.1:56789/revision-2/v3/app.js",
+      "method": "GET"
+    },
+    {
+      "url": "http://127.0.0.1:56789/assets/mark.svg",
+      "method": "GET"
+    },
+    {
+      "url": "http://127.0.0.1:56789/assets/inter.woff2",
+      "method": "GET"
+    },
+    {
+      "url": "http://127.0.0.1:56789/assets/arabic-400.woff2",
+      "method": "GET"
+    },
+    {
+      "url": "http://127.0.0.1:56789/assets/arabic-600.woff2",
+      "method": "GET"
+    },
+    {
+      "url": "http://127.0.0.1:56789/revision-2/v3/account.html?lang=ur",
+      "method": "GET"
+    },
+    {
+      "url": "http://127.0.0.1:56789/revision-2/v3/style.css",
+      "method": "GET"
+    },
+    {
+      "url": "http://127.0.0.1:56789/revision-2/v3/app.js",
+      "method": "GET"
+    },
+    {
+      "url": "http://127.0.0.1:56789/assets/mark.svg",
+      "method": "GET"
+    },
+    {
+      "url": "http://127.0.0.1:56789/assets/inter.woff2",
+      "method": "GET"
+    },
+    {
+      "url": "http://127.0.0.1:56789/assets/arabic-400.woff2",
+      "method": "GET"
+    },
+    {
+      "url": "http://127.0.0.1:56789/assets/arabic-600.woff2",
+      "method": "GET"
+    },
+    {
+      "url": "http://127.0.0.1:56789/revision-2/v3/index.html?lang=ur",
+      "method": "GET"
+    },
+    {
+      "url": "http://127.0.0.1:56789/revision-2/v3/style.css",
+      "method": "GET"
+    },
+    {
+      "url": "http://127.0.0.1:56789/revision-2/v3/app.js",
+      "method": "GET"
+    },
+    {
+      "url": "http://127.0.0.1:56789/assets/mark.svg",
+      "method": "GET"
+    },
+    {
+      "url": "http://127.0.0.1:56789/assets/inter.woff2",
+      "method": "GET"
+    },
+    {
+      "url": "http://127.0.0.1:56789/assets/arabic-400.woff2",
+      "method": "GET"
+    },
+    {
+      "url": "http://127.0.0.1:56789/assets/arabic-600.woff2",
+      "method": "GET"
+    },
+    {
+      "url": "http://127.0.0.1:56789/revision-2/v3/payment.html?lang=ur",
+      "method": "GET"
+    },
+    {
+      "url": "http://127.0.0.1:56789/revision-2/v3/style.css",
+      "method": "GET"
+    },
+    {
+      "url": "http://127.0.0.1:56789/revision-2/v3/app.js",
+      "method": "GET"
+    },
+    {
+      "url": "http://127.0.0.1:56789/assets/mark.svg",
+      "method": "GET"
+    },
+    {
+      "url": "http://127.0.0.1:56789/assets/inter.woff2",
+      "method": "GET"
+    },
+    {
+      "url": "http://127.0.0.1:56789/assets/arabic-400.woff2",
+      "method": "GET"
+    },
+    {
+      "url": "http://127.0.0.1:56789/assets/arabic-600.woff2",
+      "method": "GET"
+    },
+    {
+      "url": "http://127.0.0.1:56789/revision-2/v3/activation.html?lang=ur",
+      "method": "GET"
+    },
+    {
+      "url": "http://127.0.0.1:56789/revision-2/v3/style.css",
+      "method": "GET"
+    },
+    {
+      "url": "http://127.0.0.1:56789/revision-2/v3/app.js",
+      "method": "GET"
+    },
+    {
+      "url": "http://127.0.0.1:56789/assets/mark.svg",
+      "method": "GET"
+    },
+    {
+      "url": "http://127.0.0.1:56789/assets/inter.woff2",
+      "method": "GET"
+    },
+    {
+      "url": "http://127.0.0.1:56789/assets/arabic-400.woff2",
+      "method": "GET"
+    },
+    {
+      "url": "http://127.0.0.1:56789/assets/arabic-600.woff2",
+      "method": "GET"
+    },
+    {
+      "url": "http://127.0.0.1:56789/revision-2/v3/billing.html?lang=ur",
+      "method": "GET"
+    },
+    {
+      "url": "http://127.0.0.1:56789/revision-2/v3/style.css",
+      "method": "GET"
+    },
+    {
+      "url": "http://127.0.0.1:56789/revision-2/v3/app.js",
+      "method": "GET"
+    },
+    {
+      "url": "http://127.0.0.1:56789/assets/mark.svg",
+      "method": "GET"
+    },
+    {
+      "url": "http://127.0.0.1:56789/assets/inter.woff2",
+      "method": "GET"
+    },
+    {
+      "url": "http://127.0.0.1:56789/assets/arabic-400.woff2",
+      "method": "GET"
+    },
+    {
+      "url": "http://127.0.0.1:56789/assets/arabic-600.woff2",
+      "method": "GET"
+    },
+    {
+      "url": "http://127.0.0.1:56789/revision-2/v3/recovery.html?lang=ur",
+      "method": "GET"
+    },
+    {
+      "url": "http://127.0.0.1:56789/revision-2/v3/style.css",
+      "method": "GET"
+    },
+    {
+      "url": "http://127.0.0.1:56789/revision-2/v3/app.js",
+      "method": "GET"
+    },
+    {
+      "url": "http://127.0.0.1:56789/assets/mark.svg",
+      "method": "GET"
+    },
+    {
+      "url": "http://127.0.0.1:56789/assets/inter.woff2",
+      "method": "GET"
+    },
+    {
+      "url": "http://127.0.0.1:56789/assets/arabic-400.woff2",
+      "method": "GET"
+    },
+    {
+      "url": "http://127.0.0.1:56789/assets/arabic-600.woff2",
+      "method": "GET"
+    },
+    {
+      "url": "http://127.0.0.1:56789/revision-2/v3/account.html?lang=en",
+      "method": "GET"
+    },
+    {
+      "url": "http://127.0.0.1:56789/revision-2/v3/style.css",
+      "method": "GET"
+    },
+    {
+      "url": "http://127.0.0.1:56789/revision-2/v3/app.js",
+      "method": "GET"
+    },
+    {
+      "url": "http://127.0.0.1:56789/assets/mark.svg",
+      "method": "GET"
+    },
+    {
+      "url": "http://127.0.0.1:56789/assets/inter.woff2",
+      "method": "GET"
+    },
+    {
+      "url": "http://127.0.0.1:56789/assets/arabic-400.woff2",
+      "method": "GET"
+    },
+    {
+      "url": "http://127.0.0.1:56789/assets/arabic-600.woff2",
+      "method": "GET"
+    },
+    {
+      "url": "http://127.0.0.1:56789/revision-2/v3/index.html?lang=en",
+      "method": "GET"
+    },
+    {
+      "url": "http://127.0.0.1:56789/revision-2/v3/style.css",
+      "method": "GET"
+    },
+    {
+      "url": "http://127.0.0.1:56789/revision-2/v3/app.js",
+      "method": "GET"
+    },
+    {
+      "url": "http://127.0.0.1:56789/assets/mark.svg",
+      "method": "GET"
+    },
+    {
+      "url": "http://127.0.0.1:56789/assets/inter.woff2",
+      "method": "GET"
+    },
+    {
+      "url": "http://127.0.0.1:56789/assets/arabic-400.woff2",
+      "method": "GET"
+    },
+    {
+      "url": "http://127.0.0.1:56789/assets/arabic-600.woff2",
+      "method": "GET"
+    },
+    {
+      "url": "http://127.0.0.1:56789/revision-2/v3/payment.html?lang=en",
+      "method": "GET"
+    },
+    {
+      "url": "http://127.0.0.1:56789/revision-2/v3/style.css",
+      "method": "GET"
+    },
+    {
+      "url": "http://127.0.0.1:56789/revision-2/v3/app.js",
+      "method": "GET"
+    },
+    {
+      "url": "http://127.0.0.1:56789/assets/mark.svg",
+      "method": "GET"
+    },
+    {
+      "url": "http://127.0.0.1:56789/assets/inter.woff2",
+      "method": "GET"
+    },
+    {
+      "url": "http://127.0.0.1:56789/assets/arabic-400.woff2",
+      "method": "GET"
+    },
+    {
+      "url": "http://127.0.0.1:56789/assets/arabic-600.woff2",
+      "method": "GET"
+    },
+    {
+      "url": "http://127.0.0.1:56789/revision-2/v3/activation.html?lang=en",
+      "method": "GET"
+    },
+    {
+      "url": "http://127.0.0.1:56789/revision-2/v3/style.css",
+      "method": "GET"
+    },
+    {
+      "url": "http://127.0.0.1:56789/revision-2/v3/app.js",
+      "method": "GET"
+    },
+    {
+      "url": "http://127.0.0.1:56789/assets/mark.svg",
+      "method": "GET"
+    },
+    {
+      "url": "http://127.0.0.1:56789/assets/inter.woff2",
+      "method": "GET"
+    },
+    {
+      "url": "http://127.0.0.1:56789/assets/arabic-400.woff2",
+      "method": "GET"
+    },
+    {
+      "url": "http://127.0.0.1:56789/assets/arabic-600.woff2",
+      "method": "GET"
+    },
+    {
+      "url": "http://127.0.0.1:56789/revision-2/v3/billing.html?lang=en",
+      "method": "GET"
+    },
+    {
+      "url": "http://127.0.0.1:56789/revision-2/v3/style.css",
+      "method": "GET"
+    },
+    {
+      "url": "http://127.0.0.1:56789/revision-2/v3/app.js",
+      "method": "GET"
+    },
+    {
+      "url": "http://127.0.0.1:56789/assets/mark.svg",
+      "method": "GET"
+    },
+    {
+      "url": "http://127.0.0.1:56789/assets/inter.woff2",
+      "method": "GET"
+    },
+    {
+      "url": "http://127.0.0.1:56789/assets/arabic-400.woff2",
+      "method": "GET"
+    },
+    {
+      "url": "http://127.0.0.1:56789/assets/arabic-600.woff2",
+      "method": "GET"
+    },
+    {
+      "url": "http://127.0.0.1:56789/revision-2/v3/recovery.html?lang=en",
+      "method": "GET"
+    },
+    {
+      "url": "http://127.0.0.1:56789/revision-2/v3/style.css",
+      "method": "GET"
+    },
+    {
+      "url": "http://127.0.0.1:56789/revision-2/v3/app.js",
+      "method": "GET"
+    },
+    {
+      "url": "http://127.0.0.1:56789/assets/mark.svg",
+      "method": "GET"
+    },
+    {
+      "url": "http://127.0.0.1:56789/assets/inter.woff2",
+      "method": "GET"
+    },
+    {
+      "url": "http://127.0.0.1:56789/assets/arabic-400.woff2",
+      "method": "GET"
+    },
+    {
+      "url": "http://127.0.0.1:56789/assets/arabic-600.woff2",
+      "method": "GET"
+    },
+    {
+      "url": "http://127.0.0.1:56789/revision-2/v3/account.html?lang=ur",
+      "method": "GET"
+    },
+    {
+      "url": "http://127.0.0.1:56789/revision-2/v3/style.css",
+      "method": "GET"
+    },
+    {
+      "url": "http://127.0.0.1:56789/revision-2/v3/app.js",
+      "method": "GET"
+    },
+    {
+      "url": "http://127.0.0.1:56789/assets/mark.svg",
+      "method": "GET"
+    },
+    {
+      "url": "http://127.0.0.1:56789/assets/inter.woff2",
+      "method": "GET"
+    },
+    {
+      "url": "http://127.0.0.1:56789/assets/arabic-400.woff2",
+      "method": "GET"
+    },
+    {
+      "url": "http://127.0.0.1:56789/assets/arabic-600.woff2",
+      "method": "GET"
+    },
+    {
+      "url": "http://127.0.0.1:56789/revision-2/v3/index.html?lang=ur",
+      "method": "GET"
+    },
+    {
+      "url": "http://127.0.0.1:56789/revision-2/v3/style.css",
+      "method": "GET"
+    },
+    {
+      "url": "http://127.0.0.1:56789/revision-2/v3/app.js",
+      "method": "GET"
+    },
+    {
+      "url": "http://127.0.0.1:56789/assets/mark.svg",
+      "method": "GET"
+    },
+    {
+      "url": "http://127.0.0.1:56789/assets/inter.woff2",
+      "method": "GET"
+    },
+    {
+      "url": "http://127.0.0.1:56789/assets/arabic-400.woff2",
+      "method": "GET"
+    },
+    {
+      "url": "http://127.0.0.1:56789/assets/arabic-600.woff2",
+      "method": "GET"
+    },
+    {
+      "url": "http://127.0.0.1:56789/revision-2/v3/payment.html?lang=ur",
+      "method": "GET"
+    },
+    {
+      "url": "http://127.0.0.1:56789/revision-2/v3/style.css",
+      "method": "GET"
+    },
+    {
+      "url": "http://127.0.0.1:56789/revision-2/v3/app.js",
+      "method": "GET"
+    },
+    {
+      "url": "http://127.0.0.1:56789/assets/mark.svg",
+      "method": "GET"
+    },
+    {
+      "url": "http://127.0.0.1:56789/assets/inter.woff2",
+      "method": "GET"
+    },
+    {
+      "url": "http://127.0.0.1:56789/assets/arabic-400.woff2",
+      "method": "GET"
+    },
+    {
+      "url": "http://127.0.0.1:56789/assets/arabic-600.woff2",
+      "method": "GET"
+    },
+    {
+      "url": "http://127.0.0.1:56789/revision-2/v3/activation.html?lang=ur",
+      "method": "GET"
+    },
+    {
+      "url": "http://127.0.0.1:56789/revision-2/v3/style.css",
+      "method": "GET"
+    },
+    {
+      "url": "http://127.0.0.1:56789/revision-2/v3/app.js",
+      "method": "GET"
+    },
+    {
+      "url": "http://127.0.0.1:56789/assets/mark.svg",
+      "method": "GET"
+    },
+    {
+      "url": "http://127.0.0.1:56789/assets/inter.woff2",
+      "method": "GET"
+    },
+    {
+      "url": "http://127.0.0.1:56789/assets/arabic-400.woff2",
+      "method": "GET"
+    },
+    {
+      "url": "http://127.0.0.1:56789/assets/arabic-600.woff2",
+      "method": "GET"
+    },
+    {
+      "url": "http://127.0.0.1:56789/revision-2/v3/billing.html?lang=ur",
+      "method": "GET"
+    },
+    {
+      "url": "http://127.0.0.1:56789/revision-2/v3/style.css",
+      "method": "GET"
+    },
+    {
+      "url": "http://127.0.0.1:56789/revision-2/v3/app.js",
+      "method": "GET"
+    },
+    {
+      "url": "http://127.0.0.1:56789/assets/mark.svg",
+      "method": "GET"
+    },
+    {
+      "url": "http://127.0.0.1:56789/assets/inter.woff2",
+      "method": "GET"
+    },
+    {
+      "url": "http://127.0.0.1:56789/assets/arabic-400.woff2",
+      "method": "GET"
+    },
+    {
+      "url": "http://127.0.0.1:56789/assets/arabic-600.woff2",
+      "method": "GET"
+    },
+    {
+      "url": "http://127.0.0.1:56789/revision-2/v3/recovery.html?lang=ur",
+      "method": "GET"
+    },
+    {
+      "url": "http://127.0.0.1:56789/revision-2/v3/style.css",
+      "method": "GET"
+    },
+    {
+      "url": "http://127.0.0.1:56789/revision-2/v3/app.js",
+      "method": "GET"
+    },
+    {
+      "url": "http://127.0.0.1:56789/assets/mark.svg",
+      "method": "GET"
+    },
+    {
+      "url": "http://127.0.0.1:56789/assets/inter.woff2",
+      "method": "GET"
+    },
+    {
+      "url": "http://127.0.0.1:56789/assets/arabic-400.woff2",
+      "method": "GET"
+    },
+    {
+      "url": "http://127.0.0.1:56789/assets/arabic-600.woff2",
+      "method": "GET"
+    },
+    {
+      "url": "http://127.0.0.1:56789/revision-2/v3/index.html?lang=en",
+      "method": "GET"
+    },
+    {
+      "url": "http://127.0.0.1:56789/revision-2/v3/style.css",
+      "method": "GET"
+    },
+    {
+      "url": "http://127.0.0.1:56789/revision-2/v3/app.js",
+      "method": "GET"
+    },
+    {
+      "url": "http://127.0.0.1:56789/assets/mark.svg",
+      "method": "GET"
+    },
+    {
+      "url": "http://127.0.0.1:56789/assets/inter.woff2",
+      "method": "GET"
+    },
+    {
+      "url": "http://127.0.0.1:56789/assets/arabic-400.woff2",
+      "method": "GET"
+    },
+    {
+      "url": "http://127.0.0.1:56789/assets/arabic-600.woff2",
+      "method": "GET"
+    },
+    {
+      "url": "http://127.0.0.1:56789/revision-2/v3/index.html?lang=ur",
+      "method": "GET"
+    },
+    {
+      "url": "http://127.0.0.1:56789/revision-2/v3/style.css",
+      "method": "GET"
+    },
+    {
+      "url": "http://127.0.0.1:56789/revision-2/v3/app.js",
+      "method": "GET"
+    },
+    {
+      "url": "http://127.0.0.1:56789/assets/mark.svg",
+      "method": "GET"
+    },
+    {
+      "url": "http://127.0.0.1:56789/assets/inter.woff2",
+      "method": "GET"
+    },
+    {
+      "url": "http://127.0.0.1:56789/assets/arabic-400.woff2",
+      "method": "GET"
+    },
+    {
+      "url": "http://127.0.0.1:56789/assets/arabic-600.woff2",
+      "method": "GET"
+    },
+    {
+      "url": "http://127.0.0.1:56789/revision-2/v3/account.html",
+      "method": "GET"
+    },
+    {
+      "url": "http://127.0.0.1:56789/revision-2/v3/style.css",
+      "method": "GET"
+    },
+    {
+      "url": "http://127.0.0.1:56789/revision-2/v3/app.js",
+      "method": "GET"
+    },
+    {
+      "url": "http://127.0.0.1:56789/assets/mark.svg",
+      "method": "GET"
+    },
+    {
+      "url": "http://127.0.0.1:56789/assets/inter.woff2",
+      "method": "GET"
+    },
+    {
+      "url": "http://127.0.0.1:56789/assets/arabic-400.woff2",
+      "method": "GET"
+    },
+    {
+      "url": "http://127.0.0.1:56789/assets/arabic-600.woff2",
+      "method": "GET"
+    },
+    {
+      "url": "http://127.0.0.1:56789/revision-2/v3/payment.html?plan=ADVANCED&interval=year&lang=ur",
+      "method": "GET"
+    },
+    {
+      "url": "http://127.0.0.1:56789/revision-2/v3/style.css",
+      "method": "GET"
+    },
+    {
+      "url": "http://127.0.0.1:56789/revision-2/v3/app.js",
+      "method": "GET"
+    },
+    {
+      "url": "http://127.0.0.1:56789/assets/mark.svg",
+      "method": "GET"
+    },
+    {
+      "url": "http://127.0.0.1:56789/assets/inter.woff2",
+      "method": "GET"
+    },
+    {
+      "url": "http://127.0.0.1:56789/assets/arabic-400.woff2",
+      "method": "GET"
+    },
+    {
+      "url": "http://127.0.0.1:56789/assets/arabic-600.woff2",
+      "method": "GET"
+    },
+    {
+      "url": "http://127.0.0.1:56789/revision-2/v3/index.html?state=loading&lang=en",
+      "method": "GET"
+    },
+    {
+      "url": "http://127.0.0.1:56789/revision-2/v3/style.css",
+      "method": "GET"
+    },
+    {
+      "url": "http://127.0.0.1:56789/revision-2/v3/app.js",
+      "method": "GET"
+    },
+    {
+      "url": "http://127.0.0.1:56789/assets/mark.svg",
+      "method": "GET"
+    },
+    {
+      "url": "http://127.0.0.1:56789/assets/inter.woff2",
+      "method": "GET"
+    },
+    {
+      "url": "http://127.0.0.1:56789/assets/arabic-400.woff2",
+      "method": "GET"
+    },
+    {
+      "url": "http://127.0.0.1:56789/assets/arabic-600.woff2",
+      "method": "GET"
+    },
+    {
+      "url": "http://127.0.0.1:56789/revision-2/v3/index.html?state=unavailable&lang=en&plan=STARTER&interval=year",
+      "method": "GET"
+    },
+    {
+      "url": "http://127.0.0.1:56789/revision-2/v3/style.css",
+      "method": "GET"
+    },
+    {
+      "url": "http://127.0.0.1:56789/revision-2/v3/app.js",
+      "method": "GET"
+    },
+    {
+      "url": "http://127.0.0.1:56789/assets/mark.svg",
+      "method": "GET"
+    },
+    {
+      "url": "http://127.0.0.1:56789/assets/inter.woff2",
+      "method": "GET"
+    },
+    {
+      "url": "http://127.0.0.1:56789/assets/arabic-400.woff2",
+      "method": "GET"
+    },
+    {
+      "url": "http://127.0.0.1:56789/assets/arabic-600.woff2",
+      "method": "GET"
+    },
+    {
+      "url": "http://127.0.0.1:56789/revision-2/v3/activation.html?state=pending&lang=en",
+      "method": "GET"
+    },
+    {
+      "url": "http://127.0.0.1:56789/revision-2/v3/style.css",
+      "method": "GET"
+    },
+    {
+      "url": "http://127.0.0.1:56789/revision-2/v3/app.js",
+      "method": "GET"
+    },
+    {
+      "url": "http://127.0.0.1:56789/assets/mark.svg",
+      "method": "GET"
+    },
+    {
+      "url": "http://127.0.0.1:56789/assets/inter.woff2",
+      "method": "GET"
+    },
+    {
+      "url": "http://127.0.0.1:56789/assets/arabic-400.woff2",
+      "method": "GET"
+    },
+    {
+      "url": "http://127.0.0.1:56789/assets/arabic-600.woff2",
+      "method": "GET"
+    },
+    {
+      "url": "http://127.0.0.1:56789/revision-2/v3/activation.html?state=ready&lang=en",
+      "method": "GET"
+    },
+    {
+      "url": "http://127.0.0.1:56789/revision-2/v3/style.css",
+      "method": "GET"
+    },
+    {
+      "url": "http://127.0.0.1:56789/revision-2/v3/app.js",
+      "method": "GET"
+    },
+    {
+      "url": "http://127.0.0.1:56789/assets/mark.svg",
+      "method": "GET"
+    },
+    {
+      "url": "http://127.0.0.1:56789/assets/inter.woff2",
+      "method": "GET"
+    },
+    {
+      "url": "http://127.0.0.1:56789/assets/arabic-400.woff2",
+      "method": "GET"
+    },
+    {
+      "url": "http://127.0.0.1:56789/assets/arabic-600.woff2",
+      "method": "GET"
+    },
+    {
+      "url": "http://127.0.0.1:56789/revision-2/v3/recovery.html?state=uncertain&lang=en&plan=ADVANCED&interval=year",
+      "method": "GET"
+    },
+    {
+      "url": "http://127.0.0.1:56789/revision-2/v3/style.css",
+      "method": "GET"
+    },
+    {
+      "url": "http://127.0.0.1:56789/revision-2/v3/app.js",
+      "method": "GET"
+    },
+    {
+      "url": "http://127.0.0.1:56789/assets/mark.svg",
+      "method": "GET"
+    },
+    {
+      "url": "http://127.0.0.1:56789/assets/inter.woff2",
+      "method": "GET"
+    },
+    {
+      "url": "http://127.0.0.1:56789/assets/arabic-400.woff2",
+      "method": "GET"
+    },
+    {
+      "url": "http://127.0.0.1:56789/assets/arabic-600.woff2",
+      "method": "GET"
+    },
+    {
+      "url": "http://127.0.0.1:56789/revision-2/v3/recovery.html?lang=en&plan=ADVANCED&interval=year",
+      "method": "GET"
+    },
+    {
+      "url": "http://127.0.0.1:56789/revision-2/v3/style.css",
+      "method": "GET"
+    },
+    {
+      "url": "http://127.0.0.1:56789/revision-2/v3/app.js",
+      "method": "GET"
+    },
+    {
+      "url": "http://127.0.0.1:56789/assets/mark.svg",
+      "method": "GET"
+    },
+    {
+      "url": "http://127.0.0.1:56789/assets/inter.woff2",
+      "method": "GET"
+    },
+    {
+      "url": "http://127.0.0.1:56789/assets/arabic-400.woff2",
+      "method": "GET"
+    },
+    {
+      "url": "http://127.0.0.1:56789/assets/arabic-600.woff2",
+      "method": "GET"
+    },
+    {
+      "url": "http://127.0.0.1:56789/revision-2/v3/index.html?state=loading&lang=ur",
+      "method": "GET"
+    },
+    {
+      "url": "http://127.0.0.1:56789/revision-2/v3/style.css",
+      "method": "GET"
+    },
+    {
+      "url": "http://127.0.0.1:56789/revision-2/v3/app.js",
+      "method": "GET"
+    },
+    {
+      "url": "http://127.0.0.1:56789/assets/mark.svg",
+      "method": "GET"
+    },
+    {
+      "url": "http://127.0.0.1:56789/assets/inter.woff2",
+      "method": "GET"
+    },
+    {
+      "url": "http://127.0.0.1:56789/assets/arabic-400.woff2",
+      "method": "GET"
+    },
+    {
+      "url": "http://127.0.0.1:56789/assets/arabic-600.woff2",
+      "method": "GET"
+    },
+    {
+      "url": "http://127.0.0.1:56789/revision-2/v3/index.html?state=unavailable&lang=ur&plan=STARTER&interval=year",
+      "method": "GET"
+    },
+    {
+      "url": "http://127.0.0.1:56789/revision-2/v3/style.css",
+      "method": "GET"
+    },
+    {
+      "url": "http://127.0.0.1:56789/revision-2/v3/app.js",
+      "method": "GET"
+    },
+    {
+      "url": "http://127.0.0.1:56789/assets/mark.svg",
+      "method": "GET"
+    },
+    {
+      "url": "http://127.0.0.1:56789/assets/inter.woff2",
+      "method": "GET"
+    },
+    {
+      "url": "http://127.0.0.1:56789/assets/arabic-400.woff2",
+      "method": "GET"
+    },
+    {
+      "url": "http://127.0.0.1:56789/assets/arabic-600.woff2",
+      "method": "GET"
+    },
+    {
+      "url": "http://127.0.0.1:56789/revision-2/v3/activation.html?state=pending&lang=ur",
+      "method": "GET"
+    },
+    {
+      "url": "http://127.0.0.1:56789/revision-2/v3/style.css",
+      "method": "GET"
+    },
+    {
+      "url": "http://127.0.0.1:56789/revision-2/v3/app.js",
+      "method": "GET"
+    },
+    {
+      "url": "http://127.0.0.1:56789/assets/mark.svg",
+      "method": "GET"
+    },
+    {
+      "url": "http://127.0.0.1:56789/assets/inter.woff2",
+      "method": "GET"
+    },
+    {
+      "url": "http://127.0.0.1:56789/assets/arabic-400.woff2",
+      "method": "GET"
+    },
+    {
+      "url": "http://127.0.0.1:56789/assets/arabic-600.woff2",
+      "method": "GET"
+    },
+    {
+      "url": "http://127.0.0.1:56789/revision-2/v3/activation.html?state=ready&lang=ur",
+      "method": "GET"
+    },
+    {
+      "url": "http://127.0.0.1:56789/revision-2/v3/style.css",
+      "method": "GET"
+    },
+    {
+      "url": "http://127.0.0.1:56789/revision-2/v3/app.js",
+      "method": "GET"
+    },
+    {
+      "url": "http://127.0.0.1:56789/assets/mark.svg",
+      "method": "GET"
+    },
+    {
+      "url": "http://127.0.0.1:56789/assets/inter.woff2",
+      "method": "GET"
+    },
+    {
+      "url": "http://127.0.0.1:56789/assets/arabic-400.woff2",
+      "method": "GET"
+    },
+    {
+      "url": "http://127.0.0.1:56789/assets/arabic-600.woff2",
+      "method": "GET"
+    },
+    {
+      "url": "http://127.0.0.1:56789/revision-2/v3/recovery.html?state=uncertain&lang=ur&plan=ADVANCED&interval=year",
+      "method": "GET"
+    },
+    {
+      "url": "http://127.0.0.1:56789/revision-2/v3/style.css",
+      "method": "GET"
+    },
+    {
+      "url": "http://127.0.0.1:56789/revision-2/v3/app.js",
+      "method": "GET"
+    },
+    {
+      "url": "http://127.0.0.1:56789/assets/mark.svg",
+      "method": "GET"
+    },
+    {
+      "url": "http://127.0.0.1:56789/assets/inter.woff2",
+      "method": "GET"
+    },
+    {
+      "url": "http://127.0.0.1:56789/assets/arabic-400.woff2",
+      "method": "GET"
+    },
+    {
+      "url": "http://127.0.0.1:56789/assets/arabic-600.woff2",
+      "method": "GET"
+    },
+    {
+      "url": "http://127.0.0.1:56789/revision-2/v3/recovery.html?lang=ur&plan=ADVANCED&interval=year",
+      "method": "GET"
+    },
+    {
+      "url": "http://127.0.0.1:56789/revision-2/v3/style.css",
+      "method": "GET"
+    },
+    {
+      "url": "http://127.0.0.1:56789/revision-2/v3/app.js",
+      "method": "GET"
+    },
+    {
+      "url": "http://127.0.0.1:56789/assets/mark.svg",
+      "method": "GET"
+    },
+    {
+      "url": "http://127.0.0.1:56789/assets/inter.woff2",
+      "method": "GET"
+    },
+    {
+      "url": "http://127.0.0.1:56789/assets/arabic-400.woff2",
+      "method": "GET"
+    },
+    {
+      "url": "http://127.0.0.1:56789/assets/arabic-600.woff2",
+      "method": "GET"
+    },
+    {
+      "url": "http://127.0.0.1:56789/revision-2/v3/index.html?lang=ur&state=loading",
+      "method": "GET"
+    },
+    {
+      "url": "http://127.0.0.1:56789/revision-2/v3/style.css",
+      "method": "GET"
+    },
+    {
+      "url": "http://127.0.0.1:56789/revision-2/v3/app.js",
+      "method": "GET"
+    },
+    {
+      "url": "http://127.0.0.1:56789/assets/mark.svg",
+      "method": "GET"
+    },
+    {
+      "url": "http://127.0.0.1:56789/assets/inter.woff2",
+      "method": "GET"
+    },
+    {
+      "url": "http://127.0.0.1:56789/assets/arabic-400.woff2",
+      "method": "GET"
+    },
+    {
+      "url": "http://127.0.0.1:56789/assets/arabic-600.woff2",
+      "method": "GET"
+    },
+    {
+      "url": "http://127.0.0.1:56789/revision-2/v3/index.html?lang=ur&state=unavailable",
+      "method": "GET"
+    },
+    {
+      "url": "http://127.0.0.1:56789/revision-2/v3/style.css",
+      "method": "GET"
+    },
+    {
+      "url": "http://127.0.0.1:56789/revision-2/v3/app.js",
+      "method": "GET"
+    },
+    {
+      "url": "http://127.0.0.1:56789/assets/mark.svg",
+      "method": "GET"
+    },
+    {
+      "url": "http://127.0.0.1:56789/assets/inter.woff2",
+      "method": "GET"
+    },
+    {
+      "url": "http://127.0.0.1:56789/assets/arabic-400.woff2",
+      "method": "GET"
+    },
+    {
+      "url": "http://127.0.0.1:56789/assets/arabic-600.woff2",
+      "method": "GET"
+    },
+    {
+      "url": "http://127.0.0.1:56789/revision-2/v3/activation.html?lang=ur&state=ready",
+      "method": "GET"
+    },
+    {
+      "url": "http://127.0.0.1:56789/revision-2/v3/style.css",
+      "method": "GET"
+    },
+    {
+      "url": "http://127.0.0.1:56789/revision-2/v3/app.js",
+      "method": "GET"
+    },
+    {
+      "url": "http://127.0.0.1:56789/assets/mark.svg",
+      "method": "GET"
+    },
+    {
+      "url": "http://127.0.0.1:56789/assets/inter.woff2",
+      "method": "GET"
+    },
+    {
+      "url": "http://127.0.0.1:56789/assets/arabic-400.woff2",
+      "method": "GET"
+    },
+    {
+      "url": "http://127.0.0.1:56789/assets/arabic-600.woff2",
+      "method": "GET"
+    },
+    {
+      "url": "http://127.0.0.1:56789/revision-2/v3/recovery.html?lang=ur&state=uncertain",
+      "method": "GET"
+    },
+    {
+      "url": "http://127.0.0.1:56789/revision-2/v3/style.css",
+      "method": "GET"
+    },
+    {
+      "url": "http://127.0.0.1:56789/revision-2/v3/app.js",
+      "method": "GET"
+    },
+    {
+      "url": "http://127.0.0.1:56789/assets/mark.svg",
+      "method": "GET"
+    },
+    {
+      "url": "http://127.0.0.1:56789/assets/inter.woff2",
+      "method": "GET"
+    },
+    {
+      "url": "http://127.0.0.1:56789/assets/arabic-400.woff2",
+      "method": "GET"
+    },
+    {
+      "url": "http://127.0.0.1:56789/assets/arabic-600.woff2",
+      "method": "GET"
+    },
+    {
+      "url": "http://127.0.0.1:56789/revision-2/v3/index.html",
+      "method": "GET"
+    },
+    {
+      "url": "http://127.0.0.1:56789/revision-2/v3/style.css",
+      "method": "GET"
+    },
+    {
+      "url": "http://127.0.0.1:56789/revision-2/v3/app.js",
+      "method": "GET"
+    },
+    {
+      "url": "http://127.0.0.1:56789/assets/mark.svg",
+      "method": "GET"
+    },
+    {
+      "url": "http://127.0.0.1:56789/assets/inter.woff2",
+      "method": "GET"
+    },
+    {
+      "url": "http://127.0.0.1:56789/assets/arabic-400.woff2",
+      "method": "GET"
+    },
+    {
+      "url": "http://127.0.0.1:56789/assets/arabic-600.woff2",
+      "method": "GET"
+    }
+  ],
+  "errors": [],
+  "console": [],
+  "overlayPreflight": {
+    "title": "[Assessment B] Choose your workspace plan · Hygene Ops preview",
+    "scriptAdded": true,
+    "scriptExecuted": true
+  },
+  "externalRequests": [],
+  "summary": {
+    "matrixCases": 52,
+    "overflowCases": 0,
+    "checks": 46,
+    "failedChecks": [
+      {
+        "name": "help Tab focus stays inside dialog",
+        "pass": false,
+        "detail": {}
+      },
+      {
+        "name": "checkout Tab focus containment",
+        "pass": false,
+        "detail": {}
+      }
+    ],
+    "externalRequests": 0,
+    "pageErrors": 0
+  }
+}

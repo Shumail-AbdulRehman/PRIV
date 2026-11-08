@@ -126,6 +126,7 @@ test("staff recovery UI issues a one-use credential, clears its display and revo
   page,
   browser,
 }) => {
+  const [savedStaff]=await sql('SELECT password,"mustChangePassword" FROM "Staff" WHERE id=$1',[fixture.staff.recovery.id]);
   const staff = await browser.newContext();
   try {
     await login(staff.request, "recovery");
@@ -187,6 +188,8 @@ test("staff recovery UI issues a one-use credential, clears its display and revo
       await page.getByLabel("One-use recovery code", { exact: true }).count(),
     ).toBe(0);
   } finally {
+    // Restore only this disposable fixture credential; keep revocation version advanced.
+    await sql('UPDATE "Staff" SET password=$2,"mustChangePassword"=$3,"refreshToken"=NULL,"credentialVersion"="credentialVersion"+1 WHERE id=$1',[fixture.staff.recovery.id,savedStaff.password,savedStaff.mustChangePassword]);
     await staff.close();
   }
 });
@@ -292,48 +295,10 @@ test("protected photo DTOs hide private/legacy URLs and deny a foreign reader be
   }
 });
 
-test("registration CTA lands in canonical billing after durable account creation", async ({
-  page,
-}) => {
-  await page.goto("/signup");
-  await page
-    .getByLabel("Full Name", { exact: true })
-    .fill("E2E billing landing owner");
-  await page
-    .getByLabel("Company Name", { exact: true })
-    .fill("E2E billing landing company");
-  await page
-    .getByLabel("Email", { exact: true })
-    .fill("billing-landing@example.invalid");
-  await page.getByLabel("Password", { exact: true }).fill(fixture.password);
-  const response = page.waitForResponse(
-    (r) =>
-      r.url().endsWith("/manager/manager-signup") &&
-      r.request().method() === "POST",
-  );
-  await page.getByRole("button", { name: /Create account/i }).click();
-  expect((await response).status()).toBe(201);
-  await expect(page).toHaveURL(/subscription/);
-  await expect(page.getByRole('heading', { name: 'Choose your plan', exact: true })).toBeVisible();
-  await expect(page.getByRole('region', { name: 'Available billing options' })).toBeVisible();
-  await expect(page.getByText('This page is unavailable', { exact: true })).toHaveCount(0);
-  // A reload, direct operational URL or later sign-in must not skip onboarding.
-  for (const path of ['/dashboard', '/staff']) {
-    await page.goto(path);
-    await expect(page).toHaveURL(/subscription/);
-    await expect(page.getByRole('heading', { name: 'Choose your plan', exact: true })).toBeVisible();
-    await expect(page.getByRole('region', { name: 'Available billing options' })).toBeVisible();
-    await expect(page.getByText('This page is unavailable', { exact: true })).toHaveCount(0);
-  }
-  await page.getByRole('button', { name: 'Sign out', exact: true }).click();
-  await expect(page).toHaveURL(/login/);
-  await page.getByLabel('Email', { exact: true }).fill('billing-landing@example.invalid');
-  await page.getByLabel('Password', { exact: true }).fill(fixture.password);
-  await page.getByRole('button', { name: 'Sign in', exact: true }).click();
-  await expect(page).toHaveURL(/subscription/);
-  await expect(page.getByRole('heading', { name: 'Choose your plan', exact: true })).toBeVisible();
-  await expect(page.getByRole('region', { name: 'Available billing options' })).toBeVisible();
-  await expect(page.getByText('This page is unavailable', { exact: true })).toHaveCount(0);
-  const rows = await sql('SELECT c."billingCustomerId", c."billingSubscriptionId", c."subscriptionStatus" FROM "Company" c JOIN "Manager" m ON m."companyId"=c.id WHERE m.email=$1', ['billing-landing@example.invalid']);
-  expect(rows).toEqual([{ billingCustomerId: null, billingSubscriptionId: null, subscriptionStatus: 'CANCELLED' }]);
+test("registration CTA keeps a durable unpaid account outside operations and permits real sign-in",async({page})=>{
+ await page.goto('/signup');await page.getByLabel('Full Name',{exact:true}).fill('E2E billing landing owner');await page.getByLabel('Company Name',{exact:true}).fill('E2E billing landing company');await page.getByLabel('Email',{exact:true}).fill('billing-landing@example.invalid');await page.getByLabel('Password',{exact:true}).fill(fixture.password);const response=page.waitForResponse(r=>r.url().endsWith('/manager/manager-signup')&&r.request().method()==='POST');await page.getByRole('button',{name:/Create account/i}).click();expect((await response).status()).toBe(201);
+ await expect(page).toHaveURL(/choose-plan/);await expect(page.getByRole('heading',{name:'Choose your plan',exact:true})).toBeVisible();await expect(page.getByRole('button',{name:'Continue with selected plan'})).toBeDisabled();
+ for(const path of ['/dashboard','/staff']){await page.goto(path);await expect(page).toHaveURL(/subscription/);await expect(page.getByRole('heading',{name:'Check subscription status',exact:true})).toBeVisible();await expect(page.getByRole('navigation',{name:'Workspace navigation'})).toHaveCount(0);}
+ expect((await page.request.post(backend+'/api/common/logout')).status()).toBe(200);await page.goto('/login');await page.getByLabel('Email',{exact:true}).fill('billing-landing@example.invalid');await page.getByLabel('Password',{exact:true}).fill(fixture.password);await page.getByRole('button',{name:'Sign in',exact:true}).click();await expect(page).toHaveURL(/subscription/);await expect(page.getByRole('heading',{name:'Check subscription status',exact:true})).toBeVisible();await expect(page.getByRole('navigation',{name:'Workspace navigation'})).toHaveCount(0);
+ const rows=await sql('SELECT c."billingCustomerId",c."billingSubscriptionId",c."subscriptionStatus" FROM "Company" c JOIN "Manager" m ON m."companyId"=c.id WHERE m.email=$1',['billing-landing@example.invalid']);expect(rows).toEqual([{billingCustomerId:null,billingSubscriptionId:null,subscriptionStatus:'CANCELLED'}]);
 });

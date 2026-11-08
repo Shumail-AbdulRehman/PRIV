@@ -1,4 +1,4 @@
-import { SetupPage, ExceptionInboxPage, ExceptionDetailPage, VerificationHistoryPage, AreaSetupPage, AreaDetailPage, LocationsPage, LocationDetailPage, DashboardPage, StaffPage, StaffDetailPage, AttendancePage, TodayStatusPage, ManagersPage, SubscriptionPage } from "./workspacePages";
+import { SetupPage, ExceptionInboxPage, ExceptionDetailPage, VerificationHistoryPage, AreaSetupPage, AreaDetailPage, LocationsPage, LocationDetailPage, DashboardPage, StaffPage, StaffDetailPage, AttendancePage, TodayStatusPage, ManagersPage } from "./workspacePages";
 import { RequireRole } from "../App";
 import { CompanySettingsPage } from "../pages/Account/AccountPages";
 import type { RouteObject } from "react-router-dom";
@@ -18,14 +18,6 @@ export const workspaceRoutes: RouteObject[] = [
           { path: 'staff', element: <StaffPage /> },
           { path: 'staff/:id', element: <StaffDetailPage /> },
           { path: 'attendance', element: <AttendancePage /> },
-          {
-            path: 'subscription',
-            element: (
-              <RequireRole roles={['ADMIN']}>
-                <SubscriptionPage />
-              </RequireRole>
-            ),
-          },
           {
             path: 'managers',
             element: (

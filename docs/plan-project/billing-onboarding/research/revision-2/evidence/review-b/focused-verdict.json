@@ -1,0 +1,145 @@
+{
+  "scope": "Original Assessment B findings only; no detector or overlay rerun",
+  "rows": [
+    {
+      "screen": "index",
+      "lang": "en",
+      "width": 320,
+      "documentWidth": 320,
+      "sandbox": 12,
+      "planDurations": [
+        {
+          "size": 12,
+          "text": "per workspace / month"
+        },
+        {
+          "size": 12,
+          "text": "per workspace / month"
+        },
+        {
+          "size": 12,
+          "text": "per workspace / month"
+        }
+      ],
+      "paymentSymbolCount": 0,
+      "overflow": []
+    },
+    {
+      "screen": "index",
+      "lang": "en",
+      "width": 390,
+      "documentWidth": 390,
+      "sandbox": 12,
+      "planDurations": [
+        {
+          "size": 12,
+          "text": "per workspace / month"
+        },
+        {
+          "size": 12,
+          "text": "per workspace / month"
+        },
+        {
+          "size": 12,
+          "text": "per workspace / month"
+        }
+      ],
+      "paymentSymbolCount": 0,
+      "overflow": []
+    },
+    {
+      "screen": "index",
+      "lang": "ur",
+      "width": 320,
+      "documentWidth": 320,
+      "sandbox": 12,
+      "planDurations": [
+        {
+          "size": 12,
+          "text": "فی ورک اسپیس / ماہ"
+        },
+        {
+          "size": 12,
+          "text": "فی ورک اسپیس / ماہ"
+        },
+        {
+          "size": 12,
+          "text": "فی ورک اسپیس / ماہ"
+        }
+      ],
+      "paymentSymbolCount": 0,
+      "overflow": []
+    },
+    {
+      "screen": "index",
+      "lang": "ur",
+      "width": 390,
+      "documentWidth": 390,
+      "sandbox": 12,
+      "planDurations": [
+        {
+          "size": 12,
+          "text": "فی ورک اسپیس / ماہ"
+        },
+        {
+          "size": 12,
+          "text": "فی ورک اسپیس / ماہ"
+        },
+        {
+          "size": 12,
+          "text": "فی ورک اسپیس / ماہ"
+        }
+      ],
+      "paymentSymbolCount": 0,
+      "overflow": []
+    },
+    {
+      "screen": "payment",
+      "lang": "en",
+      "width": 320,
+      "documentWidth": 320,
+      "sandbox": 12,
+      "planDurations": [],
+      "paymentSymbolCount": 0,
+      "overflow": []
+    },
+    {
+      "screen": "payment",
+      "lang": "en",
+      "width": 390,
+      "documentWidth": 390,
+      "sandbox": 12,
+      "planDurations": [],
+      "paymentSymbolCount": 0,
+      "overflow": []
+    },
+    {
+      "screen": "payment",
+      "lang": "ur",
+      "width": 320,
+      "documentWidth": 320,
+      "sandbox": 12,
+      "planDurations": [],
+      "paymentSymbolCount": 0,
+      "overflow": []
+    },
+    {
+      "screen": "payment",
+      "lang": "ur",
+      "width": 390,
+      "documentWidth": 390,
+      "sandbox": 12,
+      "planDurations": [],
+      "paymentSymbolCount": 0,
+      "overflow": []
+    },
+    {
+      "screen": "payment",
+      "lang": "en",
+      "width": 1366,
+      "documentWidth": 1366,
+      "paymentSymbolCount": 0
+    }
+  ],
+  "resolved": true
+}

@@ -117,11 +117,8 @@ test("unconfigured billing retains mirrored facts while checkout remains unavail
   await expect(
     page.getByRole("heading", { name: "Plan & billing" }),
   ).toBeVisible();
-  await expect(
-    page.getByText(
-      "The billing portal is unavailable until the provider account and billing service are configured.",
-    ),
-  ).toBeVisible();
+  await expect(page.getByRole('button', {name:'Manage in Paddle'})).toBeDisabled();
+  await expect(page.getByText('Provider price unavailable', {exact:true})).toBeVisible();
   await expect(
     page.getByRole("button", { name: "Continue to checkout" }),
   ).toHaveCount(0);

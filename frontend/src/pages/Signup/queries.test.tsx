@@ -38,3 +38,10 @@ it("a failed signup leaves existing auth/cache intact and never redirects", asyn
   await act(async () => { await expect(result.current.mutateAsync(form)).rejects.toThrow("duplicate account"); });
   expect(mock.navigate).not.toHaveBeenCalled(); expect(mock.dispatch).not.toHaveBeenCalled(); expect(client.getQueryData(["previous-tenant"])).toBeDefined();
 });
+it('retains successful legacy session responses without inventing a failed-session branch', async () => {
+  mock.signup.mockResolvedValue(owner); const { result, client } = setup();
+  await act(async () => { await result.current.mutateAsync(form); });
+  expect(mock.dispatch).toHaveBeenCalledWith({ type: 'auth/setUser', payload: owner });
+  expect(mock.navigate).toHaveBeenCalledWith('/choose-plan', { replace: true });
+  expect(client.getQueryData(['previous-tenant'])).toBeUndefined();
+});

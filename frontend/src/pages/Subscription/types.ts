@@ -51,7 +51,8 @@ export type BillingLifecycle = {
  company:{id:number;name:string;plan:PlanCode;isActive:boolean;operationalStatus:'ACTIVE'|'SUSPENDED'};
  usage:{locations:number;staff:number;managers:number};
  limits:PlanDefinition['limits'];
- subscription:null|{status:string;plan:PlanCode|null;catalogQualified:boolean;periodStart:string|null;periodEnd:string|null;scheduledChangeAction:string|null;scheduledChangeAt:string|null;lastEventAt:string};
+ subscription:null|{priceId?:string|null;interval?:BillingInterval|null;status:string;plan:PlanCode|null;catalogQualified:boolean;periodStart:string|null;periodEnd:string|null;scheduledChangeAction:string|null;scheduledChangeAt:string|null;lastEventAt:string};
+ workspaceAccessAllowed?:boolean;checkoutReadiness?:CheckoutReadiness;checkoutResume?:BillingCheckoutResume|null;
  reconciliationRequired:boolean;billingConfigured:boolean;ownerVerified:boolean;
  billingEnvironment?:'sandbox'|'production'|null;onboardingRequired?:boolean;
  providerState:'MIRRORED'|'AWAITING_PROVIDER'|'NOT_LINKED';portalAvailable:boolean;checkoutAvailable:boolean;
@@ -59,6 +60,16 @@ export type BillingLifecycle = {
 
 export type BillingCatalogEntry = {
  plan: PlanCode; interval: 'month' | 'year'; priceId: string; productId: string;
- amount: string; currencyCode: string; trialPeriod: null | {interval: string; frequency: number};
+ amount: string; currencyCode: string; trialPeriod: null | {interval: string; frequency: number; requiresPaymentMethod?:boolean|null};
 };
 export type BillingCheckout = {transactionId: string; reused: boolean};
+
+/** Additive wire fields stay optional while older deployments roll forward. */
+export type BillingInterval = 'month' | 'year';
+export type CheckoutReadiness = 'UNKNOWN' | 'BILLING_DISABLED' | 'OWNER_VERIFICATION_REQUIRED' | 'COMPANY_RESTRICTED' | 'RECONCILIATION_PENDING' | 'LINKED_SUBSCRIPTION' | 'READY';
+export type BillingCheckoutResume = { plan: PlanCode; interval: BillingInterval; transactionId: string };
+export type ValidatedBillingLifecycle = BillingLifecycle & {
+  workspaceAccessAllowed: boolean;
+  checkoutReadiness: CheckoutReadiness;
+  checkoutResume: BillingCheckoutResume | null;
+};

@@ -17,7 +17,7 @@ function mount(content:ReactNode,{language='en',path='/login',user}:{language?:s
  localStorage.setItem('hygene-ops.language',language);
  const store=configureStore({reducer:{auth:authReducer}});if(user)store.dispatch(setUser(user));
  const query=new QueryClient({defaultOptions:{queries:{retry:false},mutations:{retry:false}}});query.setQueryData(['previous-tenant'],{private:true});
- const view=render(<Provider store={store}><QueryClientProvider client={query}><LanguageProvider><MemoryRouter initialEntries={[path]}><Routes><Route path={path} element={content}/><Route path="/subscription" element={<h1>Billing destination</h1>}/><Route path="/dashboard" element={<h1>Workspace destination</h1>}/></Routes></MemoryRouter></LanguageProvider></QueryClientProvider></Provider>);
+ const view=render(<Provider store={store}><QueryClientProvider client={query}><LanguageProvider><MemoryRouter initialEntries={[path]}><Routes><Route path={path} element={content}/><Route path="/choose-plan" element={<h1>Billing destination</h1>}/><Route path="/dashboard" element={<h1>Workspace destination</h1>}/></Routes></MemoryRouter></LanguageProvider></QueryClientProvider></Provider>);
  return {...view,store,query};
 }
 beforeEach(()=>{vi.clearAllMocks();localStorage.clear();api.post.mockResolvedValue({data:{data:owner}});});
@@ -44,8 +44,8 @@ it('keeps registration session-delivery failure unauthenticated with an accurate
  for(const [label,value]of [['Full Name','Synthetic owner'],['Company Name','Synthetic company'],['Email',owner.email],['Password','Synthetic password']])fireEvent.change(screen.getByLabelText(label),{target:{value}});
  fireEvent.click(screen.getByRole('button',{name:'Create account & choose plan'}));await screen.findByText('Account created. Sign in to continue.');expect(store.getState().auth.user).toBeNull();expect(screen.queryByRole('heading',{name:'Billing destination'})).not.toBeInTheDocument();expect(screen.getByRole('link',{name:'Sign in'})).toHaveAttribute('href','/login');
 });
-it('translates registration fields and validation using the shared public shell',async()=>{
- mount(<SignUp/>,{language:'ur',path:'/signup'});expect(screen.getByRole('heading',{name:'اپنا ورک اسپیس بنائیں'})).toBeInTheDocument();fireEvent.click(screen.getByRole('button',{name:'اکاؤنٹ بنائیں اور پلان چنیں'}));await screen.findByText('نام ضروری ہے');expect(screen.getByLabelText('پورا نام')).toHaveAttribute('aria-invalid','true');expect(screen.getByRole('link',{name:'Hygene Ops میں سائن ان کریں'})).toHaveAttribute('href','/login');expect(screen.getAllByRole('group',{name:'زبان'})).toHaveLength(1);
+it('translates registration fields and validation using the billing setup shell',async()=>{
+ mount(<SignUp/>,{language:'ur',path:'/signup'});expect(screen.getByRole('heading',{name:'اپنا ورک اسپیس بنائیں'})).toBeInTheDocument();fireEvent.click(screen.getByRole('button',{name:'اکاؤنٹ بنائیں اور پلان چنیں'}));await screen.findByText('نام ضروری ہے');expect(screen.getByLabelText('پورا نام')).toHaveAttribute('aria-invalid','true');expect(screen.getByRole('link',{name:'لاگ ان کریں'})).toHaveAttribute('href','/login');expect(screen.getAllByRole('group',{name:'زبان'})).toHaveLength(1);
 });
 
 it('reveals and hides the existing password without submitting or changing credentials',()=>{
