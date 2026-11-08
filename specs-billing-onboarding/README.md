@@ -98,7 +98,7 @@ Not started: queued. In progress: claimed. Blocked: specific required input/envi
 
 ## Known gaps
 
-Current validation on2026-11-08:20 specs,0 errors,20 accepted missing-GitHub-issue warnings.44 is a planning decision;45–62 were implemented/tested locally, and63 is completing local checks with external acceptance deferred. This execution did not authorize external issue/PR bookkeeping. Existing local evidence is preserved rather than inventing issue numbers; issue metadata does not establish provider/deployment acceptance.
+Current validation on2026-11-08:20 specs,0 errors,20 accepted missing-GitHub-issue warnings.44 is a planning decision;45–62 were implemented/tested locally, and63 has completed all local checks with external acceptance deferred. This execution did not authorize external issue/PR bookkeeping. Existing local evidence is preserved rather than inventing issue numbers; issue metadata does not establish provider/deployment acceptance.
 
 The user explicitly deferred live verification on2026-11-08. Final63 keeps actual Netlify/Heroku/Paddle and affected-account criteria unchecked; see docs/implementation/billing-final-verification.md. No credential, screenshot or mocked SDK result is treated as deployed proof. Narrow .gitignore exceptions preserve plan and required implementation Markdown. Historical specs/ is unchanged. Approved application design authority remains design/billing-onboarding/revision-2/v3; earlier proposals are history.
 

@@ -42,4 +42,4 @@ Provider-facing fixture flows use `mockBilling` in `frontend/e2e/fixtures.ts`. R
 
 Managed guard still rejects nonlocal/nonexact bootstrap targets, creates UUID child databases, applies real migrations, compiles fresh servers, forbids attaching to existing processes and drops only its generated child. No production environment inheritance/provider activation or guard weakening.
 
-Clean focused61 passed; full managed170 passed/1 unrelated optional operator skip,0 failures and no skipped billing regression. Typechecks/scoped lint/builds passed. The final63 post-fulfillment-refinement repeat is separately recorded; see dated Logs.
+Clean focused61 passed; full managed171 passed/1 unrelated optional operator skip,0 failures and no skipped billing regression. Typechecks/scoped lint/builds passed. Final172-test run includes both fulfillment and automatic confirmation timing refinements; see dated Logs.

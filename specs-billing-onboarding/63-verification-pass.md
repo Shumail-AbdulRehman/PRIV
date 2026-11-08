@@ -44,14 +44,18 @@ Audit `frontend/e2e/run.mjs`, `frontend/e2e/fixtures.ts` and `frontend/e2e/READM
 
 ## Done when
 
-- [ ] Clean installs/builds, full backend/frontend unit suites, isolated SQL billing checks and full managed browser suite pass; commands and actual counts are in the verification report. [suite]
-- [ ] Every previous criterion, approved-design amendment, path/duplication/token sweep and per-spec fragment fold is evidenced; no app-source fix is hidden in this gate. [static]
+- [x] Clean installs/builds, full backend/frontend unit suites, isolated SQL billing checks and full managed browser suite pass; commands and actual counts are in the verification report. [suite]
+- [x] Every previous criterion, approved-design amendment, path/duplication/token sweep and per-spec fragment fold is evidenced; no app-source fix is hidden in this gate. [static]
 - [ ] Deployed candidate revisions, same-origin session/reload, actual Paddle test-card completion, signed delivery, persisted qualified current entitlement and workspace entry are evidenced for a new sandbox owner. [requires: Netlify, Heroku, Paddle sandbox, authorized synthetic owner, operator configuration access]
 - [ ] Unfinished/existing owner resume does not create a second provider subscription; actual portal and owner/security recovery work with no Help/Contact UI. [requires: deployed sandbox, signed webhook delivery, operator evidence]
 - [ ] The reported stuck-account failure stage, reservation/provider correlation and safe recovery or remaining blocker are evidenced without record deletion or second purchase. Leave final acceptance pending if this evidence is unavailable. [requires: authorized affected-account diagnostics, Heroku/Paddle operator evidence]
-- [ ] Package typecheck and changed-file frontend lint pass; unrelated baseline failures are explicitly distinguished from introduced failures. [static]
-- [ ] `npm run build --prefix backend` and `npm run build --prefix frontend` pass from clean dependencies. [static]
+- [x] Package typecheck and changed-file frontend lint pass; unrelated baseline failures are explicitly distinguished from introduced failures. [static]
+- [x] `npm run build --prefix backend` and `npm run build --prefix frontend` pass from clean dependencies. [static]
 
 ## Log
 
 **2026-11-08** — Started final clean verification in /tmp/billing-clean, excluding private env/artifacts and using exact unchanged lockfiles. Clean installs/builds, backend1603 tests, frontend81 Node +747 Vitest and isolated SQL passed. Focused managed60 passed; full managed suite is running. Shared workflow/native translation/release-doc files required by incumbent tests were added to the isolated copy before final clean reruns. External operator/deployed/affected-account criteria remain unchecked; see docs/implementation/billing-final-verification.md. No app-source fix is owned by this gate; focus/unknown refinements were assigned to55/59 and tested there.
+
+**2026-11-08** — Local acceptance complete: clean installs and builds; backend1604 passed/100 files with0 skips; frontend81 Node +748 Vitest/48 files (829 total); real isolated SQL passed; focused managed61 passed; final full managed171 passed/1 optional nonbilling local-platform skip (172 tests,11.9m). Application/e2e typechecks, changed-file lint, source/token/path/duplication sweep, fragment fold and diff check passed. Validator20 specs,0 errors,20 documented missing-issue warnings. Final application code `585af3a` matches the clean tested snapshot; no credentials/raw artifacts staged. All ordinary-history ancestry retained.
+
+User explicitly deferred live verification. Three external criteria above stay unchecked, and this spec retains In progress solely for that deferred acceptance. No live card/config/deployment/affected-account recovery is asserted. All authorized local implementation work is complete; details and final commands/counts are in docs/implementation/billing-final-verification.md.

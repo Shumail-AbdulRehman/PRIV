@@ -22,8 +22,8 @@ Source of current state for specs-billing-onboarding only. Historical specs/ is 
 | 59 | [Compose owner routes, aliases and workspace gates](59-owner-billing-routing.md) | Done | 52, 54, 55, 56, 57, 58 | Sol medium (Heavy) | — | See spec Log;83 focused,825 full tests |
 | 60 | [Prove reservation and entitlement persistence in PostgreSQL](60-billing-sql-proof.md) | Done | 49 | Sol medium (Heavy) | — | See spec Log; required checks passed |
 | 61 | [Prepare deployment diagnosis and sandbox release checks](61-sandbox-deployment-package.md) | Done | 48, 49, 59 | Sol medium (Standard) | — | See spec Log; required checks passed |
-| 62 | [Prove every owner billing flow in the managed browser suite](62-billing-e2e-suite.md) | Done | 60, 61 | Sol medium (Heavy) | — | See Log;60 focused /170 full browser pass |
-| 63 | [Verify clean suites and deployed sandbox acceptance](63-verification-pass.md) | In progress | 62 | Sol medium (Heavy) | — | Local final checks; live deferred by user |
+| 62 | [Prove every owner billing flow in the managed browser suite](62-billing-e2e-suite.md) | Done | 60, 61 | Sol medium (Heavy) | — | See Log;61 focused /171 full browser pass |
+| 63 | [Verify clean suites and deployed sandbox acceptance](63-verification-pass.md) | In progress | 62 | Sol medium (Heavy) | — | Local complete; live verification deferred by user |
 
 ## Log
 
@@ -64,3 +64,5 @@ Source of current state for specs-billing-onboarding only. Historical specs/ is 
 **2026-11-08** —62 complete: clean focused60 and full170 passed/1 optional nonbilling skip, scoped lint/typechecks/builds and33-flow map. No provider proof claimed. User deferred live verification.63 completes only local acceptance; actual deployment/card/webhook/affected-account criteria remain unchecked.
 
 **2026-11-08** —51 confirmation timing complete: explicit activation polling continues through a proven AWAITING_PROVIDER draft;16 query tests, full829 frontend tests/build/lint and focused61 managed browser cases passed. Final172-test complete browser run is underway; only live verification is deferred by user scope.
+
+**2026-11-08** — All authorized local work complete. Final clean results:1604 backend tests,829 frontend tests, real SQL,61 focused browser and171 full browser passes (one optional nonbilling operator skip), typechecks/scoped lint/builds.44–62 Done;63 local criteria checked, three live criteria explicitly deferred by user. Code commit585af3a preserves all prior history; final evidence is a documentation-only follow-up on main.
