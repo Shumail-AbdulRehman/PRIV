@@ -23,9 +23,9 @@ The single source of truth for where this work stands. It outranks any assumptio
 | 16 | [Remove trials from sandbox prices](./16-trial-removal-script.md) | Not started | 08 | Standard | — |  |
 | 17 | [One Paddle customer per company](./17-ensure-customer.md) | Done | 08, 09 | Heavy | — | Run by the spec runner; see spec Log |
 | 18 | [Shared subscription fulfilment](./18-fulfillment-seam.md) | Done | 01 | Heavy | — | Run by the spec runner; see spec Log |
-| 19 | [Signup rules](./19-signup-rules.md) | Not started | 11 | Heavy | — |  |
-| 20 | [Email and password login](./20-unified-login.md) | Not started | 11 | Heavy | — |  |
-| 21 | [Owner checkout controller](./21-checkout-controller.md) | Not started | 07, 12, 13 | Heavy | — |  |
+| 19 | [Signup rules](./19-signup-rules.md) | Done | 11 | Heavy | — | Run by the spec runner; see spec Log |
+| 20 | [Email and password login](./20-unified-login.md) | Done | 11 | Heavy | — | Run by the spec runner; see spec Log |
+| 21 | [Owner checkout controller](./21-checkout-controller.md) | Done | 07, 12, 13 | Heavy | — | Run by the spec runner; see spec Log |
 | 22 | [Activation polling](./22-activation-polling.md) | Not started | 12 | Heavy | — |  |
 | 23 | [Keep people signed in through outages](./23-session-resilience.md) | Not started | 06 | Heavy | — |  |
 | 24 | [Order summary](./24-order-summary.md) | Not started | 03, 04 | Standard | — |  |

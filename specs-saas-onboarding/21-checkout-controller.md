@@ -1,6 +1,6 @@
 # Spec 21 — Owner checkout controller
 
-**Status:** Not started
+**Status:** Done
 **Depends on:** Spec 07, Spec 12, Spec 13
 **Model:** Heavy — `claude-opus-5-5` · `gpt-6.1-sol` · `gemini-3.1-pro-preview`
 **Issue:** —

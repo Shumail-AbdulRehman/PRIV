@@ -1,6 +1,6 @@
 # Spec 20 — Email and password login
 
-**Status:** Not started
+**Status:** Done
 **Depends on:** Spec 11
 **Model:** Heavy — `claude-opus-5-5` · `gpt-6.1-sol` · `gemini-3.1-pro-preview`
 **Issue:** —
