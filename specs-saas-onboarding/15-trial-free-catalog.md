@@ -39,8 +39,16 @@ Serve the plan catalog from Paddle with free trials refused and a short cache, s
 
 ## Done when
 
-- [ ] `cd backend && npx vitest run src/services/billingCatalog.service.test.ts` passes and proves: a price with a trial is refused; cache hits within 60 seconds; failures are not cached; concurrent reads make one set of calls. [unit]
-- [ ] `npm test --prefix backend` passes with 0 failures; real count in the Log. [unit]
-- [ ] `specs-saas-onboarding/inventory/15-trial-free-catalog.md` lists what this spec created for reuse. [static]
-- [ ] `cd backend && npx tsc --noEmit -p tsconfig.json` passes with 0 errors. The backend has no lint script. [static]
-- [ ] `npm run build --prefix backend` passes. [static]
+- [x] `cd backend && npx vitest run src/services/billingCatalog.service.test.ts` passes and proves: a price with a trial is refused; cache hits within 60 seconds; failures are not cached; concurrent reads make one set of calls. [unit]
+- [x] `npm test --prefix backend` passes with 0 failures; real count in the Log. [unit]
+- [x] `specs-saas-onboarding/inventory/15-trial-free-catalog.md` lists what this spec created for reuse. [static]
+- [x] `cd backend && npx tsc --noEmit -p tsconfig.json` passes with 0 errors. The backend has no lint script. [static]
+- [x] `npm run build --prefix backend` passes. [static]
+
+## Log
+
+- **2026-11-09** — Added the trial-free catalog reader, injected reader factory, safe validation errors/logging, owner/activation checks on every read, and a bounded environment/configuration-keyed cache. Successful reads last 60 seconds from completion; concurrent reads share provider work, failures are retried, and callers cannot mutate cached entries. The DTO omits trial metadata. The old lifecycle reader remains for spec 36 as required. Added the reusable inventory fragment; no existing tests outside Owns were changed.
+- **2026-11-09** — Focused command passed twice: **45 tests passed**, 0 failures/skips per run. Whole backend command passed: **2,057 tests passed, 7 skipped**, 0 failures; **105 files passed, 1 skipped**. The skipped SQL persistence tests require an isolated database and were not run. All commands used the unreachable local DATABASE_URL and DOTENV_CONFIG_PATH=/dev/null; database/provider work in the new tests uses injected mocks. No real Paddle/database calls, migrations, deployment, GitHub operations or git commit/merge/push/branch commands ran.
+- **2026-11-09** — Initial type check and build found the test seam unnecessarily required the gateway's unused prices.update method. Narrowed the injected provider type to prices.get and products.get; the focused tests passed again. Final type/build reruns are recorded below after completion.
+- **2026-11-09** — Final `cd backend && npx tsc --noEmit -p tsconfig.json` passed with 0 errors and no warnings.
+- **2026-11-09** — Final `npm run build --prefix backend` passed (exit 0), including Prisma client generation and TypeScript compilation. Prisma printed its available-version advisory (7.5.0 to 8.0.0-rc.33); no dependency changes were made. Backend has no lint script. Inventory existence/content and `git diff --check` passed. All Done when checks are complete; real provider and database behavior was not verified or required.
