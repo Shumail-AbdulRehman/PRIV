@@ -2,7 +2,6 @@
 export type LoginForm={
   email: string;
   password: string;
-  role: "Staff" | "Manager"
 }
 
 
