@@ -5,13 +5,32 @@ import {
   EventName,
   type CustomerNotification,
   type EventEntity,
-  type SubscriptionCreatedNotification,
+  type Subscription,
   type SubscriptionNotification,
   type TransactionNotification,
 } from "@paddle/paddle-node-sdk";
 import { prisma } from "../prisma/prisma.js";
 
-type SubscriptionPayload = SubscriptionNotification | SubscriptionCreatedNotification;
+// The API entity and webhook entity have different price types. Keep only the
+// provider facts fulfilment consumes, rather than casting one SDK type to another.
+type SubscriptionPayload = Pick<SubscriptionNotification,
+  'id' | 'customerId' | 'status' | 'createdAt' | 'updatedAt' | 'canceledAt' | 'pausedAt'
+  | 'scheduledChange' | 'currentBillingPeriod'> & {
+  items: { recurring: boolean; price: { id: string; productId: string } | null }[];
+};
+
+const subscriptionPayloadFromProvider = (data: Subscription): SubscriptionPayload => ({
+  id: data.id,
+  customerId: data.customerId,
+  status: data.status,
+  createdAt: data.createdAt,
+  updatedAt: data.updatedAt,
+  canceledAt: data.canceledAt,
+  pausedAt: data.pausedAt,
+  scheduledChange: data.scheduledChange,
+  currentBillingPeriod: data.currentBillingPeriod,
+  items: data.items.map(item => ({ recurring: item.recurring, price: { id: item.price.id, productId: item.price.productId } })),
+});
 
 type Db = Omit<typeof prisma, '$connect' | '$disconnect' | '$on' | '$transaction' | '$use' | '$extends'>;
 
@@ -25,6 +44,16 @@ const shouldApplyEntityVersion = (
   eventAt: Date,
 ) => !current || eventAt > current.lastEventAt
   || (eventAt.getTime() === current.lastEventAt.getTime() && paddleUpdatedAt >= current.paddleUpdatedAt);
+
+// A read has no event timestamp. Provider version is authoritative for both
+// subscription entry paths; delivery time only breaks ties for the same version.
+// Customer/transaction event ordering retains its existing behaviour.
+const shouldApplySubscriptionVersion = (
+  current: { paddleUpdatedAt: Date; lastEventAt: Date } | null,
+  paddleUpdatedAt: Date,
+  eventAt: Date,
+) => !current || paddleUpdatedAt > current.paddleUpdatedAt
+  || (paddleUpdatedAt.getTime() === current.paddleUpdatedAt.getTime() && eventAt >= current.lastEventAt);
 
 
 export const subscriptionGrantsPaidAccess = (status: string) =>
@@ -46,6 +75,12 @@ const ensureCustomerExists = async (customerId: string, client: Db) => client.pa
 const resolveCompanyId = async (customerId: string, client: Db) => {
   const company = await client.company.findFirst({ where: { billingCustomerId: customerId }, select: { id: true } });
   return company?.id;
+};
+const lockCustomer = async (customerId: string, client: Db, knownCompanyId?: number) => {
+  const companyId = knownCompanyId ?? await resolveCompanyId(customerId, client);
+  if (companyId) await client.$queryRaw`SELECT id FROM "Company" WHERE id=${companyId} FOR UPDATE`;
+  // Serialize every entry path for the same customer, including unlinked mirrors.
+  await client.$queryRaw`SELECT pg_advisory_xact_lock(hashtextextended(${customerId}, 1516))::text`;
 };
 const linkCustomerToCompany = async (customerId: string, companyId: number, client: Db) => {
   const customer = await client.paddleCustomer.findUniqueOrThrow({ where: { id: customerId } });
@@ -146,7 +181,7 @@ const handleSubscription = async (data: SubscriptionPayload, eventAt: Date, clie
   const current = await client.paddleSubscription.findUnique({ where: { id: data.id } });
 
   if (current && (current.customerId !== data.customerId || (current.companyId !== null && companyId !== undefined && current.companyId !== companyId))) throw new ApiError(409, "Billing subscription linkage requires review");
-  if (shouldApplyEntityVersion(current, paddleUpdatedAt, eventAt)) {
+  if (shouldApplySubscriptionVersion(current, paddleUpdatedAt, eventAt)) {
     await client.paddleSubscription.upsert({
       where: { id: data.id },
       create: {
@@ -186,6 +221,31 @@ const handleSubscription = async (data: SubscriptionPayload, eventAt: Date, clie
   }
 
   if (companyId) await syncCompanyAccess(companyId, client);
+};
+
+/** Apply a trusted server-side Paddle read to its already established tenant.
+ * Callers own transaction/payment verification. This never deduplicates or
+ * synthesizes a webhook, so the real signed event can still be processed later.
+ */
+export const applyPaddleSubscription = async (
+  subscription: Subscription,
+  scope: { companyId: number; customerId: string },
+  db: Pick<typeof prisma, '$transaction'> = prisma,
+) => {
+  if (!Number.isSafeInteger(scope.companyId) || scope.companyId < 1 || !scope.customerId || subscription.customerId !== scope.customerId) {
+    throw new ApiError(409, 'Billing customer linkage requires review');
+  }
+  const versionAt = new Date(subscription.updatedAt);
+  if (!Number.isFinite(+versionAt)) throw new ApiError(400, 'Invalid billing subscription');
+  return db.$transaction(async client => {
+    await lockCustomer(scope.customerId, client, scope.companyId);
+    if (await resolveCompanyId(scope.customerId, client) !== scope.companyId) {
+      throw new ApiError(409, 'Billing customer linkage requires review');
+    }
+    // Use the provider's version, never local read time: a delayed webhook with
+    // newer facts must remain able to apply, even after repeated server reads.
+    await handleSubscription(subscriptionPayloadFromProvider(subscription), versionAt, client);
+  });
 };
 
 const ensureSubscriptionExistsFromTransaction = async (
@@ -274,10 +334,7 @@ export const processPaddleEvent = async (event: EventEntity, db: Pick<typeof pri
     const data = event.data;
     const customerId = event.eventType.startsWith('customer.') ? data.id : 'customerId' in data ? data.customerId : null;
     if (typeof customerId === 'string') {
-      const companyId = await resolveCompanyId(customerId, client);
-      if (companyId) await client.$queryRaw`SELECT id FROM "Company" WHERE id=${companyId} FOR UPDATE`;
-      // Serialize distinct events for the same provider customer, including unlinked mirrors.
-      await client.$queryRaw`SELECT pg_advisory_xact_lock(hashtextextended(${customerId}, 1516))::text`;
+      await lockCustomer(customerId, client);
     }
     switch (event.eventType) {
       case EventName.CustomerCreated:
