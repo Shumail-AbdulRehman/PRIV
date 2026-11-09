@@ -26,9 +26,9 @@ The single source of truth for where this work stands. It outranks any assumptio
 | 19 | [Signup rules](./19-signup-rules.md) | Done | 11 | Heavy | — | Run by the spec runner; see spec Log |
 | 20 | [Email and password login](./20-unified-login.md) | Done | 11 | Heavy | — | Run by the spec runner; see spec Log |
 | 21 | [Owner checkout controller](./21-checkout-controller.md) | Done | 07, 12, 13 | Heavy | — | Run by the spec runner; see spec Log |
-| 22 | [Activation polling](./22-activation-polling.md) | Not started | 12 | Heavy | — |  |
-| 23 | [Keep people signed in through outages](./23-session-resilience.md) | Not started | 06 | Heavy | — |  |
-| 24 | [Order summary](./24-order-summary.md) | Not started | 03, 04 | Standard | — |  |
+| 22 | [Activation polling](./22-activation-polling.md) | Done | 12 | Heavy | — | Run by the spec runner; see spec Log |
+| 23 | [Keep people signed in through outages](./23-session-resilience.md) | Done | 06 | Heavy | — | Run by the spec runner; see spec Log |
+| 24 | [Order summary](./24-order-summary.md) | Done | 03, 04 | Standard | — | Run by the spec runner; see spec Log |
 | 25 | [Inline Paddle frame](./25-paddle-frame.md) | Not started | 03, 13, 14 | Standard | — |  |
 | 26 | [Prepare and replace checkout](./26-prepare-checkout.md) | Not started | 15, 17 | Heavy | — |  |
 | 27 | [Server confirmation of a paid checkout](./27-confirm-checkout.md) | Not started | 08, 09, 18 | Heavy | — |  |
