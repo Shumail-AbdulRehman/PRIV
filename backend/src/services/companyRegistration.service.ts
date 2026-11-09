@@ -7,12 +7,15 @@ import { writeAuditLog } from "./auditLog.service.js";
 export const companyRegistrationSchema = managerSignupSchema.extend({
   companyName: managerSignupSchema.shape.companyName.trim().min(2).max(160),
   name: managerSignupSchema.shape.name.trim().min(2).max(120),
-  email: managerSignupSchema.shape.email.trim().max(254),
-  password: managerSignupSchema.shape.password.refine(value => Buffer.byteLength(value, "utf8") <= 72, "Password must be at most 72 UTF-8 bytes"),
+  email: managerSignupSchema.shape.email.max(254),
 }).strict();
 
 export type RegisteredOwner = { id: number; name: string; email: string; role: "ADMIN"; companyId: number };
 type RegistrationDb = Pick<typeof prisma, "$transaction">;
+
+const emailExists = () => new ApiError(409,
+  "An account with these details already exists. Sign in or recover your account.",
+  [{ code: "EMAIL_EXISTS", field: "email", message: "This email already has an account" }]);
 
 export async function registerCompany(input: unknown, db: RegistrationDb = prisma): Promise<RegisteredOwner> {
   const parsed = companyRegistrationSchema.safeParse(input);
@@ -20,6 +23,12 @@ export async function registerCompany(input: unknown, db: RegistrationDb = prism
   const { companyName, name, email, password } = parsed.data;
   try {
     const owner = await db.$transaction(async tx => {
+      // Check both identity tables, including legacy mixed-case and inactive
+      // accounts, before creating any company or owner records.
+      const where = { email: { equals: email, mode: "insensitive" as const } };
+      const manager = await tx.manager.findFirst({ where, select: { id: true } });
+      const staff = await tx.staff.findFirst({ where, select: { id: true } });
+      if (manager || staff) throw emailExists();
       const company = await tx.company.create({ data: { name: companyName }, select: { id: true } });
       // The existing extended Prisma client hashes manager.create passwords,
       // including its transaction client. Do not hash again before this call.
@@ -38,7 +47,7 @@ export async function registerCompany(input: unknown, db: RegistrationDb = prism
     return { id: owner.id, name: owner.name, email: owner.email, role: "ADMIN", companyId: owner.companyId };
   } catch (error) {
     if ((error as { code?: string })?.code === "P2002")
-      throw new ApiError(409, "An account with these details already exists. Sign in or recover your account.");
+      throw emailExists();
     throw error;
   }
 }

@@ -11,6 +11,7 @@ import {
 } from "../controllers/manager.controller.js";
 import { verifyJwt } from "../middlewares/auth.middleware.js";
 import authorize from "../middlewares/authorize.middleware.js";
+import { authRateLimit } from "../services/authRateLimit.js";
 
 import { operationsRead, readDashboardTrends, readCompanyPerformance } from "../controllers/managerOperations.controller.js";
 const router = Router();
@@ -24,7 +25,7 @@ for (const kind of ["overview", "staff", "tasks"] as const)
     operationsRead(kind),
   );
 
-router.post("/manager-signup", signupManager);
+router.post("/manager-signup", authRateLimit.signup, signupManager);
 router.post("/manager-login", loginManager);
 router.get("/profile/me", verifyJwt, getManagerProfile);
 router.get(
