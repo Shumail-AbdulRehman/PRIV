@@ -90,7 +90,7 @@ Known unverified: real Paddle payments, the live Heroku/Netlify configuration, p
 
 ## Signup, plan and checkout plan (current work)
 
-`specs-saas-onboarding/` is the active plan: 44 specs for `gpt-6.1-sol`. Start at its `README.md`. Status is in its `PROGRESS.md`. Specs 00–02 are done; spec 03 is the next lowest-numbered eligible spec. Spec 01 added the lifecycle/outcome contract. Spec 02 added safe structured request-error logging and correlation IDs, validated proxy hops, and guarded Express 5 listen failures so a bind error requests exit 1 without a successful-listen message or startup callback. Provider-call logging still belongs to spec 08. Open problems 2, 3, 5 and 6 above remain until their implementation specs pass. Deploy nothing until spec 43 passes.
+`specs-saas-onboarding/` is the active plan: 44 specs for `gpt-6.1-sol`. Start at its `README.md`. Status is in its `PROGRESS.md`. Specs 00–03 are done; spec 04 is the next lowest-numbered eligible spec. Spec 01 added the lifecycle/outcome contract. Spec 02 added safe structured request-error logging and correlation IDs, validated proxy hops, and guarded Express 5 listen failures so a bind error requests exit 1 without a successful-listen message or startup callback. Spec 03 added `pages/Onboarding/FlowShell.tsx` and scoped `flow.css`: aurora background, paper/stacked sheets, progress, responsive panel slot, focus handling and reduced motion. It remains additive; future screen specs adopt it, spec 04 adds Urdu copy and spec 05 replaces the logo asset. Provider-call logging still belongs to spec 08. Open problems 2, 3, 5 and 6 above remain until their implementation specs pass. Deploy nothing until spec 43 passes.
 
 The planning baseline is committed on `saas-onboarding` as `9052ea5`. The planner unblocked spec 01 by allowing missing onboarding fields until spec 36 sends them and adding a narrow test-only scope exception. The client now parses a missing step as `null`, validates confirm/reconcile outcomes with optional company scope, and ignores legacy catalog trial metadata. The checkout replacement flag stays optional on the wire until spec 26 sends it, and parses to `false` when absent. Server step derivation, provider changes and HTTP wiring remain with their later specs.
 
@@ -104,7 +104,7 @@ Approval needed when run: spec 14 (real Paddle sandbox probe, and reading the st
 
 ## Design decisions (2026-11-09)
 
-Register is `product`. Blue (`#2556d8`) is the shipped primary, not teal. North Star is "The Daily Worksheet". Spoken instructions were removed from the docs because `expo-speech` is not installed. Non-visual UI rules live in `docs/PRODUCT_UI_RULES.md`. Impeccable reads `PRODUCT.md`, `DESIGN.md` and `.impeccable/design.json`. The new logo and onboarding colours reach the app through specs 03 and 05.
+Register is `product`. Blue (`#2556d8`) is the shipped primary, not teal. North Star is "The Daily Worksheet". Spoken instructions were removed from the docs because `expo-speech` is not installed. Non-visual UI rules live in `docs/PRODUCT_UI_RULES.md`. Impeccable reads `PRODUCT.md`, `DESIGN.md` and `.impeccable/design.json`. Spec 03 now supplies the approved onboarding colours in the isolated shared shell; screens adopt it in their later specs. The logo asset rollout remains spec 05.
 
 ## Commands
 
@@ -120,9 +120,9 @@ python3 .ai/plan-project/scripts/validate-specs.py specs-billing-checkout-repair
 
 Last backend result (2026-11-09, spec 02): type check clean and build passed; **1,642 passed and 7 skipped** (the skipped SQL tests need `LAUNCH_PERSISTENCE_TEST_DATABASE_URL`). The total includes 26 logger and 60 route/startup tests. The build printed a Prisma upgrade advisory. No real database or Paddle checks ran; the occupied-port check used local HTTP and an injected exit function. Backend has no lint script.
 
-Spec validation (spec 02): 44 specs, 0 errors, 51 nonblocking planning warnings, including the missing-issue warning required by this run's no-issue/no-PR override.
+Spec validation (spec 03): 44 specs, 0 errors, 52 nonblocking planning warnings, including the missing-issue warnings required by this run's no-issue/no-PR override.
 
-Last web result remains spec 01: type check and lint clean, build passed; 81 Node and 832 Vitest tests passed, including 128 focused contract cases. Frontend builds report a plugin-timing advisory; Node tests report the mobile translation module-type warning. Mobile's prior result is 115 passed. Web/mobile were not rerun for backend-only spec 02.
+Last web result (2026-11-09, spec 03): type check and lint clean, build passed; **81 Node and 860 Vitest tests passed**, including **28** focused shell cases (0 failures/skips). A temporary isolated Vite/Chromium component preview verified 25 responsive/RTL/reduced-motion cases, keyboard focus/draft continuity and 10 inspected captures; no application end-to-end suite, provider or database was used. Frontend builds report a plugin-timing advisory; Node tests report the mobile translation module-type warning. Mobile's prior result is 115 passed. Backend/mobile were not rerun for frontend-only spec 03.
 
 ## Working rules
 
