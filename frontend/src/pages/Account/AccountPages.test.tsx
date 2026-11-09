@@ -58,9 +58,9 @@ it('verification requires current password and receipt says delivery unconfirmed
  fireEvent.change(screen.getByLabelText('Current password'),{target:{value:'old password'}});fireEvent.click(screen.getByRole('button',{name:'Request verification link'}));
  await screen.findByText('Request accepted for processing. Delivery is not confirmed. Check your inbox and spam folder.');expect(m.post).toHaveBeenCalledWith('/owner-identity/email/request',{currentPassword:'old password'});expect(screen.queryByText('Owner email is verified.')).not.toBeInTheDocument();
 });
-it('public recovery gives neutral receipt without pretending mail was sent or confirming an account',async()=>{
- mount(<OwnerRecoveryPage/>,null);fireEvent.change(screen.getByLabelText('Owner email'),{target:{value:'unknown@example.invalid'}});fireEvent.click(screen.getByRole('button',{name:'Request recovery link'}));
- await screen.findByText('Request accepted for processing');expect(screen.getByRole('status')).toHaveTextContent('Delivery is not confirmed.');expect(m.post).toHaveBeenCalledWith('/owner-identity/recovery/request',{email:'unknown@example.invalid'});
+it('public recovery uses the narrow flow shell and gives the neutral owner-account receipt',async()=>{
+ const {container}=mount(<OwnerRecoveryPage/>,null);expect(container.querySelector('.flow-shell')).toBeInTheDocument();expect(container.querySelector('.flow-stage')).toHaveAttribute('data-size','narrow');expect(container.querySelector('.v5-auth-page')).not.toBeInTheDocument();expect(screen.getByText(/Managers and staff should ask their company owner/)).toBeInTheDocument();fireEvent.change(screen.getByLabelText('Owner email'),{target:{value:'unknown@example.invalid'}});fireEvent.click(screen.getByRole('button',{name:'Request recovery link'}));
+ await screen.findByText('If that email has an owner account, a reset link is on its way.');expect(screen.getByRole('status')).toHaveClass('flow-notice-ok');expect(m.post).toHaveBeenCalledWith('/owner-identity/recovery/request',{email:'unknown@example.invalid'});
 });
 it('missing sender is honest and does not leak arbitrary server errors',async()=>{
  m.post.mockRejectedValue({response:{status:503,data:{message:'private provider key'}}});mount(<OwnerRecoveryPage/>,null);
@@ -73,7 +73,7 @@ it('verify link GET/render never consumes; explicit confirmation posts token and
 });
 it('expired or used recovery link is explicit and does not navigate to fake success',async()=>{
  m.post.mockRejectedValue({response:{status:400}});mount(<OwnerLinkPage kind="reset"/>,null);
- fireEvent.change(screen.getByLabelText('New password'),{target:{value:'next password'}});fireEvent.change(screen.getByLabelText('Confirm new password'),{target:{value:'next password'}});fireEvent.click(screen.getByRole('button',{name:'Reset password'}));await screen.findByText('This link is invalid, expired or already used. Request a new link.');expect(screen.queryByText('Sign in again')).not.toBeInTheDocument();
+ fireEvent.change(screen.getByLabelText('New password'),{target:{value:'next password'}});fireEvent.change(screen.getByLabelText('Confirm new password'),{target:{value:'next password'}});fireEvent.click(screen.getByRole('button',{name:'Reset password'}));await screen.findByText('This link is invalid, expired or already used. Request a new link.');expect(screen.queryByText('Sign in again')).not.toBeInTheDocument();expect(screen.getByRole('link',{name:'Request recovery link'})).toHaveAttribute('href','/recover-owner-account');
 });
 it('missing token cannot submit any completion request',()=>{
  m.token.mockReturnValue(undefined);mount(<OwnerLinkPage kind="verify"/>,null);expect(screen.getByRole('alert')).toHaveTextContent('This link is missing or invalid.');expect(m.post).not.toHaveBeenCalled();expect(screen.queryByRole('button',{name:'Confirm owner email'})).not.toBeInTheDocument();
@@ -92,7 +92,7 @@ it('only actual structured password-replacement403 admits forced screen',()=>{
  expect(requiresPasswordChange({response:{status:401,data:{errors:[{code:'PASSWORD_CHANGE_REQUIRED'}]}}})).toBe(false);
 });
 it('Urdu recovery keeps LTR email and complete RTL labels and feedback',async()=>{
- mount(<OwnerRecoveryPage/>,null,'ur');expect(document.documentElement.dir).toBe('rtl');expect(screen.getByLabelText('مالک کی ای میل')).toHaveAttribute('dir','ltr');fireEvent.change(screen.getByLabelText('مالک کی ای میل'),{target:{value:'owner@example.invalid'}});fireEvent.click(screen.getByRole('button',{name:'بحالی کا لنک مانگیں'}));await waitFor(()=>expect(screen.getByRole('status')).toHaveTextContent('پیغام پہنچنے کی تصدیق نہیں ہوئی'));
+ mount(<OwnerRecoveryPage/>,null,'ur');expect(document.documentElement.dir).toBe('rtl');expect(screen.getByLabelText('مالک کی ای میل')).toHaveAttribute('dir','ltr');fireEvent.change(screen.getByLabelText('مالک کی ای میل'),{target:{value:'owner@example.invalid'}});fireEvent.click(screen.getByRole('button',{name:'بحالی کا لنک مانگیں'}));await waitFor(()=>expect(screen.getByRole('status')).toHaveTextContent('اگر اس ای میل پر مالک کا اکاؤنٹ ہے تو ری سیٹ لنک بھیج دیا گیا ہے۔'));
 });
 
 it('principal changes discard verification receipts and never reuse another owner status',async()=>{
@@ -149,4 +149,52 @@ it('failed saved-settings refresh leaves the current organization draft mounted 
  await screen.findByText('Company settings could not load. Your saved records are unchanged.');expect(screen.getByLabelText('Company name')).toHaveValue('Keep draft through network failure');
  m.get.mockResolvedValueOnce({data:{data:{...fixture,name:'Refreshed saved name',accountVersion:4}}});fireEvent.click(screen.getByRole('button',{name:'Reload saved settings'}));
  await waitFor(()=>expect(screen.getByLabelText('Company name')).toHaveValue('Refreshed saved name'));
+});
+
+it.each(['verify', 'reset'] as const)('public %s link uses the narrow shell even with a signed-in identity',kind=>{
+ const {container}=mount(<OwnerLinkPage kind={kind}/>);
+ expect(container.querySelector('.flow-stage')).toHaveAttribute('data-size','narrow');
+ expect(container.querySelector('.v5-auth-page')).not.toBeInTheDocument();
+ expect(screen.getByRole('heading',{level:1})).toHaveFocus();
+ expect(document.title).toBe(`${kind==='verify'?'Verify owner email':'Reset owner password'} | Hygene Ops`);
+ expect(screen.getByRole('link',{name:'Return to sign in'})).toHaveAttribute('href','/login');
+ expect(m.token).toHaveBeenCalledWith(kind==='verify'?'/verify-owner-email':'/reset-owner-password');
+ expect(m.post).not.toHaveBeenCalled();
+});
+it.each(['verify', 'reset'] as const)('missing %s link explains how to continue',kind=>{
+ m.token.mockReturnValue(undefined);const {container}=mount(<OwnerLinkPage kind={kind}/>,null);
+ expect(container.querySelector('.flow-shell')).toBeInTheDocument();
+ expect(screen.getByRole('alert')).toHaveTextContent('Open the complete link from your email.');
+ expect(screen.getByRole('link',{name:kind==='reset'?'Request recovery link':'Open company settings'})).toHaveAttribute('href',kind==='reset'?'/recover-owner-account':'/settings');
+ expect(m.post).not.toHaveBeenCalled();
+});
+it('rejected verification offers company settings for a replacement link',async()=>{
+ m.post.mockRejectedValue({response:{status:410}});mount(<OwnerLinkPage kind="verify"/>,null);
+ fireEvent.click(screen.getByRole('button',{name:'Confirm owner email'}));
+ expect(await screen.findByRole('alert')).toHaveTextContent('This link is invalid, expired or already used. Request a new link.');
+ expect(screen.getByRole('link',{name:'Open company settings'})).toHaveAttribute('href','/settings');
+ expect(screen.queryByText('Sign in again')).not.toBeInTheDocument();
+});
+it.each([false,true])('own security preserves its existing auth layout (forced: %s)',forced=>{
+ const {container}=mount(<OwnSecurityPage forced={forced}/>);
+ expect(container.querySelector('.workspace.account-public .v5-auth-page')).toBeInTheDocument();
+ expect(container.querySelector('.flow-shell')).not.toBeInTheDocument();
+ expect(screen.getByLabelText('Current password').closest('form')).toHaveClass('account-form');
+ expect(screen.getByRole('button',{name:'Change password'})).not.toHaveClass('flow-button');
+});
+it('company settings retain their settings layout and forms',async()=>{
+ const {container}=mount(<CompanySettingsPage/>);await screen.findByLabelText('Company name');
+ expect(container.querySelector('.settings-v5 .settings-split')).toBeInTheDocument();
+ expect(container.querySelector('.flow-shell')).not.toBeInTheDocument();
+ fireEvent.click(screen.getByRole('button',{name:'Security'}));
+ expect(screen.getByLabelText('Current password').closest('form')).toHaveClass('account-form');
+});
+it('reset completion still posts the captured token and new password and revokes private session state',async()=>{
+ const {store,query}=mount(<OwnerLinkPage kind="reset"/>,null);
+ fireEvent.change(screen.getByLabelText('New password'),{target:{value:'replacement password'}});
+ fireEvent.change(screen.getByLabelText('Confirm new password'),{target:{value:'replacement password'}});
+ fireEvent.click(screen.getByRole('button',{name:'Reset password'}));
+ await screen.findByRole('heading',{name:'Sign in again'});
+ expect(m.post).toHaveBeenCalledWith('/owner-identity/recovery/complete',{token:'a'.repeat(43),newPassword:'replacement password'});
+ expect(store.getState().auth.user).toBeNull();expect(query.getQueryData(['private-operational-data'])).toBeUndefined();expect(m.forget).toHaveBeenCalled();
 });
