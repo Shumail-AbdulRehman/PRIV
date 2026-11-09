@@ -2,6 +2,8 @@ import credentialHandoffRouter from "./credentialHandoff.route.js";
 import { Router } from "express";
 import { verifyOwnSecurityJwt } from "../middlewares/auth.middleware.js";
 import { getCurrentUser,logOut,refreshToken } from "../controllers/common.controller.js";
+import { loginUser } from "../controllers/login.controller.js";
+import { authRateLimit } from "../services/authRateLimit.js";
 
 
 
@@ -9,6 +11,7 @@ import { getCurrentUser,logOut,refreshToken } from "../controllers/common.contro
 
 const router = Router();
 router.use(credentialHandoffRouter);
+router.post("/login", authRateLimit.login, loginUser);
 
 
 router.post("/logout",logOut);
