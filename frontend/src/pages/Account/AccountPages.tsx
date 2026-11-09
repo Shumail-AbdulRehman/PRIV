@@ -1,4 +1,4 @@
-import { useState, type FormEvent, type ReactNode } from 'react';
+import { useEffect, useState, type FormEvent, type ReactNode } from 'react';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { useDispatch } from 'react-redux';
 import { Link, useNavigate, useSearchParams } from 'react-router-dom';
@@ -6,6 +6,7 @@ import useAuth from '@/hooks/useAuth';
 import { clearUser } from '@/store/slices/authSlice';
 import { useLanguage } from '@/i18n/context';
 import AuthShell from '@/components/common/AuthShell';
+import FlowShell from '@/pages/Onboarding/FlowShell';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { changePassword, companySettings, completeOwnerLink, ownerStatus, requestRecovery, requestVerification, responseStatus, saveCompanySettings, type CompanySettings } from './api';
@@ -23,8 +24,17 @@ function useSecurityCompletion() {
   navigate('/login', {replace: true, state: {securityCompleted: true}});
  };
 }
-function SecurityShell({title, description, children}: {title: string; description: string; children: ReactNode}) {
+function SecurityShell({title, description, children, publicPage = false}: {title: string; description: string; children: ReactNode; publicPage?: boolean}) {
  const {t} = useLanguage();
+ const translatedTitle = t(title);
+ useEffect(() => {
+  if (publicPage) document.title = `${translatedTitle} | Hygene Ops`;
+ }, [publicPage, translatedTitle]);
+ if (publicPage) return <FlowShell size="narrow">
+  <h1>{t(title)}</h1>
+  <p className="flow-lede">{t(description)}</p>
+  <div className="flow-form">{children}<p className="flow-fine"><Link to="/login">{t('Return to sign in')}</Link></p></div>
+ </FlowShell>;
  return <div className="workspace account-public"><AuthShell title={t(title)} subtitle={t(description)} footer={<Link to="/login">{t('Return to sign in')}</Link>}>{children}</AuthShell></div>;
 }
 function PasswordFields({current, submit, busy, label}: {current: boolean; submit: (currentPassword: string, newPassword: string) => Promise<void>; busy?: boolean; label: string}) {
@@ -43,13 +53,13 @@ function PasswordFields({current, submit, busy, label}: {current: boolean; submi
    setError(status === 410 || (!current && (status === 400 || status === 403)) ? 'This link is invalid, expired or already used. Request a new link.' : status === 403 ? 'Your current password could not be verified, or access changed. Check it and try again.' : status === 400 ? 'Choose a different valid new password and try again.' : 'The password could not be changed. Check your connection and try again.');
   } finally {setPending(false);}
  }
- return <form className="account-form" onSubmit={save}>
+ return <form className={current ? "account-form" : "grid gap-5"} onSubmit={save}>
   {current && <label>{t('Current password')}<Input name="currentPassword" type="password" dir="ltr" autoComplete="current-password" required maxLength={1024}/></label>}
-  <label>{t('New password')}<Input name="newPassword" type="password" dir="ltr" autoComplete="new-password" required minLength={8} aria-describedby="password-help"/></label>
-  <p id="password-help" className="account-help">{t('Use at least 8 characters and at most 72 UTF-8 bytes. Choose a different password.')}</p>
-  <label>{t('Confirm new password')}<Input name="confirmPassword" type="password" dir="ltr" autoComplete="new-password" required minLength={8}/></label>
-  {error && <p role="alert" className="account-error">{t(error)}</p>}
-  <Button disabled={pending || busy} type="submit">{t(pending ? 'Saving password…' : label)}</Button>
+  <label className={current ? undefined : 'flow-field'}>{t('New password')}<Input name="newPassword" type="password" dir="ltr" autoComplete="new-password" required minLength={8} aria-describedby="password-help"/></label>
+  <p id="password-help" className={current ? "account-help" : "flow-fine"}>{t('Use at least 8 characters and at most 72 UTF-8 bytes. Choose a different password.')}</p>
+  <label className={current ? undefined : 'flow-field'}>{t('Confirm new password')}<Input name="confirmPassword" type="password" dir="ltr" autoComplete="new-password" required minLength={8}/></label>
+  {error && (current ? <p role="alert" className="account-error">{t(error)}</p> : <div role="alert" className="flow-notice flow-notice-bad">{t(error)} <Link to="/recover-owner-account">{t('Request recovery link')}</Link></div>)}
+  <Button className={current ? undefined : "flow-button"} aria-busy={!current && pending ? true : undefined} disabled={pending || busy} type="submit">{t(pending ? 'Saving password…' : label)}</Button>
  </form>;
 }
 export function OwnSecurityPage({forced = false}: {forced?: boolean}) {
@@ -67,8 +77,8 @@ export function OwnerRecoveryPage() {
   catch (err) {setError(responseStatus(err) === 503 ? 'Email recovery is unavailable. Contact your company owner or the configured support channel. Delivery has not been confirmed.' : responseStatus(err) === 429 ? 'Too many requests. Wait before trying again. Delivery has not been confirmed.' : 'The request could not be accepted. Check your connection and try again.');}
   finally {setPending(false);}
  }
- return <SecurityShell title="Recover your owner account" description="Recovery is for verified company owners. Managers and staff should ask their company owner about account access.">
-  {receipt ? <div role="status"><h2>{t('Request accepted for processing')}</h2><p>{t('Delivery is not confirmed. If this is an eligible verified owner account, a recovery request may be processed. No account details are disclosed.')}</p><p>{t('Check your inbox and spam folder. If no link arrives, contact the configured support channel.')}</p></div> : <form onSubmit={submit} className="account-form"><label>{t('Owner email')}<Input name="email" type="email" dir="ltr" autoComplete="email" required maxLength={254}/></label>{error && <p role="alert" className="account-error">{t(error)}</p>}<Button type="submit" disabled={pending}>{t(pending ? 'Requesting recovery…' : 'Request recovery link')}</Button></form>}
+ return <SecurityShell publicPage title="Recover your owner account" description="Recovery is for verified company owners. Managers and staff should ask their company owner about account access.">
+  {receipt ? <div role="status" className="flow-notice flow-notice-ok"><p>{t('If that email has an owner account, a reset link is on its way.')}</p><p>{t('Check your inbox and spam folder. If no link arrives, contact the configured support channel.')}</p></div> : <form onSubmit={submit} className="grid gap-5"><label className="flow-field">{t('Owner email')}<Input name="email" type="email" dir="ltr" autoComplete="email" required maxLength={254}/></label>{error && <p role="alert" className="flow-notice flow-notice-bad">{t(error)}</p>}<Button className="flow-button flow-button-full" type="submit" disabled={pending} aria-busy={pending}>{t(pending ? 'Requesting recovery…' : 'Request recovery link')}</Button></form>}
  </SecurityShell>;
 }
 export function OwnerLinkPage({kind}: {kind: 'verify' | 'reset'}) {
@@ -80,8 +90,8 @@ export function OwnerLinkPage({kind}: {kind: 'verify' | 'reset'}) {
   catch (err) {setError([400,403,410].includes(responseStatus(err) ?? 0) ? 'This link is invalid, expired or already used. Request a new link.' : 'Verification could not finish. Check your connection and try again.');}
   finally {setPending(false);}
  }
- return <SecurityShell title={kind === 'verify' ? 'Verify owner email' : 'Reset owner password'} description="Opening this page does not use the link. Confirm below to continue. Completing this action requires signing in again.">
-  {!token ? <div role="alert"><p>{t('This link is missing or invalid. Open the complete link from your email. Reloading removes the temporary link for your security.')}</p><Link to={kind === 'reset' ? '/recover-owner-account' : '/settings'}>{t(kind === 'reset' ? 'Request recovery link' : 'Open company settings')}</Link></div> : kind === 'reset' ? <PasswordFields current={false} label="Reset password" submit={async (_old, next) => {await completeOwnerLink('reset', token, next); complete();}}/> : <div className="account-form">{error && <p role="alert" className="account-error">{t(error)}</p>}<Button onClick={verify} disabled={pending}>{t(pending ? 'Verifying…' : 'Confirm owner email')}</Button></div>}
+ return <SecurityShell publicPage title={kind === 'verify' ? 'Verify owner email' : 'Reset owner password'} description="Opening this page does not use the link. Confirm below to continue. Completing this action requires signing in again.">
+  {!token ? <div role="alert" className="flow-notice flow-notice-bad"><p>{t('This link is missing or invalid. Open the complete link from your email. Reloading removes the temporary link for your security.')}</p><Link to={kind === 'reset' ? '/recover-owner-account' : '/settings'}>{t(kind === 'reset' ? 'Request recovery link' : 'Open company settings')}</Link></div> : kind === 'reset' ? <PasswordFields current={false} label="Reset password" submit={async (_old, next) => {await completeOwnerLink('reset', token, next); complete();}}/> : <div className="grid gap-5">{error && <div role="alert" className="flow-notice flow-notice-bad">{t(error)} <Link to="/settings">{t('Open company settings')}</Link></div>}<Button className="flow-button flow-button-full" onClick={verify} disabled={pending} aria-busy={pending}>{t(pending ? 'Verifying…' : 'Confirm owner email')}</Button></div>}
  </SecurityShell>;
 }
 function OrganizationForm({saved, update}: {saved: CompanySettings; update: (saved: CompanySettings) => void}) {
