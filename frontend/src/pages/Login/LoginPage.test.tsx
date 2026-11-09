@@ -33,7 +33,7 @@ it('rejects empty fields before contacting authentication and exposes linked err
 });
 it('keeps credentials available for correction and renders a translated denial without raw server details',async()=>{
  api.post.mockRejectedValue({response:{status:401,data:{message:'Private authentication diagnostic'}}});const {store}=mount(<Login/>,{language:'ur'});
- fireEvent.change(screen.getByLabelText('ای میل'),{target:{value:owner.email}});fireEvent.change(screen.getByLabelText('پاس ورڈ'),{target:{value:'Synthetic wrong password'}});fireEvent.click(screen.getByRole('button',{name:'لاگ ان کریں'}));
+ fireEvent.change(screen.getByLabelText('ای میل'),{target:{value:owner.email}});fireEvent.change(screen.getByLabelText('پاس ورڈ'),{target:{value:'Synthetic wrong password'}});fireEvent.click(screen.getByRole('button',{name:'سائن ان'}));
  await screen.findByText('ای میل یا پاس ورڈ درست نہیں۔');expect(screen.getByLabelText('پاس ورڈ')).toHaveValue('Synthetic wrong password');expect(screen.getByLabelText('ای میل')).toHaveAttribute('dir','ltr');expect(document.documentElement.dir).toBe('rtl');expect(screen.queryByText('Private authentication diagnostic')).not.toBeInTheDocument();expect(store.getState().auth.user).toBeNull();
 });
 it.each([['/signup','ADMIN','Billing destination'],['/signup','MANAGER','Workspace destination'],['/login','ADMIN','Workspace destination']] as const)('routes authenticated %s/%s consistently',async(path,role,destination)=>{
@@ -65,7 +65,7 @@ it('reveals and hides the existing password without submitting or changing crede
 it('translates the split login, platform link and password visibility for Urdu',()=>{
  mount(<Login/>,{language:'ur'});
  expect(screen.getByRole('heading',{name:'خوش آمدید'})).toBeInTheDocument();
- expect(screen.getByRole('link',{name:'پلیٹ فارم مالک کا داخلہ'})).toHaveAttribute('href','/platform/login');
+ expect(screen.getByRole('link',{name:'پلیٹ فارم مالک سائن ان'})).toHaveAttribute('href','/platform/login');
  fireEvent.click(screen.getByRole('button',{name:'پاس ورڈ دکھائیں'}));
  expect(screen.getByLabelText('پاس ورڈ')).toHaveAttribute('type','text');
  expect(screen.getByRole('button',{name:'پاس ورڈ چھپائیں'})).toBeInTheDocument();
