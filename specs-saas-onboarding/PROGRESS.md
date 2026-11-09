@@ -33,9 +33,9 @@ The single source of truth for where this work stands. It outranks any assumptio
 | 26 | [Prepare and replace checkout](./26-prepare-checkout.md) | Done | 15, 17 | Heavy | — | Run by the spec runner; see spec Log |
 | 27 | [Server confirmation of a paid checkout](./27-confirm-checkout.md) | Done | 08, 09, 18 | Heavy | — | Run by the spec runner; see spec Log |
 | 28 | [Repair stuck reservations](./28-reconcile-reservations.md) | Done | 17 | Heavy | — | Run by the spec runner; see spec Log |
-| 29 | [Sign-in screen](./29-login-screen.md) | Not started | 03, 04, 06 | Standard | — |  |
-| 30 | [Create account screen](./30-signup-screen.md) | Not started | 03, 04, 06 | Standard | — |  |
-| 31 | [Forgot password screens](./31-account-recovery-screens.md) | Not started | 03, 04 | Standard | — |  |
+| 29 | [Sign-in screen](./29-login-screen.md) | Done | 03, 04, 06 | Standard | — | Run by the spec runner; see spec Log |
+| 30 | [Create account screen](./30-signup-screen.md) | Done | 03, 04, 06 | Standard | — | Run by the spec runner; see spec Log |
+| 31 | [Forgot password screens](./31-account-recovery-screens.md) | Done | 03, 04 | Standard | — | Run by the spec runner; see spec Log |
 | 32 | [Staff web handoff screen](./32-staff-web-handoff.md) | Not started | 03, 04 | Light | — |  |
 | 33 | [Choose plan screen](./33-plan-screen.md) | Not started | 03, 04, 06 | Standard | — |  |
 | 34 | [Public pricing links and trial copy](./34-public-pricing.md) | Not started | 06 | Light | — |  |
