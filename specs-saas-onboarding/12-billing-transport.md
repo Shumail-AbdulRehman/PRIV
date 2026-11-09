@@ -39,7 +39,7 @@ Make every billing request end within a known time and report whether it failed 
 
 ## Done when
 
-- [ ] `cd frontend && npx vitest run frontend/src/pages/Subscription/onboarding/billingRequest.test.tsx` passes. [unit]
+- [ ] `cd frontend && npx vitest run src/pages/Subscription/onboarding/billingRequest.test.tsx` passes. [unit]
 - [ ] `cd frontend && npx vitest run src/pages/Subscription/api.test.tsx` passes and proves: a never-settling request ends at its limit; caller abort wins; a POST is sent once; new endpoints parse strictly. [unit]
 - [ ] `npm test --prefix frontend` passes with 0 failures; real count in the Log. [unit]
 - [ ] `specs-saas-onboarding/inventory/12-billing-transport.md` lists what this spec created for reuse. [static]

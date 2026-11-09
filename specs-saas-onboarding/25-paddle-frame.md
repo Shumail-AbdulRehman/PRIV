@@ -39,7 +39,7 @@ Provide the stable page element that Paddle's card form loads into, with a skele
 
 ## Done when
 
-- [ ] `cd frontend && npx vitest run frontend/src/pages/Subscription/onboarding/PaddleCheckoutFrame.test.tsx` passes and proves: the target node survives re-render and language change; skeleton shows until ready; the target is registered once and released on unmount. [unit]
+- [ ] `cd frontend && npx vitest run src/pages/Subscription/onboarding/PaddleCheckoutFrame.test.tsx` passes and proves: the target node survives re-render and language change; skeleton shows until ready; the target is registered once and released on unmount. [unit]
 - [ ] `npm test --prefix frontend` passes with 0 failures; real count in the Log. [unit]
 - [ ] `specs-saas-onboarding/inventory/25-paddle-frame.md` lists what this spec created for reuse. [static]
 - [ ] `cd frontend && npx tsc -b --noEmit` and `npm run lint --prefix frontend` pass with 0 errors, 0 warnings. [static]

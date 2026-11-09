@@ -43,7 +43,7 @@ Show honest progress while the server confirms the subscription, then a clear su
 
 ## Done when
 
-- [ ] `cd frontend && npx vitest run frontend/src/pages/Subscription/onboarding/BillingActivationPage.test.tsx` passes and proves: slow and timeout states; Ready only from server facts; reload resumes; NOT_PAID and NO_CHECKOUT redirect; reduced motion; restricted never shows Ready. [unit]
+- [ ] `cd frontend && npx vitest run src/pages/Subscription/onboarding/BillingActivationPage.test.tsx` passes and proves: slow and timeout states; Ready only from server facts; reload resumes; NOT_PAID and NO_CHECKOUT redirect; reduced motion; restricted never shows Ready. [unit]
 - [ ] `npm test --prefix frontend` passes with 0 failures; real count in the Log. [unit]
 - [ ] `specs-saas-onboarding/inventory/35-confirmation-screens.md` lists what this spec created for reuse. [static]
 - [ ] `cd frontend && npx tsc -b --noEmit` and `npm run lint --prefix frontend` pass with 0 errors, 0 warnings. [static]

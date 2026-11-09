@@ -40,7 +40,7 @@ Confirm a finished checkout by asking the server repeatedly, with a hard stop an
 
 ## Done when
 
-- [ ] `cd frontend && npx vitest run frontend/src/pages/Subscription/onboarding/useCheckoutConfirmation.test.tsx` passes and proves: gap sequence; a hung call still times out at 120 seconds; stops on active and denied; retry restarts; no parallel calls. [unit]
+- [ ] `cd frontend && npx vitest run src/pages/Subscription/onboarding/useCheckoutConfirmation.test.tsx` passes and proves: gap sequence; a hung call still times out at 120 seconds; stops on active and denied; retry restarts; no parallel calls. [unit]
 - [ ] `npm test --prefix frontend` passes with 0 failures; real count in the Log. [unit]
 - [ ] `specs-saas-onboarding/inventory/22-activation-polling.md` lists what this spec created for reuse. [static]
 - [ ] `cd frontend && npx tsc -b --noEmit` and `npm run lint --prefix frontend` pass with 0 errors, 0 warnings. [static]

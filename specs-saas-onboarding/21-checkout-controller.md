@@ -47,7 +47,7 @@ Run one owner's checkout from page arrival to completion, using the state machin
 
 ## Done when
 
-- [ ] `cd frontend && npx vitest run frontend/src/pages/Subscription/onboarding/useCheckoutSession.test.tsx` passes and proves: one prepare under double mount; SDK failure never creates a draft; watchdog reaches frameFailed; decline keeps the same draft; timeout after send becomes unresolved with no second POST; status check works during a hung action; owner change discards late results. [unit]
+- [ ] `cd frontend && npx vitest run src/pages/Subscription/onboarding/useCheckoutSession.test.tsx` passes and proves: one prepare under double mount; SDK failure never creates a draft; watchdog reaches frameFailed; decline keeps the same draft; timeout after send becomes unresolved with no second POST; status check works during a hung action; owner change discards late results. [unit]
 - [ ] `npm test --prefix frontend` passes with 0 failures; real count in the Log. [unit]
 - [ ] `specs-saas-onboarding/inventory/21-checkout-controller.md` lists what this spec created for reuse. [static]
 - [ ] `cd frontend && npx tsc -b --noEmit` and `npm run lint --prefix frontend` pass with 0 errors, 0 warnings. [static]

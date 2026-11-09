@@ -44,7 +44,7 @@ Connect every screen so each user always lands on the correct step.
 
 ## Done when
 
-- [ ] `cd frontend && npx vitest run frontend/src/pages/Onboarding/FlowEntry.test.tsx src/components/onboarding/WorkspaceGate.test.tsx src/pages/Subscription/SubscriptionPage.test.tsx frontend/src/pages/Subscription/onboarding/billingRoutes.test.tsx` passes and proves: every step and route pair resolves without a loop; a session error shows retry; managers and past subscribers keep access; subscribers keep settings. [unit]
+- [ ] `cd frontend && npx vitest run src/pages/Onboarding/FlowEntry.test.tsx src/components/onboarding/WorkspaceGate.test.tsx src/pages/Subscription/SubscriptionPage.test.tsx src/pages/Subscription/onboarding/billingRoutes.test.tsx` passes and proves: every step and route pair resolves without a loop; a session error shows retry; managers and past subscribers keep access; subscribers keep settings. [unit]
 - [ ] `npm test --prefix frontend` passes with 0 failures; real count in the Log. [unit]
 - [ ] `specs-saas-onboarding/inventory/40-route-composition.md` lists what this spec created for reuse. [static]
 - [ ] `cd frontend && npx tsc -b --noEmit` and `npm run lint --prefix frontend` pass with 0 errors, 0 warnings. [static]

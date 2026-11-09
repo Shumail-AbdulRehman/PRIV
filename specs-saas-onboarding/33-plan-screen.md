@@ -44,7 +44,7 @@ Rebuild plan selection as the approved ledger, using real prices and exact allow
 
 ## Done when
 
-- [ ] `cd frontend && npx vitest run frontend/src/pages/Subscription/onboarding/BillingPlanPage.test.tsx` passes and proves: prices and allowances match the data; keyboard radios; tampered URL ignored; draft notice; loading, error and empty states; refetch does not disable choices. [unit]
+- [ ] `cd frontend && npx vitest run src/pages/Subscription/onboarding/BillingPlanPage.test.tsx` passes and proves: prices and allowances match the data; keyboard radios; tampered URL ignored; draft notice; loading, error and empty states; refetch does not disable choices. [unit]
 - [ ] `npm test --prefix frontend` passes with 0 failures; real count in the Log. [unit]
 - [ ] `specs-saas-onboarding/inventory/33-plan-screen.md` lists what this spec created for reuse. [static]
 - [ ] `cd frontend && npx tsc -b --noEmit` and `npm run lint --prefix frontend` pass with 0 errors, 0 warnings. [static]

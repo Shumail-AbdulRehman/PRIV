@@ -39,7 +39,7 @@ Explain any billing problem with its reason and one next action, and repair stuc
 
 ## Done when
 
-- [ ] `cd frontend && npx vitest run frontend/src/pages/Subscription/onboarding/BillingRecoveryPage.test.tsx` passes and proves: each outcome navigates or explains; reconcile runs once under double mount; IN_PROGRESS retries with a limit; no reset button; conflict shows support. [unit]
+- [ ] `cd frontend && npx vitest run src/pages/Subscription/onboarding/BillingRecoveryPage.test.tsx` passes and proves: each outcome navigates or explains; reconcile runs once under double mount; IN_PROGRESS retries with a limit; no reset button; conflict shows support. [unit]
 - [ ] `npm test --prefix frontend` passes with 0 failures; real count in the Log. [unit]
 - [ ] `specs-saas-onboarding/inventory/38-recovery-screen.md` lists what this spec created for reuse. [static]
 - [ ] `cd frontend && npx tsc -b --noEmit` and `npm run lint --prefix frontend` pass with 0 errors, 0 warnings. [static]

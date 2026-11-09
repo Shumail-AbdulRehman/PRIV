@@ -38,7 +38,7 @@ Show the purchase details Paddle requires beside the card form, using real total
 
 ## Done when
 
-- [ ] `cd frontend && npx vitest run frontend/src/pages/Subscription/onboarding/OrderSummary.test.tsx` passes and proves: skeletons until totals; real totals render; fallback never invents tax; change plan can be hidden; amounts stay left-to-right in Urdu. [unit]
+- [ ] `cd frontend && npx vitest run src/pages/Subscription/onboarding/OrderSummary.test.tsx` passes and proves: skeletons until totals; real totals render; fallback never invents tax; change plan can be hidden; amounts stay left-to-right in Urdu. [unit]
 - [ ] `npm test --prefix frontend` passes with 0 failures; real count in the Log. [unit]
 - [ ] `specs-saas-onboarding/inventory/24-order-summary.md` lists what this spec created for reuse. [static]
 - [ ] `cd frontend && npx tsc -b --noEmit` and `npm run lint --prefix frontend` pass with 0 errors, 0 warnings. [static]

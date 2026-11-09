@@ -43,7 +43,7 @@ Rebuild the payment page with Paddle's real card form on the page beside the ord
 
 ## Done when
 
-- [ ] `cd frontend && npx vitest run frontend/src/pages/Subscription/onboarding/BillingPaymentPage.test.tsx` passes and proves: frame present and no app card fields; test card only in matched sandbox; each notice; failure offers retry; change plan hidden while paying; a catalog refetch does not remount the frame. [unit]
+- [ ] `cd frontend && npx vitest run src/pages/Subscription/onboarding/BillingPaymentPage.test.tsx` passes and proves: frame present and no app card fields; test card only in matched sandbox; each notice; failure offers retry; change plan hidden while paying; a catalog refetch does not remount the frame. [unit]
 - [ ] `npm test --prefix frontend` passes with 0 failures; real count in the Log. [unit]
 - [ ] `specs-saas-onboarding/inventory/37-payment-screen.md` lists what this spec created for reuse. [static]
 - [ ] `cd frontend && npx tsc -b --noEmit` and `npm run lint --prefix frontend` pass with 0 errors, 0 warnings. [static]
