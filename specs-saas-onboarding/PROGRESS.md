@@ -11,8 +11,8 @@ The single source of truth for where this work stands. It outranks any assumptio
 | 04 | [English and Urdu copy for the flow](./04-urdu-dictionary.md) | Done | 00 | Light | — | Run by the spec runner; see spec Log |
 | 05 | [New Hygene Ops logo](./05-logo-rollout.md) | Done | 00 | Light | — | Run by the spec runner; see spec Log |
 | 06 | [Next-step route map](./06-onboarding-routes.md) | Not started | 01 | Standard | — |  |
-| 07 | [Pure checkout state machine](./07-checkout-machine.md) | Not started | 01 | Standard | — |  |
-| 08 | [Paddle gateway with time limits](./08-paddle-gateway.md) | Not started | 01, 02 | Heavy | — |  |
+| 07 | [Pure checkout state machine](./07-checkout-machine.md) | Done | 01 | Standard | — | Run by the spec runner; see spec Log |
+| 08 | [Paddle gateway with time limits](./08-paddle-gateway.md) | Done | 01, 02 | Heavy | — | Run by the spec runner; see spec Log |
 | 09 | [Reservation facts](./09-reservation-facts.md) | Not started | 01 | Heavy | — |  |
 | 10 | [Server next-step decision](./10-onboarding-step.md) | Not started | 01 | Standard | — |  |
 | 11 | [Authentication rate limiter](./11-auth-rate-limit.md) | Not started | 02 | Standard | — |  |

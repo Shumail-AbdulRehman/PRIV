@@ -1,6 +1,6 @@
 # Spec 08 — Paddle gateway with time limits
 
-**Status:** Not started
+**Status:** Done
 **Depends on:** Spec 01, Spec 02
 **Model:** Heavy — `claude-opus-5-5` · `gpt-6.1-sol` · `gemini-3.1-pro-preview`
 **Issue:** —
