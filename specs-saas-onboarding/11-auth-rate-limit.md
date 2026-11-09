@@ -39,8 +39,14 @@ Provide one limiter that public login and signup can use, so password guessing a
 
 ## Done when
 
-- [ ] `cd backend && npx vitest run src/services/authRateLimit.test.ts` passes and proves: limits trigger exactly at the threshold, reset after the window, keys for different emails are separate, and the key cap holds. [unit]
-- [ ] `npm test --prefix backend` passes with 0 failures; real count in the Log. [unit]
-- [ ] `specs-saas-onboarding/inventory/11-auth-rate-limit.md` lists what this spec created for reuse. [static]
-- [ ] `cd backend && npx tsc --noEmit -p tsconfig.json` passes with 0 errors. The backend has no lint script. [static]
-- [ ] `npm run build --prefix backend` passes. [static]
+- [x] `cd backend && npx vitest run src/services/authRateLimit.test.ts` passes and proves: limits trigger exactly at the threshold, reset after the window, keys for different emails are separate, and the key cap holds. [unit]
+- [x] `npm test --prefix backend` passes with 0 failures; real count in the Log. [unit]
+- [x] `specs-saas-onboarding/inventory/11-auth-rate-limit.md` lists what this spec created for reuse. [static]
+- [x] `cd backend && npx tsc --noEmit -p tsconfig.json` passes with 0 errors. The backend has no lint script. [static]
+- [x] `npm run build --prefix backend` passes. [static]
+
+## Log
+
+- **2026-11-09** — Added `createAuthRateLimit` and the shared `authRateLimit.login` / `.signup` Express middleware, following the owner-identity fixed-window bucket approach without changing that service. Login allows 10 attempts per normalized email/IP and 50 per IP per 15 minutes; signup allows 10 per IP per hour. All bucket keys are SHA-256 hashes. The default 10,000-key cap prunes expired buckets before rejecting new keys, never evicts live limits, and reserves login's two keys atomically. Rejections return 429 / `AUTH_RATE_LIMITED` with rounded-up `Retry-After`; warning logs contain only the fixed event and status. Documented per-process limits for the current single dyno. Route integration remains with specs 19 and 20.
+- **2026-11-09** — Verification used `DATABASE_URL='postgresql://none:none@127.0.0.1:1/none'` and `DOTENV_CONFIG_PATH=/dev/null` for every test, type and build command. Required focused command: **27 passed, 0 failed, 0 skipped** (1 file). Required `npm test --prefix backend`: **1,747 passed, 7 skipped, 0 failed** (102 passed files, 1 skipped file). Required type check: exit 0, **0 errors**. Required build: exit 0, Prisma client generation and TypeScript compilation passed; no warnings reported. Backend has no lint script. Inventory fragment written and inspected; `git diff --check` passed.
+- **2026-11-09** — Tests cover exact login/email, login/IP and signup thresholds, independent email/IP buckets, normalization, malformed input, fixed expiry/reset, rounded retry delays, blocked-attempt accounting, independent areas, cap enforcement, atomic admission, expired-key pruning, forwarded-header handling and safe logs. All auth tests use injected time/logger and mocked Express request/response objects. No application code or existing tests outside Owns changed; no test-only exception needed. Real database/provider and deployed multi-process behaviour were not exercised; no such access was needed. No route wiring, migrations, deployment, issue/PR or commit was performed, per run scope.
