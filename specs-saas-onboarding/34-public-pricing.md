@@ -1,6 +1,6 @@
 # Spec 34 — Public pricing links and trial copy
 
-**Status:** Not started
+**Status:** Done
 **Depends on:** Spec 06
 **Model:** Light — `claude-haiku-5-5` · `gpt-6.1-sol` · `gemini-3.5-flash-lite`
 **Issue:** —

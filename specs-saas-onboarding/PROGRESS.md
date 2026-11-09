@@ -36,9 +36,9 @@ The single source of truth for where this work stands. It outranks any assumptio
 | 29 | [Sign-in screen](./29-login-screen.md) | Done | 03, 04, 06 | Standard | — | Run by the spec runner; see spec Log |
 | 30 | [Create account screen](./30-signup-screen.md) | Done | 03, 04, 06 | Standard | — | Run by the spec runner; see spec Log |
 | 31 | [Forgot password screens](./31-account-recovery-screens.md) | Done | 03, 04 | Standard | — | Run by the spec runner; see spec Log |
-| 32 | [Staff web handoff screen](./32-staff-web-handoff.md) | Not started | 03, 04 | Light | — |  |
-| 33 | [Choose plan screen](./33-plan-screen.md) | Not started | 03, 04, 06 | Standard | — |  |
-| 34 | [Public pricing links and trial copy](./34-public-pricing.md) | Not started | 06 | Light | — |  |
+| 32 | [Staff web handoff screen](./32-staff-web-handoff.md) | Done | 03, 04 | Light | — | Run by the spec runner; see spec Log |
+| 33 | [Choose plan screen](./33-plan-screen.md) | Done | 03, 04, 06 | Standard | — | Run by the spec runner; see spec Log |
+| 34 | [Public pricing links and trial copy](./34-public-pricing.md) | Done | 06 | Light | — | Run by the spec runner; see spec Log |
 | 35 | [Confirming and ready screens](./35-confirmation-screens.md) | Not started | 03, 04, 22 | Heavy | — |  |
 | 36 | [Assemble the lifecycle service](./36-lifecycle-assembly.md) | Not started | 10, 26 | Heavy | — |  |
 | 37 | [Payment screen](./37-payment-screen.md) | Not started | 21, 24, 25 | Heavy | — |  |
