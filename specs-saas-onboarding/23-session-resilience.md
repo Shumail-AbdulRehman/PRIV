@@ -28,6 +28,7 @@ A temporary server problem must never look like being signed out, and signed-in 
 ## Reuse first
 
 - Keep existing guards and the forced-password flow.
+- `frontend/src/pages/Subscription/onboarding/billingRoutes.test.tsx` exercises this screen through the composer. Update only this screen's assertions there, under the test-only exception in `AGENT-GUIDE.md`.
 
 ## Steps
 

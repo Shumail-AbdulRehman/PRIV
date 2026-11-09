@@ -31,6 +31,7 @@ Show honest progress while the server confirms the subscription, then a clear su
 
 - Use the confirmation hook.
 - Do not derive anything from the URL.
+- `frontend/src/pages/Subscription/SubscriptionPage.test.tsx` exercises this screen through the composer. Update only this screen's assertions there, under the test-only exception in `AGENT-GUIDE.md`.
 
 ## Steps
 

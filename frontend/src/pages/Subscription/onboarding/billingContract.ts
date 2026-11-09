@@ -1,4 +1,4 @@
-import type { BillingCatalogEntry, BillingCheckout, BillingCheckoutResume, BillingLifecycle, CheckoutReadiness, ValidatedBillingLifecycle } from '../types';
+import type { BillingCatalogEntry, BillingCheckoutResume, BillingConfirmResult, BillingLifecycle, BillingReconcileResult, CheckoutReadiness, ValidatedBillingCheckout, ValidatedBillingLifecycle } from '../types';
 
 const invalid = (): never => { throw new Error('Billing response is unavailable'); };
 function object(value: unknown): Record<string, unknown> {
@@ -45,9 +45,9 @@ function resume(value: unknown): BillingCheckoutResume | null {
 const reasons: readonly CheckoutReadiness[] = ['UNKNOWN', 'BILLING_DISABLED', 'OWNER_VERIFICATION_REQUIRED', 'COMPANY_RESTRICTED', 'RECONCILIATION_PENDING', 'LINKED_SUBSCRIPTION', 'READY'];
 
 /** Validate raw DTO data after unwrapping the existing API envelope. Never coerce authorization flags. */
-export function parseBillingLifecycle(value: unknown): ValidatedBillingLifecycle {
+export function parseBillingLifecycle(value: unknown, expectedCompanyId?: number): ValidatedBillingLifecycle {
   const row = object(value), company = object(row.company), companyId = count(company.id);
-  if (companyId === 0) return invalid();
+  if (companyId === 0 || (expectedCompanyId !== undefined && companyId !== expectedCompanyId)) return invalid();
   return {
     company: { id: companyId, name: text(company.name), plan: plan(company.plan), isActive: bool(company.isActive), operationalStatus: oneOf(company.operationalStatus, ['ACTIVE', 'SUSPENDED'] as const) },
     usage: capacity(row.usage), limits: capacity(row.limits), subscription: subscription(row.subscription),
@@ -59,6 +59,8 @@ export function parseBillingLifecycle(value: unknown): ValidatedBillingLifecycle
     workspaceAccessAllowed: row.workspaceAccessAllowed === undefined ? false : bool(row.workspaceAccessAllowed),
     checkoutReadiness: row.checkoutReadiness === undefined ? 'UNKNOWN' : oneOf(row.checkoutReadiness, reasons),
     checkoutResume: resume(row.checkoutResume),
+    onboardingStep: row.onboardingStep == null ? null : oneOf(row.onboardingStep, ['CHOOSE_PLAN', 'PAYMENT', 'CONFIRMING', 'WORKSPACE', 'ACCOUNT', 'RECONCILE', 'RESTRICTED', 'VERIFY_EMAIL', 'UNAVAILABLE'] as const),
+    recoveryReason: row.recoveryReason == null ? null : oneOf(row.recoveryReason, ['EMAIL_CONFLICT', 'CUSTOMER_UNRESOLVED', 'BILLING_DISABLED', 'PRICE_NOT_READY'] as const),
   };
 }
 
@@ -72,17 +74,22 @@ export function parseBillingCatalog(value: unknown): BillingCatalogEntry[] {
     seen.add(key); prices.add(priceId);
     if (typeof row.amount !== 'string' || !/^(0|[1-9]\d*)$/.test(row.amount) || row.amount.length > 32) return invalid();
     if (typeof row.currencyCode !== 'string' || !/^[A-Z]{3}$/.test(row.currencyCode)) return invalid();
-    let trialPeriod: BillingCatalogEntry['trialPeriod'] = null;
-    if (row.trialPeriod !== null) {
-      const trial = object(row.trialPeriod), frequency = count(trial.frequency);
-      if (!frequency) return invalid();
-      trialPeriod = { interval: oneOf(trial.interval, ['day', 'week', 'month', 'year'] as const), frequency,
-        requiresPaymentMethod: trial.requiresPaymentMethod == null ? null : bool(trial.requiresPaymentMethod) };
-    }
-    return { plan: code, interval: cycle, priceId, productId: id(row.productId, 'pro'), amount: row.amount, currencyCode: row.currencyCode, trialPeriod };
+    // Ignore legacy provider trial data, including malformed leftovers from an older deployment.
+    return { plan: code, interval: cycle, priceId, productId: id(row.productId, 'pro'), amount: row.amount, currencyCode: row.currencyCode, trialPeriod: null };
   });
 }
-export function parseBillingCheckout(value: unknown): BillingCheckout {
+export function parseBillingCheckout(value: unknown): ValidatedBillingCheckout {
   const row = object(value);
-  return { transactionId: id(row.transactionId, 'txn'), reused: bool(row.reused) };
+  return { transactionId: id(row.transactionId, 'txn'), reused: bool(row.reused), replaced: row.replaced === undefined ? false : bool(row.replaced) };
+}
+
+/** Outcomes describe server observations; only lifecycle capabilities can authorize access. */
+export function parseBillingConfirm(value: unknown, expectedCompanyId?: number): BillingConfirmResult & { lifecycle: ValidatedBillingLifecycle } {
+  const row = object(value);
+  return { outcome: oneOf(row.outcome, ['ACTIVE', 'PROCESSING', 'NOT_PAID', 'NO_CHECKOUT'] as const), lifecycle: parseBillingLifecycle(row.lifecycle, expectedCompanyId) };
+}
+
+export function parseBillingReconcile(value: unknown, expectedCompanyId?: number): BillingReconcileResult & { lifecycle: ValidatedBillingLifecycle } {
+  const row = object(value);
+  return { outcome: oneOf(row.outcome, ['RESUMABLE', 'CLEARED', 'IN_PROGRESS', 'PAID', 'UNRESOLVED', 'CONFLICT'] as const), lifecycle: parseBillingLifecycle(row.lifecycle, expectedCompanyId) };
 }

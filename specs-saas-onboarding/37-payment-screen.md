@@ -32,6 +32,7 @@ Rebuild the payment page with Paddle's real card form on the page beside the ord
 ## Reuse first
 
 - Use the components named. Do not rebuild the summary.
+- `frontend/src/pages/Subscription/SubscriptionPage.test.tsx` exercises this screen through the composer. Update only this screen's assertions there, under the test-only exception in `AGENT-GUIDE.md`.
 
 ## Steps
 

@@ -4,6 +4,8 @@ export type BillingInterval = 'month' | 'year';
 export type CheckoutReadiness = 'UNKNOWN' | 'BILLING_DISABLED' | 'OWNER_VERIFICATION_REQUIRED' | 'COMPANY_RESTRICTED' | 'RECONCILIATION_PENDING' | 'LINKED_SUBSCRIPTION' | 'READY';
 export type BillingCheckoutResume = { plan: BillingPlanCode; interval: BillingInterval; transactionId: string };
 export type BillingCapacity = { locations: number; staff: number; managers: number };
+export type BillingOnboardingStep = 'CHOOSE_PLAN' | 'PAYMENT' | 'CONFIRMING' | 'WORKSPACE' | 'ACCOUNT' | 'RECONCILE' | 'RESTRICTED' | 'VERIFY_EMAIL' | 'UNAVAILABLE';
+export type BillingRecoveryReason = null | 'EMAIL_CONFLICT' | 'CUSTOMER_UNRESOLVED' | 'BILLING_DISABLED' | 'PRICE_NOT_READY';
 export type BillingLifecycleDto = {
   company: { id: number; name: string; plan: BillingPlanCode; isActive: boolean; operationalStatus: 'ACTIVE' | 'SUSPENDED' };
   usage: BillingCapacity;
@@ -20,10 +22,22 @@ export type BillingLifecycleDto = {
   portalAvailable: boolean; checkoutAvailable: boolean;
   workspaceAccessAllowed?: boolean; checkoutReadiness?: CheckoutReadiness;
   checkoutResume?: BillingCheckoutResume | null;
+  /** Optional until lifecycle assembly sends these fields; absence grants nothing. */
+  onboardingStep?: BillingOnboardingStep | null;
+  recoveryReason?: BillingRecoveryReason;
 };
 export type BillingCatalogEntryDto = {
   plan: BillingPlanCode; interval: BillingInterval; priceId: string; productId: string;
   amount: string; currencyCode: string;
-  trialPeriod: null | { interval: string; frequency: number; requiresPaymentMethod?: boolean | null };
+  /** @deprecated Compatibility only for screens awaiting replacement. New checkouts have no trial. */
+  trialPeriod?: null | { interval: string; frequency: number; requiresPaymentMethod?: boolean | null };
 };
-export type BillingCheckoutDto = { transactionId: string; reused: boolean };
+export type BillingCheckoutDto = {
+  transactionId: string; reused: boolean;
+  /** Optional until checkout replacement is implemented in spec 26. */
+  replaced?: boolean;
+};
+export type BillingConfirmOutcome = 'ACTIVE' | 'PROCESSING' | 'NOT_PAID' | 'NO_CHECKOUT';
+export type BillingConfirmDto = { outcome: BillingConfirmOutcome; lifecycle: BillingLifecycleDto };
+export type BillingReconcileOutcome = 'RESUMABLE' | 'CLEARED' | 'IN_PROGRESS' | 'PAID' | 'UNRESOLVED' | 'CONFLICT';
+export type BillingReconcileDto = { outcome: BillingReconcileOutcome; lifecycle: BillingLifecycleDto };

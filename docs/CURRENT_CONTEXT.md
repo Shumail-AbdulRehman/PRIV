@@ -1,6 +1,6 @@
 # Hygene Ops: current project context
 
-Last updated 2026-11-09, at commit `805dd40` plus uncommitted work. This is a snapshot from a code review, so check a claim against the code before relying on it. Update this file when something below changes.
+Last updated 2026-11-09, on branch `saas-onboarding`. This is a snapshot from a code review plus the onboarding implementation work below, so check a claim against the code before relying on it. Update this file when something below changes.
 
 ## What it is
 
@@ -91,7 +91,9 @@ Known unverified: real Paddle payments, the live Heroku/Netlify configuration, p
 
 ## Signup, plan and checkout plan (current work)
 
-`specs-saas-onboarding/` is the active plan: 44 specs for `gpt-6.1-sol`. Start at its `README.md`. Status is in its `PROGRESS.md`. Only decision spec 00 is done. **No application code has been changed for it**, and open problems 2, 3, 5 and 6 above remain until it is implemented. Deploy nothing until its spec 43 passes.
+`specs-saas-onboarding/` is the active plan: 44 specs for `gpt-6.1-sol`. Start at its `README.md`. Status is in its `PROGRESS.md`. Specs 00 and 01 are done; spec 01 added the lifecycle and outcome contract, and spec 02 is the next lowest-numbered eligible spec. Open problems 2, 3, 5 and 6 above remain until their implementation specs pass. Deploy nothing until spec 43 passes.
+
+The planning baseline is committed on `saas-onboarding` as `9052ea5`. The planner unblocked spec 01 by allowing missing onboarding fields until spec 36 sends them and adding a narrow test-only scope exception. The client now parses a missing step as `null`, validates confirm/reconcile outcomes with optional company scope, and ignores legacy catalog trial metadata. The checkout replacement flag stays optional on the wire until spec 26 sends it, and parses to `false` when absent. Server step derivation, provider changes and HTTP wiring remain with their later specs.
 
 It replaces Codex's unexecuted `specs-billing-checkout-repair/`. Design is approved at `design/saas-onboarding/v3/index.html`: Fresh aurora background, Mint sky side panel, Checkbox logo. Research and planning are in `docs/plan-project/saas-onboarding/`.
 
@@ -117,7 +119,7 @@ cd frontend-mobile && npx tsc --noEmit && npm test
 python3 .ai/plan-project/scripts/validate-specs.py specs-billing-checkout-repair
 ```
 
-Last result (2026-11-09): all type checks and web lint clean. Backend 1,597 passed and 7 skipped (those need `LAUNCH_PERSISTENCE_TEST_DATABASE_URL`). Web 81 and 748 passed. Mobile 115 passed. Backend has no lint script.
+Last result (2026-11-09, spec 01): backend and web type checks and web lint clean; both builds pass. Backend 1,597 passed and 7 skipped (those need `LAUNCH_PERSISTENCE_TEST_DATABASE_URL`). Web 81 Node and 832 Vitest tests passed, including 128 focused contract cases. Frontend builds report a plugin-timing advisory; Node tests report the mobile translation module-type warning. Spec validation: 44 specs, 0 errors, 50 planning warnings. Mobile's prior result is 115 passed; it was not rerun for spec 01. No real database or Paddle checks ran. Backend has no lint script.
 
 ## Working rules
 

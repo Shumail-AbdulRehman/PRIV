@@ -18,7 +18,7 @@ it('validates actual catalog facts and exact checkout response',async()=>{
  m.get.mockResolvedValue({data:{data:[{plan:'PRO',interval:'year',priceId:'pri_'+'a'.repeat(26),productId:'pro_'+'b'.repeat(26),amount:'9999999999999999999',currencyCode:'USD',trialPeriod:null}]}});
  expect((await getBillingCatalog())[0].amount).toBe('9999999999999999999');
  m.post.mockResolvedValue({data:{data:{transactionId,reused:false}}});
- expect(await prepareBillingCheckout('PRO','year')).toEqual({transactionId,reused:false});
+ expect(await prepareBillingCheckout('PRO','year')).toEqual({transactionId,reused:false,replaced:false});
  expect(m.post).toHaveBeenCalledWith('/subscription/manage/checkout',{plan:'PRO',interval:'year'},{signal:undefined});
 });
 it('rejects unsafe catalog and checkout without any automatic repeat',async()=>{

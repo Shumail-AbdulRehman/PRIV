@@ -32,6 +32,7 @@ Rebuild plan selection as the approved ledger, using real prices and exact allow
 ## Reuse first
 
 - Allowances come from the API. Prices come from the catalog. Hard-code neither.
+- `frontend/src/pages/Subscription/SubscriptionPage.test.tsx` exercises this screen through the composer. Update only this screen's assertions there, under the test-only exception in `AGENT-GUIDE.md`.
 
 ## Steps
 

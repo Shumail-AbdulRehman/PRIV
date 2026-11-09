@@ -28,6 +28,7 @@ Explain any billing problem with its reason and one next action, and repair stuc
 ## Reuse first
 
 - Support email comes from `getPublicSupport`.
+- `frontend/src/pages/Subscription/SubscriptionPage.test.tsx` exercises this screen through the composer. Update only this screen's assertions there, under the test-only exception in `AGENT-GUIDE.md`.
 
 ## Steps
 

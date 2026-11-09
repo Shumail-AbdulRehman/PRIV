@@ -55,14 +55,29 @@ export type BillingLifecycle = {
  workspaceAccessAllowed?:boolean;checkoutReadiness?:CheckoutReadiness;checkoutResume?:BillingCheckoutResume|null;
  reconciliationRequired:boolean;billingConfigured:boolean;ownerVerified:boolean;
  billingEnvironment?:'sandbox'|'production'|null;onboardingRequired?:boolean;
+ /** Optional until lifecycle assembly sends these fields; absence grants nothing. */
+ onboardingStep?:BillingOnboardingStep|null;recoveryReason?:BillingRecoveryReason;
  providerState:'MIRRORED'|'AWAITING_PROVIDER'|'NOT_LINKED';portalAvailable:boolean;checkoutAvailable:boolean;
 };
 
 export type BillingCatalogEntry = {
  plan: PlanCode; interval: 'month' | 'year'; priceId: string; productId: string;
- amount: string; currencyCode: string; trialPeriod: null | {interval: string; frequency: number; requiresPaymentMethod?:boolean|null};
+ amount: string; currencyCode: string;
+ /** @deprecated Compatibility only for screens awaiting replacement. New checkouts have no trial. */
+ trialPeriod?: null | {interval: string; frequency: number; requiresPaymentMethod?:boolean|null};
 };
-export type BillingCheckout = {transactionId: string; reused: boolean};
+export type BillingCheckout = {
+ transactionId: string; reused: boolean;
+ /** Optional until checkout replacement is implemented in spec 26. */
+ replaced?: boolean;
+};
+export type ValidatedBillingCheckout = BillingCheckout & { replaced: boolean };
+export type BillingOnboardingStep = 'CHOOSE_PLAN' | 'PAYMENT' | 'CONFIRMING' | 'WORKSPACE' | 'ACCOUNT' | 'RECONCILE' | 'RESTRICTED' | 'VERIFY_EMAIL' | 'UNAVAILABLE';
+export type BillingRecoveryReason = null | 'EMAIL_CONFLICT' | 'CUSTOMER_UNRESOLVED' | 'BILLING_DISABLED' | 'PRICE_NOT_READY';
+export type BillingConfirmOutcome = 'ACTIVE' | 'PROCESSING' | 'NOT_PAID' | 'NO_CHECKOUT';
+export type BillingConfirmResult = { outcome: BillingConfirmOutcome; lifecycle: BillingLifecycle };
+export type BillingReconcileOutcome = 'RESUMABLE' | 'CLEARED' | 'IN_PROGRESS' | 'PAID' | 'UNRESOLVED' | 'CONFLICT';
+export type BillingReconcileResult = { outcome: BillingReconcileOutcome; lifecycle: BillingLifecycle };
 
 /** Additive wire fields stay optional while older deployments roll forward. */
 export type BillingInterval = 'month' | 'year';
@@ -72,4 +87,6 @@ export type ValidatedBillingLifecycle = BillingLifecycle & {
   workspaceAccessAllowed: boolean;
   checkoutReadiness: CheckoutReadiness;
   checkoutResume: BillingCheckoutResume | null;
+  onboardingStep: BillingOnboardingStep | null;
+  recoveryReason: BillingRecoveryReason;
 };

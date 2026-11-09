@@ -123,6 +123,8 @@ A reservation with a `READY`, `FAILED` or `CANCELED` fact is closed. Rows are ne
 - `onboardingStep`: `CHOOSE_PLAN`, `PAYMENT`, `CONFIRMING`, `WORKSPACE`, `ACCOUNT`, `RECONCILE`, `RESTRICTED`, `VERIFY_EMAIL`, `UNAVAILABLE`.
 - `recoveryReason`: `null`, `EMAIL_CONFLICT`, `CUSTOMER_UNRESOLVED`, `BILLING_DISABLED`, `PRICE_NOT_READY`.
 
+Both new fields are optional until spec 36 sends them. A missing step is `null`, which grants nothing and shows a retry.
+
 `trialPeriod` becomes optional and deprecated on the catalog DTO. Nothing new sets or reads it. It remains only so screens awaiting their rebuild keep compiling.
 
 | Step | Decided when (first match wins) | Route |

@@ -22,6 +22,8 @@ Search for an open issue titled `Onboarding Spec NN — <title>`. Create one if 
 
 Write only inside your spec's `Owns`. Under Orchestro, do not edit status rows or the spec's `Status` line. Record new reusable things in your inventory fragment, not `INVENTORY.md`.
 
+**Test-only exception.** If your spec's intended change makes an existing test outside your `Owns` fail, you may make the smallest edit to that test that matches the new intended behaviour, without stopping. Name each edited test and the reason in your Log. This covers test files only. Never edit application code outside your `Owns`, never weaken or delete a check to get a pass, and stop if the failure shows a real bug rather than an intended change. When specs run in parallel, run specs that share such a test one after another.
+
 ## The model on the spec
 
 The user runs this set with `gpt-6.1-sol`. The tier records how risky each spec is. A spec that stalls is re-run at a higher effort, not retried unchanged.

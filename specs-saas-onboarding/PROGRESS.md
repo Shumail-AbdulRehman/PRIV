@@ -5,7 +5,7 @@ The single source of truth for where this work stands. It outranks any assumptio
 | # | Spec | Status | Depends on | Model | Issue | Notes |
 |---|------|--------|------------|-------|-------|-------|
 | 00 | [Decisions](./00-saas-flow-decisions.md) | Done | — | Heavy | — | Decision recorded |
-| 01 | [Billing lifecycle and outcome contract](./01-lifecycle-contract.md) | Not started | 00 | Heavy | — |  |
+| 01 | [Billing lifecycle and outcome contract](./01-lifecycle-contract.md) | Done | 00 | Heavy | — | DTOs/parser verified; 128 focused, 1597 backend, 81 + 832 frontend passed; 7 SQL skipped |
 | 02 | [Safe error logging and trusted proxy](./02-operational-logging.md) | Not started | 00 | Standard | — |  |
 | 03 | [Flow shell, tokens and motion](./03-flow-shell.md) | Not started | 00 | Heavy | — |  |
 | 04 | [English and Urdu copy for the flow](./04-urdu-dictionary.md) | Not started | 00 | Light | — |  |
@@ -56,3 +56,6 @@ Not started · In progress · Blocked · Done
 ## Log
 
 - **2026-11-09** — Design approved. Steering docs and 44 specs written. Only the decision spec is Done. No application code has changed, and no real payment has been run.
+- **2026-11-09** — Spec 01 blocked during scope review: required missing-step rejection needs updates to success fixtures outside its `Owns`. No application code changed and no tests ran. Planning baseline committed on `saas-onboarding` as `9052ea5`; awaiting the user's scope decision.
+- **2026-11-09** — Planner correction: spec 01 now accepts a missing `onboardingStep` until spec 36 sends it, and `AGENT-GUIDE.md` gains a narrow test-only exception. Spec 01 is back to Not started.
+- **2026-11-09** — Spec 01 completed on `saas-onboarding`: additive lifecycle/confirm/reconcile contracts, strict scoped parsing, ignored legacy trials and normalized checkout replacement flag. Final results: 128 focused tests (included in the frontend total), 1,597 backend tests passed with 7 SQL tests skipped, and frontend 81 Node + 832 Vitest tests passed. Both type checks, web lint and both builds passed. Frontend build timing, Node module-type and spec-validator advisories are recorded in the spec Log. The API checkout assertion was updated under the guide's test-only exception. Planning corrections included in the local commit; no provider/database access, migrations, push or deploy. Next eligible: spec 02.

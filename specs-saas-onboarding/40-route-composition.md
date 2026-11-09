@@ -14,7 +14,7 @@ Connect every screen so each user always lands on the correct step.
 ## Scope
 
 - `/continue` reads the lifecycle and sends an owner to the route for `onboardingStep`, honouring a safe `from` when the step is `WORKSPACE`.
-- An error there shows retry, never a wrong page.
+- An error or a `null` step there shows retry, never a wrong page and never access.
 - Direct visits to any setup route redirect to the right step, without loops.
 - Keep `/welcome` as an alias to activation for old links.
 - Unpaid owners deep-linking to the dashboard go to their step. Managers, and owners with historical access, keep their current behaviour.
