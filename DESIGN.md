@@ -132,6 +132,8 @@ Density is moderate on web, where tables and summaries need to compare locations
 
 This system rejects "decorative billing pages, generic marketing-style pricing cards inside authenticated workflows, excessive animation, vague feature names, and upgrade prompts that hide the exact limit a user reached."
 
+**Sanctioned brand and onboarding exception:** The approved Hygene Ops checkbox mark uses a blue gradient box, a white tick inside it and a blue-to-cyan tick tip extending beyond the box. Preserve the complete SVG viewBox so the tip stays visible. The account, plan and checkout flow also uses the approved Fresh aurora table (blue, mint, sky and seafoam blooms) and Mint sky side panel. These brand gradients and onboarding colours are deliberate exceptions to the workspace's flat, single-blue rules. Onboarding colours remain scoped to `.flow-shell` in `frontend/src/pages/Onboarding/flow.css`, using only `specs-saas-onboarding/DESIGN-SYSTEM.md` tokens.
+
 **Key Characteristics:**
 - Daylight only. The product defines no dark theme.
 - One blue for action. Green, amber and red only describe state.
