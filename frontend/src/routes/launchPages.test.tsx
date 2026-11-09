@@ -35,6 +35,8 @@ function mount(role: AuthUser['role'] | null = 'ADMIN', path = '/dashboard', lan
   return router;
 }
 beforeEach(() => {
+  vi.unstubAllEnvs();
+  vi.stubEnv('VITE_ANDROID_DISTRIBUTION_APPROVED', 'false');
   vi.clearAllMocks(); m.logout.isPending = false; m.logout.isError = false;
   vi.spyOn(window, 'scrollTo').mockImplementation(() => undefined);
   localStorage.clear(); document.documentElement.dir = 'ltr';
@@ -74,8 +76,12 @@ describe('approved workspace shell and actual route role guards', () => {
   });
   it.each(['/dashboard', '/attendance', '/staff', '/subscription', '/managers'])('hands staff web access at %s to Android without mounting operational pages', async path => {
     mount('STAFF', path);
-    expect(await screen.findByRole('heading', { name: 'Your working day is in the app.' })).toBeInTheDocument();
+    expect(await screen.findByRole('heading', { name: 'Your work is in the app' })).toBeInTheDocument();
     expect(screen.queryByRole('navigation', { name: 'Workspace navigation' })).not.toBeInTheDocument();
+    expect(screen.getByRole('main')).toHaveAttribute('data-size', 'narrow');
+    expect(document.title).toBe('Your work is in the app | Hygene Ops');
+    expect(screen.queryByRole('navigation', { name: 'Setup progress' })).not.toBeInTheDocument();
+    expect(screen.getByText('Attendance and cleaning tasks are in the Hygene Ops Android app your company gave you.')).toBeInTheDocument();
     expect(screen.queryByRole('button', { name: /download/i })).not.toBeInTheDocument();
   });
   it('restores unauthenticated users to sign in', async () => {
@@ -104,8 +110,11 @@ describe('navigation language, focus and feedback', () => {
   });
   it('restores a saved Urdu preference for staff handoff', async () => {
     mount('STAFF', '/dashboard', 'ur');
-    expect(await screen.findByRole('heading', { name: 'آپ کا کام ایپ میں ہے۔' })).toBeInTheDocument();
+    expect(await screen.findByRole('heading', { name: 'آپ کا کام ایپ میں ہے' })).toBeInTheDocument();
     expect(document.documentElement.dir).toBe('rtl');
+    expect(document.title).toBe('آپ کا کام ایپ میں ہے | Hygene Ops');
+    expect(screen.getByText('حاضری اور صفائی کے کام Hygene Ops اینڈرائیڈ ایپ میں ہیں جو آپ کی کمپنی نے دی ہے۔')).toBeInTheDocument();
+    expect(screen.getByRole('button', { name: 'سائن آؤٹ' })).toBeEnabled();
   });
   it('opens a named mobile navigation dialog and returns keyboard focus on close at 390px', async () => {
     vi.stubGlobal('innerWidth', 390);
@@ -135,7 +144,11 @@ describe('navigation language, focus and feedback', () => {
   });
   it('disables duplicate logout while pending', async () => {
     m.logout.isPending = true; mount('STAFF');
-    expect(await screen.findByRole('button', { name: 'Signing out…' })).toBeDisabled();
+    const button = await screen.findByRole('button', { name: 'Signing out…' });
+    expect(button).toBeDisabled();
+    expect(button).toHaveAttribute('aria-busy', 'true');
+    fireEvent.click(button);
+    expect(m.logout.mutate).not.toHaveBeenCalled();
   });
   it('renders a safe not-found page with a recovery link', async () => {
     vi.spyOn(console, 'warn').mockImplementation(() => undefined);
@@ -185,5 +198,36 @@ describe('shared dialog language and mobile destinations', () => {
     expect(within(dialog).queryByRole('button', { name: 'Close' })).not.toBeInTheDocument();
     fireEvent.click(close[0]);
     await waitFor(() => expect(screen.queryByRole('dialog')).not.toBeInTheDocument());
+  });
+});
+
+
+describe('staff handoff distribution and sign out', () => {
+  it('offers company guidance when no approved Android distribution is configured', async () => {
+    mount('STAFF');
+    expect(await screen.findByRole('status')).toHaveTextContent('Approved Android distribution is unavailable. Ask your company owner for the qualified app.');
+    expect(screen.queryByRole('link', { name: 'Open approved Android distribution' })).not.toBeInTheDocument();
+    expect(screen.getByRole('link', { name: 'Android app information' })).toHaveAttribute('href', '/help#service-android');
+  });
+  it('keeps the configured approved Android download and qualification guidance', async () => {
+    vi.stubEnv('VITE_ANDROID_DOWNLOAD_URL', 'https://downloads.example.invalid/staff.apk');
+    vi.stubEnv('VITE_ANDROID_DOWNLOAD_ORIGIN', 'https://downloads.example.invalid');
+    vi.stubEnv('VITE_ANDROID_DISTRIBUTION_APPROVED', 'true');
+    mount('STAFF');
+    expect(await screen.findByRole('link', { name: 'Open approved Android distribution' })).toHaveAttribute('href', 'https://downloads.example.invalid/staff.apk');
+    expect(screen.getByRole('status')).toHaveTextContent('Use only the distribution approved by your company. A download link does not confirm device qualification.');
+  });
+  it('signs staff out through the existing logout hook', async () => {
+    mount('STAFF');
+    fireEvent.click(await screen.findByRole('button', { name: 'Sign out' }));
+    expect(m.logout.mutate).toHaveBeenCalledOnce();
+  });
+  it('keeps a failed staff sign out visible and retryable', async () => {
+    m.logout.isError = true;
+    mount('STAFF');
+    expect(await screen.findByRole('alert')).toHaveTextContent('Sign out failed. Try again.');
+    fireEvent.click(screen.getByRole('button', { name: 'Sign out' }));
+    expect(m.logout.mutate).toHaveBeenCalledOnce();
+    expect(screen.getByRole('heading', { name: 'Your work is in the app' })).toBeInTheDocument();
   });
 });
