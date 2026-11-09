@@ -30,9 +30,9 @@ The single source of truth for where this work stands. It outranks any assumptio
 | 23 | [Keep people signed in through outages](./23-session-resilience.md) | Done | 06 | Heavy | — | Run by the spec runner; see spec Log |
 | 24 | [Order summary](./24-order-summary.md) | Done | 03, 04 | Standard | — | Run by the spec runner; see spec Log |
 | 25 | [Inline Paddle frame](./25-paddle-frame.md) | Not started | 03, 13, 14 | Standard | — |  |
-| 26 | [Prepare and replace checkout](./26-prepare-checkout.md) | Not started | 15, 17 | Heavy | — |  |
-| 27 | [Server confirmation of a paid checkout](./27-confirm-checkout.md) | Not started | 08, 09, 18 | Heavy | — |  |
-| 28 | [Repair stuck reservations](./28-reconcile-reservations.md) | Not started | 17 | Heavy | — |  |
+| 26 | [Prepare and replace checkout](./26-prepare-checkout.md) | Done | 15, 17 | Heavy | — | Run by the spec runner; see spec Log |
+| 27 | [Server confirmation of a paid checkout](./27-confirm-checkout.md) | Done | 08, 09, 18 | Heavy | — | Run by the spec runner; see spec Log |
+| 28 | [Repair stuck reservations](./28-reconcile-reservations.md) | Done | 17 | Heavy | — | Run by the spec runner; see spec Log |
 | 29 | [Sign-in screen](./29-login-screen.md) | Not started | 03, 04, 06 | Standard | — |  |
 | 30 | [Create account screen](./30-signup-screen.md) | Not started | 03, 04, 06 | Standard | — |  |
 | 31 | [Forgot password screens](./31-account-recovery-screens.md) | Not started | 03, 04 | Standard | — |  |

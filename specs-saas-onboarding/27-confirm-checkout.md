@@ -1,6 +1,6 @@
 # Spec 27 — Server confirmation of a paid checkout
 
-**Status:** Not started
+**Status:** Done
 **Depends on:** Spec 08, Spec 09, Spec 18
 **Model:** Heavy — `claude-opus-5-5` · `gpt-6.1-sol` · `gemini-3.1-pro-preview`
 **Issue:** —
