@@ -105,3 +105,18 @@ frontend-mobile/google-services.json
 !design/billing-onboarding/**/*.md
 !docs/implementation/billing-deployment-checklist.md
 !docs/implementation/billing-final-verification.md
+
+# Approved checkout repair plan and design
+!specs-billing-checkout-repair/**/*.md
+!docs/plan-project/billing-checkout-repair/**/*.md
+!design/billing-checkout-repair/**/*.md
+
+# Product interface rules moved out of DESIGN.md
+!docs/PRODUCT_UI_RULES.md
+!docs/CURRENT_CONTEXT.md
+
+# Approved signup, plan and checkout plan and design
+!specs-saas-onboarding/**/*.md
+!docs/plan-project/saas-onboarding/**/*.md
+!design/saas-onboarding/**/*.md
+!docs/CURRENT_CONTEXT.md

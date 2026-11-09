@@ -1,0 +1,14 @@
+{
+ "seed": 1147,
+ "hero": "Cinematic Center",
+ "typography": "Geist",
+ "components": [
+  "Infinite Marquee",
+  "Testimonial Carousel",
+  "Horizontal Accordions"
+ ],
+ "motion": [
+  "Hover Physics",
+  "Card Stacking"
+ ]
+}

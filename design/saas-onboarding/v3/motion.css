@@ -1,0 +1,80 @@
+:root{--ease-out:cubic-bezier(.23,1,.32,1);--ease-in-out:cubic-bezier(.77,0,.175,1);--t-press:120ms;--t-color:160ms;--t-tick:260ms;--t-enter:240ms;--stagger:45ms}
+
+/* Ticks draw themselves. The box and the stroke are transitions, so a step change just works. */
+.box{transition:background-color var(--t-color) var(--ease-out),border-color var(--t-color) var(--ease-out)}
+.box svg{opacity:1}
+.box svg path{stroke-dasharray:24;stroke-dashoffset:24;transition:stroke-dashoffset var(--t-tick) var(--ease-out) 60ms}
+[data-done]>.box svg path,li[data-done] .box svg path{stroke-dashoffset:0}
+
+/* Finished sheets settle behind the current one. */
+.stack i{transition:opacity var(--t-enter) var(--ease-out),transform var(--t-enter) var(--ease-out)}
+.stack i:nth-child(1),.stack i:nth-child(2),.stack i:nth-child(3){transform:translateY(8px) scaleX(.975)}
+.stack[data-depth="1"] i:nth-child(1),.stack[data-depth="2"] i:nth-child(1),.stack[data-depth="3"] i:nth-child(1){transform:translateY(-6px) scaleX(.975)}
+.stack[data-depth="2"] i:nth-child(2),.stack[data-depth="3"] i:nth-child(2){transform:translateY(-12px) scaleX(.95)}
+.stack[data-depth="3"] i:nth-child(3){transform:translateY(-18px) scaleX(.925)}
+
+/* Controls */
+.btn{transition:background-color var(--t-color) ease,border-color var(--t-color) ease,transform var(--t-press) var(--ease-out)}
+.btn:active:not(:disabled){transform:scale(.98)}
+.btn:disabled{cursor:progress;opacity:.8}
+.btn[aria-busy=true]::before{content:"";width:16px;height:16px;border:2px solid currentColor;border-right-color:transparent;border-radius:50%;animation:spin 700ms linear infinite}
+.spinner{animation:spin 700ms linear infinite}
+@keyframes spin{to{transform:rotate(360deg)}}
+input:not([type=radio]){transition:border-color var(--t-color) ease}
+.segment{position:relative}
+.segment button{position:relative;z-index:1;transition:color var(--t-color) ease}
+.segment button[aria-pressed=true]{background:transparent;box-shadow:none}
+.segment-thumb{position:absolute;inset-block:3px;inset-inline-start:0;background:var(--paper);border-radius:5px;box-shadow:0 0 0 1px var(--line);transition:transform 200ms var(--ease-in-out),width 200ms var(--ease-in-out)}
+.lang button{transition:color var(--t-color) ease}
+
+/* Plan rows: colour only, numbers never move. */
+.plan{transition:background-color var(--t-color) ease,box-shadow var(--t-color) ease}
+.tickbox{transition:border-width var(--t-press) var(--ease-out),border-color var(--t-press) ease}
+@media(hover:hover) and (pointer:fine){
+  .plan:not(:has(input:checked)):hover{background:var(--canvas)}
+  .plan:not(:has(input:checked)):hover .tickbox{border-color:var(--blue)}
+  .btn.secondary:hover{background:var(--canvas)}
+}
+.swap{animation:swap 160ms var(--ease-out)}
+@keyframes swap{from{opacity:.25}to{opacity:1}}
+
+/* Screen entrance: the sheet arrives, then its content in reading order. */
+.sheet-in{animation:sheet-in var(--t-enter) var(--ease-out) both}
+@keyframes sheet-in{from{opacity:.4;transform:translateY(10px) scale(.992)}to{opacity:1;transform:none}}
+.enter{animation:enter 200ms var(--ease-out) both}
+@keyframes enter{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:none}}
+
+/* Messages */
+.notice:not([hidden]),.err{animation:notice 200ms var(--ease-out) both}
+@keyframes notice{from{opacity:0;transform:translateY(-4px)}to{opacity:1;transform:none}}
+
+/* Sign-in pad ticks itself off once. */
+.pad-rows li[data-done].pending .box{background:var(--paper);border-color:var(--line)}
+.pad-rows li[data-done].pending .box svg path{stroke-dashoffset:24}
+
+/* Card form: skeleton breathes until Paddle reports loaded, then the whole frame fades in. */
+.sk,.skeleton-rows i{animation:breathe 1100ms ease-in-out infinite alternate}
+@keyframes breathe{from{opacity:1}to{opacity:.55}}
+.paddle-fixture.reveal-frame{animation:frame 240ms var(--ease-out) both}
+@keyframes frame{from{opacity:0}to{opacity:1}}
+
+/* Confirmation */
+.progress-list li[data-now] .box{position:relative}
+.progress-list li[data-now] .box::after{content:"";position:absolute;inset:-5px;border:1.5px solid var(--blue);border-radius:8px;animation:ring 1200ms var(--ease-out) infinite}
+@keyframes ring{from{opacity:.7;transform:scale(.85)}to{opacity:0;transform:scale(1.15)}}
+
+/* Ready: the one moment with a delight budget. */
+.stamp{display:grid;place-items:center;width:64px;height:64px;margin-bottom:var(--s5);border-radius:50%;background:var(--wash)}
+.stamp svg{width:40px;height:40px;fill:none;stroke:var(--blue);stroke-width:2.4;stroke-linecap:round;stroke-linejoin:round}
+.stamp path{stroke-dasharray:30;stroke-dashoffset:30;animation:draw 420ms var(--ease-out) 180ms forwards}
+.stamp.go{animation:stamp 280ms var(--ease-out) both}
+@keyframes draw{to{stroke-dashoffset:0}}
+@keyframes stamp{from{opacity:0;transform:scale(.9)}to{opacity:1;transform:none}}
+details[open] ul,details[open] .fine{animation:frame 160ms var(--ease-out) both}
+
+@media(prefers-reduced-motion:reduce){
+  *,*::before,*::after{animation-duration:.01ms!important;animation-delay:0ms!important;animation-iteration-count:1!important;transition-duration:.01ms!important;transition-delay:0ms!important}
+  .notice:not([hidden]),.err,.paddle-fixture.reveal-frame{animation-duration:120ms!important}
+  .progress-list li[data-now] .box::after{display:none}
+  .spinner,.btn[aria-busy=true]::before{animation:none}
+}

@@ -1,0 +1,289 @@
+<!doctype html>
+<html lang="en" dir="ltr" data-table="fresh" data-pad="mint">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Hygene Ops account and checkout prototype</title>
+<link rel="stylesheet" href="style.css">
+<link rel="stylesheet" href="motion.css">
+</head>
+<body>
+<a class="skip" href="#sheet" data-t="Skip to content">Skip to content</a>
+<div class="table">
+  <header class="table-top">
+    <a class="brand" href="#login" aria-label="Hygene Ops">
+      <span class="brand-mark"><img src="../assets/hygene-ops-mark.svg" width="22" height="22" alt=""></span>
+      <span class="wordmark">Hygene <span>Ops</span></span>
+    </a>
+    <div class="table-actions">
+      <span class="sandbox-tag" data-only="plan payment confirm ready recovery" data-t="Test mode">Test mode</span>
+      <div class="lang" role="group" aria-label="Language">
+        <button type="button" data-lang="en" aria-pressed="true" lang="en">English</button>
+        <button type="button" data-lang="ur" aria-pressed="false" lang="ur" dir="rtl">اردو</button>
+      </div>
+    </div>
+  </header>
+
+  <main class="stage">
+    <div class="stack" aria-hidden="true"><i></i><i></i><i></i></div>
+    <article class="sheet" id="sheet" tabindex="-1">
+
+      <nav class="steps" aria-label="Setup progress" data-t-label="Setup progress" data-only="signup plan payment confirm ready recovery">
+        <ol>
+          <li data-step="account"><span class="box"><svg viewBox="0 0 20 20" aria-hidden="true"><path d="M4 10.5l4 4 8-9"/></svg></span><span data-t="Account">Account</span></li>
+          <li data-step="plan"><span class="box"><svg viewBox="0 0 20 20" aria-hidden="true"><path d="M4 10.5l4 4 8-9"/></svg></span><span data-t="Plan">Plan</span></li>
+          <li data-step="payment"><span class="box"><svg viewBox="0 0 20 20" aria-hidden="true"><path d="M4 10.5l4 4 8-9"/></svg></span><span data-t="Card">Card</span></li>
+          <li data-step="workspace"><span class="box"><svg viewBox="0 0 20 20" aria-hidden="true"><path d="M4 10.5l4 4 8-9"/></svg></span><span data-t="Workspace">Workspace</span></li>
+        </ol>
+      </nav>
+
+      <!-- SIGN IN -->
+      <section data-screen="login" class="split" aria-labelledby="login-h" hidden>
+        <div class="split-form">
+        <h1 id="login-h" data-t="Welcome back">Welcome back</h1>
+        <p class="lede" data-t="Sign in to run today's work.">Sign in to run today's work.</p>
+        <p class="notice danger" role="alert" data-state-show="error" data-t="Email or password is incorrect.">Email or password is incorrect.</p>
+        <p class="notice danger" role="alert" data-state-show="limited" data-t="Too many attempts. Try again in a few minutes.">Too many attempts. Try again in a few minutes.</p>
+        <p class="notice warn" role="status" data-state-show="outage" data-t="We could not reach Hygene Ops. Check your connection and try again.">We could not reach Hygene Ops. Check your connection and try again.</p>
+        <p class="notice danger" role="alert" data-state-show="deactivated" data-t="This account is deactivated. Contact your company owner.">This account is deactivated. Contact your company owner.</p>
+        <form class="form" data-next="plan" novalidate>
+          <div class="field"><label for="l-email" data-t="Email">Email</label><input id="l-email" type="email" dir="ltr" autocomplete="email" placeholder="you@company.com" required></div>
+          <div class="field">
+            <div class="label-row"><label for="l-pass" data-t="Password">Password</label><a href="#forgot" data-t="Forgot password?">Forgot password?</a></div>
+            <div class="password" dir="ltr"><input id="l-pass" type="password" autocomplete="current-password" required><button type="button" class="reveal" data-reveal aria-pressed="false" data-t="Show">Show</button></div>
+          </div>
+          <button class="btn primary wide" type="submit"><span data-t="Sign in">Sign in</span></button>
+        </form>
+        <p class="alt"><span data-t="New to Hygene Ops?">New to Hygene Ops?</span> <a href="#signup" data-t="Create an account">Create an account</a></p>
+        <p class="fine center"><a href="#platform" data-t="Platform owner sign-in">Platform owner sign-in</a></p>
+        </div>
+        <aside class="pad" aria-hidden="true">
+          <div class="pad-card"><p class="pad-head"><strong data-t="Today">Today</strong><span data-t="Example day">Example day</span></p>
+          <ul class="pad-rows">
+            <li data-done><span class="box"><svg viewBox="0 0 20 20" aria-hidden="true"><path d="M4 10.5l4 4 8-9"/></svg></span><span data-t="Morning check-ins">Morning check-ins</span><em class="chip ok" data-t="Done">Done</em></li>
+            <li data-done><span class="box"><svg viewBox="0 0 20 20" aria-hidden="true"><path d="M4 10.5l4 4 8-9"/></svg></span><span data-t="Washrooms">Washrooms</span><em class="chip ok" data-t="Submitted">Submitted</em></li>
+            <li data-done><span class="box"><svg viewBox="0 0 20 20" aria-hidden="true"><path d="M4 10.5l4 4 8-9"/></svg></span><span data-t="Lobby floors">Lobby floors</span><em class="chip ok" data-t="Submitted">Submitted</em></li>
+            <li data-now><span class="box"><svg viewBox="0 0 20 20" aria-hidden="true"><path d="M4 10.5l4 4 8-9"/></svg></span><span data-t="Kitchen photos to review">Kitchen photos to review</span><em class="chip warn" data-t="Review">Review</em></li>
+            <li><span class="box"><svg viewBox="0 0 20 20" aria-hidden="true"><path d="M4 10.5l4 4 8-9"/></svg></span><span data-t="Evening shift">Evening shift</span><em class="chip later" data-t="Later">Later</em></li>
+          </ul></div>
+          <p class="pad-line" data-t="Your whole operation, worked down one sheet.">Your whole operation, worked down one sheet.</p>
+        </aside>
+      </section>
+
+      <!-- FORGOT PASSWORD -->
+      <section data-screen="forgot" class="narrow" aria-labelledby="forgot-h" hidden>
+        <h1 id="forgot-h" data-t="Reset your password">Reset your password</h1>
+        <p class="lede" data-t="For company owners. Managers and staff can ask their company owner.">For company owners. Managers and staff can ask their company owner.</p>
+        <div data-state-hide="sent">
+          <form class="form" data-next-state="sent" novalidate>
+            <div class="field"><label for="f-email" data-t="Email">Email</label><input id="f-email" type="email" dir="ltr" autocomplete="email" placeholder="you@company.com" required></div>
+            <button class="btn primary wide" type="submit"><span data-t="Send reset link">Send reset link</span></button>
+          </form>
+        </div>
+        <p class="notice ok" role="status" data-state-show="sent" data-t="If that email has an owner account, a reset link is on its way.">If that email has an owner account, a reset link is on its way.</p>
+        <p class="alt"><a href="#login" data-t="Back to sign in">Back to sign in</a></p>
+      </section>
+
+      <!-- STAFF ON WEB -->
+      <section data-screen="staff" class="narrow" aria-labelledby="staff-h" hidden>
+        <h1 id="staff-h" data-t="Your work is in the app">Your work is in the app</h1>
+        <p class="lede" data-t="Attendance and cleaning tasks are in the Hygene Ops Android app your company gave you.">Attendance and cleaning tasks are in the Hygene Ops Android app your company gave you.</p>
+        <a class="btn primary wide" href="#login"><span data-t="Sign out">Sign out</span></a>
+      </section>
+
+      <!-- CREATE ACCOUNT -->
+      <section data-screen="signup" class="split" aria-labelledby="signup-h" hidden>
+        <div class="split-form">
+        <h1 id="signup-h" data-t="Create your account">Create your account</h1>
+        <p class="lede" data-t="Next you'll choose a plan and add a card.">Next you'll choose a plan and add a card.</p>
+        <div class="notice danger" role="alert" data-state-show="duplicate"><span data-t="This email already has an account.">This email already has an account.</span> <a href="#login" data-t="Sign in instead">Sign in instead</a></div>
+        <p class="notice warn" role="status" data-state-show="outage" data-t="Your account could not be created. Your details are still here, so try again.">Your account could not be created. Your details are still here, so try again.</p>
+        <div class="notice ok" role="status" data-state-show="session"><span data-t="Your account is ready. Sign in to continue.">Your account is ready. Sign in to continue.</span> <a href="#login" data-t="Sign in">Sign in</a></div>
+        <form class="form" data-next="plan" novalidate>
+          <div class="two">
+            <div class="field"><label for="s-name" data-t="Your name">Your name</label><input id="s-name" autocomplete="name" required></div>
+            <div class="field"><label for="s-co" data-t="Company name">Company name</label><input id="s-co" autocomplete="organization" required></div>
+          </div>
+          <div class="field"><label for="s-email" data-t="Work email">Work email</label><input id="s-email" type="email" dir="ltr" autocomplete="email" placeholder="you@company.com" required></div>
+          <div class="field">
+            <label for="s-pass" data-t="Password">Password</label>
+            <div class="password" dir="ltr"><input id="s-pass" type="password" autocomplete="new-password" minlength="8" aria-describedby="s-pass-hint" required><button type="button" class="reveal" data-reveal aria-pressed="false" data-t="Show">Show</button></div>
+            <p class="hint" id="s-pass-hint" data-t="Use at least 8 characters.">Use at least 8 characters.</p>
+          </div>
+          <button class="btn primary wide" type="submit"><span data-t="Continue to plans">Continue to plans</span></button>
+        </form>
+        <p class="alt"><span data-t="Already have an account?">Already have an account?</span> <a href="#login" data-t="Sign in">Sign in</a></p>
+        </div>
+        <aside class="pad">
+          <div class="pad-card"><p class="pad-head"><strong data-t="What happens next">What happens next</strong></p>
+          <ul class="pad-rows detailed">
+            <li data-now><span class="box"><svg viewBox="0 0 20 20" aria-hidden="true"><path d="M4 10.5l4 4 8-9"/></svg></span><span><b data-t="Create your account">Create your account</b><small data-t="Your details and company name">Your details and company name</small></span></li>
+            <li><span class="box"><svg viewBox="0 0 20 20" aria-hidden="true"><path d="M4 10.5l4 4 8-9"/></svg></span><span><b data-t="Choose a plan">Choose a plan</b><small data-t="Monthly or yearly, sized to your team">Monthly or yearly, sized to your team</small></span></li>
+            <li><span class="box"><svg viewBox="0 0 20 20" aria-hidden="true"><path d="M4 10.5l4 4 8-9"/></svg></span><span><b data-t="Add your card">Add your card</b><small data-t="Entered securely with Paddle">Entered securely with Paddle</small></span></li>
+            <li><span class="box"><svg viewBox="0 0 20 20" aria-hidden="true"><path d="M4 10.5l4 4 8-9"/></svg></span><span><b data-t="Open your workspace">Open your workspace</b><small data-t="Then add your first location">Then add your first location</small></span></li>
+          </ul></div>
+          <p class="pad-line" data-t="You're only charged when you confirm your card.">You're only charged when you confirm your card.</p>
+        </aside>
+      </section>
+
+      <!-- CHOOSE PLAN -->
+      <section data-screen="plan" aria-labelledby="plan-h" hidden>
+        <div class="head-row">
+          <div><h1 id="plan-h" data-t="Choose a plan">Choose a plan</h1><p class="lede" data-t="Pick the size that fits your team. You can change it later.">Pick the size that fits your team. You can change it later.</p></div>
+          <div class="segment" role="group" aria-label="Billing interval" data-t-label="Billing interval">
+            <button type="button" data-interval="month" aria-pressed="true" data-t="Monthly">Monthly</button>
+            <button type="button" data-interval="year" aria-pressed="false" data-t="Yearly">Yearly</button>
+          </div>
+        </div>
+        <div class="plan-state notice danger" role="alert" data-state-show="error"><span data-t="Prices could not load.">Prices could not load.</span> <button type="button" class="link" data-t="Try again">Try again</button></div>
+        <p class="notice info" role="status" data-state-show="draft" data-t="You have a checkout in progress. Choosing a different plan replaces it. You have not been charged.">You have a checkout in progress. Choosing a different plan replaces it. You have not been charged.</p>
+        <fieldset class="ledger" data-state-hide="error loading">
+          <legend class="sr" data-t="Choose a plan">Choose a plan</legend>
+          <div class="ledger-head" aria-hidden="true"><span></span><span data-t="Locations">Locations</span><span data-t="Staff">Staff</span><span data-t="Managers">Managers</span><span class="right" data-t="Price">Price</span></div>
+          <label class="plan" data-plan="STARTER">
+            <input type="radio" name="plan" value="STARTER">
+            <span class="plan-name"><span class="tickbox"></span><span><strong data-t="Starter">Starter</strong><small data-t="For very small teams">For very small teams</small></span></span>
+            <span class="cap" data-cap="Locations">1</span><span class="cap" data-cap="Staff">3</span><span class="cap" data-cap="Managers">1</span>
+            <span class="price"><bdi dir="ltr" data-price></bdi><small data-per></small></span>
+          </label>
+          <label class="plan" data-plan="PRO">
+            <input type="radio" name="plan" value="PRO" checked>
+            <span class="plan-name"><span class="tickbox"></span><span><strong data-t="Pro">Pro</strong><small data-t="Adds managers and automatic assignment">Adds managers and automatic assignment</small></span></span>
+            <span class="cap" data-cap="Locations">5</span><span class="cap" data-cap="Staff">25</span><span class="cap" data-cap="Managers">3</span>
+            <span class="price"><bdi dir="ltr" data-price></bdi><small data-per></small></span>
+          </label>
+          <label class="plan" data-plan="ADVANCED">
+            <input type="radio" name="plan" value="ADVANCED">
+            <span class="plan-name"><span class="tickbox"></span><span><strong data-t="Enterprise">Enterprise</strong><small data-t="For larger operations">For larger operations</small></span></span>
+            <span class="cap" data-cap="Locations">20</span><span class="cap" data-cap="Staff">200</span><span class="cap" data-cap="Managers">20</span>
+            <span class="price"><bdi dir="ltr" data-price></bdi><small data-per></small></span>
+          </label>
+        </fieldset>
+        <div class="skeleton-rows" data-state-show="loading" role="status" aria-label="Loading plans"><i></i><i></i><i></i></div>
+        <details class="included">
+          <summary data-t="What every plan includes">What every plan includes</summary>
+          <ul>
+            <li data-t="GPS attendance and selfies">GPS attendance and selfies</li>
+            <li data-t="Daily and one-time tasks">Daily and one-time tasks</li>
+            <li data-t="Area QR and guided photo capture">Area QR and guided photo capture</li>
+            <li data-t="Photo review and history">Photo review and history</li>
+          </ul>
+          <p class="fine" data-t="Your company owner uses one manager seat.">Your company owner uses one manager seat.</p>
+        </details>
+        <div class="decide">
+          <p><strong data-selected-plan></strong> <bdi dir="ltr" data-selected-price></bdi> <span data-selected-per></span></p>
+          <a class="btn primary" href="#payment"><span data-t="Continue to payment">Continue to payment</span></a>
+        </div>
+      </section>
+
+      <!-- PAYMENT -->
+      <section data-screen="payment" aria-labelledby="pay-h" hidden>
+        <h1 id="pay-h" data-t="Add your card">Add your card</h1>
+        <div class="pay">
+          <div class="pay-main">
+            <div class="testcard" data-state-hide="failed">
+              <p><strong data-t="Test mode. No real money moves.">Test mode. No real money moves.</strong></p>
+              <p class="testcard-row"><span data-t="Use this card:">Use this card:</span> <bdi dir="ltr" class="mono" id="test-number">4242 4242 4242 4242</bdi> <button type="button" class="link" data-copy="4242424242424242" data-t="Copy">Copy</button></p>
+              <p class="fine" data-t="Any future expiry date, any name, security code 100.">Any future expiry date, any name, security code 100.</p>
+              <details class="more-cards"><summary data-t="More test cards">More test cards</summary><ul>
+                <li><span data-t="Asks for bank approval (3D Secure)">Asks for bank approval (3D Secure)</span><bdi dir="ltr">4000 0038 0000 0446</bdi></li>
+                <li><span data-t="Always declined">Always declined</span><bdi dir="ltr">4000 0000 0000 0002</bdi></li>
+              </ul></details>
+            </div>
+            <p class="notice danger" role="alert" data-state-show="declined" data-t="That card was declined. Check the details or try another card.">That card was declined. Check the details or try another card.</p>
+            <p class="notice warn" role="status" data-state-show="offline" data-t="You're offline. Reconnect to continue. Your details stay here.">You're offline. Reconnect to continue. Your details stay here.</p>
+            <p class="notice ok" role="status" data-state-show="resumed" data-t="We saved your checkout. Pick up where you left off.">We saved your checkout. Pick up where you left off.</p>
+            <p class="notice info" role="status" data-state-show="processing" data-t="Processing your payment. Please keep this page open.">Processing your payment. Please keep this page open.</p>
+
+            <div class="frame-slot" data-state-hide="failed">
+              <div class="frame-loading" data-state-show="loading" role="status">
+                <i class="sk w60"></i><i class="sk"></i><i class="sk"></i><div class="sk-two"><i class="sk"></i><i class="sk"></i></div><i class="sk tall"></i>
+                <span class="frame-note" data-t="Loading the secure card form">Loading the secure card form</span>
+              </div>
+              <div class="paddle-fixture" data-state-hide="loading">
+                <p class="fixture-tag" data-t="Preview of Paddle's secure form">Preview of Paddle's secure form</p>
+                <div class="f"><label>Email</label><div class="fake" dir="ltr">owner@company.com</div></div>
+                <div class="f"><label>Card number</label><div class="fake" dir="ltr">4242 4242 4242 4242</div></div>
+                <div class="f-two"><div class="f"><label>Expiry</label><div class="fake" dir="ltr">12 / 30</div></div><div class="f"><label>Security code</label><div class="fake" dir="ltr">100</div></div></div>
+                <div class="f"><label>Name on card</label><div class="fake" dir="ltr">Owner name</div></div>
+                <div class="f"><label>Country</label><div class="fake" dir="ltr">Pakistan</div></div>
+                <button type="button" class="fake-pay" data-pay dir="ltr">Subscribe</button>
+                <p class="fixture-foot" dir="ltr">Payment processed by Paddle.com</p>
+              </div>
+            </div>
+
+            <div class="frame-failed" data-state-show="failed" role="alert">
+              <h2 data-t="The card form didn't load">The card form didn't load</h2>
+              <p data-t="You have not been charged. A browser extension or a weak connection can block it.">You have not been charged. A browser extension or a weak connection can block it.</p>
+              <button type="button" class="btn primary" data-set-state="loaded"><span data-t="Try again">Try again</span></button>
+            </div>
+          </div>
+
+          <aside class="receipt" aria-labelledby="receipt-h">
+            <h2 id="receipt-h" data-t="Order summary">Order summary</h2>
+            <p class="receipt-plan"><strong data-selected-plan></strong><span data-selected-interval></span></p>
+            <ul class="receipt-caps"><li><b data-r-loc></b> <span data-t="locations">locations</span></li><li><b data-r-staff></b> <span data-t="staff">staff</span></li><li><b data-r-mgr></b> <span data-t="managers">managers</span></li></ul>
+            <dl>
+              <div><dt data-t="Subtotal">Subtotal</dt><dd><bdi dir="ltr" data-selected-price></bdi></dd></div>
+              <div><dt data-t="Tax">Tax</dt><dd data-state-hide="loading"><bdi dir="ltr">$0.00</bdi></dd><dd data-state-show="loading"><i class="sk-text"></i></dd></div>
+              <div class="total"><dt data-t="Due today">Due today</dt><dd data-state-hide="loading"><bdi dir="ltr" data-selected-price></bdi></dd><dd data-state-show="loading"><i class="sk-text"></i></dd></div>
+            </dl>
+            <p class="fine"><span data-t="Then renews at">Then renews at</span> <bdi dir="ltr" data-selected-price></bdi> <span data-selected-per></span>. <span data-t="Cancel anytime.">Cancel anytime.</span></p>
+            <a class="text-link" href="#plan" data-t="Change plan">Change plan</a>
+            <p class="secure"><svg viewBox="0 0 20 20" aria-hidden="true"><path d="M6 9V6.5a4 4 0 018 0V9M5 9h10v8H5z"/></svg><span data-t="Your card details go straight to Paddle. We never see them.">Your card details go straight to Paddle. We never see them.</span></p>
+          </aside>
+        </div>
+      </section>
+
+      <!-- CONFIRMING -->
+      <section data-screen="confirm" class="narrow" aria-labelledby="conf-h" hidden>
+        <h1 id="conf-h" data-t="Confirming your subscription">Confirming your subscription</h1>
+        <p class="lede" data-t="This usually takes a few seconds. You won't be charged twice.">This usually takes a few seconds. You won't be charged twice.</p>
+        <ul class="progress-list" aria-live="polite">
+          <li data-done><span class="box"><svg viewBox="0 0 20 20" aria-hidden="true"><path d="M4 10.5l4 4 8-9"/></svg></span><span data-t="Payment received">Payment received</span></li>
+          <li data-now><span class="box"><svg viewBox="0 0 20 20" aria-hidden="true"><path d="M4 10.5l4 4 8-9"/></svg></span><span data-t="Activating your subscription">Activating your subscription</span></li>
+          <li><span class="box"><svg viewBox="0 0 20 20" aria-hidden="true"><path d="M4 10.5l4 4 8-9"/></svg></span><span data-t="Preparing your workspace">Preparing your workspace</span></li>
+        </ul>
+        <p class="notice info" role="status" data-state-show="slow" data-t="Taking a little longer than usual. You can stay here or come back later.">Taking a little longer than usual. You can stay here or come back later.</p>
+        <div class="notice warn" role="status" data-state-show="timeout"><span data-t="We haven't heard back yet. Your payment is safe, so please don't pay again.">We haven't heard back yet. Your payment is safe, so please don't pay again.</span></div>
+        <button class="btn secondary wide" type="button" data-state-show="timeout" data-goto="ready"><span data-t="Check again">Check again</span></button>
+      </section>
+
+      <!-- READY -->
+      <section data-screen="ready" class="narrow" aria-labelledby="ready-h" hidden>
+        <h1 id="ready-h" data-t="You're all set">You're all set</h1>
+        <p class="lede" data-t="Your subscription is active and your workspace is ready.">Your subscription is active and your workspace is ready.</p>
+        <dl class="facts">
+          <div><dt data-t="Plan">Plan</dt><dd><strong data-selected-plan></strong> <span class="fact-sep">&middot;</span> <span data-selected-interval></span></dd></div>
+          <div><dt data-t="Next payment">Next payment</dt><dd><bdi dir="ltr">9 Dec 2026</bdi></dd></div>
+        </dl>
+        <a class="btn primary wide" href="#signup"><span data-t="Open your workspace">Open your workspace</span></a>
+        <p class="fine center" data-t="Your first step inside is adding a location.">Your first step inside is adding a location.</p>
+      </section>
+
+      <!-- RECOVERY -->
+      <section data-screen="recovery" class="narrow" aria-labelledby="rec-h" hidden>
+        <div data-state-show="checking"><h1 id="rec-h" data-t="Checking your previous checkout">Checking your previous checkout</h1><p class="lede" data-t="We're asking Paddle what happened, so you don't pay twice.">We're asking Paddle what happened, so you don't pay twice.</p><div class="spin-row" role="status"><i class="spinner"></i><span data-t="This takes a few seconds.">This takes a few seconds.</span></div></div>
+        <div data-state-show="unavailable"><h1 data-t="Payments are unavailable right now">Payments are unavailable right now</h1><p class="lede" data-t="Nothing was charged. Your account and plan choice are saved.">Nothing was charged. Your account and plan choice are saved.</p><button class="btn primary wide" type="button" data-goto="payment"><span data-t="Try again">Try again</span></button></div>
+        <div data-state-show="conflict"><h1 data-t="This email is already used for payments">This email is already used for payments</h1><p class="lede" data-t="Nothing was charged. Contact support to link it, or sign up with another email.">Nothing was charged. Contact support to link it, or sign up with another email.</p><a class="btn primary wide" href="#help"><span data-t="Contact support">Contact support</span></a></div>
+        <div data-state-show="restricted"><h1 data-t="This account is restricted">This account is restricted</h1><p class="lede" data-t="Company operations are on hold. Payment doesn't lift this. Contact support.">Company operations are on hold. Payment doesn't lift this. Contact support.</p><a class="btn primary wide" href="#help"><span data-t="Contact support">Contact support</span></a></div>
+      </section>
+    </article>
+  </main>
+</div>
+
+<!-- Reviewer tooling only. Never rebuilt in the application. -->
+<aside class="review" aria-label="Prototype controls">
+  <span>Preview</span>
+  <select id="r-screen" aria-label="Screen"></select>
+  <select id="r-state" aria-label="State"></select>
+  <label>Background <select id="r-table"><option value="fresh">Fresh aurora</option><option value="morning">Morning light</option><option value="ribbon">Blue ribbon</option><option value="midnight">Midnight</option></select></label>
+  <label>Panel <select id="r-pad"><option value="mint">Mint sky</option><option value="peach">Soft peach</option><option value="lilac">Lilac</option></select></label>
+  <label>Logo <select id="r-logo"><option value="hygene-ops-mark.svg">Checkbox</option><option value="hygene-ops-mark-drop.svg">Water drop</option><option value="hygene-ops-mark-woven.svg">Woven H</option></select></label>
+  <span class="review-note">Sample prices</span>
+</aside>
+<script src="locale.js"></script>
+<script src="motion.js"></script>
+<script src="app.js"></script>
+</body>
+</html>
