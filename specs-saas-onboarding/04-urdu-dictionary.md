@@ -1,6 +1,6 @@
 # Spec 04 — English and Urdu copy for the flow
 
-**Status:** Not started
+**Status:** Done
 **Depends on:** Spec 00
 **Model:** Light — `claude-haiku-5-5` · `gpt-6.1-sol` · `gemini-3.5-flash-lite`
 **Issue:** —

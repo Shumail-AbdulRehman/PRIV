@@ -8,8 +8,8 @@ The single source of truth for where this work stands. It outranks any assumptio
 | 01 | [Billing lifecycle and outcome contract](./01-lifecycle-contract.md) | Done | 00 | Heavy | — | DTOs/parser verified; 128 focused, 1597 backend, 81 + 832 frontend passed; 7 SQL skipped |
 | 02 | [Safe error logging and trusted proxy](./02-operational-logging.md) | Done | 00 | Standard | — | Safe logs/proxy/listen handling; 26 + 60 focused, 1642 backend passed; 7 SQL skipped; types/build passed |
 | 03 | [Flow shell, tokens and motion](./03-flow-shell.md) | Done | 00 | Heavy | — | 28 focused; 81 Node + 860 Vitest passed; types/lint/build passed; responsive/RTL/reduced motion inspected |
-| 04 | [English and Urdu copy for the flow](./04-urdu-dictionary.md) | Not started | 00 | Light | — |  |
-| 05 | [New Hygene Ops logo](./05-logo-rollout.md) | Not started | 00 | Light | — |  |
+| 04 | [English and Urdu copy for the flow](./04-urdu-dictionary.md) | Done | 00 | Light | — | Run by the spec runner; see spec Log |
+| 05 | [New Hygene Ops logo](./05-logo-rollout.md) | Done | 00 | Light | — | Run by the spec runner; see spec Log |
 | 06 | [Next-step route map](./06-onboarding-routes.md) | Not started | 01 | Standard | — |  |
 | 07 | [Pure checkout state machine](./07-checkout-machine.md) | Not started | 01 | Standard | — |  |
 | 08 | [Paddle gateway with time limits](./08-paddle-gateway.md) | Not started | 01, 02 | Heavy | — |  |
