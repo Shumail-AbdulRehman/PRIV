@@ -1,4 +1,4 @@
-import type { ReactNode } from 'react';
+import { useEffect, type ReactNode } from 'react';
 import { Link, Navigate, isRouteErrorResponse, useRouteError } from 'react-router-dom';
 import { useSelector } from 'react-redux';
 import { ShieldCheck } from 'lucide-react';
@@ -6,7 +6,7 @@ import type { RootState } from '@/store/store';
 import { useLanguage } from '@/i18n/context';
 import LanguageChoice from '@/components/common/LanguageChoice';
 import BrandLogo from '@/components/common/BrandLogo';
-import AuthShell from '@/components/common/AuthShell';
+import FlowShell from '@/pages/Onboarding/FlowShell';
 import {serviceInformation} from '@/pages/Help/serviceInformation';
 import { Button } from '@/components/ui/button';
 import { useLogout } from '@/queries/auth';
@@ -22,15 +22,25 @@ export function WorkspaceAudience({ children }: { children: ReactNode }) {
 
 function StaffWebHandoff() {
   const { t } = useLanguage();
+  const title = t('Your work is in the app');
+  useEffect(() => { document.title = `${title} | Hygene Ops`; }, [title]);
   const user = useSelector((state: RootState) => state.auth.user);
   const logout = useLogout();
-  const {android}=serviceInformation();
-  return <AuthShell title={t('Your working day is in the app.')} subtitle={t('Attendance and cleaning tasks are available in the Hygene Ops Android app provided by your company.')} footer={<Link to="/help#service-android">{t('Android app information')}</Link>}>
-    <p>{t('You are signed in as {name}.', {name:`\u2068${user?.name??''}\u2069`})}</p>
-    <div className="v5-auth-notice">{android?<><a className="v5-approved-download" href={android} rel="noreferrer">{t('Open approved Android distribution')}</a><p>{t('Use only the distribution approved by your company. A download link does not confirm device qualification.')}</p></>:<p>{t('Approved Android distribution is unavailable. Ask your company owner for the qualified app.')}</p>}</div>
-    <Button className="v5-handoff-signout" disabled={logout.isPending} onClick={()=>logout.mutate()}>{t(logout.isPending?'Signing out…':'Sign out')}</Button>
-    {logout.isError&&<p role="alert">{t('Sign out failed. Try again.')}</p>}
-  </AuthShell>;
+  const { android } = serviceInformation();
+  return <FlowShell size="narrow">
+    <h1>{title}</h1>
+    <p className="flow-lede">{t('Attendance and cleaning tasks are in the Hygene Ops Android app your company gave you.')}</p>
+    <div className="flow-form">
+      <p>{t('You are signed in as {name}.', { name: `\u2068${user?.name ?? ''}\u2069` })}</p>
+      <div className="flow-notice" role="status">{android ? <>
+        <a href={android} rel="noreferrer">{t('Open approved Android distribution')}</a>
+        <p>{t('Use only the distribution approved by your company. A download link does not confirm device qualification.')}</p>
+      </> : <p>{t('Approved Android distribution is unavailable. Ask your company owner for the qualified app.')}</p>}</div>
+      <Button className="flow-button flow-button-full" disabled={logout.isPending} aria-busy={logout.isPending} onClick={() => logout.mutate()}>{t(logout.isPending ? 'Signing out…' : 'Sign out')}</Button>
+      {logout.isError && <p className="flow-notice flow-notice-bad" role="alert">{t('Sign out failed. Try again.')}</p>}
+      <p className="flow-fine"><Link to="/help#service-android">{t('Android app information')}</Link></p>
+    </div>
+  </FlowShell>;
 }
 
 export function WorkspaceRouteError() {
