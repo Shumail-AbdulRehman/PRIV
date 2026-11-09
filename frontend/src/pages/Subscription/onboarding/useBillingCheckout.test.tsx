@@ -41,7 +41,7 @@ beforeEach(()=>{
 afterEach(()=>{clients.forEach(client=>client.clear());clients.length=0;vi.unstubAllEnvs();});
 it('verifies fresh owner/config/SDK before one exact plan/interval POST and opens its returned transaction',async()=>{
  const h=mount();await act(async()=>{await h.result.current.openCheckout(selection);});
- expect(m.sdk).toHaveBeenCalledBefore(m.post);expect(m.post).toHaveBeenCalledWith('/subscription/manage/checkout',selection,{signal:expect.any(AbortSignal)});
+ expect(m.sdk).toHaveBeenCalledBefore(m.post);expect(m.post).toHaveBeenCalledWith('/subscription/manage/checkout',selection,{signal:expect.any(AbortSignal),_retry:true});
  expect(m.open).toHaveBeenCalledWith({transactionId,settings:{displayMode:'overlay',theme:'light',successUrl:'http://localhost:3000/welcome'}});
  expect(h.result.current.status).toBe('open');expect(h.result.current.prepared).toEqual(prepared);expect(m.support).not.toHaveBeenCalled();h.unmount();
 });
