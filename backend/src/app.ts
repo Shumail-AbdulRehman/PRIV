@@ -23,6 +23,7 @@ import { handlePaddleWebhook } from "./controllers/paddleWebhook.controller.js";
 
 dotenv.config();
 const app = express();
+configureTrustProxy(app);
 const parsedPort = Number.parseInt((process.env.PORT ?? "").trim(), 10);
 const port = Number.isFinite(parsedPort) ? parsedPort : 8080;
 const allowedOrigins = (process.env.FRONTEND_URL ?? "")
@@ -74,6 +75,7 @@ app.use(cors({
         return callback(new Error(`Origin ${origin} not allowed by CORS`));
     },
     credentials: true,
+    exposedHeaders: ['X-Request-Id'],
 }));
 // This route must be mounted before express.json(). Paddle verifies the exact
 // bytes it delivered, so parsing and re-serializing the body would invalidate
@@ -104,7 +106,7 @@ import areaRouter, {areaLocationRouter} from './routes/area.route.js';
 import verificationExceptionRouter from './routes/verificationException.route.js';
 import verificationRouter from './routes/verification.route.js';
 import evidenceRouter from './routes/evidence.route.js';
-import launchRouter, { launchErrorHandler } from './routes/launch.route.js';
+import launchRouter, { configureTrustProxy, createListenCallback, launchErrorHandler } from './routes/launch.route.js';
 
 
 
@@ -138,10 +140,10 @@ app.use("/api/evidence", evidenceRouter);
 
 app.use(launchErrorHandler);
 
-app.listen(port, async () => {
+app.listen(port, createListenCallback(async () => {
     console.log(`Server is listening at port ${port}`);
     console.log("Cookie config:", getCookieRuntimeConfig());
     await runStartupCron();
-});
+}));
 
 export default app;

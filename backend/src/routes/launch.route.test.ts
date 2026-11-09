@@ -1,9 +1,10 @@
 import multer from 'multer';
 import {z} from 'zod';
-import { afterAll, beforeAll, beforeEach, expect, it, vi } from 'vitest';
+import { afterAll, afterEach, beforeAll, beforeEach, expect, it, vi } from 'vitest';
 import express from 'express';
 import jwt from 'jsonwebtoken';
 import type { AddressInfo } from 'node:net';
+import { readFileSync } from 'node:fs';
 const m=vi.hoisted(()=>({role:'ADMIN',active:true,suspended:false,epoch:0,forced:false,api:vi.fn(async()=>({reachable:true})),change:vi.fn(async()=>({passwordChanged:true})),account:vi.fn(async()=>({})),principal:vi.fn()}));
 vi.mock('../prisma/prisma.js',()=>({prisma:{manager:{findUnique:m.principal},staff:{findUnique:m.principal},managerLocation:{findMany:async()=>[]}}}));
 vi.mock('../middlewares/operatorAuth.middleware.js',()=>({verifyOperator:(req:any,_res:any,next:any)=>{
@@ -21,7 +22,7 @@ vi.mock('../controllers/subscription.controller.js',()=>({getPricingContext:(_re
 vi.mock('../controllers/enterpriseInquiry.controller.js',()=>({createEnterpriseInquiry:(_req:any,res:any)=>res.status(201).json({accepted:true})}));
 vi.mock('../services/credentialHandoff.service.js',()=>({changeOwnPassword:m.change,issueStaffHandoff:m.api,completeStaffHandoff:m.api}));
 vi.mock('../controllers/common.controller.js',()=>({getCurrentUser:(req:any,res:any)=>res.json({user:req.user}),refreshToken:(_req:any,res:any)=>res.json({refresh:true}),logOut:(_req:any,res:any)=>res.json({logout:true})}));
-import router,{launchErrorHandler} from './launch.route.js';
+import router,{configureTrustProxy,createListenCallback,launchErrorHandler} from './launch.route.js';
 import {ApiError} from '../utils/ApiError.js';
 let server:ReturnType<express.Express['listen']>,origin:string;
 const token=()=>jwt.sign({id:1,role:m.role,credentialVersion:0,tokenUse:'access'},'route-test-secret',{expiresIn:'5m'});
@@ -35,8 +36,10 @@ beforeAll(async()=>{
 afterAll(async()=>new Promise<void>((resolve,reject)=>server.close(error=>error?reject(error):resolve())));
 beforeEach(()=>{
  vi.clearAllMocks();m.role='ADMIN';m.active=true;m.suspended=false;m.epoch=0;m.forced=false;m.account.mockResolvedValue({});
+ vi.spyOn(console,'error').mockImplementation(()=>{});vi.spyOn(console,'warn').mockImplementation(()=>{});
  m.principal.mockImplementation(async()=>({id:1,name:'Owner',email:'owner@example.invalid',role:m.role,isActive:true,credentialVersion:m.epoch,mustChangePassword:m.forced,companyId:1,company:{isActive:m.active,operationalStatus:m.suspended?'SUSPENDED':'ACTIVE'}}));
 });
+afterEach(()=>{vi.restoreAllMocks();vi.unstubAllEnvs();});
 it.each(['/owner-identity/status','/company/settings','/attendance/7/annotations','/subscription/manage/lifecycle','/common/get-current-user'])('anonymous request cannot use %s',async path=>{
  expect((await request(path,'anonymous')).status).toBe(401);expect(m.api).not.toHaveBeenCalled();
 });
@@ -119,4 +122,127 @@ it.each([
  ['/platform/service/inquiries/fixture','operator','PATCH',200],
 ] as const)('mounts %s with its existing explicit adapter contract',async(path,kind,method,status)=>{
  const result=await request(path,kind,method);expect(result.status).toBe(status);expect(m.api).toHaveBeenCalled();expect(result.headers.get('cache-control')).toContain('no-store');
+});
+
+async function withLocalApp(app: express.Express, check: (base: string) => Promise<void>) {
+ const local=app.listen(0,'127.0.0.1');
+ try {
+  await new Promise<void>(resolve=>local.once('listening',resolve));
+  await check('http://127.0.0.1:'+(local.address() as AddressInfo).port);
+ } finally {
+  await new Promise<void>((resolve,reject)=>local.close(error=>error?reject(error):resolve()));
+ }
+}
+
+it('returns a generic 500 and correlates a server-generated request ID with only safe error fields',async()=>{
+ const app=express();
+ const failure=Object.assign(new Error('owner@example.invalid token=private-token SELECT * FROM Company'),{
+  code:'P1001',type:'database_error',detail:'private SQL',meta:{token:'private-token'},
+ });
+ app.get('/error/:id',(req)=>{req.user={companyId:7} as any;throw failure;});
+ app.use(launchErrorHandler);
+ await withLocalApp(app,async base=>{
+  const response=await fetch(base+'/error/owner@example.invalid?token=private-token',{
+   headers:{'X-Request-Id':'caller-controlled-private-token'},
+  });
+  expect(response.status).toBe(500);
+  expect(await response.json()).toEqual({success:false,message:'Something went wrong',code:'INTERNAL_ERROR'});
+  const requestId=response.headers.get('X-Request-Id');
+  expect(requestId).toMatch(/^[0-9a-f]{8}-[0-9a-f]{4}-4[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/);
+  expect(console.error).toHaveBeenCalledTimes(1);
+  expect(JSON.parse(vi.mocked(console.error).mock.calls[0]![0])).toEqual({
+   event:'UNEXPECTED_REQUEST_ERROR',route:'/error/:id',method:'GET',status:500,errorClass:'Error',
+   providerCode:'P1001',providerType:'database_error',companyId:7,requestId,
+  });
+  const again=await fetch(base+'/error/another');
+  expect(again.headers.get('X-Request-Id')).not.toBe(requestId);
+ });
+});
+
+it('logs provider classification while omitting request bodies, headers, query strings and raw URLs',async()=>{
+ class ProviderError extends Error {}
+ m.api.mockRejectedValueOnce(Object.assign(new ProviderError('owner@example.invalid Bearer private-token'),{
+  code:'customer_email_conflict',type:'request_error',errors:[{message:'private SQL'}],
+ }));
+ const result=await request('/subscription/manage/lifecycle?token=private-token');
+ expect(result.status).toBe(500);
+ expect(await result.json()).toEqual({success:false,message:'Something went wrong',code:'INTERNAL_ERROR'});
+ expect(JSON.parse(vi.mocked(console.error).mock.calls[0]![0])).toEqual({
+  event:'UNEXPECTED_REQUEST_ERROR',route:'/lifecycle',method:'GET',status:500,
+  errorClass:'ProviderError',providerCode:'customer_email_conflict',providerType:'request_error',companyId:1,
+  requestId:result.headers.get('X-Request-Id'),
+ });
+});
+
+it('does not treat expected API failures as unexpected server errors',async()=>{
+ m.api.mockRejectedValueOnce(new ApiError(403,'Subscription needed',[{code:'SUBSCRIPTION_REQUIRED'}]));
+ const response=await request('/subscription/manage/lifecycle');
+ expect(response.status).toBe(403);
+ expect(await response.json()).toMatchObject({code:'SUBSCRIPTION_REQUIRED'});
+ expect(console.error).not.toHaveBeenCalled();
+});
+
+it('TRUST_PROXY_HOPS=2 configures Express and resolves the address at the second trusted hop',async()=>{
+ vi.stubEnv('TRUST_PROXY_HOPS','2');
+ const app=express();configureTrustProxy(app);
+ expect(app.get('trust proxy')).toBe(2);
+ app.get('/ip',(req,res)=>res.json({ip:req.ip}));
+ await withLocalApp(app,async base=>{
+  const response=await fetch(base+'/ip',{headers:{'X-Forwarded-For':'198.51.100.4, 198.51.100.3, 198.51.100.2'}});
+  expect(await response.json()).toEqual({ip:'198.51.100.3'});
+ });
+ expect(console.warn).not.toHaveBeenCalled();
+});
+
+it.each([undefined,'0'])('defaults to no trusted proxies for %j and ignores forwarded addresses',async value=>{
+ vi.stubEnv('TRUST_PROXY_HOPS',value);
+ const app=express();configureTrustProxy(app);
+ expect(app.get('trust proxy')).toBe(0);
+ app.get('/ip',(req,res)=>res.json({ip:req.ip}));
+ await withLocalApp(app,async base=>{
+  const response=await fetch(base+'/ip',{headers:{'X-Forwarded-For':'198.51.100.4'}});
+  expect(await response.json()).toEqual({ip:'127.0.0.1'});
+ });
+ expect(console.warn).not.toHaveBeenCalled();
+});
+
+it.each(['','-1','2.5','2tail','true','Infinity','1e2',' 2 ','9007199254740992','owner@example.invalid token=private-token'])(
+ 'invalid TRUST_PROXY_HOPS falls back to zero with a warning that omits its value (%j)',value=>{
+  vi.stubEnv('TRUST_PROXY_HOPS',value);
+  const app=express();app.set('trust proxy',true);configureTrustProxy(app);
+  expect(app.get('trust proxy')).toBe(0);
+  expect(console.warn).toHaveBeenCalledExactlyOnceWith('{"event":"INVALID_TRUST_PROXY_HOPS"}');
+ },
+);
+
+it('reports an occupied port and exits non-zero without calling the successful-listen work',async()=>{
+ await withLocalApp(express(),async base=>{
+  const onListening=vi.fn();const exit=vi.fn();
+  await new Promise<void>(resolve=>{
+   express().listen(Number(new URL(base).port),'127.0.0.1',createListenCallback(onListening,code=>{exit(code);resolve();}));
+  });
+  expect(exit).toHaveBeenCalledExactlyOnceWith(1);
+  expect(onListening).not.toHaveBeenCalled();
+  expect(console.error).toHaveBeenCalledTimes(1);
+  expect(JSON.parse(vi.mocked(console.error).mock.calls[0]![0])).toEqual({
+   event:'SERVER_LISTEN_FAILED',errorClass:'Error',providerCode:'EADDRINUSE',
+  });
+ });
+});
+
+it('drops listen-error messages and awaits startup work only after a successful bind',async()=>{
+ const onListening=vi.fn(async()=>{});const exit=vi.fn();
+ const callback=createListenCallback(onListening,exit);
+ await callback(Object.assign(new Error('owner@example.invalid token=private-token SQL text'),{code:'EACCES'}));
+ expect(console.error).toHaveBeenCalledExactlyOnceWith('{"event":"SERVER_LISTEN_FAILED","errorClass":"Error","providerCode":"EACCES"}');
+ expect(onListening).not.toHaveBeenCalled();expect(exit).toHaveBeenCalledExactlyOnceWith(1);
+ await callback();expect(onListening).toHaveBeenCalledExactlyOnceWith();
+});
+
+it('wires proxy validation before middleware and uses the guarded Express 5 listen callback',()=>{
+ const source=readFileSync(new URL('../app.ts',import.meta.url),'utf8');
+ expect(source.indexOf('configureTrustProxy(app)')).toBeGreaterThan(source.indexOf('const app = express()'));
+ expect(source.indexOf('configureTrustProxy(app)')).toBeLessThan(source.indexOf('app.use('));
+ expect(source).toContain('app.listen(port, createListenCallback(');
+ expect(source).toContain("exposedHeaders: ['X-Request-Id']");
 });

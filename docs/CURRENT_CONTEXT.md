@@ -72,9 +72,9 @@ Marked **source** when read from code but not reproduced.
 
 1. **Tasks cannot be finished.** `verificationReleaseConfiguration()` in `cleanlinessRelease.ts` hard-codes `privacyAssessment:false`, so new photos are refused. Task start has no such check, so staff start work and then hit "Task photos are unavailable". The only exit is a manager waiving each requirement. Do not just flip the flag: the direct upload path has no privacy step and marks stored photos `NOT_REQUIRED` (`directPhoto.service.ts:93`).
 2. **One Paddle failure can lock an owner out (source).** A failed customer or transaction create leaves `*_RESERVED` with no `*_READY`, and every retry gets a 409. No code clears it. Definite rejections are treated the same as timeouts in `callProvider`.
-3. **Failures are not logged.** `callProvider` discards Paddle errors and `launchErrorHandler` logs nothing for 500s.
+3. **Provider failures are still hidden.** `callProvider` discards Paddle errors; provider-call logging remains with spec 08. Spec 02 now logs unexpected request errors safely by class/code/type, with a server-generated request ID also returned as `X-Request-Id`.
 4. **Docker path cannot bill.** Compose has no Paddle or owner-mail variables, and the web image gets no Paddle build values.
-5. **Abuse limits.** Login, signup and enterprise inquiries have no rate limit. The account recovery limit uses `req.ip` without `trust proxy`, so behind a proxy users share one bucket.
+5. **Abuse limits.** Login, signup and enterprise inquiries have no rate limit. The account recovery limit uses `req.ip`; spec 02 now validates `TRUST_PROXY_HOPS` (default 0) before routes are mounted, but the real deployment's proxy-hop setting has not been checked.
 6. **Wrong sign-outs.** `App.tsx` clears the session on any current-user error, including 503. On mobile, a lost refresh response causes the next refresh to fail and clears the session (source).
 7. **Scheduling defects**, reproduced by SQL probes on 2026-11-08 (`FINDINGS.md`): daily tasks start a day early, one worker can be double-booked, overnight tasks can fall outside a shift, and a transfer can get stuck on an old missed checkout.
 8. **Deadline job grows forever (source).** `expireVerificationTasks` has no date limit and ignores `staffSubmittedAt`, and it flags photos awaiting review as missing evidence.
@@ -83,7 +83,6 @@ Marked **source** when read from code but not reproduced.
 Smaller:
 - Attendance adds up to 200 m to the geofence from phone-reported accuracy, while capture presence does not.
 - The server does not require check-in before task start; only the app does.
-- If the port is taken, Express 5 still calls the listen callback, so the API logs "listening" and runs its jobs.
 - Photos judged dirty are discarded, so a manager cannot check that verdict.
 - About 2,500 lines across 39 files are unreachable from the app entry points, mostly the old worker pipeline.
 
@@ -91,7 +90,7 @@ Known unverified: real Paddle payments, the live Heroku/Netlify configuration, p
 
 ## Signup, plan and checkout plan (current work)
 
-`specs-saas-onboarding/` is the active plan: 44 specs for `gpt-6.1-sol`. Start at its `README.md`. Status is in its `PROGRESS.md`. Specs 00 and 01 are done; spec 01 added the lifecycle and outcome contract, and spec 02 is the next lowest-numbered eligible spec. Open problems 2, 3, 5 and 6 above remain until their implementation specs pass. Deploy nothing until spec 43 passes.
+`specs-saas-onboarding/` is the active plan: 44 specs for `gpt-6.1-sol`. Start at its `README.md`. Status is in its `PROGRESS.md`. Specs 00–02 are done; spec 03 is the next lowest-numbered eligible spec. Spec 01 added the lifecycle/outcome contract. Spec 02 added safe structured request-error logging and correlation IDs, validated proxy hops, and guarded Express 5 listen failures so a bind error requests exit 1 without a successful-listen message or startup callback. Provider-call logging still belongs to spec 08. Open problems 2, 3, 5 and 6 above remain until their implementation specs pass. Deploy nothing until spec 43 passes.
 
 The planning baseline is committed on `saas-onboarding` as `9052ea5`. The planner unblocked spec 01 by allowing missing onboarding fields until spec 36 sends them and adding a narrow test-only scope exception. The client now parses a missing step as `null`, validates confirm/reconcile outcomes with optional company scope, and ignores legacy catalog trial metadata. The checkout replacement flag stays optional on the wire until spec 26 sends it, and parses to `false` when absent. Server step derivation, provider changes and HTTP wiring remain with their later specs.
 
@@ -119,7 +118,11 @@ cd frontend-mobile && npx tsc --noEmit && npm test
 python3 .ai/plan-project/scripts/validate-specs.py specs-billing-checkout-repair
 ```
 
-Last result (2026-11-09, spec 01): backend and web type checks and web lint clean; both builds pass. Backend 1,597 passed and 7 skipped (those need `LAUNCH_PERSISTENCE_TEST_DATABASE_URL`). Web 81 Node and 832 Vitest tests passed, including 128 focused contract cases. Frontend builds report a plugin-timing advisory; Node tests report the mobile translation module-type warning. Spec validation: 44 specs, 0 errors, 50 planning warnings. Mobile's prior result is 115 passed; it was not rerun for spec 01. No real database or Paddle checks ran. Backend has no lint script.
+Last backend result (2026-11-09, spec 02): type check clean and build passed; **1,642 passed and 7 skipped** (the skipped SQL tests need `LAUNCH_PERSISTENCE_TEST_DATABASE_URL`). The total includes 26 logger and 60 route/startup tests. The build printed a Prisma upgrade advisory. No real database or Paddle checks ran; the occupied-port check used local HTTP and an injected exit function. Backend has no lint script.
+
+Spec validation (spec 02): 44 specs, 0 errors, 51 nonblocking planning warnings, including the missing-issue warning required by this run's no-issue/no-PR override.
+
+Last web result remains spec 01: type check and lint clean, build passed; 81 Node and 832 Vitest tests passed, including 128 focused contract cases. Frontend builds report a plugin-timing advisory; Node tests report the mobile translation module-type warning. Mobile's prior result is 115 passed. Web/mobile were not rerun for backend-only spec 02.
 
 ## Working rules
 
