@@ -40,8 +40,15 @@ Create the single module this flow uses to call Paddle, with a time limit on eac
 
 ## Done when
 
-- [ ] `cd backend && npx vitest run src/services/billingProvider.test.ts` passes and proves: each error shape classifies correctly; the existing-customer ID is parsed; a hung call ends at the limit as UNCERTAIN; logs contain no email or detail text. [unit]
-- [ ] `npm test --prefix backend` passes with 0 failures; real count in the Log. [unit]
-- [ ] `specs-saas-onboarding/inventory/08-paddle-gateway.md` lists what this spec created for reuse. [static]
-- [ ] `cd backend && npx tsc --noEmit -p tsconfig.json` passes with 0 errors. The backend has no lint script. [static]
-- [ ] `npm run build --prefix backend` passes. [static]
+- [x] `cd backend && npx vitest run src/services/billingProvider.test.ts` passes and proves: each error shape classifies correctly; the existing-customer ID is parsed; a hung call ends at the limit as UNCERTAIN; logs contain no email or detail text. [unit]
+- [x] `npm test --prefix backend` passes with 0 failures; real count in the Log. [unit]
+- [x] `specs-saas-onboarding/inventory/08-paddle-gateway.md` lists what this spec created for reuse. [static]
+- [x] `cd backend && npx tsc --noEmit -p tsconfig.json` passes with 0 errors. The backend has no lint script. [static]
+- [x] `npm run build --prefix backend` passes. [static]
+
+## Log
+
+- **2026-11-09** — Implemented the additive gateway for all 11 specified SDK operations, using the existing lazy `getPaddleClient` and an injected client/logger seam. Confirmed method signatures, `ApiError` fields and collection behaviour directly in installed SDK 3.10.0 declarations and implementation. Every request/page has a 15-second deadline; late results are discarded and late rejections consumed. Errors expose safe classification/code/customer-ID facts without provider detail or payloads. Failure logs encode the fixed operation in the allowlisted event and include only classification and safe provider code. No retries, customer adoption decisions or catalog cache were added.
+- **2026-11-09** — Added exact-email/status customer listing and filtered transaction listing, each limited to five pages of 100 rows. List results expose `hasMore` so reaching the limit cannot masquerade as an exhaustive search. Failed pages throw instead of returning partial results as complete. Wrote and inspected `inventory/08-paddle-gateway.md` for the reusable API, error contract, limits and test seams.
+- **2026-11-09** — All Done-when commands ran and passed in this session: focused `npx vitest run src/services/billingProvider.test.ts`: **78 passed, 0 failed, 0 skipped** (1 file); `npm test --prefix backend`: **1,720 passed, 7 skipped, 0 failed** (101 files passed, 1 skipped); `npx tsc --noEmit -p tsconfig.json`: **0 errors**; `npm run build --prefix backend`: **passed**, including Prisma client generation and TypeScript emission, with no warnings reported. `git diff --check` also passed. Backend has no lint script.
+- **2026-11-09** — Used the dummy loopback-port-1 `DATABASE_URL` and `DOTENV_CONFIG_PATH=/dev/null`; disabled opt-in database test URLs for the whole suite and also set a dummy `DIRECT_URL` for the build. The seven SQL persistence tests were skipped because their isolated database was deliberately unavailable. All gateway calls used mocks and deadline checks used fake timers. No real Paddle or database verification was attempted, and none is needed by this spec's acceptance commands. No migration, deployment, commit, branch command, issue or PR was run. No existing tests required the guide's test-only exception. Only the owned gateway/test/inventory and this spec's checklist/Log changed; its Status line and `PROGRESS.md` were left unchanged.
