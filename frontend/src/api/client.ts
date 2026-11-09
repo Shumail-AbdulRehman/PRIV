@@ -1,4 +1,4 @@
-import axios from 'axios';
+import axios, { type AxiosRequestConfig, type AxiosResponse } from 'axios';
 import { store } from '@/store/store';
 import { clearUser } from '@/store/slices/authSlice';
 
@@ -18,23 +18,44 @@ client.interceptors.request.use((config) => {
   return config;
 });
 
-let isRefreshing = false;
-let refreshPromise: Promise<void> | null = null;
+/** A permission restriction or an outage is not evidence of a lost session. */
+export function isSessionInvalid(error: unknown): boolean {
+  const response = (error as { response?: { status?: number; data?: {
+    message?: string; errors?: Array<{ code?: string }>;
+  } } } | null)?.response;
+  return response?.status === 401 || (response?.status === 403 && (
+    response.data?.message === 'Account is deactivated' ||
+    response.data?.errors?.some(item => item.code === 'SESSION_REVOKED') === true
+  ));
+}
+
+type SessionRequestConfig = AxiosRequestConfig & { _retry?: boolean };
+let refreshPromise: Promise<AxiosResponse | null> | null = null;
+
+async function restoreSession(): Promise<AxiosResponse | null> {
+  try {
+    await client.post('/common/refresh-token');
+    return null;
+  } catch {
+    // Another tab may have rotated the cookies, or the refresh reply was lost.
+    // Bypass refresh here so a failed probe cannot start another refresh loop.
+    try {
+      return await client.get('/common/get-current-user', { _retry: true } as SessionRequestConfig);
+    } catch (error) {
+      if (isSessionInvalid(error)) store.dispatch(clearUser());
+      throw error;
+    }
+  }
+}
 
 client.interceptors.response.use(
   (res) => res,
   async (error) => {
     const originalRequest = error.config;
 
-    
-    if (originalRequest.url?.includes("/common/refresh-token")) {
-      isRefreshing = false;
-      refreshPromise = null;
-      store.dispatch(clearUser());
-      return Promise.reject(error);
-    }
-
     if (
+      !originalRequest ||
+      originalRequest.url?.includes('/common/refresh-token') ||
       error.response?.status !== 401 ||
       error.response?.data?.message !== "Access Token Expired" ||
       originalRequest._retry
@@ -44,32 +65,11 @@ client.interceptors.response.use(
 
     originalRequest._retry = true;
 
-    try {
-      
-      if (!isRefreshing) {
-        isRefreshing = true;
-
-        refreshPromise = (async () => {
-          await client.post("/common/refresh-token");
-        })();
-
-        await refreshPromise;
-
-        isRefreshing = false;
-        refreshPromise = null;
-      } else {
-        
-        await refreshPromise;
-      }
-
-      console.log("refresh token working i guess");
-      return client(originalRequest);
-
-    } catch (err) {
-      isRefreshing = false;
-      refreshPromise = null;
-      store.dispatch(clearUser());
-      return Promise.reject(err);
+    if (!refreshPromise) {
+      refreshPromise = restoreSession().finally(() => { refreshPromise = null; });
     }
+    const recoveredUser = await refreshPromise;
+    if (recoveredUser && originalRequest.url === '/common/get-current-user') return recoveredUser;
+    return client(originalRequest);
   }
 );

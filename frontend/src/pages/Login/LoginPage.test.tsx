@@ -17,7 +17,7 @@ function mount(content:ReactNode,{language='en',path='/login',user}:{language?:s
  localStorage.setItem('hygene-ops.language',language);
  const store=configureStore({reducer:{auth:authReducer}});if(user)store.dispatch(setUser(user));
  const query=new QueryClient({defaultOptions:{queries:{retry:false},mutations:{retry:false}}});query.setQueryData(['previous-tenant'],{private:true});
- const view=render(<Provider store={store}><QueryClientProvider client={query}><LanguageProvider><MemoryRouter initialEntries={[path]}><Routes><Route path={path} element={content}/><Route path="/choose-plan" element={<h1>Billing destination</h1>}/><Route path="/dashboard" element={<h1>Workspace destination</h1>}/></Routes></MemoryRouter></LanguageProvider></QueryClientProvider></Provider>);
+ const view=render(<Provider store={store}><QueryClientProvider client={query}><LanguageProvider><MemoryRouter initialEntries={[path]}><Routes><Route path={path} element={content}/><Route path="/choose-plan" element={<h1>Billing destination</h1>}/><Route path="/continue" element={<h1>Continuation destination</h1>}/><Route path="/dashboard" element={<h1>Workspace destination</h1>}/></Routes></MemoryRouter></LanguageProvider></QueryClientProvider></Provider>);
  return {...view,store,query};
 }
 beforeEach(()=>{vi.clearAllMocks();localStorage.clear();api.post.mockResolvedValue({data:{data:owner}});});
@@ -36,7 +36,7 @@ it('keeps credentials available for correction and renders a translated denial w
  fireEvent.change(screen.getByLabelText('ای میل'),{target:{value:owner.email}});fireEvent.change(screen.getByLabelText('پاس ورڈ'),{target:{value:'Synthetic wrong password'}});fireEvent.click(screen.getByRole('button',{name:'سائن ان'}));
  await screen.findByText('ای میل یا پاس ورڈ درست نہیں۔');expect(screen.getByLabelText('پاس ورڈ')).toHaveValue('Synthetic wrong password');expect(screen.getByLabelText('ای میل')).toHaveAttribute('dir','ltr');expect(document.documentElement.dir).toBe('rtl');expect(screen.queryByText('Private authentication diagnostic')).not.toBeInTheDocument();expect(store.getState().auth.user).toBeNull();
 });
-it.each([['/signup','ADMIN','Billing destination'],['/signup','MANAGER','Workspace destination'],['/login','ADMIN','Workspace destination']] as const)('routes authenticated %s/%s consistently',async(path,role,destination)=>{
+it.each([['/signup','ADMIN','Continuation destination'],['/signup','MANAGER','Workspace destination'],['/login','ADMIN','Continuation destination']] as const)('routes authenticated %s/%s consistently',async(path,role,destination)=>{
  mount(<GuestRoute><Login/></GuestRoute>,{path,user:{...owner,role}});expect(await screen.findByRole('heading',{name:destination})).toBeInTheDocument();
 });
 it('keeps registration session-delivery failure unauthenticated with an accurate receipt',async()=>{

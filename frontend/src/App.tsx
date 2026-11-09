@@ -10,6 +10,11 @@ import type { AppDispatch } from '@/store/store';
 import { useEffect } from 'react';
 import LoadingSpinner from './components/common/LoadingSpinner.js';
 import type { RootState } from '@/store/store';
+import { isSessionInvalid } from './api/client';
+import { isSafeFromPath, ONBOARDING_ROUTES } from './pages/Onboarding/onboardingRoutes';
+import FlowShell from './pages/Onboarding/FlowShell';
+import { Button } from './components/ui/button';
+import { useLanguage } from './i18n/context';
 
 
 
@@ -30,10 +35,9 @@ export const GuestRoute = ({ children }: { children: React.ReactNode }) => {
   const { isAuthenticated, user, isLoading } = useAuth();
   const location = useLocation();
   if (isLoading) return <LoadingSpinner fullScreen />;
-  // Signup and the mutation callback must agree after Redux establishes a session.
-  const destination = location.pathname === "/signup" && user?.role === "ADMIN"
-    ? "/choose-plan" : location.state?.from === "/welcome" ? "/welcome" : "/dashboard";
-  if (isAuthenticated) return <Navigate to={destination} replace />;
+  const from = location.state?.from;
+  const destination = user?.role === 'ADMIN' ? ONBOARDING_ROUTES.continue : ONBOARDING_ROUTES.workspace;
+  if (isAuthenticated) return <Navigate to={destination} state={isSafeFromPath(from) ? { from } : null} replace />;
 
 
   return <>{children}</>;
@@ -54,22 +58,25 @@ export const RequireRole = ({ roles, children }: { roles: Array<'ADMIN' | 'MANAG
 function App() {
   const dispatch = useDispatch<AppDispatch>();
   const getCurrentUserQuery = useGetCurrentUser();
-  const { user } = useAuth();
+  const { user, isLoading } = useAuth();
+  const { t } = useLanguage();
 
   
   useEffect(() => {
-    if (getCurrentUserQuery.isLoading) {
+    if (getCurrentUserQuery.isPending) {
       dispatch(setLoading(true));
     } else if (getCurrentUserQuery.isSuccess && getCurrentUserQuery.data) {
       dispatch(setUser(getCurrentUserQuery.data));
     } else if (getCurrentUserQuery.isError) {
-       dispatch(clearUser());
+      if (isSessionInvalid(getCurrentUserQuery.error)) dispatch(clearUser());
+      else dispatch(setLoading(true));
     }
   }, [
-    getCurrentUserQuery.isLoading,
+    getCurrentUserQuery.isPending,
     getCurrentUserQuery.isSuccess,
     getCurrentUserQuery.isError,
     getCurrentUserQuery.data,
+    getCurrentUserQuery.error,
     dispatch,
   ]);
 
@@ -78,16 +85,29 @@ function App() {
  // Otherwise a reload of /welcome or /choose-plan can briefly redirect to login.
  const restoredUser = getCurrentUserQuery.data;
  const restoringSession = getCurrentUserQuery.isSuccess && restoredUser && (
-   user?.id !== restoredUser.id || user?.role !== restoredUser.role ||
+   isLoading || user?.id !== restoredUser.id || user?.role !== restoredUser.role ||
    user?.companyId !== restoredUser.companyId
  );
- if (getCurrentUserQuery.isLoading || restoringSession) {
+ const signingOut = getCurrentUserQuery.isError && isSessionInvalid(getCurrentUserQuery.error) && (user || isLoading);
+ if (getCurrentUserQuery.isPending || restoringSession || signingOut) {
   return <LoadingSpinner fullScreen />;
 }
 
 
   if (requiresPasswordChange(getCurrentUserQuery.error) && !['/verify-owner-email', '/reset-owner-password', '/recover-owner-account'].includes(window.location.pathname)) {
     return <OwnSecurityPage forced />;
+  }
+  if (getCurrentUserQuery.isError && !isSessionInvalid(getCurrentUserQuery.error) && !requiresPasswordChange(getCurrentUserQuery.error)) {
+    return <FlowShell>
+      <section role="alert" aria-labelledby="session-unavailable">
+        <h1 id="session-unavailable">{t('We could not reach Hygene Ops. Check your connection and try again.')}</h1>
+        <div className="flow-form">
+          <Button className="flow-button" disabled={getCurrentUserQuery.isFetching} aria-busy={getCurrentUserQuery.isFetching} onClick={() => { void getCurrentUserQuery.refetch(); }}>
+            {t(getCurrentUserQuery.isFetching ? 'Loading…' : 'Try again')}
+          </Button>
+        </div>
+      </section>
+    </FlowShell>;
   }
   return <Outlet />;
 }

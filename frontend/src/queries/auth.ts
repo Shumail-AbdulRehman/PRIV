@@ -6,6 +6,8 @@ import { logoutApi,getCurrentUser, refreshToken } from '@/api/auth.js';
 import { clearUser } from '@/store/slices/authSlice';
 
 import type { AppDispatch } from '@/store/store';
+import { isSessionInvalid } from '@/api/client';
+import { requiresPasswordChange } from '@/pages/Account/api';
 
 
 export const useLogout = () => {
@@ -31,7 +33,10 @@ export const useGetCurrentUser = () => {
     queryFn: getCurrentUser,
     staleTime: 5 * 60 * 1000,
     gcTime: 10 * 60 * 1000,
-    retry: false,
+    retry: (failureCount, error) => failureCount < 1 && !isSessionInvalid(error) && !requiresPasswordChange(error),
+    retryDelay: 500,
+    // An offline browser must reach the retry screen rather than pause forever.
+    networkMode: 'always',
     refetchOnWindowFocus: false,
     refetchOnReconnect: false,
   });
