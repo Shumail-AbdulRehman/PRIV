@@ -13,9 +13,9 @@ The single source of truth for where this work stands. It outranks any assumptio
 | 06 | [Next-step route map](./06-onboarding-routes.md) | Done | 01 | Standard | — | Merged by hand after a spec-file conflict; see spec Log |
 | 07 | [Pure checkout state machine](./07-checkout-machine.md) | Done | 01 | Standard | — | Run by the spec runner; see spec Log |
 | 08 | [Paddle gateway with time limits](./08-paddle-gateway.md) | Done | 01, 02 | Heavy | — | Run by the spec runner; see spec Log |
-| 09 | [Reservation facts](./09-reservation-facts.md) | Not started | 01 | Heavy | — |  |
-| 10 | [Server next-step decision](./10-onboarding-step.md) | Not started | 01 | Standard | — |  |
-| 11 | [Authentication rate limiter](./11-auth-rate-limit.md) | Not started | 02 | Standard | — |  |
+| 09 | [Reservation facts](./09-reservation-facts.md) | Done | 01 | Heavy | — | Run by the spec runner; see spec Log |
+| 10 | [Server next-step decision](./10-onboarding-step.md) | Done | 01 | Standard | — | Run by the spec runner; see spec Log |
+| 11 | [Authentication rate limiter](./11-auth-rate-limit.md) | Done | 02 | Standard | — | Run by the spec runner; see spec Log |
 | 12 | [Time-limited billing requests](./12-billing-transport.md) | Not started | 01 | Standard | — |  |
 | 13 | [Paddle.js loading and normalized events](./13-paddle-sdk-inline.md) | Not started | 01 | Heavy | — |  |
 | 14 | [Real Paddle sandbox probe](./14-sandbox-probe.md) | Not started | 08 | Standard | — |  |

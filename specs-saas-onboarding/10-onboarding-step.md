@@ -1,6 +1,6 @@
 # Spec 10 — Server next-step decision
 
-**Status:** Not started
+**Status:** Done
 **Depends on:** Spec 01
 **Model:** Standard — `claude-sonnet-5-5` · `gpt-6.1-sol` · `gemini-3.8-flash`
 **Issue:** —
