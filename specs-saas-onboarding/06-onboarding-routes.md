@@ -4,7 +4,7 @@
 **Depends on:** Spec 01
 **Model:** Standard — `claude-sonnet-5-5` · `gpt-6.1-sol` · `gemini-3.8-flash`
 **Issue:** —
-**Owns:** `frontend/src/pages/Onboarding/onboardingRoutes.ts`, `frontend/src/pages/Onboarding/onboardingRoutes.test.tsxx`, `specs-saas-onboarding/inventory/06-onboarding-routes.md`
+**Owns:** `frontend/src/pages/Onboarding/onboardingRoutes.ts`, `frontend/src/pages/Onboarding/onboardingRoutes.test.tsx`, `specs-saas-onboarding/inventory/06-onboarding-routes.md`
 **Reuses:** `ARCHITECTURE.md#lifecycle-dto-additions`, `frontend/src/pages/Subscription/types.ts` (spec 01)
 
 ## Goal
@@ -37,7 +37,7 @@ Give the app one pure function that turns the server's `onboardingStep` into a r
 
 ## Done when
 
-- [ ] `cd frontend && npx vitest run frontend/src/pages/Onboarding/onboardingRoutes.test.tsxx` passes and proves: all nine steps map correctly; tampered plan and interval values are dropped; external and protocol-relative `from` paths are rejected. [unit]
+- [ ] `cd frontend && npx vitest run frontend/src/pages/Onboarding/onboardingRoutes.test.tsx` passes and proves: all nine steps map correctly; tampered plan and interval values are dropped; external and protocol-relative `from` paths are rejected. [unit]
 - [ ] `npm test --prefix frontend` passes with 0 failures; real count in the Log. [unit]
 - [ ] `specs-saas-onboarding/inventory/06-onboarding-routes.md` lists what this spec created for reuse. [static]
 - [ ] `cd frontend && npx tsc -b --noEmit` and `npm run lint --prefix frontend` pass with 0 errors, 0 warnings. [static]

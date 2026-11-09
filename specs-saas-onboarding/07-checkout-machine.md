@@ -4,7 +4,7 @@
 **Depends on:** Spec 01
 **Model:** Standard — `claude-sonnet-5-5` · `gpt-6.1-sol` · `gemini-3.8-flash`
 **Issue:** —
-**Owns:** `frontend/src/pages/Subscription/onboarding/checkoutMachine.ts`, `frontend/src/pages/Subscription/onboarding/checkoutMachine.test.tsxx`, `specs-saas-onboarding/inventory/07-checkout-machine.md`
+**Owns:** `frontend/src/pages/Subscription/onboarding/checkoutMachine.ts`, `frontend/src/pages/Subscription/onboarding/checkoutMachine.test.tsx`, `specs-saas-onboarding/inventory/07-checkout-machine.md`
 **Reuses:** `ARCHITECTURE.md#checkout-states`, `frontend/src/pages/Subscription/types.ts` (spec 01)
 
 ## Goal
@@ -38,7 +38,7 @@ Define every checkout state, what moves between them and which actions each allo
 
 ## Done when
 
-- [ ] `cd frontend && npx vitest run frontend/src/pages/Subscription/onboarding/checkoutMachine.test.tsxx` passes and proves: every transition; declined keeps the form; a timed-out prepare is never retried; foreign and stale events do nothing; no dead-end state exists. [unit]
+- [ ] `cd frontend && npx vitest run frontend/src/pages/Subscription/onboarding/checkoutMachine.test.tsx` passes and proves: every transition; declined keeps the form; a timed-out prepare is never retried; foreign and stale events do nothing; no dead-end state exists. [unit]
 - [ ] `npm test --prefix frontend` passes with 0 failures; real count in the Log. [unit]
 - [ ] `specs-saas-onboarding/inventory/07-checkout-machine.md` lists what this spec created for reuse. [static]
 - [ ] `cd frontend && npx tsc -b --noEmit` and `npm run lint --prefix frontend` pass with 0 errors, 0 warnings. [static]
