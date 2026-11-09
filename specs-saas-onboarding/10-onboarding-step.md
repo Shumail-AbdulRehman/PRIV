@@ -36,8 +36,14 @@ Write the pure function that decides the owner's next step from server facts, so
 
 ## Done when
 
-- [ ] `cd backend && npx vitest run src/services/billingOnboardingStep.test.ts` passes and proves: every row of the table, and suspension beats payment, paid-pending beats a resumable draft, and an expired subscriber goes to ACCOUNT. [unit]
-- [ ] `npm test --prefix backend` passes with 0 failures; real count in the Log. [unit]
-- [ ] `specs-saas-onboarding/inventory/10-onboarding-step.md` lists what this spec created for reuse. [static]
-- [ ] `cd backend && npx tsc --noEmit -p tsconfig.json` passes with 0 errors. The backend has no lint script. [static]
-- [ ] `npm run build --prefix backend` passes. [static]
+- [x] `cd backend && npx vitest run src/services/billingOnboardingStep.test.ts` passes and proves: every row of the table, and suspension beats payment, paid-pending beats a resumable draft, and an expired subscriber goes to ACCOUNT. [unit]
+- [x] `npm test --prefix backend` passes with 0 failures; real count in the Log. [unit]
+- [x] `specs-saas-onboarding/inventory/10-onboarding-step.md` lists what this spec created for reuse. [static]
+- [x] `cd backend && npx tsc --noEmit -p tsconfig.json` passes with 0 errors. The backend has no lint script. [static]
+- [x] `npm run build --prefix backend` passes. [static]
+
+## Log
+
+- **2026-11-09** — Implemented `decideBillingOnboardingStep` and its plain-fact input/result types, reusing the spec 01 DTO unions. The function follows the architecture's first-match order, reports billing/catalog/trial-price unavailability and reconciliation reasons, and does no I/O or clock reads. Linked subscribers without access go to ACCOUNT, including expired subscribers; administrative restriction always takes precedence. Lifecycle fact gathering and wiring remain with spec 36.
+- **2026-11-09** — Focused command `cd backend && npx vitest run src/services/billingOnboardingStep.test.ts`: **120 passed, 0 failed, 0 skipped**, 1 test file passed. Covers all decision rows and alternative triggers, every earlier/later decision-row pair, suspension versus payment, paid-pending versus resumable draft, expired subscribers, recovery reasons, verification and immutability. Full command `npm test --prefix backend`: **1,840 passed, 7 skipped, 0 failed**, 102 test files passed and 1 skipped. The existing persistence tests remain skipped; no real database verification was performed.
+- **2026-11-09** — `cd backend && npx tsc --noEmit -p tsconfig.json` and `npm run build --prefix backend` both exited 0, with no errors or warnings. Build ran the existing Prisma client generation and TypeScript compilation only; no migrations. All verification commands used `DATABASE_URL=postgresql://none:none@127.0.0.1:1/none` and `DOTENV_CONFIG_PATH=/dev/null`. Verified the inventory fragment exists and documents all reusable exports. No application files or tests outside Owns changed; the spec's checklist and this Log were updated as requested, with Status and PROGRESS.md unchanged. No provider calls, real database access, deployment, issue/PR or git branch/commit/merge/push commands were used. Real Paddle and database behavior were not exercised and are unnecessary for this pure function.
