@@ -67,8 +67,11 @@ export const billingUrdu:Record<string,string> = {
  'Provider trial':'سروس کی آزمائشی مدت','Monthly':'ماہانہ','Yearly':'سالانہ',
  'Reopen existing checkout':'موجودہ چیک آؤٹ دوبارہ کھولیں','Continue to checkout':'چیک آؤٹ کی طرف بڑھیں',
  'Active':'فعال','Trialing':'آزمائشی مدت جاری','Past due':'ادائیگی باقی ہے','Paused':'روکا گیا','Canceled':'منسوخ',
- 'Prices and any trial are available only from the configured provider catalog in owner billing. No payment starts on this page.':'قیمتیں اور آزمائشی مدت صرف مالک کی بلنگ میں سروس کی مقررہ کیٹلاگ سے دستیاب ہیں۔ اس صفحے سے ادائیگی شروع نہیں ہوتی۔',
  'Current capacity plan':'موجودہ گنجائش کا پلان','Open Plan & billing':'پلان اور بلنگ کھولیں','Create an account to view billing':'بلنگ دیکھنے کے لیے اکاؤنٹ بنائیں',
+
+ 'Prices are available from the configured catalog in owner billing. Final totals and taxes are shown at checkout. No payment starts on this page.':'قیمتیں مالک کی بلنگ میں مقررہ کیٹلاگ سے دستیاب ہیں۔ حتمی رقم اور ٹیکس چیک آؤٹ پر دکھائے جاتے ہیں۔ اس صفحے سے ادائیگی شروع نہیں ہوتی۔',
+ 'Choose {plan}':'{plan} منتخب کریں',
+ 'Enterprise is available in owner billing for the selected interval.':'منتخب مدت کے لیے انٹرپرائز مالک کی بلنگ میں دستیاب ہے۔',
 
  // Standalone billing onboarding; existing operational billing copy is retained.
  "Workspace setup": "ورک اسپیس کی تیاری",

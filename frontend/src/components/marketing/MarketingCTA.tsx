@@ -1,6 +1,7 @@
 import { Link } from "react-router-dom";
 import { ArrowRight, Check } from "lucide-react";
 import useAuth from "@/hooks/useAuth";
+import { ONBOARDING_ROUTES } from "@/pages/Onboarding/onboardingRoutes";
 
 export function WorkspaceLink({
   className = "marketing-button primary-button",
@@ -11,7 +12,7 @@ export function WorkspaceLink({
 }) {
   const { isAuthenticated } = useAuth();
   return (
-    <Link className={className} to={isAuthenticated ? "/dashboard" : "/signup"}>
+    <Link className={className} to={isAuthenticated ? ONBOARDING_ROUTES.continue : ONBOARDING_ROUTES.signup}>
       {children ?? (isAuthenticated ? "Open your workspace" : "Get started")}
       <ArrowRight size={17} />
     </Link>
