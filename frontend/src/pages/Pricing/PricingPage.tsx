@@ -18,7 +18,7 @@ const comparisons: { name: string; values: (string | boolean)[] }[] = [
 const faqs = [
   [
     "How do I get started?",
-    "For Starter or Pro, create your account first, then choose a plan for your workspace. For Enterprise, contact us to discuss your requirements. After checkout confirms your subscription, you can add locations, create staff accounts, and set up your first tasks.",
+    "Choose Starter or Pro to carry your plan and billing interval into signup. Enterprise checkout is available in owner billing when the configured catalog includes it; otherwise, contact us to discuss your requirements. After checkout confirms your subscription, you can add locations, create staff accounts, and set up your first tasks.",
   ],
   [
     "What counts as a manager seat?",
