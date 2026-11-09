@@ -11,12 +11,15 @@ export const managerSignupSchema = z.object({
 
   email: z
     .string({ message: "Email is required" })
+    .trim()
+    .toLowerCase()
     .email("Invalid email format"),
 
 
   password: z
     .string({ message: "Password is required" })
-    .min(6, "Password must be at least 6 characters"),
+    .min(8, "Password must be at least 8 characters")
+    .refine(value => Buffer.byteLength(value, "utf8") <= 72, "Password must be at most 72 UTF-8 bytes"),
 
 
 
