@@ -41,11 +41,11 @@ it.each([['/signup','ADMIN','Continuation destination'],['/signup','MANAGER','Wo
 });
 it('keeps registration session-delivery failure unauthenticated with an accurate receipt',async()=>{
  api.post.mockResolvedValue({data:{data:{...owner,sessionEstablished:false}}});const {store}=mount(<SignUp/>,{path:'/signup'});
- for(const [label,value]of [['Full Name','Synthetic owner'],['Company Name','Synthetic company'],['Email',owner.email],['Password','Synthetic password']])fireEvent.change(screen.getByLabelText(label),{target:{value}});
- fireEvent.click(screen.getByRole('button',{name:'Create account & choose plan'}));await screen.findByText('Account created. Sign in to continue.');expect(store.getState().auth.user).toBeNull();expect(screen.queryByRole('heading',{name:'Billing destination'})).not.toBeInTheDocument();expect(screen.getByRole('link',{name:'Sign in'})).toHaveAttribute('href','/login');
+ for(const [label,value]of [['Your name','Synthetic owner'],['Company name','Synthetic company'],['Work email',owner.email],['Password','Synthetic password']])fireEvent.change(screen.getByLabelText(label),{target:{value}});
+ fireEvent.click(screen.getByRole('button',{name:'Continue to plans'}));await screen.findByText('Your account is ready. Sign in to continue.');expect(store.getState().auth.user).toBeNull();expect(screen.queryByRole('heading',{name:'Billing destination'})).not.toBeInTheDocument();expect(screen.getByRole('link',{name:'Sign in'})).toHaveAttribute('href','/login');
 });
-it('translates registration fields and validation using the billing setup shell',async()=>{
- mount(<SignUp/>,{language:'ur',path:'/signup'});expect(screen.getByRole('heading',{name:'اپنا ورک اسپیس بنائیں'})).toBeInTheDocument();fireEvent.click(screen.getByRole('button',{name:'اکاؤنٹ بنائیں اور پلان چنیں'}));await screen.findByText('نام ضروری ہے');expect(screen.getByLabelText('پورا نام')).toHaveAttribute('aria-invalid','true');expect(screen.getByRole('link',{name:'لاگ ان کریں'})).toHaveAttribute('href','/login');expect(screen.getAllByRole('group',{name:'زبان'})).toHaveLength(1);
+it('translates registration fields and validation using FlowShell',async()=>{
+ mount(<SignUp/>,{language:'ur',path:'/signup'});expect(screen.getByRole('heading',{name:'اپنا اکاؤنٹ بنائیں'})).toBeInTheDocument();fireEvent.click(screen.getByRole('button',{name:'پلانز کی طرف جائیں'}));expect(await screen.findAllByText('یہ خانہ ضروری ہے۔')).toHaveLength(4);expect(screen.getByLabelText('آپ کا نام')).toHaveAttribute('aria-invalid','true');expect(screen.getByRole('link',{name:'سائن ان'})).toHaveAttribute('href','/login');expect(screen.getAllByRole('group',{name:'زبان'})).toHaveLength(1);
 });
 
 it('reveals and hides the existing password without submitting or changing credentials',()=>{

@@ -2,14 +2,14 @@ import type { ReactNode } from "react";
 import { act, renderHook, waitFor } from "@testing-library/react";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { beforeEach, expect, it, vi } from "vitest";
-const mock = vi.hoisted(() => ({ signup: vi.fn(), dispatch: vi.fn(), navigate: vi.fn() }));
+const mock = vi.hoisted(() => ({ signup: vi.fn(), dispatch: vi.fn(), navigate: vi.fn(), search: '' }));
 vi.mock("./api", () => ({ signUp: mock.signup }));
 vi.mock("react-redux", () => ({ useDispatch: () => mock.dispatch }));
-vi.mock("react-router-dom", () => ({ useNavigate: () => mock.navigate }));
+vi.mock("react-router-dom", () => ({ useNavigate: () => mock.navigate, useLocation: () => ({ search: mock.search }) }));
 import { useCreateManager } from "./queries";
 const owner = { id: 1, name: "Owner", email: "owner@example.invalid", companyId: 42, role: "ADMIN" };
 const form = { name: "Owner", email: "owner@example.invalid", password: "test-password", companyName: "Test" };
-beforeEach(() => vi.resetAllMocks());
+beforeEach(() => { vi.resetAllMocks(); mock.search = ''; });
 function setup() {
   const client = new QueryClient({ defaultOptions: { mutations: { retry: false } } });
   client.setQueryData(["previous-tenant"], { private: "old-cache" });
@@ -44,4 +44,17 @@ it('retains successful legacy session responses without inventing a failed-sessi
   expect(mock.dispatch).toHaveBeenCalledWith({ type: 'auth/setUser', payload: owner });
   expect(mock.navigate).toHaveBeenCalledWith('/choose-plan', { replace: true });
   expect(client.getQueryData(['previous-tenant'])).toBeUndefined();
+});
+
+it.each([
+  ['?plan=PRO&interval=year&next=https://bad.invalid', '/choose-plan?plan=PRO&interval=year'],
+  ['?plan=bad&interval=month', '/choose-plan?interval=month'],
+  ['?plan=STARTER&interval=weekly', '/choose-plan?plan=STARTER'],
+  ['?plan=PRO&plan=STARTER&interval=year&interval=month', '/choose-plan'],
+])('carries only allowlisted selections from %s', async (search, destination) => {
+  mock.search = search;
+  mock.signup.mockResolvedValue({ ...owner, sessionEstablished: true });
+  const { result } = setup();
+  await act(async () => { await result.current.mutateAsync(form); });
+  expect(mock.navigate).toHaveBeenCalledWith(destination, { replace: true });
 });
