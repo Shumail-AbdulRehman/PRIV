@@ -16,10 +16,10 @@ The single source of truth for where this work stands. It outranks any assumptio
 | 09 | [Reservation facts](./09-reservation-facts.md) | Done | 01 | Heavy | — | Run by the spec runner; see spec Log |
 | 10 | [Server next-step decision](./10-onboarding-step.md) | Done | 01 | Standard | — | Run by the spec runner; see spec Log |
 | 11 | [Authentication rate limiter](./11-auth-rate-limit.md) | Done | 02 | Standard | — | Run by the spec runner; see spec Log |
-| 12 | [Time-limited billing requests](./12-billing-transport.md) | Not started | 01 | Standard | — |  |
+| 12 | [Time-limited billing requests](./12-billing-transport.md) | Done | 01 | Standard | — | Run by the spec runner; see spec Log |
 | 13 | [Paddle.js loading and normalized events](./13-paddle-sdk-inline.md) | Not started | 01 | Heavy | — |  |
 | 14 | [Real Paddle sandbox probe](./14-sandbox-probe.md) | Not started | 08 | Standard | — |  |
-| 15 | [Trial-free plan catalog](./15-trial-free-catalog.md) | Not started | 08 | Standard | — |  |
+| 15 | [Trial-free plan catalog](./15-trial-free-catalog.md) | Done | 08 | Standard | — | Run by the spec runner; see spec Log |
 | 16 | [Remove trials from sandbox prices](./16-trial-removal-script.md) | Not started | 08 | Standard | — |  |
 | 17 | [One Paddle customer per company](./17-ensure-customer.md) | Not started | 08, 09 | Heavy | — |  |
 | 18 | [Shared subscription fulfilment](./18-fulfillment-seam.md) | Not started | 01 | Heavy | — |  |

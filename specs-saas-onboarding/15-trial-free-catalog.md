@@ -1,6 +1,6 @@
 # Spec 15 — Trial-free plan catalog
 
-**Status:** Not started
+**Status:** Done
 **Depends on:** Spec 08
 **Model:** Standard — `claude-sonnet-5-5` · `gpt-6.1-sol` · `gemini-3.8-flash`
 **Issue:** —
