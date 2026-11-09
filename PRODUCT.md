@@ -1,8 +1,12 @@
 # Product
 
+## Register
+
+product
+
 ## Users
 
-Cleaning-company owners, location managers, and field staff in Pakistan. English/Urdu preference, reading fluency and digital confidence vary; optional spoken instructions should help adults complete real work respectfully. Administrators configure the company workspace and subscription plan, managers coordinate locations, shifts, attendance, and cleaning tasks, and staff complete attendance and task workflows from a mobile device.
+Cleaning-company owners, location managers, and field staff in Pakistan. English/Urdu preference, reading fluency and digital confidence vary, so instructions must help adults complete real work respectfully. Administrators configure the company workspace and subscription plan, managers coordinate locations, shifts, attendance, and cleaning tasks, and staff complete attendance and task workflows from a mobile device.
 
 ## Product Purpose
 
@@ -30,4 +34,4 @@ Target WCAG AA. Preserve keyboard navigation, visible focus states, semantic sta
 
 Core staff flow: check in → choose task → scan the task QR → start cleaning → follow guided required photos → submit. Submission remains separate from final verification. Staff upload photos directly and retry failed uploads explicitly. Temporary pictures are not restored after leaving the screen. Keep upload receipt, checks and manager review distinct.
 
-Design system: `DESIGN.md`. Current implementation and usability validation plan: `docs/UX_REDESIGN.md`.
+Design system: `DESIGN.md`. Product interface rules (status meanings, task QR, reviews): `docs/PRODUCT_UI_RULES.md`. Current implementation and usability validation plan: `docs/UX_REDESIGN.md`.

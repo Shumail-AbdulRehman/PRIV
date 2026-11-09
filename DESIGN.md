@@ -1,120 +1,267 @@
-# Hygene Ops interface system
+---
+name: Hygene Ops
+description: Calm blue and white operations workspace for cleaning companies and their field staff.
+colors:
+  primary: "#2556d8"
+  primary-dark: "#1d42b1"
+  selection: "#eef3ff"
+  canvas: "#f8fafc"
+  surface: "#ffffff"
+  ink: "#0f172a"
+  muted: "#475569"
+  line: "#dce4ee"
+  success-ink: "#16613d"
+  success-fill: "#ecf7f0"
+  warning-ink: "#7b4200"
+  warning-fill: "#fff7e5"
+  danger-ink: "#a32128"
+  danger-fill: "#fff0ef"
+  marketing-primary: "#4264d9"
+typography:
+  headline:
+    fontFamily: "Inter Variable, Arial, sans-serif"
+    fontSize: "30px"
+    fontWeight: 650
+    lineHeight: 1.3
+    letterSpacing: "-0.035em"
+  title:
+    fontFamily: "Inter Variable, Arial, sans-serif"
+    fontSize: "19px"
+    fontWeight: 650
+    lineHeight: 1.4
+    letterSpacing: "-0.025em"
+  subtitle:
+    fontFamily: "Inter Variable, Arial, sans-serif"
+    fontSize: "15px"
+    fontWeight: 650
+    lineHeight: 1.5
+  body:
+    fontFamily: "Inter Variable, Arial, sans-serif"
+    fontSize: "15px"
+    fontWeight: 400
+    lineHeight: 1.55
+  body-urdu:
+    fontFamily: "Noto Sans Arabic, Tahoma, sans-serif"
+    fontSize: "15px"
+    fontWeight: 400
+    lineHeight: 1.85
+  label:
+    fontFamily: "Inter Variable, Arial, sans-serif"
+    fontSize: "13px"
+    fontWeight: 400
+    lineHeight: 1.5
+  button:
+    fontFamily: "Inter Variable, Arial, sans-serif"
+    fontSize: "14px"
+    fontWeight: 550
+    lineHeight: 1.4
+rounded:
+  chip: "5px"
+  nav: "6px"
+  control: "7px"
+  panel: "8px"
+  setup-panel: "10px"
+  native-control: "12px"
+spacing:
+  xs: "4px"
+  sm: "8px"
+  md: "12px"
+  flow: "16px"
+  lg: "20px"
+  stack: "24px"
+  section: "32px"
+components:
+  button-primary:
+    backgroundColor: "{colors.primary}"
+    textColor: "{colors.surface}"
+    typography: "{typography.button}"
+    rounded: "{rounded.control}"
+    padding: "9px 14px"
+    height: "44px"
+  button-outline:
+    backgroundColor: "{colors.surface}"
+    textColor: "{colors.ink}"
+    typography: "{typography.button}"
+    rounded: "{rounded.control}"
+    padding: "9px 14px"
+    height: "44px"
+  field:
+    backgroundColor: "{colors.surface}"
+    textColor: "{colors.ink}"
+    rounded: "{rounded.control}"
+    height: "44px"
+  panel:
+    backgroundColor: "{colors.surface}"
+    textColor: "{colors.ink}"
+    rounded: "{rounded.panel}"
+  nav-link:
+    textColor: "{colors.ink}"
+    rounded: "{rounded.nav}"
+    padding: "10px 13px"
+    height: "46px"
+  nav-link-active:
+    backgroundColor: "{colors.selection}"
+    textColor: "{colors.ink}"
+    rounded: "{rounded.nav}"
+  status-success:
+    backgroundColor: "{colors.success-fill}"
+    textColor: "{colors.success-ink}"
+    rounded: "{rounded.chip}"
+    padding: "5px 9px"
+  status-warning:
+    backgroundColor: "{colors.warning-fill}"
+    textColor: "{colors.warning-ink}"
+    rounded: "{rounded.chip}"
+    padding: "5px 9px"
+  status-danger:
+    backgroundColor: "{colors.danger-fill}"
+    textColor: "{colors.danger-ink}"
+    rounded: "{rounded.chip}"
+    padding: "5px 9px"
+---
 
-## Overview performance dashboard, 2026-10-19
+# Design System: Hygene Ops
 
-Overview is a company/location performance report; Today remains the daily work
-and attendance workspace. Overview uses 7/30-day periods ending on the selected
-local date, weighted attendance/submission rates, daily rate trends, a work-status
-donut, a location comparison chart and a searchable table of every scoped location.
-Missing denominators display an em dash/No data, never a fabricated zero rate.
-The location status column is for the selected day, while the rates cover the
-whole period. Submission remains distinct from verified/exception completion.
-Use restrained teal and blue for series, amber/red for task states, no decorative
-chart animation, and a daily-figures table as an accessible chart alternative.
+## 1. Overview
 
+**Creative North Star: "The Daily Worksheet"**
 
-Updated 2026-10-11. Applies to authenticated web operations and the staff app. Read `PRODUCT.md` and `PROJECT_CONTEXT.md` before changing workflows. Implementation and validation: `docs/UX_REDESIGN.md`.
+Hygene Ops reads like a clear sheet you work down each day. Surfaces are plain and light, ink is strong, and a single blue marks the next action. A manager scanning today's operation and a cleaner with wet hands on a phone should both find the next step without being taught where it is. In the words of `PRODUCT.md`, the product should feel "dependable and calm during repetitive daily work while communicating exceptions and limits without ambiguity."
 
-## Audience and direction
+Density is moderate on web, where tables and summaries need to compare locations, and generous on the staff app, where large targets and one instruction at a time matter more. The web workspace uses a 224px sidebar, a topbar of at least 72px and content that stops at 1600px. Spacing follows the scale in the tokens. Layout stacks at 620px on phones, reflows at 900px and shows the permanent sidebar from 1024px. Urdu is a full direction, not a translation layer: use logical properties so every layout mirrors correctly.
 
-Adults running cleaning businesses and doing field work in Pakistan. Digital confidence, reading fluency, language, device quality and connectivity vary. Design for confident task completion without requiring training. Keep a calm, dependable operations workspace; prioritize today's work over decoration.
+This system rejects "decorative billing pages, generic marketing-style pricing cards inside authenticated workflows, excessive animation, vague feature names, and upgrade prompts that hide the exact limit a user reached."
 
-## Visual rules
+**Key Characteristics:**
+- Daylight only. The product defines no dark theme.
+- One blue for action. Green, amber and red only describe state.
+- Flat surfaces separated by one-pixel lines.
+- One clear next action per step, with secondary actions in outline or ghost style.
+- Large touch targets that grow with text.
+- Motion confirms a state change and never decorates.
 
-- Daylight surfaces, strong ink, restrained deep teal for actions. Amber draws attention; textual labels explain the state. Color never carries meaning alone.
-- Web tokens live inside `.workspace` in `frontend/src/workspace.css`, so operational styling does not rewrite the public marketing site. Native tokens live in `frontend-mobile/global.css` and are consumed by the existing NativeWind UI components.
-- English uses the existing interface typography. Web Urdu uses bundled Noto Sans Arabic, 400 and 600. Native uses system shaping; verify Urdu and system text enlargement on real Android/iOS devices.
-- Body text: 16 logical units; web compact labels approximately 14–15; native instructions 16–18. Headings approximately 24–32. Avoid uppercase paragraphs, dense tiny metadata and truncated instructions.
-- Spacing follows 4/8/12/16/20/24/32 increments. Give instructions and primary actions space. Web operational cards use restrained borders and 12–16 radii; no gradients or large shadows. Native cards use generous 20-unit padding.
-- Frequent actions target at least 48 × 48. Native default/large buttons have minimum 52/56 heights and grow with text. Use minimum heights instead of fixed text containers. Icon-only actions need accessible names; common actions should include short text.
-- A workflow has one clear next action. Secondary actions use outline/ghost styling. Keep occupied-room reporting visible during photography.
-- Retain visible keyboard focus, screen-reader names and persistent status announcements. Do not add continuous motion to operational screens.
+## 2. Colors
 
-## Components and navigation
+A restrained palette of cool neutrals with one working blue and three quiet status pairs.
 
-Use existing Button, Input, Text, ScreenHeader, PageHeader, SurfaceCard, StatusBadge and DataTable before creating another visual pattern. DataTable gives desktop comparisons and mobile summaries with expandable details; actions stay outside collapsed detail. A custom `mobileRender` can prioritize domain-specific content.
+### Primary
+- **Working Blue** (#2556d8): Primary buttons, links, active icons, focus rings and in-progress status, on web and in the staff app.
+- **Pressed Blue** (#1d42b1): Primary hover and pressed states, and informational text.
+- **Selection Wash** (#eef3ff): The active navigation row, selected options and informational fills.
 
-Web: Overview / Today / Review photos / Locations / Team / Attendance; administrative tools stay quieter. Overview and Today share the daily implementation. Managers see server-scoped assigned locations. Owners can compare locations and expand a defined seven-day submission comparison.
+### Neutral
+- **Worksheet Canvas** (#f8fafc): The page behind panels, on web and native.
+- **Sheet White** (#ffffff): Panels, fields, dialogs and the text on primary buttons.
+- **Strong Ink** (#0f172a): Headings, body text and field values.
+- **Quiet Slate** (#475569): Secondary text, metadata and inactive icons.
+- **Rule Line** (#dce4ee): Every border, divider and field outline.
 
-Staff: My day / Tasks / Help & account. Home shows location, shift, attendance and next task. Use the existing sequence: check in, select task, scan the task QR, clean, follow required photo steps, submit. Starting cleaning and submitting evidence are different actions.
+### Status
+- **Received Green** (#16613d on #ecf7f0): Received, passed and complete.
+- **Attention Amber** (#7b4200 on #fff7e5): Review, rework and warnings.
+- **Missed Red** (#a32128 on #fff0ef): Missed attendance, overdue work and destructive actions.
 
-## Language and listening
+### Public site
+- **Marketing Blue** (#4264d9): The public landing, features and pricing pages only. Keep it out of the authenticated workspace.
 
-Keep English / اردو visible. Persist the preference without altering authentication. Web sets document language/direction; native provides explicit text alignment and row direction plus React Navigation direction. Keep email/URL fields LTR. Preserve user-entered location names, task titles and immutable requirements.
+### Named Rules
+**The One Blue Rule.** Blue means "act here" or "this is selected". Never use it to decorate a heading, a chart background or an empty panel.
 
-Vocabulary lives in each app's `src/i18n/translations.ts`. A parity test enforces equivalent web/native dictionaries. Built-in instructions are translated; arbitrary configured instructions retain their original text. Do not silently rewrite a task's snapshotted requirement.
+**The Label Always Rule.** Color never carries meaning alone. Every status has words, because reading ability and color vision both vary among staff.
 
-Listen is available in the staff mobile app through Expo Speech. The manager web dashboard displays written instructions without speech controls. In the staff app, select an installed voice for the chosen language; never silently substitute English for Urdu. If unavailable, show a persistent explanation and ask for manager assistance. A compatible Urdu voice must be installed; native dependency changes require rebuilding the app. Do not claim offline speech availability for every installed voice.
+**The Scoped Token Rule.** Workspace tokens live on `.workspace` and its dialogs, and billing setup has its own scope. Never change a global token to restyle one surface.
 
-## Status and feedback contracts
+## 3. Typography
 
-| Condition                                        | Staff-facing meaning                                     |
-| ------------------------------------------------ | -------------------------------------------------------- |
-| SAVED / RETRY_WAIT                               | Photo saved on this phone; receipt is not confirmed      |
-| UPLOADING                                        | Photo uploading                                          |
-| SERVER_ACCEPTED / PROCESSING                     | Photo received and being checked                         |
-| RECAPTURE_REQUIRED                               | Take another photo, with the specific correction         |
-| CLEANING_REQUIRED                                | Needs cleaning, then the authorized QR/rework flow       |
-| REVIEW_REQUIRED / PRIVACY_HOLD                   | Waiting for manager review                               |
-| SERVICE_FAILURE                                  | Photo check could not finish; retain evidence for review |
-| staffSubmittedAt / staff completion presentation | Work submitted; manager review may still be needed       |
-| VERIFIED_COMPLETE (manager)                      | Verified                                                 |
-| COMPLETED_WITH_EXCEPTIONS (manager)              | Accepted with exceptions                                 |
+**Body and Heading Font:** Inter Variable (with Arial, sans-serif)
+**Wordmark Font:** Manrope Variable (the product logo only)
+**Urdu Font:** Noto Sans Arabic (with Tahoma, sans-serif)
 
-Never infer upload success from a local save or verification from submission. Never turn a service failure into a dirty finding. Show persistent feedback for attendance, submission, permissions and upload status. Explain every unavailable action with the reason and next step.
+**Character:** One familiar, legible sans used with weight and size contrast. It stays out of the way of repetitive work, and tabular numerals keep counts aligned.
 
-## Operational constraints
+### Hierarchy
+- **Headline** (650, 30px, 1.3): The page title, once per page.
+- **Title** (650, 19px, 1.4): Section headings inside a page.
+- **Subtitle** (650, 15px, 1.5): Panel and group headings.
+- **Body** (400, 15px, 1.55): Default text. Paragraphs use 1.6 and stay within 75ch.
+- **Label** (400, 13px, 1.5): Field text and compact metadata. Status chips use 12px at 550.
+- **Button** (550, 14px, 1.4): All button text. It wraps instead of truncating.
 
-The API remains authoritative for tenant access, permissions, attendance, assigned QR, capture sequencing, immutable requirements, generations, deadlines, privacy and completion. Preserve stable capture identity, direct uploads with explicit retry, audit history and protected-media authorization. Do not persist staff photos or auto-retry network failures. Do not offer occupied-room or ask-manager exception actions; required photos remain mandatory. Reconnecting does not restore expired authority; a fresh scan may be required. Staff screens do not show internal provider names, scores, slot IDs or spatial diagnostics.
+The staff app uses 16 to 18 logical units for instructions and 52px or taller actions. Native screens use bundled Inter and Noto Sans Arabic.
 
-## Manager web update — 2026-10-12
+### Named Rules
+**The Urdu Air Rule.** Urdu runs at 1.85 line height. Never set it at the English line height, and never give it a substitute Arabic-language font stack without Noto Sans Arabic first.
 
-Overview (`/dashboard`) and Today (`/today-status`) now have distinct purposes. Overview provides linked daily metrics, a short attention queue, a task-status chart and location comparison. Today has server-paginated Staff and Tasks tabs with visible location/date/search/status filters and an inline task panel. Daily records use paired location-local day ranges and labelled overnight overlap.
+**The Original Text Rule.** Keep emails, URLs, currency and IDs left-to-right inside Urdu layouts, and keep user-entered location and task names exactly as entered.
 
-Reviews (`/exceptions`) uses reason-first rows, actionable queue tabs, period/search/location filters and server pagination. The previous priority/reason/worker-ID filter block is removed. Case details combine protected evidence, snapshotted requirements, optional screened examples, context photos and audited decisions on one page. Missing requirements can be inspected and acted on individually. Action availability preserves privacy, photo-window and resolution rules.
+## 4. Elevation
 
-New manager components use the `.ops-*` rules in `workspace.css`; keep the slate canvas, readable typography, restrained teal, 48px controls, logical spacing and mobile stacking. Manager-only Urdu vocabulary lives in `frontend/src/i18n/managerTranslations.ts`; the shared web/mobile dictionary remains unchanged. Evidence enlargement uses an accessible dialog and protected blob fetches. Hidden/offscreen images load when viewed, including collapsed history.
+The system is flat. Depth comes from the one-pixel Rule Line and the step between Worksheet Canvas and Sheet White. Panels, buttons and fields have no shadow at rest.
 
-## Owner and manager web refresh — 2026-10-15
+### Shadow Vocabulary
+- **Pressed-in option** (`box-shadow: 0 1px 3px oklch(0.2 0.01 180 / 0.06)`): The selected language in the language switch.
+- **Metric hover** (`box-shadow: 0 2px 8px oklch(0.3 0.02 180 / 0.04)`): A clickable metric on hover only.
 
-This section applies only to the authenticated web workspace. The staff app is unchanged. `frontend/src/workspace-refresh.css` supplies the current web tokens and component refinements over retained structural/evidence rules. Workspace dialogs receive the same tokens through `WorkspaceTheme` context, so portal placement does not introduce a second palette.
+### Named Rules
+**The Flat At Rest Rule.** Nothing casts a shadow while idle. If a screen looks like a stack of floating cards, remove the shadows and use a line.
 
-Use a solid deep teal sidebar, a mint leaf mark, light neutral canvas, Inter body/controls and restrained Manrope headings. Operational panels use 8px corners and quiet borders; controls use 5px corners. Green signals received/passed work, amber signals review/rework, red signals missing attendance or overdue work, and muted blue distinguishes active processing. Text labels preserve the meaning of every status. Keep unsupported reports/metrics out of navigation.
+## 5. Components
 
-Owner and manager overviews have role-specific composition. Summary lists show three or four records and link to full lists. On narrow screens, attention precedes location comparisons. Owner trends use available seven-day aggregates rather than fabricating a daily series. Full local lists sort before pagination; server-paginated views keep backend-owned totals and filters. Preserve schedule anchors, scoped reads, immutable task instructions, explicit manager decisions and protected evidence access.
+Motion across components is limited to color feedback: background changes take 160ms ease-out, button feedback takes 120ms, and any entrance uses `cubic-bezier(.23, 1, .32, 1)`. Reduced-motion preferences turn animation off.
 
-Reuse `OperationalSummary`, `AttentionList`, `WorkProgress`, `PageHeader`, `SurfaceCard`, `StatCard`, `OperationStatus` and `DataTable`. Tables use mobile summaries with visible actions, and desktop scroll regions remain keyboard reachable. Loading skeletons retain the shell, errors offer retry, and form success/failure remains visible. Reference implementation, screenshots and validation boundaries: `docs/web-dashboard-redesign/README.md`.
+### Buttons
+Direct and unadorned.
+- **Shape:** Gently rounded (7px) on web. Native uses 12px, and 16px on large actions.
+- **Primary:** Working Blue with white text, at least 44px tall with 9px by 14px padding. Native primaries are at least 52px, and large ones 60px.
+- **Hover / Focus:** Hover moves toward Pressed Blue. Focus shows a 3px Working Blue outline.
+- **Outline / Ghost:** Outline uses Sheet White with a Rule Line border. Ghost has no border until hover.
+- **Destructive:** A tinted red fill with red text, never a solid red block.
+- **Disabled:** 55% opacity, always with a nearby explanation of why.
 
+### Chips
+- **Style:** Tinted status fill with matching ink, 5px corners and 5px by 9px padding, with no border.
+- **State:** The tone comes from the status. Words are always present.
 
-## Area templates and task QR codes, 2026-10-18
+### Cards / Containers
+- **Corner Style:** 8px for operational panels, 10px for billing setup panels.
+- **Background:** Sheet White on Worksheet Canvas.
+- **Shadow Strategy:** None, per The Flat At Rest Rule.
+- **Border:** One-pixel Rule Line.
+- **Internal Padding:** 16 to 24px on web, 20px on native.
 
-The location's **Area template** tab owns inline area creation, renaming, fixture
-editing and archiving. Area bookmarks redirect into this workspace. Do not restore
-separate area configuration pages, fixture QR labels or manual QR replacement
-controls. Area template IDs and immutable task photo snapshots remain unchanged.
+### Inputs / Fields
+- **Style:** Sheet White, one-pixel Rule Line border, 7px corners, at least 44px tall, 13px text inside the workspace.
+- **Focus:** A 3px Working Blue outline.
+- **Error / Disabled:** Errors appear as persistent text beside the field, not by color alone.
 
-Each generated task instance has an automatically signed QR bound to its task ID
-and assigned area. The same instance keeps the same code; other instances, even
-from the same schedule/template, get different codes. Owners and scoped managers
-can display/print **Task QR** from task history, Today task details and actual
-weekly-schedule items. Planned schedule previews have no task code until the
-instance exists. Staff scan that task code at start and again for capture/rework.
-Old shared-area and fixture codes cannot authorize a task scan. Keep QR payloads
-out of staff task responses, logs and persistent browser storage.
+### Navigation
+- **Web:** A white 224px sidebar with groups for daily operations, your organization and administration. Rows are at least 46px with 14px text and a quiet icon. The active row uses Selection Wash, weight 650 and a blue icon. Below 1024px the sidebar becomes a dialog with a name, Escape behavior and focus return.
+- **Staff app:** Three bottom tabs: My day, Tasks, Help & account.
 
-## Review explanations, 2026-10-18
+### Data Table
+Desktop shows a keyboard-reachable table. Phones show summary rows with visible actions and expandable detail. Reuse the existing table before building another list pattern.
 
-Task review detail leads with **What went wrong**: grouped cleaning findings,
-named missing views, required-photo progress, the server's photo deadline and a
-specific next step. Fixture links focus the recorded explanation and available
-manager actions. Missing, rejected/discarded, restricted and unavailable photos
-must have distinct copy. Clean results awaiting manual approval and checking
-failures must not be described as dirty findings. Use saved categorical findings
-and named surfaces, without another model call or invented visual explanations.
-Only server-authorized actions are displayed. Managers choose one whole-review
-outcome: resolve with a note, or record a categorized issue against assigned
-staff performance KPIs and close. Until saved, the task remains in exceptions.
-Closure is audited and leaves task completion and photo requirements as recorded.
-Do not offer photo retakes, cleaning requests, deadline extensions, or the
-previous-decisions/earlier-photos section. Staff detail shows manager-recorded
-performance issues for the selected reporting period.
+### Language Switch
+English and اردو stay visible on every primary surface. The chosen language has a raised white pill inside a quiet track.
+
+## 6. Do's and Don'ts
+
+### Do:
+- **Do** use #2556d8 for the single next action on each step, and outline or ghost for everything else.
+- **Do** keep frequent web actions at 44px or taller, phone-width web actions at 48px, and staff primary actions at 52px or taller.
+- **Do** give every status its words, and every blocked action its reason and next step.
+- **Do** use the existing Button, Input, Text, PageHeader, SurfaceCard, OperationStatus and DataTable components before creating a new pattern.
+- **Do** use logical CSS properties so Urdu mirrors without separate layouts.
+- **Do** state allowances, current usage and unavailable capabilities in concrete language.
+- **Do** keep submitted, verified and review-closed visually and verbally separate.
+
+### Don't:
+- **Don't** build "decorative billing pages" or use "generic marketing-style pricing cards inside authenticated workflows."
+- **Don't** add "excessive animation", or any continuous motion on operational screens.
+- **Don't** use "vague feature names" or "upgrade prompts that hide the exact limit a user reached."
+- **Don't** use a colored side stripe (a left or right border over 1px) on cards, rows or alerts.
+- **Don't** use gradients, gradient text, glass effects or large shadows in the workspace.
+- **Don't** nest panels inside panels, or use a modal when inline content will do.
+- **Don't** compress submission, verification and review closure into one green Complete badge.
+- **Don't** apply marketing patterns or Marketing Blue to workspace screens.
+- **Don't** show a fabricated zero where data is missing; show a dash or "No data".
