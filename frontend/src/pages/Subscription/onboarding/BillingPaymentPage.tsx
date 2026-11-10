@@ -1,71 +1,158 @@
-import { useEffect, useRef } from 'react';
-import { Link, useNavigate, useSearchParams } from 'react-router-dom';
+import { useState } from 'react';
+import { Link, Navigate, useSearchParams } from 'react-router-dom';
 import useAuth from '@/hooks/useAuth';
 import { useLanguage } from '@/i18n/context';
 import { Button } from '@/components/ui/button';
+import FlowShell from '@/pages/Onboarding/FlowShell';
+import { parseOnboardingQuery } from '@/pages/Onboarding/onboardingRoutes';
 import { useBillingCatalog, useBillingLifecycle, useSubscription } from '../queries';
 import { billingPlanDefinition, deriveBillingViewState } from './billingViewState';
 import { formatBillingPrice } from './billingPrice';
-import { useBillingCheckout } from './useBillingCheckout';
-import BillingSetupLayout from './BillingSetupLayout';
-import type { PlanCode } from '../types';
+import { useCheckoutSession, type CheckoutSelection } from './useCheckoutSession';
+import PaddleCheckoutFrame from './PaddleCheckoutFrame';
+import OrderSummary from './OrderSummary';
+import type { BillingCheckoutResume, ValidatedBillingLifecycle } from '../types';
 
 export default function BillingPaymentPage() {
- const {user}=useAuth(); const {t}=useLanguage();
- if(user?.role!=='ADMIN') return <BillingSetupLayout currentStep="payment"><h1>{t('Review your plan')}</h1><p role="alert">{t('Only the company owner can view or change billing.')}</p><Link to="/login">{t('Sign in again')}</Link></BillingSetupLayout>;
- return <OwnerPayment key={`${user.companyId}:${user.id}`} companyId={user.companyId} ownerId={user.id}/>;
+  const { user } = useAuth();
+  const { t } = useLanguage();
+  if (user?.role !== 'ADMIN') return <FlowShell size="wide" step="payment">
+    <h1>{t('Add your card')}</h1>
+    <p role="alert">{t('Only the company owner can view or change billing.')}</p>
+    <Link to="/login">{t('Sign in again')}</Link>
+  </FlowShell>;
+  return <OwnerPayment key={`${user.companyId}:${user.id}`} companyId={user.companyId} ownerId={user.id} />;
 }
-function OwnerPayment({companyId,ownerId}:{companyId:number;ownerId:number}) {
- const {t,language}=useLanguage(); const [params]=useSearchParams(); const navigate=useNavigate();
- const life=useBillingLifecycle(), catalog=useBillingCatalog(), summary=useSubscription(), checkout=useBillingCheckout();
- const view=deriveBillingViewState({owner:{companyId,ownerId},dataOwner:life.dataOwner,data:life.data,read:life.isPending?'loading':life.isError?'error':life.isFetching?'stale':'fresh'});
- const draft=checkout.prepared??view.resume;
- const planCode=draft?.plan??(['STARTER','PRO','ADVANCED'].includes(params.get('plan')??'')?params.get('plan') as PlanCode:null);
- const interval=draft?.interval??(params.get('interval')==='year'?'year':params.get('interval')==='month'?'month':null);
- const matches=catalog.data?.filter(row=>row.plan===planCode&&row.interval===interval)??[];
- const entry=matches.length===1?matches[0]:null;
- const plan=planCode?billingPlanDefinition(summary.data?.availablePlans??[],planCode):null;
- const price=entry?formatBillingPrice(entry.amount,entry.currencyCode,entry.interval,language==='ur'?'ur-PK':'en-PK'):null;
- const busy=life.isFetching||catalog.isFetching||summary.isFetching||checkout.isBusy;
- const unresolved=!!draft||['uncertain','pending','open','reopenable'].includes(checkout.status)||['pending','uncertain'].includes(view.kind);
- const opener=useRef<HTMLButtonElement>(null),wasOpen=useRef(false);
- const safe=!!plan&&!!price&&!busy&&!life.isError&&!catalog.isError&&!summary.isError&&(view.canChoosePlan||view.kind==='resume')&&!['uncertain','pending','open'].includes(checkout.status);
- const sandbox=view.data?.billingEnvironment==='sandbox'&&import.meta.env.VITE_PADDLE_ENVIRONMENT==='sandbox'&&import.meta.env.VITE_PADDLE_CLIENT_TOKEN?.startsWith('test_');
- useEffect(()=>{if(checkout.status==='open')wasOpen.current=true;if(checkout.status==='reopenable'&&wasOpen.current&&!busy){wasOpen.current=false;opener.current?.focus();}},[checkout.status,busy]);
- useEffect(()=>{if(checkout.status==='pending')navigate('/subscription/activation',{replace:true});},[checkout.status,navigate]);
- return <BillingSetupLayout currentStep="payment" environment={sandbox?'sandbox':undefined}>
-  <style>{`
-   @media(max-width:760px){
-    .billing-onboarding .billing-order-summary{padding:16px!important;}
-    .billing-onboarding .billing-order-summary>p{margin-block:10px!important;font-size:13px;}
-    .billing-onboarding .billing-order-summary .billing-order-plan{font-size:20px;margin-block:12px!important;}
-    .billing-onboarding .billing-order-capacities{grid-template-columns:repeat(3,minmax(0,1fr));padding:12px 0!important;list-style:none;gap:8px!important;margin-block:12px!important;border-block:1px solid var(--billing-line);font-size:12px;}
-    .billing-onboarding .billing-order-summary a{margin-block-start:12px!important;}
-    .billing-onboarding .billing-order-price{font-size:24px!important;}
-   }
-  `}</style>
-  <h1>{t('Review your plan')}</h1>
-  <div style={{display:'grid',gridTemplateColumns:'repeat(auto-fit,minmax(min(100%,300px),1fr))',gap:32,marginBlockStart:32}}>
-   <section className="billing-order-summary" aria-labelledby="order-summary" style={{padding:24,background:'var(--billing-canvas)',border:'1px solid var(--billing-line)',borderRadius:'var(--billing-radius)',minWidth:0}}>
-    <h2 id="order-summary">{t('Order summary')}</h2>
-    <p className="billing-order-plan" style={{fontSize:24,fontWeight:600,marginBlock:20}}>{plan?t(plan.name):t('Provider price unavailable')}</p>
-    <dl style={{display:'grid',gap:16}}><div><dt>{t('Recurring price')}</dt><dd><bdi className="billing-order-price" dir="ltr" style={{fontSize:28,fontWeight:600,overflowWrap:'anywhere'}}>{price?.formatted??t('Not available')}</bdi> · {interval?t(interval==='year'?'Yearly':'Monthly'):t('Not available')}</dd></div></dl>
-    {plan?<ul className="billing-order-capacities" style={{paddingInlineStart:20,display:'grid',gap:12,marginBlock:24}}>{(['locations','staff','managers'] as const).map(resource=><li key={resource}>{t({locations:'Includes {count} locations',staff:'Includes {count} staff seats',managers:'Includes {count} manager seats'}[resource],{count:plan.limits[resource]})}</li>)}</ul>:null}
-    <p style={{color:'var(--billing-muted)',fontSize:13}}>{t('The company owner uses one manager seat.')}</p>
-    {entry?.trialPeriod?<p>{t('Provider trial')}: <bdi dir="ltr">{entry.trialPeriod.frequency}</bdi> {t(entry.trialPeriod.interval)}</p>:null}
-    <p style={{color:'var(--billing-muted)',marginBlockStart:20}}>{t('Taxes and the final amount are confirmed by Paddle.')}</p>
-    {!unresolved?<Link style={{display:'inline-block',marginBlockStart:24}} to={planCode&&interval?`/choose-plan?${new URLSearchParams({plan:planCode,interval})}`:'/choose-plan'}>{t('Change plan')}</Link>:<p style={{marginBlockStart:24}}>{t('Your prepared checkout keeps its selected plan. Check status before making another payment.')}</p>}
-   </section>
-   <section aria-labelledby="payment-details" style={{minWidth:0}}>
-    <h2 id="payment-details">{t('Secure checkout with Paddle')}</h2><p style={{marginBlockStart:16}}>{t('Payment details are entered securely in Paddle.')}</p>
-    {sandbox?<section style={{marginBlock:24,padding:20,background:'var(--billing-amber-wash)',borderRadius:'var(--billing-radius)'}}><h3>{t('Sandbox · test cards only')}</h3><p style={{marginBlockStart:12}}>{t('Use a Paddle test card. No real money is charged.')}</p><p style={{marginBlockStart:12}}><bdi dir="ltr">4242 4242 4242 4242</bdi></p><p>{t('Use a future expiry date and any three-digit security code.')}</p></section>:null}
-    {checkout.message?<p role="alert" style={{marginBlock:20}}>{t(checkout.message)}</p>:null}
-    {!price||!plan||(!view.canChoosePlan&&view.kind!=='resume')||life.isError||catalog.isError||summary.isError?<p role="status" style={{marginBlock:20}}>{t('Billing is temporarily unavailable. Refresh status to try again.')}</p>:null}
-    <Button ref={opener} style={{marginBlockStart:24,width:'100%'}} disabled={!safe} onClick={()=>planCode&&interval&&void checkout.openCheckout({plan:planCode,interval})}>{t(checkout.status==='loading'?'Opening secure checkout…':draft?'Reopen secure checkout':'Open secure checkout')}</Button>
-    {unresolved||!safe?<Button variant="outline" style={{marginBlockStart:12,width:'100%'}} disabled={busy} onClick={()=>{void checkout.checkStatus();void life.refetch();void catalog.refetch();void summary.refetch();}}>{t('Check subscription status')}</Button>:null}
-    {checkout.status==='open'?<p role="status">{t('Complete your payment in the Paddle checkout window.')}</p>:checkout.status==='reopenable'?<p role="status">{t('Your prepared checkout is ready to reopen.')}</p>:null}
-    <p style={{marginBlockStart:20,color:'var(--billing-muted)',fontSize:13}}>{t('Final total and taxes are shown by Paddle before confirmation.')}</p>
-   </section>
-  </div>
- </BillingSetupLayout>;
+
+function OwnerPayment({ companyId, ownerId }: { companyId: number; ownerId: number }) {
+  const { t } = useLanguage();
+  const [params] = useSearchParams();
+  const lifecycle = useBillingLifecycle();
+  const view = deriveBillingViewState({ owner: { companyId, ownerId }, dataOwner: lifecycle.dataOwner, data: lifecycle.data,
+    read: lifecycle.isPending ? 'loading' : lifecycle.isError ? 'error' : 'fresh' });
+  // Resolve only after the scoped read: an existing draft always wins over the URL.
+  const selection = view.data?.checkoutResume ?? parseOnboardingQuery(params);
+  if (!view.data) return <FlowShell size="wide" step="payment">
+    <h1>{t('Add your card')}</h1>
+    {lifecycle.isPending ? <p role="status">{t('Checking subscription status…')}</p> :
+      <div className="flow-notice flow-notice-bad mt-6" role="alert">
+        <p>{t('Billing is temporarily unavailable. Refresh status to try again.')}</p>
+        <Button className="flow-button flow-button-secondary mt-3" disabled={lifecycle.isFetching} onClick={() => void lifecycle.refetch()}>{t('Try again')}</Button>
+      </div>}
+  </FlowShell>;
+  if (!selection.plan || !selection.interval) return <Navigate to="/choose-plan" replace />;
+  const environment = import.meta.env.VITE_PADDLE_ENVIRONMENT?.trim();
+  const token = import.meta.env.VITE_PADDLE_CLIENT_TOKEN?.trim();
+  if (!['sandbox', 'production'].includes(environment ?? '') || view.data.billingEnvironment !== environment ||
+    !token?.startsWith(environment === 'sandbox' ? 'test_' : 'live_')) return <FlowShell size="wide" step="payment">
+    <h1>{t('Add your card')}</h1>
+    <div role="alert" className="flow-notice flow-notice-bad mt-6">
+      <h2 className="flow-section-title">{t("The card form didn't load")}</h2>
+      <p>{t('Billing is temporarily unavailable. Refresh status to try again.')}</p>
+      <Button className="flow-button mt-3" disabled={lifecycle.isFetching} onClick={() => void lifecycle.refetch()}>{t('Try again')}</Button>
+    </div>
+  </FlowShell>;
+  return <PaymentSession selection={{ plan: selection.plan, interval: selection.interval }} facts={view.data} />;
+}
+
+function PaymentSession({ selection, facts }: { selection: CheckoutSelection; facts: ValidatedBillingLifecycle }) {
+  const { t, language } = useLanguage();
+  const catalog = useBillingCatalog();
+  const subscription = useSubscription();
+  const checkout = useCheckoutSession(selection);
+  // A prepared replacement may be newer than the query's last saved draft.
+  const draft: BillingCheckoutResume | null = checkout.prepared ?? facts.checkoutResume;
+  const chosen = draft ?? selection;
+  const plan = billingPlanDefinition(subscription.data?.availablePlans ?? [], chosen.plan);
+  const entries = catalog.data?.filter(entry => entry.plan === chosen.plan && entry.interval === chosen.interval) ?? [];
+  const price = entries.length === 1 ? entries[0] : null;
+  const { status, actions } = checkout;
+  const sandbox = facts.billingEnvironment === 'sandbox' && import.meta.env.VITE_PADDLE_ENVIRONMENT === 'sandbox' &&
+    !!import.meta.env.VITE_PADDLE_CLIENT_TOKEN?.startsWith('test_');
+  const ready = ['ready', 'paying', 'declined'].includes(status) ||
+    (status === 'offline' && ['ready', 'declined'].includes(checkout.state.onlineStatus ?? ''));
+  const showFrame = !['frameFailed', 'unresolved', 'restricted', 'replacing', 'confirming'].includes(status);
+  const fallback = !['checking', 'preparing', 'frameLoading'].includes(status);
+  const currencyCode = checkout.totals?.currencyCode;
+  const digits = formatBillingPrice('0', currencyCode, chosen.interval)?.fractionDigits;
+  // Paddle.js events use major-unit numbers (unlike the REST API). Adapt to
+  // OrderSummary's minor-unit strings without rounding or doing binary arithmetic.
+  // https://developer.paddle.com/build/checkout/build-branded-inline-checkout/
+  const minorUnits = (value: number | undefined): string | undefined => {
+    if (digits === undefined || typeof value !== 'number' || !Number.isFinite(value) || value < 0) return;
+    const decimal = value.toFixed(digits);
+    if (Number(decimal) !== value) return;
+    const minor = decimal.replace('.', '');
+    if (!/^\d+$/.test(minor) || !Number.isSafeInteger(Number(minor))) return;
+    return BigInt(minor).toString();
+  };
+  const totals = currencyCode ? { currencyCode,
+    totals: { subtotal: minorUnits(checkout.totals?.totals?.subtotal), tax: minorUnits(checkout.totals?.totals?.tax), total: minorUnits(checkout.totals?.totals?.total) },
+    recurringTotals: { total: minorUnits(checkout.totals?.recurringTotals?.total) } } : null;
+  const changePlanHref = `/choose-plan?${new URLSearchParams({ plan: chosen.plan, interval: chosen.interval })}`;
+
+  if (status === 'confirming') return <Navigate to="/subscription/activation" replace />;
+
+  return <FlowShell size="wide" step="payment" testMode={sandbox}>
+    <h1>{t('Add your card')}</h1>
+    <div className="mt-6 grid min-w-0 gap-6 min-[1024px]:grid-cols-[minmax(0,1.3fr)_minmax(0,.9fr)] min-[1024px]:gap-12">
+      <section aria-label={t('Add your card')} className="order-2 min-w-0 space-y-4 min-[1024px]:order-1">
+        {sandbox && status !== 'frameFailed' && <TestCards />}
+        {language === 'ur' && <p className="flow-fine">{t("Paddle's secure card form is in English.")}</p>}
+        {status === 'checking' && <p role="status" className="flow-notice">{t('Checking subscription status…')}</p>}
+        {status === 'preparing' && <p role="status" className="flow-notice">{t('Preparing your checkout…')}</p>}
+        {status === 'declined' && <p role="alert" className="flow-notice flow-notice-bad">{t('That card was declined. Check the details or try another card.')}</p>}
+        {status === 'offline' && <p role="status" className="flow-notice flow-notice-warn">{t("You're offline. Reconnect to continue. Your details stay here.")}</p>}
+        {facts.checkoutResume && ['frameLoading', 'ready'].includes(status) && <p role="status" className="flow-notice flow-notice-ok">{t('We saved your checkout. Pick up where you left off.')}</p>}
+        {status === 'paying' && <p role="status" className="flow-notice">{t('Processing your payment. Please keep this page open.')}</p>}
+        {status === 'replacing' && <p role="status" className="flow-notice">{t('Changing your plan. Please keep this page open.')}</p>}
+        {status === 'frameFailed' && <div role="alert" className="flow-notice flow-notice-bad space-y-3">
+          <h2 className="flow-section-title">{t("The card form didn't load")}</h2>
+          <p>{t('The card form could not load. Check your connection or browser extensions and try again.')}</p>
+        </div>}
+        {status === 'unresolved' && <p role="status" className="flow-notice flow-notice-warn">{t('We could not confirm your previous checkout. Check again before making another payment.')}</p>}
+        {status === 'restricted' && <p role="alert" className="flow-notice flow-notice-bad">{t('This account is restricted')}</p>}
+        {actions.includes('tryAgain') && <Button className="flow-button" disabled={checkout.actionBusy} aria-busy={checkout.actionBusy} onClick={() => void checkout.tryAgain()}>{t('Try again')}</Button>}
+        {actions.includes('checkStatus') && <Button className="flow-button" disabled={checkout.statusBusy} aria-busy={checkout.statusBusy} onClick={() => void checkout.checkStatus()}>{t(checkout.statusBusy ? 'Checking subscription status…' : 'Check subscription status')}</Button>}
+        {actions.includes('contactSupport') && <Button asChild className="flow-button"><Link to="/help">{t('Contact support')}</Link></Button>}
+        {showFrame && <PaddleCheckoutFrame ready={ready} registerFrameTarget={checkout.registerFrameTarget} />}
+      </section>
+      <div className="order-1 min-w-0 self-start min-[1024px]:sticky min-[1024px]:top-6 min-[1024px]:order-2">
+        {plan ? <OrderSummary plan={plan} interval={chosen.interval} totals={totals} catalogPrice={price}
+          fallback={fallback} hideChangePlan={!actions.includes('changePlan')} changePlanHref={changePlanHref} /> :
+          <div className="space-y-4 rounded-[8px] bg-[var(--flow-canvas)] p-4">
+            <h2 className="flow-section-title">{t('Order summary')}</h2>
+            {subscription.isPending ? <div role="status" aria-label={t('Loading…')} className="flow-skeleton h-28" /> :
+              <><p role="status">{t('Billing is temporarily unavailable. Refresh status to try again.')}</p>
+                <Button className="flow-button flow-button-secondary" disabled={subscription.isFetching} onClick={() => void subscription.refetch()}>{t('Try again')}</Button>
+                {actions.includes('changePlan') && <Link className="block text-[var(--flow-primary)] underline" to={changePlanHref}>{t('Change plan')}</Link>}</>}
+          </div>}
+      </div>
+    </div>
+  </FlowShell>;
+}
+
+function TestCards() {
+  const { t } = useLanguage();
+  const [copied, setCopied] = useState(false);
+  const copy = async () => {
+    try { await navigator.clipboard.writeText('4242424242424242'); setCopied(true); }
+    catch { setCopied(false); }
+  };
+  return <section aria-label={t('Test mode')} className="rounded-[7px] border border-dashed border-[var(--flow-warn-ink)] bg-[var(--flow-warn-fill)] p-4 text-[14px] text-[var(--flow-warn-ink)]">
+    <p><strong>{t('Test mode. No real money moves.')}</strong></p>
+    <p className="flex flex-wrap items-center gap-x-2">
+      <span>{t('Use this card:')}</span><bdi dir="ltr" className="font-mono tabular-nums">4242 4242 4242 4242</bdi>
+      <Button variant="ghost" className="min-h-11 text-inherit underline" onClick={() => void copy()}>{t('Copy')}</Button>
+      {copied && <span role="status">{t('Copied')}</span>}
+    </p>
+    <p>{t('Any future expiry date, any name, security code 100.')}</p>
+    <details className="flow-disclosure mt-3">
+      <summary>{t('More test cards')}</summary>
+      <ul className="space-y-3 pt-3">
+        <li><span className="block">{t('Asks for bank approval (3D Secure)')}</span><bdi dir="ltr" className="font-mono">4000 0038 0000 0446</bdi></li>
+        <li><span className="block">{t('Always declined')}</span><bdi dir="ltr" className="font-mono">4000 0000 0000 0002</bdi></li>
+      </ul>
+    </details>
+  </section>;
 }
