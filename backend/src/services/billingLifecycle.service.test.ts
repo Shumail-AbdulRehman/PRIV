@@ -5,47 +5,69 @@ import type { Request, Response, NextFunction } from 'express';
 import { once } from 'node:events';
 import subscriptionRouter from '../routes/subscription.route.js';
 import { Environment, Paddle } from '@paddle/paddle-node-sdk';
+import type { AuditLog } from '@prisma/client';
 const m = vi.hoisted(() => ({
-  owner: vi.fn(), company: vi.fn(), customer: vi.fn(), subscription: vi.fn(), subscriptions: vi.fn(), count: vi.fn(), auditFind: vi.fn(), auditCreate: vi.fn(), lock: vi.fn(), customerUpsert: vi.fn(), companyUpdate: vi.fn(), transaction: vi.fn(),
-  priceGet: vi.fn(), productGet: vi.fn(), customerCreate: vi.fn(), transactionCreate: vi.fn(), portalCreate: vi.fn(),
+  owner: vi.fn(), company: vi.fn(), customer: vi.fn(), subscription: vi.fn(), subscriptions: vi.fn(), count: vi.fn(),
+  auditFind: vi.fn(), auditMany: vi.fn(), auditCreate: vi.fn(), transaction: vi.fn(),
+  priceGet: vi.fn(), productGet: vi.fn(), customerCreate: vi.fn(), transactionCreate: vi.fn(), portalCreate: vi.fn(), provider: vi.fn(),
 }));
 vi.mock('../prisma/prisma.js', () => ({ prisma: {} }));
+import * as paddleConfig from '../config/paddle.js';
 import { getPaddleCatalog, configuredPlanForPrice, requireBillingActivation, getPaddleWebhookSecret } from '../config/paddle.js';
 import { createBillingCheckout, createBillingPortal, getBillingCatalog, getBillingLifecycle } from './billingLifecycle.service.js';
-const priceId = 'pri_00000000000000000000000001', customerId = 'ctm_00000000000000000000000001', transactionId = 'txn_00000000000000000000000001', productId = 'pro_00000000000000000000000001';
+import { createBillingCheckout as sharedCheckout } from './billingCheckout.service.js';
+import { getBillingCatalog as sharedCatalog } from './billingCatalog.service.js';
+const priceId = 'pri_00000000000000000000000001', customerId = 'ctm_00000000000000000000000001', transactionId = 'txn_00000000000000000000000001';
 const actor = { id: 1, role: 'ADMIN' as const, companyId: 42 };
+const now = new Date('2026-11-07T12:00:00Z');
 const company = { id: 42, name: 'Synthetic company', isActive: true, operationalStatus: 'ACTIVE', plan: 'STARTER', billingCustomerId: customerId, billingSubscriptionId: null };
-const owner = { id: 1, email: 'owner@example.invalid', name: 'Synthetic owner', emailVerifiedAt: new Date(), company };
-const dbObject = { manager: { findFirst: m.owner, count: m.count }, company: { findUnique: m.company, update: m.companyUpdate }, paddleCustomer: { findFirst: m.customer, findUnique: m.customer, upsert: m.customerUpsert },
-  paddleTransaction: { findFirst: m.transaction }, paddleSubscription: { findFirst: m.subscription, findMany: m.subscriptions }, location: { count: m.count }, staff: { count: m.count }, auditLog: { findFirst: m.auditFind, create: m.auditCreate }, $queryRaw: m.lock,
-  $transaction: async (run: (tx: unknown) => unknown) => run(dbObject) };
-// Tests use explicit provider/DB seams, never credentials or an external Paddle request.
-const deps = { db: dbObject as unknown as NonNullable<Parameters<typeof createBillingCheckout>[2]>['db'], provider: () => ({ prices: { get: m.priceGet }, products: { get: m.productGet }, customers: { create: m.customerCreate }, transactions: { create: m.transactionCreate }, customerPortalSessions: { create: m.portalCreate } }) as unknown as ReturnType<NonNullable<NonNullable<Parameters<typeof createBillingCheckout>[2]>['provider']>> };
-const request = { plan: 'STARTER', interval: 'month' };
+const owner = { id: 1, email: 'owner@example.invalid', name: 'Synthetic owner', emailVerifiedAt: now, company };
+const dbObject = { manager: { findFirst: m.owner, count: m.count }, company: { findUnique: m.company }, paddleCustomer: { findFirst: m.customer },
+  paddleTransaction: { findFirst: m.transaction }, paddleSubscription: { findFirst: m.subscription, findMany: m.subscriptions },
+  location: { count: m.count }, staff: { count: m.count }, auditLog: { findFirst: m.auditFind, findMany: m.auditMany, create: m.auditCreate } };
+const deps = { db: dbObject as unknown as NonNullable<Parameters<typeof getBillingLifecycle>[1]>['db'],
+  now: () => now, provider: m.provider };
+let audits: AuditLog[];
+function fact(id: number, action: string, newValue: unknown, change: Partial<AuditLog> = {}): AuditLog {
+  return { id, action, newValue, companyId: 42, entityType: 'BILLING_OPERATION', entityId: 42,
+    actorType: 'ADMIN', actorId: 1, oldValue: null, reason: null, createdAt: new Date(+now - 180_000), ...change } as AuditLog;
+}
+function checkoutAudit(requested: object = { plan: 'STARTER', interval: 'month', priceId }, saved: object | null = { reservationId: 10, transactionId, customerId }) {
+  audits.push(fact(10, 'CHECKOUT_RESERVED', requested));
+  if (saved) audits.push(fact(11, 'CHECKOUT_READY', saved));
+}
+function linked(change: object = {}, companyChange: object = {}) {
+  const linkedCompany = { ...company, billingSubscriptionId: 'sub_fixture', ...companyChange };
+  m.owner.mockResolvedValue({ ...owner, company: linkedCompany }); m.company.mockResolvedValue(linkedCompany);
+  m.subscription.mockResolvedValue({ ...qualifiedSubscription(), ...change });
+}
 function qualifiedSubscription() {
   return { id: 'sub_fixture', companyId: 42, customerId, priceId, status: 'active',
     currentBillingPeriodStart: new Date('2026-11-01T00:00:00Z'), currentBillingPeriodEnd: new Date('2026-12-01T00:00:00Z'),
     canceledAt: null, pausedAt: null, scheduledChangeAction: null, scheduledChangeAt: null, lastEventAt: new Date('2026-11-01T00:00:00Z') };
 }
-function checkoutAudit(requested: object = { plan: 'STARTER', interval: 'month', priceId }, saved: object | null = { reservationId: 10, transactionId, customerId }) {
-  m.auditFind.mockImplementation(async ({ where }: { where: { action: string } }) => {
-    if (where.action === 'CHECKOUT_RESERVED') return { id: 10, newValue: requested };
-    if (where.action === 'CHECKOUT_READY') return saved ? { id: 11, newValue: saved } : null;
-    return null;
-  });
-}
 beforeEach(() => {
-  vi.resetAllMocks();
+  vi.resetAllMocks(); audits = [];
   vi.stubEnv('PADDLE_ENVIRONMENT', 'sandbox'); vi.stubEnv('PADDLE_BILLING_ENABLED', 'true'); vi.stubEnv('PADDLE_API_KEY', 'isolated-credential-fixture-000000000000000');
   vi.stubEnv('PADDLE_PRICE_CATALOG_JSON', JSON.stringify([{ plan: 'STARTER', interval: 'month', priceId }])); vi.stubEnv('PADDLE_CHECKOUT_URL', 'https://workspace.example.invalid/choose-plan');
-  m.company.mockResolvedValue({ ...company }); m.owner.mockResolvedValue({ ...owner, company: { ...company } }); m.customer.mockResolvedValue({ id: customerId, companyId: 42 }); m.subscription.mockResolvedValue(null); m.subscriptions.mockResolvedValue([]); m.count.mockResolvedValue(1);
-  m.priceGet.mockResolvedValue({ id: priceId, productId, status: 'active', billingCycle: { interval: 'month', frequency: 1 }, unitPrice: { amount: '1234', currencyCode: 'USD' }, trialPeriod: null });
-  m.productGet.mockResolvedValue({ id: productId, status: 'active' }); m.transactionCreate.mockResolvedValue({ id: transactionId, customerId, status: 'draft' });
+  m.company.mockResolvedValue({ ...company }); m.owner.mockResolvedValue({ ...owner, company: { ...company } });
+  m.customer.mockResolvedValue({ id: customerId, companyId: 42 }); m.subscription.mockResolvedValue(null); m.subscriptions.mockResolvedValue([]); m.count.mockResolvedValue(1);
+  m.transaction.mockResolvedValue(null);
   m.portalCreate.mockResolvedValue({ customerId, urls: { general: { overview: 'https://sandbox-customer-portal.paddle.com/cpl_fixture?token=temporary-fixture' } } });
-  m.auditFind.mockResolvedValue(null); m.auditCreate.mockResolvedValue({ id: 10 });
-  m.customerCreate.mockResolvedValue({ id: customerId, email: owner.email, name: owner.name, status: 'active', createdAt: new Date().toISOString(), updatedAt: new Date().toISOString() });
+  m.provider.mockReturnValue({ prices: { get: m.priceGet }, products: { get: m.productGet }, customers: { create: m.customerCreate },
+    transactions: { create: m.transactionCreate }, customerPortalSessions: { create: m.portalCreate } });
+  type Query = { where: { action: string | { in: string[] }; newValue?: { equals: number }; companyId: number; entityId: number; entityType: string } };
+  const matches = ({ where }: Query) => audits.filter(row => row.companyId === where.companyId && row.entityId === where.entityId && row.entityType === where.entityType &&
+    (typeof where.action === 'string' ? row.action === where.action : where.action.in.includes(row.action)) &&
+    (!where.newValue || (row.newValue as { reservationId?: number } | null)?.reservationId === where.newValue.equals)).sort((a, b) => b.id - a.id);
+  m.auditFind.mockImplementation(async (query: Query) => matches(query)[0] ?? null);
+  m.auditMany.mockImplementation(async (query: Query) => matches(query));
 });
-afterEach(() => vi.unstubAllEnvs());
+afterEach(() => { vi.restoreAllMocks(); vi.unstubAllEnvs(); vi.unstubAllGlobals(); });
+
+it('re-exports the shared catalog and checkout implementations without wrappers or duplicate logic', () => {
+  expect(getBillingCatalog).toBe(sharedCatalog); expect(createBillingCheckout).toBe(sharedCheckout);
+});
 describe('explicit qualified catalog and activation', () => {
   it.each(['', 'short', 'your_placeholder_webhook_secret_123456789'])('does not accept absent/weak/placeholder webhook verification secret', value => {
     vi.stubEnv('PADDLE_WEBHOOK_SECRET', value); expect(() => getPaddleWebhookSecret()).toThrow();
@@ -77,7 +99,6 @@ describe('explicit qualified catalog and activation', () => {
     expect(result.company).toMatchObject({ id: actor.companyId, isActive: false, operationalStatus: 'ACTIVE' });
     expect(result.checkoutAvailable).toBe(false);
     expect(result.portalAvailable).toBe(true);
-    await expect(createBillingCheckout(actor, request, deps)).rejects.toMatchObject({ statusCode: 403, message: 'Company operations are suspended' });
     expect(m.priceGet).not.toHaveBeenCalled();
     expect(m.customerCreate).not.toHaveBeenCalled();
     expect(m.transactionCreate).not.toHaveBeenCalled();
@@ -96,16 +117,6 @@ describe('explicit qualified catalog and activation', () => {
     expect(await getBillingLifecycle(actor, deps)).toMatchObject({ providerState: 'MIRRORED', onboardingRequired: true, checkoutAvailable: false });
     m.subscription.mockResolvedValue({ ...qualifiedSubscription(), status: 'trialing' });
     expect(await getBillingLifecycle(actor, deps)).toMatchObject({ onboardingRequired: false });
-  });
-  it('reads actual provider amount/currency/trial facts without local price arithmetic', async () => {
-    m.priceGet.mockResolvedValueOnce({ id: priceId, productId, status: 'active', billingCycle: { interval: 'month', frequency: 1 }, unitPrice: { amount: '0', currencyCode: 'PKR' }, trialPeriod: { interval: 'day', frequency: 5 } });
-    expect(await getBillingCatalog(actor, deps)).toEqual([{ plan: 'STARTER', interval: 'month', priceId, productId, amount: '0', currencyCode: 'PKR', trialPeriod: { interval: 'day', frequency: 5, requiresPaymentMethod: null } }]);
-  });
-  it('rejects a provider price with the wrong status/cycle/product', async () => {
-    m.productGet.mockResolvedValueOnce({ id: productId, status: 'archived' });
-    await expect(getBillingCatalog(actor, deps)).rejects.toMatchObject({ statusCode: 503 });
-    m.priceGet.mockResolvedValueOnce({ id: priceId, productId, status: 'active', billingCycle: { interval: 'year', frequency: 1 } });
-    await expect(getBillingCatalog(actor, deps)).rejects.toMatchObject({ statusCode: 503 });
   });
 });
 describe('owner-only provider portal', () => {
@@ -131,80 +142,6 @@ describe('owner-only provider portal', () => {
   it('does not expose raw provider error payloads', async () => {
     m.portalCreate.mockRejectedValue(new Error('private-provider-body'));
     await expect(createBillingPortal(actor, {}, deps)).rejects.toMatchObject({ statusCode: 503, message: 'Billing is unavailable. Please try again later.' });
-  });
-});
-describe('checkout request safety around Paddle', () => {
-  it.each([{ ...request, companyId: 99 }, { ...request, priceId }, { plan: 'FREE', interval: 'month' }])('rejects client-owned entitlement or tenant selection', raw => {
-    return expect(createBillingCheckout(actor, raw, deps)).rejects.toMatchObject({ statusCode: 400 });
-  });
-  it('does not call any provider when activation, verified ownership or return URL is unavailable', async () => {
-    vi.stubEnv('PADDLE_BILLING_ENABLED', 'false'); await expect(createBillingCheckout(actor, request, deps)).rejects.toMatchObject({ statusCode: 503 });
-    vi.stubEnv('PADDLE_BILLING_ENABLED', 'true'); vi.stubEnv('PADDLE_ENVIRONMENT', 'production'); m.owner.mockResolvedValueOnce({ ...owner, emailVerifiedAt: null });
-    await expect(createBillingCheckout(actor, request, deps)).rejects.toMatchObject({ statusCode: 403 });
-    vi.stubEnv('PADDLE_CHECKOUT_URL', ''); await expect(createBillingCheckout(actor, request, deps)).rejects.toMatchObject({ statusCode: 503 });
-    expect(m.priceGet).not.toHaveBeenCalled(); expect(m.customerCreate).not.toHaveBeenCalled(); expect(m.transactionCreate).not.toHaveBeenCalled(); expect(m.auditCreate).not.toHaveBeenCalled();
-  });
-  it('allows an unverified sandbox owner through both checkout reservation locks without marking the email verified', async () => {
-    m.owner.mockResolvedValue({ ...owner, emailVerifiedAt: null });
-    const lifecycle = await getBillingLifecycle(actor, deps);
-    expect(lifecycle).toMatchObject({ billingEnvironment: 'sandbox', ownerVerified: false, checkoutAvailable: true, onboardingRequired: true });
-    expect(await createBillingCheckout(actor, request, deps)).toEqual({ transactionId, reused: false });
-    expect(m.transactionCreate).toHaveBeenCalledOnce();
-  });
-  it('requires verification in production and denies an owner who becomes unverified under the reservation lock', async () => {
-    vi.stubEnv('PADDLE_ENVIRONMENT', 'production');
-    m.owner.mockResolvedValue({ ...owner, emailVerifiedAt: null });
-    expect(await getBillingLifecycle(actor, deps)).toMatchObject({ billingEnvironment: 'production', ownerVerified: false, checkoutAvailable: false });
-    m.owner.mockResolvedValueOnce(owner).mockResolvedValueOnce(owner);
-    await expect(createBillingCheckout(actor, request, deps)).rejects.toMatchObject({ statusCode: 403 });
-    expect(m.transactionCreate).not.toHaveBeenCalled();
-  });
-  it('uses the portal for any linked subscription rather than creating another purchase', async () => {
-    m.company.mockResolvedValue({ ...company, billingSubscriptionId: 'sub_fixture' });
-    m.owner.mockResolvedValue({ ...owner, company: { ...company, billingSubscriptionId: 'sub_fixture' } });
-    await expect(createBillingCheckout(actor, request, deps)).rejects.toMatchObject({ statusCode: 409 }); expect(m.transactionCreate).not.toHaveBeenCalled();
-  });
-  it('reserves a single draft request before provider creation and records its exact result', async () => {
-    expect(await createBillingCheckout(actor, request, deps)).toEqual({ transactionId, reused: false });
-    expect(m.auditCreate).toHaveBeenCalledBefore(m.transactionCreate);
-    expect(m.transactionCreate).toHaveBeenCalledWith({ status: 'draft', collectionMode: 'automatic', customerId, items: [{ priceId, quantity: 1 }], checkout: { url: 'https://workspace.example.invalid/choose-plan' }, customData: { checkoutReservationId: 10 } });
-    expect(m.auditCreate).toHaveBeenLastCalledWith(expect.objectContaining({ data: expect.objectContaining({ action: 'CHECKOUT_READY', newValue: { reservationId: 10, transactionId, customerId } }) }));
-  });
-  it('reuses a prior server-resolved checkout without asking Paddle for a second transaction', async () => {
-    checkoutAudit();
-    expect(await createBillingCheckout(actor, request, deps)).toEqual({ transactionId, reused: true }); expect(m.transactionCreate).not.toHaveBeenCalled();
-  });
-  it('permits replacement only after provider-confirmed canceled checkout', async () => {
-    checkoutAudit();
-    m.transaction.mockResolvedValue({ id: transactionId, customerId, companyId: 42, status: 'canceled' });
-    expect(await createBillingCheckout(actor, request, deps)).toEqual({ transactionId, reused: false });
-    expect(m.transactionCreate).toHaveBeenCalledOnce();
-  });
-  it('blocks another purchase when the earlier checkout was paid but subscription sync is pending', async () => {
-    checkoutAudit();
-    m.transaction.mockResolvedValue({ id: transactionId, customerId, companyId: 42, status: 'paid' });
-    await expect(createBillingCheckout(actor, request, deps)).rejects.toMatchObject({ statusCode: 409 }); expect(m.transactionCreate).not.toHaveBeenCalled();
-  });
-  it('holds an uncertain prior outcome instead of retrying another purchase', async () => {
-    checkoutAudit(undefined, null);
-    await expect(createBillingCheckout(actor, request, deps)).rejects.toMatchObject({ statusCode: 409 }); expect(m.transactionCreate).not.toHaveBeenCalled();
-  });
-  it('does not overwrite a different pending plan choice', async () => {
-    checkoutAudit({ plan: 'PRO', interval: 'month', priceId: 'other' });
-    await expect(createBillingCheckout(actor, request, deps)).rejects.toMatchObject({ statusCode: 409 }); expect(m.transactionCreate).not.toHaveBeenCalled();
-  });
-  it('never marks an ambiguous provider failure as ready', async () => {
-    m.transactionCreate.mockRejectedValue(new Error('timeout after a remote draft may have been created'));
-    await expect(createBillingCheckout(actor, request, deps)).rejects.toMatchObject({ statusCode: 503 });
-    expect(m.auditCreate).toHaveBeenCalledTimes(1); expect(m.auditCreate.mock.calls[0]![0].data.action).toBe('CHECKOUT_RESERVED');
-  });
-  it('provisions customer linkage only from the server response for a verified owner', async () => {
-    const freshCompany = { ...company, billingCustomerId: null };
-    m.owner.mockResolvedValue({ ...owner, company: freshCompany }); m.customer.mockResolvedValue(null);
-    m.companyUpdate.mockImplementation(async ({ data }) => Object.assign(freshCompany, data));
-    expect(await createBillingCheckout(actor, request, deps)).toEqual({ transactionId, reused: false });
-    expect(m.customerCreate).toHaveBeenCalledWith({ email: owner.email, name: owner.name });
-    expect(m.companyUpdate).toHaveBeenCalledWith({ where: { id: 42 }, data: { billingCustomerId: customerId } });
   });
 });
 describe('installed Paddle signature verifier', () => {
@@ -298,156 +235,182 @@ describe('authoritative workspace permission and public readiness DTO', () => {
   });
 });
 
-describe('tenant-correlated persisted checkout resume', () => {
-  it.each([null, 'draft', 'ready'])('returns the exact saved selection for a proven prepared draft; mirror %s', async (status) => {
-    checkoutAudit();
-    m.transaction.mockResolvedValue(status ? { id: transactionId, companyId: 42, customerId, status } : null);
-    const result = await getBillingLifecycle(actor, deps);
-    expect(result).toMatchObject({ checkoutReadiness: 'READY', checkoutResume: { plan: 'STARTER', interval: 'month', transactionId }, reconciliationRequired: false });
-    expect(await createBillingCheckout(actor, request, deps)).toEqual({ reused: true, transactionId });
-    expect(m.transactionCreate).not.toHaveBeenCalled();
-    expect(m.auditCreate).not.toHaveBeenCalled();
+
+describe('local lifecycle assembly and ordered onboarding decisions', () => {
+  beforeEach(() => {
+    // A status read must never initialize an SDK client or make a network call,
+    // including through a shared service rather than the explicit provider seam.
+    vi.spyOn(paddleConfig, 'getPaddleClient').mockImplementation(() => { throw new Error('Unexpected Paddle client'); });
+    vi.stubGlobal('fetch', vi.fn(() => { throw new Error('Unexpected network request'); }));
   });
-  it.each(['paid', 'completed', 'billed', 'past_due', 'unknown', 'unrecognized'])('never resumes or repurchases a known %s outcome', async (status) => {
+  afterEach(() => {
+    expect(m.provider).not.toHaveBeenCalled();
+    expect(paddleConfig.getPaddleClient).not.toHaveBeenCalled();
+    expect(fetch).not.toHaveBeenCalled();
+    for (const call of [m.priceGet, m.productGet, m.customerCreate, m.transactionCreate, m.portalCreate, m.auditCreate]) expect(call).not.toHaveBeenCalled();
+  });
+  it('returns all existing fields and an explicit plan selection decision for a new company', async () => {
+    expect(await getBillingLifecycle(actor, deps)).toEqual({
+      company: { id: company.id, name: company.name, isActive: true, operationalStatus: 'ACTIVE', plan: 'STARTER' },
+      usage: { locations: 1, staff: 1, managers: 1 }, limits: { locations: 1, staff: 3, managers: 1 },
+      subscription: null, workspaceAccessAllowed: false, checkoutReadiness: 'READY', checkoutResume: null,
+      reconciliationRequired: false, billingConfigured: true, ownerVerified: true, billingEnvironment: 'sandbox',
+      onboardingRequired: true, providerState: 'AWAITING_PROVIDER', portalAvailable: true, checkoutAvailable: true,
+      onboardingStep: 'CHOOSE_PLAN', recoveryReason: null,
+    });
+    expect(m.owner).toHaveBeenCalledWith(expect.objectContaining({ where: { id: actor.id, companyId: actor.companyId, role: 'ADMIN', isActive: true } }));
+    expect(m.count).toHaveBeenCalledWith({ where: { companyId: 42, isActive: true } });
+  });
+  it.each(['MANAGER', 'STAFF'] as const)('refuses %s before reading any company facts', async role => {
+    await expect(getBillingLifecycle({ ...actor, role }, deps)).rejects.toMatchObject({ statusCode: 403 });
+    expect(m.owner).not.toHaveBeenCalled(); expect(m.company).not.toHaveBeenCalled();
+  });
+  it.each([null, { ...owner, id: 2 }, { ...owner, company: { ...company, id: 99 } }])('rejects a missing or mismatched active owner: %#', async value => {
+    m.owner.mockResolvedValue(value);
+    await expect(getBillingLifecycle(actor, deps)).rejects.toMatchObject({ statusCode: 403 });
+    expect(m.company).not.toHaveBeenCalled();
+  });
+  it('rejects a foreign company returned by the account read', async () => {
+    m.company.mockResolvedValue({ ...company, id: 99 });
+    await expect(getBillingLifecycle(actor, deps)).rejects.toMatchObject({ statusCode: 403 });
+  });
+  it('retains NOT_LINKED facts for a company without a customer', async () => {
+    m.company.mockResolvedValue({ ...company, billingCustomerId: null });
+    expect(await getBillingLifecycle(actor, deps)).toMatchObject({ onboardingStep: 'CHOOSE_PLAN', recoveryReason: null, providerState: 'NOT_LINKED', portalAvailable: false });
+    expect(m.customer).not.toHaveBeenCalled();
+  });
+  it.each([{ isActive: false }, { operationalStatus: 'SUSPENDED' }])('restriction overrides paid access, disabled billing and verification: %#', async change => {
+    linked({}, change); checkoutAudit();
+    m.transaction.mockResolvedValue({ id: transactionId, companyId: 42, customerId, status: 'paid' });
+    vi.stubEnv('PADDLE_BILLING_ENABLED', 'false');
+    expect(await getBillingLifecycle(actor, deps)).toMatchObject({ onboardingStep: 'RESTRICTED', recoveryReason: null, workspaceAccessAllowed: false, checkoutResume: null });
+  });
+  it.each(['active', 'trialing'])('qualified %s entitlement wins over purchase and email readiness', async status => {
+    linked({ status }); vi.stubEnv('PADDLE_BILLING_ENABLED', 'false'); vi.stubEnv('PADDLE_CHECKOUT_URL', '');
+    expect(await getBillingLifecycle(actor, deps)).toMatchObject({ onboardingStep: 'WORKSPACE', recoveryReason: null, workspaceAccessAllowed: true, checkoutAvailable: false });
+  });
+  it.each(['past_due', 'canceled', 'paused', 'unknown'])('linked %s subscriber without access goes to ACCOUNT even with billing disabled', async status => {
+    linked({ status }); vi.stubEnv('PADDLE_BILLING_ENABLED', 'false');
+    expect(await getBillingLifecycle(actor, deps)).toMatchObject({ onboardingStep: 'ACCOUNT', recoveryReason: null, workspaceAccessAllowed: false });
+  });
+  it.each([null, { ...qualifiedSubscription(), companyId: 99 }, { ...qualifiedSubscription(), customerId: 'ctm_foreign' }])('canonical subscription linkage still returns ACCOUNT for a missing/foreign mirror: %#', async subscription => {
+    linked(); m.subscription.mockResolvedValue(subscription);
+    expect(await getBillingLifecycle(actor, deps)).toMatchObject({ onboardingStep: 'ACCOUNT', recoveryReason: null, subscription: null, workspaceAccessAllowed: false });
+  });
+  it('sends an expired subscriber to ACCOUNT', async () => {
+    linked({ currentBillingPeriodEnd: now });
+    expect(await getBillingLifecycle(actor, deps)).toMatchObject({ onboardingStep: 'ACCOUNT', recoveryReason: null, workspaceAccessAllowed: false });
+  });
+  it('disabled billing wins over paid-pending and an unusable checkout URL', async () => {
+    vi.stubEnv('PADDLE_BILLING_ENABLED', 'false'); vi.stubEnv('PADDLE_CHECKOUT_URL', ''); checkoutAudit();
+    m.transaction.mockResolvedValue({ id: transactionId, companyId: 42, customerId, status: 'paid' });
+    expect(await getBillingLifecycle(actor, deps)).toMatchObject({ onboardingStep: 'UNAVAILABLE', recoveryReason: 'BILLING_DISABLED', billingConfigured: false });
+  });
+  it.each(['', 'http://example.invalid', 'https://user:password@example.invalid', 'https://example.invalid/?query=1'])('unusable purchase configuration returns PRICE_NOT_READY: %s', async url => {
+    vi.stubEnv('PADDLE_CHECKOUT_URL', url);
+    await expect(getBillingLifecycle(actor, deps)).resolves.toMatchObject({ onboardingStep: 'UNAVAILABLE', recoveryReason: 'PRICE_NOT_READY', billingConfigured: true, checkoutAvailable: false });
+  });
+  it('production requires email verification before a paid-pending or resumable draft', async () => {
+    vi.stubEnv('PADDLE_ENVIRONMENT', 'production'); m.owner.mockResolvedValue({ ...owner, emailVerifiedAt: null }); checkoutAudit();
+    m.transaction.mockResolvedValue({ id: transactionId, companyId: 42, customerId, status: 'completed' });
+    expect(await getBillingLifecycle(actor, deps)).toMatchObject({ onboardingStep: 'VERIFY_EMAIL', recoveryReason: null, ownerVerified: false, checkoutResume: null });
+  });
+  it.each(['sandbox', 'production'])('verified %s owner can choose a plan', async environment => {
+    vi.stubEnv('PADDLE_ENVIRONMENT', environment);
+    expect(await getBillingLifecycle(actor, deps)).toMatchObject({ onboardingStep: 'CHOOSE_PLAN', recoveryReason: null, ownerVerified: true });
+  });
+  it('keeps the sandbox email exception without marking the email verified', async () => {
+    m.owner.mockResolvedValue({ ...owner, emailVerifiedAt: null });
+    expect(await getBillingLifecycle(actor, deps)).toMatchObject({ onboardingStep: 'CHOOSE_PLAN', recoveryReason: null, ownerVerified: false, checkoutAvailable: true });
+  });
+  it.each(['paid', 'billed', 'completed'])('the exact %s draft mirror returns CONFIRMING without granting access', async status => {
     checkoutAudit(); m.transaction.mockResolvedValue({ id: transactionId, companyId: 42, customerId, status });
-    expect(await getBillingLifecycle(actor, deps)).toMatchObject({ checkoutReadiness: 'RECONCILIATION_PENDING', checkoutAvailable: false, checkoutResume: null });
-    await expect(createBillingCheckout(actor, request, deps)).rejects.toMatchObject({ statusCode: 409 });
-    expect(m.transactionCreate).not.toHaveBeenCalled();
+    expect(await getBillingLifecycle(actor, deps)).toMatchObject({ onboardingStep: 'CONFIRMING', recoveryReason: null, workspaceAccessAllowed: false, checkoutAvailable: false, checkoutResume: null, reconciliationRequired: true });
+    expect(m.transaction).toHaveBeenCalledWith({ where: { id: transactionId, companyId: 42, customerId } });
   });
-  it.each([
-    { reservationId: 99, transactionId, customerId }, { reservationId: 10, transactionId: 'txn_bad', customerId },
-    { reservationId: 10, transactionId, customerId: 'ctm_foreign' },
-    { reservationId: 10, transactionId },
-    { reservationId: 10, transactionId, customerId, confirmedByProvider: true },
-  ])('holds malformed or unproven READY facts: %#', async (saved) => {
-    checkoutAudit(undefined, saved);
-    expect(await getBillingLifecycle(actor, deps)).toMatchObject({ checkoutResume: null, checkoutReadiness: 'RECONCILIATION_PENDING' });
-    await expect(createBillingCheckout(actor, request, deps)).rejects.toMatchObject({ statusCode: 409 });
-    expect(m.transactionCreate).not.toHaveBeenCalled();
+  it('paid-pending takes precedence over an open customer reservation', async () => {
+    checkoutAudit(); audits.push(fact(12, 'CUSTOMER_CREATE_RESERVED', {}));
+    m.transaction.mockResolvedValue({ id: transactionId, companyId: 42, customerId, status: 'completed' });
+    expect(await getBillingLifecycle(actor, deps)).toMatchObject({ onboardingStep: 'CONFIRMING', recoveryReason: null, checkoutResume: null });
   });
-  it('permits legacy READY records only when a same-tenant reopenable mirror proves linkage', async () => {
-    checkoutAudit(undefined, { reservationId: 10, transactionId });
-    m.transaction.mockResolvedValue({ id: transactionId, companyId: 42, customerId, status: 'draft' });
-    expect(await getBillingLifecycle(actor, deps)).toMatchObject({ checkoutResume: { transactionId } });
+  it('fulfilment releases the checkout hold and delegates to current subscription access', async () => {
+    linked(); checkoutAudit(); m.transaction.mockResolvedValue({ id: transactionId, companyId: 42, customerId, status: 'completed', subscriptionId: 'sub_fixture' });
+    expect(await getBillingLifecycle(actor, deps)).toMatchObject({ onboardingStep: 'WORKSPACE', recoveryReason: null, reconciliationRequired: false, checkoutReadiness: 'LINKED_SUBSCRIPTION', checkoutResume: null });
   });
-  it.each([{ companyId: 99 }, { customerId: 'ctm_foreign' }, { id: 'txn_foreign' }, { subscriptionId: 'sub_existing' }])('rejects foreign/linked transaction evidence: %#', async (change) => {
-    checkoutAudit(); m.transaction.mockResolvedValue({ id: transactionId, companyId: 42, customerId, status: 'draft', ...change });
-    expect(await getBillingLifecycle(actor, deps)).toMatchObject({ checkoutReadiness: 'RECONCILIATION_PENDING', checkoutResume: null });
-    await expect(createBillingCheckout(actor, request, deps)).rejects.toMatchObject({ statusCode: 409 });
-    expect(m.transactionCreate).not.toHaveBeenCalled();
+  it.each(['CUSTOMER_CREATE', 'CHECKOUT'])('open %s reservation returns RECONCILE both inside and after grace', async operation => {
+    for (const age of [0, 119_999, 120_000, 180_000]) {
+      audits = [fact(10, `${operation}_RESERVED`, {}, { createdAt: new Date(+now - age) })];
+      expect(await getBillingLifecycle(actor, deps)).toMatchObject({ onboardingStep: 'RECONCILE', recoveryReason: 'CUSTOMER_UNRESOLVED', reconciliationRequired: true, checkoutAvailable: false });
+    }
   });
-  it.each([null, { id: customerId, companyId: 99 }])('cannot resume without the canonical same-tenant customer mirror: %#', async (customer) => {
+  it('the latest customer EMAIL_CONFLICT failure returns its recorded reason', async () => {
+    audits.push(fact(7, 'CUSTOMER_CREATE_RESERVED', {}), fact(8, 'CUSTOMER_CREATE_FAILED', { reservationId: 7, code: 'EMAIL_CONFLICT' }));
+    expect(await getBillingLifecycle(actor, deps)).toMatchObject({ onboardingStep: 'RECONCILE', recoveryReason: 'EMAIL_CONFLICT', reconciliationRequired: true, checkoutAvailable: false });
+  });
+  it.each(['CUSTOMER_CREATE', 'CHECKOUT'])('a proven non-conflict %s failure permits another selection', async operation => {
+    audits.push(fact(7, `${operation}_RESERVED`, {}), fact(8, `${operation}_FAILED`, { reservationId: 7, code: 'REJECTED' }));
+    expect(await getBillingLifecycle(actor, deps)).toMatchObject({ onboardingStep: 'CHOOSE_PLAN', recoveryReason: null, reconciliationRequired: false });
+  });
+  it('a newer successful customer reservation supersedes an older email conflict', async () => {
+    audits.push(fact(7, 'CUSTOMER_CREATE_RESERVED', {}), fact(8, 'CUSTOMER_CREATE_FAILED', { reservationId: 7, code: 'EMAIL_CONFLICT' }),
+      fact(9, 'CUSTOMER_CREATE_RESERVED', {}), fact(10, 'CUSTOMER_CREATE_READY', { reservationId: 9, customerId }));
+    expect(await getBillingLifecycle(actor, deps)).toMatchObject({ onboardingStep: 'CHOOSE_PLAN', recoveryReason: null, reconciliationRequired: false });
+  });
+  it.each([null, { id: customerId, companyId: 99 }, { id: 'ctm_foreign', companyId: 42 }])('a missing/mismatched canonical customer requires reconciliation: %#', async customer => {
     checkoutAudit(); m.customer.mockResolvedValue(customer);
-    expect(await getBillingLifecycle(actor, deps)).toMatchObject({ checkoutReadiness: 'RECONCILIATION_PENDING', checkoutResume: null, portalAvailable: false });
-    await expect(createBillingCheckout(actor, request, deps)).rejects.toMatchObject({ statusCode: 409 });
+    m.transaction.mockResolvedValue({ id: transactionId, companyId: 42, customerId, status: 'completed' });
+    expect(await getBillingLifecycle(actor, deps)).toMatchObject({ onboardingStep: 'RECONCILE', recoveryReason: 'CUSTOMER_UNRESOLVED', checkoutResume: null, portalAvailable: false });
   });
-  it('blocks a pending customer reservation even if a separate provider event linked its customer', async () => {
-    m.auditFind.mockImplementation(async ({ where }) => where.action === 'CUSTOMER_CREATE_RESERVED' ? { id: 7, newValue: {} } : null);
-    expect(await getBillingLifecycle(actor, deps)).toMatchObject({ reconciliationRequired: true, checkoutAvailable: false });
-    await expect(createBillingCheckout(actor, request, deps)).rejects.toMatchObject({ statusCode: 409 });
-    expect(m.transactionCreate).not.toHaveBeenCalled();
+  it.each([null, 'draft', 'ready'])('a prepared draft with mirror %s returns PAYMENT and the exact saved selection', async status => {
+    checkoutAudit(); m.transaction.mockResolvedValue(status ? { id: transactionId, companyId: 42, customerId, status } : null);
+    expect(await getBillingLifecycle(actor, deps)).toMatchObject({ onboardingStep: 'PAYMENT', recoveryReason: null, checkoutResume: { plan: 'STARTER', interval: 'month', transactionId }, reconciliationRequired: false });
   });
-  it('requires a matching customer READY reservation and canonical customer', async () => {
-    m.auditFind.mockImplementation(async ({ where }) => where.action === 'CUSTOMER_CREATE_RESERVED'
-      ? { id: 7, newValue: {} } : where.action === 'CUSTOMER_CREATE_READY' ? { id: 8, newValue: { reservationId: 99, customerId } } : null);
-    expect(await getBillingLifecycle(actor, deps)).toMatchObject({ reconciliationRequired: true, checkoutResume: null });
-  });
-  it('returns an exact yearly PRO selection rather than reconstructing the company default', async () => {
+  it('restores a yearly PRO selection rather than deriving it from the current company plan', async () => {
     const yearlyPrice = 'pri_00000000000000000000000002';
     vi.stubEnv('PADDLE_PRICE_CATALOG_JSON', JSON.stringify([{ plan: 'PRO', interval: 'year', priceId: yearlyPrice }]));
     checkoutAudit({ plan: 'PRO', interval: 'year', priceId: yearlyPrice });
-    expect(await getBillingLifecycle(actor, deps)).toMatchObject({ checkoutResume: { plan: 'PRO', interval: 'year', transactionId } });
+    expect(await getBillingLifecycle(actor, deps)).toMatchObject({ onboardingStep: 'PAYMENT', checkoutResume: { plan: 'PRO', interval: 'year', transactionId } });
   });
-  it('does not enable plan changes for a saved monthly transaction', async () => {
-    checkoutAudit();
-    vi.stubEnv('PADDLE_PRICE_CATALOG_JSON', JSON.stringify([{ plan: 'STARTER', interval: 'month', priceId }, { plan: 'STARTER', interval: 'year', priceId: 'pri_00000000000000000000000002' }]));
-    m.priceGet.mockImplementation(async (id) => ({ id, productId, status: 'active', billingCycle: { interval: id === priceId ? 'month' : 'year', frequency: 1 }, unitPrice: { amount: '1234', currencyCode: 'USD' }, trialPeriod: null }));
-    await expect(createBillingCheckout(actor, { plan: 'STARTER', interval: 'year' }, deps)).rejects.toMatchObject({ statusCode: 409 });
-    expect(m.transactionCreate).not.toHaveBeenCalled();
-  });
-  it('allows another selection only after same-tenant provider-confirmed cancellation', async () => {
-    checkoutAudit(); m.transaction.mockResolvedValue({ id: transactionId, companyId: 42, customerId, status: 'canceled' });
-    expect(await getBillingLifecycle(actor, deps)).toMatchObject({ checkoutResume: null, checkoutReadiness: 'READY', reconciliationRequired: false });
-  });
-});
-
-// Persisted-boundary fixtures deliberately retain RESERVED on a rejected call.
-// They test service decisions, not PostgreSQL rollback/locking (owned by spec60).
-describe('failure after durable reservation never causes a second provider create', () => {
-  it.each(['customer-reject', 'customer-persist', 'draft-reject', 'draft-persist'])('retains the hold after %s and a fresh read/retry', async (failure) => {
-    const freshCompany = { ...company, billingCustomerId: failure.startsWith('customer') ? null : customerId };
-    m.owner.mockResolvedValue({ ...owner, company: freshCompany }); m.company.mockResolvedValue(freshCompany);
-    const audits: Array<{ id: number; action: string; newValue: unknown }> = [];
-    m.auditFind.mockImplementation(async ({ where }) => [...audits].reverse().find(row => row.action === where.action &&
-      (!where.newValue || (row.newValue as { reservationId?: number })?.reservationId === where.newValue.equals)) ?? null);
-    m.auditCreate.mockImplementation(async ({ data }) => {
-      if (failure === 'draft-persist' && data.action === 'CHECKOUT_READY') throw new Error('persist failed');
-      const row = { ...data, id: audits.length + 1 }; audits.push(row); return row;
-    });
-    if (failure === 'customer-reject') m.customerCreate.mockRejectedValue(new Error('private-provider-payload'));
-    if (failure === 'customer-persist') m.customerUpsert.mockRejectedValue(new Error('persist failed'));
-    if (failure === 'draft-reject') m.transactionCreate.mockRejectedValue(new Error('private-provider-payload'));
-    await expect(createBillingCheckout(actor, request, deps)).rejects.toThrow();
-    expect(audits.map(row => row.action)).toEqual([failure.startsWith('customer') ? 'CUSTOMER_CREATE_RESERVED' : 'CHECKOUT_RESERVED']);
-    const result = await getBillingLifecycle(actor, deps);
-    expect(result).toMatchObject({ reconciliationRequired: true, checkoutResume: null, checkoutAvailable: false, checkoutReadiness: 'RECONCILIATION_PENDING' });
-    expect(JSON.stringify(result)).not.toContain('private-provider-payload');
-    await expect(createBillingCheckout(actor, request, deps)).rejects.toMatchObject({ statusCode: 409 });
-    expect(m.customerCreate).toHaveBeenCalledTimes(failure.startsWith('customer') ? 1 : 0);
-    expect(m.transactionCreate).toHaveBeenCalledTimes(failure.startsWith('customer') ? 0 : 1);
-    expect(audits).toHaveLength(1);
-  });
-  it('a lost response after READY can reopen the same transaction through a fresh lifecycle read', async () => {
-    const audits: Array<{ id: number; action: string; newValue: unknown }> = [];
-    m.auditFind.mockImplementation(async ({ where }) => [...audits].reverse().find(row => row.action === where.action &&
-      (!where.newValue || (row.newValue as { reservationId?: number })?.reservationId === where.newValue.equals)) ?? null);
-    m.auditCreate.mockImplementation(async ({ data }) => { const row = { ...data, id: audits.length + 1 }; audits.push(row); return row; });
-    await createBillingCheckout(actor, request, deps); // Caller discards the successful response.
-    expect(await getBillingLifecycle(actor, deps)).toMatchObject({ checkoutResume: { transactionId, plan: 'STARTER', interval: 'month' } });
-    expect(await createBillingCheckout(actor, request, deps)).toEqual({ reused: true, transactionId });
-    expect(m.transactionCreate).toHaveBeenCalledOnce();
-    expect(audits.map(row => row.action)).toEqual(['CHECKOUT_RESERVED', 'CHECKOUT_READY']);
-  });
-});
-
-describe('provider catalog and requested sandbox card requirements', () => {
-  it.each([true, false, undefined])('reports provider requiresPaymentMethod=%s without guessing', async (requiresPaymentMethod) => {
-    m.priceGet.mockResolvedValue({ id: priceId, productId, status: 'active', billingCycle: { interval: 'month', frequency: 1 }, unitPrice: { amount: '1234', currencyCode: 'USD' }, trialPeriod: { interval: 'day', frequency: 7, requiresPaymentMethod } });
-    expect((await getBillingCatalog(actor, deps))[0]!.trialPeriod).toEqual({ interval: 'day', frequency: 7, requiresPaymentMethod: requiresPaymentMethod ?? null });
-    if (requiresPaymentMethod === true) expect(await createBillingCheckout(actor, request, deps)).toEqual({ reused: false, transactionId });
-    else {
-      await expect(createBillingCheckout(actor, request, deps)).rejects.toMatchObject({ statusCode: 503 });
-      expect(m.auditCreate).not.toHaveBeenCalled();
-      expect(m.transactionCreate).not.toHaveBeenCalled();
-    }
+  it.each(['past_due', 'unknown', 'unrecognized'])('uncertain transaction status %s stays in RECONCILE', async status => {
+    checkoutAudit(); m.transaction.mockResolvedValue({ id: transactionId, companyId: 42, customerId, status });
+    expect(await getBillingLifecycle(actor, deps)).toMatchObject({ onboardingStep: 'RECONCILE', recoveryReason: 'CUSTOMER_UNRESOLVED', checkoutResume: null });
   });
   it.each([
-    { unitPrice: { amount: '-1', currencyCode: 'USD' } }, { unitPrice: { amount: '1.2', currencyCode: 'USD' } },
-    { unitPrice: { amount: 1234, currencyCode: 'USD' } }, { unitPrice: { amount: '1234', currencyCode: 'usd' } },
-    { trialPeriod: { interval: 'day', frequency: 0 } }, { trialPeriod: { interval: 'week', frequency: 1, requiresPaymentMethod: 'true' } },
-    { billingCycle: { interval: 'month', frequency: 2 } }, { status: 'archived' },
-  ])('rejects malformed/inactive price facts before reservation: %#', async (change) => {
-    m.priceGet.mockResolvedValue({ id: priceId, productId, status: 'active', billingCycle: { interval: 'month', frequency: 1 }, unitPrice: { amount: '1234', currencyCode: 'USD' }, trialPeriod: null, ...change });
-    await expect(createBillingCheckout(actor, request, deps)).rejects.toMatchObject({ statusCode: 503 });
-    expect(m.auditCreate).not.toHaveBeenCalled();
-    expect(m.transactionCreate).not.toHaveBeenCalled();
+    { reservationId: 99, transactionId, customerId }, { reservationId: 10, transactionId: 'txn_bad', customerId },
+    { reservationId: 10, transactionId, customerId: 'ctm_foreign' }, { reservationId: 10, transactionId },
+    { reservationId: 10, transactionId, customerId, confirmedByProvider: true },
+  ])('malformed or unproven READY facts cannot resume: %#', async saved => {
+    checkoutAudit(undefined, saved);
+    expect(await getBillingLifecycle(actor, deps)).toMatchObject({ onboardingStep: 'RECONCILE', recoveryReason: 'CUSTOMER_UNRESOLVED', checkoutResume: null });
   });
-});
-
-it('never reports ready when subscription changes between the policy read and public record read', async () => {
-  const linkedCompany = { ...company, billingSubscriptionId: 'sub_fixture' };
-  m.owner.mockResolvedValue({ ...owner, company: linkedCompany }); m.company.mockResolvedValue(linkedCompany);
-  m.subscription.mockResolvedValueOnce(qualifiedSubscription()).mockResolvedValueOnce({ ...qualifiedSubscription(), status: 'canceled' });
-  expect(await getBillingLifecycle(actor, { ...deps, now: () => new Date('2026-11-07T12:00:00Z') })).toMatchObject({ workspaceAccessAllowed: false, subscription: { status: 'canceled' } });
-});
-
-it('a fulfilled draft linked to the canonical subscription stops holding confirmation without allowing purchase',async()=>{
- const subscription=qualifiedSubscription();
- m.company.mockResolvedValue({...company,billingSubscriptionId:subscription.id});
- m.owner.mockResolvedValue({...owner,company:{...company,billingSubscriptionId:subscription.id}});
- m.subscription.mockResolvedValue(subscription);checkoutAudit();
- m.transaction.mockResolvedValue({id:transactionId,companyId:42,customerId,subscriptionId:subscription.id,status:'completed'});
- expect(await getBillingLifecycle(actor,{...deps,now:()=>new Date('2026-11-08T12:00:00Z')})).toMatchObject({workspaceAccessAllowed:true,reconciliationRequired:false,checkoutReadiness:'LINKED_SUBSCRIPTION',checkoutAvailable:false,checkoutResume:null});
- await expect(createBillingCheckout(actor,request,deps)).rejects.toMatchObject({statusCode:409});
- expect(m.transactionCreate).not.toHaveBeenCalled();
+  it('a legacy READY without a customer can resume only through its same-tenant mirror', async () => {
+    checkoutAudit(undefined, { reservationId: 10, transactionId });
+    m.transaction.mockResolvedValue({ id: transactionId, companyId: 42, customerId, status: 'draft' });
+    expect(await getBillingLifecycle(actor, deps)).toMatchObject({ onboardingStep: 'PAYMENT', checkoutResume: { transactionId } });
+  });
+  it.each([{ companyId: 99 }, { customerId: 'ctm_foreign' }, { id: 'txn_foreign' }])('foreign paid mirrors cannot select CONFIRMING or grant access: %#', async change => {
+    checkoutAudit(); m.transaction.mockResolvedValue({ id: transactionId, companyId: 42, customerId, status: 'paid', ...change });
+    expect(await getBillingLifecycle(actor, deps)).toMatchObject({ onboardingStep: 'RECONCILE', recoveryReason: 'CUSTOMER_UNRESOLVED', checkoutResume: null, workspaceAccessAllowed: false });
+  });
+  it('an unrelated paid mirror cannot override a missing READY', async () => {
+    checkoutAudit(undefined, null); m.transaction.mockResolvedValue({ id: transactionId, companyId: 42, customerId, status: 'paid' });
+    expect(await getBillingLifecycle(actor, deps)).toMatchObject({ onboardingStep: 'RECONCILE', recoveryReason: 'CUSTOMER_UNRESOLVED' });
+    expect(m.transaction).not.toHaveBeenCalled();
+  });
+  it('a proven canceled draft permits selection again', async () => {
+    checkoutAudit(); audits.push(fact(12, 'CHECKOUT_CANCELED', { reservationId: 10, transactionId }));
+    expect(await getBillingLifecycle(actor, deps)).toMatchObject({ onboardingStep: 'CHOOSE_PLAN', recoveryReason: null, checkoutResume: null, reconciliationRequired: false });
+  });
+  it('a same-tenant canceled mirror also clears a prepared hold', async () => {
+    checkoutAudit(); m.transaction.mockResolvedValue({ id: transactionId, companyId: 42, customerId, status: 'canceled' });
+    expect(await getBillingLifecycle(actor, deps)).toMatchObject({ onboardingStep: 'CHOOSE_PLAN', recoveryReason: null, reconciliationRequired: false });
+  });
+  it('evaluates the correlated subscription returned in the DTO when it changes during the read', async () => {
+    linked(); m.subscription.mockResolvedValueOnce(qualifiedSubscription()).mockResolvedValueOnce({ ...qualifiedSubscription(), status: 'canceled' });
+    expect(await getBillingLifecycle(actor, deps)).toMatchObject({ onboardingStep: 'ACCOUNT', workspaceAccessAllowed: false, subscription: { status: 'canceled' } });
+  });
+  it('propagates reservation database failures rather than manufacturing a safe next step', async () => {
+    m.auditMany.mockRejectedValue(new Error('fixture database read failed')); checkoutAudit();
+    await expect(getBillingLifecycle(actor, deps)).rejects.toThrow('fixture database read failed');
+  });
 });
