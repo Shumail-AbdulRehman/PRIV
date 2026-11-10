@@ -6,13 +6,13 @@ test("React registration persists an owner and own-password replacement revokes 
 }) => {
   await page.goto("/signup");
   await page
-    .getByLabel("Full Name", { exact: true })
+    .getByLabel("Your name", { exact: true })
     .fill("E2E registered owner");
   await page
-    .getByLabel("Company Name", { exact: true })
+    .getByLabel("Company name", { exact: true })
     .fill("E2E registered company");
   await page
-    .getByLabel("Email", { exact: true })
+    .getByLabel("Work email", { exact: true })
     .fill("registered-e2e@example.invalid");
   await page.getByLabel("Password", { exact: true }).fill(fixture.password);
   const registered = page.waitForResponse(
@@ -20,7 +20,7 @@ test("React registration persists an owner and own-password replacement revokes 
       r.url().endsWith("/manager/manager-signup") &&
       r.request().method() === "POST",
   );
-  await page.getByRole("button", { name: /Create account/i }).click();
+  await page.getByRole("button", { name: "Continue to plans" }).click();
   expect((await registered).status()).toBe(201);
   await expect(page).not.toHaveURL(/signup/);
   expect(
@@ -296,9 +296,9 @@ test("protected photo DTOs hide private/legacy URLs and deny a foreign reader be
 });
 
 test("registration CTA keeps a durable unpaid account outside operations and permits real sign-in",async({page})=>{
- await page.goto('/signup');await page.getByLabel('Full Name',{exact:true}).fill('E2E billing landing owner');await page.getByLabel('Company Name',{exact:true}).fill('E2E billing landing company');await page.getByLabel('Email',{exact:true}).fill('billing-landing@example.invalid');await page.getByLabel('Password',{exact:true}).fill(fixture.password);const response=page.waitForResponse(r=>r.url().endsWith('/manager/manager-signup')&&r.request().method()==='POST');await page.getByRole('button',{name:/Create account/i}).click();expect((await response).status()).toBe(201);
- await expect(page).toHaveURL(/choose-plan/);await expect(page.getByRole('heading',{name:'Choose your plan',exact:true})).toBeVisible();await expect(page.getByRole('button',{name:'Continue with selected plan'})).toBeDisabled();
- for(const path of ['/dashboard','/staff']){await page.goto(path);await expect(page).toHaveURL(/subscription/);await expect(page.getByRole('heading',{name:'Check subscription status',exact:true})).toBeVisible();await expect(page.getByRole('navigation',{name:'Workspace navigation'})).toHaveCount(0);}
- expect((await page.request.post(backend+'/api/common/logout')).status()).toBe(200);await page.goto('/login');await page.getByLabel('Email',{exact:true}).fill('billing-landing@example.invalid');await page.getByLabel('Password',{exact:true}).fill(fixture.password);await page.getByRole('button',{name:'Sign in',exact:true}).click();await expect(page).toHaveURL(/subscription/);await expect(page.getByRole('heading',{name:'Check subscription status',exact:true})).toBeVisible();await expect(page.getByRole('navigation',{name:'Workspace navigation'})).toHaveCount(0);
+ await page.goto('/signup');await page.getByLabel('Your name',{exact:true}).fill('E2E billing landing owner');await page.getByLabel('Company name',{exact:true}).fill('E2E billing landing company');await page.getByLabel('Work email',{exact:true}).fill('billing-landing@example.invalid');await page.getByLabel('Password',{exact:true}).fill(fixture.password);const response=page.waitForResponse(r=>r.url().endsWith('/manager/manager-signup')&&r.request().method()==='POST');await page.getByRole('button',{name:'Continue to plans'}).click();expect((await response).status()).toBe(201);
+ await expect(page).toHaveURL(/subscription\/recovery/);await expect(page.getByRole('heading',{name:'Payments are unavailable right now',exact:true})).toBeVisible();await expect(page.getByTitle('Controlled Paddle card form')).toHaveCount(0);
+ for(const path of ['/dashboard','/staff']){await page.goto(path);await expect(page).toHaveURL(/subscription/);await expect(page.getByRole('heading',{name:'Payments are unavailable right now',exact:true})).toBeVisible();await expect(page.getByRole('navigation',{name:'Workspace navigation'})).toHaveCount(0);}
+ expect((await page.request.post(backend+'/api/common/logout')).status()).toBe(200);await page.goto('/login');await page.getByLabel('Email',{exact:true}).fill('billing-landing@example.invalid');await page.getByLabel('Password',{exact:true}).fill(fixture.password);await page.getByRole('button',{name:'Sign in',exact:true}).click();await expect(page).toHaveURL(/subscription/);await expect(page.getByRole('heading',{name:'Payments are unavailable right now',exact:true})).toBeVisible();await expect(page.getByRole('navigation',{name:'Workspace navigation'})).toHaveCount(0);
  const rows=await sql('SELECT c."billingCustomerId",c."billingSubscriptionId",c."subscriptionStatus" FROM "Company" c JOIN "Manager" m ON m."companyId"=c.id WHERE m.email=$1',['billing-landing@example.invalid']);expect(rows).toEqual([{billingCustomerId:null,billingSubscriptionId:null,subscriptionStatus:'CANCELLED'}]);
 });

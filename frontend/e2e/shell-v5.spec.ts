@@ -85,10 +85,10 @@ test('shared shell preserves manager owner-route denial staff handoff localized 
     await noOverflow(page);
     await page.screenshot({ path: join(out, `app-manager-security-${width}-${lang}.png`), animations: 'disabled' });
     await enter(page, '/staff', 'transfer', lang);
-    await expect(page.getByRole('heading', { name: lang === 'en' ? 'Your working day is in the app.' : 'آپ کا کام ایپ میں ہے۔' })).toBeVisible();
+    await expect(page.getByRole('heading', { name: lang === 'en' ? 'Your work is in the app' : 'آپ کا کام ایپ میں ہے' })).toBeVisible();
     await expect(page.locator('.workspace-sidebar')).toHaveCount(0);
-    await expect(page.locator('a.v5-approved-download')).toHaveCount(0);
-    expect((await page.locator('.v5-handoff-signout').boundingBox())!.height).toBeGreaterThanOrEqual(width === 390 ? 48 : 44);
+    await expect(page.getByRole('link', { name: lang === 'en' ? 'Open approved Android distribution' : 'منظور شدہ اینڈرائیڈ ایپ کھولیں', exact: true })).toHaveCount(0);
+    await expect.poll(async () => (await page.getByRole('button', { name: lang === 'en' ? 'Sign out' : 'سائن آؤٹ', exact: true }).boundingBox())!.height).toBeGreaterThanOrEqual(width === 390 ? 48 : 44);
     await page.screenshot({ path: join(out, `app-staff-handoff-${width}-${lang}.png`), animations: 'disabled' });
     await noOverflow(page);
     await enter(page, '/staff', 'ownerA', lang);
