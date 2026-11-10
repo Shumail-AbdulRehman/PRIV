@@ -50,8 +50,7 @@ export async function createBillingCheckout(actor: VerificationActor, raw: unkno
     if (!parsed.success) throw new ApiError(400, 'Choose an available plan and billing interval');
     const db = deps.db ?? prisma, provider = deps.provider ?? billingProvider;
     await ownerAccount(actor, db);
-    let checkout: URL;
-    try { requireBillingActivation(); checkout = getPaddleCheckoutUrl(); }
+    try { requireBillingActivation(); getPaddleCheckoutUrl(); }
     catch { throw new ApiError(503, 'Billing is unavailable. Please try again later.'); }
     const catalog = await (deps.db || deps.provider || deps.now ? createBillingCatalog(deps) : getBillingCatalog)(actor);
     const selected = catalog.find(entry => entry.plan === parsed.data.plan && entry.interval === parsed.data.interval);
@@ -105,7 +104,7 @@ export async function createBillingCheckout(actor: VerificationActor, raw: unkno
     let transaction: Transaction;
     try {
         transaction = await provider.transactions.create({ collectionMode: 'automatic', customerId,
-            items: [{ priceId: selected.priceId, quantity: 1 }], checkout: { url: checkout.toString() },
+            items: [{ priceId: selected.priceId, quantity: 1 }],
             customData: { checkoutReservationId: prepared.reservationId } });
     } catch (error) {
         if (error instanceof BillingProviderError && ['REJECTED', 'RATE_LIMITED'].includes(error.classification)) {

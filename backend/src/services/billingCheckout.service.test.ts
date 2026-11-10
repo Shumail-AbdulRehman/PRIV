@@ -140,9 +140,11 @@ describe('prepare and reuse', () => {
     it('reserves before creating and returns all flags without granting access', async () => {
         expect(await f.run()).toEqual({ transactionId: firstId, reused: false, replaced: false });
         expect(f.provider.transactions.create).toHaveBeenCalledExactlyOnceWith({ collectionMode: 'automatic', customerId,
-            items: [{ priceId: entries[0].priceId, quantity: 1 }], checkout: { url: 'https://checkout.example.invalid/pay' },
+            items: [{ priceId: entries[0].priceId, quantity: 1 }],
             customData: { checkoutReservationId: 1 } });
         expect(f.provider.transactions.create.mock.calls[0][0]).not.toHaveProperty('status');
+        // An inline checkout opens by transaction ID. A checkout URL needs a Paddle-approved domain.
+        expect(f.provider.transactions.create.mock.calls[0][0]).not.toHaveProperty('checkout');
         expect(f.events.indexOf('CHECKOUT_RESERVED')).toBeLessThan(f.events.indexOf('create'));
         expect(f.events.indexOf('release', f.events.indexOf('CHECKOUT_RESERVED'))).toBeLessThan(f.events.indexOf('create'));
         expect(f.rows[1].newValue).toEqual({ reservationId: 1, transactionId: firstId, customerId });

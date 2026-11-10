@@ -236,6 +236,15 @@ describe("onboarding copy coverage", () => {
     }
   });
 
+  it.each([
+    "For individuals and very small cleaning teams.",
+    "For small cleaning companies managing multiple teams.",
+    "For larger cleaning operations with more locations and staff.",
+  ])("translates the server plan description %s", key => {
+    expect(translate(key, "ur")).not.toBe(key);
+    expect(translate(key, "ur")).toMatch(/[\u0600-\u06ff]/);
+  });
+
   it("gives approved onboarding copy priority over older shared dictionaries", () => {
     expect(translate("Workspace", "ur")).toBe("ورک اسپیس");
     expect(translate("Sign in", "ur")).toBe("سائن ان");

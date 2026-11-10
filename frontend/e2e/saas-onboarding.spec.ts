@@ -188,6 +188,37 @@ for (const width of [320, 390, 768, 1440]) test(`S42-48 ${width}px English Urdu 
     if (path.includes('payment')) { await expect(page.frameLocator('iframe').getByText('Paddle secure checkout · Terms · Privacy')).toBeVisible(); const box = await page.getByTitle('Controlled Paddle card form').boundingBox(); expect(box!.width).toBeLessThanOrEqual(width); }
   }
 });
+for (const lang of ['en', 'ur']) test(`S42-48a 1440px ${lang} plan values sit under their column headings`, async ({ page }) => {
+  await mockBilling(page); await page.setViewportSize({ width: 1440, height: 900 }); await enter(page, '/choose-plan');
+  await page.getByRole('button', { name: lang === 'ur' ? 'اردو' : 'English', exact: true }).click();
+  await expect(page.locator('.flow-plan-row')).toHaveCount(3);
+  const offsets = await page.evaluate(rtl => {
+    const heads = [...document.querySelector('fieldset > div[aria-hidden="true"]')!.children].slice(1);
+    return [...document.querySelectorAll('.flow-plan-row')].flatMap(row => {
+      const values = [...row.querySelectorAll(':scope > span:nth-child(2) bdi'), row.querySelector('.flow-price')!];
+      return values.map((value, index) => {
+        const a = value.getBoundingClientRect(), b = heads[index].getBoundingClientRect();
+        if (index < 3) return Math.abs((a.left + a.right) / 2 - (b.left + b.right) / 2);
+        return rtl ? Math.abs(a.left - b.left) : Math.abs(a.right - b.right);
+      });
+    });
+  }, lang === 'ur');
+  expect(offsets).toHaveLength(12);
+  for (const offset of offsets) expect(offset).toBeLessThanOrEqual(4);
+});
+for (const lang of ['en', 'ur']) test(`S42-48b 390px ${lang} sticky bar leaves the last plan tappable at phone heights`, async ({ page }) => {
+  test.setTimeout(60000); await mockBilling(page); await page.setViewportSize({ width: 390, height: 844 }); await enter(page, '/choose-plan');
+  await page.getByRole('button', { name: lang === 'ur' ? 'اردو' : 'English', exact: true }).click();
+  const radio = page.locator('.flow-plan-row input').last(); await expect(radio).toBeEnabled();
+  const covered: number[] = [];
+  for (let height = 560; height <= 920; height += 20) {
+    await page.setViewportSize({ width: 390, height }); await page.evaluate(() => scrollTo(0, 0));
+    await radio.scrollIntoViewIfNeeded();
+    if (!await radio.evaluate(el => { const r = el.getBoundingClientRect(); return document.elementFromPoint(r.left + r.width / 2, r.top + r.height / 2) === el; })) covered.push(height);
+  }
+  expect(covered).toEqual([]);
+  await radio.click(); await expect(radio).toBeChecked();
+});
 test('S42-49 keyboard 200 percent zoom reduced motion reaches payment', async ({ page }) => {
   await mockBilling(page); await page.setViewportSize({ width: 1440, height: 900 }); await page.emulateMedia({ reducedMotion: 'reduce' }); await enter(page, '/choose-plan');
   await page.evaluate(() => { document.documentElement.style.zoom = '2'; });

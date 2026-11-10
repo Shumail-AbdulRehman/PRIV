@@ -284,6 +284,12 @@
   .flow-shell .flow-plan-row:not(:has(input:checked)):hover { background: var(--flow-canvas); }
   .flow-shell :is(.flow-input, [data-slot='input']):hover { border-color: var(--flow-placeholder); }
 }
+/* The decision bar is sticky below md. Scrolling and focus must stop clear of it. */
+@media (max-width: 767px) {
+  html:has(.flow-shell .flow-plan-row) { scroll-padding-bottom: 11rem; }
+  .flow-shell .flow-plan-row, .flow-shell .flow-plan-row input { scroll-margin-bottom: 11rem; }
+}
+
 @media (max-width: 560px) {
   .flow-shell .flow-header { padding: 16px; }
   .flow-shell .hygene-wordmark { font-size: 18px; }

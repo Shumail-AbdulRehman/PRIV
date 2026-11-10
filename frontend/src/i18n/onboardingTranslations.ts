@@ -150,5 +150,8 @@ export const onboardingUrdu: Record<string, string> = {
   "Your account and plan choice are saved. Try again or contact support.": "آپ کا اکاؤنٹ اور منتخب پلان محفوظ ہیں۔ دوبارہ کوشش کریں یا سپورٹ سے رابطہ کریں۔",
   "Contact support to link this email, or sign up with another email.": "اس ای میل کو جوڑنے کے لیے سپورٹ سے رابطہ کریں یا دوسری ای میل سے سائن اپ کریں۔",
   "Sign up with another email": "دوسری ای میل سے سائن اپ کریں",
+  "For individuals and very small cleaning teams.": "افراد اور بہت چھوٹی صفائی ٹیموں کے لیے۔",
+  "For small cleaning companies managing multiple teams.": "متعدد ٹیمیں چلانے والی چھوٹی صفائی کمپنیوں کے لیے۔",
+  "For larger cleaning operations with more locations and staff.": "زیادہ مقامات اور عملے والے بڑے صفائی کے کاموں کے لیے۔",
   "The card form could not load. Check your connection or browser extensions and try again.": "کارڈ فارم لوڈ نہیں ہو سکا۔ اپنا کنکشن یا براؤزر ایکسٹینشنز چیک کر کے دوبارہ کوشش کریں۔",
 };
