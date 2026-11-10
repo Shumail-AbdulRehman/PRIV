@@ -4,7 +4,7 @@
 **Depends on:** Spec 12
 **Model:** Heavy — `claude-opus-5-5` · `gpt-6.1-sol` · `gemini-3.1-pro-preview`
 **Issue:** —
-**Owns:** `frontend/src/pages/Subscription/onboarding/useCheckoutConfirmation.ts`, `frontend/src/pages/Subscription/onboarding/useCheckoutConfirmation.test.tsx`, `specs-saas-onboarding/inventory/22-activation-polling.md`
+**Owns:** `specs-saas-onboarding/inventory/22-activation-polling.md`
 **Reuses:** `frontend/src/pages/Subscription/api.ts` (spec 12), `frontend/src/pages/Subscription/queries.ts`, `ARCHITECTURE.md#time-limits`
 
 ## Goal
@@ -53,3 +53,4 @@ Confirm a finished checkout by asking the server repeatedly, with a hard stop an
 - **2026-11-10** — `npm test --prefix frontend` passed: **88 Node tests + 1,989 Vitest tests (55 files) = 2,077 passed**, **0 failures/skips**, no unhandled errors. The 31 focused tests are included in the Vitest total. The existing Node `MODULE_TYPELESS_PACKAGE_JSON` advisory for the mobile translation file remains outside this spec's ownership.
 - **2026-11-10** — `cd frontend && npx tsc -b --noEmit` and `npm run lint --prefix frontend` passed with **0 errors and 0 warnings**. `npm run build --prefix frontend` passed; the existing Vite `PLUGIN_TIMINGS` advisory remains outside this spec's ownership. Created and inspected `specs-saas-onboarding/inventory/22-activation-polling.md` for spec 35 reuse. `queries.ts`, the legacy poll, screens, server logic and tests outside Owns were not changed.
 - **2026-11-10** — All test/build commands used the dummy loopback database URL and `DOTENV_CONFIG_PATH=/dev/null`; the whole-suite command additionally used `VITEST_MAX_WORKERS=2`. No real Paddle, application database, end-to-end application run, migration, deployment, GitHub issue/PR, commit, merge, push or branch command was used. Real provider/database behaviour was neither required nor verified. Status and progress tracking were left unchanged per the run instructions.
+- **2026-11-10** — After this spec was Done, ownership of `frontend/src/pages/Subscription/onboarding/useCheckoutConfirmation.ts` and its test moved to spec 35, which needs the hook to expose the confirm outcome. This spec created both files.
