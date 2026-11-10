@@ -151,3 +151,7 @@ PRO/year pri_01m26dxvj8cmtdtr7a660mqa2h: WOULD_REMOVE
 ADVANCED/month pri_01m26dxxw7h9ma5xxcmsc0axgp: WOULD_REMOVE
 ADVANCED/year pri_01m26dxyqpqr2cmr8cwez9am00: WOULD_REMOVE
 ```
+
+## 2026-11-10 — re-run after removing `status` from create
+
+With the user's approval, re-ran `npx tsx scripts/paddleSandboxProbe.ts --confirm` once after commit d1171f2. Exit code 0, `ok: true`, every check PASS. All six prices are active with `trial: false`, following the approved trial removal. Customer created; duplicate returned `customer_already_exists`; draft created with status `draft`, read back and found by customer list; cancel returned `canceled` and read back `canceled`. This confirms that omitting `status` on create fixes the earlier `invalid_field` rejection. Permanent finality of a canceled draft and the exact raw error shape remain unverified. The stuck company's reservation state was not inspected.
