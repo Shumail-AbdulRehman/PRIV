@@ -1,6 +1,6 @@
 # Spec 40 — Routes and workspace entry
 
-**Status:** Not started
+**Status:** Done
 **Depends on:** Spec 23, Spec 29, Spec 30, Spec 33, Spec 35, Spec 37, Spec 38
 **Model:** Heavy — `claude-opus-5-5` · `gpt-6.1-sol` · `gemini-3.1-pro-preview`
 **Issue:** —
