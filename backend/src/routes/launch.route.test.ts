@@ -18,6 +18,7 @@ vi.mock('../services/attendanceAnnotation.service.js',()=>({appendAttendanceAnno
 vi.mock('../services/platformCompany.service.js',()=>({getPlatformCompany:m.api,listPlatformCompanies:m.api,setPlatformCompanyStatus:m.api}));
 vi.mock('../services/platformSupport.service.js',()=>({getPlatformDiagnostics:m.api,getPlatformInquiry:m.api,getSupportContact:()=>({available:false,email:null}),listPlatformAudit:m.api,listPlatformInquiries:m.api,updatePlatformInquiry:m.api}));
 vi.mock('../services/billingLifecycle.service.js',()=>({createBillingCheckout:m.api,createBillingPortal:m.api,getBillingCatalog:m.api,getBillingLifecycle:m.api}));
+vi.mock('../services/billingCheckout.service.js',()=>({createBillingCheckout:m.api}));
 vi.mock('../controllers/subscription.controller.js',()=>({getPricingContext:(_req:any,res:any)=>res.json({public:true}),getSubscription:(_req:any,res:any)=>res.json({subscription:true}),createCustomerPortalSession:(_req:any,res:any)=>res.json({portal:true})}));
 vi.mock('../controllers/enterpriseInquiry.controller.js',()=>({createEnterpriseInquiry:(_req:any,res:any)=>res.status(201).json({accepted:true})}));
 vi.mock('../services/credentialHandoff.service.js',()=>({changeOwnPassword:m.change,issueStaffHandoff:m.api,completeStaffHandoff:m.api}));
