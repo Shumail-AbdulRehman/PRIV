@@ -59,8 +59,9 @@ describe('Paddle sandbox probe (injected provider only)', () => {
             interval: 'month', frequency: 1, currency: 'USD', trial: false,
         })));
         expect(provider.transactions.create).toHaveBeenCalledExactlyOnceWith({
-            items: [{ priceId: priceIds[0], quantity: 1 }], customerId, status: 'draft', collectionMode: 'automatic',
+            items: [{ priceId: priceIds[0], quantity: 1 }], customerId, collectionMode: 'automatic',
         });
+        expect(provider.transactions.create.mock.calls[0][0]).not.toHaveProperty('status');
         expect(provider.transactions.list).toHaveBeenCalledExactlyOnceWith({ customerId: [customerId] });
         expect(provider.transactions.update).toHaveBeenCalledExactlyOnceWith(transactionId, { status: 'canceled' });
         expect(report.checks.at(-1)).toMatchObject({ step: 'readCanceledDraft', status: 'PASS', providerStatus: 'canceled' });

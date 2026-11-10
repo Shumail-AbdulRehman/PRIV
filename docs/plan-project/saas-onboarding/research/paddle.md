@@ -20,6 +20,7 @@ Source: /build/checkout/build-branded-inline-checkout, /paddle-js/methods/paddle
 - Which statuses a passed `transactionId` may have is not stated.
 
 ## Transactions
+- **2026-11-10** — Create transactions without `status` (only `billed` may be explicitly set on create). Paddle derives `ready` when `address_id`, `customer_id` and `items` are present, otherwise `draft`. Checkout and probe omit status and address and still require a returned draft. Source: [Create a transaction](https://developer.paddle.com/api-reference/transactions/create-transaction); the prior sandbox request with `status: draft` was rejected as `invalid_field`.
 Source: /api-reference/transactions/update-transaction
 - "You can cancel transactions that are draft, ready, billed, or past_due." When canceling, send only `status: "canceled"`.
 - Draft or ready transactions can have items updated; send the complete list.

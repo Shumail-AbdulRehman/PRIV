@@ -139,9 +139,10 @@ afterEach(() => { vi.useRealTimers(); vi.unstubAllEnvs(); });
 describe('prepare and reuse', () => {
     it('reserves before creating and returns all flags without granting access', async () => {
         expect(await f.run()).toEqual({ transactionId: firstId, reused: false, replaced: false });
-        expect(f.provider.transactions.create).toHaveBeenCalledExactlyOnceWith({ status: 'draft', collectionMode: 'automatic', customerId,
+        expect(f.provider.transactions.create).toHaveBeenCalledExactlyOnceWith({ collectionMode: 'automatic', customerId,
             items: [{ priceId: entries[0].priceId, quantity: 1 }], checkout: { url: 'https://checkout.example.invalid/pay' },
             customData: { checkoutReservationId: 1 } });
+        expect(f.provider.transactions.create.mock.calls[0][0]).not.toHaveProperty('status');
         expect(f.events.indexOf('CHECKOUT_RESERVED')).toBeLessThan(f.events.indexOf('create'));
         expect(f.events.indexOf('release', f.events.indexOf('CHECKOUT_RESERVED'))).toBeLessThan(f.events.indexOf('create'));
         expect(f.rows[1].newValue).toEqual({ reservationId: 1, transactionId: firstId, customerId });

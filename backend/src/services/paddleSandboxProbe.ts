@@ -93,7 +93,7 @@ export async function runPaddleSandboxProbe(options: {
     let transactionId: string | undefined;
     try {
         const draft = await provider.transactions.create({
-            items: [{ priceId: selectedPrice, quantity: 1 }], customerId, status: 'draft', collectionMode: 'automatic',
+            items: [{ priceId: selectedPrice, quantity: 1 }], customerId, collectionMode: 'automatic',
         });
         if (!validId(draft.id, 'txn')) throw new Error();
         transactionId = draft.id;

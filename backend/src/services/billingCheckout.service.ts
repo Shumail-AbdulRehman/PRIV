@@ -104,7 +104,7 @@ export async function createBillingCheckout(actor: VerificationActor, raw: unkno
 
     let transaction: Transaction;
     try {
-        transaction = await provider.transactions.create({ status: 'draft', collectionMode: 'automatic', customerId,
+        transaction = await provider.transactions.create({ collectionMode: 'automatic', customerId,
             items: [{ priceId: selected.priceId, quantity: 1 }], checkout: { url: checkout.toString() },
             customData: { checkoutReservationId: prepared.reservationId } });
     } catch (error) {
