@@ -25,7 +25,7 @@ const fixture = {
   task: {},
 };
 try {
-  for (const key of ["A", "B"]) {
+  for (const key of ["A", "B", "Return0", "Return1", "Return2", "Return3"]) {
     const company = await db.company.create({
       data: { name: `E2E company ${key}` },
     });
@@ -253,6 +253,15 @@ try {
       recommendedAction: "UPLOAD_REQUIRED_PHOTO",
     },
   });
+  for (const key of ['unpaid', 'legacyOwner', 'deactivatedOwner', 'adoptOwner', 'rejectOwner', 'conflictOwner']) {
+    const company = await db.company.create({ data: { name: `S42 ${key}` } });
+    fixture.company[key] = company.id;
+    const owner = await db.manager.create({ data: {
+      name: `S42 ${key}`, email: key === 'legacyOwner' ? 'Legacy.Owner@Example.Invalid' : `${key.toLowerCase()}@example.invalid`,
+      password: encrypted, companyId: company.id, role: 'ADMIN', isActive: key !== 'deactivatedOwner',
+    } });
+    fixture.users[key] = { id: owner.id, email: owner.email };
+  }
   fixture.review = { id: review.id, taskId: task.id };
   await writeFile(process.env.HYGENE_E2E_MANIFEST, JSON.stringify(fixture), {
     mode: 0o600,

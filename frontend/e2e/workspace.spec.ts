@@ -8,9 +8,6 @@ test("owner signs in through React and persisted session survives reload/logout"
     .getByLabel("Email", { exact: true })
     .fill(fixture.users.ownerA.email);
   await page.getByLabel("Password", { exact: true }).fill(fixture.password);
-  await page
-    .getByLabel("Account type", { exact: true })
-    .selectOption("Manager");
   await page.getByRole("button", { name: /Sign in/i, exact: true }).click();
   await expect(page).toHaveURL(/dashboard/);
   await page.goto("/settings");

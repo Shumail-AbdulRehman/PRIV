@@ -1,18 +1,32 @@
-import {test,expect,fixture,sql,mockBilling,backend} from './fixtures';
-import {randomUUID} from 'node:crypto';
-test.use({trace:'off',screenshot:'off',video:'off'});
-test('F01 F09 F13 F14 F25 F30 F31 real signup standalone plan card confirmation and explicit workspace entry',async({page})=>{
- const billing=await mockBilling(page);let chunks=0;
- await page.route(/\/assets\/SubscriptionPage-[^/]+\.js$/,route=>chunks++===0?route.fulfill({status:404,contentType:'text/plain',body:'Missing old module'}):route.continue());
- const email=`billing-${randomUUID()}@example.invalid`;await page.goto('/signup');
- await page.getByLabel('Full Name',{exact:true}).fill('Synthetic owner');await page.getByLabel('Company Name',{exact:true}).fill('Synthetic workspace');await page.getByLabel('Email',{exact:true}).fill(email);await page.getByLabel('Password',{exact:true}).fill(fixture.password);await page.getByRole('button',{name:'Create account & choose plan'}).click();
- await expect(page.getByRole('heading',{name:'Choose your plan',exact:true})).toBeVisible();expect(chunks).toBeGreaterThanOrEqual(2);
- await expect(page.getByRole('navigation',{name:'Workspace navigation'})).toHaveCount(0);
- const [owner]=await sql('SELECT id,"companyId","emailVerifiedAt" FROM "Manager" WHERE email=$1',[email]);expect(owner.emailVerifiedAt).toBeNull();
- await page.getByRole('button',{name:'Yearly billing'}).click();await page.getByRole('radio',{name:/^Pro/}).check();await page.getByRole('button',{name:'Continue with selected plan'}).click();
- await expect(page).toHaveURL(/subscription\/payment\?plan=PRO&interval=year/);await expect(page.getByRole('heading',{name:'Review your plan'})).toBeVisible();await expect(page.getByText('US$640.00')).toBeVisible();await page.getByRole('button',{name:'Open secure checkout'}).click();await expect(page.getByRole('dialog',{name:'Paddle fixture'})).toBeVisible();expect(billing.controls.posts).toBe(1);
- await billing.emit('checkout.completed');await expect(page.getByRole('heading',{name:'Waiting for subscription confirmation'})).toBeVisible();await expect(page.getByRole('link',{name:'Open workspace'})).toHaveCount(0);
- billing.facts.workspaceAccessAllowed=true;billing.facts.onboardingRequired=false;
- await page.getByRole('button',{name:'Check subscription status',exact:true}).click();await page.getByRole('link',{name:'Open workspace'}).click();await expect(page).toHaveURL(/dashboard$/);expect(billing.controls.posts).toBe(1);
- await page.reload();await expect(page.getByRole('navigation',{name:'Workspace navigation'})).toBeVisible();await page.context().clearCookies();const signin=await page.request.post(backend+'/api/manager/manager-login',{data:{email,password:fixture.password}});expect(signin.status()).toBe(200);await page.goto('/dashboard');await expect(page.getByRole('navigation',{name:'Workspace navigation'})).toBeVisible();const[saved]=await sql('SELECT id,"companyId" FROM "Manager" WHERE email=$1',[email]);expect(saved).toEqual({id:owner.id,companyId:owner.companyId});await page.unrouteAll({behavior:'wait'});
+import { randomUUID } from 'node:crypto';
+import { test, expect, fixture, mockBilling, sql } from './fixtures';
+test.use({ trace: 'off', screenshot: 'off', video: 'off' });
+test('S42-01 new owner signup controlled 4242 ready dashboard and persisted account', async ({ page }) => {
+  const b = await mockBilling(page, { persisted: true }); const email = `s42-${randomUUID()}@example.invalid`;
+  try {
+  await page.goto('/signup');
+  await page.getByLabel('Your name', { exact: true }).fill('Synthetic owner');
+  await page.getByLabel('Company name', { exact: true }).fill('Synthetic workspace');
+  await page.getByLabel('Work email', { exact: true }).fill(email);
+  await page.getByLabel('Password', { exact: true }).fill(fixture.password);
+  await page.getByRole('button', { name: 'Continue to plans' }).click();
+  await expect(page.getByRole('heading', { name: 'Choose a plan', exact: true })).toBeVisible();
+  const [owner] = await sql('SELECT id,"companyId" FROM "Manager" WHERE email=$1', [email]);
+  await page.getByRole('button', { name: 'Continue to payment' }).click();
+  await page.frameLocator('iframe').getByRole('button', { name: 'Pay 4242' }).click();
+  await expect(page.getByRole('heading', { name: 'Confirming your subscription', exact: true })).toBeVisible();
+  await expect(page.getByRole('link', { name: 'Open your workspace', exact: true })).toHaveCount(0);
+  b.controls.confirm = 'ACTIVE';
+  await expect(page.getByRole('heading', { name: "You're all set", exact: true })).toBeVisible({ timeout: 10000 });
+  await page.getByRole('link', { name: 'Open your workspace', exact: true }).click();
+  await expect(page.getByRole('navigation', { name: 'Workspace navigation' })).toBeVisible(); await page.reload();
+  await expect(page.getByRole('navigation', { name: 'Workspace navigation' })).toBeVisible();
+  expect(await sql('SELECT id,"companyId" FROM "Manager" WHERE email=$1', [email])).toEqual([owner]);
+  expect(b.controls.posts).toBe(1); expect(b.drafts).toHaveLength(1);
+  expect((await sql('SELECT id FROM "PaddleSubscription" WHERE "companyId"=$1 AND status=\'active\'', [owner.companyId])).length).toBe(1);
+  expect((await sql('SELECT id FROM "AuditLog" WHERE "companyId"=$1 AND action=\'CHECKOUT_READY\'', [owner.companyId])).length).toBe(1);
+  await page.unrouteAll({ behavior: 'wait' }); await page.reload();
+  await expect(page.getByRole('navigation', { name: 'Workspace navigation' })).toBeVisible();
+  } finally { await b.dispose(); }
 });
+// These are controlled checkout events, never real Paddle processing or signed delivery.
