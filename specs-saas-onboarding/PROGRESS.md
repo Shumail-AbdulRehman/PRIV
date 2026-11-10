@@ -46,7 +46,7 @@ The single source of truth for where this work stands. It outranks any assumptio
 | 39 | [Billing HTTP routes](./39-billing-routes.md) | Done | 27, 28, 36 | Standard | — | Run by the spec runner; see spec Log |
 | 40 | [Routes and workspace entry](./40-route-composition.md) | Done | 23, 29, 30, 33, 35, 37, 38 | Heavy | — | Run by the spec runner; see spec Log |
 | 41 | [Configuration check and runbook](./41-configuration-runbook.md) | Done | 16, 39 | Standard | — | Run by the spec runner; see spec Log |
-| 42 | [End-to-end suite](./42-e2e-suite.md) | Not started | 01-41 | Heavy | — |  |
+| 42 | [End-to-end suite](./42-e2e-suite.md) | Done | 01-41 | Heavy | — | Run by the spec runner; see spec Log |
 | 43 | [Verification pass](./43-verification-pass.md) | Not started | 00-42 | Heavy | — |  |
 
 ## Status legend

@@ -1,6 +1,6 @@
 # Spec 42 — End-to-end suite
 
-**Status:** Not started
+**Status:** Done
 **Depends on:** Spec 01, Spec 02, Spec 03, Spec 04, Spec 05, Spec 06, Spec 07, Spec 08, Spec 09, Spec 10, Spec 11, Spec 12, Spec 13, Spec 14, Spec 15, Spec 16, Spec 17, Spec 18, Spec 19, Spec 20, Spec 21, Spec 22, Spec 23, Spec 24, Spec 25, Spec 26, Spec 27, Spec 28, Spec 29, Spec 30, Spec 31, Spec 32, Spec 33, Spec 34, Spec 35, Spec 36, Spec 37, Spec 38, Spec 39, Spec 40, Spec 41
 **Model:** Heavy — `claude-opus-5-5` · `gpt-6.1-sol` · `gemini-3.1-pro-preview`
 **Issue:** —
