@@ -1,43 +1,94 @@
-import { useEffect, useRef } from 'react';
-import { Link, useNavigate, useSearchParams } from 'react-router-dom';
+import { useEffect, useRef, useState } from 'react';
+import { Link, useNavigate } from 'react-router-dom';
 import useAuth from '@/hooks/useAuth';
 import { useLanguage } from '@/i18n/context';
 import { Button } from '@/components/ui/button';
+import FlowShell from '@/pages/Onboarding/FlowShell';
+import { getPublicSupport } from '@/pages/Help/serviceInformation';
+import { reconcileBillingCheckout } from '../api';
 import { useBillingLifecycle } from '../queries';
-import { deriveBillingViewState } from './billingViewState';
-import { useBillingCheckout } from './useBillingCheckout';
-import BillingSetupLayout from './BillingSetupLayout';
-import type { PlanCode } from '../types';
+import type { BillingLifecycle, BillingReconcileResult } from '../types';
+
+const retryDelays = [2000, 5000, 10000];
+const isRestricted = (facts: BillingLifecycle | undefined) => facts?.onboardingStep === 'RESTRICTED' || facts?.company.operationalStatus === 'SUSPENDED' || facts?.company.isActive === false;
 
 export default function BillingRecoveryPage() {
- const {user}=useAuth();const {t}=useLanguage();
- if(user?.role!=='ADMIN')return <BillingSetupLayout currentStep="payment"><h1>{t('Check subscription status')}</h1><p role="alert">{t('Only the company owner can view or change billing.')}</p><Link to="/login">{t('Sign in again')}</Link></BillingSetupLayout>;
- return <OwnerRecovery key={`${user.companyId}:${user.id}`} companyId={user.companyId} ownerId={user.id}/>;
+  const { user } = useAuth();
+  const { t } = useLanguage();
+  if (user?.role !== 'ADMIN') return <FlowShell step="payment">
+    <h1>{t('Check subscription status')}</h1>
+    <p role="alert">{t('Only the company owner can view or change billing.')}</p>
+    <Link to="/login">{t('Sign in again')}</Link>
+  </FlowShell>;
+  return <OwnerRecovery key={`${user.companyId}:${user.id}`} companyId={user.companyId} ownerId={user.id} />;
 }
-function OwnerRecovery({companyId,ownerId}:{companyId:number;ownerId:number}) {
- const {t}=useLanguage();const [params]=useSearchParams();const navigate=useNavigate();const query=useBillingLifecycle();const checkout=useBillingCheckout();
- const view=deriveBillingViewState({owner:{companyId,ownerId},dataOwner:query.dataOwner,data:query.data,read:query.isPending?'loading':query.isError?'error':query.isFetching?'stale':'fresh',uncertain:checkout.status==='uncertain',httpStatus:(query.error as {response?:{status?:number}}|null)?.response?.status});
- const saved=view.resume;
- const requestedPlan=['STARTER','PRO','ADVANCED'].includes(params.get('plan')??'')?params.get('plan') as PlanCode:null;
- const requestedInterval=params.get('interval')==='year'?'year':params.get('interval')==='month'?'month':null;
- const plan=saved?.plan??checkout.prepared?.plan??requestedPlan;
- const interval=saved?.interval??checkout.prepared?.interval??requestedInterval;
- const canRetry=checkout.status==='pre-submit-error'&&view.canChoosePlan&&!!plan&&!!interval&&!checkout.prepared;
- const canReopen=!!saved&&!['uncertain','pending','open'].includes(checkout.status);
- const busy=checkout.isBusy||query.isFetching;
- const heading=useRef<HTMLHeadingElement>(null);const previous=useRef(view.kind+checkout.status);
- useEffect(()=>{const next=view.kind+checkout.status;if(previous.current!==next){heading.current?.focus();previous.current=next;}},[view.kind,checkout.status]);
- useEffect(()=>{if(checkout.status==='pending'||view.canOpenWorkspace)navigate('/subscription/activation',{replace:true});},[checkout.status,view.canOpenWorkspace,navigate]);
- const message=view.kind==='restricted'?'Company operations are restricted. Billing and account security remain available.':saved?'Your prepared checkout is ready to reopen.':canRetry?'Checkout could not open. Try again.':view.kind==='uncertain'||checkout.status==='uncertain'?'We could not confirm the outcome. Check subscription status before trying another payment.':'Billing is temporarily unavailable. Refresh status to try again.';
- return <BillingSetupLayout currentStep="payment" completedSteps={['account','plan']}>
-  <section style={{maxWidth:600,marginInline:'auto',paddingBlock:32}}>
-   <h1 ref={heading} tabIndex={-1}>{t(canRetry?'Checkout could not open. Try again.':'Check subscription status')}</h1>
-   <p role={canRetry?'alert':'status'} style={{marginBlockStart:20}}>{t(message)}</p>
-   {plan&&interval?<section aria-label={t('Selected plan')} style={{paddingBlock:24,marginBlock:24,borderBlock:'1px solid var(--billing-line)'}}><h2>{t('Selected plan')}</h2><p style={{marginBlockStart:12}}><bdi>{t(plan==='ADVANCED'?'Enterprise':plan)}</bdi> · {t(interval==='year'?'Yearly':'Monthly')}</p></section>:null}
-   {canRetry||canReopen?<Button style={{marginBlockStart:24,width:'100%'}} disabled={busy} onClick={()=>plan&&interval&&void checkout.openCheckout({plan,interval})}>{t(canReopen?'Reopen existing checkout':'Try again')}</Button>:null}
-   <Button variant={canRetry||canReopen?'outline':'default'} style={{marginBlockStart:16,width:'100%'}} disabled={busy} onClick={()=>{void checkout.checkStatus();void query.refetch();}}>{t(busy?'Checking subscription status…':'Check subscription status')}</Button>
-   <p style={{marginBlockStart:24}}><Link to="/account/security">{t('Account security')}</Link></p>
-   {view.reason==='denied'||view.reason==='identity'?<p style={{marginBlockStart:16}}><Link to="/login">{t('Sign in again')}</Link></p>:null}
-  </section>
- </BillingSetupLayout>;
+
+function OwnerRecovery({ companyId, ownerId }: { companyId: number; ownerId: number }) {
+  const { t } = useLanguage();
+  const navigate = useNavigate();
+  const query = useBillingLifecycle();
+  const [attempt, setAttempt] = useState(0);
+  const [settled, setSettled] = useState<{ attempt: number; result: BillingReconcileResult | null } | null>(null);
+  const request = useRef<{ attempt: number; promise: Promise<BillingReconcileResult> } | null>(null);
+  const heading = useRef<HTMLHeadingElement>(null);
+  const [email, setEmail] = useState<string | null>(null);
+  const result = settled?.attempt === attempt ? settled.result : undefined;
+  const scoped = query.dataOwner?.companyId === companyId && query.dataOwner?.ownerId === ownerId;
+  const data = scoped && !query.isError ? query.data : undefined;
+  const facts = result?.lifecycle ?? data;
+  const restricted = isRestricted(data) || isRestricted(result?.lifecycle);
+  const unavailable = facts?.recoveryReason === 'BILLING_DISABLED' || facts?.recoveryReason === 'PRICE_NOT_READY' || facts?.onboardingStep === 'UNAVAILABLE';
+  const shouldReconcile = !!data && data.onboardingStep === 'RECONCILE' && !restricted && !unavailable;
+  const conflict = result?.outcome === 'CONFLICT' || (!shouldReconcile && facts?.recoveryReason === 'EMAIL_CONFLICT');
+  const waiting = shouldReconcile && (result === undefined || (result?.outcome === 'IN_PROGRESS' && attempt < retryDelays.length));
+  const title = restricted ? 'This account is restricted' : unavailable ? 'Payments are unavailable right now' : conflict ? 'This email is already used for payments' : waiting ? 'Checking your previous checkout' : 'Check subscription status';
+  const message = restricted ? "Company operations are on hold. Payment doesn't lift this. Contact support." : unavailable ? 'Your account and plan choice are saved. Try again or contact support.' : conflict ? 'Contact support to link this email, or sign up with another email.' : waiting ? result?.outcome === 'IN_PROGRESS' ? 'Your previous checkout is still being checked. Please wait.' : "We're asking Paddle what happened, so you don't pay twice." : 'We could not confirm your previous checkout. Check again before making another payment.';
+
+  useEffect(() => {
+    let active = true;
+    const controller = new AbortController();
+    void getPublicSupport(controller.signal).then(support => { if (active) setEmail(support.email); }).catch(() => {});
+    return () => { active = false; controller.abort(); };
+  }, []);
+
+  useEffect(() => {
+    if (!shouldReconcile) return;
+    // Reuse this attempt's promise during StrictMode effect replay. A second
+    // subscription observes its result without sending a second mutation.
+    if (request.current?.attempt !== attempt) request.current = { attempt, promise: reconcileBillingCheckout(undefined, companyId) };
+    let active = true;
+    void request.current.promise.then(value => {
+      if (!active) return;
+      setSettled({ attempt, result: value });
+      const lifecycle = value.lifecycle;
+      if (lifecycle.company.id !== companyId || !lifecycle.company.isActive || lifecycle.company.operationalStatus === 'SUSPENDED' || lifecycle.onboardingStep === 'RESTRICTED') return;
+      const destination = { RESUMABLE: '/subscription/payment', CLEARED: '/choose-plan', PAID: '/subscription/activation' }[value.outcome as 'RESUMABLE' | 'CLEARED' | 'PAID'];
+      if (destination) navigate(destination, { replace: true });
+    }).catch(() => { if (active) setSettled({ attempt, result: null }); });
+    return () => { active = false; };
+  }, [attempt, companyId, navigate, shouldReconcile]);
+
+  useEffect(() => {
+    if (!shouldReconcile || restricted || unavailable || result?.outcome !== 'IN_PROGRESS' || attempt >= retryDelays.length) return;
+    const timer = setTimeout(() => setAttempt(value => value + 1), retryDelays[attempt]);
+    return () => clearTimeout(timer);
+  }, [attempt, restricted, unavailable, result, shouldReconcile]);
+
+  useEffect(() => { heading.current?.focus({ preventScroll: true }); }, [title, message]);
+
+  return <FlowShell step="payment">
+    <h1 ref={heading} tabIndex={-1}>{t(title)}</h1>
+    <p className="flow-lede">{t(message)}</p>
+    <div className="flow-form">
+      {waiting ? <p role="status"><span className="flow-spinner" aria-hidden="true" /> {t('This takes a few seconds.')}</p> : null}
+      {!restricted && !conflict && !waiting ? <Button className="flow-button" disabled={query.isFetching} onClick={() => {
+        if (shouldReconcile) setAttempt(value => value + 1);
+        else void query.refetch();
+      }}>{t(unavailable ? 'Try again' : 'Check again')}</Button> : null}
+      {!waiting ? <Button asChild className={`flow-button${restricted || conflict ? '' : ' flow-button-secondary'}`}>
+        {email ? <a href={`mailto:${email}`}>{t('Contact support')}</a> : <Link to="/help">{t('Contact support')}</Link>}
+      </Button> : null}
+      {conflict ? <Link to="/signup">{t('Sign up with another email')}</Link> : null}
+    </div>
+  </FlowShell>;
 }
