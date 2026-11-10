@@ -1,20 +1,8 @@
-import { Check, Minus, Plus } from "lucide-react";
+import { useState } from "react";
 import useAuth from "@/hooks/useAuth";
 import { MarketingCTA } from "@/components/marketing/MarketingCTA";
 import { PaddlePricing } from "./PaddlePricing";
 
-const comparisons: { name: string; values: (string | boolean)[] }[] = [
-  { name: "Locations", values: ["1", "5", "Discuss your needs"] },
-  { name: "Staff members", values: ["3", "25", "Discuss your needs"] },
-  { name: "Manager seats, including your admin", values: ["1", "3", "Discuss your needs"] },
-  { name: "GPS attendance & selfies", values: [true, true, true] },
-  { name: "Daily & one-time tasks", values: [true, true, true] },
-  { name: "Area QR & guided native capture", values: [true, true, true] },
-  { name: "Inventory verification", values: [true, true, true] },
-  { name: "Manager location access", values: [false, true, true] },
-  { name: "Automatic assignment & reassignment", values: [false, true, true] },
-  { name: "Protected evidence & exception review", values: [true, true, true] },
-];
 const faqs = [
   [
     "How do I get started?",
@@ -42,112 +30,104 @@ const faqs = [
   ],
 ];
 
+const PLAN_LIMITS = [
+  { name: "Starter", locations: 1, staff: 3, managers: 1 },
+  { name: "Pro", locations: 5, staff: 25, managers: 3 },
+];
+type Size = { locations: number; staff: number; managers: number };
+
+function Stepper({ label, value, max, onChange }: { label: string; value: number; max: number; onChange: (value: number) => void }) {
+  return (
+    <span className="hx-step">
+      <button type="button" aria-label={`Fewer ${label}`} disabled={value <= 1} onClick={() => onChange(value - 1)}>
+        &minus;
+      </button>
+      <output aria-label={label}>{value}</output>
+      <button type="button" aria-label={`More ${label}`} disabled={value >= max} onClick={() => onChange(value + 1)}>
+        +
+      </button>
+    </span>
+  );
+}
+
+function fitFor(size: Size) {
+  const index = PLAN_LIMITS.findIndex(
+    (plan) => size.locations <= plan.locations && size.staff <= plan.staff && size.managers <= plan.managers,
+  );
+  return index === -1 ? 2 : index;
+}
+
+function FinderResult({ size, fit }: { size: Size; fit: number }) {
+  if (fit === 2) {
+    return (
+      <>
+        <b>Enterprise fits.</b> <span>You’re past what Pro allows, so let’s agree a scope with your team.</span>
+      </>
+    );
+  }
+  const plan = PLAN_LIMITS[fit];
+  const room = [
+    [plan.locations - size.locations, "location", "locations"],
+    [plan.staff - size.staff, "staff member", "staff"],
+  ].flatMap(([spare, one, many]) => (Number(spare) > 0 ? [`${spare} more ${spare === 1 ? one : many}`] : []));
+  return (
+    <>
+      <b>{plan.name} fits.</b>{" "}
+      <span>{room.length ? `You’d have room for ${room.join(" and ")}.` : "That uses the whole plan."}</span>
+    </>
+  );
+}
+
 export default function PricingPage() {
   const { user } = useAuth();
   const cannotSubscribe = user?.role === "MANAGER" || user?.role === "STAFF";
+  const [size, setSize] = useState<Size>({ locations: 3, staff: 12, managers: 2 });
+  const fit = fitFor(size);
+  const update = (key: keyof Size) => (value: number) => setSize((current) => ({ ...current, [key]: value }));
+
   return (
     <>
-      <section className="pricing-hero marketing-container">
-        <div className="section-heading centered">
-          <span className="hero-eyebrow">
-            <span /> Simple plans. Room to grow.
-          </span>
-          <h1>
-            A little team.
-            <br />
-            Or your next big chapter.
-          </h1>
-          <p>
-            Choose the space your operation needs. Every plan brings your
-            people, places, and tasks together.
+      <section className="hx-finder" aria-labelledby="finder-title">
+        <div className="marketing-container">
+          <h1 id="finder-title">Plans differ by size, so tell us yours.</h1>
+          <p className="hx-finder-sentence">
+            We clean <Stepper label="locations" value={size.locations} max={50} onChange={update("locations")} />{" "}
+            {size.locations === 1 ? "location" : "locations"} with{" "}
+            <Stepper label="staff" value={size.staff} max={500} onChange={update("staff")} /> staff and{" "}
+            <Stepper label="managers" value={size.managers} max={50} onChange={update("managers")} />{" "}
+            {size.managers === 1 ? "manager" : "managers"}.
+          </p>
+          <p className="hx-finder-result" role="status" key={fit}>
+            <FinderResult size={size} fit={fit} />
           </p>
         </div>
       </section>
-      <section className="marketing-container" aria-label="Subscription plans">
-        <PaddlePricing
-          appearance="marketing"
-          subscribeDisabled={cannotSubscribe}
-          disabledMessage="Only the company administrator can subscribe for this workspace."
-        />
+
+      <section className="hx-plans" aria-label="Subscription plans">
+        <div className="marketing-container">
+          <PaddlePricing
+            fit={fit}
+            inquiry={{ locations: size.locations, staff: size.staff }}
+            subscribeDisabled={cannotSubscribe}
+            disabledMessage="Only the company administrator can subscribe for this workspace."
+          />
+        </div>
       </section>
-      <section className="marketing-container comparison-section">
-        <div className="comparison-heading">
-          <div>
-            <span className="section-kicker">Find your fit</span>
-            <h2>The details, side by side.</h2>
-            <p>
-              Start with what you need today. See exactly what each plan
-              includes.
-            </p>
+
+      <section className="hx-faq" aria-labelledby="faq-title">
+        <div className="marketing-container hx-faq-grid">
+          <h2 id="faq-title">Before you sign up</h2>
+          <div className="hx-faq-list">
+            {faqs.map(([question, answer], index) => (
+              <details key={question} open={index === 0}>
+                <summary>{question}</summary>
+                <p>{answer}</p>
+              </details>
+            ))}
           </div>
         </div>
-        <div
-          className="comparison-scroll"
-          tabIndex={0}
-          role="region"
-          aria-label="Compare plans, scroll horizontally on small screens"
-        >
-          <table className="comparison-table">
-            <thead>
-              <tr>
-                <th scope="col">What’s included</th>
-                <th scope="col">Starter</th>
-                <th scope="col" className="pro-col">
-                  Pro
-                </th>
-                <th scope="col">Enterprise</th>
-              </tr>
-            </thead>
-            <tbody>
-              {comparisons.map((row) => (
-                <tr key={row.name}>
-                  <th scope="row">{row.name}</th>
-                  {row.values.map((value, index) => (
-                    <td
-                      key={index}
-                      className={index === 1 ? "pro-col" : undefined}
-                    >
-                      {typeof value === "boolean" ? (
-                        value ? (
-                          <Check aria-label="Included" />
-                        ) : (
-                          <Minus aria-label="Not included" />
-                        )
-                      ) : (
-                        value
-                      )}
-                    </td>
-                  ))}
-                </tr>
-              ))}
-            </tbody>
-          </table>
-        </div>
       </section>
-      <section className="marketing-container pricing-faq">
-        <div className="section-heading">
-          <span className="section-kicker">
-            A few things you might be wondering
-          </span>
-          <h2>
-            Good questions.
-            <br />
-            Clear answers.
-          </h2>
-          <p>A little more detail before you get started.</p>
-        </div>
-        <div className="faq-list">
-          {faqs.map(([question, answer]) => (
-            <details key={question}>
-              <summary>
-                {question}
-                <Plus aria-hidden="true" />
-              </summary>
-              <p>{answer}</p>
-            </details>
-          ))}
-        </div>
-      </section>
+
       <MarketingCTA />
     </>
   );

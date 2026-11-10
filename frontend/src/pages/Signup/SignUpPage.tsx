@@ -77,7 +77,7 @@ export default function SignUp() {
     'aria-describedby': [name === 'password' ? 'password-hint' : '', errors[name] ? `${name}-error` : ''].filter(Boolean).join(' ') || undefined,
   });
 
-  return <FlowShell size="split" step="account" aside={<>
+  return <FlowShell siteNav size="split" step="account" aside={<>
     <h2 className="flow-panel-headline">{t('What happens next')}</h2>
     <ol className="flow-worksheet" style={{ display: 'grid', gap: 20, listStyle: 'none', margin: 0 }}>
       {nextSteps.map(([title, detail], index) => <li key={title} style={{ display: 'flex', gap: 12 }}>

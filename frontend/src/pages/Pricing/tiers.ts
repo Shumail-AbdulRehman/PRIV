@@ -45,3 +45,17 @@ export const TIERS: Tier[] = [
     recommended: true,
   },
 ];
+
+export const PLAN_COMPARISON: { name: string; values: (string | boolean)[] }[] = [
+  { name: "Locations", values: ["1", "5", "Discuss your needs"] },
+  { name: "Staff members", values: ["3", "25", "Discuss your needs"] },
+  { name: "Manager seats, including your admin", values: ["1", "3", "Discuss your needs"] },
+  { name: "GPS attendance & selfies", values: [true, true, true] },
+  { name: "Daily & one-time tasks", values: [true, true, true] },
+  { name: "Area QR & guided native capture", values: [true, true, true] },
+  { name: "Inventory verification", values: [true, true, true] },
+  { name: "Protected evidence & exception review", values: [true, true, true] },
+  { name: "Manager location access", values: [false, true, true] },
+  { name: "Automatic assignment & reassignment", values: [false, true, true] },
+  { name: "Staff and location performance views", values: [false, true, true] },
+];

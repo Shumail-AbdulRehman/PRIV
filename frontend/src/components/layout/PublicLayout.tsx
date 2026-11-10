@@ -1,7 +1,6 @@
 import { useLanguage } from "@/i18n/context";
 import { Link, Outlet, useLocation } from "react-router-dom";
 import { useEffect } from "react";
-import { ArrowUpRight } from "lucide-react";
 import { PublicNavbar } from "./PublicNavbar";
 import BrandLogo from "@/components/common/BrandLogo";
 
@@ -30,45 +29,25 @@ export function PublicLayout() {
       <main id="main-content">
         <Outlet />
       </main>
-      <footer className="marketing-footer">
+      <footer className="hx-footer">
         <div className="marketing-container">
-          <div className="footer-main">
-            <div className="footer-intro">
-              <Link to="/" className="marketing-brand">
-                <BrandLogo />
-              </Link>
-              <p>
-                Great work starts with a clear plan.
-                <br />
-                The home for your cleaning operation.
-              </p>
-              <span className="footer-made">
-                Built around your working day.
-              </span>
-            </div>
-            <div>
-              <h3>Product</h3>
-              <Link to="/features">Explore features</Link>
-              <Link to="/pricing">Plans & pricing</Link>
-              <Link to="/features#attendance">Staff attendance</Link>
-              <Link to="/features#verification">Photo verification</Link>
-            </div>
-            <div>
-              <h3>Your workspace</h3>
-              <Link to="/signup">
-                Create an account <ArrowUpRight size={13} />
-              </Link>
+          <div className="hx-footer-top">
+            <Link to="/" className="marketing-brand" aria-label="Hygene Ops home">
+              <BrandLogo />
+            </Link>
+            <nav aria-label="Footer">
+              <Link to="/features">Features</Link>
+              <Link to="/pricing">Pricing</Link>
+              <Link to="/#watch">Watch the video</Link>
               <Link to="/login">Log in</Link>
+              <Link to="/signup">Create an account</Link>
               <Link to="/help">{t("Help & service information")}</Link>
-              <Link to="/features#how-it-works">How it works</Link>
-            </div>
+            </nav>
           </div>
-          <div className="footer-bottom">
-            <span>
-              © {new Date().getFullYear()} Hygene Ops. All rights reserved.
-            </span>
-            <span>Less admin. More peace of mind.</span>
-          </div>
+          <p className="hx-footer-fine">
+            © {new Date().getFullYear()} Hygene Ops. Made for cleaning companies
+            in Pakistan.
+          </p>
         </div>
       </footer>
     </div>

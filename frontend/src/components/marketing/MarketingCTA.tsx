@@ -1,5 +1,6 @@
 import { Link } from "react-router-dom";
-import { ArrowRight, Check } from "lucide-react";
+import { ArrowRight } from "lucide-react";
+import { useFirstSeen } from "./useFirstSeen";
 import useAuth from "@/hooks/useAuth";
 import { ONBOARDING_ROUTES } from "@/pages/Onboarding/onboardingRoutes";
 
@@ -20,27 +21,21 @@ export function WorkspaceLink({
 }
 
 export function MarketingCTA() {
+  const [tickRef, drawn] = useFirstSeen<SVGSVGElement>(0.25);
   return (
-    <section className="marketing-container cta-section">
-      <div className="marketing-cta">
-        <div>
-          <span className="section-kicker">
-            A little more clarity. A lot less chasing.
-          </span>
-          <h2>
-            Your next shift,
-            <br />
-            already looking better.
-          </h2>
-          <p>Give your team a clear plan and yourself a clearer picture.</p>
+    <section className="hx-close" aria-labelledby="close-title">
+      <svg ref={tickRef} className={drawn ? "hx-close-tick" : "hx-close-tick is-pre"} viewBox="0 0 100 100" aria-hidden="true">
+        <path pathLength={1} d="M10 55 36 81 92 14" />
+      </svg>
+      <div className="marketing-container">
+        <h2 id="close-title">
+          Add <span>Building A</span>. Add its <span>washrooms</span>. List the{" "}
+          <span>floors, basins and mirrors</span>. Set it for <span>8:00 every day</span>.
+        </h2>
+        <div className="hx-close-actions">
+          <WorkspaceLink className="hx-btn hx-btn-white" />
+          <p>Create your account first. Choose your plan next.</p>
         </div>
-        <div className="cta-actions">
-          <WorkspaceLink className="marketing-button white-button" />
-          <span>
-            <Check size={15} /> Create your account, then choose your plan.
-          </span>
-        </div>
-        <span className="cta-orbit" aria-hidden="true" />
       </div>
     </section>
   );

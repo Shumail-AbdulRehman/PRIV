@@ -1,9 +1,10 @@
 import { Link, useLocation } from "react-router-dom";
 import { Menu, X, ArrowUpRight } from "lucide-react";
-import { useState } from "react";
+import { useState, type ReactNode } from "react";
 import useAuth from "@/hooks/useAuth";
 import BrandLogo from "@/components/common/BrandLogo";
 import "@/marketing.css";
+import "@/marketing-redesign.css";
 
 const links = [
   { label: "Home", href: "/" },
@@ -11,7 +12,7 @@ const links = [
   { label: "Pricing", href: "/pricing" },
 ];
 
-export function PublicNavbar() {
+export function PublicNavbar({ languageChoice }: { languageChoice?: ReactNode }) {
   const { isAuthenticated } = useAuth();
   const { pathname } = useLocation();
   const [openPath, setOpenPath] = useState<string | null>(null);
@@ -33,19 +34,26 @@ export function PublicNavbar() {
             </Link>
           ))}
         </nav>
-        <div className="desktop-nav nav-actions">
-          {!isAuthenticated && (
-            <Link to="/login" className="login-link">
-              Log in
+        <div className="nav-end">
+          {languageChoice}
+          <div className="desktop-nav nav-actions">
+            {!isAuthenticated && (
+              <Link
+                to="/login"
+                className="login-link"
+                aria-current={pathname === "/login" ? "page" : undefined}
+              >
+                Log in
+              </Link>
+            )}
+            <Link
+              to={isAuthenticated ? "/dashboard" : "/signup"}
+              className="marketing-button primary-button"
+            >
+              {isAuthenticated ? "Open dashboard" : "Get started"}
+              <ArrowUpRight size={16} />
             </Link>
-          )}
-          <Link
-            to={isAuthenticated ? "/dashboard" : "/signup"}
-            className="marketing-button primary-button"
-          >
-            {isAuthenticated ? "Open dashboard" : "Get started"}
-            <ArrowUpRight size={16} />
-          </Link>
+          </div>
         </div>
         <button
           className="mobile-nav-toggle"

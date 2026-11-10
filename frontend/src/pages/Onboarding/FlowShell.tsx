@@ -2,6 +2,7 @@ import { useEffect, useId, useRef, type ReactNode } from 'react';
 import { Link } from 'react-router-dom';
 import BrandLogo from '@/components/common/BrandLogo';
 import LanguageChoice from '@/components/common/LanguageChoice';
+import { PublicNavbar } from '@/components/layout/PublicNavbar';
 import { useLanguage } from '@/i18n/context';
 import './flow.css';
 
@@ -21,10 +22,12 @@ export type FlowShellProps = {
   children: ReactNode;
   /** Screen-owned worksheet content, shown only in a desktop split sheet. */
   aside?: ReactNode;
+  /** Replaces the logo header with the public site navbar. */
+  siteNav?: boolean;
 };
 
 /** Presentation only. Step completion never grants billing or workspace access. */
-export default function FlowShell({ size = 'narrow', step = 'none', testMode = false, children, aside }: FlowShellProps) {
+export default function FlowShell({ size = 'narrow', step = 'none', testMode = false, children, aside, siteNav = false }: FlowShellProps) {
   const { language, t } = useLanguage();
   const contentId = useId();
   const sheetRef = useRef<HTMLElement>(null);
@@ -46,13 +49,15 @@ export default function FlowShell({ size = 'narrow', step = 'none', testMode = f
       <svg className="flow-supergraphic" viewBox="0 0 100 100" aria-hidden="true" focusable="false">
         <path d="M10 55 36 81 92 14" />
       </svg>
-      <header className="flow-header">
-        <Link to="/login" className="flow-brand" aria-label={t('Hygene Ops sign in')}><BrandLogo /></Link>
-        <div className="flow-header-actions">
-          {testMode && <span className="flow-chip flow-chip-warn">{t('Test mode')}</span>}
-          <LanguageChoice />
-        </div>
-      </header>
+      {siteNav ? <PublicNavbar languageChoice={<LanguageChoice />} /> : (
+        <header className="flow-header">
+          <Link to="/login" className="flow-brand" aria-label={t('Hygene Ops sign in')}><BrandLogo /></Link>
+          <div className="flow-header-actions">
+            {testMode && <span className="flow-chip flow-chip-warn">{t('Test mode')}</span>}
+            <LanguageChoice />
+          </div>
+        </header>
+      )}
       <div className="flow-stage" data-size={size}>
         <div className="flow-stack" aria-hidden="true" data-depth={depth}>
           {[1, 2, 3].map((edge) => <span key={edge} className="flow-edge" data-visible={edge <= depth ? 'true' : 'false'} />)}

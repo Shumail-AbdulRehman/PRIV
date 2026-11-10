@@ -1,36 +1,36 @@
 import { isAxiosError } from "axios";
 import { client } from "@/api/client";
 import { useRef, useState, type FormEvent } from 'react';
-import { ArrowUpRight, Check, Building2 } from 'lucide-react';
+import { ArrowUpRight, Check } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Dialog, DialogContent, DialogTitle, DialogDescription } from '@/components/ui/dialog';
 import useAuth from '@/hooks/useAuth';
 
-export default function EnterprisePlan({ current = false }: { current?: boolean }) {
+export type InquiryDefaults = { locations: number; staff: number };
+
+export default function EnterprisePlan({ current = false, state = '', inquiry }: { current?: boolean; state?: string; inquiry?: InquiryDefaults }) {
   const [open, setOpen] = useState(false);
   const { user } = useAuth();
   return <>
-    <article className="saas-plan enterprise-plan">
-      <div className="plan-title"><h2>Enterprise</h2>{current && <span className="current-plan-label">Current plan</span>}</div>
+    <article className={`hx-plan ${state}`}>
+      <div className="hx-plan-title"><h2>Enterprise</h2>{current && <span>Current plan</span>}</div>
       <p>For larger operations. Let’s work out the right fit for your team.</p>
-      <div className="plan-price"><strong>Let’s talk</strong></div>
-      <span className="plan-trial">Pricing and scope agreed with your team</span>
-      <button type="button" className="marketing-button secondary-button" onClick={() => setOpen(true)}>Contact sales <ArrowUpRight size={16} /></button>
-      <div className="enterprise-note"><Building2 size={20} aria-hidden="true" /><p>Tell us about your locations, people, and day-to-day requirements.</p></div>
-      <h3 className="plan-feature-heading">Build on Pro’s capabilities</h3>
-      <ul className="plan-features">{['Discuss location and team capacity', 'Multi-location, multi-timezone operations', 'Automatic task assignment', 'Inventory verification and exception review', 'Review your rollout requirements'].map(feature => <li key={feature}><Check aria-hidden="true" />{feature}</li>)}</ul>
+      <button type="button" className="hx-btn hx-btn-line" onClick={() => setOpen(true)}>Contact sales <ArrowUpRight aria-hidden="true" /></button>
     </article>
     <Dialog open={open} onOpenChange={setOpen}>
-      <DialogContent className="sm:max-w-xl">
-        <DialogTitle>Let’s talk about your operation</DialogTitle>
-        <DialogDescription>Share a few details so we can discuss an Enterprise plan. This is an inquiry, not a subscription or payment.</DialogDescription>
-        <EnterpriseInquiryForm name={user?.name ?? ''} email={user?.email ?? ''} />
+      <DialogContent className="hx-sales">
+        <div className="hx-sales-side">
+          <DialogTitle>Let’s talk about your operation</DialogTitle>
+          <DialogDescription>Share a few details so we can discuss an Enterprise plan. This is an inquiry, not a subscription or payment.</DialogDescription>
+          <ul>{['Location and team capacity', 'Multi-location operations', 'Your rollout requirements'].map(item => <li key={item}><Check aria-hidden="true" />{item}</li>)}</ul>
+        </div>
+        <div className="hx-sales-form"><EnterpriseInquiryForm name={user?.name ?? ''} email={user?.email ?? ''} inquiry={inquiry} /></div>
       </DialogContent>
     </Dialog>
   </>;
 }
 
-function EnterpriseInquiryForm({ name, email }: { name: string; email: string }) {
+function EnterpriseInquiryForm({ name, email, inquiry }: { name: string; email: string; inquiry?: InquiryDefaults }) {
   const requestId = useRef(crypto.randomUUID());
   const inFlight = useRef(false);
   const payload = useRef<Record<string, string | number> | null>(null);
@@ -67,13 +67,13 @@ function EnterpriseInquiryForm({ name, email }: { name: string; email: string })
     </div>
     <label>Company name<input name="company" autoComplete="organization" required maxLength={160} /></label>
     <div className="grid gap-4 sm:grid-cols-2">
-      <label>Number of locations<input name="locations" type="number" min="1" max="1000000" required /></label>
-      <label>Team size<input name="staff" type="number" min="1" max="1000000" required /></label>
+      <label>Number of locations<input name="locations" type="number" min="1" max="1000000" defaultValue={inquiry?.locations} required /></label>
+      <label>Team size<input name="staff" type="number" min="1" max="1000000" defaultValue={inquiry?.staff} required /></label>
     </div>
     <label>What does your team need?<textarea name="requirements" rows={4} maxLength={4000} required placeholder="Tell us about your operation and what you’d like to improve." /></label>
     </fieldset>
     {error && <p role="alert" className="text-sm text-red-700">{error}</p>}
     <p className="text-xs leading-5 text-muted-foreground">We’ll use these details to respond to your Enterprise inquiry. Please don’t include passwords or sensitive staff information.</p>
-    <Button type="submit" disabled={pending}>{pending ? "Sending…" : error ? "Retry inquiry" : "Send inquiry"}</Button>
+    <Button type="submit" className="hx-btn hx-btn-blue" disabled={pending}>{pending ? "Sending…" : error ? "Retry inquiry" : "Send inquiry"}</Button>
   </form>;
 }

@@ -67,7 +67,7 @@ export default function Login() {
     }
   }
 
-  return <FlowShell size="split" aside={<>
+  return <FlowShell siteNav size="split" aside={<>
     <div className="flow-worksheet login-worksheet" aria-hidden="true">
       <p className="login-worksheet-header"><strong>{t('Today')}</strong><span>{t('Example day')}</span></p>
       <ul>{exampleRows.map(([label, status, tone], index) => <li key={label} data-complete={index < 3 ? 'true' : undefined}>
