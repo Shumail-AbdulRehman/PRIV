@@ -1,4 +1,4 @@
-import type { BillingCheckoutResume, PlanCode, PlanDefinition, ValidatedBillingLifecycle } from '../types';
+import type { BillingCheckoutResume, BillingOnboardingStep, PlanCode, PlanDefinition, ValidatedBillingLifecycle } from '../types';
 import { parseBillingLifecycle } from './billingContract';
 
 export type BillingOwnerScope = { companyId: number; ownerId: number };
@@ -10,11 +10,10 @@ export type BillingViewInput = {
   data?: unknown;
   read: 'loading' | 'fresh' | 'stale' | 'error';
   httpStatus?: number;
-  uncertain?: boolean;
-  activationReturn?: boolean;
 };
 export type BillingViewState = {
   kind: BillingViewKind;
+  step: BillingOnboardingStep | null;
   reason: 'loading' | 'identity' | 'denied' | 'stale' | 'error' | 'invalid' | 'server' | 'unknown';
   data: ValidatedBillingLifecycle | null;
   canChoosePlan: boolean;
@@ -26,9 +25,12 @@ export type BillingViewState = {
 /** Display decisions only. No clock, permission reconstruction, mutation or storage. */
 export function deriveBillingViewState(input: BillingViewInput): BillingViewState {
   const state = (kind: BillingViewKind, reason: BillingViewState['reason'], data: ValidatedBillingLifecycle | null = null): BillingViewState => ({
-    kind, reason, data, canChoosePlan: kind === 'choose-plan', canOpenWorkspace: kind === 'confirmed',
+    kind, reason, data,
+    step: reason === 'server' ? kind === 'restricted' ? 'RESTRICTED' : data?.onboardingStep ?? null : null,
+    canChoosePlan: kind === 'choose-plan' && !!data?.billingConfigured && !!data.checkoutAvailable && data.checkoutReadiness === 'READY' && !data.reconciliationRequired,
+    canOpenWorkspace: kind === 'confirmed',
     canOpenPortal: input.read === 'fresh' && !!data?.portalAvailable,
-    resume: kind === 'resume' ? data?.checkoutResume ?? null : null,
+    resume: kind === 'resume' && data?.billingConfigured && data.checkoutAvailable && data.checkoutReadiness === 'READY' && !data.reconciliationRequired ? data.checkoutResume : null,
   });
   const validScope = (scope: BillingOwnerScope | null): scope is BillingOwnerScope => !!scope &&
     Number.isSafeInteger(scope.companyId) && scope.companyId > 0 && Number.isSafeInteger(scope.ownerId) && scope.ownerId > 0;
@@ -41,18 +43,19 @@ export function deriveBillingViewState(input: BillingViewInput): BillingViewStat
   if (data.company.id !== input.owner.companyId) return state('unavailable', 'identity');
   if (input.read === 'error') return state('unavailable', 'error', data);
   if (input.read === 'stale') return state('unavailable', 'stale', data);
+  if (data.onboardingStep === null) return state('unavailable', 'unknown', data);
   if (!data.company.isActive || data.company.operationalStatus !== 'ACTIVE' || data.checkoutReadiness === 'COMPANY_RESTRICTED') return state('restricted', 'server', data);
-  if (data.reconciliationRequired || data.checkoutReadiness === 'RECONCILIATION_PENDING') return state('uncertain', 'server', data);
-  if (data.workspaceAccessAllowed) return state('confirmed', 'server', data);
-  if (input.uncertain) return state('uncertain', 'unknown', data);
-  if (data.subscription?.status === 'unknown') return state('pending', 'server', data);
-  if (data.subscription || data.providerState === 'MIRRORED' || data.checkoutReadiness === 'LINKED_SUBSCRIPTION') return state('existing', 'server', data);
-  if (data.billingConfigured && data.checkoutAvailable && data.checkoutReadiness === 'READY') {
-    if (data.checkoutResume) return state('resume', 'server', data);
-    if (!input.activationReturn) return state('choose-plan', 'server', data);
+  switch (data.onboardingStep) {
+    case 'CHOOSE_PLAN': return state('choose-plan', 'server', data);
+    case 'PAYMENT': return data.checkoutResume ? state('resume', 'server', data) : state('unavailable', 'invalid', data);
+    case 'CONFIRMING': return state('pending', 'server', data);
+    case 'WORKSPACE': return data.workspaceAccessAllowed ? state('confirmed', 'server', data) : state('unavailable', 'invalid', data);
+    case 'ACCOUNT': return state('existing', 'server', data);
+    case 'RECONCILE': return state('uncertain', 'server', data);
+    case 'RESTRICTED': return state('restricted', 'server', data);
+    case 'VERIFY_EMAIL':
+    case 'UNAVAILABLE': return state('unavailable', 'server', data);
   }
-  if (input.activationReturn || data.providerState === 'AWAITING_PROVIDER') return state('pending', 'unknown', data);
-  return state('unavailable', data.checkoutReadiness === 'UNKNOWN' ? 'unknown' : 'server', data);
 }
 
 /** Reuse API-supplied plan capacities; only the public Enterprise label is adapted. */

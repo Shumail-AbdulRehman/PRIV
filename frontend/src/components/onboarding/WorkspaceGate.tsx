@@ -1,31 +1,32 @@
-import { Link, Navigate, useLocation } from 'react-router-dom';
+import { Navigate, useLocation } from 'react-router-dom';
 import useAuth from '@/hooks/useAuth';
-import { useLanguage } from '@/i18n/context';
-import { Button } from '@/components/ui/button';
 import { useBillingLifecycle } from '@/pages/Subscription/queries';
-import BillingSetupLayout from '@/pages/Subscription/onboarding/BillingSetupLayout';
+import { deriveBillingViewState } from '@/pages/Subscription/onboarding/billingViewState';
+import { FlowEntryStatus } from '@/pages/Onboarding/FlowEntry';
+import { isSafeFromPath, onboardingRouteForStep } from '@/pages/Onboarding/onboardingRoutes';
 
-function OwnerWorkspaceGate({children}:{children:React.ReactNode}) {
- const {user}=useAuth();const {t}=useLanguage();const query=useBillingLifecycle();
- const data=query.data;const matches=data?.company.id===user?.companyId;
- const suspended=matches&&(!data?.company.isActive||data.company.operationalStatus==='SUSPENDED');
- if(matches&&data&&!suspended&&!query.isError){
-  // Historic linked subscribers retain READ_OPERATIONAL, including expired periods.
-  // Start-work/capacity authorization remains server policy.
-  if(data.workspaceAccessAllowed)return children;
-  const historical=data.subscription&&['active','trialing','past_due','canceled','paused'].includes(data.subscription.status);
-  if(data.onboardingRequired!==true&&(historical||data.onboardingRequired===false))return children;
-  return <Navigate to="/subscription" replace/>;
- }
- return <BillingSetupLayout currentStep="confirmation" completedSteps={['account','plan']}>
-  <h1>{t(suspended?'Account access needs attention':query.isPending?'Checking workspace access…':'Workspace access could not be checked')}</h1>
-  {query.isPending?<p role="status">{t('Checking workspace access…')}</p>:<p role="alert" style={{marginBlockStart:20}}>{t(suspended?'Company operations are restricted. Billing and account security remain available.':'Refresh workspace access to try again. Billing and account security remain available.')}</p>}
-  {suspended?<p role="status">{t('Payment does not remove an administrative suspension.')}</p>:null}
-  <div style={{display:'flex',flexWrap:'wrap',gap:20,marginBlockStart:24}}><Link to="/subscription">{t('Open Plan & billing')}</Link><Link to="/account/security">{t('Your account security')}</Link><Button variant="outline" disabled={query.isFetching} onClick={()=>void query.refetch()}>{t('Refresh workspace access')}</Button></div>
- </BillingSetupLayout>;
+function OwnerWorkspaceGate({ children, companyId, ownerId }: { children: React.ReactNode; companyId: number; ownerId: number }) {
+  const query = useBillingLifecycle();
+  const location = useLocation();
+  const view = deriveBillingViewState({ owner: { companyId, ownerId }, dataOwner: query.dataOwner, data: query.data,
+    read: query.isPending ? 'loading' : query.isError ? 'error' : 'fresh' });
+  const data = view.data;
+  if (!query.isPending && !query.isError && data?.company.isActive && data.company.operationalStatus === 'ACTIVE' && view.kind !== 'restricted') {
+    // Historical subscribers retain READ_OPERATIONAL. Work and capacity stay server-authorized.
+    const historical = data.subscription && ['active', 'trialing', 'past_due', 'canceled', 'paused'].includes(data.subscription.status);
+    if (view.canOpenWorkspace || (data.onboardingRequired !== true && (historical || data.onboardingRequired === false))) return children;
+  }
+  const route = onboardingRouteForStep(view.step);
+  if (route && route !== location.pathname) {
+    const from = `${location.pathname}${location.search}${location.hash}`;
+    return <Navigate to={route} state={isSafeFromPath(from) ? { from } : null} replace />;
+  }
+  return <FlowEntryStatus pending={query.isPending} busy={query.isFetching} retry={query.refetch} />;
 }
-export default function WorkspaceGate({children}:{children:React.ReactNode}) {
- const {user}=useAuth();const {pathname}=useLocation();
- if(user?.role!=='ADMIN'||/^\/(subscription|settings)(\/|$)/.test(pathname))return children;
- return <OwnerWorkspaceGate key={`${user.companyId}:${user.id}`}>{children}</OwnerWorkspaceGate>;
+
+export default function WorkspaceGate({ children }: { children: React.ReactNode }) {
+  const { user } = useAuth();
+  const { pathname } = useLocation();
+  if (user?.role !== 'ADMIN' || /^\/(subscription|settings)(\/|$)/.test(pathname)) return children;
+  return <OwnerWorkspaceGate key={`${user.companyId}:${user.id}`} companyId={user.companyId} ownerId={user.id}>{children}</OwnerWorkspaceGate>;
 }

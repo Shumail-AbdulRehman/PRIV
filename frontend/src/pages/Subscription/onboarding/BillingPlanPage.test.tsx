@@ -36,7 +36,7 @@ beforeEach(() => {
   lifecycle = { company: { id: 42, name: 'Synthetic', plan: 'STARTER', isActive: true, operationalStatus: 'ACTIVE' },
     usage: { locations: 0, staff: 0, managers: 1 }, limits: plans[0].limits, subscription: null,
     reconciliationRequired: false, billingConfigured: true, billingEnvironment: 'sandbox', ownerVerified: false,
-    providerState: 'NOT_LINKED', portalAvailable: false, checkoutAvailable: true, checkoutReadiness: 'READY', workspaceAccessAllowed: false, checkoutResume: null };
+    providerState: 'NOT_LINKED', portalAvailable: false, checkoutAvailable: true, checkoutReadiness: 'READY', workspaceAccessAllowed: false, checkoutResume: null, onboardingStep: 'CHOOSE_PLAN' };
   catalog = plans.flatMap((plan, index) => (['month', 'year'] as const).map((interval, i) => ({
     plan: plan.code, interval, priceId: `pri_${String(index * 2 + i).padStart(26, 'a')}`, productId: `pro_${'b'.repeat(26)}`,
     amount: String((index + 1) * (i ? 11337 : 1234)), currencyCode: 'USD',
@@ -79,13 +79,13 @@ it.each(['?plan=admin&interval=week', '?plan=pro&interval=YEAR', '?plan=PRO&plan
   mount(search); await ready(); expect(radio('Starter')).toBeChecked(); expect(screen.getByRole('button', { name: 'Monthly' })).toHaveAttribute('aria-pressed', 'true');
 });
 it('uses the saved draft before Starter, lets URL override it and announces replacement', async () => {
-  lifecycle.checkoutResume = { plan: 'PRO', interval: 'year', transactionId: `txn_${'b'.repeat(26)}` };
+  lifecycle.onboardingStep = 'PAYMENT'; lifecycle.checkoutResume = { plan: 'PRO', interval: 'year', transactionId: `txn_${'b'.repeat(26)}` };
   mount('?plan=ADVANCED&interval=month'); await ready(); expect(radio('Enterprise')).toBeChecked();
   expect(screen.getByText('You have a checkout in progress. Choosing a different plan replaces it. You have not been charged.')).toHaveAttribute('role', 'status');
   fireEvent.click(continueButton()); expect(screen.getByTestId('position')).toHaveTextContent('plan=ADVANCED&interval=month');
 });
 it('loads the draft selection and permits changing both plan and interval', async () => {
-  lifecycle.checkoutResume = { plan: 'PRO', interval: 'year', transactionId: `txn_${'b'.repeat(26)}` };
+  lifecycle.onboardingStep = 'PAYMENT'; lifecycle.checkoutResume = { plan: 'PRO', interval: 'year', transactionId: `txn_${'b'.repeat(26)}` };
   mount(); await ready(); expect(radio('Pro')).toBeChecked();
   expect(screen.getByRole('button', { name: 'Yearly' })).toHaveAttribute('aria-pressed', 'true');
   expect(screen.queryByText(/Choosing a different plan replaces it/)).not.toBeInTheDocument();
@@ -93,7 +93,7 @@ it('loads the draft selection and permits changing both plan and interval', asyn
   fireEvent.click(radio('Starter')); expect(radio('Starter')).toBeChecked();
 });
 it('falls back independently to the draft when one URL field is invalid', async () => {
-  lifecycle.checkoutResume = { plan: 'PRO', interval: 'year', transactionId: `txn_${'b'.repeat(26)}` };
+  lifecycle.onboardingStep = 'PAYMENT'; lifecycle.checkoutResume = { plan: 'PRO', interval: 'year', transactionId: `txn_${'b'.repeat(26)}` };
   mount('?plan=STARTER&interval=tampered'); await ready(); expect(radio('Starter')).toBeChecked();
   expect(screen.getByRole('button', { name: 'Yearly' })).toHaveAttribute('aria-pressed', 'true');
 });
@@ -190,7 +190,7 @@ it.each(['MANAGER', 'STAFF'] as const)('denies %s without starting queries', rol
   mount('', role); expect(screen.getByRole('alert')).toHaveTextContent('Only the company owner'); expect(api.getBillingLifecycle).not.toHaveBeenCalled(); expect(api.getBillingCatalog).not.toHaveBeenCalled();
 });
 it('preserves restriction and unresolved-payment gates', async () => {
-  lifecycle.reconciliationRequired = true; lifecycle.checkoutReadiness = 'RECONCILIATION_PENDING'; mount();
+  lifecycle.onboardingStep = 'RECONCILE'; lifecycle.reconciliationRequired = true; lifecycle.checkoutReadiness = 'RECONCILIATION_PENDING'; mount();
   expect(await screen.findByText(/We could not confirm the outcome/)).toBeVisible(); expect(continueButton()).toBeDisabled(); expect(screen.queryByRole('radio')).not.toBeInTheDocument();
 });
 it('uses the shared responsive ledger and sticky phone decision bar', async () => {
