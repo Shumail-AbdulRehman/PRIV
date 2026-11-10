@@ -26,6 +26,19 @@ export type FlowShellProps = {
   siteNav?: boolean;
 };
 
+/** One loading line with a tick that draws itself. */
+export function FlowWait({ label, heading = false }: { label: string; heading?: boolean }) {
+  const Text = heading ? 'h1' : 'p';
+  return (
+    <div className="flow-wait" role="status">
+      <span className="flow-wait-box" aria-hidden="true">
+        <svg viewBox="0 0 20 20" focusable="false"><path d="m4 10 4 4 8-9" pathLength="1" /></svg>
+      </span>
+      <Text>{label}</Text>
+    </div>
+  );
+}
+
 /** Presentation only. Step completion never grants billing or workspace access. */
 export default function FlowShell({ size = 'narrow', step = 'none', testMode = false, children, aside, siteNav = false }: FlowShellProps) {
   const { language, t } = useLanguage();

@@ -3,7 +3,7 @@ import { Link, Navigate, useLocation, useNavigate, useSearchParams } from 'react
 import useAuth from '@/hooks/useAuth';
 import { useLanguage } from '@/i18n/context';
 import { Button } from '@/components/ui/button';
-import FlowShell from '@/pages/Onboarding/FlowShell';
+import FlowShell, { FlowWait } from '@/pages/Onboarding/FlowShell';
 import { parseOnboardingQuery } from '@/pages/Onboarding/onboardingRoutes';
 import { useBillingCatalog, useBillingLifecycle, useSubscription } from '../queries';
 import { billingPlanDefinition, deriveBillingViewState } from './billingViewState';
@@ -34,7 +34,7 @@ function OwnerPayment({ companyId, ownerId }: { companyId: number; ownerId: numb
   const selection = view.data?.checkoutResume ?? parseOnboardingQuery(params);
   if (!view.data) return <FlowShell size="wide" step="payment">
     <h1>{t('Add your card')}</h1>
-    {lifecycle.isPending ? <p role="status">{t('Checking subscription status…')}</p> :
+    {lifecycle.isPending ? <FlowWait label={t('Checking subscription status…')} /> :
       <div className="flow-notice flow-notice-bad mt-6" role="alert">
         <p>{t('Billing is temporarily unavailable. Refresh status to try again.')}</p>
         <Button className="flow-button flow-button-secondary mt-3" disabled={lifecycle.isFetching} onClick={() => void lifecycle.refetch()}>{t('Try again')}</Button>

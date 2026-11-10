@@ -236,6 +236,11 @@
 .flow-shell .flow-field-error { font-size: 14px; color: var(--flow-bad-ink); animation: flow-notice-enter 200ms cubic-bezier(.23, 1, .32, 1); }
 .flow-shell .flow-chip { display: inline-flex; padding: 4px 8px; border-radius: 5px; font-size: 12px; font-weight: 550; line-height: 1.4; }
 .flow-shell .flow-skeleton { display: block; min-block-size: 20px; border-radius: 5px; background: var(--flow-skeleton); animation: flow-breathe 1100ms ease-in-out infinite alternate; }
+.flow-shell .flow-wait { display: flex; align-items: center; justify-content: center; gap: 14px; min-block-size: 72px; }
+.flow-shell .flow-wait h1, .flow-shell .flow-wait p { font-size: 17px; font-weight: 600; line-height: 1.4; letter-spacing: -.01em; color: var(--flow-ink); outline: 0; }
+.flow-shell .flow-wait-box { flex: none; display: grid; place-items: center; inline-size: 34px; block-size: 34px; border: 2px solid var(--flow-primary); border-radius: 9px; background: var(--flow-wash); }
+.flow-shell .flow-wait-box svg { inline-size: 22px; block-size: 22px; fill: none; stroke: var(--flow-primary); stroke-width: 2.8; stroke-linecap: round; stroke-linejoin: round; }
+.flow-shell .flow-wait-box path { stroke-dasharray: 1; animation: flow-wait-tick 1500ms cubic-bezier(.23, 1, .32, 1) infinite; }
 .flow-shell .flow-price-enter { animation: flow-price-enter 160ms cubic-bezier(.23, 1, .32, 1); }
 .flow-shell .flow-frame-ready { animation: flow-fade 240ms cubic-bezier(.23, 1, .32, 1); }
 .flow-shell .flow-disclosure[open] > :not(summary) { animation: flow-fade 160ms cubic-bezier(.23, 1, .32, 1); }
@@ -323,6 +328,7 @@
 @keyframes flow-fade { from { opacity: 0; } to { opacity: 1; } }
 @keyframes flow-price-enter { from { opacity: .25; } to { opacity: 1; } }
 @keyframes flow-breathe { to { opacity: .55; } }
+@keyframes flow-wait-tick { 0% { stroke-dashoffset: 1; opacity: 1; } 55%, 82% { stroke-dashoffset: 0; opacity: 1; } 100% { stroke-dashoffset: 0; opacity: 0; } }
 @keyframes flow-spin { to { transform: rotate(360deg); } }
 @keyframes flow-ring { from { opacity: .7; transform: scale(.85); } to { opacity: 0; transform: scale(1.15); } }
 @keyframes flow-stamp { from { opacity: 0; transform: scale(.9); } to { opacity: 1; transform: none; } }

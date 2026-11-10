@@ -4,18 +4,19 @@ import { Button } from '@/components/ui/button';
 import { useLanguage } from '@/i18n/context';
 import { useBillingLifecycle } from '@/pages/Subscription/queries';
 import { deriveBillingViewState } from '@/pages/Subscription/onboarding/billingViewState';
-import FlowShell from './FlowShell';
+import FlowShell, { FlowWait } from './FlowShell';
 import { isSafeFromPath, onboardingRouteForStep, ONBOARDING_ROUTES } from './onboardingRoutes';
 
 /** Shared fail-closed read state for entry and setup-route composition. */
 export function FlowEntryStatus({ pending, busy, retry }: { pending: boolean; busy: boolean; retry: () => unknown }) {
   const { t } = useLanguage();
+  if (pending) return <FlowShell><FlowWait heading label={t('Checking subscription status…')} /></FlowShell>;
   return <FlowShell>
-    <h1>{t(pending ? 'Checking subscription status…' : 'Workspace access could not be checked')}</h1>
-    {pending ? <p role="status">{t('Checking subscription status…')}</p> : <div className="flow-form">
+    <h1>{t('Workspace access could not be checked')}</h1>
+    <div className="flow-form">
       <p className="flow-notice flow-notice-bad" role="alert">{t('Billing is temporarily unavailable. Refresh status to try again.')}</p>
       <Button className="flow-button" disabled={busy} aria-busy={busy} onClick={() => void retry()}>{t('Try again')}</Button>
-    </div>}
+    </div>
   </FlowShell>;
 }
 
