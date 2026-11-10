@@ -3,7 +3,7 @@ import { useQueryClient } from '@tanstack/react-query';
 import useAuth from '@/hooks/useAuth';
 import { confirmBillingCheckout } from '../api';
 import { billingLifecycleKey } from '../queries';
-import type { ValidatedBillingLifecycle } from '../types';
+import type { BillingConfirmOutcome, ValidatedBillingLifecycle } from '../types';
 
 export const CHECKOUT_CONFIRMATION_TIMING = {
   gaps: [2_000, 3_000, 5_000, 8_000, 13_000],
@@ -13,7 +13,13 @@ export const CHECKOUT_CONFIRMATION_TIMING = {
 
 export type CheckoutConfirmationStatus = 'waiting' | 'slow' | 'timedOut' | 'active' | 'denied';
 type Scope = { companyId?: number; ownerId?: number; role?: string };
-type View = { scope: Scope; status: CheckoutConfirmationStatus; lifecycle: ValidatedBillingLifecycle | null };
+type View = {
+  scope: Scope;
+  status: CheckoutConfirmationStatus;
+  lifecycle: ValidatedBillingLifecycle | null;
+  outcome: BillingConfirmOutcome | null;
+  consecutiveNotPaid: number;
+};
 
 /** Server confirmation only; checkout events and cached facts cannot grant access. */
 export function useCheckoutConfirmation() {
@@ -33,11 +39,13 @@ export function useCheckoutConfirmation() {
       if (!mounted || !allowed) return;
       let running = true;
       let lifecycle: ValidatedBillingLifecycle | null = null;
+      let outcome: BillingConfirmOutcome | null = null;
+      let consecutiveNotPaid = 0;
       let gapIndex = 0;
       let next: ReturnType<typeof setTimeout> | undefined;
       const abort = new AbortController();
       const startedAt = Date.now();
-      const publish = (status: CheckoutConfirmationStatus) => setView({ scope, status, lifecycle });
+      const publish = (status: CheckoutConfirmationStatus) => setView({ scope, status, lifecycle, outcome, consecutiveNotPaid });
       const finish = (status: CheckoutConfirmationStatus) => {
         if (!running) return;
         stop();
@@ -77,6 +85,8 @@ export function useCheckoutConfirmation() {
           // The API also validates company scope. Never publish a foreign result.
           if (result.lifecycle.company.id === companyId) {
             lifecycle = result.lifecycle;
+            outcome = result.outcome;
+            consecutiveNotPaid = outcome === 'NOT_PAID' ? consecutiveNotPaid + 1 : 0;
             client.setQueryData(billingLifecycleKey(companyId, ownerId), lifecycle);
             if (result.outcome === 'ACTIVE' && lifecycle.workspaceAccessAllowed &&
               lifecycle.company.isActive && lifecycle.company.operationalStatus === 'ACTIVE') {
@@ -84,14 +94,21 @@ export function useCheckoutConfirmation() {
               return;
             }
             publish(Date.now() - startedAt >= CHECKOUT_CONFIRMATION_TIMING.slow ? 'slow' : 'waiting');
+          } else {
+            // An unscoped response cannot continue an unpaid-confirmation streak.
+            consecutiveNotPaid = 0;
+            publish(Date.now() - startedAt >= CHECKOUT_CONFIRMATION_TIMING.slow ? 'slow' : 'waiting');
           }
         } catch (error) {
           if (!alive()) return;
+          // Keep the latest accepted outcome, but require fresh consecutive reads to redirect.
+          consecutiveNotPaid = 0;
           const status = (error as { response?: { status?: number } } | null)?.response?.status;
           if (status === 401 || status === 403) {
             finish('denied');
             return;
           }
+          publish(Date.now() - startedAt >= CHECKOUT_CONFIRMATION_TIMING.slow ? 'slow' : 'waiting');
         }
         // Only schedule after settlement, including transient failures.
         schedule();
@@ -114,6 +131,8 @@ export function useCheckoutConfirmation() {
   return {
     status: current?.status ?? (allowed ? 'waiting' : 'denied'),
     lifecycle: current?.lifecycle ?? null,
+    outcome: current?.outcome ?? null,
+    consecutiveNotPaid: current?.consecutiveNotPaid ?? 0,
     retry,
   };
 }
