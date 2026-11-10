@@ -20,24 +20,19 @@ beforeEach(()=>{
  m.get.mockResolvedValue({data:{data:lifecycle()}});
 });
 afterEach(()=>{clients.forEach(c=>c.clear());clients.length=0;vi.useRealTimers();focusManager.setFocused(undefined);onlineManager.setOnline(true);});
-it('backs off 2/5/10/30 seconds and stops after two minutes, with explicit manual recovery',async()=>{
- const h=mount(()=>useBillingLifecycle({poll:true}));await tick();expect(m.get).toHaveBeenCalledTimes(1);
- for(const [delay,count] of [[2001,2],[5001,3],[10001,4],[30001,5]]){await tick(delay);expect(m.get).toHaveBeenCalledTimes(count);}
- await tick(120000);expect(h.result.current.pollingTimedOut).toBe(true);
- const calls=m.get.mock.calls.length;await tick(120000);expect(m.get).toHaveBeenCalledTimes(calls);
- await act(async()=>{await h.result.current.refetch();});await tick();expect(h.result.current.pollingTimedOut).toBe(false);expect(m.get).toHaveBeenCalledTimes(calls+1);
- h.unmount();
+it('leaves polling to the confirmation controller and supports explicit recovery',async()=>{
+ const h=mount(()=>useBillingLifecycle());await tick();await tick(240000);expect(m.get).toHaveBeenCalledOnce();
+ await act(async()=>{await h.result.current.refetch();});await tick();expect(m.get).toHaveBeenCalledTimes(2);h.unmount();
 });
-it('recovers a pending lifecycle after transient error, keeping safe stale data',async()=>{
- const h=mount(()=>useBillingLifecycle({poll:true}));await tick();
- m.get.mockRejectedValueOnce({response:{status:503}});await tick(2000);
+it('keeps stale facts after a failed read and recovers only on a new read',async()=>{
+ const h=mount(()=>useBillingLifecycle());await tick();
+ m.get.mockRejectedValueOnce({response:{status:503}});await act(async()=>{await h.result.current.refetch();});await tick();
  expect(h.result.current.isError).toBe(true);expect(h.result.current.data?.company.id).toBe(42);
- m.get.mockResolvedValue({data:{data:{...lifecycle(),reconciliationRequired:false,providerState:'MIRRORED',checkoutReadiness:'LINKED_SUBSCRIPTION',workspaceAccessAllowed:true}}});
- await tick(5001);expect(h.result.current.isError).toBe(false);expect(h.result.current.data?.workspaceAccessAllowed).toBe(true);
- const calls=m.get.mock.calls.length;await tick(40000);expect(m.get).toHaveBeenCalledTimes(calls);h.unmount();
+ await tick(240000);expect(m.get).toHaveBeenCalledTimes(2);
+ await act(async()=>{await h.result.current.refetch();});await tick();expect(h.result.current.isError).toBe(false);h.unmount();
 });
 it.each([401,403])('stops denied %s polling/focus/reconnect and allows manual auth recovery',async(status)=>{
- m.get.mockRejectedValue({response:{status}});const h=mount(()=>useBillingLifecycle({poll:true}));await tick();
+ m.get.mockRejectedValue({response:{status}});const h=mount(()=>useBillingLifecycle());await tick();
  await tick(200000);expect(m.get).toHaveBeenCalledOnce();
  act(()=>focusManager.setFocused(false));act(()=>focusManager.setFocused(true));act(()=>onlineManager.setOnline(false));act(()=>onlineManager.setOnline(true));await tick();expect(m.get).toHaveBeenCalledOnce();
  m.get.mockResolvedValue({data:{data:lifecycle()}});await act(async()=>{await h.result.current.refetch();});await tick();expect(h.result.current.data?.company.id).toBe(42);h.unmount();
@@ -56,7 +51,7 @@ it.each(['reconciliation','linked'] as const)('catalog remains readable during %
 it('owner switch aborts old work, removes former private keys, and rejects late results',async()=>{
  let resolve!:(value:unknown)=>void;let oldSignal:AbortSignal|undefined;
  m.get.mockImplementationOnce(async(_url,{signal})=>{oldSignal=signal;return new Promise(r=>{resolve=r;});});
- const h=mount(()=>useBillingLifecycle({poll:true}));await tick();
+ const h=mount(()=>useBillingLifecycle());await tick();
  h.client.setQueryData(billingCatalogKey(42,7),[{private:'old'}]);
  m.user={role:'ADMIN',companyId:55,id:9};m.get.mockResolvedValue({data:{data:{...lifecycle(),company:{...lifecycle().company,id:55}}}});
  h.rerender();await tick();expect(oldSignal?.aborted).toBe(true);
@@ -69,7 +64,7 @@ it('foreign company response cannot enter the current lifecycle cache',async()=>
  expect(h.result.current.isError).toBe(true);expect(h.result.current.data).toBeUndefined();h.unmount();
 });
 it('signout clears private owner keys and cannot poll late results',async()=>{
- const h=mount(()=>useBillingLifecycle({poll:true}));await tick();m.user=null;h.rerender();await tick();
+ const h=mount(()=>useBillingLifecycle());await tick();m.user=null;h.rerender();await tick();
  expect(h.result.current.data).toBeUndefined();expect(h.client.getQueryData(billingLifecycleKey(42,7))).toBeUndefined();const calls=m.get.mock.calls.length;await tick(30000);expect(m.get).toHaveBeenCalledTimes(calls);h.unmount();
 });
 it('legacy plan summary uses company/owner keys and API-supplied availablePlans',async()=>{
@@ -94,15 +89,14 @@ it('removing the last observer aborts its pending request and leaves no private 
 });
 it('does not automatically poll a resolved existing subscription',async()=>{
  m.get.mockResolvedValue({data:{data:{...lifecycle(),reconciliationRequired:false,providerState:'MIRRORED',checkoutReadiness:'LINKED_SUBSCRIPTION'}}});
- const h=mount(()=>useBillingLifecycle({poll:true}));await tick();await tick(180000);expect(m.get).toHaveBeenCalledOnce();h.unmount();
+ const h=mount(()=>useBillingLifecycle());await tick();await tick(180000);expect(m.get).toHaveBeenCalledOnce();h.unmount();
 });
 it('a malformed catalog has an explicit read error without falling back to invented plans',async()=>{
  m.get.mockResolvedValue({data:{data:[{plan:'FREE',amount:'1'}]}});const h=mount(()=>useBillingCatalog());await tick();
  expect(h.result.current.isError).toBe(true);expect(h.result.current.data).toBeUndefined();expect(m.post).not.toHaveBeenCalled();h.unmount();
 });
-it('confirmation keeps polling a proven draft until provider subscription permission arrives',async()=>{
+it('a saved draft does not start a second confirmation loop',async()=>{
  const draft={...lifecycle(),reconciliationRequired:false,checkoutReadiness:'READY',checkoutAvailable:true,checkoutResume:{plan:'PRO',interval:'year',transactionId:'txn_'+'a'.repeat(26)}};
- m.get.mockResolvedValue({data:{data:draft}});const h=mount(()=>useBillingLifecycle({poll:true}));await tick();expect(m.get).toHaveBeenCalledOnce();
- m.get.mockResolvedValue({data:{data:{...draft,providerState:'MIRRORED',workspaceAccessAllowed:true,checkoutReadiness:'LINKED_SUBSCRIPTION',checkoutResume:null}}});
- await tick(2001);expect(m.get).toHaveBeenCalledTimes(2);expect(h.result.current.data?.workspaceAccessAllowed).toBe(true);await tick(30000);expect(m.get).toHaveBeenCalledTimes(2);expect(m.post).not.toHaveBeenCalled();h.unmount();
+ m.get.mockResolvedValue({data:{data:draft}});const h=mount(()=>useBillingLifecycle());await tick();
+ await tick(240000);expect(m.get).toHaveBeenCalledOnce();expect(m.post).not.toHaveBeenCalled();h.unmount();
 });

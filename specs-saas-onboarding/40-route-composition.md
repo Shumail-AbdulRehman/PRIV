@@ -44,8 +44,27 @@ Connect every screen so each user always lands on the correct step.
 
 ## Done when
 
-- [ ] `cd frontend && npx vitest run src/pages/Onboarding/FlowEntry.test.tsx src/components/onboarding/WorkspaceGate.test.tsx src/pages/Subscription/SubscriptionPage.test.tsx src/pages/Subscription/onboarding/billingRoutes.test.tsx` passes and proves: every step and route pair resolves without a loop; a session error shows retry; managers and past subscribers keep access; subscribers keep settings. [unit]
-- [ ] `npm test --prefix frontend` passes with 0 failures; real count in the Log. [unit]
-- [ ] `specs-saas-onboarding/inventory/40-route-composition.md` lists what this spec created for reuse. [static]
-- [ ] `cd frontend && npx tsc -b --noEmit` and `npm run lint --prefix frontend` pass with 0 errors, 0 warnings. [static]
-- [ ] `npm run build --prefix frontend` passes. [static]
+- [x] `cd frontend && npx vitest run src/pages/Onboarding/FlowEntry.test.tsx src/components/onboarding/WorkspaceGate.test.tsx src/pages/Subscription/SubscriptionPage.test.tsx src/pages/Subscription/onboarding/billingRoutes.test.tsx` passes and proves: every step and route pair resolves without a loop; a session error shows retry; managers and past subscribers keep access; subscribers keep settings. [unit]
+- [x] `npm test --prefix frontend` passes with 0 failures; real count in the Log. [unit]
+- [x] `specs-saas-onboarding/inventory/40-route-composition.md` lists what this spec created for reuse. [static]
+- [x] `cd frontend && npx tsc -b --noEmit` and `npm run lint --prefix frontend` pass with 0 errors, 0 warnings. [static]
+- [x] `npm run build --prefix frontend` passes. [static]
+
+
+## Log
+
+### 2026-11-10
+
+- Implemented `/continue` with a fresh, owner-scoped lifecycle read, the shared step-to-route map, and allowlisted `state.from` only after an authorized `WORKSPACE` step. Failed reads, null/missing steps, foreign identities and inconsistent payment/workspace facts show retry without granting access. Session restoration and GuestRoute remain unchanged.
+- Replaced legacy route inference with server-step composition. Setup URLs resolve without loops; `/welcome` aliases activation. Allowlisted selections can advance to payment or change an unpaid plan. An in-app payment-to-activation transition can request server confirmation while lifecycle catches up; it never grants workspace access. Ready retains its explicit workspace action.
+- Added a fresh lifecycle read on pathname changes so a successful reconciliation cannot be redirected back by an old cached step. Background refetches, query-string updates and language changes retain the payment target/controller. Established subscribers keep settings at `/subscription`, including restricted subscribers; unknown onboarding subscriptions continue confirmation. Managers/staff and historical subscriber reads retain their existing behavior; restrictions and failed checks never mount operational children.
+- Removed BillingSetupLayout's setup variant, the obsolete overlay `useBillingCheckout.ts` and its tests, and the unused lifecycle/subscription polling options. Confirmation polling remains with `useCheckoutConfirmation`. Wrote and inspected `inventory/40-route-composition.md`.
+- **Test-only scope exception:** updated `frontend/src/pages/Subscription/onboarding/BillingPlanPage.test.tsx`. Its shared new-owner fixture now supplies `CHOOSE_PLAN`. The tests “uses the saved draft before Starter, lets URL override it and announces replacement”, “loads the draft selection and permits changing both plan and interval”, and “falls back independently to the draft when one URL field is invalid” now supply `PAYMENT` with their saved draft. “preserves restriction and unresolved-payment gates” now supplies `RECONCILE`. These are the server steps replacing the removed legacy inference; all original assertions remain. No application file outside Owns changed.
+- **Final verification**, with `DATABASE_URL=postgresql://none:none@127.0.0.1:1/none` and `DOTENV_CONFIG_PATH=/dev/null`:
+  - `cd frontend && npx vitest run src/pages/Onboarding/FlowEntry.test.tsx src/components/onboarding/WorkspaceGate.test.tsx src/pages/Subscription/SubscriptionPage.test.tsx src/pages/Subscription/onboarding/billingRoutes.test.tsx`: **199 passed**, 4 files, 0 failures/skips. Includes all 9 steps × 7 entry/setup URLs, reload/back, deep links, retry/session failure, safe return paths, owner isolation, historical access, subscriber settings, repaired recovery navigation, and real mocked-Paddle target continuity.
+  - `npm test --prefix frontend`: **96 Node tests + 2,342 Vitest tests passed** (60 Vitest files), 0 failures/skips. Earlier runs exposed obsolete fixtures and a transient existing launch-route timeout; the final complete rerun passed without changing that launch-route test.
+  - `cd frontend && npx tsc -b --noEmit`: passed, **0 errors/warnings**.
+  - `npm run lint --prefix frontend`: passed, **0 errors/warnings**.
+  - `npm run build --prefix frontend`: passed. The existing Rolldown `PLUGIN_TIMINGS` advisory remains; the Node suite also reports the existing mobile translation module-type advisory. Neither requires changing a file in this spec.
+  - Inventory fragment inspected and `git diff --check` passed.
+- Verification used synthetic API/Paddle mocks and in-memory query caches. No real Paddle, application database, browser end-to-end suite, migration, deployment, issue/PR, commit, merge, push or branch command ran. Backend/mobile verification and real browser/provider verification are outside this spec. Status and PROGRESS were left unchanged for the runner.
