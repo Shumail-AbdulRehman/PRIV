@@ -100,6 +100,8 @@ User decisions, 2026-11-09: free trial removed; Paddle inline card form with san
 
 Approval needed when run: spec 14 (real Paddle sandbox probe, and reading the stuck company's billing rows) and spec 16 (removing trials from sandbox prices).
 
+2026-11-10 sandbox evidence: the user authorized exactly one probe and one trial-removal preview, both now run. All six sandbox prices were active, USD, frequency 1, with trials present (three monthly, three yearly). Duplicate customer returned normalized `customer_already_exists`. The probe exited 1 because draft creation returned `REJECTED` / `invalid_field`; draft read/list and cancellation read-back remain unverified (`NO_KNOWN_TRANSACTION`). The preview exited 0 and reported `WOULD_REMOVE` for all six; no trials were removed. See `docs/plan-project/saas-onboarding/research/sandbox-probe.md` for the real output. Trial removal and stuck-company database inspection remain outside that authorization; no real payment ran. Spec Status lines and PROGRESS were left unchanged.
+
 **Open decision:** launch with photo verification (needs real privacy screening and validation) or without it (staff need another way to finish). Recommended: launch attendance and scheduling first.
 
 ## Design decisions (2026-11-09)

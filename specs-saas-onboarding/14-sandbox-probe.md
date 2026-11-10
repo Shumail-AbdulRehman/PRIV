@@ -41,12 +41,14 @@ Prove the riskiest assumptions against the real Paddle sandbox before the checko
 
 - [x] `cd backend && npx vitest run src/services/paddleSandboxProbe.test.ts` passes and proves: refuses production and a missing confirm flag; output never contains emails or API keys; a cancel failure is reported. [unit]
 - [x] `npm test --prefix backend` passes with 0 failures; real count in the Log. [unit]
-- [ ] `docs/plan-project/saas-onboarding/research/sandbox-probe.md` records real results with the date. [requires: Paddle sandbox credentials, user approval]
+- [x] `docs/plan-project/saas-onboarding/research/sandbox-probe.md` records real results with the date. [requires: Paddle sandbox credentials, user approval]
 - [x] `specs-saas-onboarding/inventory/14-sandbox-probe.md` lists what this spec created for reuse. [static]
 - [x] `cd backend && npx tsc --noEmit -p tsconfig.json` passes with 0 errors. The backend has no lint script. [static]
 - [x] `npm run build --prefix backend` passes. [static]
 
 ## Log
+
+- **2026-11-10** — Ran the approved real sandbox probe once from `backend/` with the specified unreachable `DATABASE_URL` and `--confirm`; exit code **1**, `ok: false`. The dated `sandbox-probe.md` report records all six `PRICE_READ` results (`active`, `USD`, frequency `1`, alternating `month`/`year`, all `trial: true`), active customer `ctm_01m71jfw29cjar59jka8r88fpn`, and duplicate result `PASS` / `customer_already_exists` with that customer ID. Draft creation returned `FAIL` / `REJECTED`, with provider code `invalid_field`; cancellation was `SKIPPED` / `NO_KNOWN_TRANSACTION`. Draft read/list, cancellation read-back/finality, raw duplicate response shape and stuck-company rows remain unverified. Checked only the report-evidence box because it now records the checks that ran, including failure and skipped outcomes. No retry, database access or trial removal.
 
 - **2026-11-10** — Implemented the sandbox/confirmation guards, injected probe and redacted JSON reporting, plus the thin manual command using the existing gateway and six-price sandbox catalog. The probe reports price status, billing interval/frequency, currency and trial presence; creates a disposable customer; probes duplicate-email handling without adopting another customer; creates, reads and lists a draft; attempts cancellation even when draft verification fails; and reads the canceled status back. No automatic write retries, card entry, database imports or application startup. Unknown create outcomes and cancellation failures remain explicit in the report.
 - **2026-11-10** — Focused command passed: **24 tests passed, 0 failed, 0 skipped**. The initial run had two test-fixture failures (Vitest array parameter expansion and a queued mock response); those fixtures were corrected before the passing rerun. Required full backend command passed: **2,517 tests passed, 7 skipped, 0 failed**, across **112 passed test files and 1 skipped file**; the focused 24 are included in that total. SQL persistence tests remained skipped. Every test command used `DATABASE_URL=postgresql://none:none@127.0.0.1:1/none` and `DOTENV_CONFIG_PATH=/dev/null`.
