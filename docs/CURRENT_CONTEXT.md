@@ -1,6 +1,6 @@
 # Hygene Ops: current project context
 
-Last updated 2026-11-09, on branch `saas-onboarding`. This is a snapshot from a code review plus the onboarding implementation work below, so check a claim against the code before relying on it. Update this file when something below changes.
+Last updated 2026-11-10, on branch `saas-onboarding`. This is a snapshot from a code review plus the onboarding implementation work below, so check a claim against the code before relying on it. Update this file when something below changes.
 
 ## What it is
 
@@ -90,7 +90,7 @@ Known unverified: real Paddle payments, the live Heroku/Netlify configuration, p
 
 ## Signup, plan and checkout plan (current work)
 
-`specs-saas-onboarding/` is the active plan: 44 specs for `gpt-6.1-sol`. Start at its `README.md`. Status is in its `PROGRESS.md`. Specs 00–03 are done; spec 04 is the next lowest-numbered eligible spec. Spec 01 added the lifecycle/outcome contract. Spec 02 added safe structured request-error logging and correlation IDs, validated proxy hops, and guarded Express 5 listen failures so a bind error requests exit 1 without a successful-listen message or startup callback. Spec 03 added `pages/Onboarding/FlowShell.tsx` and scoped `flow.css`: aurora background, paper/stacked sheets, progress, responsive panel slot, focus handling and reduced motion. It remains additive; future screen specs adopt it, spec 04 adds Urdu copy and spec 05 replaces the logo asset. Provider-call logging still belongs to spec 08. Open problems 2, 3, 5 and 6 above remain until their implementation specs pass. Deploy nothing until spec 43 passes.
+`specs-saas-onboarding/` is the active plan: 44 specs for `gpt-6.1-sol`. Start at its `README.md`. Status is in its `PROGRESS.md`, which outranks this line. As of 2026-11-10, 36 specs are done on `saas-onboarding`, unpushed. `scripts/run-saas-specs.mjs` runs them in parallel worktrees and holds 14, 16, 42 and 43. Remaining: 14 and 16 need the user's approval; 25, 37, 40 and 41 wait on them; 42 and 43 need an isolated local database and real sandbox access. No real Paddle payment has run.
 
 The planning baseline is committed on `saas-onboarding` as `9052ea5`. The planner unblocked spec 01 by allowing missing onboarding fields until spec 36 sends them and adding a narrow test-only scope exception. The client now parses a missing step as `null`, validates confirm/reconcile outcomes with optional company scope, and ignores legacy catalog trial metadata. The checkout replacement flag stays optional on the wire until spec 26 sends it, and parses to `false` when absent. Server step derivation, provider changes and HTTP wiring remain with their later specs.
 
