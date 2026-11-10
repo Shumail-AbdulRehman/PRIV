@@ -29,7 +29,7 @@ The single source of truth for where this work stands. It outranks any assumptio
 | 22 | [Activation polling](./22-activation-polling.md) | Done | 12 | Heavy | — | Run by the spec runner; see spec Log |
 | 23 | [Keep people signed in through outages](./23-session-resilience.md) | Done | 06 | Heavy | — | Run by the spec runner; see spec Log |
 | 24 | [Order summary](./24-order-summary.md) | Done | 03, 04 | Standard | — | Run by the spec runner; see spec Log |
-| 25 | [Inline Paddle frame](./25-paddle-frame.md) | Not started | 03, 13, 14 | Standard | — |  |
+| 25 | [Inline Paddle frame](./25-paddle-frame.md) | Done | 03, 13, 14 | Standard | — | Run by the spec runner; see spec Log |
 | 26 | [Prepare and replace checkout](./26-prepare-checkout.md) | Done | 15, 17 | Heavy | — | Run by the spec runner; see spec Log |
 | 27 | [Server confirmation of a paid checkout](./27-confirm-checkout.md) | Done | 08, 09, 18 | Heavy | — | Run by the spec runner; see spec Log |
 | 28 | [Repair stuck reservations](./28-reconcile-reservations.md) | Done | 17 | Heavy | — | Run by the spec runner; see spec Log |
@@ -45,7 +45,7 @@ The single source of truth for where this work stands. It outranks any assumptio
 | 38 | [Recovery screen](./38-recovery-screen.md) | Done | 03, 04, 12 | Standard | — | Run by the spec runner; see spec Log |
 | 39 | [Billing HTTP routes](./39-billing-routes.md) | Done | 27, 28, 36 | Standard | — | Run by the spec runner; see spec Log |
 | 40 | [Routes and workspace entry](./40-route-composition.md) | Not started | 23, 29, 30, 33, 35, 37, 38 | Heavy | — |  |
-| 41 | [Configuration check and runbook](./41-configuration-runbook.md) | Not started | 16, 39 | Standard | — |  |
+| 41 | [Configuration check and runbook](./41-configuration-runbook.md) | Done | 16, 39 | Standard | — | Run by the spec runner; see spec Log |
 | 42 | [End-to-end suite](./42-e2e-suite.md) | Not started | 01-41 | Heavy | — |  |
 | 43 | [Verification pass](./43-verification-pass.md) | Not started | 00-42 | Heavy | — |  |
 
