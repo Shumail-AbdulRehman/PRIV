@@ -55,6 +55,7 @@ it('uses 2, 3, 5, 8 then repeated 13-second gaps and stops at the fixed 120-seco
   m.confirm.mockImplementation(async () => { calls.push(Date.now() - start); return processing(); });
   const h = mount(); await flush();
   expect(h.result.current.status).toBe('waiting');
+  expect(h.result.current.outcome).toBeNull(); expect(h.result.current.consecutiveNotPaid).toBe(0);
   await advance(1_999); expect(m.confirm).not.toHaveBeenCalled();
   await advance(1); expect(calls).toEqual([2_000]);
   await advance(117_999);
@@ -112,8 +113,10 @@ it('caches every successful result under the exact company/owner key and stops o
   expect(m.confirm).toHaveBeenLastCalledWith(expect.any(AbortSignal), 42);
   expect(h.client.getQueryData(billingLifecycleKey(42, 7))).toEqual(first.lifecycle);
   expect(h.result.current.lifecycle).toEqual(first.lifecycle);
+  expect(h.result.current.outcome).toBe('PROCESSING'); expect(h.result.current.consecutiveNotPaid).toBe(0);
   await advance(3_000); expect(h.result.current.status).toBe('active');
   expect(h.result.current.lifecycle).toEqual(last.lifecycle);
+  expect(h.result.current.outcome).toBe('ACTIVE'); expect(h.result.current.consecutiveNotPaid).toBe(0);
   expect(h.client.getQueryData(billingLifecycleKey(42, 7))).toEqual(last.lifecycle);
   expect(h.client.getQueryData(billingLifecycleKey(42, 99))).toEqual({ sentinel: true });
   expect(h.client.getQueryData(['billing-lifecycle'])).toBeUndefined();
@@ -147,8 +150,75 @@ it.each(['NOT_PAID', 'NO_CHECKOUT'] as const)('keeps waiting and caches a %s res
   const result = { outcome, lifecycle: facts }; m.confirm.mockResolvedValue(result);
   const h = mount(); await flush(); await advance(2_000);
   expect(h.result.current.status).toBe('waiting'); expect(h.result.current.lifecycle).toEqual(facts);
+  expect(h.result.current.outcome).toBe(outcome);
+  expect(h.result.current.consecutiveNotPaid).toBe(outcome === 'NOT_PAID' ? 1 : 0);
   expect(h.client.getQueryData(billingLifecycleKey(42, 7))).toEqual(facts);
   await advance(3_000); expect(m.confirm).toHaveBeenCalledTimes(2);
+  expect(h.result.current.consecutiveNotPaid).toBe(outcome === 'NOT_PAID' ? 2 : 0);
+});
+
+it.each(['PROCESSING', 'NO_CHECKOUT', 'ACTIVE'] as const)('%s resets the consecutive NOT_PAID count', async outcome => {
+  m.confirm.mockResolvedValueOnce({ outcome: 'NOT_PAID', lifecycle: facts })
+    .mockResolvedValueOnce({ outcome: 'NOT_PAID', lifecycle: facts })
+    .mockResolvedValueOnce({ outcome, lifecycle: facts })
+    .mockResolvedValueOnce({ outcome: 'NOT_PAID', lifecycle: facts });
+  const h = mount(); await flush(); await advance(5_000);
+  expect(h.result.current.outcome).toBe('NOT_PAID'); expect(h.result.current.consecutiveNotPaid).toBe(2);
+  await advance(5_000);
+  expect(h.result.current.outcome).toBe(outcome); expect(h.result.current.consecutiveNotPaid).toBe(0);
+  await advance(8_000);
+  expect(h.result.current.outcome).toBe('NOT_PAID'); expect(h.result.current.consecutiveNotPaid).toBe(1);
+});
+
+it('a failed read preserves the latest accepted outcome but breaks the unpaid streak', async () => {
+  m.confirm.mockResolvedValueOnce({ outcome: 'NOT_PAID', lifecycle: facts })
+    .mockRejectedValueOnce(new BillingRequestError('server', true, 503))
+    .mockResolvedValue({ outcome: 'NOT_PAID', lifecycle: facts });
+  const h = mount(); await flush(); await advance(2_000);
+  expect(h.result.current.consecutiveNotPaid).toBe(1);
+  await advance(3_000);
+  expect(h.result.current.status).toBe('waiting');
+  expect(h.result.current.outcome).toBe('NOT_PAID'); expect(h.result.current.consecutiveNotPaid).toBe(0);
+  await advance(5_000); expect(h.result.current.consecutiveNotPaid).toBe(1);
+});
+
+it('retry clears the outcome and unpaid streak and ignores the previous run response', async () => {
+  const pending = deferred<Result>();
+  m.confirm.mockResolvedValueOnce({ outcome: 'NOT_PAID', lifecycle: facts }).mockReturnValueOnce(pending.promise)
+    .mockResolvedValue({ outcome: 'NOT_PAID', lifecycle: facts });
+  const h = mount(); await flush(); await advance(5_000);
+  expect(h.result.current.outcome).toBe('NOT_PAID'); expect(h.result.current.consecutiveNotPaid).toBe(1);
+  act(() => h.result.current.retry());
+  expect(h.result.current.outcome).toBeNull(); expect(h.result.current.consecutiveNotPaid).toBe(0);
+  pending.resolve({ outcome: 'NO_CHECKOUT', lifecycle: facts }); await flush();
+  expect(h.result.current.outcome).toBeNull(); expect(h.result.current.consecutiveNotPaid).toBe(0);
+  await advance(2_000);
+  expect(h.result.current.outcome).toBe('NOT_PAID'); expect(h.result.current.consecutiveNotPaid).toBe(1);
+});
+
+it.each(['owner', 'company', 'role'] as const)('%s changes synchronously clear the outcome and unpaid streak', async changed => {
+  m.confirm.mockResolvedValue({ outcome: 'NOT_PAID', lifecycle: facts });
+  const h = mount(); await flush(); await advance(5_000);
+  expect(h.result.current.consecutiveNotPaid).toBe(2);
+  m.user = changed === 'owner' ? { id: 8, companyId: 42, role: 'ADMIN' }
+    : changed === 'company' ? { id: 7, companyId: 55, role: 'ADMIN' }
+      : { id: 7, companyId: 42, role: 'MANAGER' };
+  h.rerender();
+  expect(h.result.current.outcome).toBeNull(); expect(h.result.current.consecutiveNotPaid).toBe(0);
+  await flush();
+  facts.company.id = m.user.companyId;
+  await advance(2_000);
+  expect(h.result.current.consecutiveNotPaid).toBe(changed === 'role' ? 0 : 1);
+});
+
+it('foreign-company responses cannot publish an outcome or continue an unpaid streak', async () => {
+  const foreign = structuredClone(facts); foreign.company.id = 55;
+  m.confirm.mockResolvedValueOnce({ outcome: 'NOT_PAID', lifecycle: facts })
+    .mockResolvedValueOnce({ outcome: 'NO_CHECKOUT', lifecycle: foreign })
+    .mockResolvedValue({ outcome: 'NOT_PAID', lifecycle: facts });
+  const h = mount(); await flush(); await advance(5_000);
+  expect(h.result.current.outcome).toBe('NOT_PAID'); expect(h.result.current.consecutiveNotPaid).toBe(0);
+  await advance(5_000); expect(h.result.current.consecutiveNotPaid).toBe(1);
 });
 
 it.each(['missing-access', 'suspended', 'inactive'] as const)('does not report active for %s server facts', async condition => {
