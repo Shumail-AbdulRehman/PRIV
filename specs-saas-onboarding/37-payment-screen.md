@@ -1,6 +1,6 @@
 # Spec 37 — Payment screen
 
-**Status:** Not started
+**Status:** Done
 **Depends on:** Spec 21, Spec 24, Spec 25
 **Model:** Heavy — `claude-opus-5-5` · `gpt-6.1-sol` · `gemini-3.1-pro-preview`
 **Issue:** —

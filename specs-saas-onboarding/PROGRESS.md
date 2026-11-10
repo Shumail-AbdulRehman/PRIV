@@ -41,7 +41,7 @@ The single source of truth for where this work stands. It outranks any assumptio
 | 34 | [Public pricing links and trial copy](./34-public-pricing.md) | Done | 06 | Light | — | Run by the spec runner; see spec Log |
 | 35 | [Confirming and ready screens](./35-confirmation-screens.md) | Done | 03, 04, 22 | Heavy | — | Run by the spec runner; see spec Log |
 | 36 | [Assemble the lifecycle service](./36-lifecycle-assembly.md) | Done | 10, 26 | Heavy | — | Run by the spec runner; see spec Log |
-| 37 | [Payment screen](./37-payment-screen.md) | Not started | 21, 24, 25 | Heavy | — |  |
+| 37 | [Payment screen](./37-payment-screen.md) | Done | 21, 24, 25 | Heavy | — | Run by the spec runner; see spec Log |
 | 38 | [Recovery screen](./38-recovery-screen.md) | Done | 03, 04, 12 | Standard | — | Run by the spec runner; see spec Log |
 | 39 | [Billing HTTP routes](./39-billing-routes.md) | Done | 27, 28, 36 | Standard | — | Run by the spec runner; see spec Log |
 | 40 | [Routes and workspace entry](./40-route-composition.md) | Not started | 23, 29, 30, 33, 35, 37, 38 | Heavy | — |  |
