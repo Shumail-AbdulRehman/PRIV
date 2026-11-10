@@ -1,5 +1,5 @@
-import { useState } from 'react';
-import { Link, Navigate, useSearchParams } from 'react-router-dom';
+import { useEffect, useRef, useState } from 'react';
+import { Link, Navigate, useLocation, useNavigate, useSearchParams } from 'react-router-dom';
 import useAuth from '@/hooks/useAuth';
 import { useLanguage } from '@/i18n/context';
 import { Button } from '@/components/ui/button';
@@ -60,13 +60,27 @@ function PaymentSession({ selection, facts }: { selection: CheckoutSelection; fa
   const catalog = useBillingCatalog();
   const subscription = useSubscription();
   const checkout = useCheckoutSession(selection);
+  const location = useLocation();
+  const navigate = useNavigate();
+  const consumedRequest = useRef<string | null>(null);
+  const { actions, actionBusy, statusBusy, changePlan } = checkout;
+  useEffect(() => {
+    const request = location.state?.changePlan as CheckoutSelection | undefined;
+    if (!request || !['STARTER', 'PRO', 'ADVANCED'].includes(request.plan) || !['month', 'year'].includes(request.interval) ||
+      consumedRequest.current === location.key || actionBusy || statusBusy || !actions.includes('changePlan')) return;
+    // Consume the history entry before starting private work. Effect replay,
+    // reload and Back must never submit this request a second time.
+    consumedRequest.current = location.key;
+    void navigate(location.pathname + location.search + location.hash, { replace: true, state: null });
+    void changePlan(request);
+  }, [location, navigate, actions, actionBusy, statusBusy, changePlan]);
   // A prepared replacement may be newer than the query's last saved draft.
   const draft: BillingCheckoutResume | null = checkout.prepared ?? facts.checkoutResume;
   const chosen = draft ?? selection;
   const plan = billingPlanDefinition(subscription.data?.availablePlans ?? [], chosen.plan);
   const entries = catalog.data?.filter(entry => entry.plan === chosen.plan && entry.interval === chosen.interval) ?? [];
   const price = entries.length === 1 ? entries[0] : null;
-  const { status, actions } = checkout;
+  const { status } = checkout;
   const sandbox = facts.billingEnvironment === 'sandbox' && import.meta.env.VITE_PADDLE_ENVIRONMENT === 'sandbox' &&
     !!import.meta.env.VITE_PADDLE_CLIENT_TOKEN?.startsWith('test_');
   const ready = ['ready', 'paying', 'declined'].includes(status) ||

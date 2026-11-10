@@ -69,12 +69,17 @@ test('S42-23 rapid navigation and double mount reuse the existing draft', async 
   for (let i = 0; i < 2; i++) { await page.getByRole('link', { name: 'Change plan', exact: true }).click(); await page.goBack(); await expect(page.getByTitle('Controlled Paddle card form')).toBeVisible(); }
   expect(b.controls.posts).toBe(1);
 });
-test('S42-24 FIX-1 change plan before paying cancels the old draft', async ({ page }) => {
-  test.fixme(true, 'FIX-1: PaymentSession prefers facts.checkoutResume and never invokes changePlan for the newly selected URL plan.');
+test('S42-24 change plan before paying cancels the old draft', async ({ page }) => {
   const b = await mockBilling(page); await enter(page, '/subscription/payment?plan=STARTER&interval=month');
   await expect(page.getByTitle('Controlled Paddle card form')).toBeVisible(); await page.getByRole('link', { name: 'Change plan', exact: true }).click();
   await page.getByRole('radio', { name: /^Pro/ }).check(); await page.getByRole('button', { name: 'Continue to payment' }).click();
+  await expect(page.getByRole('complementary', { name: 'Order summary' }).getByText('Pro', { exact: true })).toBeVisible();
   await expect(page.getByTitle('Controlled Paddle card form')).toBeVisible();
+  expect(b.drafts.map(d => d.status)).toEqual(['canceled', 'draft']); expect(b.controls.posts).toBe(2);
+  expect(b.drafts[1]).toMatchObject({ plan: 'PRO', interval: 'month' });
+  await page.reload(); await expect(page.getByTitle('Controlled Paddle card form')).toBeVisible();
+  await page.goBack(); await expect(page.getByRole('heading', { name: 'Choose a plan', exact: true })).toBeVisible();
+  await page.goForward(); await expect(page.getByTitle('Controlled Paddle card form')).toBeVisible();
   expect(b.drafts.map(d => d.status)).toEqual(['canceled', 'draft']); expect(b.controls.posts).toBe(2);
 });
 test('S42-25 another tab paid before changing plan goes to confirming', async ({ page }) => {

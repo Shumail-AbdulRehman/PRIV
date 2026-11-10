@@ -54,7 +54,7 @@ export async function login(input: unknown, db: LoginDb = prisma) {
     if (!account) continue;
     compared = true;
     if (!await isPasswordCorrect(password, account.password)) continue;
-    if (!account.isActive) throw new ApiError(403, kind === "manager" ? "Account is deactivated" : "Your account has been deactivated");
+    if (!account.isActive) throw new ApiError(403, kind === "manager" ? "Account is deactivated" : "Your account has been deactivated", [{ code: "ACCOUNT_DEACTIVATED" }]);
 
     const accessToken = generateAccessToken(account, account.role);
     const refreshToken = generateRefreshToken(account, account.role);

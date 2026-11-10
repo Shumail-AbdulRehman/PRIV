@@ -1,5 +1,6 @@
-import { fireEvent, render, screen, waitFor, within } from '@testing-library/react';
-import { MemoryRouter, Route, Routes, useLocation } from 'react-router-dom';
+import { StrictMode } from 'react';
+import { act, fireEvent, render, screen, waitFor, within } from '@testing-library/react';
+import { createMemoryRouter, MemoryRouter, Route, RouterProvider, Routes, useLocation } from 'react-router-dom';
 import { afterEach, beforeEach, expect, it, vi } from 'vitest';
 import { LanguageProvider } from '@/i18n/LanguageProvider';
 import { checkoutActions, type CheckoutStatus } from './checkoutMachine';
@@ -20,8 +21,9 @@ const plans = ['STARTER', 'PRO', 'ADVANCED'].map((code, i) => ({ code, name: ['S
 const entries = ['month', 'year'].flatMap(interval => plans.map(({ code: plan }) => ({ plan, interval, priceId: 'pri_' + 'a'.repeat(26), productId: 'pro_' + 'b'.repeat(26), amount: '12345', currencyCode: 'USD' })));
 function status(value: CheckoutStatus, extra = {}) { mocks.session = { ...mocks.session, status: value, state: { status: value, sessionId: 1, transactionId }, actions: checkoutActions[value], ...extra }; }
 function Destination() { const location = useLocation(); return <output data-testid="destination">{location.pathname + location.search}</output>; }
-function tree(path = '/subscription/payment?plan=PRO&interval=year') {
-  return <MemoryRouter initialEntries={[path]}><LanguageProvider><Routes><Route path="/subscription/payment" element={<BillingPaymentPage />} /><Route path="*" element={<Destination />} /></Routes></LanguageProvider></MemoryRouter>;
+function RequestState() { const location = useLocation(); return <output data-testid="request-state">{JSON.stringify(location.state)}</output>; }
+function tree(path = '/subscription/payment?plan=PRO&interval=year', state: unknown = null) {
+  return <MemoryRouter initialEntries={[{ pathname: path.split('?')[0], search: path.includes('?') ? '?' + path.split('?')[1] : '', state }]}><LanguageProvider><RequestState /><Routes><Route path="/subscription/payment" element={<BillingPaymentPage />} /><Route path="*" element={<Destination />} /></Routes></LanguageProvider></MemoryRouter>;
 }
 function mount(path?: string) { return render(tree(path)); }
 function target() { return document.querySelector('.paddle-checkout-frame'); }
@@ -139,6 +141,64 @@ it('restores saved draft ahead of a conflicting URL and announces resume', () =>
   expect(mocks.useSession).toHaveBeenCalledWith({ plan: 'PRO', interval: 'year' });
   expect(screen.getByText('We saved your checkout. Pick up where you left off.')).toBeVisible();
   expect(screen.getByText('Pro')).toBeVisible(); expect(screen.getByText('Yearly')).toBeVisible();
+  expect(mocks.session.changePlan).not.toHaveBeenCalled();
+});
+function changeRequestRouter() {
+  return createMemoryRouter([
+    { path: '/subscription/payment', element: <LanguageProvider><BillingPaymentPage /></LanguageProvider> },
+    { path: '/elsewhere', element: <p>Elsewhere</p> },
+  ], { initialEntries: [{ pathname: '/subscription/payment', search: '?plan=STARTER&interval=month',
+    state: { changePlan: { plan: 'STARTER', interval: 'month' } } }] });
+}
+it('waits until changePlan is allowed and idle, consumes the explicit request once under StrictMode, and shows the replacement', async () => {
+  mocks.life.data = { ...facts(), onboardingStep: 'PAYMENT', checkoutResume: draft };
+  status('checking');
+  const paymentTree = () => <StrictMode>{tree('/subscription/payment?plan=STARTER&interval=month', { changePlan: { plan: 'STARTER', interval: 'month' } })}</StrictMode>;
+  const view = render(paymentTree());
+  expect(mocks.session.changePlan).not.toHaveBeenCalled();
+  status('frameLoading', { actionBusy: true });
+  view.rerender(paymentTree());
+  expect(mocks.session.changePlan).not.toHaveBeenCalled();
+  status('ready', { actionBusy: false, statusBusy: true });
+  view.rerender(paymentTree());
+  expect(mocks.session.changePlan).not.toHaveBeenCalled();
+  mocks.session.statusBusy = false;
+  view.rerender(paymentTree());
+  await waitFor(() => expect(mocks.session.changePlan).toHaveBeenCalledExactlyOnceWith({ plan: 'STARTER', interval: 'month' }));
+  expect(screen.getByTestId('request-state')).toHaveTextContent('null');
+  mocks.session.prepared = { plan: 'STARTER', interval: 'month', transactionId: 'txn_' + 'b'.repeat(26) };
+  view.rerender(paymentTree());
+  expect(screen.getByText('Starter')).toBeVisible();
+  expect(screen.getByText('Monthly')).toBeVisible();
+  expect(target()).toBeVisible();
+  expect(mocks.session.changePlan).toHaveBeenCalledTimes(1);
+});
+it('a paid-draft confirmation still routes to activation without consuming a change action', () => {
+  mocks.life.data = { ...facts(), onboardingStep: 'CONFIRMING' };
+  status('confirming');
+  render(tree('/subscription/payment?plan=STARTER&interval=month', { changePlan: { plan: 'STARTER', interval: 'month' } }));
+  expect(screen.getByTestId('destination')).toHaveTextContent('/subscription/activation');
+  expect(mocks.session.changePlan).not.toHaveBeenCalled();
+});
+it('clears the request from history so reload and Back cannot replace again', async () => {
+  mocks.life.data = { ...facts(), onboardingStep: 'PAYMENT', checkoutResume: draft };
+  const router = changeRequestRouter();
+  const view = render(<RouterProvider router={router} />);
+  await waitFor(() => expect(router.state.location.state).toBeNull());
+  expect(mocks.session.changePlan).toHaveBeenCalledTimes(1);
+  const consumedEntry = router.state.location;
+  view.unmount();
+  const reloaded = createMemoryRouter([{ path: '/subscription/payment', element: <LanguageProvider><BillingPaymentPage /></LanguageProvider> }],
+    { initialEntries: [consumedEntry] });
+  const reloadView = render(<RouterProvider router={reloaded} />);
+  expect(mocks.session.changePlan).toHaveBeenCalledTimes(1);
+  reloadView.unmount();
+  render(<RouterProvider router={router} />);
+  await act(async () => { await router.navigate('/elsewhere'); });
+  await act(async () => { await router.navigate(-1); });
+  expect(screen.getByText('Pro')).toBeVisible();
+  expect(router.state.location.state).toBeNull();
+  expect(mocks.session.changePlan).toHaveBeenCalledTimes(1);
 });
 it('resumes a saved draft even without URL selection', () => {
   mocks.life.data = { ...facts(), onboardingStep: 'PAYMENT', checkoutResume: draft }; mount('/subscription/payment');

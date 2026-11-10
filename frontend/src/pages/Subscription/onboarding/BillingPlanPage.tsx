@@ -95,7 +95,10 @@ function OwnerPlans({ companyId, ownerId }: { companyId: number; ownerId: number
       <p className="flow-fine" id={noteId}>{t('Your company owner uses one manager seat.')}</p>
       <section aria-label={t('Selected plan')} className="sticky bottom-0 z-10 flex flex-wrap items-center justify-between gap-4 border-t border-(--flow-line) bg-(--flow-paper) py-4 md:static">
         <p className="min-w-0">{selected ? <><strong>{t(selected.plan.name)}</strong> · <bdi dir="ltr">{selected.price!.formatted}</bdi> · {t(interval === 'month' ? 'Monthly' : 'Yearly')}</> : t('No plans are available for this billing interval.')}</p>
-        <Button className="flow-button w-full sm:w-auto" disabled={!selectable || !selected} onClick={() => selected && navigate(`/subscription/payment?${new URLSearchParams({ plan: selected.plan.code, interval })}`)}>{t('Continue to payment')}</Button>
+        <Button className="flow-button w-full sm:w-auto" disabled={!selectable || !selected} onClick={() => selected && navigate(`/subscription/payment?${new URLSearchParams({ plan: selected.plan.code, interval })}`, {
+          state: draft && (draft.plan !== selected.plan.code || draft.interval !== interval)
+            ? { changePlan: { plan: selected.plan.code, interval } } : null,
+        })}>{t('Continue to payment')}</Button>
       </section>
       <p className="flow-fine">{t('Final total and taxes are shown by Paddle before confirmation.')}</p>
     </div>

@@ -245,5 +245,5 @@ it('wires proxy validation before middleware and uses the guarded Express 5 list
  expect(source.indexOf('configureTrustProxy(app)')).toBeGreaterThan(source.indexOf('const app = express()'));
  expect(source.indexOf('configureTrustProxy(app)')).toBeLessThan(source.indexOf('app.use('));
  expect(source).toContain('app.listen(port, createListenCallback(');
- expect(source).toContain("exposedHeaders: ['X-Request-Id']");
+ expect(source).toContain("exposedHeaders: ['X-Request-Id', 'Retry-After']");
 });

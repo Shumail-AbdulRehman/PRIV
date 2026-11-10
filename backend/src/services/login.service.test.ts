@@ -160,8 +160,8 @@ describe("unified login credentials", () => {
     const inactive = account(role, { isActive: false });
     const fake = role === "STAFF" ? db([], [inactive]) : db([inactive], [account("STAFF")]);
     const wrong = await login({ ...credentials, password: "incorrect" }, fake).catch(error => error);
-    expect(wrong).toMatchObject({ statusCode: 401, message: "Invalid email or password" });
-    await expect(login(credentials, fake)).rejects.toMatchObject({ statusCode: 403, message: role === "STAFF" ? "Your account has been deactivated" : "Account is deactivated" });
+    expect(wrong).toMatchObject({ statusCode: 401, message: "Invalid email or password", errors: [] });
+    await expect(login(credentials, fake)).rejects.toMatchObject({ statusCode: 403, message: role === "STAFF" ? "Your account has been deactivated" : "Account is deactivated", errors: [{ code: "ACCOUNT_DEACTIVATED" }] });
     expect(fake.manager.update).not.toHaveBeenCalled();
     expect(fake.staff.update).not.toHaveBeenCalled();
   });
@@ -206,6 +206,21 @@ describe("unified login credentials", () => {
 });
 
 describe("POST /common/login", () => {
+  it.each(["ADMIN", "MANAGER", "STAFF"] as const)("returns ACCOUNT_DEACTIVATED for %s only after a correct password", async role => {
+    const inactive = account(role, { isActive: false, email: `inactive-${role.toLowerCase()}@example.invalid` });
+    const input = { ...credentials, email: inactive.email };
+    useRouteDb(role === "STAFF" ? [] : [inactive], role === "STAFF" ? [inactive] : []);
+    const wrong = await post({ ...input, password: "incorrect" });
+    expect(wrong.status).toBe(401);
+    expect(await wrong.json()).toMatchObject({ message: "Invalid email or password", errors: [] });
+    const correct = await post(input);
+    expect(correct.status).toBe(403);
+    expect(await correct.json()).toMatchObject({ errors: [{ code: "ACCOUNT_DEACTIVATED" }] });
+    expect(wrong.headers.getSetCookie()).toEqual([]);
+    expect(correct.headers.getSetCookie()).toEqual([]);
+    expect(database.manager.update).not.toHaveBeenCalled();
+    expect(database.staff.update).not.toHaveBeenCalled();
+  });
   it.each(["ADMIN", "MANAGER", "STAFF"] as const)("returns the existing %s login response and cookie options", async role => {
     const user = account(role);
     useRouteDb(role === "STAFF" ? [] : [user], role === "STAFF" ? [user] : []);

@@ -69,10 +69,15 @@ test('S42-07 account persisted but session issuance fails offers sign-in', async
   await expect(page.getByRole('button', { name: 'Continue to plans' })).toHaveCount(0);
   expect((await sql('SELECT id FROM "Manager" WHERE email=$1', [email])).length).toBe(1);
 });
-for (const kind of ['unknown', 'wrong', 'deactivated', 'limited']) test(`S42-14 ${kind === 'deactivated' ? 'FIX-2 ' : kind === 'limited' ? 'FIX-3 ' : ''}login ${kind} displays the correct message`, async ({ page }) => {
-  test.fixme(kind === 'deactivated', 'FIX-2: Backend deactivation 403 omits ACCOUNT_DEACTIVATED expected by LoginPage.');
-  test.fixme(kind === 'limited', 'FIX-3: Cross-origin API does not expose Retry-After, so numeric wait is hidden from the browser.');
-  if (kind === 'limited') await page.route('**/api/common/login', route => route.fulfill({ status: 429, headers: { 'retry-after': '17' }, json: { message: 'Limited' } }));
+for (const kind of ['unknown', 'wrong', 'deactivated', 'limited']) test(`S42-14 login ${kind} displays the correct message`, async ({ page }) => {
+  if (kind === 'limited') await page.route('**/api/common/login', async route => {
+    // Preserve the running API's exposure policy on the controlled 429. A
+    // fulfilled response otherwise bypasses CORS middleware entirely.
+    const response = await page.request.get(backend + '/api/support/contact', { headers: { Origin: new URL(page.url()).origin } });
+    expect(response.ok()).toBe(true);
+    const exposed = response.headers()['access-control-expose-headers'];
+    await route.fulfill({ status: 429, headers: { 'retry-after': '17', ...(exposed ? { 'access-control-expose-headers': exposed } : {}) }, json: { message: 'Limited' } });
+  });
   await page.goto('/login');
   await page.getByLabel('Email', { exact: true }).fill(kind === 'unknown' ? 'unknown@example.invalid' : fixture.users[kind === 'deactivated' ? 'deactivatedOwner' : 'ownerA'].email);
   await page.getByLabel('Password', { exact: true }).fill(kind === 'unknown' || kind === 'wrong' ? 'wrong-password' : fixture.password);

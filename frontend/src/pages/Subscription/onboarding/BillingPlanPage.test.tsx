@@ -20,7 +20,7 @@ const plans: PlanDefinition[] = ['STARTER', 'PRO', 'ADVANCED'].map((code, index)
 }));
 let lifecycle: BillingLifecycle;
 let catalog: BillingCatalogEntry[];
-function Position() { const location = useLocation(); return <output data-testid="position">{location.pathname}{location.search}</output>; }
+function Position() { const location = useLocation(); return <><output data-testid="position">{location.pathname}{location.search}</output><output data-testid="navigation-state">{JSON.stringify(location.state)}</output></>; }
 function mount(search = '', role: AuthUser['role'] = 'ADMIN') {
   const store = configureStore({ reducer: { auth: authReducer } });
   store.dispatch(setUser({ ...owner, role }));
@@ -69,6 +69,7 @@ it('renders API allowances, exact catalog prices, Enterprise and shared disclosu
 it('switches to exact yearly prices without calculating a discount and navigates with selection only', async () => {
   mount(); await ready(); fireEvent.click(screen.getByRole('button', { name: 'Yearly' })); fireEvent.click(radio('Pro')); fireEvent.click(continueButton());
   expect(screen.getByTestId('position')).toHaveTextContent('/subscription/payment?plan=PRO&interval=year');
+  expect(screen.getByTestId('navigation-state')).toHaveTextContent('null');
   expect(radio('Pro')).toHaveAccessibleName('Pro · US$226.74 · Yearly');
 });
 it.each(['?plan=PRO&interval=year', '?plan=ADVANCED&interval=month'])('preselects allowlisted URL %s', async search => {
@@ -83,6 +84,18 @@ it('uses the saved draft before Starter, lets URL override it and announces repl
   mount('?plan=ADVANCED&interval=month'); await ready(); expect(radio('Enterprise')).toBeChecked();
   expect(screen.getByText('You have a checkout in progress. Choosing a different plan replaces it. You have not been charged.')).toHaveAttribute('role', 'status');
   fireEvent.click(continueButton()); expect(screen.getByTestId('position')).toHaveTextContent('plan=ADVANCED&interval=month');
+  expect(JSON.parse(screen.getByTestId('navigation-state').textContent!)).toEqual({ changePlan: { plan: 'ADVANCED', interval: 'month' } });
+});
+it('continuing the saved selection carries no replacement request', async () => {
+  lifecycle.onboardingStep = 'PAYMENT'; lifecycle.checkoutResume = { plan: 'PRO', interval: 'year', transactionId: `txn_${'b'.repeat(26)}` };
+  mount(); await ready(); fireEvent.click(continueButton());
+  expect(screen.getByTestId('position')).toHaveTextContent('/subscription/payment?plan=PRO&interval=year');
+  expect(screen.getByTestId('navigation-state')).toHaveTextContent('null');
+});
+it('changing only the interval carries an explicit replacement request', async () => {
+  lifecycle.onboardingStep = 'PAYMENT'; lifecycle.checkoutResume = { plan: 'PRO', interval: 'year', transactionId: `txn_${'b'.repeat(26)}` };
+  mount(); await ready(); fireEvent.click(screen.getByRole('button', { name: 'Monthly' })); fireEvent.click(continueButton());
+  expect(JSON.parse(screen.getByTestId('navigation-state').textContent!)).toEqual({ changePlan: { plan: 'PRO', interval: 'month' } });
 });
 it('loads the draft selection and permits changing both plan and interval', async () => {
   lifecycle.onboardingStep = 'PAYMENT'; lifecycle.checkoutResume = { plan: 'PRO', interval: 'year', transactionId: `txn_${'b'.repeat(26)}` };

@@ -75,7 +75,7 @@ app.use(cors({
         return callback(new Error(`Origin ${origin} not allowed by CORS`));
     },
     credentials: true,
-    exposedHeaders: ['X-Request-Id'],
+    exposedHeaders: ['X-Request-Id', 'Retry-After'],
 }));
 // This route must be mounted before express.json(). Paddle verifies the exact
 // bytes it delivered, so parsing and re-serializing the body would invalidate
