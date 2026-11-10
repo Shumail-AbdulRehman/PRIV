@@ -1,6 +1,6 @@
 # Spec 36 — Assemble the lifecycle service
 
-**Status:** Not started
+**Status:** Done
 **Depends on:** Spec 10, Spec 26
 **Model:** Heavy — `claude-opus-5-5` · `gpt-6.1-sol` · `gemini-3.1-pro-preview`
 **Issue:** —
