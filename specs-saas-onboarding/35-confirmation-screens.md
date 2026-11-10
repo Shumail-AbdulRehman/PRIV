@@ -4,7 +4,7 @@
 **Depends on:** Spec 03, Spec 04, Spec 22
 **Model:** Heavy — `claude-opus-5-5` · `gpt-6.1-sol` · `gemini-3.1-pro-preview`
 **Issue:** —
-**Owns:** `frontend/src/pages/Subscription/onboarding/BillingActivationPage.tsx`, `frontend/src/pages/Subscription/onboarding/BillingActivationPage.test.tsx`, `specs-saas-onboarding/inventory/35-confirmation-screens.md`
+**Owns:** `frontend/src/pages/Subscription/onboarding/BillingActivationPage.tsx`, `frontend/src/pages/Subscription/onboarding/BillingActivationPage.test.tsx`, `frontend/src/pages/Subscription/onboarding/useCheckoutConfirmation.ts`, `frontend/src/pages/Subscription/onboarding/useCheckoutConfirmation.test.tsx`, `specs-saas-onboarding/inventory/35-confirmation-screens.md`
 **Reuses:** `design/saas-onboarding/v3/index.html`, `frontend/src/pages/Subscription/onboarding/useCheckoutConfirmation.ts` (spec 22), `frontend/src/pages/Onboarding/FlowShell.tsx` (spec 03)
 
 ## Goal
@@ -19,7 +19,10 @@ Show honest progress while the server confirms the subscription, then a clear su
 - Only server `WORKSPACE` shows Ready. Paddle's browser event never does.
 - Reloading this page resumes correctly.
 - Denied shows sign in again. Restricted shows the restriction.
-- `NOT_PAID` returns to payment. `NO_CHECKOUT` returns to the plan page.
+- Extend the confirmation hook, additively, to return the latest confirm `outcome` and a count of consecutive `NOT_PAID` responses for the current run and owner. Both start empty and clear on retry or owner change. Polling, timing and the existing statuses do not change.
+- Route on that outcome, never on `onboardingStep` alone. `NO_CHECKOUT` goes to the plan page at once. `NOT_PAID` goes to payment, or to the plan page when the server step is `CHOOSE_PLAN`, and only after two `NOT_PAID` responses in a row in one run, because a checkout that has just finished may not read as paid yet.
+- `PROCESSING`, a failed read and a timeout stay on this screen. Denied and restricted are checked first and never redirect.
+- Tests also prove a single `NOT_PAID` does not redirect, and that `NOT_PAID` then `PROCESSING` resets the count.
 - Announce changes with `role=status`.
 
 ## Explicit non-scope
