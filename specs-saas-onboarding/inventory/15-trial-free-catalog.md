@@ -1,9 +1,0 @@
-# Spec 15 — Trial-free plan catalog
-
-- `backend/src/services/billingCatalog.service.ts` exports the shared `getBillingCatalog(actor)` reader and `createBillingCatalog({ db?, provider?, now?, log? })` factory. Create an injected reader once and reuse it; its `now` returns a `Date`. The default provider is spec 08's timeout/logging gateway, and configuration comes from `getPaddleCatalog` and `requireBillingActivation`.
-- Every read checks the active company owner and activation before using cached provider facts. Price/product identity and active status, configured interval, frequency 1, integer amount string and currency checks are preserved.
-- Any non-null/undefined trial metadata throws `BillingCatalogError` with `code: PRICE_HAS_TRIAL`, HTTP 503 and `recoveryReason: PRICE_NOT_READY`. Other invalid price/product facts use `code: PRICE_NOT_READY`. Validation logging contains only the fixed event/class/code; provider failures retain the gateway's safe error/log contract.
-- `TrialFreeBillingCatalogEntry` reuses the shared DTO while omitting the compatibility `trialPeriod` property. Returned objects contain no trial field and cannot mutate cached objects.
-- `BILLING_CATALOG_CACHE_MS` is 60,000 ms from successful completion. One bounded cache slot is keyed by environment plus the configured entries. Concurrent reads share one in-flight set of price/product requests; failures are not cached. Changed configuration cannot receive an old in-flight result as its cache value.
-- `billingCatalog.service.test.ts` provides 45 isolated unit cases using injected database/provider/clock/log fixtures. No real database or Paddle calls are needed.
-- This module is additive. The old catalog reader and HTTP wiring remain in `billingLifecycle.service.ts` until spec 36 assembles the lifecycle services.

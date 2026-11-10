@@ -1,6 +1,0 @@
-# Spec 16 — Sandbox trial removal
-
-- `backend/src/services/paddleTrialRemoval.ts` exports `getTrialRemovalCatalog()` and `removePaddleTrials({ apply? }, { provider?, env? })`. It uses only the six repository sandbox catalog IDs, rejects other environments before provider calls, defaults to previews, preserves each billing cycle and sends `trialPeriod: null` through the shared billing gateway. Each attempted update gets a fresh verification read, including uncertain writes. Per-price failures do not stop the remaining prices; reruns skip prices already clear.
-- Results include plan, interval, price ID, status (`WOULD_REMOVE`, `ALREADY_CLEAR`, `REMOVED`, `FAILED`) and a fixed failure code. Raw exceptions and credentials are never included.
-- `backend/scripts/removePaddleTrials.ts` is the thin command. From `backend`, use `npx tsx scripts/removePaddleTrials.ts` to preview; only `--apply` enables writes. Unsupported arguments, configuration errors and per-price failures return exit code 1. Direct invocation loads dotenv; importing the exported `main` does not execute the command or load dotenv.
-- `backend/src/services/paddleTrialRemoval.test.ts` supplies 23 isolated service/command cases with injected provider/runner functions. No database or real Paddle calls are needed. Real execution and verification remain the coordinator's responsibility.
