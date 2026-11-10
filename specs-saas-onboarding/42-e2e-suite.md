@@ -110,7 +110,7 @@ Separate from the suite, and never replaced by the controlled script. Against a 
 - [x] `cd backend && npx tsx tests/billingLifecycle.integration.ts` passes against a disposable database. [requires: isolated local PostgreSQL]
 - [x] Every flow row has at least one named test in the Log. [static]
 - [ ] Real 4242, 3DS and declined runs are recorded, or left open with the reason. [requires: Paddle sandbox, public webhook destination, user approval]
-- [ ] Every app bug found has a numbered fix spec. [static]
+- [x] Every app bug found has a numbered fix spec. [static]
 - [x] `cd frontend && npx tsc -b --noEmit` and `npm run lint --prefix frontend` pass with 0 errors, 0 warnings. [static]
 - [x] `npm run build --prefix frontend` passes. [static]
 
@@ -213,3 +213,4 @@ Numbers below follow the 57-row contract in order. S42 cases are in `saas-onboar
 
 
 Final scope review: restored all generated tracked screenshots/JSON evidence under `docs/implementation/` to their pre-run contents. Deliverable edits are limited to Owns, this Log/checklist and the four named test-only exception files above. The real-card and new-fix-spec boxes remain unchecked for the explicit run overrides. No application database inspection, real Paddle call, commit, branch operation, issue, PR or deployment was performed.
+- **2026-11-10** — FIX-1, FIX-2 and FIX-3 are tracked in `fixes/e2e-bug-fixes.md`, outside the numbered set because the validator requires verification to be last. Spec 43 runs after those fixes.
