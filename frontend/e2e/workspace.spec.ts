@@ -172,10 +172,6 @@ test("suspension revokes operational access while owner billing and security rem
     await expect(
       page.getByLabel("Current password", { exact: true }),
     ).toBeVisible();
-    await page.goto("/help");
-    await expect(
-      page.getByRole("heading", { name: "Help & service information" }),
-    ).toBeVisible();
   } finally {
     await sql(
       'UPDATE "Company" SET "operationalStatus"=\'ACTIVE\' WHERE id=$1',

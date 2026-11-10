@@ -13,7 +13,7 @@ const mocks = vi.hoisted(() => ({
 vi.mock('@/hooks/useAuth', () => ({ default: () => ({ user: mocks.user }) }));
 vi.mock('../queries', () => ({ useBillingLifecycle: () => mocks.query }));
 vi.mock('../api', () => ({ reconcileBillingCheckout: mocks.reconcile }));
-vi.mock('@/pages/Help/serviceInformation', () => ({ getPublicSupport: mocks.support }));
+vi.mock('@/lib/serviceInformation', () => ({ getPublicSupport: mocks.support }));
 const life = (overrides: Partial<BillingLifecycle> = {}): BillingLifecycle => ({
   company: { id: 42, name: 'Fixture', plan: 'PRO', isActive: true, operationalStatus: 'ACTIVE' },
   usage: { locations: 1, staff: 3, managers: 1 }, limits: { locations: 5, staff: 25, managers: 3 },
@@ -128,11 +128,12 @@ it('network failure hides private errors and permits an explicit check', async (
   expect(await screen.findByRole('button', { name: 'Check again' })).toBeEnabled();
   expect(screen.queryByText(/private provider/)).not.toBeInTheDocument();
 });
-it('support failure falls back to the help page', async () => {
+it('support failure hides the contact link', async () => {
   mocks.support.mockRejectedValue(new Error('private support error'));
   mocks.query.data = life({ onboardingStep: 'RESTRICTED' });
   render(tree());
-  expect(await screen.findByRole('link', { name: 'Contact support' })).toHaveAttribute('href', '/help');
+  await waitFor(() => expect(mocks.support).toHaveBeenCalled());
+  expect(screen.queryByRole('link', { name: 'Contact support' })).not.toBeInTheDocument();
 });
 it('switching to Urdu keeps the request single and translates the recovery state', async () => {
   render(tree());

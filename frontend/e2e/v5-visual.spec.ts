@@ -24,8 +24,6 @@ test('V5 route evidence at matching desktop/phone English/Urdu viewports', async
     ['security','settings','/account/security'],
     ['reviews','reviews','/exceptions'],
     ['review-detail','reviews',`/exceptions/${fixture.review.id}`],
-    ['help','help','/help'],
-    ['information','information','/service-information'],
   ];
   const results:unknown[]=[];
   for(const width of [1366,390]) for(const language of ['en','ur']) {

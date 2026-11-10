@@ -1,11 +1,9 @@
-import { useLanguage } from "@/i18n/context";
 import { Link, Outlet, useLocation } from "react-router-dom";
 import { useEffect } from "react";
 import { PublicNavbar } from "./PublicNavbar";
 import BrandLogo from "@/components/common/BrandLogo";
 
 export function PublicLayout() {
-  const { t } = useLanguage();
   const { pathname, hash } = useLocation();
   useEffect(() => {
     if (hash) {
@@ -41,7 +39,6 @@ export function PublicLayout() {
               <Link to="/#watch">Watch the video</Link>
               <Link to="/login">Log in</Link>
               <Link to="/signup">Create an account</Link>
-              <Link to="/help">{t("Help & service information")}</Link>
             </nav>
           </div>
           <p className="hx-footer-fine">

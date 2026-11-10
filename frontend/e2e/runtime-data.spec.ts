@@ -240,15 +240,6 @@ test('Plan and Billing displays persisted provider linkage and capacity without 
   await healthy(page);
 });
 
-for (const route of ['/help', '/service-information']) test(`${route} finishes its real public support read`, async ({ page }) => {
-  const support = browserRead<{ available: boolean }>(page, '/support/contact');
-  await page.goto(route);
-  expect(await support).toMatchObject({ available: false });
-  await expect(page.locator('.v5-service-contact')).toHaveAttribute('aria-busy', 'false');
-  await expect(page.getByText('Support contact is unavailable. No delivery channel has been qualified.', { exact: true })).toBeVisible();
-  await healthy(page);
-});
-
 test('inactive location directory opt-in preserves active selectors and assigned-site/company isolation', async ({ page }) => {
   const [before] = await sql('SELECT "isActive" FROM "Location" WHERE id=$1', [fixture.site.B]);
   try {

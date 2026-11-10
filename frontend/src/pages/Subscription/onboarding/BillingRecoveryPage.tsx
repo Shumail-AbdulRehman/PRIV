@@ -4,7 +4,7 @@ import useAuth from '@/hooks/useAuth';
 import { useLanguage } from '@/i18n/context';
 import { Button } from '@/components/ui/button';
 import FlowShell from '@/pages/Onboarding/FlowShell';
-import { getPublicSupport } from '@/pages/Help/serviceInformation';
+import { getPublicSupport } from '@/lib/serviceInformation';
 import { reconcileBillingCheckout } from '../api';
 import { useBillingLifecycle } from '../queries';
 import type { BillingLifecycle, BillingReconcileResult } from '../types';
@@ -85,8 +85,8 @@ function OwnerRecovery({ companyId, ownerId }: { companyId: number; ownerId: num
         if (shouldReconcile) setAttempt(value => value + 1);
         else void query.refetch();
       }}>{t(unavailable ? 'Try again' : 'Check again')}</Button> : null}
-      {!waiting ? <Button asChild className={`flow-button${restricted || conflict ? '' : ' flow-button-secondary'}`}>
-        {email ? <a href={`mailto:${email}`}>{t('Contact support')}</a> : <Link to="/help">{t('Contact support')}</Link>}
+      {!waiting && email ? <Button asChild className={`flow-button${restricted || conflict ? '' : ' flow-button-secondary'}`}>
+        <a href={`mailto:${email}`}>{t('Contact support')}</a>
       </Button> : null}
       {conflict ? <Link to="/signup">{t('Sign up with another email')}</Link> : null}
     </div>

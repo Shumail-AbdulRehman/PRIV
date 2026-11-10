@@ -207,7 +207,7 @@ describe('staff handoff distribution and sign out', () => {
     mount('STAFF');
     expect(await screen.findByRole('status')).toHaveTextContent('Approved Android distribution is unavailable. Ask your company owner for the qualified app.');
     expect(screen.queryByRole('link', { name: 'Open approved Android distribution' })).not.toBeInTheDocument();
-    expect(screen.getByRole('link', { name: 'Android app information' })).toHaveAttribute('href', '/help#service-android');
+    expect(screen.queryByRole('link', { name: 'Android app information' })).not.toBeInTheDocument();
   });
   it('keeps the configured approved Android download and qualification guidance', async () => {
     vi.stubEnv('VITE_ANDROID_DOWNLOAD_URL', 'https://downloads.example.invalid/staff.apk');

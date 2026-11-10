@@ -15,6 +15,7 @@ const m = vi.hoisted(() => ({
   event: null as null | ((event: { name: string }) => void),
 }));
 vi.mock('@/hooks/useAuth', () => ({ default: () => ({ user: m.user }) }));
+vi.mock('@/lib/serviceInformation', async importOriginal => ({ ...await importOriginal<typeof import('@/lib/serviceInformation')>(), getPublicSupport: async () => ({ email: 'support@example.invalid' }) }));
 vi.mock('../api', async importOriginal => ({ ...await importOriginal<typeof import('../api')>(), confirmBillingCheckout: m.confirm }));
 vi.mock('@paddle/paddle-js', async importOriginal => ({
   ...await importOriginal<typeof import('@paddle/paddle-js')>(),
@@ -45,7 +46,7 @@ function mount({ path = '/subscription/activation', cached }: { path?: string; c
   return { client, ...render(<QueryClientProvider client={client}><LanguageProvider><MemoryRouter initialEntries={[path]}>
     <Position /><Routes>
       <Route path="/subscription/activation" element={<BillingActivationPage />} />
-      {['/subscription/payment', '/choose-plan', '/dashboard', '/login', '/help'].map(path => <Route key={path} path={path} element={<h1>{path}</h1>} />)}
+      {['/subscription/payment', '/choose-plan', '/dashboard', '/login'].map(path => <Route key={path} path={path} element={<h1>{path}</h1>} />)}
     </Routes>
   </MemoryRouter></LanguageProvider></QueryClientProvider>) };
 }
@@ -147,7 +148,7 @@ it.each(['inactive', 'suspended', 'restricted-step'] as const)('restriction wins
   m.confirm.mockResolvedValue(result('ACTIVE')); mount(); await flush(); await advance(2_000);
   expect(screen.getByRole('heading', { name: 'This account is restricted' })).toBeVisible();
   expect(screen.getByText(/Payment doesn't lift this/)).toBeVisible();
-  expect(screen.getByRole('link', { name: 'Contact support' })).toHaveAttribute('href', '/help'); expectNoReady();
+  await flush(); expect(screen.getByRole('link', { name: 'Contact support' })).toHaveAttribute('href', 'mailto:support@example.invalid'); expectNoReady();
   expect(screen.queryByRole('button', { name: 'Check again' })).not.toBeInTheDocument();
 });
 

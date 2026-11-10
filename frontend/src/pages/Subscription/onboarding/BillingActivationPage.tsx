@@ -2,6 +2,7 @@ import { Link, Navigate } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
 import { useLanguage } from '@/i18n/context';
 import FlowShell from '@/pages/Onboarding/FlowShell';
+import SupportContactLink from './SupportContactLink';
 import { useCheckoutConfirmation } from './useCheckoutConfirmation';
 
 export default function BillingActivationPage() {
@@ -47,7 +48,7 @@ export default function BillingActivationPage() {
       </div>
 
       {denied ? <Button asChild className="flow-button flow-button-full"><Link to="/login">{t('Sign in again')}</Link></Button>
-        : restricted ? <Button asChild className="flow-button flow-button-secondary flow-button-full"><Link to="/help">{t('Contact support')}</Link></Button>
+        : restricted ? <SupportContactLink className="flow-button flow-button-secondary flow-button-full" />
           : ready ? <>
             <div className="flow-ready-stamp mx-auto" aria-hidden="true">
               <svg viewBox="0 0 48 48" focusable="false"><path d="m10 25 9 9 20-22" pathLength="1" /></svg>

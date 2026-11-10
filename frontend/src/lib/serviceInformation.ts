@@ -1,5 +1,3 @@
-import { useQuery } from '@tanstack/react-query';
-
 type PublicEnvironment = Record<string, string | undefined>;
 export function approvedLink(raw: string | undefined, origin: string | undefined, approved: string | undefined): string | null {
   if (approved !== 'true' || !raw || !origin) return null;
@@ -33,9 +31,4 @@ export async function getPublicSupport(signal?: AbortSignal): Promise<{ email: s
     clearTimeout(timeout);
     signal?.removeEventListener('abort', cancel);
   }
-}
-export function useServiceInformation() {
-  const facts = serviceInformation();
-  const support = useQuery({ queryKey: ['public-service', 'support-contact'], queryFn: ({ signal }) => getPublicSupport(signal), retry: false, staleTime: 0 });
-  return { ...facts, support, purchaseReady: facts.policiesReady && !support.isError && !support.isFetching && !!support.data?.email };
 }

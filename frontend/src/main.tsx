@@ -1,4 +1,3 @@
-import HelpPage, { ServiceInformationPage } from './pages/Help/HelpPage';
 import './pages/Account/linkToken';
 import { OwnSecurityPage, OwnerRecoveryPage, OwnerLinkPage } from './pages/Account/AccountPages';
 import { WorkspaceAudience, WorkspaceRouteError } from "./routes/launchPages";
@@ -42,8 +41,6 @@ const queryClient = new QueryClient({
 
 const router = createBrowserRouter([
   ...platformRoutes,
-  { path: '/help', element: <HelpPage /> },
-  { path: '/service-information', element: <ServiceInformationPage /> },
   {
     path: '/',
     element: <App />,

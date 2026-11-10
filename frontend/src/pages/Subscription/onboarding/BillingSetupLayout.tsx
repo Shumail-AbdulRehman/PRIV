@@ -4,7 +4,7 @@ import { CreditCard, LockKeyhole } from 'lucide-react';
 import BrandLogo from '@/components/common/BrandLogo';
 import LanguageChoice from '@/components/common/LanguageChoice';
 import { useLanguage } from '@/i18n/context';
-import { serviceInformation } from '@/pages/Help/serviceInformation';
+import { serviceInformation } from '@/lib/serviceInformation';
 import './billing-setup.css';
 
 type LayoutSlots = {

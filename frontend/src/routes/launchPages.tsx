@@ -7,7 +7,7 @@ import { useLanguage } from '@/i18n/context';
 import LanguageChoice from '@/components/common/LanguageChoice';
 import BrandLogo from '@/components/common/BrandLogo';
 import FlowShell from '@/pages/Onboarding/FlowShell';
-import {serviceInformation} from '@/pages/Help/serviceInformation';
+import {serviceInformation} from '@/lib/serviceInformation';
 import { Button } from '@/components/ui/button';
 import { useLogout } from '@/queries/auth';
 import '@/workspace.css';
@@ -38,7 +38,6 @@ function StaffWebHandoff() {
       </> : <p>{t('Approved Android distribution is unavailable. Ask your company owner for the qualified app.')}</p>}</div>
       <Button className="flow-button flow-button-full" disabled={logout.isPending} aria-busy={logout.isPending} onClick={() => logout.mutate()}>{t(logout.isPending ? 'Signing out…' : 'Sign out')}</Button>
       {logout.isError && <p className="flow-notice flow-notice-bad" role="alert">{t('Sign out failed. Try again.')}</p>}
-      <p className="flow-fine"><Link to="/help#service-android">{t('Android app information')}</Link></p>
     </div>
   </FlowShell>;
 }

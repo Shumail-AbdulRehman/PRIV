@@ -12,6 +12,7 @@ const mocks = vi.hoisted(() => ({
   life: {} as Record<string, unknown>, catalog: {} as Record<string, unknown>, subscription: {} as Record<string, unknown>,
 }));
 vi.mock('@/hooks/useAuth', () => ({ default: () => ({ user: mocks.user }) }));
+vi.mock('@/lib/serviceInformation', async importOriginal => ({ ...await importOriginal<typeof import('@/lib/serviceInformation')>(), getPublicSupport: async () => ({ email: 'support@example.invalid' }) }));
 vi.mock('./useCheckoutSession', () => ({ useCheckoutSession: (selection: unknown) => { mocks.useSession(selection); return mocks.session; } }));
 vi.mock('../queries', () => ({ useBillingLifecycle: () => mocks.life, useBillingCatalog: () => mocks.catalog, useSubscription: () => mocks.subscription }));
 const transactionId = 'txn_' + 'a'.repeat(26);
@@ -132,8 +133,8 @@ it('status checking uses its independent lock', () => {
   mocks.session.statusBusy = true; view.rerender(tree());
   expect(screen.getByRole('button', { name: 'Checking subscription status…' })).toBeDisabled();
 });
-it('restricted provides support and no card form', () => {
-  status('restricted'); mount(); expect(screen.getByRole('link', { name: 'Contact support' })).toHaveAttribute('href', '/help'); expect(target()).toBeNull();
+it('restricted provides support and no card form', async () => {
+  status('restricted'); mount(); expect(await screen.findByRole('link', { name: 'Contact support' })).toHaveAttribute('href', 'mailto:support@example.invalid'); expect(target()).toBeNull();
 });
 it('restores saved draft ahead of a conflicting URL and announces resume', () => {
   mocks.life.data = { ...facts(), onboardingStep: 'PAYMENT', checkoutResume: draft };

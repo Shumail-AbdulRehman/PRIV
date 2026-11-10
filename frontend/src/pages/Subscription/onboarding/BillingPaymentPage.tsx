@@ -10,6 +10,7 @@ import { billingPlanDefinition, deriveBillingViewState } from './billingViewStat
 import { formatBillingPrice } from './billingPrice';
 import { useCheckoutSession, type CheckoutSelection } from './useCheckoutSession';
 import PaddleCheckoutFrame from './PaddleCheckoutFrame';
+import SupportContactLink from './SupportContactLink';
 import OrderSummary from './OrderSummary';
 import type { BillingCheckoutResume, ValidatedBillingLifecycle } from '../types';
 
@@ -128,7 +129,7 @@ function PaymentSession({ selection, facts }: { selection: CheckoutSelection; fa
         {status === 'restricted' && <p role="alert" className="flow-notice flow-notice-bad">{t('This account is restricted')}</p>}
         {actions.includes('tryAgain') && <Button className="flow-button" disabled={checkout.actionBusy} aria-busy={checkout.actionBusy} onClick={() => void checkout.tryAgain()}>{t('Try again')}</Button>}
         {actions.includes('checkStatus') && <Button className="flow-button" disabled={checkout.statusBusy} aria-busy={checkout.statusBusy} onClick={() => void checkout.checkStatus()}>{t(checkout.statusBusy ? 'Checking subscription status…' : 'Check subscription status')}</Button>}
-        {actions.includes('contactSupport') && <Button asChild className="flow-button"><Link to="/help">{t('Contact support')}</Link></Button>}
+        {actions.includes('contactSupport') && <SupportContactLink className="flow-button" />}
         {showFrame && <PaddleCheckoutFrame ready={ready} registerFrameTarget={checkout.registerFrameTarget}
           label={status === 'checking' ? t('Checking subscription status…') : status === 'preparing' ? t('Preparing your checkout…') : undefined} />}
       </section>

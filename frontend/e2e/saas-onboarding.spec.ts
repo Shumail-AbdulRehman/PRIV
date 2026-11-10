@@ -234,8 +234,8 @@ test('S42-50 back forward follows saved server step without loop', async ({ page
   for (const [step, route] of [['CONFIRMING', '/subscription/activation'], ['WORKSPACE', '/dashboard'], ['RECONCILE', '/subscription/recovery'], ['UNAVAILABLE', '/subscription/recovery']]) {
     b.facts.onboardingStep = step; b.facts.workspaceAccessAllowed = step === 'WORKSPACE';
     await page.goto('/choose-plan'); await expect(page).toHaveURL(new RegExp(route + '$'));
-    await page.goto('/help'); await page.goBack(); await expect(page).toHaveURL(new RegExp(route + '$'));
-    await page.goForward(); await expect(page).toHaveURL(/help$/);
+    await page.goto('/features'); await page.goBack(); await expect(page).toHaveURL(new RegExp(route + '$'));
+    await page.goForward(); await expect(page).toHaveURL(/features$/);
   }
 
 });
