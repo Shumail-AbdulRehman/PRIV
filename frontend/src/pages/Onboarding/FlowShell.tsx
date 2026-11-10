@@ -26,14 +26,21 @@ export type FlowShellProps = {
   siteNav?: boolean;
 };
 
+/** A checkbox whose tick draws itself while something loads. */
+export function FlowWaitTick() {
+  return (
+    <span className="flow-wait-box" aria-hidden="true">
+      <svg viewBox="0 0 20 20" focusable="false"><path d="m4 10 4 4 8-9" pathLength="1" /></svg>
+    </span>
+  );
+}
+
 /** One loading line with a tick that draws itself. */
 export function FlowWait({ label, heading = false }: { label: string; heading?: boolean }) {
   const Text = heading ? 'h1' : 'p';
   return (
-    <div className="flow-wait" role="status">
-      <span className="flow-wait-box" aria-hidden="true">
-        <svg viewBox="0 0 20 20" focusable="false"><path d="m4 10 4 4 8-9" pathLength="1" /></svg>
-      </span>
+    <div className={heading ? 'flow-wait flow-wait-page' : 'flow-wait'} role="status">
+      <FlowWaitTick />
       <Text>{label}</Text>
     </div>
   );

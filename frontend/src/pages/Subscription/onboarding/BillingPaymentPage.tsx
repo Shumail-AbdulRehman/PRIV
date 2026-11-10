@@ -113,8 +113,8 @@ function PaymentSession({ selection, facts }: { selection: CheckoutSelection; fa
       <section aria-label={t('Add your card')} className="order-2 min-w-0 space-y-4 min-[1024px]:order-1">
         {sandbox && status !== 'frameFailed' && <TestCards />}
         {language === 'ur' && <p className="flow-fine">{t("Paddle's secure card form is in English.")}</p>}
-        {status === 'checking' && <p role="status" className="flow-notice">{t('Checking subscription status…')}</p>}
-        {status === 'preparing' && <p role="status" className="flow-notice">{t('Preparing your checkout…')}</p>}
+        {ready && status === 'checking' && <p role="status" className="flow-notice">{t('Checking subscription status…')}</p>}
+        {ready && status === 'preparing' && <p role="status" className="flow-notice">{t('Preparing your checkout…')}</p>}
         {status === 'declined' && <p role="alert" className="flow-notice flow-notice-bad">{t('That card was declined. Check the details or try another card.')}</p>}
         {status === 'offline' && <p role="status" className="flow-notice flow-notice-warn">{t("You're offline. Reconnect to continue. Your details stay here.")}</p>}
         {facts.checkoutResume && ['frameLoading', 'ready'].includes(status) && <p role="status" className="flow-notice flow-notice-ok">{t('We saved your checkout. Pick up where you left off.')}</p>}
@@ -129,7 +129,8 @@ function PaymentSession({ selection, facts }: { selection: CheckoutSelection; fa
         {actions.includes('tryAgain') && <Button className="flow-button" disabled={checkout.actionBusy} aria-busy={checkout.actionBusy} onClick={() => void checkout.tryAgain()}>{t('Try again')}</Button>}
         {actions.includes('checkStatus') && <Button className="flow-button" disabled={checkout.statusBusy} aria-busy={checkout.statusBusy} onClick={() => void checkout.checkStatus()}>{t(checkout.statusBusy ? 'Checking subscription status…' : 'Check subscription status')}</Button>}
         {actions.includes('contactSupport') && <Button asChild className="flow-button"><Link to="/help">{t('Contact support')}</Link></Button>}
-        {showFrame && <PaddleCheckoutFrame ready={ready} registerFrameTarget={checkout.registerFrameTarget} />}
+        {showFrame && <PaddleCheckoutFrame ready={ready} registerFrameTarget={checkout.registerFrameTarget}
+          label={status === 'checking' ? t('Checking subscription status…') : status === 'preparing' ? t('Preparing your checkout…') : undefined} />}
       </section>
       <div className="order-1 min-w-0 self-start min-[1024px]:sticky min-[1024px]:top-6 min-[1024px]:order-2">
         {plan ? <OrderSummary plan={plan} interval={chosen.interval} totals={totals} catalogPrice={price}

@@ -241,6 +241,19 @@
 .flow-shell .flow-wait-box { flex: none; display: grid; place-items: center; inline-size: 34px; block-size: 34px; border: 2px solid var(--flow-primary); border-radius: 9px; background: var(--flow-wash); }
 .flow-shell .flow-wait-box svg { inline-size: 22px; block-size: 22px; fill: none; stroke: var(--flow-primary); stroke-width: 2.8; stroke-linecap: round; stroke-linejoin: round; }
 .flow-shell .flow-wait-box path { stroke-dasharray: 1; animation: flow-wait-tick 1500ms cubic-bezier(.23, 1, .32, 1) infinite; }
+.flow-shell:has(.flow-wait-page) { display: flex; flex-direction: column; min-block-size: 100vh; padding-block-end: 0; }
+.flow-shell:has(.flow-wait-page) > .flow-stage { margin-block: auto; padding-block: 32px; }
+.flow-shell .flow-card-wait { display: grid; gap: 18px; }
+.flow-shell .flow-card-wait .flow-wait { min-block-size: 0; gap: 12px; }
+.flow-shell .flow-card-wait .flow-wait p { font-size: 15px; }
+.flow-shell .flow-card-wait .flow-wait-box { inline-size: 28px; block-size: 28px; border-radius: 8px; }
+.flow-shell .flow-card-wait .flow-wait-box svg { inline-size: 18px; block-size: 18px; }
+.flow-shell .flow-card-ghost { position: relative; display: grid; gap: 16px; overflow: hidden; }
+.flow-shell .flow-card-ghost::after { content: ''; position: absolute; inset: 0; background: linear-gradient(100deg, transparent 25%, color-mix(in srgb, var(--flow-primary) 10%, transparent) 50%, transparent 75%); transform: translateX(-100%); animation: flow-card-sweep 1500ms ease-in-out infinite; }
+.flow-shell .flow-card-ghost-row { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 16px; }
+.flow-shell .flow-card-ghost-label { display: block; inline-size: 84px; block-size: 10px; margin-block-end: 9px; border-radius: 3px; background: var(--flow-skeleton); }
+.flow-shell .flow-card-ghost .flow-skeleton { block-size: 48px; border: 1px solid var(--flow-line); border-radius: 7px; background: var(--flow-paper); animation: none; }
+.flow-shell .flow-card-ghost .flow-card-ghost-button { margin-block-start: 4px; border-color: var(--flow-wash); background: var(--flow-wash); }
 .flow-shell .flow-price-enter { animation: flow-price-enter 160ms cubic-bezier(.23, 1, .32, 1); }
 .flow-shell .flow-frame-ready { animation: flow-fade 240ms cubic-bezier(.23, 1, .32, 1); }
 .flow-shell .flow-disclosure[open] > :not(summary) { animation: flow-fade 160ms cubic-bezier(.23, 1, .32, 1); }
@@ -329,6 +342,7 @@
 @keyframes flow-price-enter { from { opacity: .25; } to { opacity: 1; } }
 @keyframes flow-breathe { to { opacity: .55; } }
 @keyframes flow-wait-tick { 0% { stroke-dashoffset: 1; opacity: 1; } 55%, 82% { stroke-dashoffset: 0; opacity: 1; } 100% { stroke-dashoffset: 0; opacity: 0; } }
+@keyframes flow-card-sweep { to { transform: translateX(100%); } }
 @keyframes flow-spin { to { transform: rotate(360deg); } }
 @keyframes flow-ring { from { opacity: .7; transform: scale(.85); } to { opacity: 0; transform: scale(1.15); } }
 @keyframes flow-stamp { from { opacity: 0; transform: scale(.9); } to { opacity: 1; transform: none; } }
