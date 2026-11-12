@@ -2,6 +2,7 @@ import { useQueryClient } from "@tanstack/react-query";
 import { client } from "@/api/client";
 import { useState } from "react";
 import { Trash2 } from "lucide-react";
+import { useLanguage } from "@/i18n/context";
 import { Button } from "@/components/ui/button";
 import {
   Dialog,
@@ -24,6 +25,7 @@ export default function DeleteButton({
   preserveHistory?: boolean;
 }) {
   const queryClient = useQueryClient();
+  const { t } = useLanguage();
   const [archivePath, setArchivePath] = useState("");
   const [open, setOpen] = useState(false);
   const [pending, setPending] = useState(false);
@@ -45,10 +47,8 @@ export default function DeleteButton({
       if (retained?.archivePath && /^\/(location|staff|manager|task-template)\/[1-9]\d*\/archive$/.test(retained.archivePath)) {
         setArchivePath(retained.archivePath);
       }
-      setError(
-        failure.response?.data?.message ||
-          "Could not delete this record. Please try again.",
-      );
+      const message = failure.response?.data?.message;
+      setError(t(message || "Could not delete this record. Please try again."));
     } finally {
       setPending(false);
     }
@@ -69,9 +69,9 @@ export default function DeleteButton({
         }}
       >
         <DialogTrigger asChild>
-          <Button variant="destructive" size="sm" aria-label={`Delete ${name}`}>
-            <Trash2 size={14} />
-            Delete
+          <Button variant="destructive" size="sm" aria-label={t("Delete {name}", { name })}>
+            <Trash2 size={14} aria-hidden="true" />
+            {t("Delete")}
           </Button>
         </DialogTrigger>
         <DialogContent
@@ -84,9 +84,9 @@ export default function DeleteButton({
               ?.focus();
           }}
         >
-          <DialogTitle>{archivePath ? "Archive" : "Delete"} {name}?</DialogTitle>
+          <DialogTitle>{t(archivePath ? "Archive {name}?" : "Delete {name}?").split("{name}").map((part, i) => i ? <span key={i}><bdi>{name}</bdi>{part}</span> : part)}</DialogTitle>
           <DialogDescription>
-            {archivePath ? "Archiving keeps verification history and evidence. This record will become inactive." : preserveHistory ? description : `${description} This permanently deletes the records and cannot be undone.`}
+            {archivePath ? t("Archiving keeps verification history and evidence. This record will become inactive.") : preserveHistory ? t(description) : t("{description} This permanently deletes the records and cannot be undone.", { description: t(description) })}
           </DialogDescription>
           {error && (
             <p role="alert" className="text-sm text-destructive">
@@ -100,10 +100,10 @@ export default function DeleteButton({
               disabled={pending}
               onClick={() => setOpen(false)}
             >
-              Cancel
+              {t("Cancel")}
             </Button>
             <Button variant="destructive" disabled={pending} onClick={remove}>
-              {pending ? (archivePath ? "Archiving…" : "Deleting…") : (archivePath ? "Archive and preserve history" : preserveHistory ? "Delete schedule" : "Delete permanently")}
+              {t(pending ? (archivePath ? "Archiving…" : "Deleting…") : (archivePath ? "Archive and preserve history" : preserveHistory ? "Delete schedule" : "Delete permanently"))}
             </Button>
           </DialogFooter>
         </DialogContent>

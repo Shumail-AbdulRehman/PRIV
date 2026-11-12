@@ -26,7 +26,7 @@ async function task() {
 async function review() {
   await task(); fireEvent.click(screen.getByRole('button', { name: 'Next' }));
   fireEvent.change(screen.getByLabelText('Assign staff'), { target: { value: '7' } }); fireEvent.click(screen.getByRole('button', { name: 'Next' }));
-  fireEvent.change(screen.getByLabelText('Repeat'), { target: { value: 'ONCE' } });
+  fireEvent.change(screen.getByLabelText('Recurrence'), { target: { value: 'ONCE' } });
   fireEvent.change(screen.getByLabelText('Start time (Asia/Karachi)'), { target: { value: '09:00' } });
   fireEvent.change(screen.getByLabelText('End time (Asia/Karachi)'), { target: { value: '10:00' } });
   fireEvent.click(screen.getByRole('button', { name: 'Next' }));

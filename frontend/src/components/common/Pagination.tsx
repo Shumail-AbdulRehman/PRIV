@@ -1,5 +1,6 @@
 import { Button } from "@/components/ui/button";
 import { useLanguage } from "@/i18n/context";
+import "../workspace/table-v6.css";
 export default function Pagination({
   page,
   pageSize,
@@ -17,7 +18,7 @@ export default function Pagination({
 }) {
   const { t } = useLanguage();
   return (
-    <nav className="ops-pagination" aria-label={t("Pagination")}>
+    <nav className="ops-pagination wx-pagination" aria-label={t("Pagination")}>
       <p>
         {t("{from}–{to} of {total}", {
           from: total ? (page - 1) * pageSize + 1 : 0,
@@ -39,6 +40,8 @@ export default function Pagination({
       <div>
         <Button
           variant="outline"
+          type="button"
+          className="wx-pagination-button"
           disabled={page <= 1}
           onClick={() => onPage(page - 1)}
         >
@@ -49,6 +52,8 @@ export default function Pagination({
         </span>
         <Button
           variant="outline"
+          type="button"
+          className="wx-pagination-button"
           disabled={page >= totalPages}
           onClick={() => onPage(page + 1)}
         >

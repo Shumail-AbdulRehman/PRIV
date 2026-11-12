@@ -1,3 +1,4 @@
+import { ui, choose, calendar } from './workspace-helpers';
 import type { Page } from '@playwright/test';
 import { test, expect, enter, fixture, sql, backend } from './fixtures';
 
@@ -67,16 +68,17 @@ test('company performance renders database totals and applies real period and lo
     (SELECT count(*)::int FROM "Attendance" a JOIN "Location" l ON l.id=a."locationId" WHERE l."companyId"=$1 AND l."isActive" AND (a.date AT TIME ZONE 'UTC' AT TIME ZONE l.timezone)::date BETWEEN $2::date AND $3::date) AS shifts,
     (SELECT count(*)::int FROM "Attendance" a JOIN "Location" l ON l.id=a."locationId" WHERE l."companyId"=$1 AND l."isActive" AND a."checkInTime" IS NOT NULL AND (a.date AT TIME ZONE 'UTC' AT TIME ZONE l.timezone)::date BETWEEN $2::date AND $3::date) AS present`, [fixture.company.A, report.dateFrom, report.dateTo]);
   expect(report.summary).toMatchObject({ totalStaff: totals.staff, scheduledShifts: totals.shifts, present: totals.present });
-  await expect(page.locator('.perf-location-table tbody tr')).toHaveCount(expectedSites.length);
-  for (const site of expectedSites) await expect(page.locator('.perf-location-table')).toContainText(site.name);
+  await expect(page.getByRole('region', { name: ui('Every location, in focus') }).getByRole('row').filter({ has: page.getByRole('cell') })).toHaveCount(expectedSites.length);
+  for (const site of expectedSites) await expect(page.getByRole('region', { name: ui('Every location, in focus') })).toContainText(site.name);
   const thirty = browserRead<Performance>(page, '/manager/operations/performance', { period: '30' });
   await page.getByRole('button', { name: 'Last 30 days', exact: true }).click();
   expect((await thirty).series).toHaveLength(30);
-  await expect(page.locator('.perf-data-scroll tbody tr')).toHaveCount(30);
+  await page.getByText('View daily figures', {exact:true}).click();
+  await expect(page.getByRole('region', { name: ui('Daily figures') }).getByRole('row').filter({ has: page.getByRole('cell') })).toHaveCount(30);
   const scoped = browserRead<Performance>(page, '/manager/operations/performance', { locationId: String(fixture.site.A), period: '30' });
-  await page.getByLabel('Location', { exact: true }).selectOption(String(fixture.site.A));
+  await choose(page, 'Location', 'E2E site A');
   expect((await scoped).sites.map(site => site.location.id)).toEqual([fixture.site.A]);
-  await expect(page.locator('.perf-location-table tbody tr')).toHaveCount(1);
+  await expect(page.getByRole('region', { name: ui('Every location, in focus') }).getByRole('row').filter({ has: page.getByRole('cell') })).toHaveCount(1);
   await healthy(page);
 });
 
@@ -89,16 +91,16 @@ test('Today task and staff registers complete real scoped date, search and pagin
   expect(tasks).toMatchObject({ page: 1, pageSize: 1 });
   expect(tasks.rows).toHaveLength(1);
   expect(tasks.rows.every(task => task.locationId === fixture.site.A)).toBe(true);
-  await expect(page.locator('.today-register')).toContainText(tasks.rows[0].title);
+  await expect(page.getByRole('region', { name: ui('Daily records') })).toContainText(tasks.rows[0].title);
   const filteredRead = browserRead<OperationPage<{ id: number }>>(page, '/manager/operations/tasks', { q: 'E2E missing-photo review' });
   await page.getByLabel('Find a task', { exact: true }).fill('E2E missing-photo review');
   const filtered = await filteredRead;
   expect(filtered.rows.map(task => task.id)).toEqual([fixture.review.taskId]);
-  await expect(page.locator('.today-register')).toContainText('E2E review room');
+  await expect(page.getByRole('region', { name: ui('Daily records') })).toContainText('E2E review room');
   const staff = await visit<OperationPage<Person>>(page, route + '&tab=staff&pageSize=1&page=2', '/manager/operations/staff', { page: '2' });
   const [count] = await sql('SELECT count(*)::int AS n FROM "Staff" WHERE "companyId"=$1 AND "locationId"=$2 AND "isActive"', [fixture.company.A, fixture.site.A]);
   expect(staff).toMatchObject({ total: count.n, page: 2, pageSize: 1 });
-  await expect(page.locator('.today-register')).toContainText(staff.rows[0].name);
+  await expect(page.getByRole('region', { name: ui('Daily records') })).toContainText(staff.rows[0].name);
   await healthy(page);
 });
 
@@ -109,14 +111,14 @@ test('Photo Reviews and task-photo bookmarks load persisted queue and detail con
   const reviews = await visit<{ cases: Array<{ id: number }>; total: number; locations: Site[] }>(page, `/exceptions/${fixture.review.id}?queue=${queue}&period=all`, '/verification-exceptions', {queue,period:'all'});
   expect(reviews.cases.map(review => review.id)).toContain(fixture.review.id);
   expect((await detail).location.id).toBe(fixture.site.A);
-  await expect(page.locator('.v5-review-content')).toBeVisible();
-  await expect(page.locator(`.v5-queue-record[data-review-id="${fixture.review.id}"]`).filter({ hasText: record.areaName })).toBeVisible();
+  await expect(page.getByRole('region', { name: ui('Required photo views') })).toBeVisible();
+  await expect(page.getByRole('link').filter({ hasText: record.areaName }).filter({ hasText: record.areaName })).toBeVisible();
   await healthy(page);
   const task = browserRead<{ id: number; verificationVersion: number }>(page, `/task-instance/${fixture.review.taskId}`);
   await page.goto('/verification/' + fixture.review.taskId);
   expect(await task).toMatchObject({ id: fixture.review.taskId, verificationVersion: 2 });
   await expect(page).toHaveURL(new RegExp(`/exceptions/${fixture.review.id}\\?`));
-  await expect(page.locator('.v5-review-content')).toBeVisible();
+  await expect(page.getByRole('region', { name: ui('Required photo views') })).toBeVisible();
   await healthy(page);
 });
 
@@ -125,7 +127,7 @@ test('Locations and every implemented location tab load persisted API records', 
   const sites = await visit<Site[]>(page, '/locations', '/location/', { includeInactive: 'true' });
   expect(sites.map(site => site.id)).toContain(fixture.site.A);
   const [location] = await sql('SELECT id,name FROM "Location" WHERE id=$1', [fixture.site.A]);
-  await expect(page.locator('.location-register-v5')).toContainText(location.name);
+  await expect(page.getByRole('list', { name: ui('Location register') })).toContainText(location.name);
   await healthy(page);
   for (const tab of ['overview', 'staff', 'templates', 'areas', 'instances', 'schedule']) {
     await test.step(tab, async () => {
@@ -137,16 +139,16 @@ test('Locations and every implemented location tab load persisted API records', 
           : undefined;
       await page.goto(`/locations/${fixture.site.A}?tab=${tab}`);
       expect((await details).locationInfo).toMatchObject(location);
-      await expect(page.locator('.location-detail-page h1')).toHaveText(location.name);
+      await expect(page.getByRole('heading', { level: 1 })).toHaveText(location.name);
       if (tab === 'areas' || tab === 'overview') expect(await extra).toEqual(expect.any(Array));
-      if (tab === 'areas') await expect(page.locator('.location-detail-page')).toContainText('E2E review room');
-      if (tab === 'overview') await expect(page.locator('.location-metrics-v5')).toBeVisible();
+      if (tab === 'areas') await expect(page.getByRole('main')).toContainText('E2E review room');
+      if (tab === 'overview') await expect(page.getByRole('region', { name: ui('Daily summary') })).toBeVisible();
       if (tab === 'schedule') {
         expect(await extra).toMatchObject({ location: { id: fixture.site.A }, days: expect.any(Array) });
-        await expect(page.locator('.location-week-v5')).toContainText('Week at a glance');
+        await expect(page.getByRole('heading', { name: ui('Week at a glance') })).toBeVisible();
       }
-      if (tab === 'staff') await expect(page.locator('.location-staff-panel')).toContainText('E2E staff openShift');
-      if (tab === 'templates') await expect(page.getByRole('button', { name: 'Add cleaning schedule', exact: true })).toBeVisible();
+      if (tab === 'staff') await expect(page.getByRole('tabpanel', { name: ui('Staff and shifts') })).toContainText('E2E staff openShift');
+      if (tab === 'templates') await expect(page.getByRole('button', { name: 'Add cleaning schedule', exact: true }).first()).toBeVisible();
       await healthy(page);
     });
   }
@@ -156,14 +158,14 @@ test('Team and worker history display real persisted people and attendance', asy
   const people = await visit<Person[]>(page, '/staff', '/staff/');
   const expected: Person[] = await sql('SELECT id,name FROM "Staff" WHERE "companyId"=$1 AND "isActive" ORDER BY id', [fixture.company.A]);
   expect(people.map(person => person.id).sort((a, b) => a - b)).toEqual(expected.map(person => person.id));
-  await expect(page.locator('.workforce-directory')).toContainText('E2E staff openShift');
+  await expect(page.getByRole('table')).toContainText('E2E staff openShift');
   await healthy(page);
   const day = await attendanceDay(fixture.attendance.legacy);
   const detail = await visit<{ id: number; name: string; attendanceStats: unknown; attendances: unknown[] }>(page, `/staff/${fixture.staff.legacy.id}?tab=attendance&dateFrom=${day}&dateTo=${day}`, `/staff/details/${fixture.staff.legacy.id}`);
   expect(detail).toMatchObject({ id: fixture.staff.legacy.id, name: 'E2E staff legacy', attendanceStats: expect.any(Object) });
   await expect(page.getByRole('heading', { name: 'E2E staff legacy', exact: true })).toBeVisible();
   await expect(page.getByText('Attendance records', { exact: true })).toBeVisible();
-  await expect(page.getByRole('button', { name: 'Attendance context', exact: true }).filter({ visible: true })).toHaveCount(1);
+  await expect(page.getByRole('button', { name: /^Attendance context(?::|$)/ }).filter({ visible: true })).toHaveCount(1);
   await healthy(page);
 });
 
@@ -172,15 +174,16 @@ test('Attendance renders saved shifts, real context and genuine empty date filte
   const records = await visit<Array<{ id: number; staff: Person; location: Site }>>(page, `/attendance?locationId=${fixture.site.A}&from=${day}&to=${day}`, '/attendance/', { from: day, to: day });
   expect(records.map(record => record.id)).toContain(fixture.attendance.openShift);
   expect(records.every(record => record.location.id === fixture.site.A)).toBe(true);
-  await expect(page.locator('.attendance-register')).toContainText('E2E staff openShift');
+  await expect(page.getByRole('region', { name: ui('Attendance records') })).toContainText('E2E staff openShift');
   await healthy(page);
   const context = browserRead<{ attendanceId: number; items: unknown[] }>(page, `/attendance/${fixture.attendance.openShift}/annotations`);
-  await page.locator('.attendance-register .data-table tbody tr').filter({ hasText: 'E2E staff openShift' }).getByRole('button', { name: 'Attendance context', exact: true }).click();
+  await page.getByRole('row').filter({ hasText: 'E2E staff openShift' }).getByRole('button', { name: /^Attendance context(?::|$)/ }).click();
   expect(await context).toMatchObject({ attendanceId: fixture.attendance.openShift, items: expect.any(Array) });
   await expect(page.getByRole('dialog')).toContainText('Original captured facts');
   await page.getByRole('dialog').getByRole('button', { name: 'Close', exact: true }).first().click();
-  await page.getByLabel('From date', { exact: true }).fill('2090-01-01');
-  await page.getByLabel('To date', { exact: true }).fill('2090-01-02');
+  await page.getByText('More filters', { exact: true }).click();
+  await calendar(page, 'From date', '2090-01-01');
+  await calendar(page, 'To date', '2090-01-02');
   const empty = browserRead<unknown[]>(page, '/attendance/', { from: '2090-01-01' });
   await page.getByRole('button', { name: 'Apply filters', exact: true }).click();
   expect(await empty).toEqual([]);
@@ -196,7 +199,7 @@ test('Company Setup derives persisted site readiness and owner account facts', a
   expect(data.sites.map(site => site.id)).toEqual(expected.map(site => site.id));
   expect(data.totalLocations).toBe(expected.length);
   for (const site of data.sites) expect(site.counts.activeAreas).toBe(expected.find(row => row.id === site.id)?.areas);
-  await expect(page.getByLabel('Setup for location', { exact: true })).toHaveValue(String(data.sites[0].id));
+  await expect(page.getByRole('button', { name: /^Setup for location:/ })).toContainText(data.sites[0].name);
   await expect(page.getByText('Owner email', { exact: true })).toBeVisible();
   await healthy(page);
 });
@@ -205,7 +208,7 @@ test('Managers renders actual company manager assignments', async ({ page }) => 
   const managers = await visit<Array<Person & { locations: Site[] }>>(page, '/managers', '/manager/');
   const expected: Person[] = await sql('SELECT id,name FROM "Manager" WHERE "companyId"=$1 AND role=\'MANAGER\' ORDER BY id', [fixture.company.A]);
   expect(managers.map(manager => manager.id).sort((a, b) => a - b)).toEqual(expected.map(manager => manager.id));
-  await expect(page.locator('.workforce-directory')).toContainText('E2E manager A');
+  await expect(page.getByRole('table')).toContainText('E2E manager A');
   expect(managers.find(manager => manager.id === fixture.users.managerA.id)?.locations.map(site => site.id)).toEqual([fixture.site.A]);
   await healthy(page);
 });
@@ -220,8 +223,8 @@ test('Settings organization and My account load saved company and owner identity
   const status = await identity;
   const [owner] = await sql('SELECT "emailVerifiedAt" IS NOT NULL AS verified,email FROM "Manager" WHERE id=$1', [fixture.users.ownerA.id]);
   expect(status.emailVerified).toBe(owner.verified);
-  await expect(page.locator('#settings-account')).toContainText(owner.email);
-  await expect(page.locator('.settings-verification')).toContainText(status.emailVerified ? 'Owner email is verified.' : 'Owner email is not verified.');
+  await expect(page.getByRole('region', { name: 'My account', exact: true })).toContainText(owner.email);
+  await expect(page.getByRole('region', { name: ui('My account') })).toContainText(status.emailVerified ? 'Owner email is verified.' : 'Owner email is not verified.');
   await healthy(page);
 });
 
@@ -234,8 +237,8 @@ test('Plan and Billing displays persisted provider linkage and capacity without 
     (SELECT count(*)::int FROM "Staff" WHERE "companyId"=$1 AND "isActive") AS staff,
     (SELECT count(*)::int FROM "Manager" WHERE "companyId"=$1 AND "isActive") AS managers`, [fixture.company.A]);
   expect(lifecycle.usage).toEqual(usage);
-  await expect(page.getByRole('heading', { name: 'Your subscription', exact: true })).toBeVisible();
-  await expect(page.locator('.billing-account-facts')).toContainText('Active');
+  await expect(page.getByRole('heading', { name: 'Plan & billing', exact: true })).toBeVisible();
+  await expect(page.getByRole('region').filter({ has: page.getByRole('heading', { name: /^Starter$/i, exact: true }) })).toContainText('Active');
   await expect(page.getByText('Workspace usage',{exact:true})).toBeVisible();await expect(page.getByText(new RegExp(`^${usage.staff} / `))).toBeVisible();
   await healthy(page);
 });
@@ -251,20 +254,21 @@ test('inactive location directory opt-in preserves active selectors and assigned
     const active = await page.request.get(backend + '/api/location/');
     expect(active.status()).toBe(200);
     expect((await active.json()).data.map((site: Site) => site.id)).not.toContain(fixture.site.B);
-    await page.getByRole('combobox', { name: 'Location status', exact: true }).selectOption('inactive');
-    await expect(page.locator('.location-register-v5 .data-table tbody tr')).toHaveCount(1);
-    await expect(page.locator('.location-register-v5 .data-table')).toContainText('E2E site B');
-    await page.getByRole('combobox', { name: 'Location status', exact: true }).selectOption('all');
-    await expect(page.locator('.location-register-v5 .data-table')).toContainText('E2E site A');
-    await expect(page.locator('.location-register-v5 .data-table')).toContainText('E2E site B');
+    await choose(page, 'Location status', 'Inactive locations');
+    await expect(page.getByRole('list', { name: 'Location register' }).getByRole('link')).toHaveCount(1);
+    await expect(page.getByRole('list', { name: 'Location register' })).toContainText('E2E site B');
+    await choose(page, 'Location status', 'All locations');
+    await expect(page.getByRole('list', { name: 'Location register' })).toContainText('E2E site A');
+    await expect(page.getByRole('list', { name: 'Location register' })).toContainText('E2E site B');
     await page.goto('/attendance');
-    await expect(page.getByLabel('Location', { exact: true })).toBeEnabled();
-    await expect(page.getByLabel('Location', { exact: true }).locator(`option[value="${fixture.site.B}"]`)).toHaveCount(0);
+    await page.getByRole('button', { name: /^Location:/ }).click();
+    await expect(page.getByRole('menuitemradio', { name: 'E2E site B', exact: true })).toHaveCount(0);
+    await page.keyboard.press('Escape');
     const manager = await visit<Site[]>(page, '/locations', '/location/', { includeInactive: 'true' }, 'managerA');
     expect(manager.map(site => site.id)).toEqual([fixture.site.A]);
-    await page.getByRole('combobox', { name: 'Location status', exact: true }).selectOption('all');
-    await expect(page.locator('.location-register-v5 .data-table')).not.toContainText('E2E site B');
-    await expect(page.locator('.location-register-v5 .data-table')).not.toContainText('E2E site foreign');
+    await choose(page, 'Location status', 'All locations');
+    await expect(page.getByRole('list', { name: 'Location register' })).not.toContainText('E2E site B');
+    await expect(page.getByRole('list', { name: 'Location register' })).not.toContainText('E2E site foreign');
     for (const id of [fixture.site.B, fixture.site.foreign]) {
       const denied = await page.request.get(backend + `/api/location/${id}/stats`);
       expect([403, 404]).toContain(denied.status());
@@ -282,8 +286,8 @@ test('actual backend denial terminates the performance loading label and authori
   expect((await denied.json()).success).toBe(false);
   await expect(page.getByRole('alert')).toBeVisible();
   await expect(page.getByText('Loading performance…', { exact: true })).toHaveCount(0);
-  await expect(page.locator('.perf-range')).toHaveText('Reporting period');
-  await expect(page.locator('.perf-main-grid')).toHaveCount(0);
+  await expect(page.getByRole('group', { name: 'Reporting period', exact: true })).toBeVisible();
+  await expect(page.getByRole('heading', { name: ui('Work submitted') })).toHaveCount(0);
   for (const path of [
     `/manager/operations/performance?locationId=${fixture.site.foreign}`,
     `/manager/operations/tasks?locationId=${fixture.site.B}`,
@@ -295,11 +299,11 @@ test('actual backend denial terminates the performance loading label and authori
   const read = browserRead<Performance>(page, '/manager/operations/performance', { locationId: String(fixture.site.A) });
   await page.goto('/dashboard?locationId=' + fixture.site.A);
   expect((await read).sites.map(site => site.location.id)).toEqual([fixture.site.A]);
-  await expect(page.locator('.perf-main-grid')).toBeVisible();
+  await expect(page.getByRole('heading', { name: ui('Work submitted') })).toBeVisible();
   await healthy(page);
   const foreign = await visit<Performance>(page, '/dashboard', '/manager/operations/performance', {}, 'ownerB');
   expect(foreign.sites.map(site => site.location.id)).toEqual([fixture.site.foreign]);
-  await expect(page.locator('.perf-location-table')).toContainText('E2E site foreign');
-  await expect(page.locator('.perf-location-table')).not.toContainText('E2E site A');
+  await expect(page.getByRole('region', { name: ui('Every location, in focus') })).toContainText('E2E site foreign');
+  await expect(page.getByRole('region', { name: ui('Every location, in focus') })).not.toContainText('E2E site A');
   await healthy(page);
 });

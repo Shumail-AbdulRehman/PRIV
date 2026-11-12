@@ -1,6 +1,7 @@
 import { Prisma } from "@prisma/client";
 import type { OperationTaskRow } from "./managerOperations.service.js";
 import type { OperationsDay } from "./operationsScope.service.js";
+import { hourlyProgressSql, type HourlyProgress } from "./operationsHourlyProgress.js";
 
 export type OverviewAggregate = {
   locationId: number;
@@ -19,6 +20,7 @@ export type OverviewAggregate = {
 
 export type OverviewSnapshot = {
   counts: OverviewAggregate[];
+  hourly: HourlyProgress[];
   lateIds: number[];
   unassignedIds: number[];
   taskIds: number[];
@@ -41,13 +43,13 @@ export function overviewAggregateSql(
   now: Date,
 ) {
   const ranges = Prisma.join(days.map(d => Prisma.sql`(
-    ${d.locationId}::integer, ${d.start}::timestamp, ${d.end}::timestamp
+    ${d.locationId}::integer, ${d.start}::timestamp, ${d.end}::timestamp, ${d.timezone}::text
   )`));
   return Prisma.sql`
-    WITH days("locationId", start_at, end_at) AS (VALUES ${ranges}),
+    WITH days("locationId", start_at, end_at, timezone) AS (VALUES ${ranges}),
     scoped_tasks AS MATERIALIZED (
       SELECT t.id, t."locationId", t."staffId", t."shiftStart", t."shiftEnd",
-        t.status, t."completionOutcome",
+        t.status, t."completionOutcome", t."staffSubmittedAt", t."completedAt",
         (t."staffSubmittedAt" IS NOT NULL OR t.status = 'COMPLETED') AS submitted
       FROM "TaskInstance" t
       JOIN days d ON d."locationId" = t."locationId"
@@ -55,7 +57,7 @@ export function overviewAggregateSql(
       WHERE t."isActive" AND t.status <> 'CANCELLED'
         AND ((t.date >= d.start_at AND t.date < d.end_at)
           OR (t."shiftStart" < d.end_at AND t."shiftEnd" > d.start_at))
-    ), classified AS MATERIALIZED (
+    ), ${hourlyProgressSql(now)}, classified AS MATERIALIZED (
       SELECT *, (NOT submitted AND ("shiftEnd" < ${now}::timestamp
         OR status IN ('MISSED', 'NOT_COMPLETED_INTIME'))) AS overdue
       FROM scoped_tasks
@@ -159,6 +161,7 @@ export function overviewAggregateSql(
       ORDER BY s.name, s.id LIMIT 3
     )
     SELECT COALESCE((SELECT jsonb_agg(c) FROM location_counts c), '[]'::jsonb) AS counts,
+      COALESCE((SELECT jsonb_agg(h ORDER BY h.hour) FROM hourly_progress h), '[]'::jsonb) AS hourly,
       late AS "lateIds", unassigned AS "unassignedIds", p.tasks AS "taskIds",
       COALESCE((SELECT jsonb_agg(task) FROM task_preview), '[]'::jsonb) AS tasks,
       COALESCE((SELECT jsonb_agg(a) FROM absent_preview a), '[]'::jsonb) AS absent,

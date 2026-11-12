@@ -1,13 +1,18 @@
-import { useState, type FormEvent } from 'react';
+import { useRef, useState, type FormEvent } from 'react';
 import { Link, useSearchParams } from 'react-router-dom';
-import { CalendarCheck, RefreshCw } from 'lucide-react';
+import { CalendarCheck, Camera, ChevronRight, MapPin, RefreshCw, Users } from 'lucide-react';
 import { formatInTimeZone } from 'date-fns-tz';
 import { useLanguage } from '@/i18n/context';
 import PageHeader from '@/components/common/PageHeader';
 import DataTable, { type Column } from '@/components/common/DataTable';
-import StatusBadge from '@/components/common/StatusBadge';
-import ProtectedAttendancePhoto, { type AttendancePhoto } from '@/components/common/ProtectedAttendancePhoto';
-import { Button } from '@/components/ui/button';
+import EmptyState from '@/components/common/EmptyState';
+import type { AttendancePhoto } from '@/components/common/ProtectedAttendancePhoto';
+import ChipGroup from '@/components/workspace/ChipGroup';
+import DateMenu from '@/components/workspace/DateMenu';
+import SelectMenu from '@/components/workspace/SelectMenu';
+import PersonAvatar from '@/components/workspace/PersonAvatar';
+import SiteAvatar from '@/components/workspace/SiteAvatar';
+import StatusPill from '@/components/workspace/StatusPill';
 import { getAttendanceDisplayStatus } from '@/lib/attendance';
 import { useGetLocations } from '../Location/queries';
 import { useGetStaff } from '../Staff/queries';
@@ -15,7 +20,7 @@ import OperationsState from '../Manager/OperationsState';
 import AttendanceContext from './AttendanceContext';
 import { useGetAttendance } from './queries';
 import type { AttendanceFilters } from './api';
-import './attendance-v5.css';
+import './attendance-v6.css';
 
 interface AttendanceRecord {
   id: number; staffId: number; locationId: number; date: string;
@@ -28,28 +33,49 @@ interface AttendanceRecord {
 interface Site { id: number; name: string; timezone: string }
 interface StaffOption { id: number; name: string; locationId?: number | null }
 const calendarDate = (date = new Date(), timezone = 'UTC') => formatInTimeZone(date, timezone, 'yyyy-MM-dd');
+const validDate = (value: string | null): value is string => !!value && /^\d{4}-\d{2}-\d{2}$/.test(value) && Number.isFinite(Date.parse(value)) && new Date(value).toISOString().slice(0, 10) === value;
+const monthRange = (month: string) => {
+  if (!/^\d{4}-(0[1-9]|1[0-2])$/.test(month)) return null;
+  const start = `${month}-01`;
+  if (!validDate(start)) return null;
+  const end = new Date(`${start}T12:00:00Z`);
+  end.setUTCMonth(end.getUTCMonth() + 1, 0);
+  return { from: start, to: calendarDate(end) };
+};
 
 type InitialFilters = AttendanceFilters & { from: string; to: string };
 function readInitialFilters(params: URLSearchParams): InitialFilters {
   const positiveId = (key: string) => { const raw = params.get(key) ?? ''; const value = Number(raw); return /^\d+$/.test(raw) && Number.isSafeInteger(value) && value > 0 ? value : undefined; };
-  const validDate = (value: string | null): value is string => !!value && /^\d{4}-\d{2}-\d{2}$/.test(value) && Number.isFinite(Date.parse(value)) && new Date(value).toISOString().slice(0, 10) === value;
   const start = params.get('from'), end = params.get('to');
   const range = validDate(start) && validDate(end) && start <= end ? { from: start, to: end } : { from: calendarDate(), to: calendarDate() };
   return { ...range, locationId: positiveId('locationId'), staffId: positiveId('staffId') };
 }
 export default function AttendancePage() {
   const [params] = useSearchParams();
-  return <AttendanceRegister key={params.toString()} initial={readInitialFilters(params)} />;
+  return <AttendanceRegister initial={readInitialFilters(params)} />;
 }
-function AttendanceRegister({ initial }: { initial: InitialFilters }) {
+function AttendanceRegister({ initial: applied }: { initial: InitialFilters }) {
   const { t, language } = useLanguage();
-  const [location, setLocation] = useState(initial.locationId ? String(initial.locationId) : '');
-  const [staff, setStaff] = useState(initial.staffId ? String(initial.staffId) : '');
-  const [from, setFrom] = useState(initial.from);
-  const [to, setTo] = useState(initial.to);
-  const [month, setMonth] = useState(initial.from.slice(0, 7));
+  const [, setParams] = useSearchParams();
+  const root = useRef<HTMLDivElement>(null);
+  const scopeKey = `${applied.locationId ?? ''}:${applied.staffId ?? ''}:${applied.from}:${applied.to}`;
+  const [previousScope, setPreviousScope] = useState(scopeKey);
+  const [location, setLocation] = useState(applied.locationId ? String(applied.locationId) : '');
+  const [staff, setStaff] = useState(applied.staffId ? String(applied.staffId) : '');
+  const [from, setFrom] = useState(applied.from);
+  const [to, setTo] = useState(applied.to);
+  const [month, setMonth] = useState(applied.from.slice(0, 7));
   const [validation, setValidation] = useState('');
-  const [applied, setApplied] = useState<AttendanceFilters>(initial);
+  const [selected, setSelected] = useState<AttendanceRecord | null>(null);
+  const [panelOpen, setPanelOpen] = useState(false);
+  // Sync browser Back/Forward without remounting controls on our own URL writes.
+  if (previousScope !== scopeKey) {
+    setPreviousScope(scopeKey);
+    setLocation(applied.locationId ? String(applied.locationId) : '');
+    setStaff(applied.staffId ? String(applied.staffId) : '');
+    setFrom(applied.from); setTo(applied.to); setMonth(applied.from.slice(0, 7));
+    setValidation(''); setPanelOpen(false);
+  }
   const locationsQuery = useGetLocations();
   const staffQuery = useGetStaff();
   const query = useGetAttendance(applied);
@@ -63,48 +89,67 @@ function AttendanceRegister({ initial }: { initial: InitialFilters }) {
   const appliedSite = sites.find(site => site.id === applied.locationId);
   const appliedStaff = allStaff.find(person => person.id === applied.staffId);
   const now = new Date();
+  const today = calendarDate(now, selectedSite?.timezone);
+  const yesterdayDate = new Date(today + 'T12:00:00Z');
+  yesterdayDate.setUTCDate(yesterdayDate.getUTCDate() - 1);
+  const yesterday = calendarDate(yesterdayDate);
+  const thisMonth = monthRange(today.slice(0, 7))!;
+  const quickValue = applied.from === today && applied.to === today ? 'today'
+    : applied.from === yesterday && applied.to === yesterday ? 'yesterday'
+    : applied.from === thisMonth.from && applied.to === thisMonth.to ? 'month' : '';
+  const denied = [401, 403, 404].includes((query.error as { response?: { status?: number } })?.response?.status ?? 0);
+  const hasRecords = !!query.data && !denied;
   const checkedIn = records.filter(record => record.checkInTime).length;
   const checkedOut = records.filter(record => record.checkOutTime).length;
   const late = records.filter(record => record.isLateCheckIn || record.status === 'LATE').length;
-  const hasRecords = !!query.data && !query.isError;
-  const dateLabel = (value?: string) => value ? new Intl.DateTimeFormat(language === 'ur' ? 'ur-PK' : 'en-PK', { timeZone: 'UTC', dateStyle: 'medium' }).format(new Date(value + 'T00:00:00Z')) : t('Any date');
+  const dateLabel = (value: string) => new Intl.DateTimeFormat(language === 'ur' ? 'ur-PK' : 'en-PK', { timeZone: 'UTC', dateStyle: 'medium' }).format(new Date(value + 'T00:00:00Z'));
   const time = (value: string | null, timezone?: string) => value ? formatInTimeZone(new Date(value), timezone ?? 'UTC', 'HH:mm') : t('Not recorded');
-  const capture = (record: AttendanceRecord) => ({ ...record, location: { ...record.location, timezone: record.location.timezone ?? 'UTC' } });
 
+  function writeFilters(filters: InitialFilters) {
+    setParams(current => {
+      const next = new URLSearchParams(current);
+      next.set('from', filters.from); next.set('to', filters.to);
+      for (const key of ['locationId', 'staffId'] as const) {
+        if (filters[key]) next.set(key, String(filters[key])); else next.delete(key);
+      }
+      return next;
+    });
+  }
   function apply(event?: FormEvent, range?: { from: string; to: string }) {
     event?.preventDefault();
     const start = range?.from ?? from, end = range?.to ?? to;
-    if (!start || !end || start > end) { setValidation('Choose a valid date range. From must be on or before To.'); return; }
+    if (!validDate(start) || !validDate(end) || start > end) { setValidation('Choose a valid date range. From must be on or before To.'); return; }
     setValidation(''); setFrom(start); setTo(end);
-    setApplied({ locationId: location ? Number(location) : undefined, staffId: staff ? Number(staff) : undefined, from: start, to: end });
+    writeFilters({ locationId: location ? Number(location) : undefined, staffId: staff ? Number(staff) : undefined, from: start, to: end });
   }
-  function quick(type: 'today' | 'yesterday' | 'month') {
-    if (type === 'month') {
-      const [year, number] = month.split('-').map(Number);
-      if (!year || !number || number > 12) return;
-      apply(undefined, { from: `${month}-01`, to: calendarDate(new Date(Date.UTC(year, number, 0))) });
-    } else {
-      const date = calendarDate(now, selectedSite?.timezone);
-      const day = new Date(date + 'T12:00:00Z');
-      if (type === 'yesterday') day.setUTCDate(day.getUTCDate() - 1);
-      const value = calendarDate(day); apply(undefined, { from: value, to: value });
-    }
+  function quick(type: string) {
+    apply(undefined, type === 'month' ? thisMonth : { from: type === 'yesterday' ? yesterday : today, to: type === 'yesterday' ? yesterday : today });
   }
   function reset() {
     const date = calendarDate(); setLocation(''); setStaff(''); setFrom(date); setTo(date); setMonth(date.slice(0, 7)); setValidation('');
-    setApplied({ from: date, to: date });
+    writeFilters({ from: date, to: date });
   }
-  const staffCell = (record: AttendanceRecord) => <div className="attendance-person"><span className="workspace-avatar" aria-hidden="true">{record.staff.name.split(' ').map(word => word[0]).join('').slice(0, 2)}</span><div><Link to={`/staff/${record.staff.id}`}><bdi>{record.staff.name}</bdi></Link><small><bdi>{record.location.name}</bdi> · <bdi>{dateLabel(record.date.slice(0, 10))}</bdi></small></div></div>;
-  const shiftCell = (record: AttendanceRecord) => <div><bdi>{time(record.expectedStart, record.location.timezone)} – {time(record.expectedEnd, record.location.timezone)}</bdi><small>{record.location.timezone ?? t('UTC · location timezone unavailable')}</small></div>;
-  const timeCell = (record: AttendanceRecord) => <div><span>{t('Check-in')}: <bdi>{time(record.checkInTime, record.location.timezone)}</bdi></span><small>{t('Check-out')}: <bdi>{time(record.checkOutTime, record.location.timezone)}</bdi></small></div>;
-  const statusCell = (record: AttendanceRecord) => <div><StatusBadge status={getAttendanceDisplayStatus(record, now, record.location.timezone ?? 'UTC')} />{record.isLateCheckIn && record.status !== 'LATE' ? <small>{t('Late arrival')}</small> : null}{record.lateMinutes ? <small>{t('{minutes} minutes late', { minutes: record.lateMinutes })}</small> : null}</div>;
-  const actions = (record: AttendanceRecord) => <div className="attendance-row-actions"><AttendanceContext attendance={capture(record)} staffName={record.staff.name} /><details className="attendance-photo-options"><summary>{t('Photos')}</summary><div><ProtectedAttendancePhoto attendanceId={record.id} kind="check-in" photo={record.checkInPhoto} /><ProtectedAttendancePhoto attendanceId={record.id} kind="check-out" photo={record.checkOutPhoto} /></div></details></div>;
+  function openRecord(record: AttendanceRecord, focusRow = false) {
+    if (focusRow) root.current?.querySelector<HTMLButtonElement>(`[data-attendance-id="${record.id}"]`)?.closest<HTMLTableRowElement>('tr')?.focus();
+    setSelected(record); setPanelOpen(true);
+  }
+  const staffCell = (record: AttendanceRecord) => <div className="wx-att-person"><PersonAvatar name={record.staff.name} /><div><Link to={`/staff/${record.staff.id}`}><bdi>{record.staff.name}</bdi></Link><small><bdi>{dateLabel(record.date.slice(0, 10))}</bdi></small></div></div>;
+  const shiftCell = (record: AttendanceRecord) => <div className="wx-att-person"><SiteAvatar name={record.location.name} /><div><Link to={`/locations/${record.location.id}`}><bdi>{record.location.name}</bdi></Link><small><bdi>{time(record.expectedStart, record.location.timezone)} – {time(record.expectedEnd, record.location.timezone)}</bdi></small><small><bdi>{record.location.timezone ?? t('UTC · location timezone unavailable')}</bdi></small></div></div>;
+  const timeCell = (record: AttendanceRecord, kind: 'check-in' | 'check-out') => {
+    const photo = kind === 'check-in' ? record.checkInPhoto : record.checkOutPhoto;
+    const value = kind === 'check-in' ? record.checkInTime : record.checkOutTime;
+    return <span className="wx-att-time"><bdi>{time(value, record.location.timezone)}</bdi>{photo?.state === 'AVAILABLE' ? <span role="img" aria-label={t('Photo available')}><Camera size={14} aria-hidden="true" /></span> : null}</span>;
+  };
+  const statusCell = (record: AttendanceRecord) => {
+    const status = getAttendanceDisplayStatus(record, now, record.location.timezone ?? 'UTC');
+    return <div className="wx-att-status"><div><StatusPill status={status} tone={['ABSENT', 'MISSED_CHECKOUT'].includes(status) ? 'bad' : status === 'LATE' ? 'attention' : ['CHECKED_IN', 'CHECKED_OUT'].includes(status) ? 'ok' : 'neutral'} />{record.isLateCheckIn && record.status !== 'LATE' ? <small>{t('Late arrival')}</small> : null}{record.lateMinutes ? <small>{t('{minutes} minutes late', { minutes: record.lateMinutes })}</small> : null}</div><button type="button" className="wx-att-open" data-attendance-id={record.id} aria-label={`${t('Attendance context')}: ${record.staff.name}`} onClick={() => openRecord(record)}><ChevronRight aria-hidden="true" /></button></div>;
+  };
   const columns: Column<AttendanceRecord>[] = [
     { key: 'staff', header: 'Staff member', sortValue: record => record.staff.name, render: staffCell },
-    { key: 'shift', header: 'Shift', render: shiftCell },
-    { key: 'check-in', header: 'Check-in / out', render: timeCell },
+    { key: 'shift', header: 'Location and shift', render: shiftCell },
+    { key: 'check-in', header: 'Check-in', render: record => timeCell(record, 'check-in') },
+    { key: 'check-out', header: 'Check-out', render: record => timeCell(record, 'check-out') },
     { key: 'status', header: 'Status', sortValue: record => getAttendanceDisplayStatus(record, now, record.location.timezone ?? 'UTC'), render: statusCell },
-    { key: 'actions', header: 'Photo & context', render: actions },
   ];
   const metrics = [
     ['Scheduled shifts', records.length, 'Recorded for the applied dates'],
@@ -112,31 +157,36 @@ function AttendanceRegister({ initial }: { initial: InitialFilters }) {
     ['Late arrivals', late, 'Recorded against the shift'],
     ['Checked out', checkedOut, 'Captured checkouts'],
   ] as const;
-  return <div className="attendance-v5">
+  const activeRecord = selected ? records.find(record => record.id === selected.id) ?? selected : null;
+  return <div className="wx-attendance-page" ref={root}>
     <PageHeader title="Attendance" subtitle="Know who is on site. Follow every check-in with confidence." />
-    <form className="attendance-filter-panel" onSubmit={apply}>
-      <div className="attendance-primary-filters">
-        <label>{t('Location')}<select aria-label={t('Location')} value={location} onChange={event => { setLocation(event.target.value); setStaff(''); }} disabled={locationsQuery.isPending || locationsQuery.isError}><option value="">{t('All locations')}</option>{sites.map(site => <option key={site.id} value={site.id}>{site.name}</option>)}</select></label>
-        <label>{t('From')}<input aria-label={t('From date')} type="date" value={from} required onChange={event => setFrom(event.target.value)} /></label>
-        <label>{t('To')}<input aria-label={t('To date')} type="date" value={to} required onChange={event => setTo(event.target.value)} /></label>
-        <Button type="submit">{t('Apply filters')}</Button>
-      </div>
-      {validation ? <p role="alert" className="attendance-filter-error">{t(validation)}</p> : null}
-      {locationsQuery.isError ? <div role="alert" className="attendance-option-error"><span>{t('Locations could not load. Existing attendance is still available.')}</span><Button type="button" variant="outline" onClick={() => void locationsQuery.refetch()}>{t('Retry locations')}</Button></div> : null}
-      <div className="attendance-applied-scope"><p><bdi>{appliedSite?.name ?? t('All locations')}</bdi> · <bdi>{dateLabel(applied.from)}{applied.to !== applied.from ? ` – ${dateLabel(applied.to)}` : ''}</bdi>{appliedSite ? <> · <bdi>{appliedSite.timezone}</bdi></> : null}{appliedStaff ? <> · <bdi>{appliedStaff.name}</bdi></> : null}</p><Button type="button" variant="outline" onClick={() => quick('today')}>{t('Today')}</Button></div>
-      <p className="attendance-calendar-help">{t(appliedSite ? 'Dates and times follow the selected location’s calendar.' : 'Dates follow each location’s calendar. Choose a location to use its current day.')}</p>
-      <details className="attendance-more-filters"><summary>{t('More filters')}</summary><div>
-        <label>{t('Staff')}<select aria-label={t('Staff')} value={staff} disabled={staffQuery.isPending || staffQuery.isError} onChange={event => setStaff(event.target.value)}><option value="">{t('All Staff')}</option>{allStaff.filter(person => !location || String(person.locationId) === location).map(person => <option key={person.id} value={person.id}>{person.name}</option>)}</select></label>
-        <label>{t('Month')}<input type="month" aria-label={t('Month')} value={month} onChange={event => setMonth(event.target.value)} /></label>
-        <Button type="button" variant="outline" onClick={() => quick('month')}>{t('Apply month')}</Button><Button type="button" variant="outline" onClick={() => quick('yesterday')}>{t('Yesterday')}</Button><Button type="button" variant="outline" onClick={reset}>{t('Reset')}</Button>
-      </div>{staffQuery.isError ? <p role="alert">{t('Staff filter could not load.')} <Button type="button" variant="outline" onClick={() => void staffQuery.refetch()}>{t('Retry')}</Button></p> : null}</details>
-    </form>
-    <div className="attendance-summary" aria-label={t('Attendance summary')} aria-busy={query.isPending}>{metrics.map(([label, value, hint]) => <div key={label}><span>{t(label)}</span><strong>{hasRecords ? value : '—'}</strong><p>{t(hint)}</p></div>)}</div>
-    <section className="attendance-register" aria-labelledby="attendance-register-title">
-      <header><div><h2 id="attendance-register-title">{t('Attendance records')}</h2><p>{t('Photos are available only to authorized accounts.')}</p></div><Button type="button" variant="outline" onClick={() => void query.refetch()} disabled={query.isFetching}><RefreshCw size={16} aria-hidden="true" />{t(query.isFetching ? 'Refreshing…' : 'Refresh')}</Button></header>
-      <OperationsState loading={query.isPending} error={query.error} retry={() => void query.refetch()} />
-      {hasRecords ? <DataTable pageSize={20} columns={columns} data={records} rowKey={record => record.id} emptyIcon={<CalendarCheck size={32} />} emptyMessage="No attendance records found for the selected filters." mobileRender={record => <><div className="attendance-mobile-person">{staffCell(record)}{statusCell(record)}</div><dl><div><dt>{t('Shift')}</dt><dd>{shiftCell(record)}</dd></div><div><dt>{t('Check-in / out')}</dt><dd>{timeCell(record)}</dd></div></dl>{actions(record)}</>} /> : null}
-      <footer><span>{t('Overnight shifts remain tied to their scheduled local date.')}</span><span>{hasRecords ? t('{count} recorded shifts', { count: records.length }) : t('Attendance totals are unavailable until records load.')}</span></footer>
+    <section className="wx-att-register" aria-labelledby="wx-att-register-title">
+      <form className="wx-att-filters" onSubmit={apply} noValidate>
+        <div className="wx-att-filter-row">
+          <ChipGroup label="Quick filters" value={quickValue} options={[{ value: 'today', label: 'Today' }, { value: 'yesterday', label: 'Yesterday' }, { value: 'month', label: 'This Month' }]} onChange={quick} />
+          <SelectMenu label="Location" value={location} onChange={value => { setLocation(value); setStaff(''); }} disabled={locationsQuery.isPending || locationsQuery.isError} icon={<MapPin />} options={[{ value: '', label: 'All locations' }, ...sites.map(site => ({ value: String(site.id), label: site.name, translateLabel: false }))]} />
+          <SelectMenu label="Staff" value={staff} onChange={setStaff} disabled={staffQuery.isPending || staffQuery.isError} icon={<Users />} options={[{ value: '', label: 'All Staff' }, ...allStaff.filter(person => !location || String(person.locationId) === location).map(person => ({ value: String(person.id), label: person.name, translateLabel: false }))]} />
+          <button className="wx-att-button" type="submit">{t('Apply filters')}</button>
+          <button className="wx-att-button wx-att-button--quiet" type="button" onClick={reset}>{t('Reset')}</button>
+        </div>
+        <details className="wx-att-more"><summary>{t('More filters')}</summary><div className="wx-att-filter-row">
+          <label><span>{t('From')}</span><DateMenu label="From date" value={from} onChange={setFrom} localDate={today} quickOptions={[]} /></label>
+          <label><span>{t('To')}</span><DateMenu label="To date" value={to} onChange={setTo} localDate={today} quickOptions={[]} /></label>
+          <label><span>{t('Month')}</span><input type="month" aria-label={t('Month')} value={month} onChange={event => setMonth(event.target.value)} /></label>
+          <button type="button" className="wx-att-button" onClick={() => { const range = monthRange(month); if (range) apply(undefined, range); else setValidation('Choose a valid date range. From must be on or before To.'); }}>{t('Apply month')}</button>
+        </div></details>
+        {validation ? <p role="alert" className="wx-att-error">{t(validation)}</p> : null}
+        {locationsQuery.isError ? <div role="alert" className="wx-att-option-error"><span>{t('Locations could not load. Existing attendance is still available.')}</span><button className="wx-att-button" type="button" disabled={locationsQuery.isFetching} onClick={() => void locationsQuery.refetch()}>{t('Retry locations')}</button></div> : null}
+        {staffQuery.isError ? <div role="alert" className="wx-att-option-error"><span>{t('Staff filter could not load.')}</span><button className="wx-att-button" type="button" disabled={staffQuery.isFetching} onClick={() => void staffQuery.refetch()}>{t('Retry')}</button></div> : null}
+        <p className="wx-att-scope"><bdi>{appliedSite?.name ?? (applied.locationId ? `#${applied.locationId}` : t('All locations'))}</bdi> · <bdi>{dateLabel(applied.from)}{applied.to !== applied.from ? ` – ${dateLabel(applied.to)}` : ''}</bdi>{appliedSite ? <> · <bdi>{appliedSite.timezone}</bdi></> : null}{applied.staffId ? <> · <bdi>{appliedStaff?.name ?? `#${applied.staffId}`}</bdi></> : null}</p>
+        <p className="wx-att-help">{t(appliedSite ? 'Dates and times follow the selected location’s calendar.' : 'Dates follow each location’s calendar. Choose a location to use its current day.')}</p>
+      </form>
+      <div className="wx-att-summary" aria-label={t('Attendance summary')} aria-busy={query.isPending}>{metrics.map(([label, value, hint]) => <div key={label}><span>{t(label)}</span><strong>{hasRecords ? value.toLocaleString(language === 'ur' ? 'ur-PK' : 'en-PK') : '—'}</strong><p>{t(hint)}</p></div>)}</div>
+      <header className="wx-att-register-heading"><div><h2 id="wx-att-register-title">{t('Attendance records')}</h2><p>{t('Photos are available only to authorized accounts.')}</p></div><button type="button" className="wx-att-button" onClick={() => void query.refetch()} disabled={query.isFetching} aria-busy={query.isFetching}><RefreshCw size={16} aria-hidden="true" />{t(query.isFetching ? 'Refreshing…' : 'Refresh')}</button></header>
+      <OperationsState loading={query.isPending && !hasRecords} error={query.error} retry={() => void query.refetch()} />
+      {hasRecords ? records.length ? <DataTable pageSize={20} columns={columns} data={records} rowKey={record => record.id} mobileCards selectedRowKey={panelOpen ? selected?.id : null} onRowClick={record => openRecord(record, true)} /> : <EmptyState icon={<CalendarCheck size={32} />} title="No attendance recorded yet" message="No attendance records found for the selected filters." action={<button type="button" className="wx-att-button wx-att-button--primary" onClick={reset}>{t('Reset')}</button>} /> : null}
+      <footer className="wx-att-footer"><span>{t('Overnight shifts remain tied to their scheduled local date.')}</span><span>{hasRecords ? t('{count} recorded shifts', { count: records.length }) : t('Attendance totals are unavailable until records load.')}</span></footer>
     </section>
+    {activeRecord && !denied ? <AttendanceContext attendance={{ ...activeRecord, location: { ...activeRecord.location, timezone: activeRecord.location.timezone ?? 'UTC' } }} staffName={activeRecord.staff.name} open={panelOpen} onOpenChange={setPanelOpen} /> : null}
   </div>;
 }

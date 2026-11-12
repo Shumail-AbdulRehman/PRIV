@@ -4,8 +4,14 @@ import { useBillingLifecycle } from '@/pages/Subscription/queries';
 import { deriveBillingViewState } from '@/pages/Subscription/onboarding/billingViewState';
 import { FlowEntryStatus } from '@/pages/Onboarding/FlowEntry';
 import { isSafeFromPath, onboardingRouteForStep } from '@/pages/Onboarding/onboardingRoutes';
+import { useContext } from 'react';
+import { WorkspaceTheme } from '@/components/common/WorkspaceTheme';
+import PageLoadingSkeleton from '@/components/common/PageLoadingSkeleton';
+import '@/workspace-tokens.css';
+import '@/components/layout/shell-v6.css';
 
 function OwnerWorkspaceGate({ children, companyId, ownerId }: { children: React.ReactNode; companyId: number; ownerId: number }) {
+  const workspace = useContext(WorkspaceTheme);
   const query = useBillingLifecycle();
   const location = useLocation();
   const view = deriveBillingViewState({ owner: { companyId, ownerId }, dataOwner: query.dataOwner, data: query.data,
@@ -21,7 +27,12 @@ function OwnerWorkspaceGate({ children, companyId, ownerId }: { children: React.
     const from = `${location.pathname}${location.search}${location.hash}`;
     return <Navigate to={route} state={isSafeFromPath(from) ? { from } : null} replace />;
   }
-  return <FlowEntryStatus pending={query.isPending} busy={query.isFetching} retry={query.refetch} />;
+  if (query.isPending) return workspace ? <PageLoadingSkeleton /> : (
+    <div className="workspace" style={{ minBlockSize: '100vh', background: 'var(--wx-canvas)' }}>
+      <div className="wx-shell-content" style={{ marginInline: 'auto' }}><PageLoadingSkeleton /></div>
+    </div>
+  );
+  return <FlowEntryStatus pending={false} busy={query.isFetching} retry={query.refetch} />;
 }
 
 export default function WorkspaceGate({ children }: { children: React.ReactNode }) {

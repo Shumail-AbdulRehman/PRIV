@@ -68,17 +68,17 @@ it('wires real parent detail reads and closure POST without restoring retired ac
  mount(<ExceptionDetailPage/>);await screen.findByRole('heading',{name:'Task and evidence status'});
  expect(api.get).toHaveBeenCalledWith('/verification-exceptions/3',{params:{}});
  for(const name of ['Ask for another photo','Give more time for photos','Make an exception for this photo','Accept this photo'])expect(screen.queryByRole('button',{name})).not.toBeInTheDocument();
- fireEvent.click(screen.getByRole('button',{name:'Resolve review'}));fireEvent.change(screen.getByRole('textbox',{name:'Resolution note'}),{target:{value:'Synthetic reviewed outage'}});fireEvent.click(screen.getByRole('button',{name:'Confirm resolution'}));
+ fireEvent.click(screen.getByRole('radio',{name:'Resolve review'}));fireEvent.change(screen.getByRole('textbox',{name:'Resolution note'}),{target:{value:'Synthetic reviewed outage'}});fireEvent.click(screen.getByRole('button',{name:'Confirm resolution'}));
  await screen.findAllByText('Synthetic reviewed outage');expect(api.post).toHaveBeenCalledWith('/verification-exceptions/3/close',{requestId:expect.any(String),expectedVersion:2,action:'RESOLVE_REVIEW',note:'Synthetic reviewed outage'});
  expect(screen.getByText('Verified completion not recorded')).toBeInTheDocument();expect(screen.queryByText('Verified complete')).not.toBeInTheDocument();
 });
 it('preserves closure note on conflict and requires refresh',async()=>{
  api.post.mockImplementation(async(url:string)=>{if(url.endsWith('/close'))throw {response:{status:409}};return {data:{data:{}}};});
- mount(<ExceptionDetailPage/>);await screen.findByRole('button',{name:'Resolve review'});fireEvent.click(screen.getByRole('button',{name:'Resolve review'}));fireEvent.change(screen.getByRole('textbox',{name:'Resolution note'}),{target:{value:'Synthetic conflict note'}});fireEvent.click(screen.getByRole('button',{name:'Confirm resolution'}));
+ mount(<ExceptionDetailPage/>);await screen.findByRole('radio',{name:'Resolve review'});fireEvent.click(screen.getByRole('radio',{name:'Resolve review'}));fireEvent.change(screen.getByRole('textbox',{name:'Resolution note'}),{target:{value:'Synthetic conflict note'}});fireEvent.click(screen.getByRole('button',{name:'Confirm resolution'}));
  await screen.findByText('This review changed. Refresh before saving. Your note is kept.');expect(screen.getByRole('textbox',{name:'Resolution note'})).toHaveValue('Synthetic conflict note');
 });
 it('renders denied parent read without retaining private review or fabricated empty state',async()=>{
- api.get.mockRejectedValue({response:{status:403}});mount(<ExceptionDetailPage/>);await waitFor(()=>expect(screen.getAllByRole('alert').length).toBeGreaterThan(0));expect(screen.queryByText('Synthetic sink')).not.toBeInTheDocument();expect(screen.queryByRole('button',{name:'Resolve review'})).not.toBeInTheDocument();
+ api.get.mockRejectedValue({response:{status:403}});mount(<ExceptionDetailPage/>);await waitFor(()=>expect(screen.getAllByRole('alert').length).toBeGreaterThan(0));expect(screen.queryByText('Synthetic sink')).not.toBeInTheDocument();expect(screen.queryByRole('radio',{name:'Resolve review'})).not.toBeInTheDocument();
 });
 it('never requests held evidence without authorized review mode',()=>{
  mount(<ProtectedEvidence assetId="private" privacyState="HOLD"/>);expect(screen.getByText(/Sensitive image restricted/)).toBeInTheDocument();expect(api.get).not.toHaveBeenCalled();
@@ -101,7 +101,7 @@ it('keeps manager-held evidence behind the same authenticated content endpoint',
  api.get.mockRejectedValue({response:{status:403}});mount(<ProtectedEvidence assetId="held" privacyState="HOLD" allowRestrictedReview/>);await screen.findByText('You do not have access to this evidence.');expect(api.get).toHaveBeenCalledWith('/evidence/held/content',expect.objectContaining({responseType:'blob',params:{variant:'review'}}));expect(screen.queryByRole('img')).not.toBeInTheDocument();vi.unstubAllGlobals();
 });
 it('records a deliberate attributed performance issue only through the closure API',async()=>{
- mount(<ExceptionDetailPage/>);await screen.findByRole('button',{name:'Record staff performance issue'});fireEvent.click(screen.getByRole('button',{name:'Record staff performance issue'}));
+ mount(<ExceptionDetailPage/>);await screen.findByRole('radio',{name:'Record staff performance issue'});fireEvent.click(screen.getByRole('radio',{name:'Record staff performance issue'}));
  fireEvent.change(screen.getByRole('combobox',{name:'Performance category'}),{target:{value:'OTHER'}});fireEvent.change(screen.getByRole('textbox',{name:'Performance note'}),{target:{value:'Synthetic circumstances checked'}});fireEvent.click(screen.getByRole('button',{name:'Record issue and close review'}));
  await waitFor(()=>expect(api.post).toHaveBeenCalledWith('/verification-exceptions/3/close',{requestId:expect.any(String),expectedVersion:2,action:'RECORD_PERFORMANCE_ISSUE',staffId:4,category:'OTHER',note:'Synthetic circumstances checked'}));expect(screen.getByText('Verified completion not recorded')).toBeInTheDocument();
 });
@@ -119,18 +119,19 @@ it('renders persisted setup records with a setup destination and no fabricated s
  expect(screen.queryByText('Task not submitted')).not.toBeInTheDocument();
  expect(screen.queryByText('Resolve this review, or record a staff performance issue and close it. This task stays in exceptions until you save a decision.')).not.toBeInTheDocument();
  expect(screen.queryByText('Review decisions could not be loaded. Refresh the page to continue.')).not.toBeInTheDocument();
- expect(screen.queryByRole('button',{name:'Resolve review'})).not.toBeInTheDocument();
+ expect(screen.queryByRole('radio',{name:'Resolve review'})).not.toBeInTheDocument();
 });
 
 it('removes earlier queue counts and rows when a failed refresh can no longer confirm them',async()=>{
  api.get.mockImplementation(async(url:string)=>({data:{data:url.endsWith('/next')?{nextId:null}:url==='/verification-exceptions'?{cases:[structuredClone(detail)],page:1,pageSize:20,total:1,totalPages:1,locations:[],queueCounts:{'needs-me':1,resolved:3}}:structuredClone(detail)}}));
  const view=mount(<ExceptionInboxPage/>);await screen.findAllByRole('heading',{name:'Synthetic washroom',level:2});
- expect(view.container.querySelector('.review-counts')).toHaveTextContent('3 reviewed');
+ expect(screen.getByRole('tab',{name:'Reviewed 3'})).toBeInTheDocument();
  api.get.mockImplementation(async(url:string)=>{if(url==='/verification-exceptions')throw {response:{status:503}};return {data:{data:url.endsWith('/next')?{nextId:null}:structuredClone(detail)}};});
  await act(async()=>{await view.query.invalidateQueries({queryKey:['review-page']});});
- await waitFor(()=>expect(view.container.querySelector('.review-counts')).not.toBeInTheDocument());
- expect(within(screen.getByRole('region',{name:'Review queue'})).getByRole('alert')).toHaveTextContent('Records could not load');
- expect(view.container.querySelector('.v5-queue-record')).not.toBeInTheDocument();
+ await waitFor(()=>expect(screen.queryByRole('tab',{name:'Reviewed 3'})).not.toBeInTheDocument());
+ expect(screen.getByRole('tab',{name:'Reviewed'})).toBeInTheDocument();
+ expect(within(screen.getByRole('region',{name:'Review queue'})).getByRole('alert')).toHaveTextContent('This page could not load');
+ expect(within(screen.getByRole('region',{name:'Review queue'})).queryByRole('link')).not.toBeInTheDocument();
 });
 
 it('offers a real pending review after a closed queue is exhausted instead of looping through reviewed records',async()=>{
@@ -146,15 +147,16 @@ it('offers a real pending review after a closed queue is exhausted instead of lo
 
 it('uses review vocabulary for Urdu queue tabs without leaking English or task-not-started wording',async()=>{
  mount(<ExceptionInboxPage/>,'ur');
- const queue=await screen.findByRole('group',{name:reviewUrdu['Review queues']});
- expect(within(queue).getByRole('button',{name:reviewUrdu.pending})).toBeInTheDocument();
- expect(within(queue).getByRole('button',{name:reviewUrdu.reviewed})).toBeInTheDocument();
+ const queue=await screen.findByRole('tablist',{name:reviewUrdu['Review queues']});
+ expect(within(queue).getByRole('tab',{name:reviewUrdu.pending})).toBeInTheDocument();
+ expect(within(queue).getByRole('tab',{name:reviewUrdu.reviewed})).toBeInTheDocument();
  expect(within(queue).queryByText('Reviewed')).not.toBeInTheDocument();
  expect(queue).not.toHaveTextContent('شروع نہیں ہوا');
- fireEvent.click(screen.getByText(reviewUrdu['Review filters']));
- const options=screen.getByRole('combobox',{name:'جائزے کی فہرست'});
- expect(within(options).getByRole('option',{name:reviewUrdu.pending})).toBeInTheDocument();
- expect(within(options).getByRole('option',{name:reviewUrdu.reviewed})).toBeInTheDocument();
+ fireEvent.click(screen.getByRole('button',{name:reviewUrdu['Review filters']}));
+ fireEvent.keyDown(screen.getByRole('button',{name:/^جائزے کی فہرست:/}),{key:'ArrowDown'});
+ const options=screen.getByRole('menu',{name:'جائزے کی فہرست'});
+ expect(within(options).getByRole('menuitemradio',{name:reviewUrdu.pending})).toBeInTheDocument();
+ expect(within(options).getByRole('menuitemradio',{name:reviewUrdu.reviewed})).toBeInTheDocument();
 });
 
 it('shows replacement eligibility for the issue-selected view, not only a requirement bookmark',async()=>{

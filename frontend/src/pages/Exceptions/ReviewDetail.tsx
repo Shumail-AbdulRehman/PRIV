@@ -1,10 +1,10 @@
 import LaunchReviewContext from './LaunchReviewContext';
 import ReviewSummary from './ReviewSummary';
-import {reviewDiagnosis, issueDiagnosis, reviewViewLabel} from './reviewDiagnosis';
-import OperationStatus from "@/components/common/OperationStatus";
+import {reviewDiagnosis, issueDiagnosis, reviewViewLabel, type DiagnosisRow} from './reviewDiagnosis';
+import StatusPill, { type StatusPillTone } from '@/components/workspace/StatusPill';
 import { useSelector } from "react-redux";
 import type { RootState } from "@/store/store";
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import {
   Link,
   useSearchParams,
@@ -38,6 +38,32 @@ import { readException } from "./api";
 import type {
   VerificationIssue,
 } from "./types";
+import type { EvidenceAttempt } from '../Verification/types';
+import './review-detail-v6.css';
+
+function evidenceTone(category?: DiagnosisRow['category']): StatusPillTone {
+  return category === 'checked' ? 'ok' : category === 'processing' ? 'progress'
+    : category === 'missing' ? 'bad' : category ? 'attention' : 'neutral';
+}
+
+function EvidencePhoto({ photo, name, missing, description, thumbnail = false }: {
+  photo?: EvidenceAttempt | null; name: string; missing: boolean;
+  description: string; thumbnail?: boolean;
+}) {
+  const { t } = useLanguage();
+  if (photo?.mediaAssetId && photo.privacyState !== 'DISCARDED') return <ProtectedEvidence
+    key={photo.mediaAssetId} assetId={photo.mediaAssetId} privacyState={photo.privacyState}
+    allowRestrictedReview variant={thumbnail ? 'thumbnail' : 'workspace'} alt={name}
+  />;
+  return <div className="wx-case-photo-missing">
+    <Camera size={26} aria-hidden="true" />
+    <strong>{t(photo?.privacyState === 'DISCARDED' ? 'Rejected photo was not kept'
+      : photo ? 'Photo is unavailable to view' : missing ? 'This required photo is missing' : 'No photo linked to this issue')}</strong>
+    {!thumbnail && <p>{t(photo?.privacyState === 'DISCARDED'
+      ? 'The photo was rejected and was not retained for manager review. Its recorded check result is explained in this review.'
+      : photo ? 'Use the recorded explanation in this review. A preview is not available for this attempt.' : description)}</p>}
+  </div>;
+}
 function safeReviewReturn(value: string | null) {
   return value && /^\/(exceptions|dashboard|today-status|staff\/\d+|locations\/\d+)(\?|$)/.test(value)
     ? value
@@ -54,6 +80,21 @@ export default function ReviewDetail({ id, backTo, returnState }: {
   const cache = useQueryClient();
   const detail = query.data;
   const [notice, setNotice] = useState("");
+  const [guidanceOpen, setGuidanceOpen] = useState(false);
+  const [contextOpen, setContextOpen] = useState(false);
+  const root = useRef<HTMLDivElement>(null);
+  const issueId = params.get('issueId');
+  const requirementId = params.get('requirementId');
+  const focusedRequirement = requirementId ?? detail?.issues.find(row => row.id === Number(issueId))?.requirementId;
+  const loaded = !!detail;
+  useEffect(() => {
+    if (!loaded || (!issueId && !requirementId)) return;
+    const target = document.getElementById(focusedRequirement ? `review-view-${encodeURIComponent(focusedRequirement)}` : `review-issue-${issueId}`);
+    if (target && root.current?.contains(target)) {
+      target.focus({ preventScroll: true });
+      target.scrollIntoView?.({ block: 'nearest' });
+    }
+  }, [id, loaded, issueId, requirementId, focusedRequirement]);
   const returnTo = safeReviewReturn(
     params.get("returnTo") ??
       (location.state as { returnTo?: string } | null)?.returnTo ??
@@ -121,11 +162,11 @@ export default function ReviewDetail({ id, backTo, returnState }: {
   const denied = [401,403,404,410].includes(errorStatus ?? 0);
   if (query.isPending || !detail || denied)
     return (
-      <div className="ops-page">
-        <Link className="ops-text-link" to={returnTo}>
+      <div className="wx-review-detail">
+        <Link className="wx-case-link" to={returnTo} state={returnState}>
           {t(returnTo.startsWith("/exceptions") ? "Back to reviews" : "Back")}
         </Link>
-        {denied ? <div className="operations-notice" role="alert">
+        {denied ? <div className="wx-case-notice" role="alert">
           <p>{t(errorStatus === 401 ? 'Sign in again to view this review.' : errorStatus === 403 ? 'You do not have access to this review.' : 'Review unavailable. Return to the queue or refresh to check again.')}</p>
           <Button variant="outline" onClick={() => void query.refetch()}>{t('Retry')}</Button>
         </div> : <OperationsState
@@ -144,6 +185,7 @@ export default function ReviewDetail({ id, backTo, returnState }: {
   const selectedRequirement = requirements.find((r) => r.id === params.get('requirementId')) ?? defaultRequirement;
   const linkedIssue = detail.issues.find(i => i.requirementId === selectedRequirement?.id && i.state !== 'RESOLVED');
   const open = detail.issues.filter((i) => i.state !== "RESOLVED");
+  const visibleIssues = detail.issues.filter(row => row.state !== 'RESOLVED' || row.id === Number(issueId));
   const chosen =
     detail.issues.find((i) => i.id === Number(params.get("issueId"))) ??
     open[0] ??
@@ -194,281 +236,105 @@ export default function ReviewDetail({ id, backTo, returnState }: {
       return n;
     });
   }
-  function inspectRequirement(requirementId: string) {
-    selectRequirement(requirementId);
-    requestAnimationFrame(() => {
-      const panel = document.getElementById('review-evidence');
-      panel?.scrollIntoView({block:'start',behavior:'instant'});
-      panel?.focus({preventScroll:true});
-    });
-  }
+  const guidance = detail.standards?.filter(s => !s.areaItemId || s.areaItemId === item?.sourceAreaItemId) ?? [];
+  const contextPhotos = detail.attempts?.filter(attempt => attempt.contextKey) ?? [];
+  const selectedRow = diagnosis.rows.find(row => row.id === requirement?.id);
+  const photoName = `${item?.nameSnapshot ?? detail.area?.name ?? t('Room photo')} · ${requirement ? reviewViewLabel(requirement.viewKey, t) : t(plainReason(photo?.contextKey ?? 'Photo'))}`;
   return (
-    <div className="ops-page ops-review-workspace v5-review-content">
-      <div className="ops-review-navigation">
-        <Link className="ops-text-link" to={returnTo} state={returnState}>
-          <ArrowLeft size={16} />
-          {t(returnTo.startsWith("/exceptions") ? "Back to reviews" : "Back")}
+    <div className="wx-review-detail" ref={root}>
+      <nav className="wx-case-navigation" aria-label={t('Review navigation')}>
+        <Link className="wx-case-link" to={returnTo} state={returnState}>
+          <ArrowLeft size={16} aria-hidden="true" />
+          {t(returnTo.startsWith('/exceptions') ? 'Back to reviews' : 'Back')}
         </Link>
-        {nextReviewHref ? (
-          <Button asChild variant="outline">
-            <Link
-              to={nextReviewHref}
-              state={returnState}
-            >
-              {t(detail.state === 'RESOLVED' ? "Next pending review" : "Next review")}
-              <ArrowRight size={16} />
-            </Link>
-          </Button>
-        ) : (
-          <Button variant="outline" onClick={() => void next.refetch()}>
-            {t("Check for next review")}
-          </Button>
-        )}
-      </div>
-      <section className="v5-review-reason" aria-label={t('Review reason')}>
-        <Camera size={20} aria-hidden="true"/><div><h2>{detail.state === 'RESOLVED' ? t('Review handled') : selectedDiagnosis?.title ?? t(plainReason(issue?.reasonCode??'REVIEW_REQUIRED'))}</h2><p>{detail.state === 'RESOLVED' ? t('This review has been handled. Existing photos and task completion records stay as recorded.') : selectedDiagnosis?.description ?? diagnosis.next}</p></div>
-      </section>
-      <div className={"v5-evidence-and-decision"+(detail.kind==='SETUP'?' v5-review-setup-layout':'')}>
-      <div className="v5-evidence-stack">
-      <section className="ops-panel v5-evidence-card" id="review-evidence" tabIndex={-1}>
-      <header className="ops-header v5-evidence-header">
+        {nextReviewHref ? <Button asChild variant="outline">
+          <Link to={nextReviewHref} state={returnState}>
+            {t(detail.state === 'RESOLVED' ? 'Next pending review' : 'Next review')}
+            <ArrowRight size={16} aria-hidden="true" />
+          </Link>
+        </Button> : <Button variant="outline" disabled={next.isFetching} aria-busy={next.isFetching} onClick={() => void next.refetch()}>
+          {t('Check for next review')}
+        </Button>}
+      </nav>
+      <header className="wx-case-header">
         <div>
-          <h2>
-            {detail.area?.name ??
-              detail.task?.areaNameSnapshot ??
-              t("Room setup")}
-          </h2>
-          <div className="ops-case-meta">
-            <span>
-              <MapPin size={16} />
-              {detail.location?.name}
-            </span>
-            {detail.kind !== 'SETUP' && detail.task ? <span>
-              <UserRound size={16} />
-              {detail.task.staff?.name ?? t("Unassigned")}
-            </span> : null}
-            {detail.task?.shiftEnd ? (
-              <span>
-                <Clock3 size={16} />
-                <bdi>
-                  {localTime(detail.task.shiftEnd, timezone, language, true)}
-                </bdi>
-              </span>
-            ) : null}
+          <h2>{detail.area?.name ?? detail.task?.areaNameSnapshot ?? t('Room setup')}</h2>
+          {detail.task && <p className="wx-case-task"><bdi>{detail.task.title}</bdi></p>}
+          <div className="wx-case-meta">
+            <span><MapPin size={16} aria-hidden="true" /><bdi>{detail.location?.name}</bdi></span>
+            {detail.kind !== 'SETUP' && detail.task && <span><UserRound size={16} aria-hidden="true" /><bdi>{detail.task.staff?.name ?? t('Unassigned')}</bdi></span>}
+            {detail.task?.shiftEnd && <span><Clock3 size={16} aria-hidden="true" /><time dateTime={detail.task.shiftEnd}><bdi>{localTime(detail.task.shiftEnd, timezone, language, true)}</bdi></time></span>}
           </div>
+        </div>
+        <div className="wx-case-status">
+          <StatusPill tone={detail.state === 'RESOLVED' ? 'neutral' : ['OPEN', 'MANAGER_REVIEW'].includes(detail.state) ? 'attention' : 'neutral'}>{exceptionStateLabel(detail.state)}</StatusPill>
+          <StatusPill tone={detail.task?.staffSubmittedAt ? 'progress' : 'neutral'}>
+            {detail.kind === 'SETUP' ? 'No task generated' : !detail.task ? 'Task submission information unavailable' : detail.task.staffSubmittedAt ? 'Task submitted' : 'Task not submitted'}
+          </StatusPill>
         </div>
       </header>
-      <div className="ops-case-status v5-evidence-status">
-        <OperationStatus
-          state={detail.state}
-          label={exceptionStateLabel(detail.state)}
-        />
-        <span>
-          {detail.kind === "SETUP"
-            ? t("No task generated")
-            : !detail.task ? t("Task submission information unavailable")
-            : detail.task.staffSubmittedAt ? t("Task submitted") : t("Task not submitted")}
-        </span>
-      </div>
       <OperationsState error={query.error} retry={() => void query.refetch()} />
-      {!online ? (
-        <p className="operations-notice" role="status">
-          {t(
-            "Internet needed to save a decision. Reconnect and try again. Your note stays on this page.",
-          )}
-        </p>
-      ) : null}
-      {notice ? (
-        <div className="ops-save-result" role="status">
-          <CheckCircle2 size={20} />
-          <div>
-            <strong>{t(notice)}</strong>
-            <p>
-              {t("{count} unresolved issues remain", { count: open.length })}
-            </p>
-          </div>
-        </div>
-      ) : null}
-
-      {open.length > 1 ? (
-        <div className="ops-issue-tabs" aria-label={t("Issues in this review")}>
-          {open.map((i) => (
-            <button
-              key={i.id}
-              aria-pressed={!requirementIssue && issue?.id === i.id}
-              onClick={() => selectIssue(i.id)}
-            >
-              {t(plainReason(i.reasonCode))}
-            </button>
-          ))}
-        </div>
-      ) : null}
-      {detail.kind === "SETUP" ? (
-        <section className="ops-panel-body v5-review-setup">
-          <h2>{t("Room inventory needs setup")}</h2>
-          <p>
-            {t(
-              "Configure the room and its schedule. Photos cannot be reviewed until the inventory is ready.",
-            )}
-          </p>
-          <p role="status">{t('Complete the room setup before reviewing task photos. No staff decision is available for this setup record.')}</p>
-          <div className="v5-review-setup-actions"><Button asChild>
-            <Link to={`/locations/${detail.locationId}?tab=templates`}>
-              {t("Review room setup")}
-            </Link>
-          </Button>
-          <Button variant="outline" onClick={() => void done()}>
-            {t("Check again")}
-          </Button></div>
-        </section>
-      ) : (
-        <div className="v5-evidence-body">
-          <section className="ops-evidence-column">
-            <div className="ops-panel-heading">
-              <div>
-                <h2>
-                  {item?.nameSnapshot ??
-                    issue?.requirement?.item?.nameSnapshot ??
-                    t("Task photos")}
-                </h2>
-                <p>
-                  {requirement
-                    ? reviewViewLabel(requirement.viewKey,t)
-                    : t("Room and fixture evidence")}
-                </p>
+      {!online && <p className="wx-case-notice" role="status">{t('Internet needed to save a decision. Reconnect and try again. Your note stays on this page.')}</p>}
+      {notice && <div className="wx-case-notice wx-case-save-result" role="status">
+        <CheckCircle2 size={20} aria-hidden="true" /><div><strong>{t(notice)}</strong><p>{t('{count} unresolved issues remain', { count: open.length })}</p></div>
+      </div>}
+      <ReviewSummary detail={detail} onSelect={selectRequirement} />
+      {detail.kind === 'SETUP' ? <section className="wx-case-setup">
+        <h2>{t('Room inventory needs setup')}</h2>
+        <p>{t('Configure the room and its schedule. Photos cannot be reviewed until the inventory is ready.')}</p>
+        <p role="status">{t('Complete the room setup before reviewing task photos. No staff decision is available for this setup record.')}</p>
+        <div className="wx-case-actions"><Button asChild><Link to={`/locations/${detail.locationId}?tab=templates`}>{t('Review room setup')}</Link></Button>
+          <Button variant="outline" disabled={query.isFetching} aria-busy={query.isFetching} onClick={() => void done()}>{t('Check again')}</Button></div>
+      </section> : <>
+        <section className="wx-case-evidence" aria-label={t('Required photo views')}>
+          <h3>{t('All required photos')}</h3>
+          {diagnosis.rows.length ? <div className="wx-case-evidence-grid">
+            {diagnosis.rows.map(row => <article className="wx-case-view" key={row.id}
+              id={`review-view-${encodeURIComponent(row.id)}`} tabIndex={-1}
+              aria-label={`${row.name} · ${row.view}`} aria-current={requirement?.id === row.id ? 'true' : undefined}>
+              <button type="button" className="wx-case-view-photo" onClick={() => selectRequirement(row.id)}
+                aria-pressed={requirement?.id === row.id} aria-label={t('Inspect {name}: {view}', { name: row.name, view: row.view })}>
+                <EvidencePhoto photo={row.attempt} name={`${row.name} · ${row.view}`} missing={row.category === 'missing'} description={row.description} thumbnail />
+              </button>
+              <div className="wx-case-view-caption"><strong><bdi>{row.name}</bdi></strong>
+                <span>{row.view}{!row.mandatory && ` · ${t('Optional')}`}</span>
+                <StatusPill tone={evidenceTone(row.category)}>{row.title}</StatusPill>
               </div>
-              <OperationStatus
-                state={selectedDiagnosis?.category === 'review' ? 'REVIEW_REQUIRED' : photo?.state ?? requirement?.state ?? "MISSING"}
-                label={selectedDiagnosis?.title ?? plainReason(photo?.state ?? requirement?.state ?? 'MISSING')}
-              />
-            </div>
-            <div className="ops-panel-body">
-              {photo?.mediaAssetId ? (
-                <ProtectedEvidence
-                  assetId={photo.mediaAssetId}
-                  privacyState={photo.privacyState}
-                  allowRestrictedReview
-                  variant="workspace"
-                  key={photo.mediaAssetId}
-                  alt={`${item?.nameSnapshot ?? detail.area?.name ?? t("Room photo")} · ${t(plainReason(requirement?.viewKey ?? photo.contextKey ?? "Photo"))}`}
-                />
-              ) : (
-                <div className="ops-evidence-placeholder">
-                  <Camera size={30} />
-                  <strong>{t(photo?.privacyState === 'DISCARDED' ? 'Rejected photo was not kept' : photo ? 'Photo is unavailable to view' : selectedDiagnosis?.category === 'missing' ? 'This required photo is missing' : 'No photo linked to this issue')}</strong>
-                  <p>{t(photo?.privacyState === 'DISCARDED' ? 'The photo was rejected and was not retained for manager review. Its recorded check result is explained in this review.' : photo ? 'Use the recorded explanation in this review. A preview is not available for this attempt.' : selectedDiagnosis?.description ?? 'The review summary above lists the affected fixtures and missing photos.')}</p>
-                </div>
-              )}
-              {photo?.receivedAt ? (
-                <p className="ops-photo-caption">
-                  {t("Received")}{" "}
-                  <bdi>
-                    {localTime(photo.receivedAt, timezone, language, true)}
-                  </bdi>
-                </p>
-              ) : null}
-              {requirement ? (
-                <div className="ops-instructions">
-                  <h3>{t("What this photo must show")}</h3>
-                  <p>{requirement.instructionsSnapshot}</p>
-                </div>
-              ) : null}
-              {detail.items?.length ? (
-                <section className="ops-requirements v5-photo-thumbnails" aria-label={t('Required photo views')}>
-                  <h3>{t("All required photos")}</h3>
-                  {detail.items.map((i) => (
-                    <div key={i.id}>
-                      {i.requirements.map((r) => (
-                        <button
-                          className="ops-requirement"
-                          key={r.id}
-                          onClick={() => selectRequirement(r.id)}
-                          aria-pressed={requirement?.id === r.id}
-                        >
-                          {r.currentAttempt?.mediaAssetId
-                            ? <ProtectedEvidence key={r.currentAttempt.mediaAssetId} assetId={r.currentAttempt.mediaAssetId} privacyState={r.currentAttempt.privacyState} allowRestrictedReview variant="thumbnail" alt=""/>
-                            : <span className="v5-thumbnail-missing"><Camera size={22} aria-hidden="true"/></span>}
-                          <span>
-                            <strong>{i.nameSnapshot}</strong>
-                            <small>
-                              {reviewViewLabel(r.viewKey,t)}
-                              {!r.mandatory ? ` · ${t("Optional")}` : ""}
-                            </small>
-                          </span>
-                          <OperationStatus state={r.state} label={diagnosis.rows.find(row => row.id === r.id)?.title ?? plainReason(r.state)} />
-                        </button>
-                      ))}
-                    </div>
-                  ))}
-                </section>
-              ) : null}
-              {detail.standards?.filter(
-                (s) => !s.areaItemId || s.areaItemId === item?.sourceAreaItemId,
-              ).length ? (
-                <details className="ops-history">
-                  <summary>{t("Example guidance")}</summary>
-                  <p>
-                    {t(
-                      "Current room guidance. Task requirements above remain unchanged.",
-                    )}
-                  </p>
-                  {detail.standards
-                    .filter(
-                      (s) =>
-                        !s.areaItemId ||
-                        s.areaItemId === item?.sourceAreaItemId,
-                    )
-                    .map((s) => (
-                      <div key={s.id}>
-                        <p>{s.caption}</p>
-                        <ProtectedEvidence
-                          assetId={s.mediaAssetId}
-                          privacyState="SAFE"
-                          alt={s.caption ?? t("Example guidance")}
-                        />
-                      </div>
-                    ))}
-                </details>
-              ) : null}
-              {(detail.attempts ?? []).some((a) => a.contextKey) ? (
-                <details className="ops-history">
-                  <summary>{t("Room context photos")}</summary>
-                  {detail.attempts
-                    ?.filter((a) => a.contextKey)
-                    .map((a) => (
-                      <div key={a.id}>
-                        <p>{t(plainReason(a.contextKey!))}</p>
-                        {a.mediaAssetId ? (
-                          <ProtectedEvidence
-                            assetId={a.mediaAssetId}
-                            privacyState={a.privacyState}
-                            allowRestrictedReview
-                          />
-                        ) : (
-                          <p>
-                            {t(
-                              "Privacy check pending. Photo is not available for routine review yet.",
-                            )}
-                          </p>
-                        )}
-                      </div>
-                    ))}
-                </details>
-              ) : null}
-            </div>
-          </section>
-        </div>
-      )}
-      </section>
-      {detail.kind !== 'SETUP' && <LaunchReviewContext detail={detail} replacement={requirements.find(row => row.id === requirement?.id)?.replacement} />}
-      {detail.kind !== 'SETUP' && <details className="v5-findings-disclosure"><summary>{t('Review findings and capture rules')}</summary><ReviewSummary detail={detail} onSelect={inspectRequirement}/></details>}
-      </div>
-      {detail.kind !== 'SETUP' && <section className="ops-panel ops-action-column v5-decision-card" id="review-finding" tabIndex={-1}>
-        <div className="ops-panel-body">
-          <DecisionForm detail={detail} onDone={done} nextReviewHref={nextReviewHref} unavailable={query.isError} />
-        </div>
-      </section>}
-      </div>
+            </article>)}
+          </div> : <p className="wx-case-empty">{t('The review summary above lists the affected fixtures and missing photos.')}</p>}
+        </section>
+        {(visibleIssues.length > 1 || visibleIssues.some(row => !row.requirementId)) && <div className="wx-case-issues" role="group" aria-label={t('Issues in this review')}>
+          {visibleIssues.map(row => <button type="button" id={`review-issue-${row.id}`} key={row.id}
+            aria-pressed={!requirementIssue && issue?.id === row.id} onClick={() => selectIssue(row.id)}>{t(plainReason(row.reasonCode))}</button>)}
+        </div>}
+        <section className="wx-case-inspection" id="review-evidence" tabIndex={-1} aria-label={t('Review photo')}>
+          <div className="wx-case-inspection-heading"><div><h3>{item?.nameSnapshot ?? issue?.requirement?.item?.nameSnapshot ?? t('Task photos')}</h3>
+            <p>{requirement ? reviewViewLabel(requirement.viewKey, t) : t('Room and fixture evidence')}</p></div>
+            <StatusPill tone={evidenceTone(selectedDiagnosis?.category ?? selectedRow?.category)}>{selectedDiagnosis?.title ?? selectedRow?.title ?? plainReason(photo?.state ?? requirement?.state ?? 'MISSING')}</StatusPill>
+          </div>
+          {(selectedDiagnosis ?? selectedRow) && <p className="wx-case-explanation">{(selectedDiagnosis ?? selectedRow)?.description}</p>}
+          <EvidencePhoto photo={photo} name={photoName} missing={selectedDiagnosis?.category === 'missing' || selectedRow?.category === 'missing'} description={selectedDiagnosis?.description ?? selectedRow?.description ?? diagnosis.next} />
+          {photo?.receivedAt && <p className="wx-case-photo-caption">{t('Received')} <time dateTime={photo.receivedAt}><bdi>{localTime(photo.receivedAt, timezone, language, true)}</bdi></time></p>}
+          {requirement && <div className="wx-case-instructions"><h4>{t('What this photo must show')}</h4><p><bdi>{requirement.instructionsSnapshot}</bdi></p></div>}
+          {guidance.length > 0 && <details className="wx-case-disclosure" onToggle={event => setGuidanceOpen(event.currentTarget.open)}>
+            <summary>{t('Example guidance')}</summary>
+            {guidanceOpen && <div><p>{t('Current room guidance. Task requirements above remain unchanged.')}</p>
+              {guidance.map(standard => <div key={standard.id}><p><bdi>{standard.caption}</bdi></p><ProtectedEvidence assetId={standard.mediaAssetId} privacyState="SAFE" alt={standard.caption ?? t('Example guidance')} /></div>)}
+            </div>}
+          </details>}
+          {contextPhotos.length > 0 && <details className="wx-case-disclosure" onToggle={event => setContextOpen(event.currentTarget.open)}>
+            <summary>{t('Room context photos')}</summary>
+            {contextOpen && <div>{contextPhotos.map(attempt => <div key={attempt.id}>
+              <p>{t(plainReason(attempt.contextKey!))}</p>
+              {attempt.mediaAssetId ? <ProtectedEvidence assetId={attempt.mediaAssetId} privacyState={attempt.privacyState} allowRestrictedReview /> : <p>{t('Privacy check pending. Photo is not available for routine review yet.')}</p>}
+            </div>)}</div>}
+          </details>}
+        </section>
+        <LaunchReviewContext detail={detail} replacement={requirements.find(row => row.id === requirement?.id)?.replacement} />
+        <section className="ops-panel ops-action-column v5-decision-card" id="review-finding" tabIndex={-1}>
+          <div className="ops-panel-body"><DecisionForm detail={detail} onDone={done} nextReviewHref={nextReviewHref} unavailable={query.isError} /></div>
+        </section>
+      </>}
     </div>
   );
 }

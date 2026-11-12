@@ -40,33 +40,38 @@ beforeEach(()=>{
  m.locations={isPending:false,isError:false,data:{data:[site]}};
  m.detail={isLoading:false,isFetching:false,isError:false,data:{data:{...person,createdAt:'2026-10-01T00:00:00Z',role:'STAFF',location:site,periodLabel:'October 2026',taskStats:{totalTemplates:0,totalInstances:0,completed:0,pending:0,inProgress:0,missed:0},attendanceStats:{totalRecords:0,present:0,absent:0,late:0},taskTemplates:[],taskInstances:[],attendances:[]}}};
 });
-it('directory filters real assignments and search together, then clears the empty result',()=>{
+it('directory filters real assignments and search together, then clears the empty result',async()=>{
  mount(<StaffPage/>);
- expect(screen.getByRole('heading',{name:'Your team'})).toBeInTheDocument();
- fireEvent.change(screen.getByLabelText('Filter by location'),{target:{value:'unassigned'}});
+ expect(screen.getByRole('heading',{name:'Your people, at a glance'})).toBeInTheDocument();
+ fireEvent.pointerDown(screen.getByRole('button',{name:'Filter by location: All locations'}),{button:0,ctrlKey:false,pointerType:'mouse'});
+ fireEvent.click(await screen.findByRole('menuitemradio',{name:'Unassigned'}));
  expect(screen.getAllByText('Unassigned worker').length).toBeGreaterThan(0);
  expect(screen.queryByText('Fixture worker')).not.toBeInTheDocument();
  fireEvent.change(screen.getByLabelText('Search team'),{target:{value:'No match'}});
  expect(screen.getByText('No team members match these filters.')).toBeInTheDocument();
  fireEvent.click(screen.getByRole('button',{name:'Clear filters'}));
- expect(screen.getByLabelText('Filter by location')).toHaveValue('all');
+ expect(screen.getByRole('button',{name:'Filter by location: All locations'})).toBeInTheDocument();
  expect(screen.getByLabelText('Search team')).toHaveValue('');
 });
-it('inline hire preserves the selected site and URL while cancelling creation',()=>{
+it('panel hire preserves the selected site and URL while cancelling creation',()=>{
  mount(<StaffPage/>,'ADMIN','/staff?locationId=20&create=1');
- expect(screen.queryByRole('dialog')).not.toBeInTheDocument();
+ expect(screen.getByRole('dialog',{name:'Add team member'})).toBeInTheDocument();
  expect(screen.getByRole('heading',{name:'Add team member'})).toBeInTheDocument();
  expect(screen.getByRole('combobox',{name:/^Location$/})).toHaveValue('20');
  fireEvent.click(screen.getByRole('button',{name:'Cancel'}));
  expect(screen.getByLabelText('Current route')).toHaveTextContent('locationId=20');
  expect(screen.getByLabelText('Current route')).not.toHaveTextContent('create');
 });
-it('assigned-site manager directory exposes staff actions without owner assignment navigation',()=>{
+it('assigned-site manager directory exposes staff actions without owner assignment navigation',async()=>{
  mount(<StaffPage/>,'MANAGER');
  expect(screen.queryByRole('link',{name:'Manager assignments'})).not.toBeInTheDocument();
  expect(screen.queryByRole('link',{name:'Manage managers'})).not.toBeInTheDocument();
- expect(screen.getAllByRole('button',{name:'Staff access'}).length).toBeGreaterThan(0);
- expect(screen.queryByRole('option',{name:'Unassigned'})).not.toBeInTheDocument();
+ fireEvent.pointerDown(screen.getByRole('button',{name:'Actions: Fixture worker'}),{button:0,ctrlKey:false,pointerType:'mouse'});
+ expect(screen.getByRole('menuitem',{name:'Staff access'})).toBeInTheDocument();
+ fireEvent.keyDown(screen.getByRole('menu'),{key:'Escape'});
+ fireEvent.pointerDown(screen.getByRole('button',{name:'Filter by location: All locations'}),{button:0,ctrlKey:false,pointerType:'mouse'});
+ expect(await screen.findByRole('menuitemradio',{name:site.name})).toBeInTheDocument();
+ expect(screen.queryByRole('menuitemradio',{name:'Unassigned'})).not.toBeInTheDocument();
 });
 it('loading and failed site lookup never present fabricated empty or zero-count directory',()=>{
  m.locations={isPending:true};const view=mount(<StaffPage/>);
@@ -110,8 +115,11 @@ it('switching principal clears staff edit draft and ignores old-principal feedba
 });
 it('detail rejects invalid date range without replacing the applied API filters',()=>{
  mount(<Routes><Route path="/staff/:id" element={<StaffDetailPage/>}/></Routes>,'ADMIN','/staff/7?month=2026-10');
- fireEvent.change(screen.getByLabelText('From date'),{target:{value:'2026-10-20'}});
- fireEvent.change(screen.getByLabelText('To date'),{target:{value:'2026-10-10'}});
+ const day=(value:number)=>new Date(Date.UTC(new Date().getFullYear(),new Date().getMonth(),value)).toLocaleDateString('en-PK',{dateStyle:'full',timeZone:'UTC'});
+ fireEvent.click(screen.getByRole('button',{name:/^From date:/}));
+ fireEvent.click(screen.getByRole('button',{name:day(20)}));
+ fireEvent.click(screen.getByRole('button',{name:/^To date:/}));
+ fireEvent.click(screen.getByRole('button',{name:day(10)}));
  fireEvent.click(screen.getByRole('button',{name:'Apply range'}));
  expect(screen.getByRole('alert')).toHaveTextContent('end date must be on or after');
  expect(m.detailArgs).toHaveBeenLastCalledWith(7,{month:'2026-10'});
@@ -119,13 +127,13 @@ it('detail rejects invalid date range without replacing the applied API filters'
 });
 it('Urdu directory and detail sections translate while preserving user identity text',()=>{
  const view=mount(<StaffPage/>,'ADMIN','/staff','ur');
- expect(screen.getByRole('heading',{name:'آپ کی ٹیم'})).toBeInTheDocument();
+ expect(screen.getByRole('heading',{name:'آپ کا عملہ ایک نظر میں'})).toBeInTheDocument();
  expect(screen.getByLabelText('ٹیم تلاش کریں')).toBeInTheDocument();
  view.unmount();mount(<Routes><Route path="/staff/:id" element={<StaffDetailPage/>}/></Routes>,'ADMIN','/staff/7?month=2026-10','ur');
  expect(screen.getByRole('heading',{name:person.name})).toBeInTheDocument();
- const sections=screen.getByRole('group',{name:'کارکن کے حصے'});
- expect(within(sections).getByRole('button',{name:'کام کی تاریخ'})).toBeInTheDocument();
- fireEvent.click(within(sections).getByRole('button',{name:'حاضری'}));
+ const sections=screen.getByRole('tablist',{name:'کارکن کے حصے'});
+ expect(within(sections).getByRole('tab',{name:'کام کی تاریخ'})).toBeInTheDocument();
+ fireEvent.mouseDown(within(sections).getByRole('tab',{name:'حاضری'}),{button:0,ctrlKey:false});
  expect(screen.getByText('اس دورانیے میں حاضری کا کوئی ریکارڈ نہیں۔')).toBeInTheDocument();
 });
 
@@ -139,20 +147,21 @@ it('inline hiring changes scope without retaining a prior site password or draft
  expect(screen.getByRole('combobox',{name:/^Location$/})).toHaveValue('30');
  expect(m.create).not.toHaveBeenCalled();
 });
-it('cached directory refresh failure leaves an open accountable access draft intact',()=>{
- const view=mount(<StaffPage/>);fireEvent.click(screen.getAllByRole('button',{name:'Staff access'})[0]);
- fireEvent.change(screen.getByLabelText('Reason'),{target:{value:'Retained context draft'}});
+it('cached directory refresh failure leaves an open accountable access draft intact',async()=>{
+ const view=mount(<StaffPage/>);fireEvent.pointerDown(screen.getByRole('button',{name:'Actions: Fixture worker'}),{button:0,ctrlKey:false,pointerType:'mouse'});fireEvent.click(screen.getByRole('menuitem',{name:'Staff access'}));
+ fireEvent.change(await screen.findByLabelText('Reason'),{target:{value:'Retained context draft'}});
  m.staff={...m.staff,isError:true,error:new Error('connection failed'),refetch:vi.fn()};
  view.rerenderNode(<StaffPage/>);
  expect(screen.getByRole('dialog')).toBeInTheDocument();expect(screen.getByLabelText('Reason')).toHaveValue('Retained context draft');
- expect(screen.getByText('Your team')).toBeInTheDocument();
+ expect(screen.getByText('Your people, at a glance')).toBeInTheDocument();
 });
 
 it('scheduled task metric uses execution instances rather than cleaning schedule templates',()=>{
  Object.assign((m.detail as {data:{data:{taskStats:Record<string,number>}}}).data.data.taskStats,{totalTemplates:2,totalInstances:9,completed:3});
  mount(<Routes><Route path="/staff/:id" element={<StaffDetailPage/>}/></Routes>,'ADMIN','/staff/7?month=2026-10');
- const metric=screen.getByText('Scheduled tasks').closest('.stat-card') as HTMLElement;
- expect(within(metric).getByText('9')).toBeInTheDocument();expect(within(metric).queryByText('2')).not.toBeInTheDocument();
+ const metric=screen.getByRole('region',{name:'Task totals'});
+ const scheduled=within(metric).getByText('Scheduled tasks').parentElement as HTMLElement;
+ expect(within(scheduled).getByText('9')).toBeInTheDocument();expect(within(scheduled).queryByText('2')).not.toBeInTheDocument();
 });
 
 it.each(['CAPACITY_REACHED','SUBSCRIPTION_REQUIRED'])('hiring reports %s honestly and retains the draft',code=>{

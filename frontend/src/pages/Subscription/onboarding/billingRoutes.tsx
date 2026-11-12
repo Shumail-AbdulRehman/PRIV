@@ -1,13 +1,14 @@
 import { Suspense } from 'react';
 import type { RouteObject } from 'react-router-dom';
 import { RequireRole } from '@/App';
-import LoadingSpinner from '@/components/common/LoadingSpinner';
 import { SubscriptionPage } from '@/routes/workspacePages';
-import FlowEntry from '@/pages/Onboarding/FlowEntry';
-const owner=(page:React.ReactNode)=><RequireRole roles={['ADMIN']}><Suspense fallback={<LoadingSpinner fullScreen/>}>{page}</Suspense></RequireRole>;
+import FlowEntry, { FlowEntryStatus } from '@/pages/Onboarding/FlowEntry';
+// FlowEntryStatus supplies the existing translated FlowShell / FlowWait billing line.
+const billingWait = <FlowEntryStatus pending busy retry={() => undefined} />;
+const owner=(page:React.ReactNode)=><RequireRole roles={['ADMIN']}><Suspense fallback={billingWait}>{page}</Suspense></RequireRole>;
 /** Mounted beneath App restoration, outside marketing and operational layouts. */
 export const billingRoutes:RouteObject[]=[
- {path:'continue',element:<Suspense fallback={<LoadingSpinner fullScreen/>}><FlowEntry/></Suspense>},
+ {path:'continue',element:<Suspense fallback={billingWait}><FlowEntry/></Suspense>},
  {path:'choose-plan',element:owner(<SubscriptionPage/>)},
  {path:'welcome',element:owner(<SubscriptionPage activationReturn/>)},
  {path:'subscription',element:owner(<SubscriptionPage/>)},

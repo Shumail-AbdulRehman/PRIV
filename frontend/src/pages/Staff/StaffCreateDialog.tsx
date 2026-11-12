@@ -1,19 +1,13 @@
-import { useEffect, useRef } from 'react';
-import './workforce-v5.css';
-import useAuth from "@/hooks/useAuth";
-import { useLanguage } from "@/i18n/context";
-import { useForm } from "react-hook-form";
-import { fromZonedTime } from "date-fns-tz";
-import {
-  Dialog,
-  DialogContent,
-  DialogHeader,
-  DialogTitle,
-  DialogDescription,
-} from "@/components/ui/dialog";
-import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import { useCreateStaff } from "./queries";
+import { useEffect, useId, useRef } from 'react';
+import { Controller, useForm } from 'react-hook-form';
+import { fromZonedTime } from 'date-fns-tz';
+import useAuth from '@/hooks/useAuth';
+import { useLanguage } from '@/i18n/context';
+import { Input } from '@/components/ui/input';
+import SidePanel, { SidePanelFieldError, SidePanelFooter } from '@/components/workspace/SidePanel';
+import SelectMenu from '@/components/workspace/SelectMenu';
+import { useCreateStaff } from './queries';
+import './staff-forms-v6.css';
 
 type LocationOption = { id: number; name: string; timezone: string };
 interface CreateStaffForm {
@@ -25,282 +19,131 @@ interface CreateStaffForm {
   shiftStart: string;
   shiftEnd: string;
 }
-
 type StaffCreateProps = {
-  open:boolean;
-  onOpenChange:(open:boolean)=>void;
-  locations?:LocationOption[];
-  location?:LocationOption;
-  onSaved?:()=>void;
-  inline?:boolean;
+  open: boolean;
+  onOpenChange: (open: boolean) => void;
+  locations?: LocationOption[];
+  location?: LocationOption;
+  onSaved?: () => void;
+  inline?: boolean;
 };
-export default function StaffCreateDialog(props:StaffCreateProps){
-  const {user}=useAuth();
-  return <ScopedStaffCreateDialog key={`${user?.companyId}:${user?.role}:${user?.id}:${props.location?.id??'directory'}`} {...props}/>;
+
+export default function StaffCreateDialog(props: StaffCreateProps) {
+  const { user } = useAuth();
+  return <ScopedStaffCreateDialog key={`${user?.companyId}:${user?.role}:${user?.id}:${props.location?.id ?? 'directory'}`} {...props} />;
 }
-function ScopedStaffCreateDialog({open,onOpenChange,locations=[],location,onSaved,inline=false}:StaffCreateProps){
+
+function ScopedStaffCreateDialog({ open, onOpenChange, locations = [], location, onSaved, inline = false }: StaffCreateProps) {
   const { t } = useLanguage();
   const { user } = useAuth();
-  const managerHire = user?.role === "MANAGER";
+  const managerHire = user?.role === 'MANAGER';
   const createStaff = useCreateStaff();
   const inFlight = useRef(false);
-  const mounted=useRef(true);
-  useEffect(()=>{mounted.current=true;return()=>{mounted.current=false;};},[]);
-  const {
-    register,
-    handleSubmit,
-    reset,
-    formState: { errors },
-  } = useForm<CreateStaffForm>({
-    defaultValues: { locationId: location ? String(location.id) : "" },
+  const mounted = useRef(true);
+  const formId = useId();
+  const id = (field: string) => `${formId}-${field}`;
+  useEffect(() => { mounted.current = true; return () => { mounted.current = false; }; }, []);
+  const { register, control, handleSubmit, reset, setError, formState: { errors } } = useForm<CreateStaffForm>({
+    defaultValues: { locationId: location ? String(location.id) : '' },
   });
-  const tzForLocation = (id: number | null) =>
-    (location?.id === id
-      ? location.timezone
-      : locations.find((l) => l.id === id)?.timezone) ?? "UTC";
-  const inputCls =
-    "flex min-h-12! w-full rounded-lg border border-border/80 bg-background/90 px-4 py-2 text-sm outline-none focus:border-primary/60 focus:ring-4 focus:ring-primary/10";
   const onCreateSubmit = (formData: CreateStaffForm) => {
     if (inFlight.current) return;
     const selected = location?.id ?? Number(formData.locationId);
-    if (managerHire && !locations.some(site => site.id === selected)) return;
-    const tz = tzForLocation(
-      location?.id ??
-        (formData.locationId ? Number(formData.locationId) : null),
-    );
+    if (managerHire && !locations.some(site => site.id === selected)) {
+      setError('locationId', { type: 'validate', message: 'Select assigned site' });
+      return;
+    }
+    const tz = (location?.id === selected ? location.timezone : locations.find(site => site.id === selected)?.timezone) ?? 'UTC';
     inFlight.current = true;
-    createStaff.mutate(
-      {
-        name: formData.name.trim(),
-        email: formData.email.trim(),
-        phone: formData.phone.trim(),
-        password: formData.password,
-        locationId:
-          location?.id ??
-          (formData.locationId ? Number(formData.locationId) : undefined),
-        shiftStart: formData.shiftStart
-          ? fromZonedTime(
-              `1970-01-01T${formData.shiftStart}:00`,
-              tz,
-            ).toISOString()
-          : undefined,
-        shiftEnd: formData.shiftEnd
-          ? fromZonedTime(
-              `1970-01-01T${formData.shiftEnd}:00`,
-              tz,
-            ).toISOString()
-          : undefined,
+    createStaff.mutate({
+      name: formData.name.trim(),
+      email: formData.email.trim(),
+      phone: formData.phone.trim(),
+      password: formData.password,
+      locationId: location?.id ?? (formData.locationId ? Number(formData.locationId) : undefined),
+      shiftStart: formData.shiftStart ? fromZonedTime(`1970-01-01T${formData.shiftStart}:00`, tz).toISOString() : undefined,
+      shiftEnd: formData.shiftEnd ? fromZonedTime(`1970-01-01T${formData.shiftEnd}:00`, tz).toISOString() : undefined,
+    }, {
+      onSettled: () => { inFlight.current = false; },
+      onSuccess: () => {
+        if (!mounted.current) return;
+        reset();
+        onOpenChange(false);
+        onSaved?.();
       },
-      {
-        onSettled: () => { inFlight.current = false; },
-        onSuccess: () => {
-          if(!mounted.current)return;
-          reset();
-          onOpenChange(false);
-          onSaved?.();
-        },
-      },
-    );
+    });
   };
-
-  const failure=createStaff.error as {response?:{status?:number;data?:{errors?:Array<{code?:string}>}}}|undefined;
-  const failureCode=failure?.response?.data?.errors?.find(issue=>issue.code)?.code;
-  const failureMessage=failureCode==='CAPACITY_REACHED'
+  const close = () => { if (!createStaff.isPending && !inFlight.current) onOpenChange(false); };
+  const cancel = () => { if (!createStaff.isPending && !inFlight.current) { reset(); onOpenChange(false); } };
+  const failure = createStaff.error as { response?: { status?: number; data?: { errors?: Array<{ code?: string }> } } } | undefined;
+  const failureCode = failure?.response?.data?.errors?.find(issue => issue.code)?.code;
+  const failureMessage = failureCode === 'CAPACITY_REACHED'
     ? 'Your plan’s staff capacity has been reached. Ask the company owner to review Plan & billing. Your draft is kept.'
-    : failureCode==='SUBSCRIPTION_REQUIRED'
+    : failureCode === 'SUBSCRIPTION_REQUIRED'
       ? 'An active subscription is required to add staff. Ask the company owner to review Plan & billing. Your draft is kept.'
-      : failure?.response?.status===403
+      : failure?.response?.status === 403
         ? 'You do not have access to this action. Refresh your assigned sites.'
-        : failure?.response?.status===409
+        : failure?.response?.status === 409
           ? 'The email is already in use or the available capacity changed. Your draft is kept.'
           : 'Could not add staff. Check the details and try again. Your draft is kept.';
-  const body = (
-        <form
-          onSubmit={event=>void handleSubmit(onCreateSubmit)(event)}
-          className="workforce-form"
-        >
-          <fieldset disabled={createStaff.isPending} className="workforce-form-grid">
-          <div>
-            <label
-              htmlFor="staff-create-name"
-              className="mb-1.5 block text-sm font-medium text-foreground"
-            >
-              {t("Full Name")}
-            </label>
-            <Input
-              id="staff-create-name" aria-invalid={!!errors.name} aria-describedby={errors.name ? "staff-create-name-error" : undefined} aria-label={t("Full Name")}
-              {...register("name", { required: "Name is required", minLength: { value: 2, message: "Name must be at least 2 characters" } })}
-              autoComplete="name"
-            />
-            {errors.name && (
-              <p id="staff-create-name-error" className="mt-1 text-xs workforce-danger">{t(String(errors.name.message))}</p>
-            )}
-          </div>
-          <div>
-            <label
-              htmlFor="staff-create-email"
-              className="mb-1.5 block text-sm font-medium text-foreground"
-            >
-              {t("Email")}
-            </label>
-            <Input
-              type="email"
-              id="staff-create-email" aria-invalid={!!errors.email} aria-describedby={errors.email ? "staff-create-email-error" : undefined} aria-label={t("Email")}
-              {...register("email", { required: "Email is required" })}
-              dir="ltr" autoComplete="email"
-            />
-            {errors.email && (
-              <p id="staff-create-email-error" className="mt-1 text-xs workforce-danger">
-                {t(String(errors.email.message))}
-              </p>
-            )}
-          </div>
-          <div>
-            <label
-              htmlFor="staff-create-phone"
-              className="mb-1.5 block text-sm font-medium text-foreground"
-            >
-              {t("Phone Number")}
-            </label>
-            <Input
-              type="tel"
-              id="staff-create-phone" aria-invalid={!!errors.phone} aria-describedby={errors.phone ? "staff-create-phone-error" : undefined} aria-label={t("Phone Number")}
-              {...register("phone", {
-                required: "Phone number is required",
-                minLength: {
-                  value: 7,
-                  message: "Phone number must be at least 7 characters",
-                },
-                maxLength: {
-                  value: 20,
-                  message: "Phone number must be at most 20 characters",
-                },
-              })}
-              dir="ltr" autoComplete="tel"
-            />
-            {errors.phone && (
-              <p id="staff-create-phone-error" className="mt-1 text-xs workforce-danger">
-                {t(String(errors.phone.message))}
-              </p>
-            )}
-          </div>
-          <div>
-            <label
-              htmlFor="staff-create-password"
-              className="mb-1.5 block text-sm font-medium text-foreground"
-            >
-              {t("Password")}
-            </label>
-            <Input
-              type="password"
-              id="staff-create-password" aria-invalid={!!errors.password} aria-describedby={errors.password ? "staff-create-password-error" : undefined} aria-label={t("Password")}
-              {...register("password", {
-                required: "Password is required", minLength: {value: 8, message:"Use at least 8 characters"},
-              })}
-              dir="ltr" autoComplete="new-password"
-            />
-            {errors.password && (
-              <p id="staff-create-password-error" className="mt-1 text-xs workforce-danger">
-                {t(String(errors.password.message))}
-              </p>
-            )}
-          </div>
-          <div>
-            <label
-              htmlFor="staff-create-locationId"
-              className="mb-1.5 block text-sm font-medium text-foreground"
-            >
-              {t(location || managerHire ? "Location" : "Location (optional)")}
-            </label>
-            <select
-              disabled={!!location}
-              id="staff-create-locationId" aria-invalid={!!errors.locationId} aria-describedby={errors.locationId ? "staff-create-locationId-error" : undefined} aria-label={t(location||managerHire?"Location":"Location (optional)")}
-              {...register("locationId", { validate: value => !managerHire || locations.some(site => String(site.id) === (location ? String(location.id) : value)) || "Select assigned site" })}
-              className={inputCls}
-            >
-              <option value="">{t(managerHire ? "Select assigned site" : "No location")}</option>
-              {(location ? [location] : locations).map((l) => (
-                <option key={l.id} value={l.id}>
-                  {l.name}
-                </option>
-              ))}
-            </select>
-          </div>
-          {errors.locationId ? <p id="staff-create-locationId-error" role="alert" className="text-destructive">{t(String(errors.locationId.message))}</p> : null}
-          <div className="workforce-create-shifts grid grid-cols-2 gap-4">
-            <div>
-              <label
-                htmlFor="staff-create-shiftStart"
-                className="mb-1.5 block text-sm font-medium text-foreground"
-              >
-                {t("Shift Start")}
-              </label>
-              <Input
-                type="time" dir="ltr"
-                id="staff-create-shiftStart" aria-invalid={!!errors.shiftStart} aria-describedby={errors.shiftStart ? "staff-create-shiftStart-error" : undefined} aria-label={t("Shift Start")}
-                {...register("shiftStart", {
-                  required: "Shift start is required",
-                })}
-              />
-              {errors.shiftStart && (
-                <p id="staff-create-shiftStart-error" className="mt-1 text-xs workforce-danger">
-                  {t(String(errors.shiftStart.message))}
-                </p>
-              )}
-            </div>
-            <div>
-              <label
-                htmlFor="staff-create-shiftEnd"
-                className="mb-1.5 block text-sm font-medium text-foreground"
-              >
-                {t("Shift End")}
-              </label>
-              <Input
-                type="time" dir="ltr"
-                id="staff-create-shiftEnd" aria-invalid={!!errors.shiftEnd} aria-describedby={errors.shiftEnd ? "staff-create-shiftEnd-error" : undefined} aria-label={t("Shift End")}
-                {...register("shiftEnd", {
-                  required: "Shift end is required",
-                })}
-              />
-              {errors.shiftEnd && (
-                <p id="staff-create-shiftEnd-error" className="mt-1 text-xs workforce-danger">
-                  {t(String(errors.shiftEnd.message))}
-                </p>
-              )}
-            </div>
-          </div>
-          {createStaff.isError ? (
-            <p role="alert" className="operations-notice">
-              {t(failureMessage)}
-            </p>
-          ) : null}
-          </fieldset>
-          <p className="workforce-help">{t('Times use the assigned site’s timezone. Share initial credentials directly with the staff member.')}</p>
-          <div className="workforce-form-actions">
-            <Button
-              type="button"
-              variant="outline"
-              className="flex-1 rounded-lg"
-              disabled={createStaff.isPending}
-              onClick={() => {
-                if(inFlight.current)return;
-                reset();
-                onOpenChange(false);
-              }}
-            >
-              {t("Cancel")}
-            </Button>
-            <Button
-              type="submit"
-              disabled={createStaff.isPending}
-              className="flex-1 rounded-lg"
-            >
-              {t(createStaff.isPending ? "Creating..." : "Create staff")}
-            </Button>
-          </div>
-        </form>
-  );
+  const locationLabel = location || managerHire ? 'Location' : 'Location (optional)';
+  const actions = <SidePanelFooter className="wx-staff-form-actions">
+    <button type="button" className="wx-staff-form-button" disabled={createStaff.isPending} onClick={cancel}>{t('Cancel')}</button>
+    <button type="submit" form={formId} className="wx-staff-form-button wx-staff-form-primary" disabled={createStaff.isPending} aria-busy={createStaff.isPending}>{t(createStaff.isPending ? 'Creating...' : 'Create staff')}</button>
+  </SidePanelFooter>;
+  const body = <form id={formId} onSubmit={event => void handleSubmit(onCreateSubmit)(event)} className="wx-staff-form" aria-busy={createStaff.isPending}>
+    <fieldset disabled={createStaff.isPending} className="wx-staff-form-fields">
+      <div className="wx-staff-form-field">
+        <label htmlFor={id('name')}>{t('Full Name')}</label>
+        <Input id={id('name')} autoComplete="name" aria-invalid={!!errors.name} aria-describedby={errors.name ? id('name-error') : undefined}
+          {...register('name', { required: 'Name is required', minLength: { value: 2, message: 'Name must be at least 2 characters' } })} />
+        <SidePanelFieldError id={id('name-error')}>{errors.name?.message}</SidePanelFieldError>
+      </div>
+      <div className="wx-staff-form-pair">
+        <div className="wx-staff-form-field">
+          <label htmlFor={id('email')}>{t('Email')}</label>
+          <Input type="email" id={id('email')} dir="ltr" autoComplete="email" aria-invalid={!!errors.email} aria-describedby={errors.email ? id('email-error') : undefined}
+            {...register('email', { required: 'Email is required' })} />
+          <SidePanelFieldError id={id('email-error')}>{errors.email?.message}</SidePanelFieldError>
+        </div>
+        <div className="wx-staff-form-field">
+          <label htmlFor={id('phone')}>{t('Phone Number')}</label>
+          <Input type="tel" id={id('phone')} dir="ltr" autoComplete="tel" aria-invalid={!!errors.phone} aria-describedby={errors.phone ? id('phone-error') : undefined}
+            {...register('phone', { required: 'Phone number is required', minLength: { value: 7, message: 'Phone number must be at least 7 characters' }, maxLength: { value: 20, message: 'Phone number must be at most 20 characters' } })} />
+          <SidePanelFieldError id={id('phone-error')}>{errors.phone?.message}</SidePanelFieldError>
+        </div>
+      </div>
+      <div className="wx-staff-form-field">
+        <label htmlFor={id('password')}>{t('Password')}</label>
+        <Input type="password" id={id('password')} dir="ltr" autoComplete="new-password" aria-invalid={!!errors.password} aria-describedby={`${id('password-hint')}${errors.password ? ` ${id('password-error')}` : ''}`}
+          {...register('password', { required: 'Password is required', minLength: { value: 8, message: 'Use at least 8 characters' } })} />
+        <p id={id('password-hint')} className="wx-staff-form-help">{t('Share initial credentials directly with the staff member.')}</p>
+        <SidePanelFieldError id={id('password-error')}>{errors.password?.message}</SidePanelFieldError>
+      </div>
+      <div className="wx-staff-form-field" role={location ? undefined : 'group'} aria-labelledby={location ? undefined : id('location-label')} aria-describedby={errors.locationId ? id('location-error') : undefined}>
+        <label id={id('location-label')} htmlFor={location ? id('location') : undefined}>{t(locationLabel)}</label>
+        {location ? <select id={id('location')} disabled aria-invalid={!!errors.locationId} aria-describedby={errors.locationId ? id('location-error') : undefined} {...register('locationId', { validate: () => !managerHire || locations.some(site => site.id === location.id) || 'Select assigned site' })}><option value={location.id}>{location.name}</option></select>
+          : <Controller control={control} name="locationId" rules={{ validate: value => !managerHire || locations.some(site => String(site.id) === value) || 'Select assigned site' }} render={({ field }) => <SelectMenu
+            label={locationLabel} value={field.value ?? ''} disabled={createStaff.isPending} onChange={field.onChange}
+            options={[{ value: '', label: managerHire ? 'Select assigned site' : 'No location' }, ...locations.map(site => ({ value: String(site.id), label: site.name, translateLabel: false }))]} /> } />}
+        <SidePanelFieldError id={id('location-error')}>{errors.locationId?.message}</SidePanelFieldError>
+      </div>
+      <div className="wx-staff-form-pair">
+        {(['shiftStart', 'shiftEnd'] as const).map(field => <div className="wx-staff-form-field" key={field}>
+          <label htmlFor={id(field)}>{t(field === 'shiftStart' ? 'Shift Start' : 'Shift End')}</label>
+          <Input type="time" dir="ltr" id={id(field)} aria-invalid={!!errors[field]} aria-describedby={`${id('timezone-hint')}${errors[field] ? ` ${id(`${field}-error`)}` : ''}`}
+            {...register(field, { required: field === 'shiftStart' ? 'Shift start is required' : 'Shift end is required' })} />
+          <SidePanelFieldError id={id(`${field}-error`)}>{errors[field]?.message}</SidePanelFieldError>
+        </div>)}
+      </div>
+      <p id={id('timezone-hint')} className="wx-staff-form-help">{t('Times use the assigned site’s timezone.')}</p>
+    </fieldset>
+    {createStaff.isError && <p role="alert" className="wx-staff-form-error">{t(failureMessage)}</p>}
+  </form>;
   if (!open) return null;
-  if (inline) return <section className="workforce-panel workforce-inline-form" aria-labelledby="staff-create-title"><h2 id="staff-create-title">{t('Add team member')}</h2><p className="workforce-help">{t('Set up a real staff account and its working shift.')}</p>{body}</section>;
-  return <Dialog open={open} onOpenChange={value=>{if(!createStaff.isPending&&!inFlight.current)onOpenChange(value);}}><DialogContent className="workforce-dialog bg-card sm:max-w-xl" showCloseButton={!createStaff.isPending} onEscapeKeyDown={e=>{if(createStaff.isPending)e.preventDefault();}} onInteractOutside={e=>{if(createStaff.isPending)e.preventDefault();}}><DialogHeader><DialogTitle>{t('Add team member')}</DialogTitle><DialogDescription>{t('Set up a real staff account and its working shift.')}</DialogDescription></DialogHeader>{body}</DialogContent></Dialog>;
+  if (inline) return <section className="wx-staff-form-inline" aria-labelledby={id('title')}>
+    <header><h2 id={id('title')}>{t('Add team member')}</h2><p className="wx-staff-form-help">{t('Set up a real staff account and its working shift.')}</p></header>
+    {body}{actions}
+  </section>;
+  return <SidePanel open={open} title="Add team member" description="Set up a real staff account and its working shift." onOpenChange={value => { if (!value) close(); }} footer={actions}>{body}</SidePanel>;
 }

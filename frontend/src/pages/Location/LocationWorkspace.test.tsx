@@ -39,11 +39,11 @@ beforeEach(()=>{
  mocks.operations={isPending:false,isError:false,data:overview,refetch:vi.fn()};
  mocks.areas={isPending:false,isError:false,data:[{id:1,status:'ACTIVE'},{id:2,status:'ARCHIVED'}],refetch:vi.fn()};
 });
-it('register combines active/archive and search filters using saved records',()=>{
+it('register combines active/archive and search filters using saved records',async()=>{
  mount(<LocationsPage/>);expect(screen.queryByText('Archived fixture')).not.toBeInTheDocument();
- fireEvent.change(screen.getByLabelText('Location status'),{target:{value:'inactive'}});expect(screen.getAllByText('Archived fixture').length).toBeGreaterThan(0);expect(screen.queryByText('Persisted site')).not.toBeInTheDocument();
+ fireEvent.pointerDown(screen.getByRole('button',{name:'Location status: Active locations'}),{button:0,ctrlKey:false,pointerType:'mouse'});fireEvent.click(await screen.findByRole('menuitemradio',{name:'Inactive locations'}));expect(screen.getAllByText('Archived fixture').length).toBeGreaterThan(0);expect(screen.queryByText('Persisted site')).not.toBeInTheDocument();
  fireEvent.change(screen.getByLabelText('Search locations'),{target:{value:'not present'}});expect(screen.getByText('No locations match these filters.')).toBeInTheDocument();
- fireEvent.click(screen.getByRole('button',{name:'Clear filters'}));expect(screen.getByLabelText('Location status')).toHaveValue('active');expect(screen.getByLabelText('Search locations')).toHaveValue('');
+ fireEvent.click(screen.getByRole('button',{name:'Clear filters'}));expect(screen.getByRole('button',{name:'Location status: Active locations'})).toBeInTheDocument();expect(screen.getByLabelText('Search locations')).toHaveValue('');
 });
 it('create deep-link opens only for owners and cancelling retains unrelated query context',()=>{
  mount(<LocationsPage/>,'ADMIN','/locations?create=1&from=setup');expect(screen.getByRole('dialog',{name:'Location editor'})).toBeInTheDocument();fireEvent.click(screen.getByRole('button',{name:'Cancel editor'}));expect(screen.getByLabelText('Current route')).toHaveTextContent('from=setup');expect(screen.getByLabelText('Current route')).not.toHaveTextContent('create');
@@ -59,14 +59,14 @@ it('denied and loading location reads remain distinct from empty register',()=>{
 });
 it('overview uses actual scoped denominators and distinct submission/review counts',()=>{
  mount(<LocationOverview location={site} onTab={vi.fn()} overview={mocks.operations as unknown as UseQueryResult<OperationOverview,Error>}/>);
- const summary=screen.getByRole('region',{name:'Daily summary'});expect(summary).toHaveTextContent('Staff today6');expect(summary).toHaveTextContent('4 checked in · 2 not checked in');expect(summary).toHaveTextContent('Tasks submitted3 / 11');expect(summary).toHaveTextContent('Photo reviews2');expect(summary).toHaveTextContent('Area templates1');
+ const summary=screen.getByRole('region',{name:'Daily summary'});expect(summary).toHaveTextContent('Staff today4 of 6');expect(summary).toHaveTextContent('4 checked in · 2 not checked in');expect(summary).toHaveTextContent('Tasks submitted3 of 11');expect(summary).toHaveTextContent('Waiting for a decision2');expect(screen.getByRole('button',{name:/Area templates/})).toHaveTextContent('1');
  expect(screen.getByRole('link',{name:/Tasks submitted/})).toHaveAttribute('href','/today-status?locationId=20&date=today&tab=tasks');expect(screen.queryByText('Hassan Khan')).not.toBeInTheDocument();
 });
 it('area read failure stays unknown and preserves the existing navigation action',()=>{
  mocks.areas={isError:true,error:new Error('offline'),refetch:vi.fn()};const tabs=vi.fn();mount(<LocationOverview location={site} onTab={tabs} overview={mocks.operations as unknown as UseQueryResult<OperationOverview,Error>}/>);expect(screen.getByRole('button',{name:/Area templates/})).toHaveTextContent('—');fireEvent.click(screen.getByRole('button',{name:/Area templates/}));expect(tabs).toHaveBeenCalledWith('areas');expect(screen.getByRole('alert')).toBeInTheDocument();
 });
 it('detail retains URL-driven tabs and hides owner edit for managers',()=>{
- mount(<Routes><Route path="/locations/:id" element={<LocationDetailPage/>}/></Routes>,'MANAGER','/locations/20');expect(screen.queryByRole('button',{name:'Edit location'})).not.toBeInTheDocument();fireEvent.click(screen.getByRole('button',{name:'Cleaning schedule'}));expect(screen.getByLabelText('Current route')).toHaveTextContent('tab=templates');expect(screen.getByText('Schedule editing boundary')).toBeInTheDocument();
+ mount(<Routes><Route path="/locations/:id" element={<LocationDetailPage/>}/></Routes>,'MANAGER','/locations/20');expect(screen.queryByRole('button',{name:'Edit location'})).not.toBeInTheDocument();fireEvent.mouseDown(screen.getByRole('tab',{name:'Cleaning schedule'}),{button:0,ctrlKey:false});expect(screen.getByLabelText('Current route')).toHaveTextContent('tab=templates');expect(screen.getByText('Schedule editing boundary')).toBeInTheDocument();
 });
 it('detail opens the real owner location editor from the V5 heading',()=>{
  mount(<Routes><Route path="/locations/:id" element={<LocationDetailPage/>}/></Routes>,'ADMIN','/locations/20');fireEvent.click(screen.getByRole('button',{name:'Edit location'}));expect(screen.getByRole('dialog',{name:'Location editor'})).toBeInTheDocument();

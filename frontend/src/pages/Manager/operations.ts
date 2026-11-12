@@ -51,7 +51,16 @@ export type OperationsBase = {
   asOf: string;
   date: string;
 };
+export type OperationHourlyProgress = {
+  /** Location-local clock hour, from 0 through 23. Counts are cumulative. */
+  hour: number;
+  due: number;
+  /** Null means not yet observed, rather than zero submissions. */
+  submitted: number | null;
+};
 export type OperationOverview = OperationsBase & {
+  /** Optional while older API instances remain in a rolling deployment. */
+  hourly?: OperationHourlyProgress[];
   metrics: {
     present: number;
     scheduled: number;
@@ -78,6 +87,7 @@ export type OperationOverview = OperationsBase & {
     reasonCode: string;
   }>;
   tasks: OperationTask[];
+  /** Every selected location, including empty ones; no four-row limit. */
   comparison: Array<{
     location: LocationScope;
     present: number;

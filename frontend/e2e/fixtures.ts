@@ -13,6 +13,7 @@ const require = createRequire(
   new URL("../../backend/package.json", import.meta.url),
 );
 const { Client } = require("pg");
+base.use({ actionTimeout: 10000 });
 export type Fixture = {
   password: string;
   review: { id: number; taskId: number };
@@ -27,15 +28,18 @@ export const fixture: Fixture = JSON.parse(
   readFileSync(process.env.HYGENE_E2E_MANIFEST!, "utf8"),
 );
 export const backend = process.env.HYGENE_E2E_BACKEND_ORIGIN!;
-export async function sql(text: string, values: unknown[] = []) {
+function managedDatabase() {
   const target = new URL(process.env.HYGENE_E2E_DATABASE_URL!);
   if (process.env.HYGENE_E2E_MANAGED !== 'true' || !['postgres:', 'postgresql:'].includes(target.protocol) ||
-      !['localhost', '127.0.0.1', '[::1]'].includes(target.hostname) ||
+      target.hostname !== '127.0.0.1' || target.port !== '56442' || target.username !== 'fixture' || target.password ||
       !/^\/priv_e2e_test_[a-f0-9]{32}$/.test(target.pathname) || target.search || target.hash) {
     throw new Error('SQL fixtures require the managed disposable E2E child');
   }
+  return target.href;
+}
+export async function sql(text: string, values: unknown[] = []) {
   const db = new Client({
-    connectionString: process.env.HYGENE_E2E_DATABASE_URL,
+    connectionString: managedDatabase(),
   });
   await db.connect();
   try {
@@ -97,7 +101,49 @@ export async function enter(
   await page.goto(path);
 }
 // Credential-bearing flows disable traces, video and screenshots; temporary synthetic sessions stay private.
-export const test = base.extend({
+export const test = base.extend<{ resetDatabase: void }>({
+  resetDatabase: [async ({ playwright }, provide) => {
+    void playwright;
+    const path = join(process.env.HYGENE_E2E_RUNTIME_DIR!, 'seed-snapshot.json');
+    const snapshot = JSON.parse(readFileSync(path, 'utf8')) as {
+      tables: { table: string; rows: unknown[] }[];
+      sequences: { sequencename: string; last_value: string; is_called: boolean }[];
+    };
+    const db = new Client({ connectionString: managedDatabase() });
+    const quote = (name: string) => '"' + name.replaceAll('"', '""') + '"';
+    await db.connect();
+    try {
+      await db.query('BEGIN');
+      // Preserve still-valid real login sessions; resetting them would make
+      // independent cases exhaust the API's in-memory login rate limit.
+      for (const name of ['Manager', 'Staff']) {
+        const current = (await db.query(`SELECT id,password,"credentialVersion","refreshToken" FROM ${quote(name)}`)).rows;
+        const table = snapshot.tables.find(row => row.table === name);
+        for (const value of table?.rows ?? []) {
+          const row = value as { id: number; password: string; credentialVersion: number; refreshToken: string | null };
+          const saved = current.find((account: typeof row) => account.id === row.id && account.password === row.password && account.credentialVersion === row.credentialVersion);
+          if (saved) row.refreshToken = saved.refreshToken;
+        }
+      }
+      // The local fixture role is a superuser. Disable triggers only inside this
+      // reset transaction to restore circular seed links; real API requests run
+      // with all constraints and authorization enabled after COMMIT.
+      await db.query('SET LOCAL session_replication_role = replica');
+      await db.query('TRUNCATE ' + snapshot.tables.map(row => quote(row.table)).join(', ') + ' RESTART IDENTITY CASCADE');
+      for (const row of snapshot.tables) if (row.rows.length) {
+        const table = quote(row.table);
+        await db.query(`INSERT INTO ${table} SELECT * FROM json_populate_recordset(NULL::${table}, $1::json)`, [JSON.stringify(row.rows)]);
+      }
+      for (const sequence of snapshot.sequences) {
+        await db.query('SELECT setval($1::regclass,$2::bigint,$3)', [quote(sequence.sequencename), sequence.last_value, sequence.is_called]);
+      }
+      await db.query('COMMIT');
+    } catch (error) {
+      await db.query('ROLLBACK');
+      throw error;
+    } finally { await db.end(); }
+    await provide();
+  }, { auto: true }],
   context: async ({ context }, provide) => {
     contexts.set(context.request, context);
     await provide(context);

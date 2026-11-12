@@ -1,246 +1,116 @@
-import '../Staff/workforce-v5.css';
-import ManagerAccessActions from "./ManagerAccessActions";
-import { useState } from "react";
-import { Link } from "react-router-dom";
-import {
-  MapPin,
-  Pencil,
-  Plus,
-  ShieldCheck,
-} from "lucide-react";
-import PageHeader from "@/components/common/PageHeader";
-import EmptyState from "@/components/common/EmptyState";
-import DataTable, { type Column } from "@/components/common/DataTable";
-import StatusBadge from "@/components/common/StatusBadge";
-import OperationsState from "../Manager/OperationsState";
-import { useLanguage } from "@/i18n/context";
-import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import { useGetLocations } from "../Location/queries";
-import { useGetManagers } from "./queries";
-import ManagerFormDialog from "./ManagerFormDialog";
-import type { LocationWithCounts } from "../Location/types";
-import type { Manager } from "./types";
+import { useState } from 'react';
+import { Link } from 'react-router-dom';
+import { ArrowLeft, MapPin, Pencil, Plus, ShieldCheck, Users } from 'lucide-react';
+import useAuth from '@/hooks/useAuth';
+import { useLanguage } from '@/i18n/context';
+import PageHeader from '@/components/common/PageHeader';
+import EmptyState from '@/components/common/EmptyState';
+import DataTable, { type Column } from '@/components/common/DataTable';
+import PersonAvatar from '@/components/workspace/PersonAvatar';
+import StatusPill from '@/components/workspace/StatusPill';
+import FindField from '@/components/workspace/FindField';
+import SelectMenu from '@/components/workspace/SelectMenu';
+import OperationsState from '../Manager/OperationsState';
+import { useGetLocations } from '../Location/queries';
+import { useGetManagers } from './queries';
+import ManagerFormDialog from './ManagerFormDialog';
+import ManagerAccessActions from './ManagerAccessActions';
+import type { LocationWithCounts } from '../Location/types';
+import type { Manager } from './types';
+import './managers-v6.css';
+
+const denied = (error: unknown) => [401, 403].includes((error as { response?: { status?: number } })?.response?.status ?? 0);
 
 export default function ManagersPage() {
-  const { t } = useLanguage();
-  const getManagers = useGetManagers(),
-    getLocations = useGetLocations();
+  const { user } = useAuth();
+  return <ManagerDirectory key={`${user?.companyId}:${user?.role}:${user?.id}`} />;
+}
+
+function ManagerDirectory() {
+  const { t, language } = useLanguage();
+  const getManagers = useGetManagers();
+  const getLocations = useGetLocations();
   const [dialogOpen, setDialogOpen] = useState(false);
   const [editingManager, setEditingManager] = useState<Manager | null>(null);
-  const [search, setSearch] = useState("");
-  const [status, setStatus] = useState("all");
-  const [success, setSuccess] = useState("");
-  if (getManagers.isPending || getLocations.isPending)
-    return <div className="workforce-page"><PageHeader title="Managers"/><OperationsState loading skeleton="table"/></div>;
-  if ((getManagers.isError&&!getManagers.data) || (getLocations.isError&&!getLocations.data))
-  return (
-      <div className="ops-page">
-        <PageHeader title="Managers" />
-        <OperationsState
-          error={getManagers.error ?? getLocations.error}
-          retry={() => {
-            void getManagers.refetch();
-            void getLocations.refetch();
-          }}
-        />
-      </div>
-    );
+  const [search, setSearch] = useState('');
+  const [status, setStatus] = useState('all');
+  const [success, setSuccess] = useState('');
   const managers: Manager[] = getManagers.data?.data ?? [];
-  const locations: LocationWithCounts[] = (
-    getLocations.data?.data ?? []
-  ).filter((loc: LocationWithCounts) => loc.isActive);
-  const covered = new Set(
-    managers.filter(m=>m.isActive).flatMap((m) => m.locations.map((l) => l.id)),
-  );
+  const locations: LocationWithCounts[] = (getLocations.data?.data ?? []).filter((location: LocationWithCounts) => location.isActive);
+  const loading = (getManagers.isPending && !getManagers.data) || (getLocations.isPending && !getLocations.data);
+  const unavailable = (getManagers.isError && (!getManagers.data || denied(getManagers.error)))
+    || (getLocations.isError && (!getLocations.data || denied(getLocations.error)));
+  const error = getManagers.isError ? getManagers.error : getLocations.isError ? getLocations.error : undefined;
+  const retry = () => { void getManagers.refetch(); void getLocations.refetch(); };
+  const canCreate = !loading && !unavailable && !getLocations.isError && locations.length > 0;
+  const number = (value: number) => value.toLocaleString(language === 'ur' ? 'ur-PK' : 'en-PK');
+  const active = managers.filter(manager => manager.isActive);
+  const covered = new Set(active.flatMap(manager => manager.locations.map(location => location.id)));
   const taken = new Map<number, string>();
-  for (const m of managers) {
-    if (!m.isActive || m.id === editingManager?.id) continue;
-    for (const l of m.locations) taken.set(l.id, m.name);
+  for (const manager of active) {
+    if (manager.id === editingManager?.id) continue;
+    for (const location of manager.locations) taken.set(location.id, manager.name);
   }
-  const openCreate = () => {
-    setEditingManager(null);
-    setDialogOpen(true);
-  };
-  const filtered = managers.filter(
-    (m) =>
-      (status === "all" || m.isActive === (status === "active")) &&
-      (m.name + " " + m.email + " " + m.locations.map((l) => l.name).join(" "))
-        .toLowerCase()
-        .includes(search.toLowerCase()),
-  );
-  const columns:Column<Manager>[]=[
-              {
-                key: "name",
-                header: "Manager",
-                sortValue: (m) => m.name,
-                render: (m) => (
-                  <div className="table-identity">
-                    <span className="workspace-avatar">
-                      {m.name
-                        .split(" ")
-                        .map((w) => w[0])
-                        .join("")
-                        .slice(0, 2)
-                        .toUpperCase()}
-                    </span>
-                    <div>
-                      <strong>{m.name}</strong>
-                      <p><bdi dir="ltr">{m.email}</bdi></p>
-                    </div>
-                  </div>
-                ),
-              },
-              {
-                key: "locations",
-                header: "Assigned locations",
-                sortValue: (m) => m.locations.length,
-                render: (m) => (
-                  <div className="manager-location-links">
-                    {m.locations.map((l) => (
-                      <Link key={l.id} to={"/locations/" + l.id}>
-                        <MapPin size={13} />
-                        {l.name}
-                      </Link>
-                    ))}
-                    {!m.locations.length ? t("No locations assigned") : null}
-                  </div>
-                ),
-              },
-              {
-                key: "status",
-                header: "Account status",
-                sortValue: (m) => (m.isActive ? 1 : 0),
-                render: (m) => (
-                  <StatusBadge status={m.isActive ? "ACTIVE" : "INACTIVE"} />
-                ),
-              },
-              {
-                key: "actions",
-                header: "Actions",
-                render: (m) => (
-                  <div className="flex gap-2">
-                    <Button
-                      variant="outline"
-                      disabled={!m.isActive}
-                      onClick={() => {
-                        setEditingManager(m);
-                        setDialogOpen(true);
-                      }}
-                    >
-                      <Pencil size={14} />
-                      {t("Edit")}
-                    </Button>
-                    <ManagerAccessActions manager={m} />
+  const add = <button type="button" className="wx-managers-button wx-managers-primary" disabled={!canCreate} onClick={event => {
+    event.currentTarget.focus(); setEditingManager(null); setDialogOpen(true);
+  }}><Plus size={16} aria-hidden="true" />{t('Add manager')}</button>;
+  const filtered = managers.filter(manager => (status === 'all' || manager.isActive === (status === 'active'))
+    && `${manager.name} ${manager.email} ${manager.locations.map(location => location.name).join(' ')}`.toLowerCase().includes(search.toLowerCase()));
+  const columns: Column<Manager>[] = [
+    { key: 'name', header: 'Manager', sortValue: manager => manager.name, render: manager => <div className="wx-managers-identity">
+      <PersonAvatar name={manager.name} /><div><strong><bdi>{manager.name}</bdi></strong><small><bdi dir="ltr">{manager.email}</bdi></small></div>
+    </div> },
+    { key: 'locations', header: 'Assigned locations', sortValue: manager => manager.locations.length, render: manager => <div className="wx-managers-locations">
+      {manager.locations.map(location => <Link key={location.id} className="wx-managers-site" to={`/locations/${location.id}`}><bdi>{location.name}</bdi></Link>)}
+      {!manager.locations.length && <span>{t('No locations assigned')}</span>}
+    </div> },
+    { key: 'status', header: 'Account status', sortValue: manager => manager.isActive ? 1 : 0, render: manager => <StatusPill tone={manager.isActive ? 'ok' : 'neutral'} status={manager.isActive ? 'ACTIVE' : 'INACTIVE'} /> },
+    { key: 'actions', header: 'Actions', className: 'wx-managers-action-cell', render: manager => <div className="wx-managers-actions">
+      <button type="button" className="wx-managers-button" disabled={!manager.isActive || getLocations.isError} onClick={event => {
+        event.currentTarget.focus(); setEditingManager(manager); setDialogOpen(true);
+      }}><Pencil size={14} aria-hidden="true" />{t('Edit')}</button>
+      <ManagerAccessActions manager={manager} />
+    </div> },
+  ];
 
-                  </div>
-                ),
-              },
-            ];
-  return (
-    <div className="workforce-page">
-      <PageHeader
-        title="Managers"
-        subtitle="Give each manager access to the locations they look after."
-        action={
-          locations.length ? (
-            <Button onClick={openCreate}>
-              <Plus size={16} />
-              {t("Add manager")}
-            </Button>
-          ) : undefined
-        }
-      />
-      {success ? (
-        <p className="ops-save-result" role="status">
-          {t(success)}
-        </p>
-      ) : null}
-      <OperationsState error={getManagers.isError?getManagers.error:getLocations.isError?getLocations.error:undefined} retry={()=>{void getManagers.refetch();void getLocations.refetch();}}/>
-      <dl className="workforce-summary workforce-manager-summary" aria-label={t('Manager summary')}>
-        <div><dt>{t('Total managers')}</dt><dd>{managers.length}</dd><p>{t('Company manager accounts')}</p></div>
-        <div><dt>{t('Active managers')}</dt><dd>{managers.filter(m=>m.isActive).length}</dd><p>{t('Assigned-site access')}</p></div>
-        <div><dt>{t('Locations covered')}</dt><dd>{covered.size}</dd><p>{t('One active manager per location')}</p></div>
+  return <div className="wx-managers-page">
+    <PageHeader title="Managers" subtitle="Review access and the sites assigned to each manager." action={canCreate ? add : undefined} />
+    {loading ? <OperationsState loading skeleton="table" /> : unavailable ? <OperationsState error={error} retry={retry} /> : <>
+      <OperationsState error={error} retry={retry} />
+      {success && <p className="wx-managers-success" role="status">{t(success)}</p>}
+      <dl className="wx-managers-summary" aria-label={t('Manager summary')}>
+        <div title={t('Company manager accounts')}><dt>{t('Total managers')}</dt><dd>{number(managers.length)}</dd></div>
+        <div title={t('Assigned-site access')}><dt>{t('Active managers')}</dt><dd>{number(active.length)}</dd></div>
+        <div title={t('One active manager per location')}><dt>{t('Locations covered')}</dt><dd>{number(covered.size)}</dd></div>
       </dl>
-      {locations.length||managers.length ? (
-        <section className="workforce-panel workforce-directory">
-          <div className="workforce-panel-heading"><h2>{t('Manager assignments')}</h2><p>{t('Review access and the sites assigned to each manager.')}</p></div>
-          <div className="workforce-toolbar">
-            <label className="">
-              <span className="flex items-center gap-2">
-                {t("Search managers")}
-              </span>
-              <Input
-                aria-label={t("Search managers")}
-                value={search}
-                onChange={(e) => setSearch(e.target.value)}
-                placeholder={t("Search by name, email or location")}
-              />
-            </label>
-            <label>
-              {t("Account status")}
-              <select
-                aria-label={t("Account status")}
-                value={status}
-                onChange={(e) => setStatus(e.target.value)}
-              >
-                <option value="all">{t("All accounts")}</option>
-                <option value="active">{t("Active")}</option>
-                <option value="inactive">{t("Inactive")}</option>
-              </select>
-            </label>
+      <section className="wx-managers-directory" aria-label={t('Manager assignments')}>
+        {managers.length ? <>
+          <div className="wx-managers-toolbar">
+            <FindField label="Search managers" placeholder="Search by name, email or location" value={search} onChange={setSearch} />
+            <SelectMenu label="Account status" value={status} onChange={setStatus} options={[{ value: 'all', label: 'All accounts' }, { value: 'active', label: 'Active' }, { value: 'inactive', label: 'Inactive' }]} />
           </div>
-          <DataTable
-            data={filtered}
-            pageSize={20}
-            rowKey={(m) => m.id}
-            emptyMessage="No managers match these filters."
-            columns={columns}
-            mobileRender={manager=><div className="workforce-mobile-record">
-              {columns[0].render(manager)}
-              <div><p className="workforce-help">{t('Assigned locations')}</p>{columns[1].render(manager)}</div>
-              {columns[2].render(manager)}
-              {columns[3].render(manager)}
-            </div>}
-          />
-          <div className="workforce-panel-footer"><span>{t('{shown} of {total} managers',{shown:filtered.length,total:managers.length})}</span><Link to="/staff">{t('Back to team')}</Link></div>
-        </section>
-      ) : (
-        <EmptyState
-          icon={<MapPin />}
-          message="You need at least one location before you can create a manager."
-          action={
-            <Button asChild>
-              <Link to="/locations">{t("Go to locations")}</Link>
-            </Button>
-          }
-        />
-      )}
-      <div className="workforce-access-context flex items-start gap-3">
-        <ShieldCheck size={23} />
-        <div>
-          <strong>{t("Access follows assigned locations")}</strong>
-          <p>
-            {t(
-              "Managers see their assigned sites. Company owners retain access across the workspace.",
-            )}
-          </p>
+          <DataTable data={filtered} pageSize={20} rowKey={manager => manager.id} columns={columns} mobileCards emptyIcon={<Users size={28} />} emptyMessage="No managers match these filters." />
+          <div className="wx-managers-directory-footer"><span>{t('{shown} of {total} managers', { shown: number(filtered.length), total: number(managers.length) })}</span>
+            {(search || status !== 'all') && <button type="button" className="wx-managers-button" onClick={() => { setSearch(''); setStatus('all'); }}>{t('Clear filters')}</button>}
+          </div>
+        </> : <EmptyState icon={<Users size={28} />} title="No managers yet" message={locations.length
+          ? 'Managers see only the locations you assign them. Add one when you have a site to hand over.'
+          : 'You need at least one location before you can create a manager.'} action={locations.length ? add
+            : <Link className="wx-managers-button wx-managers-primary" to="/locations">{t('Go to locations')}</Link>} />}
+      </section>
+      <section className="wx-managers-guidance" aria-label={t('Access follows assigned locations')}>
+        <ShieldCheck size={22} aria-hidden="true" /><div><h2>{t('Access follows assigned locations')}</h2>
+          <p>{t('Give each manager access to the locations they look after.')}</p>
+          <p>{t('Managers see their assigned sites. Company owners retain access across the workspace.')}</p>
         </div>
-      </div>
-      {dialogOpen ? (
-        <ManagerFormDialog
-          open={dialogOpen}
-          onOpenChange={setDialogOpen}
-          manager={editingManager}
-          locations={locations.map((l) => ({ id: l.id, name: l.name }))}
-          takenLocations={taken}
-          onSaved={() =>
-            setSuccess(
-              editingManager ? "Manager changes saved." : "Manager added.",
-            )
-          }
-        />
-      ) : null}
-    </div>
-  );
+      </section>
+      {dialogOpen && <ManagerFormDialog open onOpenChange={setDialogOpen} manager={editingManager}
+        locations={locations.map(location => ({ id: location.id, name: location.name }))} takenLocations={taken}
+        onSaved={() => setSuccess(editingManager ? 'Manager changes saved.' : 'Manager added.')} />}
+    </>}
+    <nav className="wx-managers-navigation" aria-label={t('Managers')}>
+      <Link className="wx-managers-link" to="/staff"><ArrowLeft size={16} aria-hidden="true" />{t('Back to team')}</Link>
+      <Link className="wx-managers-link" to="/locations"><MapPin size={16} aria-hidden="true" />{t('Go to locations')}</Link>
+    </nav>
+  </div>;
 }

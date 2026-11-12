@@ -16,6 +16,10 @@ for (const raw of [
   "postgresql://fixture@127.0.0.1/customer",
   "postgresql://fixture@127.0.0.1/customer_test",
   "postgresql://fixture@127.0.0.1/priv_e2e_test?host=remote.invalid",
+  "postgresql://fixture@127.0.0.1:5432/priv_e2e_test",
+  "postgresql://fixture@localhost:56442/priv_e2e_test",
+  "postgresql://another@127.0.0.1:56442/priv_e2e_test",
+  "postgresql://fixture:synthetic@127.0.0.1:56442/priv_e2e_test",
 ])
   test(
     "E2E rejects an absent/unsafe bootstrap without leaking connection material: " +

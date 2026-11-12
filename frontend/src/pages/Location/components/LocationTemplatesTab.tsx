@@ -1,13 +1,18 @@
 import DataTable from "@/components/common/DataTable";
 import { useLocationLanguage } from "../locationTranslations";
-import { Dialog,DialogContent,DialogHeader,DialogTitle,DialogDescription } from "@/components/ui/dialog";
+import { SidePanel, SidePanelFooter } from "@/components/workspace/SidePanel";
+import EmptyState from "@/components/common/EmptyState";
+import StatusPill from "@/components/workspace/StatusPill";
+import PersonAvatar from "@/components/workspace/PersonAvatar";
+import { moveWeek, normalizeWeek } from "../scheduleTypes";
+import "@/pages/Task/schedule-v6.css";
+import { useSetupFormText } from "@/pages/Area/areaFormText";
 import TemplateInventoryEditor from "@/pages/Area/TemplateInventoryEditor";
 import { useAreas } from "@/pages/Area/queries";
 import { Link, useLocation, useSearchParams } from "react-router-dom";
 import { useEffect, useRef, useState } from "react";
 import { formatInTimeZone } from "date-fns-tz";
 import DeleteButton from "@/components/common/DeleteButton";
-import StatusBadge from "@/components/common/StatusBadge";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Pencil, Plus } from "lucide-react";
@@ -20,6 +25,51 @@ import type { EditTaskTemplateInput } from "@/pages/Task/api";
 import type { LocationStaff, TaskTemplate } from "../types";
 import { buildDateTimeIso } from "@/pages/Task/taskScheduleForm";
 import TaskScheduleWizard from "@/pages/Task/components/TaskScheduleWizard";
+
+/** Calendar arithmetic uses UTC as a container for location-local date fields. */
+function addDay(day: string, offset: number) {
+  const date = new Date(`${day}T12:00:00Z`);
+  date.setUTCDate(date.getUTCDate() + offset);
+  return date.toISOString().slice(0, 10);
+}
+
+export interface ScheduleWeekProps {
+  templates: TaskTemplate[];
+  timeZone: string;
+  week: string;
+  onSelect: (template: TaskTemplate) => void;
+}
+
+/** Read-only projection of already loaded templates; never creates occurrences. */
+export function ScheduleWeek({ templates, timeZone, week, onSelect }: ScheduleWeekProps) {
+  const { t, language } = useLocationLanguage();
+  const days = Array.from({ length: 7 }, (_, index) => addDay(week, index));
+  const label = (day: string) => new Intl.DateTimeFormat(language === 'ur' ? 'ur-PK' : 'en-PK', { timeZone: 'UTC', weekday: 'short', day: 'numeric', month: 'short' }).format(new Date(`${day}T12:00:00Z`));
+  const time = (value: string | null) => value && Number.isFinite(Date.parse(value)) ? formatInTimeZone(value, timeZone, 'HH:mm') : '';
+  return <table className="wx-schedule-week" role="table" aria-label={t('Week at a glance')}>
+    <thead role="rowgroup"><tr role="row"><th scope="col" role="columnheader">{t('Cleaning schedule')}</th>{days.map(day => <th role="columnheader" scope="col" key={day}>{label(day)}</th>)}</tr></thead>
+    <tbody role="rowgroup">{templates.map(template => {
+      const start = time(template.shiftStart), end = time(template.shiftEnd);
+      const overnight = !!start && !!end && end <= start;
+      const effective = template.effectiveDate?.slice(0, 10) || (start ? formatInTimeZone(template.shiftStart!, timeZone, 'yyyy-MM-dd') : '');
+      // Older location DTOs omit the optional recurrence end; honor it if present.
+      const until = (template as TaskTemplate & { recurringEndDate?: string | null }).recurringEndDate?.slice(0, 10);
+      const occurs = (day: string) => template.isActive !== false && !!start && !!end && !!effective && day >= effective && (!until || day <= until) && (template.recurringType === 'DAILY' || day === effective);
+      return <tr role="row" key={template.id}>
+        <th role="rowheader" scope="row"><button type="button" onClick={() => onSelect(template)}><bdi>{template.title}</bdi></button><small>{t(template.recurringType === 'DAILY' ? 'Daily' : 'Once')}</small></th>
+        {days.map(day => {
+          const carry = overnight && end !== '00:00' && occurs(addDay(day, -1));
+          const begins = occurs(day);
+          return <td role="cell" key={day} aria-label={label(day)}><span className="wx-schedule-day-label" aria-hidden="true">{label(day)}</span>
+            {carry && <button type="button" className="wx-schedule-bar wx-schedule-bar-night wx-schedule-bar-carry" onClick={() => onSelect(template)} aria-label={`${template.title} · ${label(day)} · ${t('Continues from previous day')} · 00:00–${end}`}><span>{t('Continues from previous day')}</span><bdi dir="ltr">00:00–{end}</bdi></button>}
+            {begins && <button type="button" className={`wx-schedule-bar${overnight ? ' wx-schedule-bar-night wx-schedule-bar-start' : ''}`} onClick={() => onSelect(template)} aria-label={`${template.title} · ${label(day)} · ${start}–${end}${overnight ? ' · ' + t('Continues into next day') : ''}`}><bdi dir="ltr">{start}–{overnight ? '24:00' : end}</bdi>{overnight && <span>{t('Continues into next day')}</span>}</button>}
+            {!carry && !begins && <span className="wx-schedule-no-slot">—</span>}
+          </td>;
+        })}
+      </tr>;
+    })}</tbody>
+  </table>;
+}
 
 const fmtTimeWithTz = (d: string | null, timeZone = "UTC") => {
   if (!d) return "—";
@@ -40,6 +90,7 @@ export default function LocationTemplatesTab({
   locationName: string;
 }) {
   const { t: translate,language } = useLocationLanguage();
+  const formText = useSetupFormText();
   const [saving,setSaving]=useState(false);
   const [assignmentRetry,setAssignmentRetry]=useState(false);
   const inFlight=useRef(false);
@@ -57,6 +108,7 @@ export default function LocationTemplatesTab({
   const [editingTemplate, setEditingTemplate] = useState<TaskTemplate | null>(
     null,
   );
+  const [dateTouched, setDateTouched] = useState(false);
   const [editError, setEditError] = useState<string | null>(null);
   const [params,setParams]=useSearchParams();
   const createDialogOpen=params.get('newSchedule')==='1';
@@ -93,7 +145,7 @@ export default function LocationTemplatesTab({
   };
 
   const handleEditOpen = (t: TaskTemplate) => {
-    setEditError(null);setAssignmentRetry(false);
+    setEditError(null);setAssignmentRetry(false);setDateTouched(false);
     setEditingTemplate(t);
     setEditForm({
       title: t.title,
@@ -106,7 +158,9 @@ export default function LocationTemplatesTab({
     });
   };
 
+  const dateInvalid = !!editForm.effectiveDate && editForm.effectiveDate !== toDateValue(editingTemplate?.effectiveDate) && editForm.effectiveDate < todayDate;
   const handleEditSave = async () => {
+    if (dateInvalid) { setDateTouched(true); return; }
     if (!editingTemplate || inFlight.current) return;
     inFlight.current=true;setSaving(true);
     setEditError(null);
@@ -155,6 +209,7 @@ export default function LocationTemplatesTab({
       editForm.staffId !== String(editingTemplate.staffId ?? "");
     const hasFieldChanges = Object.keys(payload).length > 0;
     let fieldsSaved=false;
+    let assignmentAttempted=false;
 
     try {
       if (hasFieldChanges) {
@@ -169,6 +224,7 @@ export default function LocationTemplatesTab({
       }
 
       if (staffChanged && editForm.staffId) {
+        assignmentAttempted=true;
         await new Promise<void>((resolve, reject) => {
           assignStaff.mutate(
             {
@@ -182,7 +238,7 @@ export default function LocationTemplatesTab({
 
       setEditingTemplate(null);
     } catch {
-      setAssignmentRetry(staffChanged);
+      setAssignmentRetry(assignmentAttempted);
       setEditError(translate(fieldsSaved&&staffChanged
        ? 'Schedule details were saved. Staff assignment could not be confirmed. Your draft is kept. Review the assignment before retrying.'
        : staffChanged&&!hasFieldChanges
@@ -191,13 +247,18 @@ export default function LocationTemplatesTab({
     } finally {inFlight.current=false;setSaving(false);}
   };
 
-  const inputCls =
-    "w-full rounded-lg border border-border/80 bg-background/90 px-4 py-2.5 text-sm text-foreground placeholder:text-muted-foreground focus:border-primary/60 focus:outline-none focus:ring-4 focus:ring-primary/10";
-  const formLabelCls = "mb-1.5 block text-sm font-medium text-foreground";
+  const inputCls = "wx-schedule-input";
+  const formLabelCls = "wx-schedule-label";
+  const week = normalizeWeek(params.get('week')) ?? normalizeWeek(todayDate)!;
+  const changeWeek = (nextWeek?: string) => setParams(previous => {
+    const next = new URLSearchParams(previous);
+    if (nextWeek) next.set('week', nextWeek); else next.delete('week');
+    return next;
+  });
 
   return (
-    <section className="ops-panel location-schedules-v5">
-      <div className="ops-panel-heading flex items-start justify-between gap-3 flex-wrap">
+    <section className="wx-schedule" aria-label={translate("Cleaning schedules")}>
+      <div className="wx-schedule-heading">
         <div>
           <h2>
             {translate("Cleaning schedules")}
@@ -207,7 +268,7 @@ export default function LocationTemplatesTab({
           </p>
         </div>
         <Button
-          className="rounded-lg"
+          className="wx-schedule-primary"
           onClick={() => setCreateDialogOpen(true)}
         >
           <Plus className="size-4" /> {translate("Add cleaning schedule")}
@@ -225,7 +286,16 @@ export default function LocationTemplatesTab({
         )}
       </div>
 
-      <DataTable
+      <p className="wx-schedule-help">{translate('Daily schedules include every day, including weekends.')}</p>
+      {templates.length > 0 ? <>
+        <div className="wx-schedule-week-nav"><p><bdi>{new Intl.DateTimeFormat(language === 'ur' ? 'ur-PK' : 'en-PK', { timeZone: 'UTC', dateStyle: 'medium' }).format(new Date(week + 'T12:00:00Z'))}</bdi> · <bdi>{timeZone}</bdi></p><div className="wx-schedule-actions">
+          <Button variant="outline" onClick={() => changeWeek(moveWeek(week, -1))}>{translate('Previous week')}</Button>
+          <Button variant="outline" onClick={() => changeWeek()}>{translate('This week')}</Button>
+          <Button variant="outline" onClick={() => changeWeek(moveWeek(week, 1))}>{translate('Next week')}</Button>
+        </div></div>
+        <ScheduleWeek templates={templates} week={week} timeZone={timeZone} onSelect={handleEditOpen} />
+        <h3 className="wx-schedule-register-title">{translate('Cleaning schedules')}</h3>
+      <DataTable mobileCards
         data={templates}
         rowKey={(row) => row.id}
         emptyMessage={translate("No cleaning schedules for this location.")}
@@ -240,7 +310,7 @@ export default function LocationTemplatesTab({
                 {row.description ? <p>{row.description}</p> : null}
                 {row.setupStatus === "NEEDS_REVIEW" ? (
                   <Link
-                    className="text-warning underline text-xs"
+                    className="wx-schedule-attention"
                     to={"/locations/" + locationId + "?tab=areas"}
                   >
                     {translate("Inventory needs review")}
@@ -285,11 +355,12 @@ export default function LocationTemplatesTab({
             key: "staff",
             header: "Assigned to",
             sortValue: (row) => row.staff?.name ?? "",
-            render: (row) => row.staff?.name ?? translate("Unassigned"),
+            render: (row) => <div className="wx-schedule-person"><PersonAvatar name={row.staff?.name}/><bdi>{row.staff?.name ?? translate("Unassigned")}</bdi></div>,
           },
           {
             key: "shift",
             header: "Shift",
+            className: "wx-schedule-shift-cell",
             render: (row) => (
               <div>
                 {fmtTimeWithTz(row.shiftStart, timeZone)}
@@ -308,20 +379,23 @@ export default function LocationTemplatesTab({
           {
             key: "recurrence",
             header: "Recurrence",
+            className: "wx-schedule-state-cell",
             render: (row) => (
-              <StatusBadge status={row.recurringType ?? "ONCE"} />
+              <StatusPill tone="neutral" status={row.recurringType ?? "ONCE"} />
             ),
           },
           {
             key: "status",
             header: "Status",
+            className: "wx-schedule-state-cell",
             render: (row) => (
-              <StatusBadge status={row.isActive ? "ACTIVE" : "INACTIVE"} />
+              <StatusPill tone={row.isActive ? "ok" : "neutral"} status={row.isActive ? "ACTIVE" : "INACTIVE"} />
             ),
           },
           {
             key: "actions",
             header: "Actions",
+            className: "wx-schedule-action-cell",
             render: (row) => (
               <div className="flex flex-wrap gap-2">
                 <Button variant="outline" onClick={() => handleEditOpen(row)}>
@@ -340,10 +414,10 @@ export default function LocationTemplatesTab({
         ]}
       />
 
-      <Dialog open={!!editingTemplate} onOpenChange={open=>{if(!open&&!inFlight.current)setEditingTemplate(null);}}>
-       <DialogContent className="location-schedule-editor-v5" onInteractOutside={event=>{if(inFlight.current)event.preventDefault();}} onEscapeKeyDown={event=>{if(inFlight.current)event.preventDefault();}}>
-        <DialogHeader><DialogTitle>{translate('Edit cleaning schedule')}</DialogTitle><DialogDescription>{translate('Changes apply to the schedule. Recorded task history stays unchanged.')}</DialogDescription></DialogHeader>
-        {editingTemplate?<><form id="location-schedule-edit" onChange={()=>setAssignmentRetry(false)} onSubmit={event=>{event.preventDefault();void handleEditSave();}}><fieldset disabled={saving} className="space-y-4">
+      </> : <EmptyState title="No cleaning schedules for this location." message="Create schedules for this location and optionally choose a team member." action={<Button onClick={() => setCreateDialogOpen(true)}>{translate('Add cleaning schedule')}</Button>} />}
+
+      <SidePanel wide title={translate('Edit cleaning schedule')} description={translate('Changes apply to the schedule. Recorded task history stays unchanged.')} open={!!editingTemplate} onOpenChange={open=>{if(!open&&!inFlight.current)setEditingTemplate(null);}} footer={<SidePanelFooter className="wx-schedule-footer"><Button type="button" variant="outline" disabled={saving} onClick={()=>setEditingTemplate(null)}>{translate('Cancel')}</Button><Button type="submit" form="location-schedule-edit" disabled={saving||!editForm.title.trim()} aria-busy={saving}>{translate(saving?'Saving...':assignmentRetry?'Retry staff assignment':'Save changes')}</Button></SidePanelFooter>}>
+        {editingTemplate?<div className="wx-schedule-form" aria-busy={saving}><p className="wx-schedule-help"><bdi>{locationName}</bdi> · <bdi>{timeZone}</bdi></p><form id="location-schedule-edit" onChange={()=>setAssignmentRetry(false)} onSubmit={event=>{event.preventDefault();void handleEditSave();}}><fieldset disabled={saving} className="wx-schedule-stack">
 
               <div>
                 <label htmlFor="schedule-title" className={formLabelCls}>{translate("Schedule title")}</label>
@@ -371,6 +445,8 @@ export default function LocationTemplatesTab({
                 />
               </div>
 
+              <div><label htmlFor="schedule-area" className={formLabelCls}>{translate('Area')}</label><input id="schedule-area" readOnly value={editingTemplate.area?.name ?? areasQuery.data?.find(area => area.id === editingTemplate.areaId)?.name ?? '—'} /><p className="wx-schedule-help">{translate('Changes apply to future tasks. Each generated task keeps its original requirements.')}</p></div>
+
               <div>
                 <label htmlFor="schedule-staff" className={formLabelCls}>{translate("Assigned staff")}</label>
                 <select
@@ -390,7 +466,7 @@ export default function LocationTemplatesTab({
                 </select>
               </div>
 
-              <div className="grid grid-cols-2 gap-4">
+              <div className="wx-schedule-pair">
                 <div>
                   <label htmlFor="schedule-start" className={formLabelCls}>{translate("Shift start")}</label>
                   <Input
@@ -415,7 +491,8 @@ export default function LocationTemplatesTab({
                 </div>
               </div>
 
-              <div>
+              <div className="wx-schedule-pair">
+              <div className="wx-schedule-field">
                 <label htmlFor="schedule-recurrence" className={formLabelCls}>{translate("Recurrence")}</label>
                 <select
                   id="schedule-recurrence" aria-label={translate("Recurrence")}
@@ -431,17 +508,23 @@ export default function LocationTemplatesTab({
                 </select>
               </div>
 
-              <div>
-                <label htmlFor="schedule-effective" className={formLabelCls}>{translate("Effective date")}</label>
+              <div className="wx-schedule-field">
+                <label htmlFor="schedule-effective" className={formLabelCls}>{translate("Effective from")}</label>
                 <Input
                   type="date"
-                  id="schedule-effective" aria-label={translate("Effective date")}
+                  id="schedule-effective" aria-label={translate("Effective from")} aria-invalid={dateTouched && dateInvalid} aria-describedby={dateTouched && dateInvalid ? "edit-schedule-date-error" : undefined}
                   value={editForm.effectiveDate}
-                  onChange={(e) =>
-                    setEditForm({ ...editForm, effectiveDate: e.target.value })
-                  }
-                  min={todayDate}
+                  onChange={(e) => {
+                    setDateTouched(true);
+                    setEditForm({ ...editForm, effectiveDate: e.target.value });
+                  }}
+                  onBlur={() => setDateTouched(true)}
+                  min={editForm.effectiveDate === toDateValue(editingTemplate.effectiveDate) ? undefined : todayDate}
+                  dir="ltr"
                 />
+                {dateTouched && dateInvalid && <p className="wx-schedule-error" role="alert" id="edit-schedule-date-error">{formText('Choose {date} or a later date for {location}.', { date: todayDate, location: locationName })}</p>}
+              </div>
+              <p className="wx-schedule-help wx-schedule-full">{translate('Daily schedules include every day, including weekends.')}</p>
               </div>
 
               </fieldset></form>
@@ -454,15 +537,13 @@ export default function LocationTemplatesTab({
               )}
 
               {editError && (
-                <div role="alert" className="rounded-lg border border-destructive/20 bg-destructive/5 px-4 py-3 text-sm text-destructive">
+                <div role="alert" className="wx-schedule-error">
                   {editError}
                 </div>
               )}
 
-              <div className="location-schedule-actions-v5"><Button type="button" variant="outline" disabled={saving} onClick={()=>setEditingTemplate(null)}>{translate('Cancel')}</Button><Button type="submit" form="location-schedule-edit" disabled={saving||!editForm.title.trim()}>{translate(saving?'Saving...':assignmentRetry?'Retry staff assignment':'Save changes')}</Button></div>
-        </>:null}
-       </DialogContent>
-      </Dialog>
+        </div>:null}
+      </SidePanel>
     </section>
   );
 }

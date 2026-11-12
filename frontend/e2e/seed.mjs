@@ -192,7 +192,7 @@ try {
       fixtureType: "SINK",
       sequence: 1,
       rubricKey: "sink",
-      requiredViews: ["basin"],
+      requiredViews: [{ key: "basin", instructions: "Show the sink basin", mandatory: true }],
     },
   });
   const task = await db.taskInstance.create({
@@ -253,6 +253,33 @@ try {
       recommendedAction: "UPLOAD_REQUIRED_PHOTO",
     },
   });
+  const photoTask = await db.taskInstance.create({ data: {
+    title: 'E2E inspectable required views', locationId: fixture.site.A,
+    staffId: fixture.staff.recovery.id, areaId: area.id, verificationVersion: 2,
+    areaNameSnapshot: area.name, inventoryVersion: 1, policySnapshot: { version: 1 },
+    date: now, shiftStart: new Date(+now - 3600000), shiftEnd: new Date(+now + 3600000),
+    verificationDeadline: new Date(+now + 3600000), uploadDeadline: new Date(+now + 3600000),
+    status: 'PENDING',
+  } });
+  const photoItem = await db.taskVerificationItem.create({ data: {
+    taskInstanceId: photoTask.id, areaId: area.id, sourceAreaItemId: item.id,
+    itemCodeSnapshot: 'E2E-SINK', nameSnapshot: 'E2E sink', typeSnapshot: 'SINK',
+    orderSnapshot: 1, identificationSnapshot: {}, rubricSnapshot: { version: 1 },
+  } });
+  await db.taskEvidenceRequirement.create({ data: {
+    taskVerificationItemId: photoItem.id, viewKey: 'basin',
+    instructionsSnapshot: 'Show the sink basin', state: 'MISSING',
+  } });
+  fixture.task.photos = photoTask.id;
+  // A real record outside seven days makes period-filter figure changes
+  // observable, rather than merely proving that the request URL changed.
+  const older = new Date(+now - 15 * 86400000);
+  const periodTask = await db.taskInstance.create({ data: {
+    title: 'E2E thirty-day-only submission', locationId: fixture.site.B,
+    date: older, shiftStart: older, shiftEnd: new Date(+older + 3600000),
+    completedAt: new Date(+older + 1800000), status: 'COMPLETED',
+  } });
+  fixture.task.period = periodTask.id;
   for (const key of ['unpaid', 'legacyOwner', 'deactivatedOwner', 'adoptOwner', 'rejectOwner', 'conflictOwner']) {
     const company = await db.company.create({ data: { name: `S42 ${key}` } });
     fixture.company[key] = company.id;
@@ -266,6 +293,21 @@ try {
   await writeFile(process.env.HYGENE_E2E_MANIFEST, JSON.stringify(fixture), {
     mode: 0o600,
   });
+  // Keep every case independent of earlier mutations. This private snapshot
+  // contains only this runner's generated accounts, never application data.
+  const tables = await db.$queryRawUnsafe(`SELECT tablename FROM pg_tables WHERE schemaname='public' ORDER BY tablename`);
+  const tableSnapshot = [];
+  for (const { tablename } of tables) {
+    const quoted = '"' + tablename.replaceAll('"', '""') + '"';
+    const [result] = await db.$queryRawUnsafe(`SELECT coalesce(json_agg(t),'[]'::json) AS rows FROM ${quoted} t`);
+    tableSnapshot.push({ table: tablename, rows: result.rows });
+  }
+  const sequences = await db.$queryRawUnsafe(`SELECT sequencename FROM pg_sequences WHERE schemaname='public' ORDER BY sequencename`);
+  for (const sequence of sequences) {
+    const quoted = '"' + sequence.sequencename.replaceAll('"', '""') + '"';
+    Object.assign(sequence, (await db.$queryRawUnsafe(`SELECT last_value::text, is_called FROM ${quoted}`))[0]);
+  }
+  await writeFile(new URL('./seed-snapshot.json', 'file://' + process.env.HYGENE_E2E_MANIFEST), JSON.stringify({ tables: tableSnapshot, sequences }), { mode: 0o600 });
 } finally {
   await db.$disconnect();
 }

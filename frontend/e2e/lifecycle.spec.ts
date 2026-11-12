@@ -1,3 +1,4 @@
+import { ui } from './workspace-helpers';
 import { test, expect, fixture, backend, enter, login, sql } from "./fixtures";
 test.use({ trace: "off", screenshot: "off", video: "off" });
 test("React registration persists an owner and own-password replacement revokes its old session", async ({
@@ -77,7 +78,7 @@ test("annotation UI persists an immutable note without changing captured attenda
     [id],
   );
   await enter(page, `/staff/${fixture.staff.recovery.id}`);
-  await page.getByRole("button", { name: "Attendance", exact: true }).click();
+  await page.getByRole("tab", { name: ui("Attendance") }).click();
   await page
     .getByRole("button", { name: "Attendance context", exact: true })
     .filter({ visible: true })
@@ -98,7 +99,7 @@ test("annotation UI persists an immutable note without changing captured attenda
     .first()
     .click();
   await page.reload();
-  await page.getByRole("button", { name: "Attendance", exact: true }).click();
+  await page.getByRole("tab", { name: ui("Attendance") }).click();
   await page
     .getByRole("button", { name: "Attendance context", exact: true })
     .filter({ visible: true })

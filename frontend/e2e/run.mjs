@@ -167,6 +167,7 @@ try {
     [
       join(root, "frontend/node_modules/@playwright/test/cli.js"),
       "test",
+      "--config", join(root, "frontend/e2e/playwright.config.ts"),
       ...process.argv.slice(2),
     ],
     join(root, "frontend"),

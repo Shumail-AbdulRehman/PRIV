@@ -1,3 +1,4 @@
+import { ui, copy } from './workspace-helpers';
 import {test,expect,fixture,enter,backend,sql} from './fixtures';
 import {mkdir,writeFile} from 'node:fs/promises';
 import {fileURLToPath} from 'node:url';
@@ -5,14 +6,14 @@ import {join} from 'node:path';
 import {randomUUID} from 'node:crypto';
 import type {Browser,Page} from '@playwright/test';
 const root=fileURLToPath(new URL('../../',import.meta.url));
-const out=join(root,'docs/implementation/v5-review-state-evidence');
+const out=join(root,'frontend/e2e/.artifacts/evidence/v5-review-state-evidence');
 const observations:unknown[]=[];
 const savedNote='Synthetic inspection recorded through the real closure API. No photos or task outcomes were changed.';
 let setupId:number,closedId:number,closedTaskId:number,heldId:number,heldAsset:string;
 test.use({trace:'off',screenshot:'off',video:'off'});
-test.describe.configure({mode:'serial'});
 
-test.beforeAll(async()=>{
+
+test.beforeEach(async()=>{
  await mkdir(out,{recursive:true});
  // Only the managed runner's new UUID child database receives these synthetic rows.
  const setups=await sql(`WITH rooms AS (
@@ -67,11 +68,11 @@ test('recorded SETUP reviews explain no generated task and offer only the existi
  test.setTimeout(120000);
  await matrix(browser,async(page,width,lang)=>{
   await enter(page,`/exceptions/${setupId}`,'ownerA',lang);
-  await expect(page.locator('.v5-review-setup')).toBeVisible();
-  await expect(page.locator('.v5-decision-card')).toHaveCount(0);
-  await expect(page.locator('.v5-review-reason')).not.toContainText(lang==='ur'?'کارکردگی':'staff performance');
-  await expect(page.locator('.v5-review-setup a')).toHaveAttribute('href',new RegExp(`/locations/${fixture.site.A}\\?tab=templates`));
-  await expect(page.locator('.v5-evidence-status')).toContainText(lang==='ur'?'کوئی کام تیار نہیں ہوا':'No task generated');
+  await expect(page.locator('section').filter({ has: page.getByRole('heading', { name: ui('Room inventory needs setup'), exact: true }) })).toBeVisible();
+  await expect(page.getByRole('region', { name: ui('Your decision') })).toHaveCount(0);
+  await expect(page.getByRole('region', { name: ui('Review summary') })).not.toContainText(lang==='ur'?'کارکردگی':'staff performance');
+  await expect(page.getByRole('link', { name: ui('Review room setup') })).toHaveAttribute('href',new RegExp(`/locations/${fixture.site.A}\\?tab=templates`));
+  await expect(page.getByRole('main')).toContainText(lang==='ur'?'کوئی کام تیار نہیں ہوا':'No task generated');
   await capture(page,'setup',width,lang);
   const denied=await page.request.post(backend+`/api/verification-exceptions/${setupId}/close`,{data:{requestId:randomUUID(),expectedVersion:0,action:'RESOLVE_REVIEW',note:'Synthetic setup cannot receive a staff closure'}});expect(denied.status()).toBe(409);
  });
@@ -84,16 +85,13 @@ test('real saved closure displays the V5 decision facts and leaves task outcomes
  const closed=await request.post(backend+`/api/verification-exceptions/${closedId}/close`,{data:{requestId:randomUUID(),expectedVersion:0,action:'RESOLVE_REVIEW',note:savedNote}});expect(closed.status()).toBe(200);
  await matrix(browser,async(page,width,lang)=>{
   await enter(page,`/exceptions/${closedId}?returnTo=${encodeURIComponent('/exceptions?queue=resolved')}`,'ownerA',lang);
-  const panel=page.locator('.v5-saved-decision');await expect(panel).toBeVisible();
+  const panel=page.getByRole('region', { name: ui('Decision recorded') });await expect(panel).toBeVisible();
   await expect(panel).toContainText(savedNote);await expect(panel).toContainText('E2E owner A');await expect(panel.locator('time')).toHaveAttribute('datetime',/.+/);
   await expect(panel.locator('textarea,button[type=submit]')).toHaveCount(0);
   await page.reload();await expect(panel).toContainText(savedNote);await expect(panel.locator('a')).toBeVisible();
   await capture(page,'closed',width,lang);
   await panel.scrollIntoViewIfNeeded();await page.screenshot({path:join(out,`app-closed-decision-${width}-${lang}.png`)});
-  const reference=await page.context().newPage();await reference.goto('file://'+join(root,'design/v5/reviews.html')+'?lang='+lang);
-  await reference.locator('[data-queue-tab=reviewed]').click();if(width===390)await reference.locator('[data-review]').first().click();
-  await reference.evaluate(()=>document.fonts.ready);await reference.screenshot({path:join(out,`v5-closed-${width}-${lang}.png`),fullPage:true});await reference.close();
-  const pending=panel.locator('a');await expect(pending).toHaveAttribute('href',/returnTo=.*needs-me/);await pending.click();await expect(page.locator('.v5-review-setup')).toBeVisible();
+  const pending=panel.locator('a');await expect(pending).toHaveAttribute('href',/returnTo=.*needs-me/);await pending.click();await expect(page.locator('section').filter({ has: page.getByRole('heading', { name: ui('Room inventory needs setup'), exact: true }) })).toBeVisible();
  });
  expect(await sql(`SELECT status,"staffSubmittedAt","completionOutcome","verificationState" FROM "TaskInstance" WHERE id=$1`,[closedTaskId])).toEqual(before);
 });
@@ -102,14 +100,15 @@ test('persisted privacy hold overrides an older cleaning label while private byt
  test.setTimeout(120000);
  await matrix(browser,async(page,width,lang)=>{
   await enter(page,`/exceptions/${heldId}`,'managerA',lang);
-  await expect(page.locator('.v5-review-reason h2')).toHaveText(lang==='ur'?'رازداری کا جائزہ درکار ہے':'Privacy review needed');
-  await expect(page.locator('.v5-evidence-body [role=alert]')).toBeVisible();
-  await expect(page.locator('.v5-evidence-body img')).toHaveCount(0);
+  await expect(page.getByRole('region', { name: ui('Required photo views') })).toContainText(copy('Privacy review needed', lang));
+  await page.getByRole('region', {name:ui('Review photo')}).scrollIntoViewIfNeeded();
+  await expect(page.getByRole('region', { name: ui('Review photo') }).getByRole('alert')).toBeVisible();
+  await expect(page.getByRole('region', { name: ui('Review photo') }).getByRole('img')).toHaveCount(0);
   await capture(page,'held-unavailable',width,lang);
   const details=await page.request.get(backend+`/api/verification-exceptions/${heldId}`);expect(details.status()).toBe(200);
   expect((await details.json()).data.items[0].requirements[0].currentAttempt.privacyState).toBe('HOLD');
   await enter(page,`/exceptions/${heldId}`,'managerB',lang);
-  await expect(page.locator('.v5-review-detail [role=alert]')).toBeVisible();
+  await expect(page.getByRole('main').getByRole('alert').last()).toBeVisible();
   expect((await page.request.get(backend+`/api/verification-exceptions/${heldId}`)).status()).toBe(403);
   expect((await page.request.get(backend+`/api/evidence/${heldAsset}/content?variant=review`)).status()).toBe(403);
   await capture(page,'held-site-denied',width,lang);
@@ -120,16 +119,16 @@ test('large persisted queues paginate, retain filters and open the next review w
  test.setTimeout(120000);
  await matrix(browser,async(page,width,lang)=>{
   await enter(page,'/exceptions?queue=needs-me&reasonCode=SETUP_REQUIRED&pageSize=20','ownerA',lang);
-  const records=page.locator('.v5-queue-record');await expect(records).toHaveCount(20);await expect(page.locator('.v5-review-setup')).toHaveCount(1);
-  const first=await records.first().getAttribute('data-review-id');
+  const records=page.getByRole('region', { name: ui('Review queue') }).getByRole('link');await expect(records).toHaveCount(20);await expect(page.locator('section').filter({ has: page.getByRole('heading', { name: ui('Room inventory needs setup'), exact: true }) })).toHaveCount(1);
+  const first=await records.first().getAttribute('href');
   await capture(page,'large-queue-page1',width,lang);
-  await page.locator('.ops-pagination button').last().click();await expect(page).toHaveURL(/page=2/);await expect(records).toHaveCount(5);await expect(page.locator('.v5-review-setup')).toHaveCount(1);
-  await expect(page).toHaveURL(/reasonCode=SETUP_REQUIRED/);expect(await records.first().getAttribute('data-review-id')).not.toBe(first);
+  await page.getByRole('button', { name: ui('Next') }).click();await expect(page).toHaveURL(/page=2/);await expect(records).toHaveCount(5);await expect(page.locator('section').filter({ has: page.getByRole('heading', { name: ui('Room inventory needs setup'), exact: true }) })).toHaveCount(1);
+  await expect(page).toHaveURL(/reasonCode=SETUP_REQUIRED/);expect(await records.first().getAttribute('href')).not.toBe(first);
   await capture(page,'large-queue-page2',width,lang);
-  await records.first().click();await expect(page.locator('.v5-review-setup')).toBeVisible();
+  await records.first().click();await expect(page.locator('section').filter({ has: page.getByRole('heading', { name: ui('Room inventory needs setup'), exact: true }) })).toBeVisible();
   await expect(page).toHaveURL(/returnTo=/);
-  const next=page.locator('.ops-review-navigation a').last();await expect(next).toHaveAttribute('href',new RegExp('/exceptions/\\d+\\?returnTo='));
-  await next.click();await expect(page.locator('.v5-review-setup')).toBeVisible();
+  const next=page.getByRole('navigation', { name: ui('Review navigation') }).getByRole('link').last();await expect(next).toHaveAttribute('href',new RegExp('/exceptions/\\d+\\?returnTo='));
+  await next.click();await expect(page.locator('section').filter({ has: page.getByRole('heading', { name: ui('Room inventory needs setup'), exact: true }) })).toBeVisible();
  });
 });
 
@@ -139,14 +138,14 @@ test('loading and failed reads have explicit recovery and never show a false zer
   let release=()=>{};const gate=new Promise<void>(resolve=>{release=resolve;});
   await page.route('**/api/verification-exceptions?*',async route=>{await gate;await route.continue();});
   await enter(page,'/exceptions','ownerA',lang);
-  await expect(page.locator('.v5-review-queue [aria-busy=true]')).toBeVisible();
-  await expect(page.locator('.review-counts')).toHaveCount(0);
+  await expect(page.getByRole('region', { name: ui('Review queue') }).getByRole('status')).toBeVisible();
+  await expect(page.getByRole('tab', { name: /Pending.*0|زیر.*0/ })).toHaveCount(0);
   await capture(page,'loading',width,lang,'delayed real API request; no positive response replaced');
-  release();await page.unrouteAll({behavior:'wait'});await expect(page.locator('.v5-queue-record').first()).toBeVisible();
+  release();await page.unrouteAll({behavior:'wait'});await expect(page.getByRole('region', { name: ui('Review queue') }).getByRole('link').first()).toBeVisible();
   await page.route('**/api/verification-exceptions?*',route=>route.abort());await page.reload();
-  await expect(page.locator('.v5-review-queue [role=alert]')).toBeVisible();
-  await expect(page.locator('.review-counts')).toHaveCount(0);await expect(page.locator('.v5-queue-record')).toHaveCount(0);
+  await expect(page.getByRole('region', { name: ui('Review queue') }).getByRole('alert')).toBeVisible();
+  await expect(page.getByRole('tab', { name: /Pending.*0|زیر.*0/ })).toHaveCount(0);await expect(page.getByRole('region', { name: ui('Review queue') }).getByRole('link')).toHaveCount(0);
   await capture(page,'network-error',width,lang,'labelled network-abort fault seam; no positive response replaced');
-  await page.unroute('**/api/verification-exceptions?*');await page.locator('.v5-review-queue [role=alert] button').click();await expect(page.locator('.v5-queue-record').first()).toBeVisible();
+  await page.unroute('**/api/verification-exceptions?*');await page.getByRole('region', { name: ui('Review queue') }).getByRole('button', { name: ui('Retry') }).click();await expect(page.getByRole('region', { name: ui('Review queue') }).getByRole('link').first()).toBeVisible();
  });
 });

@@ -1,3 +1,4 @@
+import { choose } from './workspace-helpers';
 import { test, expect, fixture, backend, enter, login, sql } from "./fixtures";
 test.use({ trace: "off", screenshot: "off", video: "off" });
 async function access(page: import("@playwright/test").Page, key: string) {
@@ -17,9 +18,7 @@ test("staff transfer UI persists, retains history and hides site-A rows from man
   await dialog
     .getByRole("combobox", { name: "Action", exact: true })
     .selectOption("transfer");
-  await dialog
-    .getByRole("combobox", { name: "Destination site", exact: true })
-    .selectOption(String(fixture.site.B));
+  await choose(page, 'Destination site', 'E2E site B', 'en', dialog);
   await dialog
     .getByLabel("Reason", { exact: true })
     .fill("E2E reasoned site transfer");
@@ -74,9 +73,7 @@ test("open-shift transfer conflict retains UI draft and does not change site", a
   await dialog
     .getByRole("combobox", { name: "Action", exact: true })
     .selectOption("transfer");
-  await dialog
-    .getByRole("combobox", { name: "Destination site", exact: true })
-    .selectOption(String(fixture.site.B));
+  await choose(page, 'Destination site', 'E2E site B', 'en', dialog);
   await dialog
     .getByLabel("Reason", { exact: true })
     .fill("Keep conflict reason");

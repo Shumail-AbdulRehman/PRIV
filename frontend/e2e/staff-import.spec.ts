@@ -5,7 +5,7 @@ import {fileURLToPath} from 'node:url';
 import {join} from 'node:path';
 const require=createRequire(new URL('../../backend/package.json',import.meta.url));
 const ExcelJS=require('exceljs');
-const out=join(fileURLToPath(new URL('../../',import.meta.url)),'docs/implementation/v5-import-evidence');
+const out=join(fileURLToPath(new URL('../../',import.meta.url)),'frontend/e2e/.artifacts/evidence/v5-import-evidence');
 test.use({trace:'off',screenshot:'off',video:'off'});
 const header='Full Name,Email,Phone,Shift Start,Shift End,Password\n';
 function upload(text:string) {return {file:{name:'staff.csv',mimeType:'text/csv',buffer:Buffer.from(header+text.split('\n').map(row=>row+','+fixture.password).join('\n'))}};}
@@ -24,7 +24,7 @@ test('location import uses real XLSX/CSV and persisted secure onboarding in Engl
    const template=await page.request.get(`${backend}/api/location/${fixture.site.A}/staff-import/template`);expect(template.status()).toBe(200);
    let buffer=Buffer.from(header+`Imported Worker,${email},03001234567,22:00,06:00,${fixture.password}`),name='staff.csv';
    if(lang==='en') {const book=new ExcelJS.Workbook();await book.xlsx.load(await template.body());book.worksheets[0].addRow(['Imported Worker',email,'03001234567','22:00','06:00',fixture.password]);buffer=Buffer.from(await book.xlsx.writeBuffer());name='staff.xlsx';}
-   await dialog.locator('input[type=file]').setInputFiles({name,mimeType:lang==='en'?'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet':'text/csv',buffer});
+   await dialog.getByLabel(ur?'مکمل شیٹ (.xlsx یا .csv، زیادہ سے زیادہ ۱ ایم بی)':'Completed spreadsheet (.xlsx or .csv, up to 1 MB)',{exact:true}).setInputFiles({name,mimeType:lang==='en'?'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet':'text/csv',buffer});
    await expect(dialog.getByText(email,{exact:true}).filter({visible:true})).toBeVisible();
    expect((await dialog.innerText()).includes(fixture.password)).toBe(false);
    expect((await sql('SELECT id FROM "Staff" WHERE email=$1',[email])).length).toBe(0);

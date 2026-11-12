@@ -4,6 +4,7 @@ import { ArrowDown, ArrowUp, ArrowUpDown } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import EmptyState from "./EmptyState";
 import { cn } from "@/lib/utils";
+import "../workspace/table-v6.css";
 
 export interface Column<T> {
   key: string;
@@ -25,6 +26,10 @@ interface DataTableProps<T> {
   className?: string;
   pageSize?: number;
   expandedRow?: (row: T) => ReactNode;
+  /** Show every labelled cell as a card below 620px instead of legacy summaries. */
+  mobileCards?: boolean;
+  /** Controlled selection; null exposes every row as unselected. */
+  selectedRowKey?: string | number | null;
 }
 
 export default function DataTable<T>({
@@ -39,6 +44,8 @@ export default function DataTable<T>({
   className,
   pageSize,
   expandedRow,
+  mobileCards = false,
+  selectedRowKey,
 }: DataTableProps<T>) {
   const { t } = useLanguage();
   const [sort, setSort] = useState<{ key: string; direction: 1 | -1 } | null>(
@@ -78,32 +85,23 @@ export default function DataTable<T>({
   if (data.length === 0) {
     return <EmptyState icon={emptyIcon} message={emptyMessage} />;
   }
+  const mobileSort = columns.some((c) => c.sortValue) ? (
+    <label className={mobileCards ? "wx-card-sort" : "table-mobile-sort"}>
+      {t("Sort by")}
+      <select value={sort?.key ?? ""} onChange={(event) => {
+        setPage(1);
+        setSort(event.target.value ? { key: event.target.value, direction: 1 } : null);
+      }}>
+        <option value="">{t("Default order")}</option>
+        {columns.filter(c => c.sortValue).map(c => <option key={c.key} value={c.key}>{t(c.header)}</option>)}
+      </select>
+    </label>
+  ) : null;
 
   return (
     <>
-      <div className="grid gap-3 md:hidden">
-        {columns.some((c) => c.sortValue) ? (
-          <label className="table-mobile-sort">
-            {t("Sort by")}
-            <select
-              value={sort?.key ?? ""}
-              onChange={(e) =>
-                setSort(
-                  e.target.value ? { key: e.target.value, direction: 1 } : null,
-                )
-              }
-            >
-              <option value="">{t("Default order")}</option>
-              {columns
-                .filter((c) => c.sortValue)
-                .map((c) => (
-                  <option key={c.key} value={c.key}>
-                    {t(c.header)}
-                  </option>
-                ))}
-            </select>
-          </label>
-        ) : null}
+      {!mobileCards ? <div className="grid gap-3 md:hidden">
+        {mobileSort}
         {visible.map((row) => {
           const actions = columns.filter((col) =>
             ["actions", "action"].includes(col.key),
@@ -125,6 +123,7 @@ export default function DataTable<T>({
             <article
               key={rowKey(row)}
               className="record-summary"
+              aria-current={rowKey(row) === selectedRowKey ? "true" : undefined}
               onMouseEnter={() => onRowHover?.(row)}
             >
               {mobileRender ? (
@@ -154,24 +153,28 @@ export default function DataTable<T>({
             </article>
           );
         })}
-      </div>
+      </div> : null}
+      {mobileCards ? mobileSort : null}
       <div
         role="region"
         aria-label={t(columns[0]?.header ?? "Records") + " " + t("table")}
         tabIndex={0}
         className={cn(
           "data-table overflow-x-auto rounded-xl border border-border bg-card",
-          "hidden md:block",
+          "wx-data-table",
+          mobileCards ? "wx-data-table-cards" : "hidden md:block",
           className,
         )}
       >
-        <table className="w-full text-sm">
-          <thead>
-            <tr className="border-b border-border/70 bg-muted/60">
+        <table role="table" className="w-full text-sm">
+          <thead role="rowgroup">
+            <tr role="row" className="border-b border-border/70 bg-muted/60">
               {columns.map((col) => (
                 <th
                   key={col.key}
                   scope="col"
+                  role="columnheader"
+                  aria-label={mobileCards ? t(col.header) : undefined}
                   aria-sort={
                     col.sortValue
                       ? sort?.key === col.key
@@ -185,7 +188,8 @@ export default function DataTable<T>({
                 >
                   {col.sortValue ? (
                     <button
-                      className="table-sort"
+                      type="button"
+                      className="table-sort wx-table-sort"
                       onClick={() => toggleSort(col.key)}
                     >
                       {t(col.header)}
@@ -206,10 +210,12 @@ export default function DataTable<T>({
               ))}
             </tr>
           </thead>
-          <tbody className="divide-y divide-border/60">
+          <tbody role="rowgroup" className="divide-y divide-border/60">
             {visible.map((row) => (
               <Fragment key={rowKey(row)}>
                 <tr
+                  role="row"
+                  aria-selected={selectedRowKey === undefined ? undefined : rowKey(row) === selectedRowKey}
                   tabIndex={onRowClick ? 0 : undefined}
                   onKeyDown={(event) => {
                     if (
@@ -222,30 +228,31 @@ export default function DataTable<T>({
                     }
                   }}
                   onClick={(event) => {
-                    if (
-                      !(event.target as HTMLElement).closest(
-                        "a, button, input, select, textarea, summary",
-                      )
-                    )
+                    const interactive = (event.target as Element).closest(
+                      'a, button, input, select, textarea, label, summary, [tabindex], [contenteditable]:not([contenteditable="false"]), [role="button"], [role="link"], [role="checkbox"], [role="switch"], [role="menuitem"]',
+                    );
+                    if (!interactive || interactive === event.currentTarget)
                       onRowClick?.(row);
                   }}
                   onMouseEnter={() => onRowHover?.(row)}
-                  className={`transition-colors hover:bg-muted/40 ${
+                  className={`wx-table-row transition-colors hover:bg-muted/40 ${
                     onRowClick ? "cursor-pointer" : ""
                   }`}
                 >
                   {columns.map((col) => (
                     <td
+                      role="cell"
                       key={col.key}
                       className={`px-5 py-4 text-muted-foreground ${col.className ?? ""}`}
                     >
+                      {mobileCards ? <span className="wx-table-cell-label" aria-hidden="true">{t(col.header)}</span> : null}
                       {col.render(row)}
                     </td>
                   ))}
                 </tr>
                 {expandedRow?.(row) ? (
-                  <tr className="table-expanded-row">
-                    <td colSpan={columns.length}>{expandedRow(row)}</td>
+                  <tr role="row" className="table-expanded-row wx-table-expanded-row">
+                    <td role="cell" colSpan={columns.length}>{expandedRow(row)}</td>
                   </tr>
                 ) : null}
               </Fragment>
@@ -254,7 +261,7 @@ export default function DataTable<T>({
         </table>
       </div>
       {pageSize && data.length > pageSize ? (
-        <nav className="ops-pagination" aria-label={t("Pagination")}>
+        <nav className="ops-pagination wx-pagination" aria-label={t("Pagination")}>
           <p>
             {t("{from}–{to} of {total}", {
               from: (currentPage - 1) * pageSize + 1,
@@ -265,6 +272,8 @@ export default function DataTable<T>({
           <div>
             <Button
               variant="outline"
+              type="button"
+              className="wx-pagination-button"
               disabled={currentPage <= 1}
               onClick={() => setPage(currentPage - 1)}
             >
@@ -275,6 +284,8 @@ export default function DataTable<T>({
             </span>
             <Button
               variant="outline"
+              type="button"
+              className="wx-pagination-button"
               disabled={currentPage >= pages}
               onClick={() => setPage(currentPage + 1)}
             >

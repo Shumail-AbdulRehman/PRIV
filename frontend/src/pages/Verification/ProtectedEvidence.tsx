@@ -1,5 +1,5 @@
 import { useEffect, useState, useRef } from "react";
-import { Expand, ZoomIn, ZoomOut } from "lucide-react";
+import { CircleAlert, Clock3, Expand, ShieldAlert, ZoomIn, ZoomOut } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import {
   Dialog,
@@ -9,6 +9,7 @@ import {
 } from "@/components/ui/dialog";
 import { useLanguage } from "@/i18n/context";
 import { getEvidenceBlob } from "./api";
+import "./task-photos-v6.css";
 export default function ProtectedEvidence({
   assetId,
   privacyState,
@@ -75,7 +76,8 @@ export default function ProtectedEvidence({
   </span>;
   if (!allowed)
     return (
-      <p className="ops-evidence-placeholder">
+      <p className={`ops-evidence-placeholder wx-evidence-state wx-evidence-state--${held ? "held" : "pending"}`}>
+        {held ? <ShieldAlert size={24} aria-hidden="true" /> : <Clock3 size={24} aria-hidden="true" />}
         {t(
           held
             ? "Sensitive image restricted. Only an authorized privacy review can access it."
@@ -86,7 +88,8 @@ export default function ProtectedEvidence({
   const url = image?.key === key ? image.url : null;
   if (failed?.key === key)
     return (
-      <div role="alert" className="ops-evidence-placeholder">
+      <div role="alert" className="ops-evidence-placeholder wx-evidence-state wx-evidence-state--error">
+        <CircleAlert size={24} aria-hidden="true" />
         {t(failed.status === 403 || failed.status === 401 ? "You do not have access to this evidence." : failed.status === 404 || failed.status === 410 ? "This evidence is no longer available." : "Evidence could not load. Retry when connected.")}
         {![401,403,404,410].includes(failed.status ?? 0) && <Button variant="outline" onClick={() => setRetry((r) => r + 1)}>
           {t("Retry")}
@@ -163,8 +166,9 @@ export default function ProtectedEvidence({
           </Dialog>
         </div>
       ) : (
-        <div role="status" className="ops-evidence-placeholder">
-          {t("Loading protected photo…")}
+        <div role="status" className="ops-evidence-placeholder wx-evidence-state wx-evidence-state--loading">
+          <span className="wx-evidence-skeleton" aria-hidden="true" />
+          <span className="sr-only">{t("Loading protected photo…")}</span>
         </div>
       )}
     </div>

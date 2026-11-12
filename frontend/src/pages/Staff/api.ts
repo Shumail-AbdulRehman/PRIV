@@ -1,5 +1,7 @@
 import { client } from "@/api/client";
 
+export { assignStaffToLocation } from "../Assignment/api";
+
 export interface CreateStaffInput {
   name: string;
   email: string;
@@ -50,16 +52,6 @@ export const createStaff = async (data: CreateStaffInput) => {
 
 export const deleteStaff = async (id: number) => {
   const res = await client.delete(`/staff/${id}`);
-  return res.data;
-};
-
-export const assignStaffToLocation = async (
-  staffId: number,
-  locationId: number,
-) => {
-  const res = await client.patch(
-    `/assignment/staff/${staffId}/location/${locationId}`,
-  );
   return res.data;
 };
 

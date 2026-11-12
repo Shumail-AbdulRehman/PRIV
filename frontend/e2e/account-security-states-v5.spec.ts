@@ -3,7 +3,7 @@ import { mkdir, writeFile } from 'node:fs/promises';
 import { fileURLToPath } from 'node:url';
 import { join } from 'node:path';
 
-const out = fileURLToPath(new URL('../../docs/implementation/v5-account-state-evidence/', import.meta.url));
+const out = fileURLToPath(new URL('./.artifacts/evidence/v5-account-state-evidence/', import.meta.url));
 test.use({ trace: 'off', screenshot: 'off', video: 'off' });
 
 test('own-security pending denied and disconnected states retain recovery in English and Urdu', async ({ browser }) => {

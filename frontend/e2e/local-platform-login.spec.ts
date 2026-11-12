@@ -15,7 +15,7 @@ test('local platform email/password grants metadata access only and logout revok
   SELECT 'Inactive platform count fixture','inactive-staff-count@example.invalid',password,false,"companyId",NOW() FROM "Staff" WHERE id=$1`,[fixture.staff.transfer.id]);
  await sql(`INSERT INTO "Location" (name,address,latitude,longitude,"isActive","companyId","updatedAt")
   VALUES ('Inactive platform count fixture','Synthetic','31','74',false,$1,NOW())`,[fixture.company.A]);
- const out=join(fileURLToPath(new URL('../../',import.meta.url)),'docs/implementation/local-platform-evidence');await mkdir(out,{recursive:true});
+ const out=join(fileURLToPath(new URL('../../',import.meta.url)),'frontend/e2e/.artifacts/evidence/local-platform-evidence');await mkdir(out,{recursive:true});
  const context=await browser.newContext(),page=await context.newPage();
  await page.goto('/platform/login');await expect(page.getByLabel('Platform email')).toBeVisible();
  await page.getByLabel('Platform email').fill(owner.email);await page.getByLabel('Password',{exact:true}).fill(owner.password+'wrong');

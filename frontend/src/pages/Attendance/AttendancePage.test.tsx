@@ -19,6 +19,14 @@ function mount(language = 'en', path = '/attendance') {
  localStorage.setItem('hygene-ops.language', language);
  return render(<MemoryRouter initialEntries={[path]}><LanguageProvider><div className="workspace"><AttendancePage /></div></LanguageProvider></MemoryRouter>);
 }
+function choose(label: string, option: string) {
+ fireEvent.keyDown(screen.getByRole('button', { name: new RegExp(`^${label}:`) }), { key: 'ArrowDown' });
+ fireEvent.click(screen.getByRole('menuitemradio', { name: option }));
+}
+function chooseDate(label: string, value: string) {
+ fireEvent.click(screen.getByRole('button', { name: new RegExp(`^${label}:`) }));
+ fireEvent.click(screen.getByRole('button', { name: new Intl.DateTimeFormat('en-PK', { dateStyle: 'full', timeZone: 'UTC' }).format(new Date(`${value}T12:00:00Z`)) }));
+}
 beforeEach(() => {
  vi.clearAllMocks(); localStorage.clear();
  vi.setSystemTime(new Date('2026-10-28T21:30:00Z'));
@@ -41,32 +49,32 @@ it('derives the applied record totals from captured facts, including late staff 
 });
 it('keeps draft filters until Apply and rejects reversed dates without changing the request', () => {
  mount(); const initial = mocks.attendance.mock.calls.at(-1)?.[0];
- fireEvent.change(screen.getByLabelText('Location'), { target: { value: '4' } });
- fireEvent.change(screen.getByLabelText('From date'), { target: { value: '2026-10-29' } });
- fireEvent.change(screen.getByLabelText('To date'), { target: { value: '2026-10-28' } });
+ choose('Location', 'Synthetic Karachi');
+ fireEvent.click(screen.getByText('More filters')); chooseDate('From date', '2026-10-29');
+ chooseDate('To date', '2026-10-28');
  expect(mocks.attendance.mock.calls.at(-1)?.[0]).toEqual(initial);
  fireEvent.submit(screen.getByRole('button', { name: 'Apply filters' }).closest('form')!);
  expect(screen.getByRole('alert')).toHaveTextContent('Choose a valid date range');
  expect(mocks.attendance.mock.calls.at(-1)?.[0]).toEqual(initial);
- fireEvent.change(screen.getByLabelText('To date'), { target: { value: '2026-10-30' } });
+ chooseDate('To date', '2026-10-30');
  fireEvent.submit(screen.getByRole('button', { name: 'Apply filters' }).closest('form')!);
  expect(mocks.attendance.mock.calls.at(-1)?.[0]).toEqual({ locationId: 4, staffId: undefined, from: '2026-10-29', to: '2026-10-30' });
  expect(screen.queryByRole('alert')).not.toBeInTheDocument();
 });
 it('Today uses the selected site calendar across a UTC date boundary', () => {
- mount(); fireEvent.change(screen.getByLabelText('Location'), { target: { value: '4' } });
+ mount(); choose('Location', 'Synthetic Karachi');
  fireEvent.click(screen.getByRole('button', { name: /^Today$/ }));
  expect(mocks.attendance.mock.calls.at(-1)?.[0]).toEqual({ locationId: 4, staffId: undefined, from: '2026-10-29', to: '2026-10-29' });
- expect(screen.getByLabelText('From date')).toHaveValue('2026-10-29');
+ fireEvent.click(screen.getByText('More filters')); expect(screen.getByRole('button', { name: /^From date: 29 Oct 2026/ })).toBeInTheDocument();
 });
 it('keeps month and staff filtering available as secondary controls', () => {
  mount(); fireEvent.click(screen.getByText('More filters'));
- fireEvent.change(screen.getByLabelText('Staff', { selector: 'select' }), { target: { value: '7' } });
+ choose('Staff', 'Synthetic late worker');
  fireEvent.change(screen.getByLabelText('Month', { selector: 'input' }), { target: { value: '2026-02' } });
  fireEvent.click(screen.getByRole('button', { name: 'Apply month' }));
  expect(mocks.attendance.mock.calls.at(-1)?.[0]).toEqual({ locationId: undefined, staffId: 7, from: '2026-02-01', to: '2026-02-28' });
  fireEvent.click(screen.getByRole('button', { name: 'Reset' }));
- expect(screen.getByLabelText('Staff', { selector: 'select' })).toHaveValue('');
+ expect(screen.getByRole('button', { name: 'Staff: All Staff' })).toBeInTheDocument();
 });
 it('does not present a failed attendance read as zero totals or an empty register', () => {
  mocks.attendance.mockReturnValue({ isPending: false, isError: true, error: { response: { status: 403 } }, refetch: mocks.refetch });
@@ -79,15 +87,15 @@ it('does not present a failed attendance read as zero totals or an empty registe
 it('keeps the operational filter frame while initial records are loading', () => {
  mocks.attendance.mockReturnValue({ isPending: true, isError: false, isFetching: true, refetch: mocks.refetch });
  mount(); expect(screen.getByLabelText('Attendance summary')).toHaveAttribute('aria-busy', 'true');
- expect(screen.getByLabelText('From date')).toBeInTheDocument();
+ fireEvent.click(screen.getByText('More filters')); expect(screen.getByRole('button', { name: /^From date:/ })).toBeInTheDocument();
  expect(screen.getByRole('button', { name: 'Refreshing…' })).toBeDisabled();
 });
 it('renders complete Urdu register controls and RTL without translating configured names', () => {
  mount('ur'); expect(document.documentElement.dir).toBe('rtl');
  expect(screen.getByRole('heading', { name: 'حاضری کے ریکارڈ' })).toBeInTheDocument();
- expect(screen.getByLabelText('آغاز کی تاریخ')).toBeInTheDocument();
- expect(screen.getAllByText(/آمد:/).length).toBeGreaterThan(0);
- expect(screen.getAllByText(/روانگی:/).length).toBeGreaterThan(0);
+ fireEvent.click(screen.getByText('مزید فلٹر')); expect(screen.getByRole('button', { name: /^آغاز کی تاریخ:/ })).toBeInTheDocument();
+ expect(screen.getByRole('columnheader', { name: 'آمد' })).toBeInTheDocument();
+ expect(screen.getByRole('columnheader', { name: 'روانگی' })).toBeInTheDocument();
  expect(screen.getByRole('button', { name: 'فلٹر لگائیں' })).toBeInTheDocument();
  expect(screen.getAllByText('Synthetic late worker').length).toBeGreaterThan(0);
 });
@@ -99,7 +107,7 @@ it('passes locationId to the existing authorized API rather than filtering a ten
 it('consumes dashboard site and date links as actual API filters without losing the applied range', () => {
  mount('en', '/attendance?locationId=4&from=2026-10-20&to=2026-10-21');
  expect(mocks.attendance.mock.calls.at(-1)?.[0]).toEqual({locationId:4,staffId:undefined,from:'2026-10-20',to:'2026-10-21'});
- expect(screen.getByLabelText('Location')).toHaveValue('4'); expect(screen.getByLabelText('From date')).toHaveValue('2026-10-20');
+ expect(screen.getByRole('button', { name: 'Location: Synthetic Karachi' })).toBeInTheDocument(); fireEvent.click(screen.getByText('More filters')); expect(screen.getByRole('button', { name: /^From date: 20 Oct 2026/ })).toBeInTheDocument();
 });
 it('rejects invalid deep-link IDs and impossible or reversed calendar ranges before requesting records', () => {
  mount('en', '/attendance?locationId=-4&staffId=0&from=2026-02-30&to=2026-02-01');

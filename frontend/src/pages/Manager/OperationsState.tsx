@@ -6,6 +6,7 @@ import LoadingSkeleton, {
 } from "@/components/common/LoadingSkeleton";
 import PageLoadingSkeleton from "@/components/common/PageLoadingSkeleton";
 import type { PageLoadingLayout } from "@/components/common/loadingLayout";
+import { RefreshCw, TriangleAlert, WifiOff } from "lucide-react";
 export default function OperationsState({
   loading,
   error,
@@ -25,17 +26,16 @@ export default function OperationsState({
     const status = (error as { response?: { status?: number } })?.response
       ?.status;
     return (
-      <div className="operations-notice" role="alert">
-        <p>
-          {t(
-            status === 403
-              ? "You do not have access to this location. Choose an assigned location or ask your owner."
-              : "Records could not load. Check your connection and try again.",
-          )}
-        </p>
-        <Button variant="outline" onClick={retry}>
-          {t("Retry")}
-        </Button>
+      <div className="wx-page-state wx-page-state--error" role="alert">
+        <div className="wx-page-state__icon" aria-hidden="true"><TriangleAlert size={24} /></div>
+        <h2 className="wx-page-state__title">{t("This page could not load")}</h2>
+        {status === 403 && <p className="wx-page-state__message">{t("You do not have access to this location. Choose an assigned location or ask your owner.")}</p>}
+        <p className="wx-page-state__message">{t("Check your connection and try again. Your saved records have not changed.")}</p>
+        {retry && <div className="wx-page-state__actions">
+          <Button type="button" onClick={retry}>
+            <RefreshCw size={16} aria-hidden="true" />{t("Retry")}
+          </Button>
+        </div>}
       </div>
     );
   }
@@ -46,10 +46,11 @@ export default function OperationsState({
       <LoadingSkeleton variant={skeleton} />
     );
   return !online ? (
-    <p className="operations-notice" role="status">
-      {t(
+    <p className="wx-stale-notice" role="status">
+      <WifiOff size={18} aria-hidden="true" />
+      <span>{t(
         "You are viewing the last loaded information. Reconnect and refresh before making changes.",
-      )}
+      )}</span>
     </p>
   ) : null;
 }

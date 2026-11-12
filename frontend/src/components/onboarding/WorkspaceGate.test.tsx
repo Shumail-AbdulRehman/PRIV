@@ -73,8 +73,13 @@ it('distinguishes an unavailable check and explicitly retries real lifecycle sta
   lifecycle.company.operationalStatus = 'ACTIVE'; lifecycle.providerState = 'AWAITING_PROVIDER'; lifecycle.onboardingStep='CONFIRMING'; lifecycle.onboardingRequired=false; boundary.get.mockResolvedValue({ data: { data: lifecycle } });
   fireEvent.click(screen.getByRole('button', { name: 'Try again' })); await screen.findByText('Operational records');
 });
-it('shows pending access without asserting suspension or mounting operational data', () => {
-  boundary.get.mockReturnValue(new Promise(() => {})); mount(); expect(screen.getByRole('status')).toHaveTextContent('Checking subscription status'); expect(screen.queryByText('Operational records')).not.toBeInTheDocument();
+it('shows the workspace skeleton without asserting suspension or mounting operational data while billing is pending', () => {
+  boundary.get.mockReturnValue(new Promise(() => {})); mount();
+  expect(screen.getByRole('status')).toHaveAccessibleName('Loading…');
+  expect(screen.getByRole('status')).toHaveAttribute('data-loading-layout', 'owner-overview');
+  expect(screen.getByRole('status')).toHaveAttribute('aria-busy', 'true');
+  expect(screen.queryByText('Checking subscription status…')).not.toBeInTheDocument();
+  expect(screen.queryByText('Operational records')).not.toBeInTheDocument();
 });
 
 it('keeps a newly created provider customer in onboarding until its subscription is linked', async () => {

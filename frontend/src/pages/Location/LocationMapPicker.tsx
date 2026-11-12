@@ -1,9 +1,8 @@
-import { useEffect, useId, useRef, useState } from "react";
+import { useEffect, useId, useLayoutEffect, useRef, useState } from "react";
 import { useQuery } from "@tanstack/react-query";
 import {
   Check,
   Crosshair,
-  LoaderCircle,
   MapPin,
   MapPinned,
   Search,
@@ -12,6 +11,7 @@ import {
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { useLanguage } from "@/i18n/context";
+import "./location-form-v6.css";
 import { getLocationMapConfig } from "./api";
 import { loadMapsSdk, parseCoordinates, type Coordinates } from "./mapsSdk";
 
@@ -68,6 +68,21 @@ export default function LocationMapPicker({
   const searchVersion = useRef(0);
   const detailVersion = useRef(0);
   const selected = parseCoordinates(latitude, longitude);
+  const searchOpen = useRef(false);
+  useLayoutEffect(() => {
+    searchOpen.current = focused && predictions.length > 0;
+  }, [focused, predictions.length]);
+  useLayoutEffect(() => {
+    // Radix listens at document capture. Let the first Escape close suggestions
+    // before it can dismiss the whole form and discard its draft.
+    const escapeSearch = (event: KeyboardEvent) => {
+      if (event.key === "Escape" && searchOpen.current &&
+          event.target instanceof Element && event.target.id === id) event.preventDefault();
+    };
+    document.addEventListener("keydown", escapeSearch, true);
+    return () => document.removeEventListener("keydown", escapeSearch, true);
+  }, [id]);
+
 
   useEffect(() => {
     if (!config.data?.enabled || !config.data.apiKey || !canvas.current) return;
@@ -102,10 +117,12 @@ export default function LocationMapPicker({
           zoomControl: true,
           cameraControl: false,
         });
+        const theme = getComputedStyle(canvas.current);
+        const color = (token: string) => theme.getPropertyValue(token).trim();
         const pin = new maps.marker.PinElement({
-          background: "#17675e",
-          borderColor: "#0e4944",
-          glyphColor: "#f2faf7",
+          background: color("--wx-ink"),
+          borderColor: color("--wx-ink"),
+          glyphColor: color("--wx-surface"),
           scale: 1.15,
         });
         const point = new maps.marker.AdvancedMarkerElement({
@@ -121,9 +138,9 @@ export default function LocationMapPicker({
           radius: initial.current.radius,
           visible: Boolean(position),
           clickable: false,
-          fillColor: "#23796b",
+          fillColor: color("--wx-blue"),
           fillOpacity: 0.12,
-          strokeColor: "#17675e",
+          strokeColor: color("--wx-blue"),
           strokeOpacity: 0.8,
           strokeWeight: 1.5,
         });
@@ -268,27 +285,21 @@ export default function LocationMapPicker({
     config.isError || config.data?.enabled === false || Boolean(error);
   return (
     <section
-      className="location-map-picker"
+      className="wx-location-map-picker"
       aria-label={t("Choose the work location")}
     >
-      <div className="location-map-heading">
-        <div>
-          <span className="location-eyebrow">{t("Site position")}</span>
-          <h3>{t("Put your workplace on the map")}</h3>
-        </div>
-        <MapPinned size={23} aria-hidden="true" />
-      </div>
-      <div className="location-place-search">
+      <div className="wx-location-place-search">
         <label htmlFor={id}>{t("Search for a place or address")}</label>
-        <div className="location-search-input">
+        <div className="wx-location-search-input">
           <Search size={18} aria-hidden="true" />
           <Input
             id={id}
             role="combobox"
             aria-autocomplete="list"
+            aria-busy={searching}
             aria-expanded={focused && predictions.length > 0}
-            aria-controls={`${id}-results`}
-            aria-activedescendant={active >= 0 ? `${id}-${active}` : undefined}
+            aria-controls={focused && predictions.length > 0 ? `${id}-results` : undefined}
+            aria-activedescendant={focused && predictions[active] ? `${id}-${active}` : undefined}
             placeholder={t("Search a building, business or street")}
             value={query}
             disabled={!ready || disabled}
@@ -325,11 +336,7 @@ export default function LocationMapPicker({
             }}
           />
           {searching ? (
-            <LoaderCircle
-              size={18}
-              className="animate-spin"
-              aria-label={t("Searching places")}
-            />
+            <span className="wx-location-search-status" role="status">{t("Searching places")}</span>
           ) : query ? (
             <button
               type="button"
@@ -351,7 +358,7 @@ export default function LocationMapPicker({
         {focused && predictions.length > 0 ? (
           <ul
             id={`${id}-results`}
-            className="location-place-results"
+            className="wx-location-place-results"
             role="listbox"
             aria-label={t("Suggested places")}
           >
@@ -375,23 +382,23 @@ export default function LocationMapPicker({
           </ul>
         ) : null}
         {searchError ? (
-          <p className="location-field-note" role="status">
+          <p className="wx-location-field-note" role="status">
             {t(searchError)}
           </p>
         ) : null}
       </div>
-      <div className="location-map-frame">
+      <div className="wx-location-map-frame">
         <div
           ref={canvas}
-          className="location-map-canvas"
+          className="wx-location-map-canvas"
           aria-label={t("Location map")}
         />
         {!ready || unavailable ? (
-          <div className="location-map-placeholder" role="status">
+          <div className="wx-location-map-placeholder" role="status">
             {unavailable ? (
               <MapPinned size={32} />
             ) : (
-              <LoaderCircle size={28} className="animate-spin" />
+              <span className="wx-location-map-skeleton" aria-hidden="true" />
             )}
             <strong>
               {t(unavailable ? "Map unavailable" : "Loading your map")}
@@ -424,7 +431,7 @@ export default function LocationMapPicker({
           </div>
         ) : (
           <>
-            <span className="location-map-hint">
+            <span className="wx-location-map-hint" aria-live="polite">
               <MapPin size={14} />
               {t(
                 selected
@@ -433,7 +440,7 @@ export default function LocationMapPicker({
               )}
             </span>
             <Button
-              className="location-center-button"
+              className="wx-location-center-button"
               variant="outline"
               size="icon"
               type="button"
@@ -453,10 +460,10 @@ export default function LocationMapPicker({
           </>
         )}
       </div>
-      <div className="location-map-caption">
-        <span className="location-radius-dot" />
+      <div className="wx-location-map-caption">
+        <span className="wx-location-radius-dot" aria-hidden="true" />
         <span>{t("Shaded circle: attendance check-in area")}</span>
-        <strong dir="ltr">{Number.isFinite(radius) ? radius : 500} m</strong>
+        <strong>{t("{radius} m", { radius: Number.isFinite(radius) ? radius : 500 })}</strong>
       </div>
     </section>
   );

@@ -61,14 +61,13 @@ test("real setup readiness is read-only and reflects persisted sites", async ({
   await expect(
     page.getByRole("heading", { name: "Get your company ready" }).first(),
   ).toBeVisible();
-  await expect(page.getByLabel("Setup for location")).toContainText(
+  await expect(page.getByRole("button", { name: /^Setup for location:/ })).toContainText(
     "E2E site A",
   );
   const before = await sql('SELECT COUNT(*)::int AS n FROM "TaskInstance"');
   await page.reload();
-  await expect(page.getByLabel("Setup for location")).toContainText(
-    "E2E site B",
-  );
+  await page.getByRole("button", { name: /^Setup for location:/ }).click();
+  await expect(page.getByRole("menuitemradio", { name: "E2E site B", exact: true })).toBeVisible();
   expect(await sql('SELECT COUNT(*)::int AS n FROM "TaskInstance"')).toEqual(
     before,
   );

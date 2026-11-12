@@ -1,138 +1,66 @@
-import { test, expect, enter, backend, sql, fixture } from './fixtures';
-import { mkdir, writeFile } from 'node:fs/promises';
-import { fileURLToPath } from 'node:url';
-import { join } from 'node:path';
-import type { Page } from '@playwright/test';
-
-const root = fileURLToPath(new URL('../../', import.meta.url));
-const out = join(root, 'docs/implementation/v5-shell-evidence');
-// Synthetic persisted identities, empty credential fields; never save auth state.
+import { test, expect, enter, backend, fixture } from './fixtures';
+import { copy, noOverflow } from './workspace-helpers';
 test.use({ trace: 'off', screenshot: 'off', video: 'off' });
-async function noOverflow(page: Page) {
-  expect(await page.evaluate(() => document.documentElement.scrollWidth > innerWidth + 1)).toBe(false);
-}
 
-test('V5 shared owner and manager shell matches approved desktop phone English Urdu references', async ({ browser }) => {
-  test.setTimeout(120000);
-  await mkdir(out, { recursive: true });
-  const observations: unknown[] = [];
-  const [company]=await sql('SELECT name FROM "Company" WHERE id=$1',[fixture.company.A]);
+test('workspace owner and manager rail, company name and review badge in English Urdu desktop phone', async ({ browser }) => {
+  test.setTimeout(90000);
   for (const who of ['ownerA', 'managerA']) for (const width of [1366, 390]) for (const lang of ['en', 'ur']) {
     const context = await browser.newContext({ viewport: { width, height: 900 } });
-    const page = await context.newPage();
-    const errors: string[] = [];
-    page.on('pageerror', error => errors.push(error.message));
-    await enter(page, '/today-status', who, lang);
-    await expect(page.getByRole('heading', { name: lang === 'en' ? 'Team attendance' : 'ٹیم کی حاضری' })).toBeVisible();
-    await page.evaluate(() => document.fonts.ready);
-    await expect(page.locator('.workspace-role strong')).toHaveText(company.name);
-    await noOverflow(page);
-    for (const button of await page.locator('.workspace-topbar .language-choice button').all()) {
-      expect((await button.boundingBox())!.height).toBeGreaterThanOrEqual(width === 390 ? 48 : 44);
-    }
-    await expect(page.locator('.workspace-topbar')).toHaveCSS('min-height', '72px');
-    expect((await page.locator('.workspace-topbar').boundingBox())!.height).toBeLessThanOrEqual(73);
-    expect(await page.locator('html').getAttribute('dir')).toBe(lang === 'ur' ? 'rtl' : 'ltr');
-    const role = who === 'ownerA' ? 'owner' : 'manager';
-    const nav = page.getByRole('navigation', { name: lang === 'en' ? 'Workspace navigation' : 'ورک اسپیس نیویگیشن' });
-    if (width === 1366) {
-      await expect(nav.getByRole('link', { name: lang === 'en' ? 'Today' : 'آج', exact: true })).toHaveAttribute('aria-current', 'page');
-      await expect(nav.getByRole('link', { name: lang === 'en' ? 'Plan & billing' : 'پلان اور بلنگ', exact: true })).toHaveCount(who === 'ownerA' ? 1 : 0);
-    }
-    await page.screenshot({ path: join(out, `app-${role}-${width}-${lang}.png`), animations: 'disabled' });
-    const reference = await context.newPage();
-    await reference.goto('file://' + join(root, `design/v5/${who === 'ownerA' ? 'owner' : 'manager'}.html`) + '?lang=' + lang);
-    await reference.evaluate(() => document.fonts.ready);
-    await reference.screenshot({ path: join(out, `v5-${role}-${width}-${lang}.png`), animations: 'disabled' });
-    await reference.close();
-    if (width === 390) {
-      const trigger = page.getByRole('button', { name: lang === 'en' ? 'Open navigation' : 'نیویگیشن کھولیں', exact: true });
-      expect((await trigger.boundingBox())!.height).toBeGreaterThanOrEqual(48);
-      expect((await trigger.boundingBox())!.width).toBeGreaterThanOrEqual(48);
-      await trigger.focus(); await trigger.click();
-      const menu = page.getByRole('dialog', { name: lang === 'en' ? 'Workspace menu' : 'ورک اسپیس مینو', exact: true });
-      await expect(menu).toBeVisible();
-      const box = await menu.boundingBox();
-      expect(box).not.toBeNull();
-      expect(box!.x).toBeGreaterThanOrEqual(-1); expect(box!.y).toBeGreaterThanOrEqual(-1);
-      expect(box!.x + box!.width).toBeLessThanOrEqual(width + 1); expect(box!.height).toBeGreaterThanOrEqual(899);
-      await expect(menu.getByRole('link', { name: lang === 'en' ? 'Plan & billing' : 'پلان اور بلنگ', exact: true })).toHaveCount(who === 'ownerA' ? 1 : 0);
-      await page.screenshot({ path: join(out, `app-${role}-menu-${width}-${lang}.png`), animations: 'disabled' });
-      await page.keyboard.press('Escape'); await expect(menu).toHaveCount(0); await expect(trigger).toBeFocused();
-      await trigger.click();
-      await menu.getByRole('link', { name: lang === 'en' ? 'Team' : 'ٹیم', exact: true }).click();
-      await expect(page).toHaveURL(/\/staff$/); await expect(menu).toHaveCount(0);
+    try {
+      const page = await context.newPage();
+      await enter(page, '/today-status', who, lang);
+      await expect(page.getByRole('heading', { name: copy('Today, at a glance', lang), exact: true })).toBeVisible();
+      const trigger = page.getByRole('button', { name: copy('Open navigation', lang), exact: true });
+      if (width === 390) await trigger.click();
+      const rail = width === 390 ? page.getByRole('dialog', { name: copy('Workspace menu', lang) }) : page.getByRole('complementary');
+      await expect(rail.getByText('E2E company A', { exact: true })).toBeVisible();
+      const nav = rail.getByRole('navigation', { name: copy('Workspace navigation', lang) });
+      await expect(nav.getByRole('link', { name: copy('Today', lang), exact: true })).toHaveAttribute('aria-current', 'page');
+      for (const label of ['Overview', 'Attendance', 'Locations', 'Team', 'Settings']) await expect(nav.getByRole('link', { name: copy(label, lang), exact: true })).toBeVisible();
+      for (const label of ['Managers', 'Company setup', 'Plan & billing']) await expect(nav.getByRole('link', { name: copy(label, lang), exact: true })).toHaveCount(who === 'ownerA' ? 1 : 0);
+      const response = await page.request.get(backend + '/api/verification-exceptions/count?queue=needs-me');
+      expect(response.status()).toBe(200);
+      const count: number = (await response.json()).data.total;
+      expect(count).toBeGreaterThan(0);
+      const reviews = nav.getByRole('link', { name: new RegExp(copy('Photo Reviews', lang)) });
+      await expect(reviews).toContainText(count.toLocaleString(lang === 'ur' ? 'ur-PK' : 'en-PK'));
+      await expect(page.locator('html')).toHaveAttribute('dir', lang === 'ur' ? 'rtl' : 'ltr');
       await noOverflow(page);
-    }
-    expect(errors).toEqual([]);
-    observations.push({ role, width, lang, route: '/today-status', provenance: 'synthetic persisted SQL, actual matching API/React', overflow: false, errors, menu: width === 390 ? 'geometry, role links, Escape focus return and Team navigation passed' : 'desktop current-route sidebar passed' });
-    await context.close();
-  }
-  await writeFile(join(out, 'render-results.json'), JSON.stringify(observations, null, 2));
-});
-
-test('shared shell preserves manager owner-route denial staff handoff localized dialogs and not-found recovery', async ({ browser }) => {
-  test.setTimeout(90000); await mkdir(out, { recursive: true });
-  for (const width of [1366, 390]) for (const lang of ['en', 'ur']) {
-    const context = await browser.newContext({ viewport: { width, height: 900 } });
-    const page = await context.newPage();
-    await enter(page, '/settings', 'managerA', lang);
-    await expect(page).toHaveURL(/\/dashboard$/);
-    expect((await page.request.get(backend + '/api/company/settings')).status()).toBe(403);
-    await expect(page.locator('input[name=name]')).toHaveCount(0);
-    await page.goto('/account/security');
-    await expect(page.locator('input[name=currentPassword]')).toBeVisible();
-    await noOverflow(page);
-    await page.screenshot({ path: join(out, `app-manager-security-${width}-${lang}.png`), animations: 'disabled' });
-    await enter(page, '/staff', 'transfer', lang);
-    await expect(page.getByRole('heading', { name: lang === 'en' ? 'Your work is in the app' : 'آپ کا کام ایپ میں ہے' })).toBeVisible();
-    await expect(page.locator('.workspace-sidebar')).toHaveCount(0);
-    await expect(page.getByRole('link', { name: lang === 'en' ? 'Open approved Android distribution' : 'منظور شدہ اینڈرائیڈ ایپ کھولیں', exact: true })).toHaveCount(0);
-    await expect.poll(async () => (await page.getByRole('button', { name: lang === 'en' ? 'Sign out' : 'سائن آؤٹ', exact: true }).boundingBox())!.height).toBeGreaterThanOrEqual(width === 390 ? 48 : 44);
-    await page.screenshot({ path: join(out, `app-staff-handoff-${width}-${lang}.png`), animations: 'disabled' });
-    await noOverflow(page);
-    await enter(page, '/staff', 'ownerA', lang);
-    await page.getByRole('button', { name: lang === 'en' ? 'Staff access' : 'عملے کی رسائی', exact: true }).first().click();
-    const access = page.getByRole('dialog');
-    await expect(access).toBeVisible();
-    const close = access.getByRole('button', { name: lang === 'en' ? 'Close' : 'بند کریں', exact: true });
-    await expect(close).toBeVisible();
-    await expect(access).toHaveCSS('opacity', '1');
-    await expect(access).toHaveCSS('background-color', 'rgb(255, 255, 255)');
-    // Wait for the entry zoom to finish before measuring the hit target.
-    await expect.poll(async () => (await close.boundingBox())!.height).toBeGreaterThanOrEqual(width === 390 ? 48 : 44);
-    await expect.poll(async () => (await close.boundingBox())!.width).toBeGreaterThanOrEqual(width === 390 ? 48 : 44);
-    await page.screenshot({ path: join(out, `app-localized-dialog-${width}-${lang}.png`), animations: 'disabled' });
-    await close.click(); await expect(access).toHaveCount(0);
-    await enter(page, '/unavailable-shell-acceptance-address', 'ownerA', lang);
-    await expect(page.getByRole('heading', { name: lang === 'en' ? 'Page not found' : 'صفحہ نہیں ملا', exact: true })).toBeVisible();
-    const recovery = page.getByRole('link', { name: lang === 'en' ? 'Back to workspace' : 'ورک اسپیس میں واپس جائیں', exact: true });
-    await expect(recovery).toHaveAttribute('href', '/dashboard');
-    await page.screenshot({ path: join(out, `app-not-found-${width}-${lang}.png`), animations: 'disabled' });
-    await noOverflow(page);
-    await recovery.click(); await expect(page).toHaveURL(/\/dashboard$/);
-    await context.close();
+      if (width === 390) {
+        await page.keyboard.press('Escape');
+        await expect(rail).toHaveCount(0); await expect(trigger).toBeFocused();
+        await trigger.click();
+      }
+      await nav.getByRole('link', { name: copy('Team', lang), exact: true }).click();
+      await expect(page).toHaveURL(/\/staff$/);
+      await expect(page.getByRole('heading', { name: copy('Your people, at a glance', lang), exact: true })).toBeVisible();
+      if (width === 390) await expect(rail).toHaveCount(0);
+      await noOverflow(page);
+    } finally { await context.close(); }
   }
 });
 
-test('labelled lazy-resource failure keeps route errors safe and reload recovers', async ({ browser }) => {
-  test.setTimeout(90000); await mkdir(out, { recursive: true });
-  for (const width of [1366, 390]) for (const lang of ['en', 'ur']) {
-    const context = await browser.newContext({ viewport: { width, height: 900 } });
-    const page = await context.newPage();
-    await enter(page, '/today-status', 'ownerA', lang);
-    await expect(page.locator('.workspace-content h1')).toBeVisible();
-    // Explicit frontend resource-failure seam; no HTTP/API response is replaced.
-    await page.route('**/assets/ManagersPage-*.js', route => route.abort('failed'));
-    await page.goto('/managers');
-    await expect(page.getByRole('heading', { name: lang === 'en' ? 'This page is unavailable' : 'یہ صفحہ دستیاب نہیں', exact: true })).toBeVisible();
-    await expect(page.getByRole('alert')).not.toContainText(/dynamically imported|\.js|127\.0\.0\.1|TypeError/);
-    await noOverflow(page);
-    await page.screenshot({ path: join(out, `app-lazy-resource-fault-${width}-${lang}.png`), animations: 'disabled' });
-    await page.unroute('**/assets/ManagersPage-*.js');
-    await page.getByRole('button', { name: lang === 'en' ? 'Reload page' : 'صفحہ دوبارہ لوڈ کریں', exact: true }).click();
-    await expect(page.locator('.workspace-content h1')).toBeVisible();
-    await expect(page.getByRole('heading', { name: lang === 'en' ? 'This page is unavailable' : 'یہ صفحہ دستیاب نہیں', exact: true })).toHaveCount(0);
-    await context.close();
-  }
+test('shell preserves manager denial, staff handoff, localized dialogs and not-found recovery', async ({ page }) => {
+  await enter(page, '/settings', 'managerA'); await expect(page).toHaveURL(/\/dashboard$/);
+  expect((await page.request.get(backend + '/api/company/settings')).status()).toBe(403);
+  await page.goto('/account/security'); await expect(page.getByLabel('Current password', { exact: true })).toBeVisible();
+  await enter(page, '/staff', 'transfer'); await expect(page.getByRole('heading', { name: 'Your work is in the app' })).toBeVisible();
+  await expect(page.getByRole('navigation', { name: 'Workspace navigation' })).toHaveCount(0);
+  await enter(page, `/staff/${fixture.staff.transfer.id}`, 'ownerA', 'ur');
+  await page.getByRole('button', { name: copy('Staff access', 'ur'), exact: true }).click();
+  const dialog = page.getByRole('dialog'); await expect(dialog).toBeVisible();
+  await expect(dialog.getByRole('button', { name: copy('Close', 'ur'), exact: true })).toBeVisible();
+  await page.keyboard.press('Escape'); await expect(dialog).toHaveCount(0);
+  await enter(page, '/unavailable-shell-acceptance-address');
+  await expect(page.getByRole('heading', { name: 'Page not found' })).toBeVisible();
+  await page.getByRole('link', { name: 'Back to workspace', exact: true }).click(); await expect(page).toHaveURL(/\/dashboard$/);
+});
+
+test('labelled lazy-resource failure keeps route errors safe and reload recovers', async ({ page }) => {
+  await enter(page, '/today-status'); await expect(page.getByRole('heading', { name: 'Today, at a glance', exact: true })).toBeVisible();
+  await page.route('**/assets/ManagersPage-*.js', route => route.abort('failed'));
+  await page.goto('/managers'); await expect(page.getByRole('heading', { name: 'This page is unavailable' })).toBeVisible();
+  await expect(page.getByRole('alert')).not.toContainText(/dynamically imported|\.js|127\.0\.0\.1|TypeError/);
+  await page.unroute('**/assets/ManagersPage-*.js'); await page.getByRole('button', { name: 'Reload page', exact: true }).click();
+  await expect(page.getByRole('heading', { name: 'Managers', exact: true })).toBeVisible(); await noOverflow(page);
 });

@@ -214,7 +214,7 @@ export async function managerOperations(
       }
       const snapshot = scope.days.length
         ? (await tx.$queryRaw<OverviewSnapshot[]>(overviewAggregateSql(actor.companyId, scope.days, now)))[0]!
-        : { counts: [], lateIds: [], unassignedIds: [], taskIds: [], tasks: [], absent: [], reviews: [] };
+        : { counts: [], hourly: [], lateIds: [], unassignedIds: [], taskIds: [], tasks: [], absent: [], reviews: [] };
       const aggregates = snapshot.counts;
       const sum = (key: "present" | "scheduled" | "totalStaff" | "totalTasks" | "submitted" | "inProgress" | "notStarted" | "overdue" | "reviewCount" | "verified" | "accepted") =>
         aggregates.reduce((total, row) => total + row[key], 0);
@@ -238,7 +238,7 @@ export async function managerOperations(
       });
       const lateTasks = hydrate(lateIds), unassigned = hydrate(unassignedIds), tasks = hydrate(taskIds);
       const countsByLocation = new Map(aggregates.map(row => [row.locationId, row]));
-      const comparison = scope.selected.slice(0, 4).map(location => {
+      const comparison = scope.selected.map(location => {
         const counts = countsByLocation.get(location.id);
         return {
           location,
@@ -293,6 +293,7 @@ export async function managerOperations(
           accepted,
         },
         chart: { submitted, inProgress, notStarted, overdue },
+        hourly: snapshot.hourly,
         attention,
         tasks: tasks.map(taskDto),
         comparison,

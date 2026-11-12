@@ -85,7 +85,7 @@ export function plainReason(code: string): string {
     INACCESSIBLE: "Area could not be reached",
     OCCUPIED: "Room was occupied",
     CLEAN: "Clean",
-    PASSED: "Checked",
+    PASSED: "Photo passed",
     PROCESSING: "Photo received and being checked",
     MISSING: "No photo received",
     WAIVED: "Accepted with an exception",

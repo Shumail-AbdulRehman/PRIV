@@ -1,3 +1,4 @@
+import { ui, copy, choose } from './workspace-helpers';
 import { test, expect, fixture, enter, backend, sql } from './fixtures';
 import { mkdir, writeFile } from 'node:fs/promises';
 import { fileURLToPath } from 'node:url';
@@ -5,7 +6,7 @@ import { join } from 'node:path';
 import type { Page } from '@playwright/test';
 
 const root = fileURLToPath(new URL('../../', import.meta.url));
-const out = join(root, 'docs/implementation/v5-workforce-evidence');
+const out = join(root, 'frontend/e2e/.artifacts/evidence/v5-workforce-evidence');
 test.use({ trace: 'off', screenshot: 'off', video: 'off' });
 async function capture(page: Page, name: string) {
   const width = /-(1366|390)-/.exec(name)?.[1];
@@ -36,28 +37,23 @@ test('V5 Team detail and manager workspaces render actual scoped data across des
     await enter(page, '/staff', 'ownerA', lang);
     await expect(exactPerson(page, 'E2E staff transfer')).toBeVisible();
     await capture(page, `app-team-${width}-${lang}`);
-    await page.locator('.workforce-directory').evaluate(element => element.scrollIntoView({ block: 'start' }));
+    await page.getByRole('table').evaluate(element => element.scrollIntoView({ block: 'start' }));
     await capture(page, `app-team-directory-${width}-${lang}`);
-    const ref = await context.newPage();
-    await ref.goto('file://' + join(root, 'design/v5/team.html') + '?lang=' + lang);
-    await capture(ref, `v5-team-${width}-${lang}`);
     await page.goto(`/staff/${fixture.staff.transfer.id}`);
     await expect(page.getByRole('heading', { name: 'E2E staff transfer', exact: true })).toBeVisible();
     await capture(page, `app-detail-${width}-${lang}`);
-    await page.locator('.workforce-detail-tabs').evaluate(element => element.scrollIntoView({ block: 'start' }));
+    await page.getByRole('tablist', { name: ui('Team member sections') }).evaluate(element => element.scrollIntoView({ block: 'start' }));
     await capture(page, `app-detail-overview-${width}-${lang}`);
     for (const [tab, translated] of [['Attendance', 'حاضری'], ['Task history', 'کام کی تاریخ'], ['Cleaning schedule', 'صفائی کا شیڈول']]) {
-      await page.getByRole('button', { name: lang === 'ur' ? translated : tab, exact: true }).click();
-      if (tab === 'Attendance') await expect(page.getByRole('button', { name: lang === 'ur' ? 'حاضری کا سیاق' : 'Attendance context', exact: true }).filter({ visible: true }).first()).toBeVisible();
+      await page.getByRole('tab', { name: lang === 'ur' ? translated : tab, exact: true }).click();
+      if (tab === 'Attendance') await expect(page.getByRole('button', { name: new RegExp('^' + copy('Attendance context', lang) + '(?::|$)') }).filter({ visible: true }).first()).toBeVisible();
       await capture(page, `app-detail-${tab.toLowerCase().replaceAll(' ', '-')}-${width}-${lang}`);
     }
     await page.goto('/managers');
     await expect(exactPerson(page, 'E2E manager A')).toBeVisible();
     await capture(page, `app-managers-${width}-${lang}`);
-    await page.locator('.workforce-directory').evaluate(element => element.scrollIntoView({ block: 'start' }));
+    await page.getByRole('table').evaluate(element => element.scrollIntoView({ block: 'start' }));
     await capture(page, `app-manager-directory-${width}-${lang}`);
-    await ref.goto('file://' + join(root, 'design/v5/workforce.html') + '?lang=' + lang);
-    await capture(ref, `v5-workforce-${width}-${lang}`);
     observations.push({ width, lang, routes: ['/staff', `/staff/${fixture.staff.transfer.id}`, '/managers'], overflow: false, errors: [...errors], provenance: 'Actual API and synthetic SQL. Detail uses V5 conventions because prototype detail is a placeholder.' });
     expect(errors).toEqual([]); await context.close();
   }
@@ -75,35 +71,35 @@ test('V5 access forms and actual open-shift conflict preserve reason and destina
       await select.selectOption(action); await capture(page, `app-access-${action}-${width}-${lang}`);
     }
     await select.selectOption('transfer');
-    await dialog.getByRole('combobox').nth(1).selectOption(String(fixture.site.B));
+    await choose(page, 'Destination site', 'E2E site B', lang, dialog);
     const reason = dialog.getByLabel(lang === 'ur' ? 'وجہ' : 'Reason', { exact: true });
     await reason.fill('V5 open-shift conflict draft');
     const response = page.waitForResponse(r => r.url().includes(`/workforce/staff/${fixture.staff.openShift.id}/transfer/`) && r.request().method() === 'POST');
     await dialog.getByRole('button', { name: lang === 'ur' ? 'رسائی کی تبدیلی کی تصدیق کریں' : 'Confirm access change' }).click();
     expect((await response).status()).toBe(409);
     await expect(dialog.getByRole('alert')).toBeVisible(); await expect(reason).toHaveValue('V5 open-shift conflict draft');
-    await expect(dialog.getByRole('combobox').nth(1)).toHaveValue(String(fixture.site.B));
+    await expect(dialog.getByRole('button', { name: new RegExp('^' + copy('Destination site', lang) + ':') })).toContainText('E2E site B');
     expect((await sql('SELECT "locationId" FROM "Staff" WHERE id=$1', [fixture.staff.openShift.id]))[0].locationId).toBe(fixture.site.A);
     await capture(page, `app-access-conflict-${width}-${lang}`);
     await dialog.getByRole('button', { name: lang === 'ur' ? 'رسائی کی تفصیل تازہ کریں' : 'Refresh access context', exact: true }).click();
     await expect(dialog.getByRole('alert')).toContainText(lang === 'ur' ? 'تازہ ہو گئی' : 'Access context refreshed');
     await expect(reason).toHaveValue('V5 open-shift conflict draft');
-    await expect(dialog.getByRole('combobox').nth(1)).toHaveValue(String(fixture.site.B));
+    await expect(dialog.getByRole('button', { name: new RegExp('^' + copy('Destination site', lang) + ':') })).toContainText('E2E site B');
     await capture(page, `app-access-refreshed-draft-${width}-${lang}`); await context.close();
   }
 });
 
 test('Team search location and manager boundaries use actual API reads', async ({ page }) => {
   await enter(page, '/staff', 'managerA'); await expect(exactPerson(page, 'E2E staff transfer')).toBeVisible();
-  const locations = page.getByRole('combobox', { name: 'Filter by location', exact: true });
-  await expect(locations.locator(`option[value="${fixture.site.B}"]`)).toHaveCount(0);
+  await page.getByRole('button', { name: /^Filter by location:/ }).click();
+  await expect(page.getByRole('menuitemradio', { name:'E2E site B', exact:true })).toHaveCount(0);await page.keyboard.press('Escape');
   const directory = await page.request.get(backend + '/api/staff/'); expect(directory.status()).toBe(200);
   expect(JSON.stringify(await directory.json())).not.toContain(fixture.staff.foreign.email);
   await page.getByRole('searchbox', { name: 'Search team', exact: true }).fill('unmatched-V5-synthetic-person');
   await expect(page.getByText('E2E staff transfer', { exact: true })).toHaveCount(0);
   await capture(page, 'app-team-no-matches-1366-en');
   await page.getByRole('searchbox', { name: 'Search team', exact: true }).fill('');
-  await locations.selectOption(String(fixture.site.A)); await expect(page).toHaveURL(new RegExp('locationId=' + fixture.site.A));
+  await choose(page, 'Filter by location', 'E2E site A'); await expect(page).toHaveURL(new RegExp('locationId=' + fixture.site.A));
   expect((await page.request.get(backend + `/api/staff/details/${fixture.staff.foreign.id}`)).status()).toBe(404);
   await page.goto(`/staff/${fixture.staff.foreign.id}`); await expect(page.getByRole('alert').first()).toBeVisible();
   await expect(page.getByRole('button', { name: 'Staff access', exact: true })).toHaveCount(0);
@@ -115,22 +111,22 @@ test('V5 hire edit and manager forms render empty credentials and actual scoped 
   for (const width of [1366, 390]) for (const lang of ['en', 'ur']) {
     const context = await browser.newContext({ viewport: { width, height: 900 } }); const page = await context.newPage();
     await enter(page, '/staff?create=1', 'managerA', lang);
-    await expect(page.locator('#staff-create-name')).toBeVisible(); await capture(page, `app-team-hire-${width}-${lang}`);
-    await expect(page.locator(`#staff-create-locationId option[value="${fixture.site.B}"]`)).toHaveCount(0);
+    await expect(page.getByLabel(ui('Full Name'), { exact: true })).toBeVisible(); await capture(page, `app-team-hire-${width}-${lang}`);
+    await page.getByRole('dialog').getByRole('button', { name: new RegExp('^' + copy('Location', lang) + ':') }).click();await expect(page.getByRole('menuitemradio', {name:'E2E site B',exact:true})).toHaveCount(0);await page.keyboard.press('Escape');
     await page.goto(`/staff/${fixture.staff.transfer.id}`);
     await page.getByRole('button', { name: lang === 'ur' ? 'ترمیم کریں' : 'Edit', exact: true }).click();
-    await expect(page.locator('#staff-edit-name')).toBeVisible(); await capture(page, `app-staff-edit-${width}-${lang}`);
+    await expect(page.getByLabel(ui('Name'), { exact: true })).toBeVisible(); await capture(page, `app-staff-edit-${width}-${lang}`);
     await page.goto('/managers'); await expect(page).toHaveURL(/\/dashboard(?:[?#]|$)/);
     await enter(page, '/managers', 'ownerA', lang);
-    const row = page.locator(width === 390 ? 'article.record-summary' : 'tr').filter({ hasText: 'E2E manager A' });
+    const row = page.getByRole('row').filter({ hasText: 'E2E manager A' });
     await row.getByRole('button', { name: lang === 'ur' ? 'ترمیم کریں' : 'Edit', exact: true }).click();
-    await expect(page.getByRole('dialog')).toBeVisible(); await expect(page.locator('#manager-password')).toHaveCount(0);
+    await expect(page.getByRole('dialog')).toBeVisible(); await expect(page.getByRole('dialog').getByLabel(ui('Password'), {exact:true})).toHaveCount(0);
     await capture(page, `app-manager-edit-${width}-${lang}`); await page.keyboard.press('Escape');
     await row.getByRole('button', { name: lang === 'ur' ? 'رسائی کا انتظام' : 'Manage access', exact: true }).click();
     for (const action of ['deactivate', 'archive']) { await page.getByRole('dialog').getByRole('combobox').selectOption(action); await capture(page, `app-manager-${action}-${width}-${lang}`); }
     await page.keyboard.press('Escape');
     await page.getByRole('button', { name: lang === 'ur' ? 'مینیجر شامل کریں' : 'Add manager', exact: true }).click();
-    await expect(page.locator('#manager-password')).toHaveValue(''); await capture(page, `app-manager-create-${width}-${lang}`);
+    await expect(page.getByRole('dialog').getByLabel(ui('Password'), {exact:true})).toHaveValue(''); await capture(page, `app-manager-create-${width}-${lang}`);
     await context.close();
   }
 });
@@ -143,8 +139,8 @@ test('V5 Team loading and network error recover using actual forwarded reads', a
     const heldRead = new Promise<void>(resolve => { release = resolve; });
     await page.route('**/api/staff/', async route => { await heldRead; await route.continue(); });
     await enter(page, '/staff', 'ownerA', lang);
-    await expect(page.locator('.workforce-page h1')).toHaveText(lang === 'ur' ? 'آپ کی ٹیم' : 'Your team');
-    await expect(page.locator('.workforce-page [aria-busy=true]')).toBeVisible();
+    await expect(page.getByRole('heading', { name: ui('Your people, at a glance'), level: 1 })).toBeVisible();
+    await expect(page.getByRole('main').getByRole('status')).toBeVisible();
     await capture(page, `app-team-forwarded-loading-390-${lang}`); release();
     await expect(exactPerson(page, 'E2E staff transfer')).toBeVisible();
     await page.unroute('**/api/staff/');
@@ -159,17 +155,17 @@ test('V5 Team loading and network error recover using actual forwarded reads', a
 
 test('V5 inline hire and detail edit persist through reload without changing assigned location', async ({ page }) => {
   await enter(page, '/staff?create=1', 'ownerB');
-  await page.locator('#staff-create-name').fill('V5 newly hired staff'); await page.locator('#staff-create-email').fill('v5-hired@example.invalid');
-  await page.locator('#staff-create-phone').fill('+923001234567'); await page.locator('#staff-create-password').fill(fixture.password);
-  await page.locator('#staff-create-locationId').selectOption(String(fixture.site.foreign));
-  await page.locator('#staff-create-shiftStart').fill('09:00'); await page.locator('#staff-create-shiftEnd').fill('17:00');
+  await page.getByLabel(ui('Full Name'), { exact: true }).fill('V5 newly hired staff'); await page.getByLabel(ui('Email'), { exact: true }).fill('v5-hired@example.invalid');
+  await page.getByLabel(ui('Phone Number'), { exact: true }).fill('+923001234567'); await page.getByLabel(ui('Password'), { exact: true }).fill(fixture.password);
+  await choose(page, 'Location (optional)', 'E2E site foreign');
+  await page.getByLabel(ui('Shift Start'), { exact: true }).fill('09:00'); await page.getByLabel(ui('Shift End'), { exact: true }).fill('17:00');
   const created = page.waitForResponse(r => r.url().endsWith('/staff/create-staff') && r.request().method() === 'POST');
   await page.getByRole('button', { name: 'Create staff', exact: true }).click(); expect((await created).status()).toBe(201);
   const record = await sql('SELECT id,"locationId" FROM "Staff" WHERE email=$1', ['v5-hired@example.invalid']);
   expect(record).toHaveLength(1); expect(record[0].locationId).toBe(fixture.site.foreign);
   await page.goto(`/staff/${record[0].id}`); await expect(page.getByRole('heading', { name: 'V5 newly hired staff', exact: true })).toBeVisible();
   await page.getByRole('button', { name: 'Edit', exact: true }).click(); const dialog = page.getByRole('dialog');
-  await dialog.locator('#staff-edit-name').fill('V5 persisted staff edit'); await dialog.locator('#staff-edit-phone').fill('+923007654321');
+  await dialog.getByLabel(ui('Name'), { exact: true }).fill('V5 persisted staff edit'); await dialog.getByLabel(ui('Phone Number'), { exact: true }).fill('+923007654321');
   const edited = page.waitForResponse(r => r.url().endsWith(`/staff/${record[0].id}`) && r.request().method() === 'PATCH');
   await dialog.getByRole('button', { name: 'Save changes', exact: true }).click(); expect((await edited).status()).toBe(200);
   await expect(dialog).not.toBeVisible(); await page.reload();
@@ -184,7 +180,7 @@ test('V5 real empty workforce differs from filtered no matches', async ({ browse
     await sql('UPDATE "Staff" SET "isActive"=false WHERE "companyId"=$1', [fixture.company.B]);
     for (const width of [1366, 390]) for (const lang of ['en', 'ur']) {
       const context = await browser.newContext({ viewport: { width, height: 900 } }); const page = await context.newPage();
-      await enter(page, '/staff', 'ownerB', lang); await expect(page.getByRole('heading', { name: lang === 'ur' ? 'آپ کی ٹیم' : 'Your team', exact: true })).toBeVisible();
+      await enter(page, '/staff', 'ownerReturn0', lang); await expect(page.getByRole('heading', { name: copy('Your people, at a glance', lang), exact: true })).toBeVisible();
       await expect(page.getByText('E2E staff foreign', { exact: true })).toHaveCount(0); await capture(page, `app-team-empty-${width}-${lang}`); await context.close();
     }
   } finally { for (const row of before) await sql('UPDATE "Staff" SET "isActive"=$2 WHERE id=$1', [row.id, row.isActive]); }
@@ -192,21 +188,21 @@ test('V5 real empty workforce differs from filtered no matches', async ({ browse
 
 test('actual exhausted plan rejects a hire without losing the form or inserting staff', async ({ page }) => {
   await enter(page, '/staff?create=1');
-  await page.locator('#staff-create-name').fill('V5 over-capacity hire');
-  await page.locator('#staff-create-email').fill('v5-capacity-denied@example.invalid');
-  await page.locator('#staff-create-phone').fill('+923001234567');
-  await page.locator('#staff-create-password').fill(fixture.password);
-  await page.locator('#staff-create-locationId').selectOption(String(fixture.site.A));
-  await page.locator('#staff-create-shiftStart').fill('09:00');
-  await page.locator('#staff-create-shiftEnd').fill('17:00');
+  await page.getByLabel(ui('Full Name'), { exact: true }).fill('V5 over-capacity hire');
+  await page.getByLabel(ui('Email'), { exact: true }).fill('v5-capacity-denied@example.invalid');
+  await page.getByLabel(ui('Phone Number'), { exact: true }).fill('+923001234567');
+  await page.getByLabel(ui('Password'), { exact: true }).fill(fixture.password);
+  await choose(page, 'Location (optional)', 'E2E site A');
+  await page.getByLabel(ui('Shift Start'), { exact: true }).fill('09:00');
+  await page.getByLabel(ui('Shift End'), { exact: true }).fill('17:00');
   const response = page.waitForResponse(r => r.url().endsWith('/staff/create-staff') && r.request().method() === 'POST');
   await page.getByRole('button', { name: 'Create staff', exact: true }).click();
   expect((await response).status()).toBe(403);
   await expect(page.getByRole('alert')).toContainText('capacity has been reached');
-  await expect(page.locator('#staff-create-name')).toHaveValue('V5 over-capacity hire');
+  await expect(page.getByLabel(ui('Full Name'), { exact: true })).toHaveValue('V5 over-capacity hire');
   expect(await sql('SELECT id FROM "Staff" WHERE email=$1', ['v5-capacity-denied@example.invalid'])).toHaveLength(0);
   // Evidence intentionally clears the secret field; all non-secret draft remains.
-  await page.locator('#staff-create-password').fill('');
+  await page.getByLabel(ui('Password'), { exact: true }).fill('');
   await capture(page, 'app-hire-capacity-denied-1366-en');
 });
 
@@ -218,14 +214,14 @@ test('hiring validation exposes associated errors in English Urdu without sendin
     page.on('request', request => { if (request.method() === 'POST' && (new URL(request.url()).pathname === '/api/staff/create-staff' || new URL(request.url()).pathname === '/api/manager/')) writes++; });
     await enter(page, '/staff?create=1', 'ownerA', lang);
     await page.getByRole('button', { name: lang === 'ur' ? 'عملہ شامل کریں' : 'Create staff', exact: true }).click();
-    await expect(page.locator('#staff-create-name')).toHaveAttribute('aria-invalid', 'true');
-    await expect(page.locator('#staff-create-name')).toHaveAccessibleDescription(lang === 'ur' ? 'نام ضروری ہے' : 'Name is required');
+    await expect(page.getByLabel(ui('Full Name'), { exact: true })).toHaveAttribute('aria-invalid', 'true');
+    await expect(page.getByLabel(ui('Full Name'), { exact: true })).toHaveAccessibleDescription(lang === 'ur' ? 'نام ضروری ہے' : 'Name is required');
     await capture(page, `app-hire-validation-${width}-${lang}`);
     await page.goto('/managers');
     await page.getByRole('button', { name: lang === 'ur' ? 'مینیجر شامل کریں' : 'Add manager', exact: true }).click();
     await page.getByRole('dialog').getByRole('button', { name: lang === 'ur' ? 'مینیجر بنائیں' : 'Create manager', exact: true }).click();
-    await expect(page.locator('#manager-name')).toHaveAttribute('aria-invalid', 'true');
-    await expect(page.locator('#manager-name')).toHaveAccessibleDescription(lang === 'ur' ? 'نام ضروری ہے' : 'Name is required');
+    await expect(page.getByRole('dialog').getByLabel(ui('Manager Name'), {exact:true})).toHaveAttribute('aria-invalid', 'true');
+    await expect(page.getByRole('dialog').getByLabel(ui('Manager Name'), {exact:true})).toHaveAccessibleDescription(lang === 'ur' ? 'نام ضروری ہے' : 'Name is required');
     await capture(page, `app-manager-validation-${width}-${lang}`);
     expect(writes).toBe(0); await context.close();
   }

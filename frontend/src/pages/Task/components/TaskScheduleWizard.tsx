@@ -5,9 +5,10 @@ import { ArrowLeft, ArrowRight } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
-import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from "@/components/ui/dialog";
+import { SidePanel, SidePanelFooter } from "@/components/workspace/SidePanel";
+import OperationsState from "@/pages/Manager/OperationsState";
+import "../schedule-v6.css";
 import { setupErrorKey, useSetupFormText } from '@/pages/Area/areaFormText';
-import '@/pages/Area/setup-forms.css';
 import { useAreas } from "@/pages/Area/queries";
 import InventorySelector from "@/pages/Area/InventorySelector";
 import { inventorySummary, validateInventorySelection } from "@/pages/Area/types";
@@ -35,8 +36,8 @@ type Props = {
 
 type Phase = "editing" | "creating" | "assigning" | "assignment-failed" | "unknown";
 
-const fieldClass = "w-full rounded-lg border border-border bg-background px-3 py-2.5 text-sm outline-none focus:border-primary focus:ring-2 focus:ring-primary/15";
-const labelClass = "mb-1.5 block text-sm font-medium text-foreground";
+const fieldClass = "wx-schedule-input";
+const labelClass = "wx-schedule-label";
 const labels = ["Task", "Team", "Schedule", "Review"] as const;
 
 function errorDetails(error: unknown): { message: string; field?: string } {
@@ -194,52 +195,51 @@ export default function TaskScheduleWizard({ locationId, locationName, timeZone,
   };
 
   return (
-    <Dialog open={open} onOpenChange={changeOpen}>
-      <DialogContent className="setup-form-dialog schedule-v5" showCloseButton={!busy} onEscapeKeyDown={event => { if (busy) event.preventDefault(); }} onPointerDownOutside={event => { if (busy) event.preventDefault(); }} aria-busy={busy}>
-        <DialogHeader>
-          <DialogTitle>{t('Create cleaning schedule')}</DialogTitle>
-          <DialogDescription>{t('Set up the work, team, and time before saving.')}</DialogDescription>
-          <p className="setup-form-site"><bdi>{locationName}</bdi> · <bdi>{timeZone}</bdi></p>
-        </DialogHeader>
-        <ol className="setup-form-steps" aria-label={t('Schedule creation steps')}>
+    <SidePanel open={open} onOpenChange={changeOpen} wide title={t('Create cleaning schedule')} description={t('Set up the work, team, and time before saving.')} footer={phase !== 'unknown' && phase !== 'assignment-failed' ? (
+            <SidePanelFooter className="wx-schedule-footer"><Button type="button" variant="outline" disabled={busy} onClick={() => step === 0 ? changeOpen(false) : setStep((step - 1) as ScheduleStep)}>{step === 0 ? t('Cancel') : <><ArrowLeft size={15} aria-hidden="true" />{t('Back')}</>}</Button>{step < 3 ? <Button type="button" onClick={goNext} disabled={busy || (step === 0 && (areasQuery.isPending || areasQuery.isError))}>{t('Next')}<ArrowRight size={15} aria-hidden="true" /></Button> : <Button type="button" onClick={() => void submit()} disabled={busy} aria-busy={busy}>{t(busy ? (phase === 'creating' ? 'Creating…' : 'Assigning…') : 'Create schedule')}</Button>}</SidePanelFooter>
+    ) : undefined}>
+      <div className="wx-schedule-form" aria-busy={busy}>
+        <p className="wx-schedule-help"><bdi>{locationName}</bdi> · <bdi>{timeZone}</bdi></p>
+        <ol className="wx-schedule-steps" aria-label={t('Schedule creation steps')}>
           {labels.map((label, index) => <li key={label} aria-current={step === index ? 'step' : undefined}>{index + 1}. {t(label)}</li>)}
         </ol>
         {phase === 'assignment-failed' ? (
-          <div className="space-y-4" role="alert">
+          <div className="wx-schedule-stack" role="alert">
             <p className="font-semibold">{t('Schedule saved as #{id}', { id: savedId.current ?? '' })}</p>
-            <p className="setup-form-warning">{error && t(error)}</p>
+            <p className="wx-schedule-error">{error && t(error)}</p>
             <div className="flex flex-wrap gap-2"><Button type="button" disabled={busy} onClick={() => { if (savedId.current && form.staffId) void assign(savedId.current, Number(form.staffId)); }}>{t('Retry assignment')}</Button><Button type="button" variant="outline" onClick={() => finish('manual-failed-kept')}>{t('Keep schedule and finish')}</Button></div>
           </div>
         ) : phase === 'unknown' ? (
-          <div className="space-y-4" role="alert"><p className="setup-form-warning">{error && t(error)}</p><Button type="button" variant="outline" onClick={() => changeOpen(false)}>{t('Close and check schedule list')}</Button></div>
+          <div className="wx-schedule-stack" role="alert"><p className="wx-schedule-error">{error && t(error)}</p><Button type="button" variant="outline" onClick={() => changeOpen(false)}>{t('Close and check schedule list')}</Button></div>
         ) : (
           <>
             <fieldset disabled={busy} aria-describedby={error ? 'schedule-error' : undefined}>
-            {step === 0 && <div className="space-y-4">
+            {step === 0 && <div className="wx-schedule-stack">
               <div><label htmlFor="schedule-title" className={labelClass}>{t('Task title')}</label><Input id="schedule-title" ref={firstField} value={form.title} onChange={event => setForm({ ...form, title: event.target.value })} placeholder={t('Clean the lobby')} aria-describedby={error ? 'schedule-error' : undefined} /></div>
               <div><label htmlFor="schedule-description" className={labelClass}>{t('Instructions (optional)')}</label><Textarea id="schedule-description" value={form.description} onChange={event => setForm({ ...form, description: event.target.value })} placeholder={t('What should the team do?')} /></div>
-              <div><label className={labelClass} htmlFor="schedule-area">{t('Area template')}</label><select id="schedule-area" className={fieldClass} value={form.areaId} aria-describedby={error ? 'schedule-error' : undefined} onChange={event => setForm({ ...form, areaId: event.target.value, selectedItems: [] })}><option value="">{t('Choose one area')}</option>{areas.map(area => <option key={area.id} value={area.id}>{area.name}</option>)}</select></div>
-              {areasQuery.isPending && <p role="status">{t('Loading inventory…')}</p>}
+              <div><label className={labelClass} htmlFor="schedule-area">{t('Area template')}</label><select id="schedule-area" className={fieldClass} value={form.areaId} disabled={areasQuery.isPending || areasQuery.isError} aria-describedby={error ? 'schedule-error' : undefined} onChange={event => setForm({ ...form, areaId: event.target.value, selectedItems: [] })}><option value="">{t('Choose one area')}</option>{areas.map(area => <option key={area.id} value={area.id}>{area.name}</option>)}</select></div>
+              {areasQuery.isPending && <OperationsState loading skeleton="panel" />}
               {areasQuery.isError && <div role="alert"><p>{t('Area inventory could not load. Retry before continuing.')}</p><Button type="button" variant="outline" onClick={() => void areasQuery.refetch()}>{t('Retry loading areas')}</Button></div>}
-              {!areasQuery.isPending && !areasQuery.isError && !areas.length && <p className="setup-form-help">{t('Set up and activate an area first.')} <Link to={`/locations/${locationId}?tab=areas&newArea=1`} className="text-primary underline">{t('Add area')}</Link></p>}
+              {!areasQuery.isPending && !areasQuery.isError && !areas.length && <p className="wx-schedule-help">{t('Set up and activate an area first.')} <Link to={`/locations/${locationId}?tab=areas&newArea=1`} className="text-primary underline">{t('Add area')}</Link></p>}
               {chosenArea && <InventorySelector area={chosenArea} mode={form.inventorySelection} selected={form.selectedItems} onChange={(inventorySelection, selectedItems) => setForm({ ...form, inventorySelection, selectedItems })} />}
             </div>}
-            {step === 1 && <div className="space-y-4"><p className="setup-form-help">{t('Automatic assignment remains available. You can choose a specific person who works at this location.')}</p><label htmlFor="schedule-staff" className={labelClass}>{t('Assign staff')}</label><select id="schedule-staff" className={fieldClass} value={form.staffId} onChange={event => setForm({ ...form, staffId: event.target.value })}><option value="">{t('Use automatic assignment')}</option>{staffOptions.filter(staff => staff.isActive).map(staff => <option key={staff.id} value={staff.id}>{staff.name}</option>)}</select></div>}
-            {step === 2 && <div className="grid gap-4 sm:grid-cols-2">
-              <div><label htmlFor="schedule-repeat" className={labelClass}>{t('Repeat')}</label><select id="schedule-repeat" className={fieldClass} value={form.recurringType} onChange={event => setForm({ ...form, recurringType: event.target.value as 'DAILY' | 'ONCE', recurringEndDate: '' })}><option value="DAILY">{t('Daily')}</option><option value="ONCE">{t('Once')}</option></select></div>
-              <div><label htmlFor="schedule-date" className={labelClass}>{t('Effective date')}</label><Input id="schedule-date" ref={firstField} type="date" dir="ltr" min={siteToday} value={form.effectiveDate} onChange={event => setForm({ ...form, effectiveDate: event.target.value })} aria-describedby={error ? 'schedule-error' : undefined} /></div>
+            {step === 1 && <div className="wx-schedule-stack"><p className="wx-schedule-help">{t('Automatic assignment remains available. You can choose a specific person who works at this location.')}</p><label htmlFor="schedule-staff" className={labelClass}>{t('Assign staff')}</label><select id="schedule-staff" className={fieldClass} value={form.staffId} onChange={event => setForm({ ...form, staffId: event.target.value })}><option value="">{t('Use automatic assignment')}</option>{staffOptions.filter(staff => staff.isActive).map(staff => <option key={staff.id} value={staff.id}>{staff.name}</option>)}</select></div>}
+            {step === 2 && <div className="wx-schedule-pair">
+              <div className="wx-schedule-field"><label htmlFor="schedule-repeat" className={labelClass}>{t('Recurrence')}</label><select id="schedule-repeat" className={fieldClass} value={form.recurringType} onChange={event => setForm({ ...form, recurringType: event.target.value as 'DAILY' | 'ONCE', recurringEndDate: '' })}><option value="DAILY">{t('Daily')}</option><option value="ONCE">{t('Once')}</option></select></div>
+              <div className="wx-schedule-field"><label htmlFor="schedule-date" className={labelClass}>{t('Effective from')}</label><Input id="schedule-date" ref={firstField} type="date" dir="ltr" min={siteToday} value={form.effectiveDate} onChange={event => setForm({ ...form, effectiveDate: event.target.value })} aria-invalid={!!error} aria-describedby={error ? 'schedule-error' : undefined} />{error && <p id="schedule-error" role="alert" className="wx-schedule-error">{t(error)}</p>}</div>
+              <p className="wx-schedule-help wx-schedule-full">{t('Daily schedules include every day, including weekends.')}</p>
               <div><label htmlFor="schedule-start" className={labelClass}>{t('Start time')} (<bdi>{timeZone}</bdi>)</label><Input id="schedule-start" type="time" dir="ltr" value={form.shiftStart} onChange={event => setForm({ ...form, shiftStart: event.target.value })} /></div>
               <div><label htmlFor="schedule-end" className={labelClass}>{t('End time')} (<bdi>{timeZone}</bdi>)</label><Input id="schedule-end" type="time" dir="ltr" value={form.shiftEnd} onChange={event => setForm({ ...form, shiftEnd: event.target.value })} /></div>
-              {form.recurringType === 'DAILY' && <div className="sm:col-span-2"><label htmlFor="schedule-repeat-end" className={labelClass}>{t('Repeat until (optional)')}</label><Input id="schedule-repeat-end" type="date" dir="ltr" min={form.effectiveDate} value={form.recurringEndDate} onChange={event => setForm({ ...form, recurringEndDate: event.target.value })} /></div>}
-              <p className="setup-form-help sm:col-span-2">{t('Daily schedules include every day, including weekends. Dates and times follow this location’s timezone.')}</p>
+              {form.recurringType === 'DAILY' && <div className="wx-schedule-full"><label htmlFor="schedule-repeat-end" className={labelClass}>{t('Repeat until (optional)')}</label><Input id="schedule-repeat-end" type="date" dir="ltr" min={form.effectiveDate} value={form.recurringEndDate} onChange={event => setForm({ ...form, recurringEndDate: event.target.value })} /></div>}
+              <p className="wx-schedule-help wx-schedule-full"><bdi>{timeZone}</bdi></p>
             </div>}
-            {step === 3 && <div className="space-y-4"><dl className="setup-form-facts"><dt>{t('Task')}</dt><dd><bdi>{form.title.trim()}</bdi></dd><dt>{t('Location')}</dt><dd><bdi>{locationName}</bdi></dd><dt>{t('Area template')}</dt><dd><bdi>{chosenArea?.name}</bdi></dd><dt>{t('Fixtures')}</dt><dd>{form.inventorySelection === 'ALL' ? t('All active items') : t('{count} selected items', { count: form.selectedItems.length })}. {summary && t('{mandatory} mandatory fixtures, {optional} optional fixtures, {photos} required photos.', { ...summary, photos: summary.requiredViews })} {t('Mandatory items require every mandatory evidence view to pass.')}</dd><dt>{t('Team')}</dt><dd>{chosenStaff ? <bdi>{chosenStaff.name}</bdi> : t('Use automatic assignment')}</dd><dt>{t('Schedule')}</dt><dd>{t('{repeat} from {start}', { repeat: t(form.recurringType === 'DAILY' ? 'Daily' : 'Once'), start: form.effectiveDate })}{form.recurringEndDate ? <> · {t('Until {date}', { date: form.recurringEndDate })}</> : null} · <bdi>{form.shiftStart}–{form.shiftEnd} ({timeZone})</bdi></dd></dl><p className="setup-form-help">{t('A task QR is available only after an occurrence exists. Previewing a future slot does not generate a task.')}</p></div>}
+            {step === 3 && <div className="wx-schedule-stack"><dl className="wx-schedule-facts"><dt>{t('Task')}</dt><dd><bdi>{form.title.trim()}</bdi></dd><dt>{t('Location')}</dt><dd><bdi>{locationName}</bdi></dd><dt>{t('Area template')}</dt><dd><bdi>{chosenArea?.name}</bdi></dd><dt>{t('Fixtures')}</dt><dd>{form.inventorySelection === 'ALL' ? t('All active items') : t('{count} selected items', { count: form.selectedItems.length })}. {summary && t('{mandatory} mandatory fixtures, {optional} optional fixtures, {photos} required photos.', { ...summary, photos: summary.requiredViews })} {t('Mandatory items require every mandatory evidence view to pass.')}</dd><dt>{t('Team')}</dt><dd>{chosenStaff ? <bdi>{chosenStaff.name}</bdi> : t('Use automatic assignment')}</dd><dt>{t('Schedule')}</dt><dd>{t('{repeat} from {start}', { repeat: t(form.recurringType === 'DAILY' ? 'Daily' : 'Once'), start: form.effectiveDate })}{form.recurringEndDate ? <> · {t('Until {date}', { date: form.recurringEndDate })}</> : null} · <bdi>{form.shiftStart}–{form.shiftEnd} ({timeZone})</bdi></dd></dl><p className="wx-schedule-help">{t('A task QR is available only after an occurrence exists. Previewing a future slot does not generate a task.')}</p></div>}
             </fieldset>
-            {error && <p id="schedule-error" role="alert" className="setup-form-error">{t(error)}</p>}
-            <div className="setup-form-actions"><Button type="button" variant="outline" disabled={busy} onClick={() => step === 0 ? changeOpen(false) : setStep((step - 1) as ScheduleStep)}>{step === 0 ? t('Cancel') : <><ArrowLeft size={15} aria-hidden="true" />{t('Back')}</>}</Button>{step < 3 ? <Button type="button" onClick={goNext} disabled={busy || (step === 0 && (areasQuery.isPending || areasQuery.isError))}>{t('Next')}<ArrowRight size={15} aria-hidden="true" /></Button> : <Button type="button" onClick={() => void submit()} disabled={busy} aria-busy={busy}>{t(busy ? (phase === 'creating' ? 'Creating…' : 'Assigning…') : 'Create schedule')}</Button>}</div>
+            {error && step !== 2 && <p id="schedule-error" role="alert" className="wx-schedule-error">{t(error)}</p>}
+
           </>
         )}
-      </DialogContent>
-    </Dialog>
+      </div>
+    </SidePanel>
   );
 }

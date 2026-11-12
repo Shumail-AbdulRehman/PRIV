@@ -184,7 +184,7 @@ it.each([false,true])('own security preserves its existing auth layout (forced: 
 });
 it('company settings retain their settings layout and forms',async()=>{
  const {container}=mount(<CompanySettingsPage/>);await screen.findByLabelText('Company name');
- expect(container.querySelector('.settings-v5 .settings-split')).toBeInTheDocument();
+ expect(screen.getByRole('region',{name:'Organization details'})).toBeVisible();
  expect(container.querySelector('.flow-shell')).not.toBeInTheDocument();
  fireEvent.click(screen.getByRole('button',{name:'Security'}));
  expect(screen.getByLabelText('Current password').closest('form')).toHaveClass('account-form');

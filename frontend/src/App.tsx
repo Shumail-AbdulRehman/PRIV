@@ -8,14 +8,23 @@ import { useDispatch, useSelector } from 'react-redux';
 import { setUser,setLoading,clearUser } from './store/slices/authSlice.js';
 import type { AppDispatch } from '@/store/store';
 import { useEffect } from 'react';
-import LoadingSpinner from './components/common/LoadingSpinner.js';
+import PageLoadingSkeleton from './components/common/PageLoadingSkeleton';
 import type { RootState } from '@/store/store';
 import { isSessionInvalid } from './api/client';
 import { isSafeFromPath, ONBOARDING_ROUTES } from './pages/Onboarding/onboardingRoutes';
-import FlowShell from './pages/Onboarding/FlowShell';
+import FlowShell, { FlowWait } from './pages/Onboarding/FlowShell';
 import { Button } from './components/ui/button';
 import { useLanguage } from './i18n/context';
+import './workspace-tokens.css';
+import './components/layout/shell-v6.css';
 
+// Presentation only: authentication and role decisions remain in the guards below.
+const isWorkspacePath = (pathname: string) => /^\/(dashboard|setup|today-status|locations|areas|staff|attendance|managers|exceptions|verification|settings)(\/|$)/.test(pathname);
+const workspaceLoading = (
+  <div className="workspace" style={{ minBlockSize: '100vh', background: 'var(--wx-canvas)' }}>
+    <div className="wx-shell-content" style={{ marginInline: 'auto' }}><PageLoadingSkeleton /></div>
+  </div>
+);
 
 
 export const ProtectedRoute = ({ children }: { children: React.ReactNode }) => {
@@ -23,7 +32,7 @@ export const ProtectedRoute = ({ children }: { children: React.ReactNode }) => {
   const { isAuthenticated } = useAuth();
   const {isLoading}= useSelector((state: RootState)=>  state.auth);
   const location = useLocation();
-  if(isLoading) return <LoadingSpinner fullScreen/>
+  if (isLoading) return isWorkspacePath(location.pathname) ? workspaceLoading : null;
   if (!isAuthenticated) return <Navigate to="/login" state={{ from: location.pathname }} replace />;
 
 
@@ -34,7 +43,7 @@ export const GuestRoute = ({ children }: { children: React.ReactNode }) => {
 
   const { isAuthenticated, user, isLoading } = useAuth();
   const location = useLocation();
-  if (isLoading) return <LoadingSpinner fullScreen />;
+  if (isLoading) return isWorkspacePath(location.pathname) ? workspaceLoading : null;
   const from = location.state?.from;
   const destination = user?.role === 'ADMIN' ? ONBOARDING_ROUTES.continue : ONBOARDING_ROUTES.workspace;
   if (isAuthenticated) return <Navigate to={destination} state={isSafeFromPath(from) ? { from } : null} replace />;
@@ -48,7 +57,7 @@ export const RequireRole = ({ roles, children }: { roles: Array<'ADMIN' | 'MANAG
   const { isAuthenticated } = useAuth();
   const { user, isLoading } = useSelector((state: RootState) => state.auth);
   const location = useLocation();
-  if (isLoading) return <LoadingSpinner fullScreen />;
+  if (isLoading) return isWorkspacePath(location.pathname) ? workspaceLoading : null;
   if (!isAuthenticated) return <Navigate to="/login" state={{ from: location.pathname }} replace />;
   if (!user || !roles.includes(user.role)) return <Navigate to="/dashboard" replace />;
 
@@ -60,6 +69,7 @@ function App() {
   const getCurrentUserQuery = useGetCurrentUser();
   const { user, isLoading } = useAuth();
   const { t } = useLanguage();
+  const location = useLocation();
 
   
   useEffect(() => {
@@ -90,7 +100,7 @@ function App() {
  );
  const signingOut = getCurrentUserQuery.isError && isSessionInvalid(getCurrentUserQuery.error) && (user || isLoading);
  if (getCurrentUserQuery.isPending || restoringSession || signingOut) {
-  return <LoadingSpinner fullScreen />;
+  return isWorkspacePath(location.pathname) ? workspaceLoading : <FlowShell key="session-loading"><FlowWait label={t('Loading…')} /></FlowShell>;
 }
 
 

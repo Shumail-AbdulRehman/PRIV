@@ -22,7 +22,7 @@ test("real review UI separates missing upload/submission/review/verification and
     [fixture.review.taskId],
   );
   await page
-    .getByRole("button", { name: "Resolve review", exact: true })
+    .getByRole("radio", { name: "Resolve review", exact: true })
     .click();
   await page
     .getByLabel("Resolution note", { exact: true })
@@ -53,6 +53,16 @@ test("real review UI separates missing upload/submission/review/verification and
   await expect(
     page.getByRole("region", {name: "Decision recorded"}).getByText("E2E missing evidence investigated without verification"),
   ).toBeVisible();
+  await page.goto('/exceptions');
+  const queue = page.getByRole('region', { name: 'Review queue', exact: true });
+  await expect(queue.getByRole('link', { name: /E2E review room/ })).toHaveCount(0);
+  await page.getByRole('tab', { name: /^Reviewed/ }).click();
+  await expect(queue.getByRole('link', { name: /E2E review room/ })).toContainText('Resolution recorded');
+  await page.reload();
+  await expect(page.getByRole('tab', { name: /^Reviewed/ })).toHaveAttribute('aria-selected', 'true');
+  await expect(queue.getByRole('link', { name: /E2E review room/ })).toContainText('Resolution recorded');
+  await queue.getByRole('link', { name: /E2E review room/ }).click();
+  await expect(page.getByRole('region', { name: 'Decision recorded', exact: true })).toContainText('E2E missing evidence investigated without verification');
 });
 test("real task QR is task-bound while retired review extensions remain denied", async ({
   page,

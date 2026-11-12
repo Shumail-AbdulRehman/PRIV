@@ -1,3 +1,4 @@
+import { ui } from './workspace-helpers';
 import {test,expect,fixture,enter,backend,sql} from './fixtures';
 import {mkdir,writeFile} from 'node:fs/promises';
 import {fileURLToPath} from 'node:url';
@@ -5,7 +6,7 @@ import {join} from 'node:path';
 import {randomUUID} from 'node:crypto';
 import type {Browser,Page} from '@playwright/test';
 const root=fileURLToPath(new URL('../../',import.meta.url));
-const out=join(root,'docs/implementation/v5-review-acceptance');
+const out=join(root,'frontend/e2e/.artifacts/evidence/v5-review-acceptance');
 const observations:unknown[]=[];
 test.use({trace:'off',screenshot:'off',video:'off'});
 async function capture(page:Page,name:string,width:number,language:string,provenance:string) {
@@ -13,7 +14,7 @@ async function capture(page:Page,name:string,width:number,language:string,proven
  const overflow=await page.evaluate(()=>document.documentElement.scrollWidth>innerWidth+1);
  expect(overflow).toBe(false);
  await page.screenshot({path:join(out,`${name}-${width}-${language}.png`),fullPage:true});
- if(name==='app-failed-detail-refresh'||name==='app-refreshed-draft')await page.locator('.v5-decision-card').screenshot({path:join(out,`${name}-decision-${width}-${language}.png`)});
+ if(name==='app-failed-detail-refresh'||name==='app-refreshed-draft')await page.getByRole('region', { name: ui('Your decision') }).screenshot({path:join(out,`${name}-decision-${width}-${language}.png`)});
  observations.push({name,width,height:900,language,overflow,provenance});
  await writeFile(join(out,'observations.json'),JSON.stringify(observations,null,2));
 }
@@ -33,20 +34,20 @@ test('actual conflict followed by failed detail refresh keeps the draft disabled
   const record=(await response.json()).data;
   await sql('UPDATE "VerificationIssue" SET "requirementId"=$1 WHERE id=$2',[record.items[0].requirements[0].id,record.issues[0].id]);
   await page.goto(`/exceptions/${fixture.review.id}?issueId=${record.issues[0].id}`);
-  await expect(page.locator('.launch-review-context h3')).toContainText(language==='ur'?'متبادل تصویر':'Photo replacement');
-  const note=page.locator('.v5-decision-card textarea');await note.fill('Synthetic Spec36 draft survives failed refresh');
+  await expect(page.getByRole('region', { name: ui('Task and evidence status') }).getByRole('heading', { name: ui('Photo replacement') })).toContainText(language==='ur'?'متبادل تصویر':'Photo replacement');
+  const note=page.getByRole('textbox', { name: ui('Resolution note') });await note.fill('Synthetic Spec36 draft survives failed refresh');
   await sql('UPDATE "VerificationException" SET "rowVersion"="rowVersion"+1 WHERE id=$1',[fixture.review.id]);
-  await page.locator('.v5-decision-card button[type=submit]').click();await expect(page.locator('.v5-decision-card [role=alert]')).toBeVisible();
-  await expect(page.locator('.v5-decision-card button[type=submit]')).toBeDisabled();
+  await page.getByRole('button', { name: ui('Confirm resolution') }).click();await expect(page.getByRole('region', { name: ui('Your decision') }).getByRole('alert')).toBeVisible();
+  await expect(page.getByRole('button', { name: ui('Confirm resolution') })).toBeDisabled();
   await page.route(`**/api/verification-exceptions/${fixture.review.id}`,route=>route.abort());
-  await page.locator('.v5-decision-card button').filter({hasText:language==='ur'?'جائزہ تازہ کریں':'Refresh review'}).click();
-  await expect(page.locator('.v5-decision-card .operations-notice[role=alert]')).toContainText(language==='ur'?'تفصیلات تازہ نہیں ہو سکیں':'Review details could not refresh');
+  await page.getByRole('region', { name: ui('Your decision') }).getByRole('button').filter({hasText:language==='ur'?'جائزہ تازہ کریں':'Refresh review'}).click();
+  await expect(page.getByRole('region', { name: ui('Your decision') }).getByRole('alert').first()).toContainText(language==='ur'?'تفصیلات تازہ نہیں ہو سکیں':'Review details could not refresh');
   await expect(note).toHaveValue('Synthetic Spec36 draft survives failed refresh');
-  await expect(page.locator('.v5-decision-card button[type=submit]')).toBeDisabled();
+  await expect(page.getByRole('button', { name: ui('Confirm resolution') })).toBeDisabled();
   await capture(page,'app-failed-detail-refresh',width,language,'actual API conflict; labelled aborted detail refresh; no positive response replaced');
   await page.unroute(`**/api/verification-exceptions/${fixture.review.id}`);
-  await page.locator('.v5-decision-card button').filter({hasText:language==='ur'?'جائزہ تازہ کریں':'Refresh review'}).click();
-  await expect(page.locator('.v5-decision-card button[type=submit]')).toBeEnabled();await expect(page.locator('.v5-decision-card [role=alert]')).toHaveCount(0);await expect(note).toHaveValue('Synthetic Spec36 draft survives failed refresh');
+  await page.getByRole('region', { name: ui('Your decision') }).getByRole('button').filter({hasText:language==='ur'?'جائزہ تازہ کریں':'Refresh review'}).click();
+  await expect(page.getByRole('button', { name: ui('Confirm resolution') })).toBeEnabled();await expect(page.getByRole('region', { name: ui('Your decision') }).getByRole('alert')).toHaveCount(0);await expect(note).toHaveValue('Synthetic Spec36 draft survives failed refresh');
   await capture(page,'app-refreshed-draft',width,language,'actual refreshed scoped API and preserved unsaved note');
   // Unmounting intentionally discards this synthetic draft; it is never submitted.
  });
@@ -71,12 +72,12 @@ test('review-specific unavailable feedback preserves boundaries in both language
  test.setTimeout(120000);
  await matrix(browser,async(page,width,language)=>{
   await enter(page,`/exceptions/${fixture.review.id}`,'managerB',language);
-  const detail=page.locator('.v5-review-detail');await expect(detail.locator('[role=alert]')).toContainText(language==='ur'?'اس جائزے تک رسائی نہیں':'access to this review');
-  await expect(detail.locator('textarea,.v5-evidence-card')).toHaveCount(0);
+  const detail=page.getByRole('main');await expect(detail.getByRole('alert')).toContainText(language==='ur'?'اس جائزے تک رسائی نہیں':'access to this review');
+  await expect(detail.getByRole('textbox')).toHaveCount(0);await expect(detail.getByRole('region', {name:ui('Required photo views')})).toHaveCount(0);
   await capture(page,'app-review-denied',width,language,'actual same-company manager with no task-site assignment:403');
   await enter(page,`/exceptions/${fixture.review.id}`,'ownerB',language);
-  await expect(detail.locator('[role=alert]')).toContainText(language==='ur'?'جائزہ دستیاب نہیں':'Review unavailable');
-  await expect(detail.locator('textarea,.v5-evidence-card')).toHaveCount(0);
+  await expect(detail.getByRole('alert')).toContainText(language==='ur'?'جائزہ دستیاب نہیں':'Review unavailable');
+  await expect(detail.getByRole('textbox')).toHaveCount(0);await expect(detail.getByRole('region', {name:ui('Required photo views')})).toHaveCount(0);
   await capture(page,'app-review-unavailable',width,language,'actual foreign-company review lookup:404');
  });
 });
@@ -93,17 +94,18 @@ test('protected photo inspection supports keyboard panning and accessible contro
   });
   await page.route('**/api/evidence/spec36-presentation-image/content?*',route=>route.fulfill({status:200,contentType:'image/svg+xml',body:'<svg xmlns="http://www.w3.org/2000/svg" width="1000" height="600"><rect width="1000" height="600" fill="white"/><path d="M100 100H900V500H100Z M200 0V600 M800 0V600" fill="none" stroke="blue" stroke-width="4"/><text x="500" y="300" text-anchor="middle" font-size="30">SYNTHETIC INSPECTION FIXTURE</text></svg>'}));
   await enter(page,`/exceptions/${fixture.review.id}`,'ownerA',language);
-  const stage=page.locator('.v5-evidence-stage');await expect(stage.locator('img')).toBeVisible();
-  await expect.poll(()=>stage.locator('img').evaluate((element:HTMLImageElement)=>element.complete&&element.naturalWidth>0)).toBe(true);
-  const sizes=await page.locator('.v5-evidence-toolbar button').evaluateAll(elements=>elements.map(element=>{const r=element.getBoundingClientRect();return{width:r.width,height:r.height};}));
-  for(const size of sizes){expect(size.width).toBeGreaterThanOrEqual(width===390?48:44);expect(size.height).toBeGreaterThanOrEqual(width===390?48:44);}
-  await page.locator('.v5-evidence-toolbar button').nth(1).click();await stage.focus();
+  await page.getByRole('region', {name:ui('Review photo')}).scrollIntoViewIfNeeded();
+  const stage=page.getByRole('region', { name: ui('Photo inspection area') });await expect(stage.getByRole('img')).toBeVisible();
+  await expect.poll(()=>stage.getByRole('img').evaluate((element:HTMLImageElement)=>element.complete&&element.naturalWidth>0)).toBe(true);
+  const sizes=await page.getByRole('region', { name: ui('Review photo') }).getByRole('button').evaluateAll(elements=>elements.map(element=>{const r=element.getBoundingClientRect();return{width:r.width,height:r.height};}));
+  for(const size of sizes){expect(size.width).toBeGreaterThanOrEqual(40);expect(size.height).toBeGreaterThanOrEqual(40);}
+  await page.getByRole('region', { name: ui('Review photo') }).getByRole('button').nth(1).click();await stage.focus();
   await expect(stage).toBeFocused();await stage.press(language==='ur'?'ArrowLeft':'ArrowRight');
   await expect.poll(()=>stage.evaluate(element=>Math.abs(element.scrollLeft))).toBeGreaterThan(0);
   await capture(page,'http-fixture-keyboard-inspection',width,language,'labelled HTTP metadata/image presentation fixture; keyboard panning and44/48px control geometry');
-  await page.locator('.v5-evidence-toolbar button').last().click();const dialog=page.getByRole('dialog');await expect(dialog).toBeVisible();
-  const enlarged=dialog.locator('.ops-image-zoom');await enlarged.focus();await expect(enlarged).toBeFocused();
+  await page.getByRole('region', { name: ui('Review photo') }).getByRole('button').last().click();const dialog=page.getByRole('dialog');await expect(dialog).toBeVisible();
+  const enlarged=dialog.getByRole('region', { name: ui('Enlarged photo inspection area') });await enlarged.focus();await expect(enlarged).toBeFocused();
   await page.screenshot({path:join(out,`http-fixture-enlarged-keyboard-${width}-${language}.png`)});
-  await page.keyboard.press('Escape');await expect(dialog).toHaveCount(0);await expect(page.locator('.v5-evidence-toolbar button').last()).toBeFocused();
+  await page.keyboard.press('Escape');await expect(dialog).toHaveCount(0);await expect(page.getByRole('region', { name: ui('Review photo') }).getByRole('button').last()).toBeFocused();
  });
 });

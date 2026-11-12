@@ -11,6 +11,7 @@ import { setupUrdu } from "./setupTranslations.ts";
 import { launchUrdu } from "./launchTranslations.ts";
 import { attendancePhotoUrdu } from "./attendancePhotoTranslations.ts";
 import { managerUrdu } from "./managerTranslations.ts";
+import { workspaceRedesignUrdu } from "./workspaceRedesignTranslations.ts";
 // Shared English/Urdu vocabulary. Keep web and native copies in parity.
 export type Language = "en" | "ur";
 export const urdu: Record<string, string> = {
@@ -621,7 +622,7 @@ export function translate(
   values: Record<string, string | number> = {},
 ): string {
   const template =
-    language === "ur" ? (onboardingUrdu[text] ?? serviceUrdu[text] ?? platformServiceUrdu[text] ?? platformCompanyUrdu[text] ?? billingUrdu[text] ?? reviewUrdu[text] ?? workforceUrdu[text] ?? accountUrdu[text] ?? attendanceContextUrdu[text] ?? setupUrdu[text] ?? launchUrdu[text] ?? attendancePhotoUrdu[text] ?? managerUrdu[text] ?? urdu[text] ?? text) : text;
+    language === "ur" ? (onboardingUrdu[text] ?? serviceUrdu[text] ?? platformServiceUrdu[text] ?? platformCompanyUrdu[text] ?? billingUrdu[text] ?? reviewUrdu[text] ?? workforceUrdu[text] ?? accountUrdu[text] ?? attendanceContextUrdu[text] ?? setupUrdu[text] ?? launchUrdu[text] ?? attendancePhotoUrdu[text] ?? managerUrdu[text] ?? urdu[text] ?? workspaceRedesignUrdu[text] ?? text) : text;
   return template.replace(/\{(\w+)\}/g, (token, key: string) =>
     String(values[key] ?? token),
   );

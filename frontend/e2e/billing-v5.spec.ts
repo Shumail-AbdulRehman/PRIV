@@ -4,7 +4,7 @@ test.use({trace:'off',screenshot:'off',video:'off'});
 async function lifecycle(page:Page){const response=await page.request.get(backend+'/api/subscription/manage/lifecycle');expect(response.status()).toBe(200);return(await response.json()).data;}
 test('F18 F19 F20 persisted subscriber facts and true capacity match SQL in EN UR',async({page})=>{
  for(const lang of ['en','ur']){
-  await enter(page,'/subscription','ownerA',lang);await expect(page.getByRole('heading',{name:lang==='en'?'Your subscription':'آپ کی سبسکرپشن',exact:true})).toBeVisible();const data=await lifecycle(page);
+  await enter(page,'/subscription','ownerA',lang);await expect(page.getByRole('heading',{name:lang==='en'?'Plan & billing':'پلان اور بلنگ',exact:true})).toBeVisible();const data=await lifecycle(page);
   const [actual]=await sql('SELECT (SELECT COUNT(*)::int FROM "Location" WHERE "companyId"=$1 AND "isActive") AS locations,(SELECT COUNT(*)::int FROM "Staff" WHERE "companyId"=$1 AND "isActive") AS staff,(SELECT COUNT(*)::int FROM "Manager" WHERE "companyId"=$1 AND "isActive") AS managers',[fixture.company.A]);expect(data.usage).toEqual(actual);
   for(const key of ['locations','staff','managers'])await expect(page.getByText(`${data.usage[key]} / ${data.limits[key]}`,{exact:true})).toBeVisible();
   await expect(page.getByRole('navigation',{name:lang==='en'?'Workspace setup':'ورک اسپیس کی تیاری'})).toHaveCount(0);await expect(page.getByRole('button',{name:/checkout/i})).toHaveCount(0);await expect(page.getByRole('link',{name:/help|contact/i})).toHaveCount(0);await page.reload();await expect(page.getByText(`${data.usage.staff} / ${data.limits.staff}`,{exact:true})).toBeVisible();
@@ -40,9 +40,9 @@ for(const status of ['past_due','canceled'])test(`S42-43 ${status} retains opera
  await login(page.request);const[saved]=await sql('SELECT s.* FROM "PaddleSubscription" s JOIN "Company" c ON c."billingSubscriptionId"=s.id WHERE c.id=$1',[fixture.company.A]);
  try{
   await sql('UPDATE "PaddleSubscription" SET status=$2,"currentBillingPeriodEnd"=NOW()-interval \'1 day\' WHERE id=$1',[saved.id,status]);
-  await page.goto('/subscription');await expect(page.getByRole('heading',{name:'Your subscription',exact:true})).toBeVisible();
+  await page.goto('/subscription');await expect(page.getByRole('heading',{name:'Plan & billing',exact:true})).toBeVisible();
   expect((await page.request.get(backend+'/api/location/')).status()).toBe(200);
-  await page.reload();await expect(page.getByRole('heading',{name:'Your subscription',exact:true})).toBeVisible();
+  await page.reload();await expect(page.getByRole('heading',{name:'Plan & billing',exact:true})).toBeVisible();
   expect((await lifecycle(page)).workspaceAccessAllowed).toBe(false);
  }finally{await sql('UPDATE "PaddleSubscription" SET status=$2,"currentBillingPeriodEnd"=$3 WHERE id=$1',[saved.id,saved.status,saved.currentBillingPeriodEnd]);}
 });

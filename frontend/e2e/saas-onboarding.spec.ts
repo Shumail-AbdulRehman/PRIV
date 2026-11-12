@@ -102,7 +102,7 @@ for (const reason of ['BILLING_DISABLED', 'PRICE_NOT_READY', 'EMAIL_CONFLICT']) 
   const b = await mockBilling(page); b.facts.onboardingStep = reason === 'EMAIL_CONFLICT' ? 'RECONCILE' : 'UNAVAILABLE'; b.facts.recoveryReason = reason;
   b.controls.reconcile = reason === 'EMAIL_CONFLICT' ? 'CONFLICT' : 'UNRESOLVED';
   await enter(page, '/dashboard'); await expect(page.getByRole('heading', { name: reason === 'EMAIL_CONFLICT' ? 'This email is already used for payments' : 'Payments are unavailable right now', exact: true })).toBeVisible();
-  await page.reload(); await expect(page.getByRole('link', { name: 'Contact support', exact: true })).toBeVisible(); expect(b.controls.posts).toBe(0);
+  await page.reload(); const support = await page.request.get(backend + '/api/support/contact'); expect(support.status()).toBe(200);expect((await support.json()).data.available).toBe(false);await expect(page.getByRole('link', { name: 'Contact support', exact: true })).toHaveCount(0); expect(b.controls.posts).toBe(0);
 });
 for (const outcome of ['CLEARED', 'RESUMABLE']) test(`S42-27-28-30-31 stuck reservation ${outcome} resolves automatically`, async ({ page }) => {
   const b = await mockBilling(page); b.facts.onboardingStep = 'RECONCILE'; b.facts.reconciliationRequired = true; b.controls.reconcile = outcome;

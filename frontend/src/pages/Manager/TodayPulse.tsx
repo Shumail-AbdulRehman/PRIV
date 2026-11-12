@@ -1,12 +1,17 @@
+import { useId } from 'react';
 import { Link } from 'react-router-dom';
-import { Users, CalendarCheck, Camera, Clock3, ArrowRight, TriangleAlert } from 'lucide-react';
-import { Button } from '@/components/ui/button';
+import { ArrowRight } from 'lucide-react';
+import StatusPill from '@/components/workspace/StatusPill';
 import { useLanguage } from '@/i18n/context';
 import { dailyLink, reviewLink, localTime, type OperationOverview } from './operations';
+import './today-pulse-v6.css';
 
-type Props = { data: OperationOverview; params: URLSearchParams };
-export default function TodayPulse({ data, params }: Props) {
-  const { t } = useLanguage();
+export type TodayPulseProps = { data: OperationOverview; params: URLSearchParams };
+
+export default function TodayPulse({ data, params }: TodayPulseProps) {
+  const { t, language } = useLanguage();
+  const id = useId();
+  const format = (value: number) => value.toLocaleString(language === 'ur' ? 'ur-PK' : 'en-PK');
   const { metrics, chart } = data;
   const segments = [
     { label: 'Work submitted', count: chart.submitted, status: 'submitted', tone: 'submitted' },
@@ -14,48 +19,96 @@ export default function TodayPulse({ data, params }: Props) {
     { label: 'Not started', count: chart.notStarted, status: 'not-started', tone: 'pending' },
     { label: 'Overdue', count: chart.overdue, status: 'overdue', tone: 'overdue' },
   ];
-  return <section className="today-pulse" aria-label={t('Daily summary')}>
-    <div className="today-pulse-section">
-      <h2><Users size={18} aria-hidden="true" />{t('Team attendance')}</h2>
-      <div className="today-pulse-value"><strong>{metrics.present}<small> / {metrics.scheduled}</small></strong><span>{t('scheduled staff checked in')}</span></div>
-      <div className="today-distribution" role="img" aria-label={t('{present} of {scheduled} scheduled staff checked in', {present:metrics.present,scheduled:metrics.scheduled})}>
-        <span className="progress-progress" style={{width: `${metrics.scheduled ? Math.min(100,metrics.present / metrics.scheduled * 100) : 0}%`}} />
+  // Attendance attention is a bounded preview, not an aggregate or scheduled - present.
+  const missing = data.attention.filter(item => item.kind === 'attendance');
+
+  return <section className="wx-today-pulse" aria-label={t('Daily summary')}>
+    <section className="wx-today-pulse__panel" aria-labelledby={`${id}-attendance`}>
+      <h2 id={`${id}-attendance`}>{t('Team attendance')}</h2>
+      <div className="wx-today-pulse__figure">
+        <strong><bdi>{format(metrics.present)}</bdi></strong>
+        <span><bdi>/ {format(metrics.scheduled)}</bdi> {t('scheduled staff checked in')}</span>
       </div>
-      <Link className="today-summary-link" to={dailyLink(params,{tab:'staff'})}>{t('View attendance')}<ArrowRight size={14} aria-hidden="true" /></Link>
-    </div>
-    <div className="today-pulse-section">
-      <h2><CalendarCheck size={18} aria-hidden="true" />{t('Today’s task progress')}<span>{metrics.totalTasks} {t('scheduled')}</span></h2>
-      <div className="today-pulse-value"><strong>{metrics.submitted}<small> / {metrics.totalTasks}</small></strong><span>{t('Work submitted')}</span></div>
-      <div className="today-distribution" role="img" aria-label={segments.map(s => `${t(s.label)}: ${s.count}`).join(', ')}>
-        {segments.filter(s=>s.count>0).map(s=><span key={s.status} className={'progress-'+s.tone} style={{flexGrow:s.count,flexBasis:0}} />)}
+      <div className="wx-today-pulse__bar" role="img" aria-label={t('{present} of {scheduled} scheduled staff checked in', { present: format(metrics.present), scheduled: format(metrics.scheduled) })}>
+        <span className="wx-today-pulse__attendance" style={{ inlineSize: `${metrics.scheduled > 0 ? Math.max(0, Math.min(100, metrics.present / metrics.scheduled * 100)) : 0}%` }} />
       </div>
-      <div className="today-pulse-legend">{segments.map(s=><Link key={s.status} to={dailyLink(params,{tab:'tasks',status:s.status})}><i className={'progress-'+s.tone} />{s.count} {t(s.label)}</Link>)}</div>
-    </div>
+      <Link className="wx-today-pulse__link" to={dailyLink(params, { tab: 'staff' })}>{t('View attendance')}<ArrowRight size={14} aria-hidden="true" /></Link>
+    </section>
+
+    <section className="wx-today-pulse__panel" aria-labelledby={`${id}-tasks`}>
+      <h2 id={`${id}-tasks`}>{t('Today’s task progress')}</h2>
+      <div className="wx-today-pulse__figure">
+        <strong><bdi>{format(metrics.submitted)}</bdi></strong>
+        <span><bdi>/ {format(metrics.totalTasks)}</bdi> {t('Work submitted')}</span>
+      </div>
+      <div className="wx-today-pulse__bar" role="img" aria-label={segments.map(segment => `${t(segment.label)}: ${format(segment.count)}`).join(', ')}>
+        {metrics.totalTasks > 0 ? segments.filter(segment => segment.count > 0).map(segment => <span key={segment.status} className={`wx-today-pulse__segment--${segment.tone}`} style={{ flexGrow: segment.count, flexBasis: 0 }} />) : null}
+      </div>
+      <nav className="wx-today-pulse__legend" aria-label={t('Task status')}>
+        {segments.map(segment => <Link key={segment.status} to={dailyLink(params, { tab: 'tasks', status: segment.status })}>
+          <i className={`wx-today-pulse__segment--${segment.tone}`} aria-hidden="true" />
+          <span>{t(segment.label)}</span>{' '}<strong><bdi>{format(segment.count)}</bdi></strong>
+        </Link>)}
+      </nav>
+      {metrics.totalTasks === 0 ? <p className="wx-today-pulse__hint">{t('Nothing is scheduled yet')}</p> : null}
+    </section>
+
+    <section className="wx-today-pulse__panel" aria-labelledby={`${id}-attention`}>
+      <h2 id={`${id}-attention`}>{t('Needs attention')}</h2>
+      <nav className="wx-today-pulse__attention" aria-labelledby={`${id}-attention`}>
+        <Link to={dailyLink(params, { tab: 'staff', attendance: 'absent' })} aria-describedby={`${id}-preview`}>
+          <span>{t('Missing check-ins')}</span>{' '}<strong><bdi>{format(missing.length)}</bdi></strong>
+        </Link>
+        <Link to={dailyLink(params, { tab: 'tasks', status: 'overdue' })}>
+          <span>{t('Overdue tasks')}</span>{' '}<strong><bdi>{format(chart.overdue)}</bdi></strong>
+        </Link>
+        <Link to={reviewLink(params)}>
+          <span>{t('Photo reviews')}</span>{' '}<strong><bdi>{format(metrics.reviewCount)}</bdi></strong>
+        </Link>
+      </nav>
+      <p id={`${id}-preview`} className="wx-today-pulse__hint">{t('Missing check-ins is a preview. Open attendance for the full list.')}</p>
+    </section>
   </section>;
 }
 
-export function TodayAside({data,params}:Props) {
-  const {t,language}=useLanguage();
-  // The attention response is bounded; do not present its length as a company total.
-  const missing = data.attention.filter(a=>a.kind === 'attendance');
-  const upcoming = data.tasks.filter(task=>!task.staffSubmittedAt && task.status !== 'CANCELLED' && Date.parse(task.shiftStart)>Date.parse(data.asOf)).sort((a,b)=>Date.parse(a.shiftStart)-Date.parse(b.shiftStart)).slice(0,2);
-  return <aside className="today-aside">
-    <section className="ops-panel today-attention">
-      <h2>{t('Needs attention')}<TriangleAlert size={18} aria-hidden="true" /></h2>
-      <div className="today-signal"><span className="today-signal-icon"><Users size={19} aria-hidden="true" /></span><div><strong>{t('Missing check-ins')}</strong><p>{t('Check expected attendance for this day.')}</p>{missing.slice(0,2).map(a=><small key={a.key}><bdi>{a.staff?.name}</bdi></small>)}</div><Link to={dailyLink(params,{tab:'staff',attendance:'absent'})}>{t('View')}</Link></div>
-      <div className="today-signal"><span className="today-signal-icon warning"><Clock3 size={19} aria-hidden="true" /></span><div><strong>{data.chart.overdue} {t('Overdue tasks')}</strong><p>{t('Past their scheduled end time')}</p></div><Link to={dailyLink(params,{tab:'tasks',status:'overdue'})}>{t('View')}</Link></div>
+/** Kept separate so Today can place this compact context panel below its charts. */
+export function TodayAside({ data, params }: TodayPulseProps) {
+  const { t, language } = useLanguage();
+  const id = useId();
+  const format = (value: number) => value.toLocaleString(language === 'ur' ? 'ur-PK' : 'en-PK');
+  const missing = data.attention.filter(item => item.kind === 'attendance');
+  const upcoming = data.tasks.filter(task => !task.staffSubmittedAt && task.status !== 'CANCELLED' && task.status !== 'COMPLETED' && Date.parse(task.shiftStart) > Date.parse(data.asOf))
+    .sort((a, b) => Date.parse(a.shiftStart) - Date.parse(b.shiftStart)).slice(0, 2);
+
+  return <aside className="wx-today-aside" aria-label={t('Daily follow-up')}>
+    <section className="wx-today-aside__section" aria-labelledby={`${id}-attention`}>
+      <h2 id={`${id}-attention`}>{t('Needs attention')}</h2>
+      <div className="wx-today-aside__signal">
+        <div><strong>{t('Missing check-ins')}</strong><p>{t('Check expected attendance for this day.')}</p>
+          {missing.slice(0, 2).map(item => <small key={item.key}><bdi>{item.staff?.name}</bdi></small>)}
+        </div>
+        <Link className="wx-today-pulse__link" to={dailyLink(params, { tab: 'staff', attendance: 'absent' })} aria-label={t('View missing check-ins')}>{t('View')}<ArrowRight size={14} aria-hidden="true" /></Link>
+      </div>
+      <div className="wx-today-aside__signal">
+        <div><strong><bdi>{format(data.chart.overdue)}</bdi> {t('Overdue tasks')}</strong><p>{t('Past their scheduled end time')}</p></div>
+        <Link className="wx-today-pulse__link" to={dailyLink(params, { tab: 'tasks', status: 'overdue' })} aria-label={t('View overdue tasks')}>{t('View')}<ArrowRight size={14} aria-hidden="true" /></Link>
+      </div>
     </section>
-    <section className="ops-panel today-review-preview">
-      <span className="today-camera"><Camera size={20} aria-hidden="true" /></span>
-      <h2>{data.metrics.reviewCount === 1 ? t('1 photo review needs attention') : <>{data.metrics.reviewCount} {t('photo reviews need attention')}</>}</h2>
+    <section className="wx-today-aside__section" aria-labelledby={`${id}-reviews`}>
+      <StatusPill tone={data.metrics.reviewCount > 0 ? 'attention' : 'neutral'}>{data.metrics.reviewCount > 0 ? 'Needs attention' : 'Photo reviews'}</StatusPill>
+      <h2 id={`${id}-reviews`}>{data.metrics.reviewCount === 1 ? t('1 photo review needs attention') : <><bdi>{format(data.metrics.reviewCount)}</bdi> {t('photo reviews need attention')}</>}</h2>
       <p>{t('Inspect the evidence and record a decision in your review workspace.')}</p>
-      <Button asChild><Link to={reviewLink(params)}><ArrowRight size={17} aria-hidden="true" />{t('Open Photo Reviews')}</Link></Button>
+      <Link className="wx-today-pulse__link" to={reviewLink(params)}>{t('Open Photo Reviews')}<ArrowRight size={14} aria-hidden="true" /></Link>
     </section>
-    <section className="ops-panel today-upcoming">
-      <h2>{t('Coming up')}<Clock3 size={18} aria-hidden="true" /></h2>
-      {upcoming.length ? upcoming.map(task=><Link key={task.id} className="today-upcoming-task" to={dailyLink(params,{tab:'tasks',taskId:String(task.id)})}>
-        <time><bdi>{localTime(task.shiftStart,task.location.timezone,language)}</bdi></time><strong><bdi>{task.areaNameSnapshot ?? task.title}</bdi></strong><p><bdi>{task.staff?.name ?? t('Unassigned')}</bdi> · <bdi>{task.location.name}</bdi></p>
-      </Link>) : <p>{t('No upcoming tasks in the loaded summary.')}</p>}
+    <section className="wx-today-aside__section" aria-labelledby={`${id}-upcoming`}>
+      <h2 id={`${id}-upcoming`}>{t('Coming up')}</h2>
+      {upcoming.length ? <ul className="wx-today-aside__upcoming">{upcoming.map(task => <li key={task.id}>
+        <Link to={dailyLink(params, { tab: 'tasks', taskId: String(task.id) })}>
+          <time dateTime={task.shiftStart}><bdi>{localTime(task.shiftStart, task.location.timezone, language)}</bdi></time>
+          <strong><bdi>{task.areaNameSnapshot ?? task.title}</bdi></strong>
+          <span><bdi>{task.staff?.name ?? t('Unassigned')}</bdi> · <bdi>{task.location.name}</bdi></span>
+        </Link>
+      </li>)}</ul> : <p>{t('No upcoming tasks in the loaded summary.')}</p>}
     </section>
   </aside>;
 }

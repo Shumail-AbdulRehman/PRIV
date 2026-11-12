@@ -5,7 +5,7 @@ import { join } from 'node:path';
 import { login, backend } from './fixtures';
 
 const root = fileURLToPath(new URL('../../', import.meta.url));
-const out = join(root, 'docs/implementation/v5-operator-evidence');
+const out = join(root, 'frontend/e2e/.artifacts/evidence/v5-operator-evidence');
 test.use({ trace: 'off', screenshot: 'off', video: 'off' });
 
 test('actual platform public boundaries match V5 in desktop phone English Urdu without tenant bootstrap', async ({ browser }) => {

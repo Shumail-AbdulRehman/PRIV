@@ -37,21 +37,21 @@ it('shows the scoped API totals and task register; upcoming uses recorded tasks'
 it('status buttons request the backend filter and preserve selected site/date',async()=>{
  const router=mount('/today-status?locationId=1&date=2026-10-20');
  const group=await screen.findByRole('group',{name:'Task status'});
- fireEvent.click(within(group).getByRole('button',{name:'Overdue'}));
+ fireEvent.click(within(group).getByRole('button',{name:/^Overdue/}));
  await waitFor(()=>expect(m.get).toHaveBeenCalledWith('/manager/operations/tasks',expect.objectContaining({params:expect.objectContaining({status:'overdue',locationId:'1',date:'2026-10-20'})})));
  expect(router.state.location.search).toContain('status=overdue');
 });
-it('opens a task as a named dialog and closing preserves register page and filters',async()=>{
+it('opens a task as a named inline region and closing preserves register page and filters',async()=>{
  const router=mount('/today-status?taskId=11&page=2&status=all');
- const dialog=await screen.findByRole('dialog',{name:'Task details'});
+ const dialog=await screen.findByRole('region',{name:'Task details'});
  expect(await within(dialog).findByText('Synthetic room')).toBeInTheDocument();
  fireEvent.click(within(dialog).getByRole('button',{name:'Close details'}));
- await waitFor(()=>expect(screen.queryByRole('dialog')).not.toBeInTheDocument());
+ await waitFor(()=>expect(screen.queryByRole('region',{name:'Task details'})).not.toBeInTheDocument());
  expect(router.state.location.search).toContain('page=2');expect(router.state.location.search).not.toContain('taskId');
 });
 it('summary failure is visible and retry reloads actual data instead of displaying zero totals',async()=>{
  let failed=true;m.get.mockImplementation(async(url:string)=>{if(url.endsWith('/overview')&&failed)throw Error('offline');return {data:{data:url.endsWith('/overview')?summary:{...summary,rows:[],total:0,page:1,totalPages:1,pageSize:10}}};});
- mount();expect(await screen.findByRole('alert')).toHaveTextContent('Records could not load');
+ mount();expect(await screen.findByRole('alert')).toHaveTextContent('This page could not load');
  expect(screen.queryByRole('heading',{name:'Team attendance'})).not.toBeInTheDocument();
  failed=false;fireEvent.click(within(screen.getByRole('alert')).getByRole('button',{name:'Retry'}));
  expect(await screen.findByRole('heading',{name:'Team attendance'})).toBeInTheDocument();

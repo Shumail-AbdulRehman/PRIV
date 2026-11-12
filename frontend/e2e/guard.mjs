@@ -9,7 +9,8 @@ export function isolatedBootstrap(raw, mode) {
   }
   if (
     !["postgres:", "postgresql:"].includes(url.protocol) ||
-    !["127.0.0.1", "localhost", "[::1]"].includes(url.hostname) ||
+    url.hostname !== "127.0.0.1" || url.port !== "56442" ||
+    url.username !== "fixture" || url.password ||
     url.pathname !== "/priv_e2e_test" ||
     url.search ||
     url.hash

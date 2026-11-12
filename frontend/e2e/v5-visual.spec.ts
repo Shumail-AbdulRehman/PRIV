@@ -1,112 +1,84 @@
 import { test, expect, fixture, enter } from './fixtures';
-import { mkdir, writeFile } from 'node:fs/promises';
+import { copy, noOverflow, taskPanel, ui } from './workspace-helpers';
+import { mkdir } from 'node:fs/promises';
 import { fileURLToPath } from 'node:url';
 import { join } from 'node:path';
-// Actual compiled React and API, migrated disposable SQL fixtures. No request interception.
-// Screenshots contain only generated test identities; never run against the dev/restored DB.
 const root = fileURLToPath(new URL('../../', import.meta.url));
-const out = join(root,'docs/implementation/v5-evidence');
-test.use({ trace:'off', screenshot:'off', video:'off' });
-test('V5 route evidence at matching desktop/phone English/Urdu viewports', async ({ browser }) => {
-  test.setTimeout(240000);
-  await mkdir(out,{recursive:true});
+const out = join(root, 'frontend/e2e/.artifacts/evidence/workspace');
+test.use({ trace: 'off', screenshot: 'off', video: 'off' });
+
+test('workspace main screens have no horizontal overflow in English Urdu desktop phone', async ({ browser }) => {
+  test.setTimeout(180000); await mkdir(out, { recursive: true });
   const routes = [
-    ['today','manager','/today-status'],
-    ['overview','owner','/dashboard'],
-    ['setup','setup','/setup'],
-    ['team','team','/staff'],
-    ['workforce','workforce',`/staff/${fixture.staff.transfer.id}`],
-    ['locations','location','/locations'],
-    ['location','location',`/locations/${fixture.site.A}`],
-    ['attendance','attendance','/attendance'],
-    ['billing','billing','/subscription'],
-    ['settings','settings','/settings'],
-    ['security','settings','/account/security'],
-    ['reviews','reviews','/exceptions'],
-    ['review-detail','reviews',`/exceptions/${fixture.review.id}`],
+    '/dashboard', '/today-status', '/setup', '/exceptions', `/exceptions/${fixture.review.id}`,
+    '/attendance', '/locations', `/locations/${fixture.site.A}`, `/locations/${fixture.site.A}?tab=staff`,
+    `/locations/${fixture.site.A}?tab=areas`, `/locations/${fixture.site.A}?tab=templates`, `/locations/${fixture.site.A}?tab=instances`,
+    `/locations/${fixture.site.A}?tab=schedule`, '/staff', `/staff/${fixture.staff.transfer.id}`,
+    `/staff/${fixture.staff.transfer.id}?tab=attendance`, `/staff/${fixture.staff.transfer.id}?tab=instances`,
+    `/staff/${fixture.staff.transfer.id}?tab=templates`, '/managers', '/settings', '/settings?section=account', '/settings?section=security',
+    '/subscription', `/verification/${fixture.task.photos}`,
   ];
-  const results:unknown[]=[];
-  for(const width of [1366,390]) for(const language of ['en','ur']) {
-    const context=await browser.newContext({viewport:{width,height:900}});
-    const page=await context.newPage();
-    const errors:string[]=[];page.on('pageerror',e=>errors.push(e.message));
-    await enter(page,'/today-status','ownerA',language);
-    for(const [name,prototype,path] of routes) {
-      await page.goto(path);
-      await page.locator('main').first().waitFor();
-      await page.waitForTimeout(500);
-      // Settle pending queries/fonts before capturing; do not hide loading or error states.
-      await page.evaluate(()=>document.fonts.ready);
-      await page.screenshot({path:join(out,`app-${name}-${width}-${language}.png`),fullPage:true});
-      const overflow=await page.evaluate(()=>document.documentElement.scrollWidth>innerWidth+1);
-      results.push({name,path,prototype,width,language,overflow,errors:[...errors],url:new URL(page.url()).pathname});
-      errors.length=0;
-      const reference=await context.newPage();
-      await reference.goto('file://'+join(root,`design/v5/${prototype}.html`)+`?lang=${language}`);
-      await reference.screenshot({path:join(out,`v5-${name}-${width}-${language}.png`),fullPage:true});
-      await reference.close();
-    }
-    await page.goto(`/today-status?taskId=${fixture.review.taskId}`);
-    await expect(page.getByRole('dialog')).toBeVisible();
-    await expect(page.getByRole('dialog').getByText('E2E review room',{exact:true})).toBeVisible();
-    await page.screenshot({path:join(out,`app-today-drawer-${width}-${language}.png`),fullPage:true});
-    await page.keyboard.press('Escape');
-    await expect(page.getByRole('dialog')).toHaveCount(0);
-    await enter(page,'/today-status','managerA',language);
-    await expect(page.getByRole('heading',{name:language==='en'?'Team attendance':'ٹیم کی حاضری'})).toBeVisible();
-    await page.screenshot({path:join(out,`app-today-manager-${width}-${language}.png`),fullPage:true});
-    if(width===390){
-      await page.getByRole('button',{name:language==='en'?'Open navigation':'نیویگیشن کھولیں'}).click();
-      await expect(page.getByRole('dialog')).toBeVisible();
-      await page.screenshot({path:join(out,`app-today-menu-${width}-${language}.png`),fullPage:true});
-    }
-    await context.close();
+  for (const width of [1366, 390]) for (const language of ['en', 'ur']) {
+    const context = await browser.newContext({ viewport: { width, height: 900 } });
+    try {
+      const page = await context.newPage(); const errors: string[] = []; page.on('pageerror', e => errors.push(e.message));
+      await enter(page, routes[0], 'ownerA', language);
+      for (const [index, route] of routes.entries()) await test.step(`${width}px ${language} ${route}`, async () => {
+        await page.goto(route);
+        await expect(page.getByRole('heading', { level: 1 })).toBeVisible();
+        await expect(page.getByRole('main').locator('[aria-busy="true"]')).toHaveCount(0);
+        await expect(page.getByRole('main').getByRole('status', { name: ui('Loading…') })).toHaveCount(0);
+        await expect(page.getByRole('main').getByRole('alert')).toHaveCount(0);
+        await expect(page.locator('html')).toHaveAttribute('dir', language === 'ur' ? 'rtl' : 'ltr');
+        await expect(page.locator('html')).toHaveAttribute('lang', new RegExp('^' + language));
+        await noOverflow(page); expect(errors).toEqual([]);
+        await page.screenshot({ path: join(out, `route-${index}-${width}-${language}.png`), fullPage: true, animations: 'disabled' });
+      });
+    } finally { await context.close(); }
   }
-  await writeFile(join(out,'route-results.json'),JSON.stringify(results,null,2));
-  const today=results.filter((r)=> (r as {name:string}).name==='today') as {overflow:boolean;errors:string[]}[];
-  expect(today.every(r=>!r.overflow&&!r.errors.length)).toBe(true);
-});
-test('Today filters use API results and task drawer closes with Escape',async({page})=>{
-  await enter(page,'/today-status');
-  await expect(page.getByRole('heading',{name:'Today, at a glance'})).toBeVisible();
-  await page.getByRole('group',{name:'Task status',exact:true}).getByRole('button',{name:'In progress',exact:true}).click();
-  await expect(page).toHaveURL(/status=in-progress/);
-  await page.getByRole('group',{name:'Task status',exact:true}).getByRole('button',{name:'All tasks',exact:true}).click();
-  await page.goto(`/today-status?taskId=${fixture.review.taskId}`);
-  await expect(page.getByRole('dialog')).toBeVisible();
-  const box=await page.getByRole('dialog').boundingBox();
-  expect(box).not.toBeNull();
-  expect(box!.x).toBeGreaterThanOrEqual(-1);
-  expect(box!.y).toBeGreaterThanOrEqual(-1);
-  expect(box!.x+box!.width).toBeLessThanOrEqual(page.viewportSize()!.width+1);
-  expect(box!.height).toBeGreaterThan(600);
-  await expect(page.getByRole('dialog').getByRole('heading',{name:'Task details'})).toBeVisible();
-  await page.keyboard.press('Escape');
-  await expect(page.getByRole('dialog')).toHaveCount(0);
-  await expect(page).not.toHaveURL(/taskId=/);
 });
 
-test('Today real empty/denied reads and simulated network loading/error recovery are explicit',async({page})=>{
-  await enter(page,'/today-status?q=nonexistent-synthetic-task');
-  await expect(page.getByText('No tasks match these filters.')).toBeVisible();
-  await page.screenshot({path:join(out,'app-today-empty-1366-en.png'),fullPage:true});
+test('Today status filters and task deep links open inline details and Escape restores register', async ({ page }) => {
+  await enter(page, '/today-status');
+  const filteredRead = page.waitForResponse(response => {
+    const url = new URL(response.url());
+    return url.pathname === '/api/manager/operations/tasks' && url.searchParams.get('status') === 'in-progress' && response.status() === 200;
+  });
+  await page.getByRole('navigation', { name: 'Task status', exact: true }).getByRole('link', { name: /^In progress/ }).click();
+  await expect(page).toHaveURL(/status=in-progress/);
+  const filtered = (await (await filteredRead).json()).data;
+  expect(filtered.rows.length).toBeGreaterThan(0);
+  expect(filtered.rows.every((row: { status: string }) => row.status === 'IN_PROGRESS')).toBe(true);
+  await expect(page.getByRole('region', { name: 'Daily records', exact: true }).getByRole('row', { name: /E2E review room/ })).toBeVisible();
+  const filters = page.getByRole('group', { name: 'Task status', exact: true });
+  await filters.getByRole('button', { name: /In progress/ }).click(); await expect(page).toHaveURL(/status=in-progress/);
+  await filters.getByRole('button', { name: /All tasks/ }).click();
+  await page.goto(`/today-status?taskId=${fixture.review.taskId}`);
+  const panel = taskPanel(page); await expect(panel).toBeVisible();
+  await expect(panel.getByRole('heading', { name: 'Task details', exact: true })).toBeFocused();
+  await expect(page.getByRole('region', { name: 'Daily records', exact: true })).toBeVisible();
+  await expect(page.getByRole('dialog')).toHaveCount(0);
+  await page.keyboard.press('Escape'); await expect(panel).toHaveCount(0); await expect(page).not.toHaveURL(/taskId=/);
+});
+
+test('Today real empty and denied reads, delayed loading and network retry stay explicit', async ({ page }) => {
+  await enter(page, '/today-status?q=nonexistent-synthetic-task');
+  await expect(page.getByText('No tasks match these filters.', { exact: true })).toBeVisible();
   await page.goto(`/today-status?locationId=${fixture.site.foreign}`);
   await expect(page.getByRole('alert').first()).toContainText('You do not have access');
-  await page.screenshot({path:join(out,'app-today-denied-1366-en.png'),fullPage:true});
-  await page.route('**/api/manager/operations/**',route=>route.fulfill({status:503,json:{success:false,message:'Synthetic network outage'}}));
-  await page.goto('/today-status');
-  await expect(page.getByRole('alert').first()).toContainText('Records could not load');
-  await page.screenshot({path:join(out,'app-today-network-error-1366-en.png'),fullPage:true});
-  await page.unroute('**/api/manager/operations/**');
-  await page.getByRole('button',{name:'Retry',exact:true}).first().click();
-  await expect(page.getByRole('heading',{name:'Team attendance'})).toBeVisible();
-  await page.route('**/api/manager/operations/**',async(route)=>{await new Promise(resolve=>setTimeout(resolve,2000));await route.continue();});
-  await page.goto('/today-status');
-  await expect(page.locator('[aria-busy=true]').first()).toBeVisible();
-  await page.screenshot({path:join(out,'app-today-network-loading-1366-en.png'),fullPage:true});
-  await expect(page.getByRole('heading',{name:'Team attendance'})).toBeVisible();
+  await page.route('**/api/manager/operations/**', route => route.abort('failed')); await page.goto('/today-status');
+  await expect(page.getByRole('alert').first()).toContainText('This page could not load');
+  await page.unroute('**/api/manager/operations/**'); await page.getByRole('button', { name: 'Retry', exact: true }).first().click();
+  await expect(page.getByRole('heading', { name: 'Team attendance', exact: true })).toBeVisible();
+  let release = () => {};
+  const gate = new Promise<void>(resolve => { release = resolve; });
+  await page.route('**/api/manager/operations/**', async route => { await gate; await route.continue(); });
+  try {
+    await page.reload({ waitUntil: 'domcontentloaded' });
+    await expect(page.getByRole('status', { name: ui('Loading…') }).first()).toBeVisible();
+  } finally { release(); }
+  await expect(page.getByRole('heading', { name: 'Team attendance', exact: true })).toBeVisible();
 });
-
 test('V5 public and safe-disabled platform routes have paired evidence without bypassing authorization',async({browser})=>{
  test.setTimeout(180000);
  const routes=[['login','login','/login'],['signup','login','/signup'],['recovery','recovery','/recover-owner-account'],['reset','recovery','/reset-owner-password'],['verify','verify','/verify-owner-email'],['operator-login','operator-login','/platform/login'],['platform','platform','/platform/companies'],['customer','customer','/platform/companies/1'],['operator-security','operator-security','/platform/security'],['service','service','/platform/service'],['audit','audit','/platform/audit'],['leads','leads','/platform/inquiries']];
@@ -125,28 +97,21 @@ test('V5 public and safe-disabled platform routes have paired evidence without b
  }
 });
 
-test('Today manager workspace and edge drawer stay within desktop/phone bounds in English/Urdu',async({browser})=>{
- test.setTimeout(90000);
- for(const width of [1366,390])for(const language of ['en','ur']){
-  const context=await browser.newContext({viewport:{width,height:900}}), page=await context.newPage();
-  await enter(page,'/today-status','managerA',language);
-  await expect(page.getByRole('heading',{name:language==='en'?'Team attendance':'ٹیم کی حاضری'})).toBeVisible();
-  await page.screenshot({path:join(out,`app-today-manager-${width}-${language}.png`),fullPage:true});
-  await page.goto(`/today-status?taskId=${fixture.review.taskId}`);
-  await expect(page.getByRole('dialog').getByText('E2E review room',{exact:true})).toBeVisible();
-  const box=await page.getByRole('dialog').boundingBox();expect(box).not.toBeNull();
-  expect(box!.x).toBeGreaterThanOrEqual(-1);expect(box!.y).toBeGreaterThanOrEqual(-1);
-  expect(box!.x+box!.width).toBeLessThanOrEqual(width+1);expect(box!.height).toBeGreaterThanOrEqual(899);
-  await page.screenshot({path:join(out,`app-today-drawer-${width}-${language}.png`)});
-  await page.keyboard.press('Escape');await expect(page.getByRole('dialog')).toHaveCount(0);
-  if(width===390){
-   await page.getByRole('button',{name:language==='en'?'Open navigation':'نیویگیشن کھولیں'}).click();
-   await expect(page.getByRole('dialog')).toBeVisible();
-   const menu=await page.getByRole('dialog').boundingBox();expect(menu).not.toBeNull();
-   expect(menu!.x).toBeGreaterThanOrEqual(-1);expect(menu!.y).toBeGreaterThanOrEqual(-1);
-   expect(menu!.x+menu!.width).toBeLessThanOrEqual(width+1);expect(menu!.height).toBeGreaterThanOrEqual(899);
-   await page.screenshot({path:join(out,`app-today-menu-${width}-${language}.png`)});
+
+test('Today manager inline panel and phone navigation stay within bounds in English Urdu', async ({ browser }) => {
+  test.setTimeout(90000);
+  for (const width of [1366, 390]) for (const language of ['en', 'ur']) {
+    const context = await browser.newContext({ viewport: { width, height: 900 } });
+    try {
+      const page = await context.newPage(); await enter(page, `/today-status?taskId=${fixture.review.taskId}`, 'managerA', language);
+      const panel = taskPanel(page, language); await expect(panel).toBeVisible();
+      await expect(panel.getByRole('heading', { name: 'E2E review room', exact: true })).toBeVisible(); await noOverflow(page);
+      await page.keyboard.press('Escape'); await expect(panel).toHaveCount(0);
+      if (width === 390) {
+        await page.getByRole('button', { name: copy('Open navigation', language), exact: true }).click();
+        await expect(page.getByRole('dialog', { name: copy('Workspace menu', language), exact: true })).toBeVisible();
+        await noOverflow(page);
+      }
+    } finally { await context.close(); }
   }
-  await context.close();
- }
 });

@@ -50,10 +50,10 @@ it('shows the manager historical report and scoped action links', async () => {
   expect(screen.getByRole('link', { name: /Photo reviews/ })).toHaveAttribute('href', '/exceptions?locationId=20&period=all');
 });
 it('clears a no-match search without hiding the saved performance totals', async () => {
-  mount(); await screen.findByText('Synthetic site', { selector: 'strong' });
-  fireEvent.change(screen.getByRole('textbox', { name: 'Find a location' }), { target: { value: 'absent' } });
+  mount(); await screen.findByRole('link', { name: 'Synthetic site' });
+  fireEvent.change(screen.getByRole('searchbox', { name: 'Find a location' }), { target: { value: 'absent' } });
   expect(screen.getByText('No matching locations.')).toBeInTheDocument();
-  fireEvent.click(screen.getByRole('button', { name: 'Clear search' })); expect(screen.getByText('Synthetic site', { selector: 'strong' })).toBeInTheDocument();
+  fireEvent.click(screen.getAllByRole('button', { name: 'Clear search' })[0]); expect(screen.getByRole('link', { name: 'Synthetic site' })).toBeInTheDocument();
 });
 it('ends the loading label after failure and recovers persisted performance on retry', async () => {
   let rejectRequest!: (reason: Error) => void;
@@ -67,7 +67,7 @@ it('ends the loading label after failure and recovers persisted performance on r
   m.get.mockImplementation(async () => ({ data: { data: saved } })); fireEvent.click(screen.getByRole('button', { name: 'Retry' }));
   await screen.findByRole('heading', { name: 'Needs attention today' }, {timeout: 5000});
   expect(screen.queryByText('Loading performance…')).not.toBeInTheDocument();
-  expect(screen.getByText('22 Oct – 28 Oct')).toBeInTheDocument();
+  expect(screen.getByText('22 Oct – 28 Oct · All locations')).toBeInTheDocument();
 });
 it('keeps empty assigned scope distinct and translates the actual manager view in Urdu', async () => {
   saved = { ...saved, sites: [] }; mount('MANAGER', 'ur'); await screen.findByRole('heading', { name: 'ابھی کوئی مقام تفویض نہیں' });
