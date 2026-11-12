@@ -1,164 +1,219 @@
-import { View, ActivityIndicator } from "react-native";
-import { Text } from "../../components/ui/text";
-import { Icon } from "../../components/ui/icon";
+import { useState, type ReactNode } from "react";
+import { Pressable, View, useWindowDimensions } from "react-native";
+import { Icon, type LucideIconName } from "../../components/ui/icon";
 import { useLanguage } from "../../i18n/LanguageProvider";
+import { translateText } from "../../i18n/translations";
+import { NameLine, StaffText, isolate } from "../../design/StaffText";
+import { Pill } from "../../design/Pill";
+import { colors, gutterFor, radius, space } from "../../design/tokens";
 import { photoStatuses } from "../../verification/presentation";
-import { checkedPhotoState } from "../../verification/policy";
-import { photoFeedback, requiredPhotoIds, photoCorrection } from "../../verification/feedback";
-import type {
-  LocalSession,
-  Manifest,
-  QueueRow,
-} from "../../verification/types";
+import { requiredPhotoIds, photoCorrection } from "../../verification/feedback";
+import { photoRow, photoSummary, type PhotoRowIcon } from "../../verification/photoRowState";
+import type { LocalSession, Manifest, QueueRow } from "../../verification/types";
+
+const pillIcons: Readonly<Record<PhotoRowIcon, LucideIconName>> = {
+  spinner: "LoaderCircle",
+  cloudUpload: "CloudUpload",
+  hourglass: "Hourglass",
+  tick: "Check",
+  minus: "Minus",
+  camera: "Camera",
+  droplet: "Droplet",
+};
+
+const fixtureIcons: Readonly<Record<string, LucideIconName>> = {
+  TOILET: "Toilet",
+  INDIAN_TOILET: "Toilet",
+  WESTERN_TOILET: "Toilet",
+  SINK: "Bath",
+  MIRROR: "RectangleVertical",
+  BIN: "Trash2",
+  FLOOR: "Grid2X2",
+};
+
+const contextViews: Readonly<Record<string, string>> = {
+  ENTRANCE: "Show the entrance and nearby room.",
+  LAYOUT: "Show the room and its items.",
+};
+
+/** The text column never gets narrower than this, so a title or view line breaks only between words. */
+export const PHOTO_TEXT_MIN_WIDTH = 100;
+
+/** The status pill sits at the row end; when it cannot fit beside the minimum text width it drops under the text, at the text column's start. */
+function RowPill({ children, rtl }: { children: ReactNode; rtl: boolean }) {
+  const [wrapped, setWrapped] = useState(false);
+  return (
+    <View
+      onLayout={(e) => setWrapped(e.nativeEvent.layout.y >= space.tileSize)}
+      style={
+        wrapped
+          ? { alignSelf: "flex-start", [rtl ? "marginRight" : "marginLeft"]: space.tileSize + space.rowGap }
+          : {}
+      }
+    >
+      {children}
+    </View>
+  );
+}
+
+/** The task's photo list: one row per required photo with its real state. Props unchanged; `onSelect` makes rows pressable. */
 export function VerificationProgress({
   manifest,
   local,
   rows,
   online,
   lastUpdated,
+  onSelect,
 }: {
   manifest: Manifest;
   local: LocalSession | null;
   rows: QueueRow[];
   online: boolean;
   lastUpdated: number | null;
+  onSelect?: (index: number) => void;
 }) {
-  const { t, isRTL } = useLanguage();
-  const required = requiredPhotoIds(manifest);
-  const photos = photoStatuses(manifest, local, rows).filter(
-    (p) => required.has(p.key) || p.key === "ENTRANCE" || p.key === "LAYOUT",
-  );
+  const { t, language, isRTL } = useLanguage();
+  const { width } = useWindowDimensions();
+  const dir = isRTL ? "row-reverse" : "row";
+  const area = manifest.task.areaNameSnapshot ?? manifest.area?.name ?? manifest.task.title;
   const finished =
     manifest.task.status === "COMPLETED" ||
     !!manifest.staffSubmittedAt ||
     !!manifest.task.completionOutcome;
-  const received = photos.filter((p) =>
-    [
-      "SERVER_ACCEPTED",
-      "PROCESSING",
-      "PASSED",
-      "MANAGER_ACCEPTED",
-      "RECAPTURE_REQUIRED",
-      "CLEANING_REQUIRED",
-      "REVIEW_REQUIRED",
-      "PRIVACY_HOLD",
-      "SERVICE_FAILURE",
-    ].includes(p.state),
-  ).length;
-  const requested = photos.filter((p) => p.state !== "WAIVED").length;
-  const attention = photos.some((p) =>
-    ["RECAPTURE_REQUIRED", "CLEANING_REQUIRED"].includes(p.state),
-  );
-  const uploading = photos.some((p) => p.state === "UPLOADING");
-  const checking = photos.some((p) =>
-    ["SERVER_ACCEPTED", "PROCESSING"].includes(p.state),
-  );
-  const saved = photos.some((p) =>
-    ["SAVED", "RETRY_WAIT", "AUTH_REQUIRED", "BLOCKED"].includes(p.state),
-  );
-  const allChecked =
-    photos.length > 0 && photos.every((p) => checkedPhotoState(p.state));
-  const title = finished
-    ? "Work submitted"
-    : attention
-      ? "Photo needs attention"
-      : uploading
-        ? "Photo uploading"
-        : checking
-          ? "Photo received and being checked"
-          : saved
-            ? "Upload this photo again"
-            : allChecked
-              ? "Ready to submit"
-              : "Photo needed";
-  return (
-    <View className="gap-5">
-      <View className="gap-3 rounded-2xl bg-accent p-5">
-        <Icon
-          name={finished ? "CircleCheck" : attention ? "CircleAlert" : "Camera"}
-          size={32}
-          className="text-primary"
-        />
-        <Text accessibilityLiveRegion="polite" className="text-2xl font-bold">
-          {t(title)}
-        </Text>
-        <Text className="text-base leading-7">
-          {t(
-            finished
-              ? "Your work has been submitted. Your manager may still need to review it."
-              : !online
-                ? "Internet needed to upload. Reconnect, then tap Upload again."
-                : allChecked
-                  ? "Your work is ready to submit. Manager review may still be needed."
-                  : uploading || checking
-                    ? "Keep the app open while the current photo uploads and is checked."
-                    : "Follow the photo guide to finish your task.",
-          )}
-        </Text>
-        {!finished ? (
-          <Text className="text-base font-semibold">
-            {t("{count} photos received", { count: received })} / {requested}
-          </Text>
-        ) : null}
+
+  if (finished) {
+    return (
+      <View style={{ backgroundColor: colors.surface, padding: space.gutter, gap: 4 }}>
+        <NameLine role="headline" name={area} />
+        <StaffText role="rowTitle" accessibilityLiveRegion="polite">
+          Work submitted
+        </StaffText>
       </View>
-      {!finished ? (
-        <View className="rounded-2xl border border-border bg-card px-5">
-          {photos.map((photo, index) => {
-            const feedback = photoFeedback(photo.state);
-            return (
-              <View
-                key={photo.key}
-                style={{
-                  flexDirection: isRTL ? "row-reverse" : "row",
-                  gap: 12,
-                  alignItems: "flex-start",
-                  paddingVertical: 18,
-                  borderTopWidth: index ? 1 : 0,
-                  borderColor: "#D9E3DE",
-                }}
-              >
-                {feedback.kind === "sending" ? (
-                  <ActivityIndicator color="#11675B" />
-                ) : (
-                  <Icon
-                    name={
-                      feedback.kind === "done"
-                        ? "CircleCheck"
-                        : feedback.kind === "action"
-                          ? "CircleAlert"
-                          : feedback.kind === "review"
-                            ? "Clock"
-                            : "Camera"
-                    }
-                    size={22}
-                    className="text-primary"
-                  />
-                )}
-                <View className="flex-1 gap-2">
-                  <Text className="text-lg font-semibold">{photo.title}</Text>
-                  <Text className="text-base">{t(feedback.label)}</Text>
-                  {feedback.detail ? (
-                    <Text className="text-base text-muted-foreground">
-                      {t(feedback.detail)}
-                    </Text>
-                  ) : null}
-                  {feedback.kind === "action" && photo.detail ? (
-                    <Text className="text-base leading-7">{photoCorrection(photo.detail, t)}</Text>
-                  ) : null}
-                </View>
-              </View>
-            );
-          })}
+    );
+  }
+
+  const required = requiredPhotoIds(manifest);
+  const photos = photoStatuses(manifest, local, rows).filter(
+    (p) => required.has(p.key) || p.key === "ENTRANCE" || p.key === "LAYOUT",
+  );
+  const summary = photoSummary(photos);
+  const ratio = summary.total > 0 ? Math.min(1, summary.done / summary.total) : 0;
+  const time = lastUpdated
+    ? new Date(lastUpdated).toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" })
+    : null;
+
+  return (
+    <View style={{ gap: 12 }}>
+      <View style={{ backgroundColor: colors.surface, padding: space.gutter, gap: 8 }}>
+        <NameLine role="headline" name={area} />
+        <StaffText role="body" color="muted" accessibilityLiveRegion="polite" translate={false}>
+          {t("{n} of {t} photos done", { n: summary.done, t: summary.total })}
+        </StaffText>
+        <View
+          accessible={false}
+          style={{
+            height: 8,
+            borderRadius: 4,
+            backgroundColor: colors.canvas,
+            flexDirection: dir,
+            overflow: "hidden",
+          }}
+        >
+          <View style={{ width: `${Math.round(ratio * 100)}%`, backgroundColor: colors.blue, borderRadius: 4 }} />
+        </View>
+      </View>
+      {!online ? (
+        <View style={{ backgroundColor: colors.warnWash, borderRadius: radius.cardRadius, padding: 14, marginHorizontal: space.gutter }}>
+          <StaffText role="body" color="warn">
+            Internet needed to upload. Reconnect, then tap Upload again.
+          </StaffText>
         </View>
       ) : null}
-      {!finished && lastUpdated ? (
-        <Text className="text-sm text-muted-foreground">
-          {t("Results updated")} ·{" "}
-          {new Date(lastUpdated).toLocaleTimeString([], {
-            hour: "2-digit",
-            minute: "2-digit",
-          })}
-        </Text>
+      <View style={{ backgroundColor: colors.surface }}>
+        {photos.map((photo, index) => {
+          const row = photoRow(photo.state);
+          const item = manifest.items.find((i) => i.requirements.some((r) => r.id === photo.key));
+          const requirement = item?.requirements.find((r) => r.id === photo.key);
+          const title = translateText(photo.title, language);
+          const view = requirement
+            ? requirement.instructionsSnapshot
+            : contextViews[photo.key] ?? "";
+          const correction = row.needsYou && photo.detail ? photoCorrection(photo.detail, t) : null;
+          const body = (
+            <>
+              <View style={{ flexDirection: dir, flexWrap: "wrap", alignItems: "center", columnGap: space.rowGap, rowGap: 8 }}>
+                <View
+                  accessible={false}
+                  style={{
+                    width: space.tileSize,
+                    height: space.tileSize,
+                    borderRadius: 12,
+                    backgroundColor: colors.blueWash,
+                    alignItems: "center",
+                    justifyContent: "center",
+                  }}
+                >
+                  <Icon name={fixtureIcons[item?.typeSnapshot ?? ""] ?? "ScanLine"} size={22} color={colors.blue} />
+                </View>
+                <View style={{ flexGrow: 1, flexShrink: 1, flexBasis: PHOTO_TEXT_MIN_WIDTH, minWidth: PHOTO_TEXT_MIN_WIDTH, gap: 2 }}>
+                  <StaffText role="rowTitle" translate={false}>
+                    {isolate(title)}
+                  </StaffText>
+                  {view ? (
+                    <StaffText role="meta" color="muted">
+                      {view}
+                    </StaffText>
+                  ) : null}
+                </View>
+                <RowPill rtl={isRTL}>
+                  <Pill
+                    tone={row.tone}
+                    label={row.label}
+                    icon={row.icon ? pillIcons[row.icon] : undefined}
+                    spinning={row.spinning}
+                  />
+                </RowPill>
+              </View>
+              {correction ? (
+                <View style={{ paddingTop: 8 }}>
+                  <StaffText role="body" translate={false}>
+                    {correction}
+                  </StaffText>
+                </View>
+              ) : null}
+            </>
+          );
+          const rowStyle = {
+            paddingVertical: space.rowPadV,
+            paddingHorizontal: gutterFor(width),
+            minHeight: space.rowMinHeight,
+            justifyContent: "center" as const,
+            borderTopWidth: index ? 1 : 0,
+            borderColor: colors.line,
+          };
+          return onSelect ? (
+            <Pressable
+              key={photo.key}
+              accessibilityRole="button"
+              accessibilityLabel={`${title}, ${t(row.label)}`}
+              onPress={() => onSelect(index)}
+              style={rowStyle}
+            >
+              {body}
+            </Pressable>
+          ) : (
+            <View key={photo.key} style={rowStyle}>
+              {body}
+            </View>
+          );
+        })}
+      </View>
+      {time ? (
+        <View style={{ paddingHorizontal: space.gutter }}>
+          <StaffText role="meta" color="muted" translate={false}>
+            {`${t("Results updated")} · ${isolate(time)}`}
+          </StaffText>
+        </View>
       ) : null}
     </View>
   );

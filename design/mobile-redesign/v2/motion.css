@@ -1,0 +1,60 @@
+/* Press feedback: every button, always interruptible, so transitions not keyframes */
+.go,.row,.tab .pip,.chip,.shutter,.icbd,.fx,.att,.line,.callbtn{transition:transform 120ms var(--ease),background-color 150ms ease}
+.go:active,.chip:active,.callbtn:active{transform:scale(.97)}
+.shutter:active{transform:scale(.93)}
+.tab.on .pip{transition:background-color 150ms ease}
+
+/* Moving between screens: only when going deeper or back, never between tabs */
+[data-nav=push]>:not(.scrim):not(.dialog):not(.snack){animation:push-in 240ms cubic-bezier(.32,.72,0,1) both}
+[data-nav=pop]>:not(.scrim):not(.dialog):not(.snack){animation:pop-in 200ms cubic-bezier(.32,.72,0,1) both}
+[data-nav=swap]>:not(.scrim):not(.dialog):not(.snack){animation:fade-in 160ms ease-out both}
+@keyframes push-in{from{transform:translateX(28px);opacity:.4}to{transform:none;opacity:1}}
+@keyframes pop-in{from{transform:translateX(-20px);opacity:.5}to{transform:none;opacity:1}}
+[dir=rtl] [data-nav=push]>:not(.scrim):not(.dialog):not(.snack){animation-name:push-in-r}
+[dir=rtl] [data-nav=pop]>:not(.scrim):not(.dialog):not(.snack){animation-name:pop-in-r}
+@keyframes push-in-r{from{transform:translateX(-28px);opacity:.4}to{transform:none;opacity:1}}
+@keyframes pop-in-r{from{transform:translateX(20px);opacity:.5}to{transform:none;opacity:1}}
+@keyframes fade-in{from{opacity:0}to{opacity:1}}
+
+/* The next-step sentence changes: the only animation on My day */
+[data-now=in] .now-title,[data-now=in] .now-sub{animation:now-in 220ms var(--ease) both}
+@keyframes now-in{from{transform:translateY(8px);opacity:0}to{transform:none;opacity:1}}
+
+/* Bottom sheets rise from the button's edge and leave the way they came */
+[data-sheet=in] .scrim,[data-sheet=in] .dialog{animation:fade-in 200ms ease-out both}
+[data-sheet=in] .bsheet{animation:sheet-in 280ms cubic-bezier(.32,.72,0,1) both}
+[data-sheet=in] .dialog>div{animation:dialog-in 180ms var(--ease) both}
+@keyframes sheet-in{from{transform:translateY(100%)}to{transform:none}}
+@keyframes dialog-in{from{transform:scale(.96);opacity:0}to{transform:none;opacity:1}}
+
+/* Feedback */
+[data-snack=in] .snack{animation:snack-in 200ms var(--ease) both}
+@keyframes snack-in{from{transform:translateY(12px);opacity:0}to{transform:none;opacity:1}}
+.busycard{animation:snack-in 180ms var(--ease) both}
+
+/* State indication that has to keep moving */
+.scanline{animation:scan 1.9s linear infinite alternate;top:0}
+@keyframes scan{from{transform:translateY(8px)}to{transform:translateY(160px)}}
+.pulse{position:relative}
+.pulse:before{content:"";position:absolute;inset:0;border-radius:50%;background:var(--blue-wash);animation:ring 1.5s ease-out infinite}
+.moment .pulse:before{opacity:.8}
+@keyframes ring{from{transform:scale(1);opacity:.9}to{transform:scale(1.55);opacity:0}}
+.pulse .ic{position:relative}
+.empty .pulse:before{display:none}
+
+/* The one earned moment: work submitted, attendance recorded */
+.badgeok{animation:badge 340ms var(--ease) both}
+@keyframes badge{from{transform:scale(.9);opacity:0}to{transform:none;opacity:1}}
+.badgeok svg path,.badgeok svg polyline{stroke-dasharray:1;stroke-dashoffset:1;animation:draw 300ms 120ms var(--ease) forwards}
+@keyframes draw{to{stroke-dashoffset:0}}
+.moment .big{animation:now-in 240ms 90ms var(--ease) both}
+.moment .sub,.moment .facts{animation:now-in 240ms 150ms var(--ease) both}
+
+@media (prefers-reduced-motion:reduce){
+  [data-nav]>*,[data-sheet=in] .bsheet,[data-now=in] .now-title,[data-now=in] .now-sub,.moment .big,.moment .sub,.moment .facts,.badgeok,[data-snack=in] .snack,.busycard{animation:fade-in 120ms ease-out both!important;transform:none!important}
+  .badgeok svg path,.badgeok svg polyline{animation:none;stroke-dashoffset:0}
+  .scanline{animation:none;top:50%;transform:none}
+  .pulse:before{animation:none;opacity:0}
+  .spin{animation-duration:2.4s}
+  .go:active,.chip:active,.callbtn:active,.shutter:active{transform:none}
+}

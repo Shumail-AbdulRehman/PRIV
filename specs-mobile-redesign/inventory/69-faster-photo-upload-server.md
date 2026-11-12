@@ -1,0 +1,8 @@
+# Spec 69 inventory: faster task-photo upload on the server
+
+- `processDirectPhoto(actor, attemptId, bytes, provider?, store?, discard?)` (`backend/src/services/verification-v2/directPhoto.service.ts`): when the AI must run, both copies start uploading with the AI call; the AI answer alone decides. Unkept copies are deleted after the result is recorded (background, after their upload settles); on a failure before a keep decision the owning request deletes them before resetting the attempt to `RESERVED`; a request that lost ownership deletes nothing.
+- `storePrivateImage(bytes, publicId, boundHash, { lookup })` (`media.service.ts`): `lookup` defaults to `true` (other callers unchanged); the direct path passes `false` for an attempt no earlier request claimed. An upload Cloudinary reports as `existing` is still checked against the bound hash. One retry for a transient upload failure within `STORAGE_RETRY_WINDOW_MS` (10 s) after `STORAGE_RETRY_DELAY_MS` (1 s); `transientStorageFailure(error)` is exported.
+- `discardPrivateImages(publicIds)` (`media.service.ts`): authenticated image destroy, one retry, logs `VERIFICATION_STORAGE DISCARD_FAILED` with the public id and never throws.
+- One keep-alive `https.Agent` serves every Cloudinary lookup, upload and delete in `media.service.ts`.
+- `BufferedClefProvider.evaluate` (`bufferedPhoto.provider.ts`) retries one network error, timeout, 429 or 5xx that ends within `CLEF_RETRY_WINDOW_MS` (10 s), after `CLEF_RETRY_DELAY_MS` (1 s). Other HTTP answers, malformed bodies and configuration errors are never retried.
+- Test: `backend/src/services/verification-v2/fasterPhotoUpload.test.ts` (deferred promises for overlap, mocked Cloudinary and `fetch`, fake timers for the retry delay and window).

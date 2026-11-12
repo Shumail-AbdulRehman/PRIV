@@ -12,7 +12,8 @@
     "build:web": "expo export --platform web",
     "typecheck": "tsc --noEmit",
     "validate:device-config": "node scripts/validate-device-config.mjs",
-    "test": "tsx --test src/api/*.test.ts src/auth/*.test.ts src/notifications/*.test.ts src/queries/*.test.ts src/verification/*.test.ts tests/*.test.mjs",
+    "test": "tsx --test \"src/**/*.test.ts\" \"tests/**/*.test.mjs\"",
+    "test:e2e": "playwright test",
     "build:android": "npm run validate:device-config && expo prebuild --platform android --no-install && expo run:android",
     "build:ios": "expo prebuild --platform ios --no-install && expo run:ios"
   },
@@ -61,6 +62,7 @@
     "tailwindcss-animate": "^1.0.7"
   },
   "devDependencies": {
+    "@playwright/test": "1.58.2",
     "@types/react": "~19.1.0",
     "@types/react-test-renderer": "^19.1.0",
     "babel-preset-expo": "~54.0.11",

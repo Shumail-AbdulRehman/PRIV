@@ -1,758 +1,288 @@
-import { readAttendance } from "../launch/launchApi";
-import { attendanceResult, reconcileAttendance } from "../launch/recoveryPolicy";
-import NetInfo from "@react-native-community/netinfo";
-import { useLanguage } from "../i18n/LanguageProvider";
-import { StaffBrand } from "../components/StaffBrand";
-import { TaskCard } from "../components/TaskCard";
-import { useEffect, useState } from "react";
-import { Alert, Linking, RefreshControl, ScrollView, View } from "react-native";
-import { useCameraPermissions } from "expo-camera";
-import * as Location from "expo-location";
-import * as Haptics from "expo-haptics";
-import { useNavigation, useIsFocused } from "@react-navigation/native";
+import * as React from "react";
+import { AccessibilityInfo, BackHandler, RefreshControl, ScrollView, StyleSheet, View } from "react-native";
+import { useIsFocused, useNavigation, useRoute, type CompositeNavigationProp, type RouteProp } from "@react-navigation/native";
 import type { BottomTabNavigationProp } from "@react-navigation/bottom-tabs";
+import type { NativeStackNavigationProp } from "@react-navigation/native-stack";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
-import { useQueryClient } from "@tanstack/react-query";
-import { uploadFormData } from "../api/client";
 import { useAuth } from "../auth/AuthContext";
-import { Button } from "../components/ui/button";
-import { LoadingState } from "../components/LoadingState";
-import { ScreenHeader } from "../components/ScreenHeader";
-import { Card, CardContent } from "../components/ui/card";
-import { Text } from "../components/ui/text";
-import { Icon } from "../components/ui/icon";
-import {
-  staffQueryKeys,
-  useMyAttendanceQuery,
-  useTodaysTasksQuery,
-} from "../queries/staff";
-import type { AttendanceRecord, StaffTabsParamList } from "../types";
-import {
-  getCheckInOpenAt,
-  getLateDeadline,
-  getMinimumCheckoutAt,
-  getRecommendedCheckoutAt,
-  getRelevantAttendanceRecord,
-  hasOpenCheckout,
-} from "../utils/attendance";
-import {
-  formatAttendanceStatus,
-  formatClockTime,
-  formatShortDate,
-  formatTaskWindow,
-} from "../utils/format";
-import { createImagePart } from "../utils/upload";
+import { useLanguage } from "../i18n/LanguageProvider";
+import type { LucideIconName } from "../components/ui/icon";
 import { AttendanceCamera } from "../components/AttendanceCamera";
-import { currentLocation } from "../verification/location";
+import { ActionButton, ActionDock, DockStatus } from "../design/ActionButton";
+import { OfflineBanner, useOnline, useSnackbar } from "../design/Feedback";
+import { isolate } from "../design/StaffText";
+import { displayFor, taskDisplay } from "../design/taskState";
+import { colors } from "../design/tokens";
+import { stackRoutes, tabRoutes } from "../navigation/routeNames";
+import { useMyAttendanceQuery, useTodaysTasksQuery } from "../queries/staff";
+import type { RootStackParamList, StaffTabsParamList, TaskInstance } from "../types";
+import { getRecommendedCheckoutAt, getRelevantAttendanceRecord, hasOpenCheckout } from "../utils/attendance";
+import { AttendanceLocating } from "./day/AttendanceLocating";
+import { AttendanceReceipt } from "./day/AttendanceReceipt";
+import { AttendanceSheets, UnsubmittedWorkSheet } from "./day/AttendanceSheets";
+import { DayHeader, skyColor } from "./day/DayHeader";
+import { TodayWork } from "./day/TodayWork";
+import { nowState, type NowAction, type NowActionKind } from "./day/nowState";
+import { useAttendanceAction, type AttendanceActionMode } from "./day/useAttendanceAction";
 
-type AttendanceActionMode = "check-in" | "check-out";
+type NavigationProp = CompositeNavigationProp<
+  BottomTabNavigationProp<StaffTabsParamList, "Shift">,
+  NativeStackNavigationProp<RootStackParamList>
+>;
 
-type AttendanceViewModel = {
-  statusLabel: string;
-  tone: "accent" | "success" | "warning" | "danger" | "neutral";
-  title: string;
-  message: string;
-  facts: Array<{
-    label: string;
-    value: string;
-  }>;
-  action: null | {
-    mode: AttendanceActionMode;
-    label: string;
-    disabled: boolean;
-    helper?: string;
-  };
+/** The dock button for each next step: English label key and Lucide icon. */
+const ACTIONS: Record<NowActionKind, { label: string; icon: LucideIconName }> = {
+  checkIn: { label: "Check in", icon: "Camera" },
+  checkInLate: { label: "Check in late", icon: "Camera" },
+  checkOut: { label: "Check out", icon: "LogOut" },
+  completeCheckOut: { label: "Complete check-out", icon: "LogOut" },
+  startCleaning: { label: "Start cleaning", icon: "QrCode" },
+  takePhotos: { label: "Take task photos", icon: "Camera" },
+  retakePhoto: { label: "Retake photo", icon: "Camera" },
+  retry: { label: "Try again", icon: "RefreshCw" },
 };
 
-type NavigationProp = BottomTabNavigationProp<StaffTabsParamList, "Shift">;
-
-const buildAttendanceViewModel = ({
-  record,
-  hasAssignedLocation,
-  now,
-}: {
-  record: AttendanceRecord | null;
-  hasAssignedLocation: boolean;
-  now: Date;
-}): AttendanceViewModel => {
-  if (!hasAssignedLocation) {
-    return {
-      statusLabel: "Not Assigned",
-      tone: "neutral",
-      title: "No location assigned",
-      message:
-        "Ask your manager to assign a location and shift before using mobile attendance.",
-      facts: [],
-      action: null,
-    };
-  }
-
-  if (!record) {
-    return {
-      statusLabel: "No Shift",
-      tone: "neutral",
-      title: "No shift loaded for today",
-      message:
-        "Refresh to load your shift. If it is still missing, ask your manager.",
-      facts: [],
-      action: null,
-    };
-  }
-
-  const checkInOpenAt = getCheckInOpenAt(record);
-  const lateDeadline = getLateDeadline(record);
-  const minimumCheckoutAt = getMinimumCheckoutAt(record);
-  const recommendedCheckoutAt = getRecommendedCheckoutAt(record);
-  const shiftEnd = new Date(record.expectedEnd);
-  const shiftDate = formatShortDate(record.date);
-  const locationName = record.location?.name ?? "Assigned location";
-  const shiftWindow = `${shiftDate} • ${formatTaskWindow(record.expectedStart, record.expectedEnd)}`;
-
-  if (record.checkOutTime || record.status === "CHECKED_OUT") {
-    return {
-      statusLabel: "Checked Out",
-      tone: "success",
-      title: "Shift completed",
-      message: `You checked out at ${formatClockTime(record.checkOutTime ?? record.expectedEnd)}.`,
-      facts: [
-        { label: "Location", value: locationName },
-        { label: "Shift", value: shiftWindow },
-        record.checkInTime
-          ? { label: "Checked In", value: formatClockTime(record.checkInTime) }
-          : { label: "Checked In", value: "Not recorded" },
-        {
-          label: "Checked Out",
-          value: formatClockTime(record.checkOutTime ?? record.expectedEnd),
-        },
-      ],
-      action: null,
-    };
-  }
-
-  if (record.status === "ABSENT") {
-    const checkInHasOpened = now.getTime() >= checkInOpenAt.getTime();
-    const shiftHasEnded = now.getTime() > shiftEnd.getTime();
-    const isLate = now.getTime() > lateDeadline.getTime();
-
-    if (checkInHasOpened && !shiftHasEnded) {
-      return {
-        statusLabel: isLate ? "Late Window" : "Check-In Open",
-        tone: isLate ? "warning" : "accent",
-        title: isLate ? "Late check-in is still allowed" : "Ready to check in",
-        message: isLate
-          ? `Your shift started at ${formatClockTime(record.expectedStart)}. You can still check in until ${formatClockTime(record.expectedEnd)}, but it will be marked late.`
-          : `Your shift starts at ${formatClockTime(record.expectedStart)}. Capture a selfie and your current location to check in.`,
-        facts: [
-          { label: "Location", value: locationName },
-          { label: "Shift", value: shiftWindow },
-          { label: "Check-In Opens", value: formatClockTime(checkInOpenAt) },
-          { label: "Late After", value: formatClockTime(lateDeadline) },
-        ],
-        action: {
-          mode: "check-in",
-          label: isLate ? "Check In Late" : "Check In",
-          disabled: false,
-          helper: `Shift ends at ${formatClockTime(record.expectedEnd)}.`,
-        },
-      };
-    }
-
-    if (!checkInHasOpened) {
-      return {
-        statusLabel: "Upcoming Shift",
-        tone: "neutral",
-        title: "Check-in has not opened yet",
-        message: `Your shift starts at ${formatClockTime(record.expectedStart)}. Check-in opens at ${formatClockTime(checkInOpenAt)}.`,
-        facts: [
-          { label: "Location", value: locationName },
-          { label: "Shift", value: shiftWindow },
-          { label: "Check-In Opens", value: formatClockTime(checkInOpenAt) },
-          { label: "Late After", value: formatClockTime(lateDeadline) },
-        ],
-        action: {
-          mode: "check-in",
-          label: "Check In Not Open Yet",
-          disabled: true,
-          helper: `Come back at ${formatClockTime(checkInOpenAt)} to start your shift.`,
-        },
-      };
-    }
-
-    return {
-      statusLabel: "Shift Closed",
-      tone: "danger",
-      title: "Shift time closed",
-      message: `You can check in late during the shift, but this shift ended at ${formatClockTime(record.expectedEnd)} without a check-in.`,
-      facts: [
-        { label: "Location", value: locationName },
-        { label: "Shift", value: shiftWindow },
-        { label: "Late After", value: formatClockTime(lateDeadline) },
-        { label: "Shift Ended", value: formatClockTime(record.expectedEnd) },
-      ],
-      action: {
-        mode: "check-in",
-        label: "Shift Time Closed",
-        disabled: true,
-        helper: "If you were on shift and this is wrong, contact your manager.",
-      },
-    };
-  }
-
-  if (record.status === "MISSED_CHECKOUT") {
-    return {
-      statusLabel: "Missed Checkout",
-      tone: "danger",
-      title: "Checkout is overdue",
-      message: `Your shift ended at ${formatClockTime(record.expectedEnd)} and still needs a checkout selfie.`,
-      facts: [
-        { label: "Location", value: locationName },
-        { label: "Shift", value: shiftWindow },
-        record.checkInTime
-          ? { label: "Checked In", value: formatClockTime(record.checkInTime) }
-          : { label: "Checked In", value: "Recorded" },
-        { label: "Shift Ended", value: formatClockTime(record.expectedEnd) },
-      ],
-      action: {
-        mode: "check-out",
-        label: "Complete Check Out",
-        disabled: false,
-        helper: "This late checkout stays in your attendance history.",
-      },
-    };
-  }
-
-  if (hasOpenCheckout(record)) {
-    const checkoutReady = now.getTime() >= recommendedCheckoutAt.getTime();
-
-    return {
-      statusLabel: formatAttendanceStatus(record.status),
-      tone: record.status === "LATE" ? "warning" : "success",
-      title: checkoutReady
-        ? "Ready to check out"
-        : "You are currently on shift",
-      message: checkoutReady
-        ? `Your shift ended at ${formatClockTime(record.expectedEnd)}. Capture a checkout selfie to close it now.`
-        : `You checked in at ${formatClockTime(record.checkInTime ?? record.expectedStart)}. Your shift ends at ${formatClockTime(record.expectedEnd)}.`,
-      facts: [
-        { label: "Location", value: locationName },
-        { label: "Shift", value: shiftWindow },
-        record.checkInTime
-          ? { label: "Checked In", value: formatClockTime(record.checkInTime) }
-          : { label: "Checked In", value: "Recorded" },
-        {
-          label: "Check Out After",
-          value: formatClockTime(recommendedCheckoutAt),
-        },
-      ],
-      action: {
-        mode: "check-out",
-        label: checkoutReady ? "Check Out" : "Check Out Not Ready",
-        disabled: !checkoutReady,
-        helper: checkoutReady
-          ? "Checkout requires a fresh selfie and your current location."
-          : `Your shift ends at ${formatClockTime(record.expectedEnd)}.${minimumCheckoutAt ? ` Check-out opens at ${formatClockTime(minimumCheckoutAt)}.` : ""}`,
-      },
-    };
-  }
-
-  return {
-    statusLabel: formatAttendanceStatus(record.status),
-    tone: "neutral",
-    title: "Attendance record loaded",
-    message: "Your latest shift record is available below.",
-    facts: [
-      { label: "Location", value: locationName },
-      { label: "Shift", value: shiftWindow },
-    ],
-    action: null,
-  };
+const ATTENDANCE_MODE: Partial<Record<NowActionKind, AttendanceActionMode>> = {
+  checkIn: "check-in",
+  checkInLate: "check-in",
+  checkOut: "check-out",
+  completeCheckOut: "check-out",
 };
 
-const toneButtonVariantMap: Record<
-  AttendanceViewModel["tone"],
-  "default" | "outline" | "destructive" | "ghost"
-> = {
-  accent: "default",
-  success: "default",
-  warning: "outline",
-  danger: "destructive",
-  neutral: "ghost",
-};
+const CLOCK_MS = 30000;
+const DOCK_GAP = 8;
 
+const isOpen = (task: TaskInstance) => displayFor(taskDisplay(task)).open;
+
+/** My day: one sentence, today's work and one button. The `Shift` tab. */
 export function HomeScreen() {
   const { user } = useAuth();
-  const { t, isRTL, language } = useLanguage();
-  const [shiftDetails, setShiftDetails] = useState(false);
-  const [notice, setNotice] = useState("");
-  const [permissionNotice, setPermissionNotice] = useState(false);
-  const [online, setOnline] = useState(true);
-  const [now, setNow] = useState(() => new Date());
-  useEffect(() => {
-    const timer = setInterval(() => setNow(new Date()), 30000);
+  const { t } = useLanguage();
+  const online = useOnline();
+  const snackbar = useSnackbar();
+  const navigation = useNavigation<NavigationProp>();
+  const insets = useSafeAreaInsets();
+  const focused = useIsFocused();
+
+  const [now, setNow] = React.useState(() => new Date());
+  React.useEffect(() => {
+    const timer = setInterval(() => setNow(new Date()), CLOCK_MS);
     return () => clearInterval(timer);
   }, []);
-  useEffect(
-    () =>
-      NetInfo.addEventListener((state) =>
-        setOnline(
-          state.isConnected !== false && state.isInternetReachable !== false,
-        ),
-      ),
-    [],
-  );
-  const navigation = useNavigation<NavigationProp>();
-  const queryClient = useQueryClient();
-  const insets = useSafeAreaInsets();
-  const [submittingMode, setSubmittingMode] =
-    useState<AttendanceActionMode | null>(null);
-  const [, requestCameraPermission] = useCameraPermissions();
-  const [attendanceCapture, setAttendanceCapture] = useState<{
-    mode: AttendanceActionMode;
-    expected: AttendanceRecord;
-    coords: Awaited<ReturnType<typeof currentLocation>>;
-  } | null>(null);
+
   const staffId = user?.id;
-  const focused = useIsFocused();
   const attendanceQuery = useMyAttendanceQuery(staffId, focused);
   const tasksQuery = useTodaysTasksQuery(staffId, focused);
-  const attendanceRecords = attendanceQuery.data ?? [];
-  const tasks = tasksQuery.data ?? [];
-  const isInitialLoading =
-    (attendanceQuery.isPending && !attendanceQuery.data) ||
-    (tasksQuery.isPending && !tasksQuery.data);
-  const refreshing = attendanceQuery.isRefetching || tasksQuery.isRefetching;
+  const records = attendanceQuery.data ?? [];
+  const tasks: TaskInstance[] = tasksQuery.data ?? [];
+  const action = useAttendanceAction({ staffId, records, now, online });
+  const [leftWorkOpen, setLeftWorkOpen] = React.useState(false);
+  /** The shift the running check-in or check-out is for, so the receipt shows that record. */
+  const actionRecordId = React.useRef<number | null>(null);
 
-  const onRefresh = async () => {
-    const [attendanceResult, tasksResult] = await Promise.all([
-      attendanceQuery.refetch(),
-      tasksQuery.refetch(),
-    ]);
-    const error = attendanceResult.error ?? tasksResult.error;
-
-    if (error) {
-      const apiError = error as any;
-      Alert.alert(
-        "Refresh failed",
-        apiError?.response?.data?.message ?? "Unable to refresh.",
-      );
-    }
-  };
-
-  const handleAttendanceAction = async (mode: AttendanceActionMode) => {
-    try {
-      setNotice("");
-      setPermissionNotice(false);
-      if (!online) {
-        setNotice(t("Internet needed to continue"));
-        return;
-      }
-      setSubmittingMode(mode);
-      const expected = getRelevantAttendanceRecord(attendanceRecords, now);
-      if (!expected) throw new Error(t('Refresh to load your shift before continuing.'));
-      const refreshed = await readAttendance();
-      const latest = attendanceResult(refreshed, expected, mode);
-      queryClient.setQueryData(staffQueryKeys.attendance(staffId), refreshed);
-      if (latest.recorded) { setNotice(t(mode === 'check-in' ? 'Check-in recorded.' : 'Check-out recorded.')); return; }
-
-      const cameraPermission = await requestCameraPermission();
-
-      if (!cameraPermission.granted) {
-        setPermissionNotice(true);
-        setNotice(t("Allow camera access to capture an attendance image."));
-        Alert.alert(
-          t("Camera required"),
-          t("Allow camera access to capture an attendance image."),
-        );
-        return;
-      }
-
-      const locationPermission =
-        await Location.requestForegroundPermissionsAsync();
-
-      if (!locationPermission.granted) {
-        setPermissionNotice(true);
-        setNotice(t("Allow location access to mark attendance."));
-        Alert.alert(
-          t("Location required"),
-          t("Allow location access to mark attendance."),
-        );
-        return;
-      }
-
-      // Get a fresh, high-accuracy location BEFORE opening the camera.
-      // Indoor GPS can be inaccurate; Highest accuracy reduces the chance
-      // that a staff member is rejected while standing at the correct location.
-      const coords = await currentLocation((next, failure) =>
-        Location.watchPositionAsync(
-          {
-            accuracy: Location.Accuracy.Highest,
-            timeInterval: 1000,
-            distanceInterval: 0,
-          },
-          next,
-          failure,
-        ),
-      );
-
-      const accuracyMeters = coords.coords.accuracy ?? 0;
-      if (accuracyMeters > 50) {
-        const shouldRetry = await new Promise<boolean>((resolve) => {
-          Alert.alert(
-            "Low location accuracy",
-            `Your current GPS accuracy is ±${Math.round(accuracyMeters)} m. This can cause check-in to fail even if you are at the correct location. Try moving outdoors or closer to a window, then retry.`,
-            [
-              { text: "Continue anyway", onPress: () => resolve(false) },
-              { text: "Retry", onPress: () => resolve(true), style: "cancel" },
-            ],
-          );
-        });
-        if (shouldRetry) {
-          setSubmittingMode(null);
-          return;
-        }
-      }
-
-      setAttendanceCapture({ mode, coords, expected });
-    } catch (error: any) {
-      const detail =
-        error?.code === "ERR_NETWORK"
-          ? t("Internet needed to continue")
-          : (error?.response?.data?.message ??
-            error?.message ??
-            t("Unable to open attendance."));
-      setNotice(detail);
-      Alert.alert(t("Attendance failed"), detail);
-    } finally {
-      setSubmittingMode(null);
-    }
-  };
-
-  const submitAttendanceSelfie = async (uri: string) => {
-    if (!attendanceCapture) return;
-    const { mode, coords, expected } = attendanceCapture;
-    try {
-      const formData = new FormData();
-      formData.append("latitude", String(coords.coords.latitude));
-      formData.append("longitude", String(coords.coords.longitude));
-      formData.append("accuracy", String(coords.coords.accuracy ?? 0));
-      formData.append(
-        "image",
-        createImagePart(uri, `${mode}.jpg`, "image/jpeg"),
-      );
-
-      if (mode === 'check-out') formData.append('attendanceId', String(expected.id));
-      await reconcileAttendance(readAttendance, () => uploadFormData(`/attendance/${mode}`, formData, 60000), expected, mode);
-      setAttendanceCapture(null);
-      await Promise.all([
-        queryClient.invalidateQueries({
-          queryKey: staffQueryKeys.attendance(staffId),
-        }),
-        queryClient.invalidateQueries({
-          queryKey: staffQueryKeys.tasksToday(staffId),
-        }),
-      ]);
-
-      setNotice(
-        t(mode === "check-in" ? "Check-in recorded." : "Check-out recorded."),
-      );
-    } catch (error: any) {
-      throw new Error(
-        error?.response?.data?.message ??
-          error?.message ??
-          `Unable to ${mode.replace("-", " ")}.`,
-      );
-    }
-  };
-
-  const activeAttendance = getRelevantAttendanceRecord(attendanceRecords, now);
-  const attendanceView = buildAttendanceViewModel({
-    record: activeAttendance,
-    hasAssignedLocation: Boolean(user?.locationId),
+  const loading =
+    online &&
+    ((attendanceQuery.isPending && !attendanceQuery.data) || (tasksQuery.isPending && !tasksQuery.data));
+  const failed =
+    (attendanceQuery.isError && !attendanceQuery.data) || (tasksQuery.isError && !tasksQuery.data);
+  const record = getRelevantAttendanceRecord(records, now);
+  // The task feed does not carry the photo authority (it lives in each task's manifest),
+  // so My day never hides photo actions; the photo screen still enforces it.
+  const state = nowState({
+    hasLocation: Boolean(user?.locationId),
+    record,
+    tasks,
     now,
+    online,
+    failed,
+    photosAvailable: true,
   });
-  const completedCount = tasksQuery.counts?.submitted ?? tasks.filter(
-    (task) => task.status === "COMPLETED",
-  ).length;
-  const attendanceAction = attendanceView.action;
-  const actionVariant = toneButtonVariantMap[attendanceView.tone];
+  const place = record?.location?.name?.trim() || null;
+  const firstName = user?.name?.trim().split(/\s+/)[0] ?? "";
 
-  const nextTask = [...tasks]
-    .filter((task) =>
-      ["PENDING", "IN_PROGRESS", "NOT_COMPLETED_INTIME"].includes(task.status),
-    )
-    .sort((a, b) =>
-      a.status === "IN_PROGRESS"
-        ? -1
-        : b.status === "IN_PROGRESS"
-          ? 1
-          : Date.parse(a.shiftStart) - Date.parse(b.shiftStart),
-    )[0];
+  // Check-out time has come while work is still open: the task stays the main
+  // action and check-out is offered under it, behind the unsubmitted-work sheet.
+  const openCount = tasks.filter(isOpen).length;
+  const checkOutDue =
+    !!record &&
+    record.status !== "MISSED_CHECKOUT" &&
+    hasOpenCheckout(record) &&
+    now.getTime() >= getRecommendedCheckoutAt(record).getTime();
+  const offerCheckOut = !failed && checkOutDue && openCount > 0;
 
+  const refetchAll = () => Promise.all([attendanceQuery.refetch(), tasksQuery.refetch()]);
+  const onRefresh = async () => {
+    const [attendance, work] = await refetchAll();
+    if (attendance.error ?? work.error) snackbar.show("Today could not refresh. Try again.", undefined, "failure");
+  };
 
-  if (attendanceCapture)
+  const startAttendance = (mode: AttendanceActionMode) => {
+    actionRecordId.current = record?.id ?? null;
+    void action.start(mode);
+  };
+
+  const run = ({ kind, taskId }: NowAction) => {
+    const mode = ATTENDANCE_MODE[kind];
+    if (mode) return startAttendance(mode);
+    if (kind === "retry") return void refetchAll();
+    if (taskId === undefined) return;
+    if (kind === "startCleaning") navigation.navigate(stackRoutes.taskDetail, { taskId });
+    else navigation.navigate(stackRoutes.verification, { taskId, requirePhotoQr: true });
+  };
+
+  const finish = () => {
+    action.cancel();
+    void refetchAll();
+  };
+
+  // The sentence is the screen's live region: announce it when it changes.
+  const sentence = `${t(state.title.key, state.title.values)} ${t(state.sub.key, state.sub.values)}`;
+  const sentenceKey = loading ? "" : `${state.title.key}|${state.title.name ?? ""}`;
+  const lastSentence = React.useRef<string | null>(null);
+  React.useEffect(() => {
+    if (!sentenceKey) return;
+    const previous = lastSentence.current;
+    lastSentence.current = sentenceKey;
+    if (previous !== null && previous !== sentenceKey) AccessibilityInfo.announceForAccessibility(sentence);
+  }, [sentenceKey, sentence]);
+
+  // Android back while locating cancels; the camera handles its own back.
+  const locating = action.phase === "locating";
+  const cancelRef = React.useRef(action.cancel);
+  cancelRef.current = action.cancel;
+  React.useEffect(() => {
+    if (!locating) return undefined;
+    const listener = BackHandler.addEventListener("hardwareBackPress", () => {
+      cancelRef.current();
+      return true;
+    });
+    return () => listener.remove();
+  }, [locating]);
+
+  // Locating, the selfie camera and the receipt are full screen: the tab bar hides through the
+  // `fullScreen` param that `StaffTabs` reads (spec 67; the design's locate, selfie and checked views have no tabs).
+  const route = useRoute<RouteProp<StaffTabsParamList, "Shift">>();
+  const fullScreen =
+    locating ||
+    ((action.phase === "selfie" || action.phase === "saving") && !!action.mode) ||
+    (action.phase === "done" && !!action.result);
+  const fullScreenShown = Boolean(route?.params?.fullScreen);
+  React.useEffect(() => {
+    if (fullScreenShown !== fullScreen) navigation.setParams?.({ fullScreen });
+  }, [fullScreen, fullScreenShown, navigation]);
+
+  if (locating) return <AttendanceLocating place={place} onBack={action.cancel} />;
+
+  if ((action.phase === "selfie" || action.phase === "saving") && action.mode) {
+    return <AttendanceCamera mode={action.mode} onCapture={action.submitSelfie} onCancel={action.cancel} />;
+  }
+
+  if (action.phase === "done" && action.result) {
+    const receiptRecord = records.find((row) => row.id === actionRecordId.current) ?? record;
     return (
-      <AttendanceCamera
-        mode={attendanceCapture.mode}
-        onCapture={submitAttendanceSelfie}
-        onCancel={() => setAttendanceCapture(null)}
-      />
-    );
-
-  if (isInitialLoading && online) {
-    return (
-      <View
-        className="flex-1 justify-center px-5"
-        style={{
-          paddingTop: insets.top + 20,
-          paddingBottom: insets.bottom + 20,
-        }}
-      >
-        <LoadingState fullScreen />
+      <View style={[styles.receipt, { paddingTop: insets.top }]}>
+        <AttendanceReceipt
+          result={action.result}
+          record={receiptRecord}
+          tasksSubmitted={tasksQuery.counts?.submitted ?? tasks.filter((task) => task.status === "COMPLETED").length}
+          tasksTotal={tasksQuery.counts?.total ?? tasks.length}
+          place={place}
+          onDone={finish}
+        />
       </View>
     );
   }
 
-  const checkedIn = !!activeAttendance && hasOpenCheckout(activeAttendance);
-  const onShiftWaiting = checkedIn && !!attendanceAction?.disabled;
-  return (
-    <ScrollView
-      className="flex-1 bg-background"
-      contentContainerStyle={{
-        padding: 20,
-        paddingTop: insets.top + 20,
-        paddingBottom: insets.bottom + 24,
-        gap: 20,
-      }}
-      refreshControl={
-        <RefreshControl refreshing={refreshing} onRefresh={onRefresh} />
-      }
-    >
-      <StaffBrand />
-      <Text className="text-base text-muted-foreground">
-        {new Intl.DateTimeFormat(language === "ur" ? "ur-PK" : "en-PK", {
-          weekday: "long", day: "numeric", month: "long",
-        }).format(now)}
-      </Text>
-      <ScreenHeader
-        title={t("Your working day")}
-        subtitle={activeAttendance?.location?.name ?? t(user?.locationId ? "Assigned location" : "No location assigned")}
-      />
-      {!online ? (
-        <View className="gap-2 rounded-xl bg-secondary p-4">
-          <Text className="text-base font-semibold">
-            {t("Internet needed to continue")}
-          </Text>
-          <Text className="text-base">
-            {t("You are viewing the last loaded information.")}
-          </Text>
-        </View>
-      ) : null}
-      {notice ? (
-        <View className="rounded-xl bg-accent p-4">
-          <Text
-            accessibilityLiveRegion="polite"
-            className="text-base font-semibold"
-          >
-            {notice}
-          </Text>
-          {permissionNotice ? (
-            <Button variant="ghost" onPress={() => void Linking.openSettings()}>
-              {t("Open settings")}
-            </Button>
-          ) : null}
-        </View>
-      ) : null}
-      {attendanceQuery.isError ? (
-        <View className="gap-2 rounded-xl border border-border p-4">
-          <Text accessibilityLiveRegion="polite">
-            {t("Attendance could not load. Try again.")}
-          </Text>
-          <Button
-            variant="outline"
-            onPress={() => void attendanceQuery.refetch()}
-          >
-            {t("Try again")}
-          </Button>
-        </View>
-      ) : null}
-      <Card>
-        <CardContent className="gap-4 p-5">
-          <View
-            style={{
-              flexDirection: isRTL ? "row-reverse" : "row",
-              gap: 12,
-              alignItems: "center",
-            }}
-          >
-            <View className="flex-1">
-              <Text accessibilityRole="header" className="text-xl font-semibold">{t("Your shift")}</Text>
-            </View>
-            <Text className="rounded-[5px] bg-accent px-3 py-2 text-sm font-semibold text-primary">
-              {t(attendanceView.statusLabel)}
-            </Text>
-          </View>
-          {activeAttendance ? (
-            <Text
-              style={{
-                writingDirection: "ltr",
-                textAlign: isRTL ? "right" : "left",
-              }}
-              className="text-lg font-semibold"
-            >
-              {formatTaskWindow(
-                activeAttendance.expectedStart,
-                activeAttendance.expectedEnd,
-              )}
-            </Text>
-          ) : null}
-          {!onShiftWaiting ? <Text className="text-lg font-semibold">{t(attendanceView.title)}</Text> : null}
-          {!onShiftWaiting?<Text className="text-base leading-6 text-muted-foreground">
-            {onShiftWaiting
-              ? t("Your attendance is recorded. Continue with your next task.")
-              : language === "ur"
-                ? checkedIn
-                  ? `آپ کی حاضری درج ہے۔ ${attendanceAction?.disabled ? "روانگی کا وقت آنے تک اپنا کام جاری رکھیں۔" : "روانگی درج کرنے کے لیے اپنی تصویر لیں۔"}`
-                  : attendanceAction?.disabled
-                    ? "حاضری کا وقت چیک کریں۔ مسئلہ ہو تو منیجر سے پوچھیں۔"
-                    : "حاضری کے لیے اپنی تصویر لیں۔ کیمرہ اور لوکیشن کی اجازت ضروری ہے۔"
-                : attendanceView.message}
-          </Text>:null}
-          <Button variant="ghost" iconRight={shiftDetails ? "ChevronUp" : "ChevronDown"} aria-expanded={shiftDetails} accessibilityState={{expanded:shiftDetails}} onPress={()=>setShiftDetails(value=>!value)}>{t("Shift details")}</Button>
-          {shiftDetails ? <View className="gap-3 border-t border-border pt-4">{attendanceView.facts.map(fact=><View key={fact.label} style={{flexDirection:isRTL?'row-reverse':'row',justifyContent:'space-between',gap:12,flexWrap:'wrap'}}><Text className="text-base text-muted-foreground">{t(fact.label)}</Text><Text className="text-base font-semibold">{fact.value}</Text></View>)}</View> : null}
-          {onShiftWaiting && activeAttendance ? (
-            <Text className="text-base text-muted-foreground">
-              {t("Check-out opens at {time}", {
-                time: `\u2066${formatClockTime(getRecommendedCheckoutAt(activeAttendance))}\u2069`,
-              })}
-            </Text>
-          ) : attendanceAction ? (
-            <View className="gap-2">
-              <Button
-                size="lg"
-                variant={actionVariant}
-                iconLeft={attendanceAction.mode === "check-in" ? "LogIn" : "LogOut"}
-                loading={submittingMode === attendanceAction.mode}
-                disabled={
-                  attendanceAction.disabled ||
-                  !online ||
-                  attendanceQuery.isError
-                }
-                onPress={() =>
-                  void handleAttendanceAction(attendanceAction.mode)
-                }
-              >
-                {t(attendanceAction.label)}
-              </Button>
-              {!online ? (
-                <Text className="text-base text-muted-foreground">
-                  {t("Internet needed to continue")}
-                </Text>
-              ) : attendanceAction.helper ? (
-                <Text className="text-base leading-6 text-muted-foreground">
-                  {language === "ur" && activeAttendance
-                    ? attendanceAction.disabled &&
-                      now.getTime() >
-                        Date.parse(activeAttendance.expectedEnd) &&
-                      attendanceAction.mode === "check-in"
-                      ? t(
-                          "If you were on shift and this is wrong, contact your manager.",
-                        )
-                      : attendanceAction.disabled
-                        ? t(
-                            attendanceAction.mode === "check-in"
-                              ? "Check-in opens at {time}"
-                              : "Check-out opens at {time}",
-                            {
-                              time: formatClockTime(
-                                attendanceAction.mode === "check-in"
-                                  ? getCheckInOpenAt(activeAttendance)
-                                  : getRecommendedCheckoutAt(activeAttendance),
-                              ),
-                            },
-                          )
-                        : t("Take a fresh selfie. Keep location turned on.")
-                    : attendanceAction.helper}
-                </Text>
-              ) : null}
-            </View>
-          ) : null}
-        </CardContent>
-      </Card>
-      <View className="gap-3">
-        <View
-          style={{
-            flexDirection: isRTL ? "row-reverse" : "row",
-            alignItems: "center",
-            justifyContent: "space-between",
-            gap: 12,
-          }}
-        >
-          <Text className="text-xl font-bold">{t("Today’s tasks")}</Text>
-          <Text className="text-base text-muted-foreground">
-            {t("{count} of {total} submitted", {
-              count: completedCount,
-              total: tasksQuery.counts?.total ?? tasks.length,
-            })}
-          </Text>
-        </View>
-        {!tasksQuery.data && !online ? (
-          <Text>{t("Today has not loaded yet. Reconnect and refresh.")}</Text>
-        ) : tasksQuery.isError ? (
-          <View className="gap-2">
-            <Text>
-              {t("Today could not load. Check your internet and try again.")}
-            </Text>
-            <Button variant="outline" onPress={() => void tasksQuery.refetch()}>
-              {t("Try again")}
-            </Button>
-          </View>
-        ) : nextTask ? (
-          <>
-            <TaskCard
-              task={nextTask}
-              onStart={
-                checkedIn
-                  ? () =>
-                      navigation
-                        .getParent()
-                        ?.navigate("StartTask", { taskId: nextTask.id })
-                  : undefined
-              }
-              onComplete={() =>
-                navigation
-                  .getParent()
-                  ?.navigate("Verification", { taskId: nextTask.id, requirePhotoQr: true })
-              }
+  const main = state.action;
+  const busy = action.phase === "checkingServer";
+  let dock: React.ReactNode = null;
+  if (!loading && (main || state.wait || offerCheckOut)) {
+    if (!online) {
+      dock = <DockStatus label="Internet needed to continue" icon="WifiOff" />;
+    } else if (state.wait) {
+      const values = Object.fromEntries(Object.entries(state.wait.values).map(([key, value]) => [key, isolate(value)]));
+      dock = <DockStatus label={t(state.wait.key, values)} icon="Clock" />;
+    } else {
+      dock = (
+        <>
+          {main ? (
+            <ActionButton
+              kind="next"
+              label={ACTIONS[main.kind].label}
+              icon={ACTIONS[main.kind].icon}
+              busy={busy && !!ATTENDANCE_MODE[main.kind]}
+              onPress={() => run(main)}
             />
-            {!checkedIn ? (
-              <Text className="text-base text-muted-foreground">
-                {t("Check in")} · {t("Start cleaning")}
-              </Text>
-            ) : null}
-          </>
-        ) : (
-          <View className="gap-2 rounded-xl bg-accent p-5">
-            <Icon name="CircleCheck" size={26} className="text-primary" />
-            <Text className="text-xl font-bold">
-              {t(tasks.length ? "All done for today" : "No tasks for today")}
-            </Text>
-            <Text className="text-base text-muted-foreground">
-              {t(
-                tasks.length
-                  ? "Your submitted work is kept in your task list."
-                  : "Your manager has not assigned work for today.",
-              )}
-            </Text>
-          </View>
-        )}
-        <Button
-          variant="outline"
-          iconRight="ArrowRight"
-          onPress={() => navigation.navigate("Tasks")}
-        >
-          {t("View all tasks")}
-        </Button>
-      </View>
-    </ScrollView>
+          ) : null}
+          {offerCheckOut ? (
+            <View style={main ? styles.second : null}>
+              <ActionButton
+                kind="outline"
+                label="Check out"
+                icon="LogOut"
+                busy={busy}
+                onPress={() => setLeftWorkOpen(true)}
+              />
+            </View>
+          ) : null}
+        </>
+      );
+    }
+  }
+
+  return (
+    <View style={styles.page}>
+      {/* Fixed status-bar band in the sky colour (night when offline), so scrolled content never sits under the clock (spec 67). */}
+      <View
+        testID="status-band"
+        style={{ height: insets.top, backgroundColor: online ? colors[skyColor(state, loading)] : colors.night2 }}
+      />
+      <OfflineBanner />
+      <ScrollView
+        style={styles.page}
+        contentContainerStyle={styles.content}
+        refreshControl={
+          <RefreshControl
+            refreshing={attendanceQuery.isRefetching || tasksQuery.isRefetching}
+            onRefresh={() => void onRefresh()}
+          />
+        }
+      >
+        <DayHeader
+          state={state}
+          firstName={firstName}
+          today={now}
+          onAvatarPress={() => navigation.navigate(tabRoutes.profile)}
+          loading={loading}
+        />
+        <TodayWork
+          tasks={tasks}
+          counts={tasksQuery.counts}
+          compact={state.rail !== null}
+          onOpenTask={(task) => navigation.navigate(stackRoutes.taskDetail, { taskId: task.id })}
+          onSeeAll={() => navigation.navigate(tabRoutes.tasks)}
+          loading={loading}
+        />
+      </ScrollView>
+      {dock ? <ActionDock>{dock}</ActionDock> : null}
+      <AttendanceSheets {...action} place={place} />
+      {leftWorkOpen && offerCheckOut ? (
+        <UnsubmittedWorkSheet
+          count={openCount}
+          onBack={() => setLeftWorkOpen(false)}
+          onCheckOutAnyway={() => {
+            setLeftWorkOpen(false);
+            startAttendance("check-out");
+          }}
+        />
+      ) : null}
+    </View>
   );
 }
+
+const styles = StyleSheet.create({
+  page: { flex: 1, backgroundColor: colors.surface },
+  content: { flexGrow: 1, backgroundColor: colors.surface },
+  receipt: { flex: 1, backgroundColor: colors.canvas },
+  second: { marginTop: DOCK_GAP },
+});

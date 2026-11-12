@@ -1,0 +1,108 @@
+Validating /home/shumail/bkacup-16-oct-bkpriv/bk-Priv/PRIV/specs-mobile-redesign  (54 specs)
+
+Parallel schedule  (12 waves · widest 12 · 54 specs)
+  W0  00
+  W1  01 02 03 04 05 06 07 08 09 10 11
+  W2  12 13 14 15 16 17
+  W3  18 19 20 21 22
+  W4  23 24 25 26 27 28 29 35 38 39 43 44
+  W5  30 31 32 33 34 36 37 40 41
+  W6  42 45 46 48
+  W7  47 49
+  W8  50
+  W9  51
+  W10 52
+  W11 53
+
+00-mobile-decisions.md
+  WARN   Status is 'Done' but no GitHub issue is recorded
+
+03-fonts.md
+  WARN   creates 'frontend-mobile/App.tsx' but no other spec mentions it — check it is not an endpoint or component with zero callers
+  WARN   creates 'frontend-mobile/assets/fonts/Inter-Bold.otf' but no other spec mentions it — check it is not an endpoint or component with zero callers
+  WARN   creates 'frontend-mobile/assets/fonts/Inter-ExtraBold.otf' but no other spec mentions it — check it is not an endpoint or component with zero callers
+  WARN   creates 'frontend-mobile/assets/fonts/MANROPE-LICENSE.txt' but no other spec mentions it — check it is not an endpoint or component with zero callers
+  WARN   creates 'frontend-mobile/assets/fonts/Manrope-Bold.ttf' but no other spec mentions it — check it is not an endpoint or component with zero callers
+  WARN   creates 'frontend-mobile/assets/fonts/Manrope-ExtraBold.ttf' but no other spec mentions it — check it is not an endpoint or component with zero callers
+
+18-staff-routes.md
+  WARN   creates 'backend/src/routes/staffMobile.route.ts' but no other spec mentions it — check it is not an endpoint or component with zero callers
+  WARN   Depends on 11 is already implied through another dependency
+
+19-action-button.md
+  WARN   Depends on 02 is already implied through another dependency
+
+20-status-parts.md
+  WARN   Depends on 02 is already implied through another dependency
+
+21-top-bar-and-toggles.md
+  WARN   Depends on 02 is already implied through another dependency
+
+22-field.md
+  WARN   Depends on 02 is already implied through another dependency
+
+28-sign-in.md
+  WARN   creates 'frontend-mobile/src/screens/LoginScreen.tsx' but no other spec mentions it — check it is not an endpoint or component with zero callers
+
+29-day-header.md
+  WARN   Depends on 05 is already implied through another dependency
+
+32-tasks-screen.md
+  WARN   creates 'frontend-mobile/src/screens/TasksScreen.tsx' but no other spec mentions it — check it is not an endpoint or component with zero callers
+  WARN   Depends on 19 is already implied through another dependency
+
+33-task-detail.md
+  WARN   creates 'frontend-mobile/src/design/StepPath.tsx' but no other spec mentions it — check it is not an endpoint or component with zero callers
+  WARN   creates 'frontend-mobile/src/screens/task/TaskDetailScreen.tsx' but no other spec mentions it — check it is not an endpoint or component with zero callers
+  WARN   Depends on 19 is already implied through another dependency
+
+34-qr-scan.md
+  WARN   creates 'frontend-mobile/src/screens/StartTaskScreen.tsx' but no other spec mentions it — check it is not an endpoint or component with zero callers
+  WARN   Depends on 19 is already implied through another dependency
+
+38-task-alerts.md
+  WARN   creates 'frontend-mobile/src/screens/profile/TaskAlertsScreen.tsx' but no other spec mentions it — check it is not an endpoint or component with zero callers
+
+40-change-password.md
+  WARN   creates 'frontend-mobile/src/screens/profile/ChangePasswordScreen.tsx' but no other spec mentions it — check it is not an endpoint or component with zero callers
+
+42-attendance-history-view.md
+  WARN   creates 'frontend-mobile/src/screens/history/AttendanceCalendar.tsx' but no other spec mentions it — check it is not an endpoint or component with zero callers
+  WARN   Depends on 05, 17, 20, 24 is already implied through another dependency
+
+45-photo-capture.md
+  WARN   creates 'frontend-mobile/src/components/PhotoCaptureControls.tsx' but no other spec mentions it — check it is not an endpoint or component with zero callers
+  WARN   creates 'frontend-mobile/src/components/PhotoGuide.tsx' but no other spec mentions it — check it is not an endpoint or component with zero callers
+  WARN   creates 'frontend-mobile/src/screens/verification/VerificationScreen.tsx' but no other spec mentions it — check it is not an endpoint or component with zero callers
+  WARN   Depends on 08, 19 is already implied through another dependency
+
+46-my-day.md
+  WARN   Depends on 15, 16, 19, 23 is already implied through another dependency
+
+47-history-screen.md
+  WARN   Depends on 05, 21, 41 is already implied through another dependency
+
+48-navigation-wiring.md
+  WARN   Depends on 07, 24 is already implied through another dependency
+
+49-retire-legacy.md
+  WARN   creates 'frontend-mobile/src/components/EmptyState.tsx' but no other spec mentions it — check it is not an endpoint or component with zero callers
+  WARN   creates 'frontend-mobile/src/components/FactRow.tsx' but no other spec mentions it — check it is not an endpoint or component with zero callers
+  WARN   creates 'frontend-mobile/src/components/LoadingState.tsx' but no other spec mentions it — check it is not an endpoint or component with zero callers
+  WARN   creates 'frontend-mobile/src/components/ScreenHeader.tsx' but no other spec mentions it — check it is not an endpoint or component with zero callers
+  WARN   creates 'frontend-mobile/src/components/StaffBrand.tsx' but no other spec mentions it — check it is not an endpoint or component with zero callers
+  WARN   creates 'frontend-mobile/src/components/StatCard.tsx' but no other spec mentions it — check it is not an endpoint or component with zero callers
+  WARN   creates 'frontend-mobile/src/components/StatusBadge.tsx' but no other spec mentions it — check it is not an endpoint or component with zero callers
+  WARN   creates 'frontend-mobile/src/components/TaskCard.tsx' but no other spec mentions it — check it is not an endpoint or component with zero callers
+
+50-part1-release-check.md
+  WARN   creates 'docs/plan-project/mobile-redesign/planning/part1-release.md' but no other spec mentions it — check it is not an endpoint or component with zero callers
+
+52-e2e-suite.md
+  WARN   creates 'frontend-mobile/scripts/check-staff-ui.mjs' but no other spec mentions it — check it is not an endpoint or component with zero callers
+
+53-verification-pass.md
+  WARN   creates 'docs/plan-project/mobile-redesign/planning/verification.md' but no other spec mentions it — check it is not an endpoint or component with zero callers
+
+54 specs · 0 error(s) · 44 warning(s)
+Warnings are not blocking — justify each one in README.md under 'Known gaps', or fix it.

@@ -1,0 +1,129 @@
+7694834 feat(web): remove the help and service information pages
+1fa3274 fix(billing): unify the card form loading state and centre it
+e468e23 fix(onboarding): replace the repeated loading text with one status line
+6f691c4 feat(marketing): redesign public site and add product video
+cb2362a docs: record the live deployment and CI result
+15ce2b6 docs: record the onboarding merge into main
+dbf8121 chore(onboarding): add the parallel spec runner used for this plan
+61e49a5 docs(onboarding): record cancelled-company gap and current test state
+ M backend/src/services/managerOperations.service.ts
+ M backend/src/services/operationsOverviewAggregate.ts
+ M docs/CURRENT_CONTEXT.md
+ M frontend/src/components/common/DataTable.tsx
+ M frontend/src/components/common/EmptyState.tsx
+ M frontend/src/components/common/LoadingSkeleton.tsx
+ M frontend/src/components/common/PageHeader.tsx
+ M frontend/src/components/common/PageLoadingSkeleton.tsx
+ M frontend/src/components/common/Pagination.tsx
+ M frontend/src/components/common/ProtectedAttendancePhoto.tsx
+ M frontend/src/components/common/ScopeFilters.tsx
+ M frontend/src/components/common/loading-skeleton.css
+ M frontend/src/components/layout/DashboardLayout.tsx
+ M frontend/src/components/layout/Sidebar.tsx
+ M frontend/src/i18n/translations.ts
+ M frontend/src/pages/Attendance/AttendanceContext.tsx
+ M frontend/src/pages/Attendance/AttendancePage.test.tsx
+ M frontend/src/pages/Attendance/AttendancePage.tsx
+ M frontend/src/pages/Dashboard/DashboardPage.test.tsx
+ M frontend/src/pages/Dashboard/DashboardPage.tsx
+ M frontend/src/pages/Exceptions/DecisionForm.tsx
+ M frontend/src/pages/Exceptions/ExceptionInboxPage.tsx
+ M frontend/src/pages/Exceptions/LaunchReviewContext.test.tsx
+ M frontend/src/pages/Exceptions/LaunchReviewContext.tsx
+ M frontend/src/pages/Exceptions/ReviewDetail.tsx
+ M frontend/src/pages/Exceptions/ReviewSummary.tsx
+ M frontend/src/pages/Exceptions/ReviewWorkspace.test.tsx
+ M frontend/src/pages/Location/LocationFormDialog.test.tsx
+ M frontend/src/pages/Location/LocationFormDialog.tsx
+ M frontend/src/pages/Location/LocationMapPicker.tsx
+src/api/client.test.ts
+src/api/client.ts
+src/api/serverAddress.ts
+src/api/startCleaning.test.ts
+src/api/startCleaning.ts
+src/auth/AuthContext.tsx
+src/auth/logoutQueue.test.ts
+src/auth/logoutQueue.ts
+src/auth/pendingLogout.ts
+src/auth/sessionStorage.test.ts
+src/auth/sessionStorage.ts
+src/components/AttendanceCamera.tsx
+src/components/EmptyState.tsx
+src/components/FactRow.tsx
+src/components/LanguageChoice.tsx
+src/components/LoadingState.tsx
+src/components/PhotoCaptureControls.tsx
+src/components/PhotoGuide.tsx
+src/components/ScreenHeader.tsx
+src/components/StaffBrand.tsx
+src/components/StatCard.tsx
+src/components/StatusBadge.tsx
+src/components/TaskCard.tsx
+src/components/ui/badge.tsx
+src/components/ui/button.tsx
+src/components/ui/card.tsx
+src/components/ui/icon.tsx
+src/components/ui/input.tsx
+src/components/ui/separator.tsx
+src/components/ui/skeleton.tsx
+src/components/ui/text.tsx
+src/config.ts
+src/fonts.ts
+src/i18n/LanguageProvider.tsx
+src/i18n/translations.ts
+src/launch/launchApi.ts
+src/launch/LaunchRecovery.test.ts
+src/launch/LaunchRecovery.tsx
+src/launch/launchTranslations.ts
+src/launch/recoveryPolicy.ts
+src/lib/utils.ts
+src/navigation/AppNavigator.tsx
+src/navigation/StaffTabs.tsx
+src/notifications/api.ts
+src/notifications/channels.test.ts
+src/notifications/channels.ts
+src/notifications/model.test.ts
+src/notifications/model.ts
+src/notifications/native.ts
+src/notifications/NotificationNavigation.tsx
+src/notifications/NotificationProvider.tsx
+src/queries/mobileWork.test.ts
+src/queries/mobileWork.ts
+src/queries/staff.ts
+src/screens/HelpScreen.tsx
+src/screens/HomeScreen.tsx
+src/screens/LoginScreen.tsx
+src/screens/StartTaskScreen.tsx
+src/screens/TasksScreen.tsx
+src/screens/verification/SpatialDiagnosticScreen.tsx
+src/screens/verification/VerificationProgress.tsx
+src/screens/verification/VerificationScreen.tsx
+src/theme.ts
+src/types.ts
+src/utils/attendance.ts
+src/utils/format.ts
+src/utils/taskStatus.ts
+src/utils/upload.ts
+src/verification/api.ts
+src/verification/auth.test.ts
+src/verification/captureAccount.ts
+src/verification/capturePolicy.ts
+src/verification/errors.test.ts
+src/verification/errors.ts
+src/verification/feedback.test.ts
+src/verification/feedback.ts
+src/verification/fileUri.test.ts
+src/verification/fileUri.ts
+src/verification/location.test.ts
+src/verification/location.ts
+src/verification/policy.test.ts
+src/verification/policy.ts
+src/verification/presentation.test.ts
+src/verification/presentation.ts
+src/verification/sequentialPolicy.test.ts
+src/verification/spatialSession.test.ts
+src/verification/spatialSession.ts
+src/verification/spatialTypes.ts
+src/verification/taskPresentation.ts
+src/verification/taskStatus.test.ts
+src/verification/types.ts

@@ -1,5 +1,5 @@
 import { v5Colors } from './src/theme';
-import { NativeFontsReady } from './src/fonts';
+import { NativeFontsReady, staffFonts } from './src/fonts';
 import { useFonts } from 'expo-font';
 import { LanguageProvider, useLanguage } from "./src/i18n/LanguageProvider";
 import * as Application from "expo-application";
@@ -39,13 +39,6 @@ const queryClient = new QueryClient({
     },
   },
 });
-
-const staffFonts = {
-  HygeneInter: require('./assets/fonts/Inter-Regular.otf'),
-  HygeneInterSemiBold: require('./assets/fonts/Inter-SemiBold.otf'),
-  HygeneArabic: require('./assets/fonts/NotoSansArabic-Regular.ttf'),
-  HygeneArabicBold: require('./assets/fonts/NotoSansArabic-Bold.ttf'),
-};
 
 function LocalizedNavigation() {
   const { isRTL } = useLanguage();

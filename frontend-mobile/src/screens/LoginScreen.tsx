@@ -1,14 +1,11 @@
-import { LaunchRecovery } from "../launch/LaunchRecovery";
-import { useLanguage } from "../i18n/LanguageProvider";
-import { LanguageChoice } from "../components/LanguageChoice";
 import { useEffect, useState } from "react";
 import {
-  Alert,
   Image,
   Keyboard,
   KeyboardAvoidingView,
   Platform,
   ScrollView,
+  StyleSheet,
   View,
 } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
@@ -16,14 +13,20 @@ import { useAuth } from "../auth/AuthContext";
 import { API_BASE_URL } from "../config";
 import { changeApiServerAddress } from "../api/client";
 import { getServerAddress, loadServerAddress } from "../api/serverAddress";
-import { Button } from "../components/ui/button";
-import { Input } from "../components/ui/input";
-import { Text } from "../components/ui/text";
-import { Card, CardContent } from "../components/ui/card";
+import { ActionButton } from "../design/ActionButton";
+import { Field } from "../design/Field";
+import { LanguageToggle } from "../design/LanguageToggle";
+import { StaffText } from "../design/StaffText";
+import { colors, radius, space } from "../design/tokens";
+import { useLanguage } from "../i18n/LanguageProvider";
+import { LaunchRecovery } from "../launch/LaunchRecovery";
+
+const WRONG_PASSWORD = "Email or password is wrong. Check them and try again.";
+const NETWORK_CODES = ["ERR_NETWORK", "ECONNABORTED", "ETIMEDOUT"];
 
 export function LoginScreen() {
   const { login } = useAuth();
-  const { t } = useLanguage();
+  const { t, isRTL } = useLanguage();
   const [handoff, setHandoff] = useState(false);
   const [recovered, setRecovered] = useState(false);
   const insets = useSafeAreaInsets();
@@ -39,6 +42,7 @@ export function LoginScreen() {
   const [lastError, setLastError] = useState<string | null>(null);
   const [serverAddress, setServerAddress] = useState(API_BASE_URL);
   const [serverDraft, setServerDraft] = useState(API_BASE_URL);
+  const [serverError, setServerError] = useState<string | null>(null);
   const [editingServer, setEditingServer] = useState(false);
   const [showServerSettings, setShowServerSettings] = useState(false);
   const [savingServer, setSavingServer] = useState(false);
@@ -53,14 +57,14 @@ export function LoginScreen() {
   const saveServer = async () => {
     try {
       setSavingServer(true);
+      setServerError(null);
       const address = await changeApiServerAddress(serverDraft);
       setServerAddress(address);
       setServerDraft(address);
       setLastError(null);
       setEditingServer(false);
     } catch (error) {
-      Alert.alert(
-        "Server address",
+      setServerError(
         error instanceof Error
           ? error.message
           : "Could not save the server address.",
@@ -71,182 +75,175 @@ export function LoginScreen() {
   };
 
   const handleLogin = async () => {
+    if (loading) return;
     if (!email.trim() || !password.trim()) {
-      Alert.alert("Missing fields", "Email and password are both required.");
+      setLastError("Email and password are both required.");
       return;
     }
 
     setLastError(null);
+    setRecovered(false);
 
     try {
       setLoading(true);
       await login(email.trim(), password);
     } catch (error: any) {
-      const message =
-        error?.response?.data?.message ??
-        error?.message ??
-        "Unable to sign in.";
-
-      const detail =
-        ["ERR_NETWORK", "ECONNABORTED", "ETIMEDOUT"].includes(error?.code) &&
-        getServerAddress().startsWith("http://")
-          ? `${message}\n\nServer: ${getServerAddress()}\nCheck that your phone and server are on the same network, or change the server address below.`
-          : message;
-
+      const serverMessage = error?.response?.data?.message;
+      const status = error?.response?.status;
+      let detail: string;
+      if (serverMessage) {
+        detail = serverMessage;
+      } else if (NETWORK_CODES.includes(error?.code)) {
+        detail = getServerAddress().startsWith("http://")
+          ? `${error?.message ?? "Unable to sign in."}\n\nServer: ${getServerAddress()}\nCheck that your phone and server are on the same network, or change the server address below.`
+          : error?.message ?? "Unable to sign in.";
+      } else if (status === undefined || status === 400 || status === 401 || status === 403) {
+        detail = WRONG_PASSWORD;
+      } else {
+        detail = error?.message ?? "Unable to sign in.";
+      }
       setLastError(detail);
-      Alert.alert("Login failed", detail);
     } finally {
       setLoading(false);
     }
   };
 
+  const rowDirection = isRTL ? "row-reverse" : "row";
+
   return (
     <KeyboardAvoidingView
       behavior={Platform.OS === "ios" ? "padding" : "height"}
-      className="flex-1 bg-background"
+      style={styles.screen}
     >
+      {/* Fixed status-bar band, so content scrolled for the keyboard never sits under the clock (spec 67). */}
+      <View testID="status-band" style={{ height: insets.top }} />
       <ScrollView
         style={{ flex: 1 }}
-        contentContainerStyle={{ flexGrow: 1, padding: 24, paddingTop: insets.top + 24, paddingBottom: insets.bottom + 24 + (Platform.OS === "android" ? keyboardHeight : 0), gap: 24 }}
+        contentContainerStyle={{
+          flexGrow: 1,
+          paddingHorizontal: space.gutter,
+          paddingTop: 16,
+          paddingBottom: insets.bottom + 20 + (Platform.OS === "android" ? keyboardHeight : 0),
+          gap: 30,
+        }}
         keyboardDismissMode="on-drag"
         automaticallyAdjustKeyboardInsets={Platform.OS === "ios"}
         keyboardShouldPersistTaps="handled"
         showsVerticalScrollIndicator={false}
       >
-        <LanguageChoice />
-        <View className="flex-row items-center gap-3">
-          <Image
-            source={require("../../assets/hygene-ops-mark.png")}
-            style={{ width: 48, height: 48 }}
-            accessible={false}
-          />
-          <View>
-            <Text className="text-base font-bold text-foreground">
-              Hygene Ops Staff
-            </Text>
-            <Text className="text-sm text-muted-foreground">
-              Field operations
-            </Text>
+        <View style={[styles.topRow, { flexDirection: rowDirection }]}>
+          <View style={[styles.brand, { flexDirection: rowDirection }]}>
+            <Image
+              source={require("../../assets/hygene-ops-mark.png")}
+              style={styles.mark}
+              accessible={false}
+            />
+            <StaffText role="sectionTitle" translate={false}>Hygene</StaffText>
+            <StaffText role="sectionTitle" color="blue" translate={false}>Ops</StaffText>
           </View>
+          <View style={styles.toggle}><LanguageToggle appearance="onWhite" /></View>
         </View>
 
-        <View className="gap-2">
-          <Text className="text-3xl font-extrabold tracking-tight text-foreground">
-            Sign in to your shift
-          </Text>
-          <Text className="text-base text-muted-foreground">
-            Check in, clean your area, and send your task photos.
-          </Text>
-        </View>
+        <StaffText role="pageTitle" accessibilityRole="header">Staff sign in</StaffText>
 
-        {recovered ? <Text accessibilityLiveRegion="polite" className="text-base font-semibold">{t('Password replaced. Sign in with your new password.')}</Text> : null}
-        {handoff ? <LaunchRecovery handoff onCancel={() => setHandoff(false)} onComplete={() => {setPassword('');setHandoff(false);setRecovered(true);}} /> : <Card>
-          <CardContent className="gap-4 p-5">
-            <View className="gap-1.5">
-              <Text className="text-sm font-medium text-foreground">Email</Text>
-              <Input
-                iconLeft="Mail"
-                autoCapitalize="none"
-                autoCorrect={false}
-                keyboardType="email-address"
-                onChangeText={setEmail}
-                placeholder="staff@example.com"
+        {recovered ? (
+          <StaffText role="groupTitle" color="ok" accessibilityLiveRegion="polite">
+            Password replaced. Sign in with your new password.
+          </StaffText>
+        ) : null}
+
+        {handoff ? (
+          <LaunchRecovery
+            handoff
+            onCancel={() => setHandoff(false)}
+            onComplete={() => { setPassword(""); setHandoff(false); setRecovered(true); }}
+          />
+        ) : (
+          <>
+            <View style={styles.fields}>
+              <Field
+                label="Email"
+                kind="email"
+                placeholder="name@company.com"
                 value={email}
+                onChangeText={setEmail}
+                returnKeyType="next"
               />
-            </View>
-
-            <View className="gap-1.5">
-              <Text className="text-sm font-medium text-foreground">
-                Password
-              </Text>
-              <Input
-                iconLeft="Lock"
-                autoCapitalize="none"
-                onChangeText={setPassword}
-                placeholder="Enter password"
-                secureTextEntry
+              <Field
+                label="Password"
+                kind="password"
                 value={password}
+                onChangeText={setPassword}
+                error={lastError}
+                returnKeyType="done"
+                onSubmitEditing={() => void handleLogin()}
               />
             </View>
 
-            <Button
-              className="w-full"
-              loading={loading}
-              disabled={editingServer || savingServer}
-              onPress={() => void handleLogin()}
-            >
-              Sign In
-            </Button>
-
-            {lastError ? (
-              <Text className="text-sm text-destructive">{lastError}</Text>
-            ) : null}
-
-            <Button variant="outline" disabled={loading} onPress={() => {setPassword('');setHandoff(true);}}>{t('Use manager access code')}</Button>
-            <Text className="text-base text-muted-foreground">{t('Forgot your password? Ask your assigned manager for a one-use access code.')}</Text>
-            <Button
-              variant="ghost"
-              onPress={() => setShowServerSettings((value) => !value)}
-            >
-              {showServerSettings
-                ? "Hide connection settings"
-                : "Show connection settings"}
-            </Button>
-            {showServerSettings ? (
-              <View className="rounded-lg bg-secondary p-3 gap-1">
-                <Text className="text-xs font-medium text-muted-foreground">
-                  Server address
-                </Text>
-                <Text className="text-sm text-foreground" selectable>
-                  {serverAddress}
-                </Text>
-                {editingServer ? (
-                  <View className="gap-2 pt-2">
-                    <Input
-                      accessibilityLabel="Server address"
-                      autoCapitalize="none"
-                      autoCorrect={false}
-                      keyboardType="url"
-                      value={serverDraft}
-                      onChangeText={setServerDraft}
-                      placeholder="http://192.168.1.10:8080/api"
-                    />
-                    <Text className="text-xs text-muted-foreground">
-                      Use the server computer’s Wi-Fi address. Include
-                      :8080/api.
-                    </Text>
-                    <Button
-                      onPress={() => void saveServer()}
-                      loading={savingServer}
-                      disabled={loading}
-                    >
-                      Save address
-                    </Button>
-                    <Button
-                      variant="outline"
-                      onPress={() => {
-                        setServerDraft(serverAddress);
-                        setEditingServer(false);
-                      }}
-                      disabled={savingServer}
-                    >
-                      Cancel
-                    </Button>
-                  </View>
-                ) : (
-                  <Button
-                    variant="outline"
-                    onPress={() => setEditingServer(true)}
-                    disabled={loading}
-                  >
-                    Change server address
-                  </Button>
-                )}
-              </View>
-            ) : null}
-          </CardContent>
-        </Card>}
+            <View style={styles.bottom}>
+              <ActionButton kind="form" label="Sign in" busy={loading} onPress={() => void handleLogin()} />
+              <ActionButton
+                kind="ghost"
+                label="Use manager access code"
+                onPress={() => { setPassword(""); setLastError(null); setHandoff(true); }}
+              />
+              <StaffText role="meta" color="muted" align="center">
+                Forgot your password? Ask your manager for a one-use access code.
+              </StaffText>
+              <ActionButton
+                kind="ghost"
+                label={showServerSettings ? "Hide connection settings" : "Show connection settings"}
+                onPress={() => setShowServerSettings((value) => !value)}
+              />
+              {showServerSettings ? (
+                <View style={styles.server}>
+                  <StaffText role="label" color="muted">Server address</StaffText>
+                  <StaffText role="body" translate={false} testID="server-address">{serverAddress}</StaffText>
+                  {editingServer ? (
+                    <View style={styles.serverEdit}>
+                      <Field
+                        label="Server address"
+                        kind="url"
+                        value={serverDraft}
+                        onChangeText={setServerDraft}
+                        error={serverError}
+                        placeholder="http://192.168.1.10:8080/api"
+                      />
+                      <StaffText role="meta" color="muted">
+                        Use the server computer’s Wi-Fi address. Include :8080/api.
+                      </StaffText>
+                      <ActionButton kind="form" label="Save address" busy={savingServer} onPress={() => void saveServer()} />
+                      <ActionButton
+                        kind="outline"
+                        label="Cancel"
+                        onPress={() => {
+                          setServerDraft(serverAddress);
+                          setServerError(null);
+                          setEditingServer(false);
+                        }}
+                      />
+                    </View>
+                  ) : (
+                    <ActionButton kind="outline" label="Change server address" onPress={() => setEditingServer(true)} />
+                  )}
+                </View>
+              ) : null}
+            </View>
+          </>
+        )}
       </ScrollView>
     </KeyboardAvoidingView>
   );
 }
+
+const styles = StyleSheet.create({
+  screen: { flex: 1, backgroundColor: colors.surface },
+  topRow: { alignItems: "center", justifyContent: "space-between", gap: 12 },
+  brand: { alignItems: "center", gap: 6, flexShrink: 1 },
+  toggle: { flexShrink: 0 },
+  mark: { width: 36, height: 36 },
+  fields: { gap: 16 },
+  bottom: { gap: 12 },
+  server: { backgroundColor: colors.canvas, borderRadius: radius.fieldRadius, padding: 14, gap: 10 },
+  serverEdit: { gap: 12 },
+});

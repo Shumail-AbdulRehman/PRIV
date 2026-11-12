@@ -1,8 +1,10 @@
 import type { NavigatorScreenParams } from '@react-navigation/native';
 export type StaffTabsParamList = {
-  Shift: undefined;
+  /** `fullScreen` hides the tab bar while My day shows the attendance flow (spec 67). */
+  Shift: { fullScreen?: boolean } | undefined;
   Tasks: undefined;
-  Help: undefined;
+  History: undefined;
+  Profile: undefined;
 };
 
 export type RootStackParamList = {
@@ -11,10 +13,15 @@ export type RootStackParamList = {
   Verification: { taskId: number; requirePhotoQr?: boolean };
   StartTask: { taskId: number };
   SpatialDiagnostic: undefined;
+  TaskDetail: { taskId: number };
+  HelpGuide: undefined;
+  TaskAlerts: undefined;
+  ChangePassword: undefined;
+  HistoryTask: { taskId: number; month: string };
 
 };
 
-export type StaffTabId = "Shift" | "Tasks" | "Help";
+export type StaffTabId = "Shift" | "Tasks" | "History" | "Profile";
 
 export type StaffUser = {
   id: number;

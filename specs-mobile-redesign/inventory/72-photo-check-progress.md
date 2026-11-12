@@ -1,0 +1,9 @@
+# Spec 72 inventory: photo-check progress after the shutter
+
+- `photoCheck.ts` (`src/verification/`): `PhotoCheck` `{id, stage, since, fraction}`; stages `quality`, `upload`, `ai`, then `received`, `retake`, `clean`, `failed`. `checkPercent` (quality 0-14 and AI 60-94 eased with time, upload 15-60 from bytes, endings 100), `checkOutcome(state)`, `withUploadProgress` (all bytes sent starts AI; same object when the shown percent would not change), `checkAt` (never back to an earlier working stage), `checkLabels`.
+- `PhotoCheckProgress.tsx` (`src/components/`): `PhotoCheckOverlay` (scan sweep during quality, card, its own 250 ms tick, percent only grows), `CheckCard` (glyph, polite stage line, hidden percentage, bar; rise and problem shake), `CheckBar` (`progressbar` role and value, fills from the right in Urdu). Motion reuses `busy`, `scanLine`, `locateRing`, `badge`, `press`; reduced motion fades only.
+- `CaptureDoneCard` (`PhotoCaptureControls.tsx`) is now `CheckCard` at 100% with the green tick (`okWash`/`ok`), success haptic kept.
+- `uploadFormData(path, input, timeoutMs, guard, onProgress?)` (`src/api/client.ts`): with `onProgress` and `XMLHttpRequest` available, the same POST goes through XHR and reports bytes sent 0 to 1; otherwise `fetch` as before. `uploadPhoto(..., onProgress?)` passes it through.
+- `VerificationScreen.tsx`: `check` state set in `capture()` and `sendPhoto()` (first send only), cleared when busy ends; `CaptureView` shows the overlay instead of `CaptureBusyCard` while a check runs.
+- Strings: "Checking photo quality", "Uploading photo", "Checking with AI" (Urdu in `staffAppTranslations.ts`).
+- Tests: `tests/screens/photoCheckProgress.test.mjs` (fasterPhotoFlow mocks with held promises for inspect, upload and manifest read), `src/api/uploadProgress.test.ts` (fake `XMLHttpRequest`).

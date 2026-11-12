@@ -116,6 +116,51 @@ Open items for the user: the stuck-company billing read in spec 14 has not run, 
 
 **Open decision:** launch with photo verification (needs real privacy screening and validation) or without it (staff need another way to finish). Recommended: launch attendance and scheduling first.
 
+## Staff phone app redesign (current work, 2026-11-12)
+
+Plan: `specs-mobile-redesign/` (design `design/mobile-redesign/v3/`). Read `specs-mobile-redesign/PROGRESS.md` first; its Log records every lead decision. Specs 00 to 72 are Done, except the error-message pass, which the owner postponed. **Committed on the local branch `mobile-redesign` (2026-11-12), not merged into `main` and not pushed.** The commit was made without switching branches, so the `main` working tree still shows the same files as uncommitted changes. Merge or rebase `mobile-redesign` deliberately; pushing `main` deploys the backend.
+
+- **Built:**
+  - Part 1: the redesigned staff app.
+  - Part 2: the History tab, finished-task details, and the Profile month and work sections, with three new routes in `backend/src/routes/staffMobile.route.ts`.
+  - Fixes 54 to 68.
+  - Photo speed-ups: server spec 69 and app spec 71.
+  - Blocking reused photos: spec 70.
+  - A photo-check progress animation: spec 72.
+- **Last checks:** mobile unit tests 717/717, e2e 112/112, backend verification-v2 tests 573/573.
+- **Measured photo time:** about 11 to 13 s per photo before the speed-ups. With a local server, larger photos were not faster, because this laptop's upload link is shared; the hosted server is unmeasured.
+
+**Open bug, highest priority: retake after "retake needed" gets stuck with HTTP 409 `REPLACEMENT_UNPROVEN`.** In `frontend-mobile/src/screens/verification/VerificationScreen.tsx` `scanned()`, replacement targets include only `CLEANING_REQUIRED` requirements. After a `RECAPTURE_REQUIRED` result, rescanning the QR opens a new session, which bumps the requirement's `decisionVersion`. From then on, `/capture-session/:id/renew` fails the check in `backend/src/services/verification-v2/launchPhotoPolicy.ts` `assertFailedViewReplacement` (`attempt.slot.generation !== row.decisionVersion - 1`). This predates the redesign. It must be fixed, with tests, before staff use the app.
+
+**Other open items:**
+- Postponed error-message pass: the app shows raw text such as "Request failed with status code 409" or the native-build message; it should show clear English and Urdu messages.
+- With zero photo requirements, the photo screen shows only "View photo results".
+- Photo privacy screening is absent.
+- Not yet tested on a real device: the camera-stays-open flow and the animation.
+- The owner's choice on a minimum cleaning time before completion photos: none exists today; recommended to flag fast completions.
+
+**Building a test APK:**
+- Cloud build with the owner's logged-in Expo account, profile `preview` in `frontend-mobile/eas.json`. The API URL there is `http://192.168.100.198:8080/api`, the laptop's Wi-Fi address.
+- Build from a clean copy of `frontend-mobile` without `node_modules`, `android`, `ios`, `dist`, `build-output`, `.expo` or `.env`. Symlink `node_modules`, and use `EAS_NO_VCS=1 npx eas-cli build -p android --profile preview --non-interactive --no-wait`.
+- `.easignore` must use root-anchored patterns (`/android/`, `/ios/`, `/node_modules/`). A bare `android/` also drops `modules/*/android`, and the APK then fails photo capture with "Photo verification requires the Hygene Ops native development or production build."
+- The APK must contain `expo/modules/capturequality` in its dex.
+- The current APK is `frontend-mobile/build-output/HygeneOps-staff-2.2.2-photo-speed.apk`. `app.json` is at version 2.2.2, versionCode 14, which is uncommitted. The free Expo queue can take about an hour.
+
+**Local phone test setup:** `/tmp` is cleared on reboot, so recreate it as follows.
+- **Server:**
+  - The systemd user service `hygeneops-backend-development` runs an old app copy on 8080. Stop it, and start it again afterwards.
+  - Copy `backend/` to a scratch folder without `node_modules`, `dist` or `.env*`, and symlink `node_modules`.
+  - Create a `.env` from `backend/.env`, with `DATABASE_URL` and `DIRECT_URL` set to `postgresql://fixture@127.0.0.1:56442/priv_manual_test`. That is Docker `priv-e2e-pg`, trust auth.
+  - In the copy only, set `processingAllowed`/`automaticApproval` to true in `launchQualification.ts` and make `autoPassAllowed` return true in `cleanliness.service.ts`. Never apply this to the repo; the qualification gate stays.
+  - Run `PORT=8080 node_modules/.bin/tsx src/app.ts`.
+- **Test data in `priv_manual_test`:**
+  - Company 1, location 7 "APK Test Site", whose radius covers the whole Earth.
+  - Area 1 "APK Test Washroom" with Indian toilet, Sink and Floor.
+  - Staff `apk.tester@hygeneops.test`. The password is in the private Claude memory, not here, because this file is tracked in a public repo.
+  - Tasks 1288 and 1289. A new task needs its own `TaskTemplate` (unique per template and date), a `TaskAssignment`, its `TaskVerificationItem` rows and their `TaskEvidenceRequirement` rows; without the last, the photo session has zero slots.
+  - The task QR is `signTaskQr` from `backend/src/services/verification-v2/qr.service.ts`.
+- **Phone:** it must be on the same Wi-Fi ("4idiots"). A laptop Wi-Fi restart fixed one case of devices not reaching each other.
+
 ## Design decisions (2026-11-09)
 
 Register is `product`. Blue (`#2556d8`) is the shipped primary, not teal. North Star is "The Daily Worksheet". Spoken instructions were removed from the docs because `expo-speech` is not installed. Non-visual UI rules live in `docs/PRODUCT_UI_RULES.md`. Impeccable reads `PRODUCT.md`, `DESIGN.md` and `.impeccable/design.json`. Spec 03 now supplies the approved onboarding colours in the isolated shared shell; screens adopt it in their later specs. The logo asset rollout remains spec 05.

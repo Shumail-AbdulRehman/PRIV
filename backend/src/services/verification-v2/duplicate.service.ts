@@ -1,11 +1,11 @@
 import {prisma} from '../../prisma/prisma.js';
 import {hammingDistance} from './quality.service.js';
 type HashAsset={id:string;sha256:string;normalizedHash:string|null;perceptualHash:string|null;hashVariants?:string[]};
-export function duplicateClassification(current:HashAsset,candidates:HashAsset[]){
+export function duplicateClassification(current:HashAsset,candidates:HashAsset[],nearDistance=8){
  const unique=[...new Map(candidates.filter(c=>c.id!==current.id).map(c=>[c.id,c])).values()];
  const hashes=(a:HashAsset)=>[a.perceptualHash,...(a.hashVariants??[])].filter((v):v is string=>!!v&&/^[a-f\d]{16}$/i.test(v));
  const exact=unique.filter(c=>c.sha256===current.sha256||!!current.normalizedHash&&c.normalizedHash===current.normalizedHash).map(c=>c.id);
- return {algorithmVersion:'dct64-v1',exact,near:unique.filter(c=>!exact.includes(c.id)&&hashes(current).some(a=>hashes(c).some(b=>hammingDistance(a,b)<=8))).map(c=>c.id),nearIsFraud:false};
+ return {algorithmVersion:'dct64-v1',exact,near:unique.filter(c=>!exact.includes(c.id)&&hashes(current).some(a=>hashes(c).some(b=>hammingDistance(a,b)<=nearDistance))).map(c=>c.id),nearIsFraud:false};
 }
 export async function duplicateCandidates(assetId:string,companyId:number,taskId:number,fixtureType?:string){
  const current=await prisma.evidenceAsset.findFirstOrThrow({where:{id:assetId,companyId}});

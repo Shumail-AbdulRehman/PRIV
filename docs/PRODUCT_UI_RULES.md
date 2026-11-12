@@ -12,7 +12,7 @@ Overview uses 7 and 30-day periods ending on the selected local date, with weigh
 
 ## Staff flow
 
-Staff tabs are My day / Tasks / Help & account. Home shows location, shift, attendance and next task. The sequence is: check in, select task, scan the task QR, clean, follow required photo steps, submit. Starting cleaning and submitting evidence are different actions.
+Staff tabs are My day, Tasks, History and Profile, in that order. History shows finished tasks and attendance by month, read only, with no photos. Help is inside Profile, together with Task alerts and Change password. My day shows location, shift, attendance and next task; a late check-in is shown in orange. The sequence is: check in, select task, scan the task QR, clean, follow required photo steps, submit. Starting cleaning and submitting evidence are different actions.
 
 ## Language
 

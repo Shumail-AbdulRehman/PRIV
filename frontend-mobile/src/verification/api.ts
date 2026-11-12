@@ -46,13 +46,14 @@ export async function retakeSlots(sessionId:string,requirements:{requirementId:s
   const slots = (await client.post<ApiEnvelope<CaptureSession['slots']>>(`/capture-session/${sessionId}/retake-slots`,{deviceId:await installationId(),requirements,contexts},accountRequest(scope))).data.data; return {slots} as CaptureSession;
 }
 export type PhotoUploadResult = StaffAttempt & {attemptId:string;assetId:string|null;storage?:string};
-export async function uploadPhoto(metadata:CaptureMetadata,uri:string,scope:string):Promise<PhotoUploadResult> {
+/** `onProgress` gets the share of the photo's bytes sent, 0 to 1 (spec 72); the request itself is unchanged. */
+export async function uploadPhoto(metadata:CaptureMetadata,uri:string,scope:string,onProgress?:(fraction:number)=>void):Promise<PhotoUploadResult> {
   if(captureAccount()!==scope)throw new Error('Account changed. Upload stopped.');
   const result=(await uploadFormData<ApiEnvelope<PhotoUploadResult>>(`/capture-session/${metadata.sessionId}/attempts`,()=>{
     const form=new FormData();form.append('photo',createImagePart(uri,`${metadata.clientCaptureId}.jpg`,'image/jpeg'));
     for(const key of ['clientCaptureId','slotId','nonce','sha256','claimedCapturedAt','elapsedMs','bootId','deviceId'] as const)form.append(key,String(metadata[key]));
     return form;
-  },120_000,()=>captureAccount()===scope)).data;
+  },120_000,()=>captureAccount()===scope,onProgress)).data;
   if(!result.attemptId)throw new Error('Photo response was incomplete. Check the result before uploading again.');
   return result;
 }

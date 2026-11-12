@@ -1,5 +1,5 @@
 import { useEffect } from "react";
-import { createNavigationContainerRef } from "@react-navigation/native";
+import { StackActions, createNavigationContainerRef } from "@react-navigation/native";
 import { useAuth } from "../auth/AuthContext";
 import type { RootStackParamList } from "../types";
 import { useNotifications } from "./NotificationProvider";
@@ -24,9 +24,12 @@ export function NotificationNavigation({ ready }: { ready: boolean }) {
       consume();
       return;
     }
-    staffNavigation.navigate("StaffTabs", {
-      screen: notificationDestination(pending.kind),
-    });
+    // popTo returns to the one existing StaffTabs and selects the tab; navigate would push a second tab navigator.
+    staffNavigation.dispatch(
+      StackActions.popTo("StaffTabs", {
+        screen: notificationDestination(pending.kind),
+      }),
+    );
     void acknowledgePhoneAlert(pending.notificationId, `${user.companyId}_${user.id}`).catch(() => {});
     consume();
   }, [ready, isBootstrapping, passwordChangeRequired, user, pending, consume]);

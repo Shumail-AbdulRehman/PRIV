@@ -23,7 +23,7 @@ function reset(){
 }
 reset();
 globalThis.directUiMocks={
- rn:{View:'View',Text:'Text',Image:'Image',ScrollView:'ScrollView',StyleSheet:{absoluteFill:{}},Platform:{OS:'android'},Linking:{openSettings:async()=>{settingsOpened++;if(settingsFailure)throw new Error('OS settings unavailable');}},useWindowDimensions:()=>({width:360,height:800}),AppState:{currentState:'active',addEventListener:(_name,cb)=>{appListeners.add(cb);return{remove:()=>appListeners.delete(cb)};}}},
+ rn:{View:'View',Text:'Text',Image:'Image',ScrollView:'ScrollView',Pressable:'Pressable',StyleSheet:{absoluteFill:{},create:styles=>styles},Platform:{OS:'android'},Linking:{openSettings:async()=>{settingsOpened++;if(settingsFailure)throw new Error('OS settings unavailable');}},useWindowDimensions:()=>({width:360,height:800}),AppState:{currentState:'active',addEventListener:(_name,cb)=>{appListeners.add(cb);return{remove:()=>appListeners.delete(cb)};}}},
  camera:{CameraView:'CameraView',useCameraPermissions:()=>{
   const [status,setStatus]=React.useState(cameraPermission);
   const request=React.useCallback(async()=>{permissionRequests++;setStatus({...cameraPermission});return cameraPermission;},[]);
@@ -46,9 +46,18 @@ const mocks={
  '/auth/AuthContext':'{useAuth:()=>({user:{id:1,companyId:1}})}','/i18n/LanguageProvider':'{useLanguage:()=>({t:text=>text,isRTL:false})}',
  '/verification/captureAccount':'{captureAccount:()=>"1_1"}','/verification/api':'globalThis.directUiMocks.api',
  '/modules/capture-quality':'globalThis.directUiMocks.quality','/components/ui/button':'{Button:"Button"}','/components/ui/text':'{Text:"Text"}',
- '/components/LanguageChoice':'{LanguageChoice:()=>null}','/components/PhotoGuide':'{PhotoGuide:()=>null}',
- '/components/PhotoCaptureControls':'{CaptureFrame:"CaptureFrame",PhotoStepProgress:()=>null,PhotoCaptureControls:props=>globalThis.React.createElement("Button",{disabled:props.disabled||props.busy,onPress:props.onCapture},props.label)}',
- './VerificationProgress':'{VerificationProgress:()=>null}','/queries/staff':'{staffQueryKeys:{all:["staff"]}}',
+ '/components/PhotoGuide':'{PhotoGuide:()=>null}',
+ '/components/PhotoCaptureControls':'{CaptureFrame:"CaptureFrame",PhotoStepProgress:()=>null,CaptureBusyCard:props=>globalThis.React.createElement("Text",null,props.label),CameraRoundButton:props=>globalThis.React.createElement("Button",{onPress:props.onPress},props.label),PhotoCaptureControls:props=>globalThis.React.createElement("Button",{disabled:props.disabled||props.busy,onPress:props.onCapture},props.label),CaptureDoneCard:props=>globalThis.React.createElement("Text",null,props.label)}',
+ '/components/PhotoCheckProgress':'{PhotoCheckOverlay:props=>globalThis.React.createElement("Text",null,props.check.stage)}',
+ './VerificationProgress':'{VerificationProgress:()=>null}','/queries/staff':'{staffQueryKeys:{all:["staff"],tasksToday:id=>["staff",id,"tasks","today"]}}',
+ // The redesigned layout parts (specs 19, 21, 23, 24, 36) are stood in by plain elements: this file proves the photo logic, not the look.
+ '/components/ui/icon':'{Icon:"Icon"}',
+ '/design/ActionButton':'{ActionButton:props=>globalThis.React.createElement("Button",{disabled:!!props.busy,onPress:props.onPress},props.label),ActionDock:props=>globalThis.React.createElement("View",null,props.hint,props.children),DockStatus:props=>globalThis.React.createElement("Text",null,props.label)}',
+ '/design/BottomSheet':'{BottomSheet:props=>props.visible?globalThis.React.createElement("View",null,props.title,props.body,props.actions):null}',
+ '/design/TopBar':'{TopBar:props=>globalThis.React.createElement("Text",null,props.title)}',
+ '/design/StaffText':'{StaffText:props=>globalThis.React.createElement("Text",null,props.children),NameLine:props=>globalThis.React.createElement("Text",null,props.name),isolate:text=>text}',
+ '/design/Feedback':'{Skeleton:()=>null,useSnackbar:()=>({show(){}})}',
+ './SubmissionReceipt':'{SubmissionReceipt:props=>globalThis.React.createElement("SubmissionReceipt",props)}',
 };
 globalThis.directNetworkListeners=networkListeners;
 const urls=Object.fromEntries(Object.entries(mocks).map(([name,value],i)=>{const file=join(directory,i+'.cjs');writeFileSync(file,`module.exports=${value};`);return[name,pathToFileURL(file).href];}));
@@ -62,7 +71,7 @@ const button=(r,name)=>r.root.findAllByType('Button').find(b=>b.props.children==
 const click=(r,name)=>flush(()=>{const b=button(r,name);assert.ok(b,name);assert.equal(!!b.props.disabled,false,name+' enabled');return b.props.onPress();});
 let Screen;
 async function mount(){Screen??=(await import('../src/screens/verification/VerificationScreen.tsx')).VerificationScreen;let r;await flush(()=>{r=create(React.createElement(Screen,{route:{params:{taskId:7}},navigation:{goBack(){}}}),{createNodeMock:n=>n.type==='CameraView'?{takePictureAsync:async()=>({uri:'camera.jpg'})}:null});});return r;}
-async function photograph(r){await click(r,'Scan QR to take photos');await flush(()=>r.root.findByType('CameraView').props.onBarcodeScanned({data:'room-qr'}));await flush(()=>r.root.findByType('CameraView').props.onCameraReady());await click(r,'Take photo');}
+async function photograph(r){await click(r,'Next photo');await flush(()=>r.root.findByType('CameraView').props.onBarcodeScanned({data:'room-qr'}));await flush(()=>r.root.findByType('CameraView').props.onCameraReady());await click(r,'Take photo');}
 test('failed upload needs manual reupload, has no automatic retry or staff exception buttons',async()=>{
  reset();let r;
  try{
@@ -85,7 +94,7 @@ test('leaving the screen discards the temporary picture and remount cannot resto
  reset();let r;
  try{
   r=await mount();await photograph(r);await flush(()=>r.unmount());r=undefined;assert.ok(deleted.includes('temporary.jpg'));
-  r=await mount();assert.equal(button(r,'Upload again'),undefined);assert.ok(button(r,'Scan QR to take photos'));assert.equal(uploads,1);
+  r=await mount();assert.equal(button(r,'Upload again'),undefined);assert.ok(button(r,'Next photo'));assert.equal(uploads,1);
  }finally{if(r)await flush(()=>r.unmount());}
 });
 test('a checked first photo advances to the next slot without a resume request',async()=>{
@@ -95,33 +104,42 @@ test('a checked first photo advances to the next slot without a resume request',
  try{
   r=await mount();await photograph(r);
   assert.equal(uploads,1);assert.equal(resumes,0);assert.equal(button(r,'Submit work'),undefined);
-  await click(r,'Continue photos');
+  // Spec 71: the camera stays open and the next slot activates with no "Next photo" tap.
+  assert.equal(button(r,'Next photo'),undefined);
   assert.ok(r.root.findByType('CameraView'));assert.ok(activations.includes('second-slot'));
  }finally{if(r)await flush(()=>r.unmount());}
 });
-for(const [state,label] of [['CLEANING_REQUIRED','Clean items, then scan QR'],['RECAPTURE_REQUIRED','Scan task QR to retake photos']])test(`${state} retains its QR correction action without resuming`,async()=>{
+for(const [state,label] of [['CLEANING_REQUIRED','Clean, then scan QR'],['RECAPTURE_REQUIRED','Retake photo']])test(`${state} retains its QR correction action without resuming`,async()=>{
  reset();failUpload=false;let r;const original=globalThis.directUiMocks.api.uploadPhoto;
  globalThis.directUiMocks.api.uploadPhoto=async(...args)=>{const result=await original(...args);const requirement=manifest.items[0].requirements[0];requirement.state=state;requirement.currentAttempt.state=state;return{...result,state};};
  try{
   r=await mount();await photograph(r);
-  assert.ok(button(r,label));assert.equal(button(r,'Continue photos'),undefined);assert.equal(button(r,'Submit work'),undefined);assert.equal(resumes,0);
+  assert.ok(button(r,label));assert.equal(button(r,'Next photo'),undefined);assert.equal(button(r,'Submit work'),undefined);assert.equal(resumes,0);
  }finally{globalThis.directUiMocks.api.uploadPhoto=original;if(r)await flush(()=>r.unmount());}
 });
 test('unqualified or missing photo capability never prompts camera or creates a session',async()=>{
  for(const qualification of [false,undefined]){
   reset();manifest.photoChecking=qualification===undefined?undefined:{available:false};let r;
-  try{r=await mount();assert.equal(button(r,'Scan QR to take photos'),undefined);assert.equal(r.root.findAllByType('CameraView').length,0);assert.ok(JSON.stringify(r.toJSON()).includes('Task photos are unavailable'));assert.ok(button(r,'Refresh results'));assert.equal(uploads,0);}
+  try{r=await mount();assert.equal(button(r,'Next photo'),undefined);assert.equal(r.root.findAllByType('CameraView').length,0);assert.ok(JSON.stringify(r.toJSON()).includes('Task photos are unavailable'));assert.ok(button(r,'Refresh results'));assert.equal(uploads,0);}
   finally{if(r)await flush(()=>r.unmount());}
  }
 });
 test('server receipt survives leaving and reloading and is not verification credit',async()=>{
  reset();manifest.staffSubmittedAt='2026-10-21T09:00:00.000Z';manifest.photoChecking={available:false};let r;
- try{r=await mount();assert.ok(JSON.stringify(r.toJSON()).includes('Submission receipt'));assert.ok(JSON.stringify(r.toJSON()).includes('Your work has been submitted. Your manager may still need to review it.'));assert.equal(button(r,'Submit work'),undefined);await flush(()=>r.unmount());r=await mount();assert.ok(JSON.stringify(r.toJSON()).includes('Submission receipt'));assert.equal(submissions,0);}
+ try{
+  // The receipt is SubmissionReceipt (spec 36): its "Submitted Yes" / "Verified Not yet" wording is proven in tests/screens/photoCapture.test.mjs.
+  const receipt=()=>r.root.findAllByType('SubmissionReceipt')[0];
+  r=await mount();assert.ok(receipt());assert.equal(receipt().props.submittedAt,'2026-10-21T09:00:00.000Z');assert.equal(receipt().props.taskId,7);assert.equal(button(r,'Submit work'),undefined);
+  await flush(()=>r.unmount());r=await mount();assert.ok(receipt());assert.equal(receipt().props.submittedAt,'2026-10-21T09:00:00.000Z');assert.equal(submissions,0);}
  finally{if(r)await flush(()=>r.unmount());}
 });
 test('qualification changing during scanning closes camera without uploading',async()=>{
  reset();let r;
- try{r=await mount();await click(r,'Scan QR to take photos');manifest.photoChecking={available:false};await click(r,'Refresh results');assert.equal(r.root.findAllByType('CameraView').length,0);assert.equal(uploads,0);}
+ try{
+  // The dark scanner has no Refresh results button; returning to the app re-reads the server the same way (load()).
+  r=await mount();await click(r,'Next photo');assert.ok(r.root.findByType('CameraView'));
+  await flush(()=>{for(const cb of appListeners)cb('active');});assert.ok(r.root.findByType('CameraView'),'a re-read that keeps qualification keeps the scanner');
+  manifest.photoChecking={available:false};await flush(()=>{for(const cb of appListeners)cb('active');});assert.equal(r.root.findAllByType('CameraView').length,0);assert.equal(uploads,0);}
  finally{if(r)await flush(()=>r.unmount());}
 });
 test('permanently denied task camera has a reachable Settings action without repeated permission prompts',async()=>{
@@ -151,7 +169,7 @@ test('returning from Settings refreshes permission and server authority without 
   cameraPermission={granted:true,canAskAgain:true};manifest.allowedActions={};
   await flush(()=>{for(const cb of appListeners)cb('active');});
   assert.equal(permissionReads,readsBeforeReturn+1);assert.equal(permissionRequests,0);assert.equal(settingsOpened,1);
-  assert.equal(button(r,'Open camera settings'),undefined);assert.equal(button(r,'Scan QR to take photos'),undefined);
+  assert.equal(button(r,'Open camera settings'),undefined);assert.equal(button(r,'Next photo'),undefined);
   assert.ok(JSON.stringify(r.toJSON()).includes('Photo authority ended.'));
   assert.equal(r.root.findAllByType('CameraView').length,0);assert.equal(sessionsOpened,0);assert.equal(uploads,0);
  }finally{if(r)await flush(()=>r.unmount());}
@@ -173,13 +191,13 @@ test('returning with granted permission keeps camera closed until staff explicit
   cameraPermission={granted:true,canAskAgain:true};
   await flush(()=>{for(const cb of appListeners)cb('active');});
   assert.equal(permissionReads,readsBeforeReturn+1);assert.equal(r.root.findAllByType('CameraView').length,0);assert.equal(sessionsOpened,0);assert.equal(uploads,0);
-  await click(r,'Scan QR to take photos');assert.ok(r.root.findByType('CameraView'));assert.equal(sessionsOpened,0);
+  await click(r,'Next photo');assert.ok(r.root.findByType('CameraView'));assert.equal(sessionsOpened,0);
  }finally{if(r)await flush(()=>r.unmount());}
 });
 test('revoking camera permission in Settings removes the scanner and exposes recovery',async()=>{
  reset();let r;
  try{
-  r=await mount();await click(r,'Scan QR to take photos');
+  r=await mount();await click(r,'Next photo');
   await flush(()=>{for(const cb of appListeners)cb('background');});
   assert.equal(r.root.findAllByType('CameraView').length,0);
   cameraPermission={granted:false,canAskAgain:false};
@@ -191,7 +209,7 @@ test('revoking camera permission in Settings removes the scanner and exposes rec
 test('failed permission recheck pauses scanning and leaves a visible recovery message',async()=>{
  reset();let r;
  try{
-  r=await mount();await click(r,'Scan QR to take photos');
+  r=await mount();await click(r,'Next photo');
   await flush(()=>{for(const cb of appListeners)cb('background');});
   permissionReadFailure=true;
   await flush(()=>{for(const cb of appListeners)cb('active');});
@@ -199,7 +217,7 @@ test('failed permission recheck pauses scanning and leaves a visible recovery me
   assert.ok(JSON.stringify(r.toJSON()).includes('Camera or task access could not be checked. Refresh results and try again.'));
   assert.equal(sessionsOpened,0);assert.equal(uploads,0);
   permissionReadFailure=false;cameraPermission={granted:false,canAskAgain:false};
-  await click(r,'Scan QR to take photos');
+  await click(r,'Next photo');
   assert.equal(settingsOpened,1);assert.equal(r.root.findAllByType('CameraView').length,0);assert.equal(permissionRequests,0);
  }finally{if(r)await flush(()=>r.unmount());}
 });
