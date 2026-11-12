@@ -4,6 +4,7 @@ import { tmpdir } from 'node:os';
 import { join } from 'node:path';
 import * as release from './cleanlinessRelease.js';
 import { launchQualificationStatus, requireLaunchPhotoQualification } from './launchQualification.js';
+import { autoPassAllowed } from './cleanliness.service.js';
 let directory: string;
 beforeEach(() => {
  directory = mkdtempSync(join(tmpdir(),'hygene-qualification-'));
@@ -43,4 +44,16 @@ it.each(['RELEASE_EXPIRED','CONFIGURATION_CHANGED','FIXTURE_NOT_VALIDATED','RELE
 });
 it.each(['AUTO_PASS_ENABLED','PHOTO_QUALIFIED','PRIVACY_SCREENING_ENABLED'])('a deployment boolean %s cannot bypass empirical qualification',name=>{
  vi.stubEnv(name,'true');expect(()=>requireLaunchPhotoQualification('SINK')).toThrow(expect.objectContaining({statusCode:503}));
+});
+it('the owner override opens processing and automatic approval only when set to exactly "true"',()=>{
+ for(const value of ['','false','TRUE','1','yes']){vi.stubEnv('PHOTO_CHECKS_OWNER_OVERRIDE',value);expect(launchQualificationStatus('SINK')).toMatchObject({processingAllowed:false,automaticApproval:false});}
+ vi.stubEnv('PHOTO_CHECKS_OWNER_OVERRIDE','true');
+ expect(launchQualificationStatus('SINK')).toMatchObject({processingAllowed:true,automaticApproval:true,reason:'OWNER_OVERRIDE'});
+ expect(()=>requireLaunchPhotoQualification('SINK')).not.toThrow();
+ expect(autoPassAllowed('SINK')).toBe(true);
+ vi.stubEnv('PHOTO_CHECKS_OWNER_OVERRIDE','');expect(autoPassAllowed('SINK')).toBe(false);
+});
+it('the owner override does not open an invalid AI configuration',()=>{
+ vi.stubEnv('PHOTO_CHECKS_OWNER_OVERRIDE','true');vi.stubEnv('CLEF_MODEL','invalid');
+ expect(launchQualificationStatus('SINK')).toMatchObject({processingAllowed:false,reason:'ACTIVE_CONFIGURATION_INVALID'});
 });

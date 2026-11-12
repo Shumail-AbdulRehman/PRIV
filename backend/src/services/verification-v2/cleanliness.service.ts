@@ -1,5 +1,6 @@
 import {z} from 'zod';
 import {cleanlinessReleaseStatus} from './cleanlinessRelease.js';
+import {photoChecksOwnerOverride} from './photoChecksOverride.js';
 import {requiredRubricSurfaces} from './rubrics.js';
 import type {ImageAssessmentProvider,Assessment} from './provider.service.js';
 // Historical NEEDS_ATTENTION means localized visible dirt; new results use DIRTY.
@@ -22,4 +23,4 @@ export async function assessCleanliness(provider:ImageAssessmentProvider,image:B
  return {...assessment,result:validateCleanlinessResult(assessment.result,surfaces),rubricVersion:(rubric as {version:number}).version};
 }
 /** Exact evaluated configuration and fixture/rubric qualification are required. */
-export function autoPassAllowed(fixtureType:string,rubricVersion=1){return cleanlinessReleaseStatus(fixtureType,rubricVersion).allowed;}
+export function autoPassAllowed(fixtureType:string,rubricVersion=1){return photoChecksOwnerOverride()||cleanlinessReleaseStatus(fixtureType,rubricVersion).allowed;}

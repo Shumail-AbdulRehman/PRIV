@@ -1,5 +1,6 @@
 import { ApiError } from '../../utils/ApiError.js';
 import { cleanlinessReleaseStatus, digest, verificationReleaseConfiguration } from './cleanlinessRelease.js';
+import { photoChecksOwnerOverride } from './photoChecksOverride.js';
 
 /** This is the active adapter, not an assertion about a historical benchmark.
  * Its category assistance performs neither privacy nor exact fixture identity.
@@ -14,6 +15,9 @@ export function launchQualificationStatus(fixtureType: string, rubricVersion = 1
     const pipelineSha256 = digest(JSON.stringify(pipeline));
     const privacyCapable = Boolean(pipeline.privacyAssessment);
     const identityCapable = Boolean(pipeline.fixtureIdentityAssessment);
+    if (photoChecksOwnerOverride()) {
+      return { processingAllowed: true, automaticApproval: true, reason: 'OWNER_OVERRIDE', releaseReason: release.reason, pipelineSha256 };
+    }
     return {
       processingAllowed: privacyCapable && release.allowed,
       automaticApproval: privacyCapable && identityCapable && release.allowed,
