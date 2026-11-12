@@ -414,7 +414,7 @@ export default function LocationTemplatesTab({
         ]}
       />
 
-      </> : <EmptyState title="No cleaning schedules for this location." message="Create schedules for this location and optionally choose a team member." action={<Button onClick={() => setCreateDialogOpen(true)}>{translate('Add cleaning schedule')}</Button>} />}
+      </> : <EmptyState title={translate('No cleaning schedules for this location.')} message={translate('Create schedules for this location and optionally choose a team member.')} action={<Button onClick={() => setCreateDialogOpen(true)}>{translate('Add cleaning schedule')}</Button>} />}
 
       <SidePanel wide title={translate('Edit cleaning schedule')} description={translate('Changes apply to the schedule. Recorded task history stays unchanged.')} open={!!editingTemplate} onOpenChange={open=>{if(!open&&!inFlight.current)setEditingTemplate(null);}} footer={<SidePanelFooter className="wx-schedule-footer"><Button type="button" variant="outline" disabled={saving} onClick={()=>setEditingTemplate(null)}>{translate('Cancel')}</Button><Button type="submit" form="location-schedule-edit" disabled={saving||!editForm.title.trim()} aria-busy={saving}>{translate(saving?'Saving...':assignmentRetry?'Retry staff assignment':'Save changes')}</Button></SidePanelFooter>}>
         {editingTemplate?<div className="wx-schedule-form" aria-busy={saving}><p className="wx-schedule-help"><bdi>{locationName}</bdi> · <bdi>{timeZone}</bdi></p><form id="location-schedule-edit" onChange={()=>setAssignmentRetry(false)} onSubmit={event=>{event.preventDefault();void handleEditSave();}}><fieldset disabled={saving} className="wx-schedule-stack">

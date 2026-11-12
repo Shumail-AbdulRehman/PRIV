@@ -92,6 +92,33 @@ it('empty schedules teach creation through the existing URL-backed wizard', asyn
   schedules([]); expect(screen.getByRole('heading', { name: 'No cleaning schedules for this location.' })).toBeInTheDocument();
   fireEvent.click(screen.getAllByRole('button', { name: 'Add cleaning schedule' })[0]); expect(await screen.findByRole('dialog', { name: 'Create cleaning schedule' })).toBeInTheDocument(); expect(screen.getByLabelText('Route')).toHaveTextContent('newSchedule=1');
 });
+it.each([
+  { language: 'en', title: 'No cleaning schedules for this location.', message: 'Create schedules for this location and optionally choose a team member.', action: 'Add cleaning schedule', panel: 'Create cleaning schedule', close: 'Close' },
+  { language: 'ur', title: 'اس مقام کے لیے کوئی صفائی کا شیڈول نہیں۔', message: 'اس مقام کے لیے شیڈول بنائیں اور چاہیں تو ٹیم کا رکن منتخب کریں۔', action: 'صفائی کا شیڈول شامل کریں', panel: 'صفائی کا شیڈول بنائیں', close: 'بند کریں' },
+])('empty schedule guidance and its scoped creation action work in $language', async ({ language, title, message, action, panel, close }) => {
+  mount(<Templates templates={[]} staffList={staff} locationId={20} timeZone="Asia/Karachi" locationName="Saved site" />, language);
+  const heading = screen.getByRole('heading', { level: 2, name: title });
+  const emptyState = within(heading.parentElement!);
+  expect(emptyState.getByText(message)).toBeInTheDocument();
+  expect(screen.queryByRole('table')).not.toBeInTheDocument();
+  if (language === 'ur') {
+    expect(screen.queryByText('No cleaning schedules for this location.')).not.toBeInTheDocument();
+    expect(screen.queryByText('Create schedules for this location and optionally choose a team member.')).not.toBeInTheDocument();
+  }
+  const opener = emptyState.getByRole('button', { name: action });
+  opener.focus();
+  fireEvent.click(opener);
+  const dialog = await screen.findByRole('dialog', { name: panel });
+  expect(within(dialog).getByText('Saved site')).toBeInTheDocument();
+  expect(within(dialog).getByText('Asia/Karachi')).toBeInTheDocument();
+  expect(m.areas).toHaveBeenCalledWith(20);
+  expect(screen.getByLabelText('Route')).toHaveTextContent('?tab=templates&week=2026-11-09&source=setup&newSchedule=1');
+  fireEvent.click(within(dialog).getByRole('button', { name: close }));
+  await waitFor(() => expect(screen.queryByRole('dialog')).not.toBeInTheDocument());
+  expect(screen.getByLabelText('Route')).toHaveTextContent('?tab=templates&week=2026-11-09&source=setup');
+  expect(screen.getByLabelText('Route')).not.toHaveTextContent('newSchedule');
+  expect(opener).toHaveFocus();
+});
 it('edit serializes changed times through wallTimeToIso in the saved location timezone', async () => {
   schedules(); fireEvent.click(screen.getByRole('button', { name: 'Edit schedule' }));
   fireEvent.change(screen.getByLabelText('Shift start'), { target: { value: '11:30' } }); fireEvent.change(screen.getByLabelText('Shift end'), { target: { value: '12:30' } }); fireEvent.click(screen.getByRole('button', { name: 'Save changes' }));
