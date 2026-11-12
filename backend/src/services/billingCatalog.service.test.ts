@@ -1,6 +1,11 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import type { Price, Product } from '@paddle/paddle-node-sdk';
+import express from 'express';
+import type { AddressInfo } from 'node:net';
+import * as catalogService from './billingCatalog.service.js';
 import { createBillingCatalog } from './billingCatalog.service.js';
+import subscriptionRouter from '../routes/subscription.route.js';
+import { ApiError } from '../utils/ApiError.js';
 
 vi.mock('../prisma/prisma.js', () => ({ prisma: {} }));
 const priceId = 'pri_00000000000000000000000001';
@@ -27,6 +32,110 @@ beforeEach(() => {
     vi.stubEnv('PADDLE_BILLING_ENABLED', 'true');
     vi.stubEnv('PADDLE_API_KEY', 'isolated-credential-fixture-000000000000000');
     vi.stubEnv('PADDLE_PRICE_CATALOG_JSON', JSON.stringify([entry]));
+});
+
+describe('public plan prices', () => {
+    afterEach(() => vi.restoreAllMocks());
+
+    async function requestPrices(read: ReturnType<typeof createBillingCatalog>['getPublicCatalog']) {
+        vi.spyOn(catalogService, 'getPublicBillingCatalog').mockImplementation(read);
+        const app = express();
+        app.use('/api/subscription', subscriptionRouter);
+        app.use((error: ApiError, _req: express.Request, res: express.Response, _next: express.NextFunction) => {
+            res.status(error.statusCode ?? 500).json({ success: false, data: null, message: error.message });
+        });
+        const server = app.listen(0, '127.0.0.1');
+        try {
+            await new Promise<void>(resolve => server.once('listening', resolve));
+            const response = await fetch(`http://127.0.0.1:${(server.address() as AddressInfo).port}/api/subscription/prices`);
+            return { status: response.status, cacheControl: response.headers.get('cache-control'), body: await response.json() };
+        } finally {
+            await new Promise<void>((resolve, reject) => server.close(error => error ? reject(error) : resolve()));
+        }
+    }
+
+    it('serves only public selection and money fields with no login or database read', async () => {
+        const f = fixture();
+        const response = await requestPrices(f.read.getPublicCatalog);
+        expect(response).toEqual({ status: 200, cacheControl: 'no-store', body: {
+            statusCode: 200, success: true, message: 'Plan prices fetched successfully',
+            data: [{ plan: 'STARTER', interval: 'month', amount: '1234', currencyCode: 'USD' }],
+        } });
+        expect(f.owner).not.toHaveBeenCalled();
+        expect(f.prices.get).toHaveBeenCalledExactlyOnceWith(priceId);
+        expect(f.products.get).toHaveBeenCalledExactlyOnceWith(productId);
+    });
+
+    it.each(['owner', 'visitor'] as const)('shares the %s-first successful cache and expires at 60 seconds', async first => {
+        const f = fixture();
+        if (first === 'owner') await f.read(actor); else await f.read.getPublicCatalog();
+        f.advance(59_999);
+        await f.read(actor); await f.read.getPublicCatalog(); await f.read.getPublicCatalog();
+        expect(f.prices.get).toHaveBeenCalledTimes(1); expect(f.products.get).toHaveBeenCalledTimes(1);
+        f.advance(1); await f.read.getPublicCatalog(); await f.read(actor);
+        expect(f.prices.get).toHaveBeenCalledTimes(2); expect(f.products.get).toHaveBeenCalledTimes(2);
+        expect(f.owner).toHaveBeenCalledTimes(first === 'owner' ? 3 : 2);
+    });
+
+    it('shares in-flight work with owner reads while keeping the owner response intact', async () => {
+        const f = fixture(); let release!: (value: unknown) => void;
+        f.prices.get.mockImplementationOnce(() => new Promise(resolve => { release = resolve; }));
+        const publicRead = f.read.getPublicCatalog();
+        const ownerRead = f.read(actor);
+        const otherVisitor = f.read.getPublicCatalog();
+        await vi.waitFor(() => expect(f.owner).toHaveBeenCalledOnce());
+        release(f.price);
+        const [publicResult, ownerResult, otherResult] = await Promise.all([publicRead, ownerRead, otherVisitor]);
+        expect(publicResult).toEqual([{ plan: 'STARTER', interval: 'month', amount: '1234', currencyCode: 'USD' }]);
+        expect(ownerResult).toEqual([{ ...entry, productId, amount: '1234', currencyCode: 'USD' }]);
+        expect(otherResult).toEqual(publicResult);
+        publicResult[0].amount = 'wrong';
+        expect((await f.read.getPublicCatalog())[0].amount).toBe('1234');
+        expect(f.prices.get).toHaveBeenCalledOnce(); expect(f.products.get).toHaveBeenCalledOnce();
+    });
+
+    it.each(['missing', 'disabled', 'trial', 'not-ready', 'product', 'provider'] as const)('returns the same safe 503 and no prices for %s', async failure => {
+        const f = fixture();
+        if (failure === 'missing') vi.stubEnv('PADDLE_PRICE_CATALOG_JSON', '');
+        if (failure === 'disabled') vi.stubEnv('PADDLE_BILLING_ENABLED', 'false');
+        if (failure === 'trial') f.prices.get.mockResolvedValue({ ...f.price, trialPeriod: {} });
+        if (failure === 'not-ready') f.prices.get.mockResolvedValue({ ...f.price, status: 'archived' });
+        if (failure === 'product') f.products.get.mockResolvedValue({ id: productId, status: 'archived' });
+        if (failure === 'provider') f.prices.get.mockRejectedValue(new Error('private provider payload'));
+        expect(await requestPrices(f.read.getPublicCatalog)).toEqual({ status: 503, cacheControl: 'no-store', body: {
+            success: false, data: null, message: 'Billing is unavailable. Please try again later.',
+        } });
+        expect(f.owner).not.toHaveBeenCalled();
+    });
+
+    it('refuses the entire configured set if any price is invalid, then recovers without caching failure', async () => {
+        const f = fixture();
+        const secondId = 'pri_00000000000000000000000002';
+        vi.stubEnv('PADDLE_PRICE_CATALOG_JSON', JSON.stringify([entry, { plan: 'PRO', interval: 'year', priceId: secondId }]));
+        f.prices.get.mockImplementation(async (id: string) => ({ ...f.price, id,
+            billingCycle: { interval: id === priceId ? 'month' : 'year', frequency: 1 },
+            trialPeriod: id === secondId ? {} : null,
+        } as Price));
+        expect((await requestPrices(f.read.getPublicCatalog)).status).toBe(503);
+        f.prices.get.mockImplementation(async (id: string) => ({ ...f.price, id,
+            billingCycle: { interval: id === priceId ? 'month' : 'year', frequency: 1 },
+        } as Price));
+        expect(await f.read.getPublicCatalog()).toEqual([
+            { plan: 'STARTER', interval: 'month', amount: '1234', currencyCode: 'USD' },
+            { plan: 'PRO', interval: 'year', amount: '1234', currencyCode: 'USD' },
+        ]);
+        expect(f.prices.get).toHaveBeenCalledTimes(4);
+    });
+
+    it('rechecks activation on a warm public cache without weakening owner authorization', async () => {
+        const f = fixture(); await f.read.getPublicCatalog();
+        await expect(f.read({ ...actor, role: 'MANAGER' })).rejects.toMatchObject({ statusCode: 403 });
+        f.owner.mockResolvedValue(null);
+        await expect(f.read(actor)).rejects.toMatchObject({ statusCode: 403 });
+        vi.stubEnv('PADDLE_BILLING_ENABLED', 'false');
+        expect((await requestPrices(f.read.getPublicCatalog)).status).toBe(503);
+        expect(f.prices.get).toHaveBeenCalledOnce();
+    });
 });
 afterEach(() => vi.unstubAllEnvs());
 

@@ -4,7 +4,8 @@ import { Check, Minus } from 'lucide-react';
 import useAuth from '@/hooks/useAuth';
 import { useLanguage } from '@/i18n/context';
 import { ONBOARDING_ROUTES } from '../Onboarding/onboardingRoutes';
-import { useBillingCatalog } from '../Subscription/queries';
+import { useBillingCatalog, usePublicPlanPrices } from '../Subscription/queries';
+import { formatBillingPrice } from '../Subscription/onboarding/billingPrice';
 import type { BillingInterval, PlanCode } from '../Subscription/types';
 import { PLAN_COMPARISON, TIERS } from './tiers';
 import EnterprisePlan, { type InquiryDefaults } from './EnterprisePlan';
@@ -17,8 +18,13 @@ export function PaddlePricing({ currentPlan, subscribeDisabled = false, disabled
   fit?: number; inquiry?: InquiryDefaults;
 }) {
   const { user } = useAuth();
-  const { t } = useLanguage();
+  const { t, language } = useLanguage();
   const [interval, setInterval] = useState<BillingInterval>('month');
+  const catalog = usePublicPlanPrices();
+  const prices = TIERS.map(tier => {
+    const entry = !catalog.isError && catalog.data?.find(entry => entry.plan === (tier.name === 'Starter' ? 'STARTER' : 'PRO') && entry.interval === interval);
+    return entry ? formatBillingPrice(entry.amount, entry.currencyCode, interval, language === 'ur' ? 'ur-PK' : 'en-PK') : null;
+  });
   // Phones show one plan at a time. A new size match replaces an earlier manual choice.
   const [chosen, setChosen] = useState({ column: fit, forFit: fit });
   const shown = chosen.forFit === fit ? chosen.column : fit;
@@ -26,6 +32,7 @@ export function PaddlePricing({ currentPlan, subscribeDisabled = false, disabled
   const state = (column: number) => [column === fit && 'is-fit', column === shown && 'is-view'].filter(Boolean).join(' ');
 
   return <div className="saas-pricing">
+    {catalog.isPending && <span className="sr-only" role="status">{t('Loading plan prices…')}</span>}
     <fieldset className="hx-interval">
       <legend className="sr-only">{t('Billing interval')}</legend>
       {(['month', 'year'] as const).map(value => <label key={value}>
@@ -43,6 +50,10 @@ export function PaddlePricing({ currentPlan, subscribeDisabled = false, disabled
           return <article key={plan} className={`hx-plan ${state(column)}`}>
             <div className="hx-plan-title"><h2>{tier.name}</h2>{currentPlan === plan ? <span>{t('Current capacity plan')}</span> : null}</div>
             <p>{tier.description}</p>
+            <div className="hx-plan-price" style={{ minBlockSize: '3rem', display: 'flex', alignItems: 'center', gap: '.35em', flexWrap: 'wrap', fontSize: '1.5rem', fontWeight: 700, fontVariantNumeric: 'tabular-nums' }}>
+              {prices[column] ? <><bdi style={{ overflowWrap: 'anywhere' }}>{prices[column].formatted}</bdi><span style={{ fontSize: '1rem', fontWeight: 400 }}>{t(interval === 'month' ? '/ month' : '/ year')}</span></> :
+                catalog.isPending ? <span aria-hidden="true" style={{ inlineSize: '7ch', blockSize: '1em', borderRadius: '4px', backgroundColor: 'currentColor', opacity: .12 }} /> : null}
+            </div>
             {cannotSubscribe ? <p className="hx-plan-note">{t(disabledMessage ?? 'Only the company owner can view or change billing.')}</p> :
               <Link className="hx-btn hx-btn-line" to={user ? ONBOARDING_ROUTES.continue : `${ONBOARDING_ROUTES.signup}?${new URLSearchParams({ plan, interval })}`}>
                 {t(user ? 'Continue to your workspace' : 'Choose {plan}', { plan: tier.name })}
@@ -63,7 +74,7 @@ export function PaddlePricing({ currentPlan, subscribeDisabled = false, disabled
         </tr>)}</tbody>
       </table>
     </div>
-    <p className="hx-sample">{t('Prices are available from the configured catalog in owner billing. Final totals and taxes are shown at checkout. No payment starts on this page.')}</p>
+    <p className="hx-sample">{t(prices.some(Boolean) ? 'Final totals and taxes are shown at checkout. No payment starts on this page.' : 'Prices are available from the configured catalog in owner billing. Final totals and taxes are shown at checkout. No payment starts on this page.')}</p>
   </div>;
 }
 

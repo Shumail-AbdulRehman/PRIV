@@ -298,5 +298,9 @@ export const workspaceRedesignUrdu: Record<string, string> = {
   "{description} This permanently deletes the records and cannot be undone.": "{description} اس سے یہ ریکارڈ مستقل طور پر حذف ہو جائیں گے اور اسے واپس نہیں لایا جا سکتا۔",
   "This location, its schedules, task history, attendance, and evidence records will be removed. Staff accounts will stay, with their location and shift cleared.": "یہ مقام، اس کے شیڈول، کاموں کی تاریخ، حاضری اور ثبوت کے ریکارڈ ہٹا دیے جائیں گے۔ عملے کے اکاؤنٹ برقرار رہیں گے، مگر ان کا مقام اور شفٹ خالی کر دی جائے گی۔",
   "This removes the schedule and today's and future tasks from active work. Past task history and recorded evidence are kept.": "اس سے شیڈول اور آج اور آئندہ کے کام فعال کام سے ہٹ جائیں گے۔ پچھلے کاموں کی تاریخ اور درج ثبوت محفوظ رہیں گے۔",
-  "Photo passed": "تصویر جانچ میں کامیاب"
+  "Photo passed": "تصویر جانچ میں کامیاب",
+  "Loading plan prices…": "پلان کی قیمتیں لوڈ ہو رہی ہیں…",
+  "/ month": "/ ماہ",
+  "/ year": "/ سال",
+  "Final totals and taxes are shown at checkout. No payment starts on this page.": "حتمی رقم اور ٹیکس چیک آؤٹ پر دکھائے جاتے ہیں۔ اس صفحے سے ادائیگی شروع نہیں ہوتی۔"
 };

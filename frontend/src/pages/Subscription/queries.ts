@@ -1,7 +1,7 @@
 import { useEffect } from 'react';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import useAuth from '@/hooks/useAuth';
-import { createCustomerPortalSession, getPricingContext, getSubscription, getBillingLifecycle, getBillingCatalog } from './api';
+import { createCustomerPortalSession, getPricingContext, getSubscription, getBillingLifecycle, getBillingCatalog, getPublicPlanPrices } from './api';
 
 export const subscriptionQueryKey = ['subscription'] as const;
 export const billingLifecycleKey = (companyId?:number, ownerId?:number) => ['billing-lifecycle',companyId,ownerId] as const;
@@ -22,6 +22,9 @@ function useBillingScope() {
  return { companyId, ownerId, role };
 }
 export const usePricingContext = () => useQuery({queryKey:['pricing-context'], queryFn:getPricingContext, staleTime:30*60*1000});
+export const usePublicPlanPrices = () => useQuery({
+ queryKey:['public-plan-prices'], queryFn:({signal})=>getPublicPlanPrices(signal), staleTime:60_000, retry:false,
+});
 export function useSubscription() {
  const {companyId,ownerId,role} = useBillingScope();
  return useQuery({

@@ -8,6 +8,7 @@ import type { VerificationActor } from './verification-v2/authorization.service.
 
 export const BILLING_CATALOG_CACHE_MS = 60_000;
 export type TrialFreeBillingCatalogEntry = Omit<BillingCatalogEntryDto, 'trialPeriod'>;
+export type PublicBillingCatalogEntry = Pick<TrialFreeBillingCatalogEntry, 'plan' | 'interval' | 'amount' | 'currencyCode'>;
 
 export class BillingCatalogError extends ApiError {
     readonly recoveryReason = 'PRICE_NOT_READY' as const;
@@ -38,14 +39,7 @@ export function createBillingCatalog(deps: Deps = {}) {
     const log = deps.log ?? operationalLog;
     let cache: Cache | undefined;
 
-    return async function getBillingCatalog(actor: VerificationActor): Promise<TrialFreeBillingCatalogEntry[]> {
-        // Authorization and activation are checked even on a cache hit.
-        if (actor.role !== 'ADMIN') throw new ApiError(403, 'Company owner access required');
-        const owner = await db.manager.findFirst({
-            where: { id: actor.id, companyId: actor.companyId, role: 'ADMIN', isActive: true },
-            select: { company: { select: { id: true } } },
-        });
-        if (!owner || owner.company.id !== actor.companyId) throw new ApiError(403, 'Active company owner required');
+    async function readCatalog(): Promise<TrialFreeBillingCatalogEntry[]> {
         let catalog: ReturnType<typeof getPaddleCatalog>;
         try {
             requireBillingActivation();
@@ -82,8 +76,32 @@ export function createBillingCatalog(deps: Deps = {}) {
         }
         // Do not expose cached object references to callers.
         return current.entries!.map(entry => ({ ...entry }));
-    };
+    }
+
+    async function getBillingCatalog(actor: VerificationActor): Promise<TrialFreeBillingCatalogEntry[]> {
+        // Authorization and activation are checked even on a cache hit.
+        if (actor.role !== 'ADMIN') throw new ApiError(403, 'Company owner access required');
+        const owner = await db.manager.findFirst({
+            where: { id: actor.id, companyId: actor.companyId, role: 'ADMIN', isActive: true },
+            select: { company: { select: { id: true } } },
+        });
+        if (!owner || owner.company.id !== actor.companyId) throw new ApiError(403, 'Active company owner required');
+        return readCatalog();
+    }
+
+    async function getPublicCatalog(): Promise<PublicBillingCatalogEntry[]> {
+        try {
+            const entries = await readCatalog();
+            return entries.map(({ plan, interval, amount, currencyCode }) => ({ plan, interval, amount, currencyCode }));
+        } catch {
+            // Public failures have one safe response, including provider outages.
+            throw new ApiError(503, 'Billing is unavailable. Please try again later.');
+        }
+    }
+
+    return Object.assign(getBillingCatalog, { getPublicCatalog });
 }
 
 // Additive until spec 36 replaces the legacy lifecycle reader.
 export const getBillingCatalog = createBillingCatalog();
+export const getPublicBillingCatalog = getBillingCatalog.getPublicCatalog;

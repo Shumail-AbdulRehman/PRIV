@@ -2,6 +2,7 @@ import { createBillingPortal } from "../services/billingLifecycle.service.js";
 import { Request, Response } from "express";
 import { ApiResponse } from "../utils/ApiResponse.js";
 import { getCompanySubscriptionSummary } from "../services/subscription.service.js";
+import { getPublicBillingCatalog } from "../services/billingCatalog.service.js";
 
 const countryHeaders = [
   "x-vercel-ip-country",
@@ -40,6 +41,12 @@ export const getPricingContext = (req: Request, res: Response) => {
 export const getSubscription = async (req: Request, res: Response) => {
   const summary = await getCompanySubscriptionSummary(req.user!.companyId);
   res.status(200).json(new ApiResponse(200, summary, "Subscription fetched successfully"));
+};
+
+export const getPublicPlanPrices = async (_req: Request, res: Response) => {
+  res.setHeader("Cache-Control", "no-store");
+  const prices = await getPublicBillingCatalog();
+  res.status(200).json(new ApiResponse(200, prices, "Plan prices fetched successfully"));
 };
 
 export const createCustomerPortalSession = async (req: Request, res: Response) => {

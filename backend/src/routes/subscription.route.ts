@@ -3,6 +3,7 @@ import { createEnterpriseInquiry } from "../controllers/enterpriseInquiry.contro
 import { Router } from "express";
 import {
   getPricingContext,
+  getPublicPlanPrices,
   getSubscription,
   createCustomerPortalSession,
 } from "../controllers/subscription.controller.js";
@@ -13,6 +14,7 @@ const router = Router();
 router.use("/manage", billingLifecycleRouter);
 
 router.get("/pricing-context", getPricingContext);
+router.get("/prices", (req, res) => getPublicPlanPrices(req, res));
 router.post("/enterprise-inquiries", createEnterpriseInquiry);
 router.get("/", verifyOwnerBillingJwt, authorize("ADMIN", "MANAGER"), getSubscription);
 router.post("/portal-session", verifyOwnerBillingJwt, authorize("ADMIN"), createCustomerPortalSession);

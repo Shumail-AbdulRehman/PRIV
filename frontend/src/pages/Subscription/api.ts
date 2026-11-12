@@ -5,7 +5,22 @@ import {
   parseBillingConfirm, parseBillingReconcile,
 } from './onboarding/billingContract';
 import { billingRequest, BILLING_REQUEST_LIMITS } from './onboarding/billingRequest';
-import type { ApiEnvelope, PlanCode, PricingContext, SubscriptionSummary } from './types';
+import type { ApiEnvelope, BillingCatalogEntry, PlanCode, PricingContext, SubscriptionSummary } from './types';
+
+export type PublicPlanPrice = Pick<BillingCatalogEntry, 'plan' | 'interval' | 'amount' | 'currencyCode'>;
+
+export async function getPublicPlanPrices(signal?: AbortSignal): Promise<PublicPlanPrice[]> {
+  const response = await billingRequest(
+    signal => client.get<ApiEnvelope<PublicPlanPrice[]>>('/subscription/prices', { signal }),
+    BILLING_REQUEST_LIMITS.read, signal,
+  );
+  const entries = response.data.data;
+  if (!Array.isArray(entries) || entries.length === 0 || entries.some(entry =>
+    !entry || !['STARTER', 'PRO', 'ADVANCED'].includes(entry.plan) || !['month', 'year'].includes(entry.interval) ||
+    typeof entry.amount !== 'string' || !/^\d+$/.test(entry.amount) || !/^[A-Z]{3}$/.test(entry.currencyCode)
+  )) throw new Error('Plan prices are unavailable');
+  return entries.map(({ plan, interval, amount, currencyCode }) => ({ plan, interval, amount, currencyCode }));
+}
 
 // The shared refresh interceptor checks _retry before replaying a request.
 // Billing mutations must never be replayed, even following a 401 response.
