@@ -5,61 +5,85 @@ colors:
   primary: "#2556d8"
   primary-dark: "#1d42b1"
   selection: "#eef3ff"
-  canvas: "#f8fafc"
+  canvas: "#f5f7fb"
   surface: "#ffffff"
-  ink: "#0f172a"
-  muted: "#475569"
-  line: "#dce4ee"
+  ink: "#172033"
+  muted: "#566379"
+  line: "#e3e8f0"
+  line-strong: "#cfd7e4"
+  soft: "#f8fafc"
+  faint: "#7a879b"
+  rail: "#eef2fb"
+  rail-hover: "#e1e8f6"
+  rail-line: "#d9e1f0"
+  rail-text: "#3d4a60"
+  navy: "#111c36"
+  navy-raised: "#1b2848"
+  navy-line: "#2b3958"
+  navy-text: "#c8d2e5"
+  blue-line: "#c9d8fb"
+  blue-mid: "#5f8bea"
+  neutral-segment: "#c3ccda"
+  attention: "#ffd21f"
+  attention-hover: "#ffdc4d"
+  attention-fill: "#fff7d6"
+  attention-line: "#f1dc8a"
+  bar-track: "#e8ecf3"
   success-ink: "#16613d"
-  success-fill: "#ecf7f0"
+  success-fill: "#e6f5ec"
   warning-ink: "#7b4200"
-  warning-fill: "#fff7e5"
+  warning-fill: "#fff4e0"
   danger-ink: "#a32128"
   danger-fill: "#fff0ef"
   marketing-primary: "#4264d9"
 typography:
   headline:
-    fontFamily: "Inter Variable, Arial, sans-serif"
-    fontSize: "30px"
-    fontWeight: 650
-    lineHeight: 1.3
-    letterSpacing: "-0.035em"
+    fontFamily: "Manrope Variable, sans-serif"
+    fontSize: "28px"
+    fontWeight: 800
+    lineHeight: 1.15
+    letterSpacing: "-0.03em"
   title:
-    fontFamily: "Inter Variable, Arial, sans-serif"
-    fontSize: "19px"
-    fontWeight: 650
-    lineHeight: 1.4
-    letterSpacing: "-0.025em"
+    fontFamily: "Manrope Variable, sans-serif"
+    fontSize: "17px"
+    fontWeight: 750
+    lineHeight: 1.3
+  figure:
+    fontFamily: "Manrope Variable, sans-serif"
+    fontSize: "32px"
+    fontWeight: 800
+    lineHeight: 1.1
   subtitle:
-    fontFamily: "Inter Variable, Arial, sans-serif"
-    fontSize: "15px"
-    fontWeight: 650
-    lineHeight: 1.5
-  body:
-    fontFamily: "Inter Variable, Arial, sans-serif"
+    fontFamily: "Inter Variable, sans-serif"
     fontSize: "15px"
     fontWeight: 400
-    lineHeight: 1.55
+    lineHeight: 1.5
+  body:
+    fontFamily: "Inter Variable, sans-serif"
+    fontSize: "14.5px"
+    fontWeight: 400
+    lineHeight: 1.5
   body-urdu:
     fontFamily: "Noto Sans Arabic, Tahoma, sans-serif"
     fontSize: "15px"
     fontWeight: 400
     lineHeight: 1.85
   label:
-    fontFamily: "Inter Variable, Arial, sans-serif"
-    fontSize: "13px"
-    fontWeight: 400
+    fontFamily: "Inter Variable, sans-serif"
+    fontSize: "14px"
+    fontWeight: 600
     lineHeight: 1.5
   button:
     fontFamily: "Inter Variable, Arial, sans-serif"
     fontSize: "14px"
-    fontWeight: 550
+    fontWeight: 600
     lineHeight: 1.4
 rounded:
-  chip: "5px"
-  nav: "6px"
-  control: "7px"
-  panel: "8px"
+  chip: "999px"
+  small: "6px"
+  nav: "8px"
+  control: "8px"
+  panel: "12px"
   setup-panel: "10px"
   native-control: "12px"
 spacing:
@@ -77,47 +101,47 @@ components:
     typography: "{typography.button}"
     rounded: "{rounded.control}"
     padding: "9px 14px"
-    height: "44px"
+    height: "40px"
   button-outline:
     backgroundColor: "{colors.surface}"
     textColor: "{colors.ink}"
     typography: "{typography.button}"
     rounded: "{rounded.control}"
     padding: "9px 14px"
-    height: "44px"
+    height: "40px"
   field:
     backgroundColor: "{colors.surface}"
     textColor: "{colors.ink}"
     rounded: "{rounded.control}"
-    height: "44px"
+    height: "42px"
   panel:
     backgroundColor: "{colors.surface}"
     textColor: "{colors.ink}"
     rounded: "{rounded.panel}"
   nav-link:
-    textColor: "{colors.ink}"
+    textColor: "{colors.rail-text}"
     rounded: "{rounded.nav}"
-    padding: "10px 13px"
-    height: "46px"
+    padding: "8px 10px"
+    height: "47px"
   nav-link-active:
-    backgroundColor: "{colors.selection}"
+    backgroundColor: "{colors.surface}"
     textColor: "{colors.ink}"
     rounded: "{rounded.nav}"
   status-success:
     backgroundColor: "{colors.success-fill}"
     textColor: "{colors.success-ink}"
     rounded: "{rounded.chip}"
-    padding: "5px 9px"
+    padding: "4px 9px"
   status-warning:
-    backgroundColor: "{colors.warning-fill}"
-    textColor: "{colors.warning-ink}"
+    backgroundColor: "{colors.attention}"
+    textColor: "{colors.ink}"
     rounded: "{rounded.chip}"
-    padding: "5px 9px"
+    padding: "4px 9px"
   status-danger:
     backgroundColor: "{colors.danger-fill}"
     textColor: "{colors.danger-ink}"
     rounded: "{rounded.chip}"
-    padding: "5px 9px"
+    padding: "4px 9px"
 ---
 
 # Design System: Hygene Ops
@@ -126,144 +150,182 @@ components:
 
 **Creative North Star: "The Daily Worksheet"**
 
-Hygene Ops reads like a clear sheet you work down each day. Surfaces are plain and light, ink is strong, and a single blue marks the next action. A manager scanning today's operation and a cleaner with wet hands on a phone should both find the next step without being taught where it is. In the words of `PRODUCT.md`, the product should feel "dependable and calm during repetitive daily work while communicating exceptions and limits without ambiguity."
+Hygene Ops is a calm working register for cleaning companies. Dense, readable
+records sit on a light canvas, with blue actions and submitted-work progress,
+ink attendance, and yellow reserved for matters requiring a person. Flat panels,
+clear status words and tick boxes help owners and managers scan the day's work.
+Submitted, verified and review closed remain separate facts everywhere.
 
-Density is moderate on web, where tables and summaries need to compare locations, and generous on the staff app, where large targets and one instruction at a time matter more. The web workspace uses a 224px sidebar, a topbar of at least 72px and content that stops at 1600px. Spacing follows the scale in the tokens. Layout stacks at 620px on phones, reflows at 900px and shows the permanent sidebar from 1024px. Urdu is a full direction, not a translation layer: use logical properties so every layout mirrors correctly.
+This document records the locally implemented company workspace as of 2026-11-12.
+Its frontmatter describes the workspace's approved tokens, defined in
+`frontend/src/workspace-tokens.css` and detailed in
+`specs-workspace-redesign/DESIGN-SYSTEM.md`. Public pages, authentication,
+onboarding, platform operations and the native staff app retain their own scoped
+systems; these workspace values do not replace their tokens or layouts.
 
-This system rejects "decorative billing pages, generic marketing-style pricing cards inside authenticated workflows, excessive animation, vague feature names, and upgrade prompts that hide the exact limit a user reached."
+The workspace uses a light blue-grey 256px rail, a top bar of at least 72px and
+content capped at 1400px. Page padding is 28px by 32px, becoming 20px by 16px on
+phones. The permanent rail becomes an accessible drawer below 860px. Page grids
+use their own content breakpoints; shared labelled table cards begin below 620px.
+Urdu mirrors the interface through logical layout properties and uses Noto Sans
+Arabic. User-entered names retain their original text.
 
-**Sanctioned brand and onboarding exception:** The approved Hygene Ops checkbox mark uses a blue gradient box, a white tick inside it and a blue-to-cyan tick tip extending beyond the box. Preserve the complete SVG viewBox so the tip stays visible. The account, plan and checkout flow also uses the approved Fresh aurora table (blue, mint, sky and seafoam blooms) and Mint sky side panel. These brand gradients and onboarding colours are deliberate exceptions to the workspace's flat, single-blue rules. Onboarding colours remain scoped to `.flow-shell` in `frontend/src/pages/Onboarding/flow.css`, using only `specs-saas-onboarding/DESIGN-SYSTEM.md` tokens.
+**Sanctioned brand and onboarding exception:** Preserve the complete checkbox
+logo SVG viewBox, including its blue-to-cyan tick tip. The approved Fresh aurora
+background and Mint sky side panel remain scoped to the onboarding flow. Public
+marketing keeps its separate visual system. Neither introduces gradients into
+operational workspace panels.
 
 **Key Characteristics:**
-- Daylight only. The product defines no dark theme.
-- One blue for action. Green, amber and red only describe state.
-- Flat surfaces separated by one-pixel lines.
-- One clear next action per step, with secondary actions in outline or ghost style.
-- Large touch targets that grow with text.
-- Motion confirms a state change and never decorates.
+- Light surfaces with one-pixel rules and moderate operational density.
+- Blue actions and submissions; ink attendance; yellow only for attention.
+- Manrope titles and large figures, Inter body, Noto Sans Arabic for Urdu.
+- Decorative person and location avatars with deterministic name-based tints.
+- Visible keyboard focus, readable status words and 40px minimum phone targets.
+- Static loading skeletons, useful empty states and Retry with saved-record reassurance.
+- Brief interaction feedback; no page-load sequences or animated data.
 
 ## 2. Colors
 
-A restrained palette of cool neutrals with one working blue and three quiet status pairs.
-
 ### Primary
-- **Working Blue** (#2556d8): Primary buttons, links, active icons, focus rings and in-progress status, on web and in the staff app.
-- **Pressed Blue** (#1d42b1): Primary hover and pressed states, and informational text.
-- **Selection Wash** (#eef3ff): The active navigation row, selected options and informational fills.
+- **Working Blue:** Primary actions, submitted work, focus and selected controls.
+- **Pressed Blue:** Hover/pressed actions and text on blue wash.
+- **Selection Wash and Blue Line:** Selected rows and their borders.
+- **Mid Blue and Neutral Segment:** In-progress and not-started work distribution.
 
 ### Neutral
-- **Worksheet Canvas** (#f8fafc): The page behind panels, on web and native.
-- **Sheet White** (#ffffff): Panels, fields, dialogs and the text on primary buttons.
-- **Strong Ink** (#0f172a): Headings, body text and field values.
-- **Quiet Slate** (#475569): Secondary text, metadata and inactive icons.
-- **Rule Line** (#dce4ee): Every border, divider and field outline.
+- **Worksheet Canvas and Sheet White:** Page background and flat panels.
+- **Strong Ink, Quiet Slate and Faint:** Primary text, supporting text and chart references.
+- **Rule Line and Strong Line:** Hairlines and field/control borders.
+- **Rail:** Light blue-grey navigation, with separate hover, line and text colours.
+- **Navy:** Plan/preview surfaces and chart tooltips, with raised, line and text companions.
+- **Bar Track:** Meter tracks and static skeletons.
 
 ### Status
-- **Received Green** (#16613d on #ecf7f0): Received, passed and complete.
-- **Attention Amber** (#7b4200 on #fff7e5): Review, rework and warnings.
-- **Missed Red** (#a32128 on #fff0ef): Missed attendance, overdue work and destructive actions.
+- **Attention Yellow:** Needs a person; yellow wash/line support explanations.
+- **Verified Green:** Complete, verified and on-time facts with a quiet green wash.
+- **Warning Brown:** Secondary warnings on a pale warning wash.
+- **Missed Red:** Errors, missing/unassigned work and over-limit usage, with a pale red wash.
 
-### Public site
-- **Marketing Blue** (#4264d9): The public landing, features and pricing pages only. Keep it out of the authenticated workspace.
+Avatar backgrounds and foregrounds use the six paired tint tokens in the scoped
+workspace stylesheet. Every person/site avatar uses the sum of its name's UTF-16
+code units modulo six. Avatars are decorative and never request media or persist data.
 
 ### Named Rules
-**The One Blue Rule.** Blue means "act here" or "this is selected". Never use it to decorate a heading, a chart background or an empty panel.
+**The Attention Rule.** Yellow means a person needs to act; it is never decoration.
 
-**The Label Always Rule.** Color never carries meaning alone. Every status has words, because reading ability and color vision both vary among staff.
+**The Label Always Rule.** Every status has words. Colour alone never establishes submission, verification or closure.
 
-**The Scoped Token Rule.** Workspace tokens live on `.workspace` and its dialogs, and billing setup has its own scope. Never change a global token to restyle one surface.
+**The Scoped Token Rule.** New workspace styles consume only the closed `--wx-`
+token list. Legacy semantic variables remain for existing shared children,
+authentication and standalone account screens; never change global tokens to
+restyle one screen.
 
 ## 3. Typography
 
-**Body and Heading Font:** Inter Variable (with Arial, sans-serif)
-**Wordmark Font:** Manrope Variable (the product logo only)
-**Urdu Font:** Noto Sans Arabic (with Tahoma, sans-serif)
-
-**Character:** One familiar, legible sans used with weight and size contrast. It stays out of the way of repetitive work, and tabular numerals keep counts aligned.
+**Body Font:** Inter Variable, sans-serif, with tabular numerals.
+**Titles and Figures:** Manrope Variable, sans-serif.
+**Urdu Font:** Noto Sans Arabic, Tahoma, sans-serif.
 
 ### Hierarchy
-- **Headline** (650, 30px, 1.3): The page title, once per page.
-- **Title** (650, 19px, 1.4): Section headings inside a page.
-- **Subtitle** (650, 15px, 1.5): Panel and group headings.
-- **Body** (400, 15px, 1.55): Default text. Paragraphs use 1.6 and stay within 75ch.
-- **Label** (400, 13px, 1.5): Field text and compact metadata. Status chips use 12px at 550.
-- **Button** (550, 14px, 1.4): All button text. It wraps instead of truncating.
+- **Headline:** Manrope page title, weight 800, tight tracking, once per page.
+- **Title:** Manrope panel title, weight 750.
+- **Large figure:** Manrope at 32–34px, weight 800 and 1.1 leading.
+- **Subtitle:** Inter at 15px, regular weight.
+- **Body:** Inter at 14.5px with 1.5 leading.
+- **Label / Button:** Inter at 14px, weight 600.
+- **Small:** 12.5–13.5px, weight 400–600. Status pills use 12.5px at 600.
 
-The staff app uses 16 to 18 logical units for instructions and 52px or taller actions. Native screens use bundled Inter and Noto Sans Arabic.
+The native app retains its separately bundled type and larger controls.
 
 ### Named Rules
-**The Urdu Air Rule.** Urdu runs at 1.85 line height. Never set it at the English line height, and never give it a substitute Arabic-language font stack without Noto Sans Arabic first.
+**The Urdu Air Rule.** Urdu uses 1.85 leading on working text and loses Latin
+tracking. Preserve the Arabic font through portals and dialogs.
 
-**The Original Text Rule.** Keep emails, URLs, currency and IDs left-to-right inside Urdu layouts, and keep user-entered location and task names exactly as entered.
+**The Original Text Rule.** Isolate record names with bdi and keep emails, URLs,
+currency, IDs and native time/password fields left-to-right where appropriate.
 
 ## 4. Elevation
 
-The system is flat. Depth comes from the one-pixel Rule Line and the step between Worksheet Canvas and Sheet White. Panels, buttons and fields have no shadow at rest.
+Panels use a one-pixel rule and no shadow at rest. Side panels, menus and chart
+tooltips may use a soft shadow; location cards may gain a subtle hover shadow.
+Navy surfaces use their own text and line tokens. Avoid nested panel boundaries.
 
-### Shadow Vocabulary
-- **Pressed-in option** (`box-shadow: 0 1px 3px oklch(0.2 0.01 180 / 0.06)`): The selected language in the language switch.
-- **Metric hover** (`box-shadow: 0 2px 8px oklch(0.3 0.02 180 / 0.04)`): A clickable metric on hover only.
-
-### Named Rules
-**The Flat At Rest Rule.** Nothing casts a shadow while idle. If a screen looks like a stack of floating cards, remove the shadows and use a line.
+**The Flat At Rest Rule.** Ordinary records, buttons and fields do not float.
+Use surfaces, borders and spacing to establish hierarchy.
 
 ## 5. Components
 
-Motion across components is limited to color feedback: background changes take 160ms ease-out, button feedback takes 120ms, and any entrance uses `cubic-bezier(.23, 1, .32, 1)`. Reduced-motion preferences turn animation off.
+### Buttons and fields
+Buttons are 40px high with 8px corners; fields are 42px. Both grow with wrapped
+text and retain visible focus. Primary actions use blue; outline actions use
+white with the strong line; ghost actions use muted text. Hover, focus, press,
+disabled, loading and error feedback remain visible. Phone targets are at least
+40px in both dimensions. Paired fields align their labels and controls at the
+top, leaving hints and errors below.
 
-### Buttons
-Direct and unadorned.
-- **Shape:** Gently rounded (7px) on web. Native uses 12px, and 16px on large actions.
-- **Primary:** Working Blue with white text, at least 44px tall with 9px by 14px padding. Native primaries are at least 52px, and large ones 60px.
-- **Hover / Focus:** Hover moves toward Pressed Blue. Focus shows a 3px Working Blue outline.
-- **Outline / Ghost:** Outline uses Sheet White with a Rule Line border. Ghost has no border until hover.
-- **Destructive:** A tinted red fill with red text, never a solid red block.
-- **Disabled:** 55% opacity, always with a nearby explanation of why.
+### Pills, chips and segments
+Status pills carry independent neutral, ok, progress, attention and bad tones.
+Chips are 34px pills and grow to phone targets; selected chips and segmented
+choices fill with ink. Tabs use a two-pixel blue underline and count pill.
 
-### Chips
-- **Style:** Tinted status fill with matching ink, 5px corners and 5px by 9px padding, with no border.
-- **State:** The tone comes from the status. Words are always present.
+### Panels and records
+Small, medium and large corners are 6px, 8px and 12px. Panel padding is 20px by
+22px, with 16px between panels. Tables have soft headers, muted 12.5px labels,
+13px cell padding, soft hover and blue selected rows. Below 620px opt-in labelled
+cards expose every column, sorting and pagination. Row actions preserve nested
+links and keyboard access.
 
-### Cards / Containers
-- **Corner Style:** 8px for operational panels, 10px for billing setup panels.
-- **Background:** Sheet White on Worksheet Canvas.
-- **Shadow Strategy:** None, per The Flat At Rest Rule.
-- **Border:** One-pixel Rule Line.
-- **Internal Padding:** 16 to 24px on web, 20px on native.
+### Navigation and language
+The rail groups Daily operations, Your organization and Administration. Owner
+and manager navigation retain their permission boundaries. Links are 47px with
+15.5px text and 20px icons; on desktops up to 840px tall they compact to 40px,
+14.5px and 18px. The account/sign-out block stays visible. The phone drawer has
+modal semantics, Escape dismissal and focus return. English and اردو remain
+visible in the top bar; the selected workspace language uses an ink pill.
 
-### Inputs / Fields
-- **Style:** Sheet White, one-pixel Rule Line border, 7px corners, at least 44px tall, 13px text inside the workspace.
-- **Focus:** A 3px Working Blue outline.
-- **Error / Disabled:** Errors appear as persistent text beside the field, not by color alone.
+### Side panels and protected photos
+Side panels enter from the inline end at 440px, or 560px for wide forms, and
+fill phone widths. A sticky header/footer surrounds the scrolling body. Dialogs
+are named, focus-trapped and return focus to their opener. Attendance and task
+photos load through their existing protected components only when opened;
+records and overviews do not fetch thumbnails.
 
-### Navigation
-- **Web:** A white 224px sidebar with groups for daily operations, your organization and administration. Rows are at least 46px with 14px text and a quiet icon. The active row uses Selection Wash, weight 650 and a blue icon. Below 1024px the sidebar becomes a dialog with a name, Escape behavior and focus return.
-- **Staff app:** Three bottom tabs: My day, Tasks, Help & account.
+### Identity and progress
+Person avatars are 36px, small 26px and large 64px; location avatars use a rounded
+square. Empty assignments use a dashed outline. Tick boxes carry task progress;
+large totals use a bounded meter. Blue means submitted work, ink means attendance.
+Missing values stay unavailable rather than becoming zero.
 
-### Data Table
-Desktop shows a keyboard-reachable table. Phones show summary rows with visible actions and expandable detail. Reuse the existing table before building another list pattern.
+### Charts, states and motion
+Work submitted is solid blue, attendance ink/dashed and tasks due faint/dashed,
+on one axis. Multiple series have legends; every chart has an accessible summary
+and table view. Data never animates. Initial loading uses static skeletons; empty
+states teach the next step; errors offer Retry and explain that saved records
+have not changed. Background refresh preserves content, drafts and focus.
 
-### Language Switch
-English and اردو stay visible on every primary surface. The chosen language has a raised white pill inside a quiet track.
+Press feedback scales to .97 for 120ms with `cubic-bezier(.23,1,.32,1)`.
+Side panels translate over 280ms with `cubic-bezier(.32,.72,0,1)` and use a 120ms
+fade under reduced motion. Scrims fade over 200ms, inline task panels enter over
+180ms, and phone rails translate over 220ms. Reduced motion suppresses those
+transforms and scrim animation. Hover/selection colour feedback remains 150ms.
 
 ## 6. Do's and Don'ts
 
 ### Do:
-- **Do** use #2556d8 for the single next action on each step, and outline or ghost for everything else.
-- **Do** keep frequent web actions at 44px or taller, phone-width web actions at 48px, and staff primary actions at 52px or taller.
-- **Do** give every status its words, and every blocked action its reason and next step.
-- **Do** use the existing Button, Input, Text, PageHeader, SurfaceCard, OperationStatus and DataTable components before creating a new pattern.
-- **Do** use logical CSS properties so Urdu mirrors without separate layouts.
-- **Do** state allowances, current usage and unavailable capabilities in concrete language.
-- **Do** keep submitted, verified and review-closed visually and verbally separate.
+- **Do** use blue for actions and submitted work, ink for attendance and yellow for attention.
+- **Do** preserve every filter, scope parameter, link, permission rule and separate status fact.
+- **Do** reuse the shared workspace header, controls, table, states, avatars, pills and SidePanel.
+- **Do** translate visible and accessible interface copy through the language provider.
+- **Do** mirror layouts with logical properties and preserve verbatim record data.
+- **Do** keep 40px phone targets, visible focus, Retry and useful disabled guidance.
+- **Do** keep protected photos lazy and unavailable values explicit.
 
 ### Don't:
-- **Don't** build "decorative billing pages" or use "generic marketing-style pricing cards inside authenticated workflows."
-- **Don't** add "excessive animation", or any continuous motion on operational screens.
-- **Don't** use "vague feature names" or "upgrade prompts that hide the exact limit a user reached."
-- **Don't** use a colored side stripe (a left or right border over 1px) on cards, rows or alerts.
-- **Don't** use gradients, gradient text, glass effects or large shadows in the workspace.
-- **Don't** nest panels inside panels, or use a modal when inline content will do.
-- **Don't** compress submission, verification and review closure into one green Complete badge.
-- **Don't** apply marketing patterns or Marketing Blue to workspace screens.
-- **Don't** show a fabricated zero where data is missing; show a dash or "No data".
+- **Don't** add page-load sequences, animated data or continuous operational motion.
+- **Don't** invent sample records, location types or missing aggregate figures.
+- **Don't** merge submitted, verified and review closed into one Complete badge.
+- **Don't** introduce colours outside the approved workspace token list.
+- **Don't** add coloured side stripes, gradients, glass effects or large panel shadows.
+- **Don't** nest panels or replace readable records with decorative cards.
+- **Don't** apply workspace tokens globally to public, onboarding, platform or native surfaces.
