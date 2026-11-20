@@ -13,7 +13,7 @@ export default function LocalOperatorLogin({security=false}:{security?:boolean})
   const [email,setEmail]=useState(''),[password,setPassword]=useState(''),[busy,setBusy]=useState(false),[error,setError]=useState('');
   async function submit(event:FormEvent) {
     event.preventDefault();if(busy)return;setBusy(true);setError('');
-    try {const session=await signInLocalOperator(email,password);setPassword('');client.setQueryData(localSessionKey,{enabled:true,...session});navigate('/platform/companies',{replace:true});}
+    try {const session=await signInLocalOperator(email,password);setPassword('');client.setQueryData(localSessionKey,{enabled:true,...session});navigate('/platform/overview',{replace:true});}
     catch(failure) {setPassword('');const status=(failure as {status?:number}).status;setError(status===429?text('Too many attempts. Try again in 15 minutes.','بہت زیادہ کوششیں ہو چکی ہیں۔ ۱۵ منٹ بعد دوبارہ کوشش کریں۔'):text('Sign-in failed. Check your platform email and password.','داخلہ ناکام ہوا۔ پلیٹ فارم کی ای میل اور پاس ورڈ درست کریں۔'));}
     finally{setBusy(false);}
   }
@@ -23,7 +23,7 @@ export default function LocalOperatorLogin({security=false}:{security?:boolean})
     catch{setError(text('Sign out failed. Try again.','خروج ناکام ہوا۔ دوبارہ کوشش کریں۔'));}
     finally{setBusy(false);}
   }
-  if(query.data?.authenticated&&!security)return <Navigate to="/platform/companies" replace/>;
+  if(query.data?.authenticated&&!security)return <Navigate to="/platform/overview" replace/>;
   return <div className="operator-access"><AuthShell title={text('Platform owner sign-in','پلیٹ فارم مالک کا داخلہ')} subtitle={text('Manage customer companies and platform operations.','کسٹمر کمپنیوں اور پلیٹ فارم کے کاموں کا انتظام کریں۔')} footer={<Link to="/login">{text('Company sign in','کمپنی میں داخلہ')}</Link>}>
     <p className="text-sm text-muted-foreground">{text('Local development access','مقامی ترقیاتی رسائی')}</p>
     {query.isPending?<p role="status">{text('Checking sign-in…','داخلے کی جانچ جاری ہے…')}</p>:query.isError?<div role="alert"><p>{text('Platform access could not be checked.','پلیٹ فارم کی رسائی کی جانچ نہیں ہو سکی۔')}</p><Button variant="outline" onClick={()=>void query.refetch()}>{text('Retry','دوبارہ کوشش')}</Button></div>:query.data?.authenticated?<div className="space-y-4"><p>{text('Signed in as','داخل شدہ اکاؤنٹ')}: <bdi>{query.data.email}</bdi></p><Button asChild variant="outline"><Link to="/platform/companies">{text('Open companies','کمپنیاں کھولیں')}</Link></Button><Button disabled={busy} onClick={()=>void logout()}>{text('Sign out of platform','پلیٹ فارم سے خارج ہوں')}</Button></div>:!query.data?.enabled?<p role="alert">{text('Local platform sign-in is unavailable.','مقامی پلیٹ فارم میں داخلہ دستیاب نہیں۔')}</p>:<form onSubmit={event=>void submit(event)} className="grid gap-4">

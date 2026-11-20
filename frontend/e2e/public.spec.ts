@@ -1,6 +1,7 @@
 import { test, expect } from "@playwright/test";
 import { spawnSync } from "node:child_process";
 import { fileURLToPath } from "node:url";
+const localPlatform = process.env.HYGENE_E2E_LOCAL_PLATFORM === "true";
 for (const path of [
   "/platform/companies",
   "/platform/service",
@@ -10,18 +11,27 @@ for (const path of [
   test(
     "operator browser boundary stays unavailable: " + path,
     async ({ page }) => {
-      let calls = 0;
+      const calls: string[] = [];
       page.on("request", (request) => {
-        if (request.url().includes("/api/platform/")) calls++;
+        const { pathname } = new URL(request.url());
+        if (pathname.startsWith("/api/platform/")) {
+          calls.push(`${request.method()} ${pathname}`);
+        }
       });
       await page.goto(path);
       await expect(
-        page.getByRole("heading", { name: "Platform operator sign-in" }),
+        page.getByRole("heading", {
+          name: localPlatform ? "Platform owner sign-in" : "Platform operator sign-in",
+        }),
       ).toBeVisible();
-      await expect(
-        page.getByRole("button", { name: "Continue with identity provider" }),
-      ).toBeDisabled();
-      expect(calls).toBe(0);
+      const provider = page.getByRole("button", { name: "Continue with identity provider" });
+      if (localPlatform) {
+        await expect(page.getByLabel("Platform email")).toBeVisible();
+        await expect(provider).toHaveCount(0);
+      } else {
+        await expect(provider).toBeDisabled();
+      }
+      expect([...new Set(calls)]).toEqual(localPlatform ? ["GET /api/platform/session"] : []);
     },
   );
 test("actual production bootstrap rejects unsafe config before listener/jobs", () => {

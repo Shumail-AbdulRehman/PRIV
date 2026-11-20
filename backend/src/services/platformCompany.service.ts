@@ -2,16 +2,22 @@ import type { Prisma } from '@prisma/client';
 import { z } from 'zod';
 import { prisma } from '../prisma/prisma.js';
 import { ApiError } from '../utils/ApiError.js';
-import { configuredPlanForPrice, requireBillingActivation } from '../config/paddle.js';
+import { configuredPlanForPrice, getPaddleCatalog, requireBillingActivation } from '../config/paddle.js';
 import { evaluateAccountAccess } from './accountAccess.service.js';
 import { writeAuditLog } from './auditLog.service.js';
+import { getPublicBillingCatalog } from './billingCatalog.service.js';
 import type { OperatorPrincipal } from './operatorIdentity.service.js';
+import type { Money, PlatformCompanyListItemAdditions } from './platformInsights/contract.js';
+import { monthlyValue, planLimits, subscriptionState } from './platformInsights/rules.js';
+import { getCompanyLastActiveAt, getCompanyTaskCounts } from './platformInsights/usageMetrics.js';
 
 type Db = typeof prisma;
 const integer = z.number().int().min(1).max(2147483647);
 const query = z.object({
     q: z.string().trim().max(100).optional(),
     status: z.enum(['ACTIVE', 'SUSPENDED']).optional(),
+    plan: z.enum(['STARTER', 'PRO', 'ADVANCED']).optional(),
+    subscription: z.enum(['ACTIVE', 'PAST_DUE', 'SCHEDULED_CANCEL', 'CANCELLED', 'NONE']).optional(),
     after: z.string().regex(/^[1-9]\d{0,9}$/).transform(Number).pipe(integer).optional(),
     limit: z.string().regex(/^[1-9]\d?$/).transform(Number).pipe(z.number().max(50)).optional(),
 }).strict();
@@ -46,17 +52,94 @@ function companyId(raw: unknown) {
 }
 const conflict = () => new ApiError(409, 'Company account changed. Reload before trying again.');
 
+const listSelect = { ...companySelect, billingCustomerId: true, billingSubscriptionId: true } satisfies Prisma.CompanySelect;
+const mirrorSelect = {
+    id: true, companyId: true, customerId: true, status: true, scheduledChangeAction: true, priceId: true,
+} satisfies Prisma.PaddleSubscriptionSelect;
+type ListCompany = Prisma.CompanyGetPayload<{ select: typeof listSelect }>;
+type ListMirror = Prisma.PaddleSubscriptionGetPayload<{ select: typeof mirrorSelect }>;
+
+async function readListMirrors(db: Db, companies: ListCompany[]) {
+    const ids = companies.flatMap(company => company.billingCustomerId && company.billingSubscriptionId ? [company.billingSubscriptionId] : []);
+    const mirrors = ids.length ? await db.paddleSubscription.findMany({ where: { id: { in: ids } }, select: mirrorSelect }) : [];
+    return new Map(mirrors.map(mirror => [mirror.id, mirror]));
+}
+
+async function readMonthlyPrices(priceIds: string[]): Promise<Map<string, Money | null>> {
+    if (!priceIds.length) return new Map();
+    try {
+        const configured = getPaddleCatalog().filter(entry => priceIds.includes(entry.priceId));
+        if (!configured.length) return new Map();
+        const entries = await getPublicBillingCatalog();
+        return new Map(configured.map(({ priceId, plan, interval }) => [
+            priceId, monthlyValue(entries.find(entry => entry.plan === plan && entry.interval === interval)),
+        ]));
+    } catch {
+        return new Map();
+    }
+}
+
 export async function listPlatformCompanies(actor: OperatorPrincipal, raw: unknown = {}, db: Db = prisma) {
     operator(actor);
     const parsed = query.safeParse(raw);
     if (!parsed.success) throw new ApiError(400, 'Invalid company filters');
-    const { q, status, after, limit = 25 } = parsed.data;
-    const rows = await db.company.findMany({ where: {
+    const { q, status, plan, subscription: filter, after, limit = 25 } = parsed.data;
+    const where: Prisma.CompanyWhereInput = {
         ...(q ? { name: { contains: q, mode: 'insensitive' as const } } : {}),
-        ...(status ? { operationalStatus: status } : {}), ...(after ? { id: { gt: after } } : {}),
-    }, select: companySelect, orderBy: { id: 'asc' }, take: limit + 1 });
-    const more = rows.length > limit, page = rows.slice(0, limit);
-    return { items: page.map(summary), nextCursor: more ? String(page.at(-1)!.id) : null };
+        ...(status ? { operationalStatus: status } : {}), ...(plan ? { plan } : {}),
+    };
+    const matches: { company: ListCompany; subscription: PlatformCompanyListItemAdditions['subscription']; mirror?: ListMirror }[] = [];
+    // Classify linked mirrors with the shared rule before counting rows toward the page.
+    const batchSize = filter ? 100 : limit + 1;
+    let cursor = after;
+    let hasMore = false;
+    while (matches.length <= limit) {
+        const rows: ListCompany[] = await db.company.findMany({
+            where: { ...where, ...(cursor ? { id: { gt: cursor } } : {}) },
+            select: listSelect, orderBy: { id: 'asc' }, take: batchSize,
+        });
+        const candidates = filter ? rows : rows.slice(0, limit);
+        const mirrors = await readListMirrors(db, candidates);
+        for (const company of candidates) {
+            const candidate = mirrors.get(company.billingSubscriptionId ?? '');
+            const mirror = candidate?.companyId === company.id && candidate.customerId === company.billingCustomerId
+                ? candidate : undefined;
+            const subscription = subscriptionState(company, mirror);
+            if (!filter || subscription === filter) matches.push({ company, subscription, mirror });
+            if (matches.length > limit) break;
+        }
+        if (!filter || matches.length > limit) {
+            hasMore = filter ? matches.length > limit : rows.length > limit;
+            break;
+        }
+        if (rows.length < batchSize) break;
+        cursor = rows.at(-1)!.id;
+    }
+
+    const page = matches.slice(0, limit);
+    if (!page.length) return { items: [], nextCursor: null };
+    const ids = page.map(({ company }) => company.id);
+    const asOf = new Date();
+    const [owners, prices, activity, lastActive] = await Promise.all([
+        db.manager.findMany({
+            where: { companyId: { in: ids }, role: 'ADMIN', isActive: true },
+            orderBy: { id: 'asc' }, distinct: ['companyId'],
+            select: { companyId: true, name: true, email: true },
+        }),
+        readMonthlyPrices(page.flatMap(({ mirror }) => mirror ? [mirror.priceId] : [])),
+        getCompanyTaskCounts(actor, ids, 14, db, asOf),
+        getCompanyLastActiveAt(actor, ids, db, asOf),
+    ]);
+    const ownerByCompany = new Map(owners.map(({ companyId, name, email }) => [companyId, { name, email }]));
+    const items = page.map(({ company, subscription, mirror }): ReturnType<typeof summary> & PlatformCompanyListItemAdditions => ({
+        ...summary(company), subscription,
+        monthly: mirror ? prices.get(mirror.priceId) ?? null : null,
+        owner: ownerByCompany.get(company.id) ?? null,
+        limits: planLimits(company.plan),
+        lastActiveAt: lastActive.get(company.id) ?? null,
+        activity14: activity.get(company.id)!,
+    }));
+    return { items, nextCursor: hasMore ? String(page.at(-1)!.company.id) : null };
 }
 
 export async function getPlatformCompany(actor: OperatorPrincipal, rawId: unknown, db: Db = prisma) {
