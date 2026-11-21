@@ -28,7 +28,7 @@ type SmsSenderDependencies = {
 };
 
 export function buildSmsMessage(code: string): string {
-    return `Hygene Ops code: ${code}. Valid 5 minutes. Do not share it.`;
+    return `Hygene Ops ${code}`;
 }
 
 function unavailable(category: SmsFailureCategory, status?: number): never {

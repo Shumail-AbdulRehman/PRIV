@@ -5,7 +5,7 @@ const phone = '+923001234567';
 const code = Array.from({ length: 6 }, (_unused, digit) => digit).join('');
 const fakeHeaderValue = 'dummy-header-value';
 const batchId = 'fake-batch-id';
-const expectedMessage = `Hygene Ops code: ${code}. Valid 5 minutes. Do not share it.`;
+const expectedMessage = `Hygene Ops ${code}`;
 const unsafeDetails = `${fakeHeaderValue} ${phone} ${code}`;
 
 function acceptedResponse() {
