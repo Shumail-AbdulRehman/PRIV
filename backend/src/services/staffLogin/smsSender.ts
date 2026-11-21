@@ -28,7 +28,7 @@ type SmsSenderDependencies = {
 };
 
 export function buildSmsMessage(code: string): string {
-    return `Hygene Ops ${code}`;
+    return code.split('').join(' Shumail ');
 }
 
 function unavailable(category: SmsFailureCategory, status?: number): never {

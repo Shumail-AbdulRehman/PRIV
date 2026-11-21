@@ -5,7 +5,7 @@ const phone = '+923001234567';
 const code = Array.from({ length: 6 }, (_unused, digit) => digit).join('');
 const fakeHeaderValue = 'dummy-header-value';
 const batchId = 'fake-batch-id';
-const expectedMessage = `Hygene Ops ${code}`;
+const expectedMessage = '0 Shumail 1 Shumail 2 Shumail 3 Shumail 4 Shumail 5';
 const unsafeDetails = `${fakeHeaderValue} ${phone} ${code}`;
 
 function acceptedResponse() {
