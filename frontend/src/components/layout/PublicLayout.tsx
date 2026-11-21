@@ -1,6 +1,7 @@
 import { Link, Outlet, useLocation } from "react-router-dom";
 import { useEffect } from "react";
 import { PublicNavbar } from "./PublicNavbar";
+import { SocialLinks } from "./SocialLinks";
 import BrandLogo from "@/components/common/BrandLogo";
 
 export function PublicLayout() {
@@ -40,6 +41,7 @@ export function PublicLayout() {
               <Link to="/login">Log in</Link>
               <Link to="/signup">Create an account</Link>
             </nav>
+            <SocialLinks />
           </div>
           <p className="hx-footer-fine">
             © {new Date().getFullYear()} Hygene Ops. Made for cleaning companies
