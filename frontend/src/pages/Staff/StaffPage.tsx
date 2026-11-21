@@ -78,7 +78,7 @@ function TeamDirectory() {
   const staff = (staffQuery.data?.data ?? []) as StaffMember[];
   const locations = (locationsQuery.data?.data ?? []) as LocationOption[];
   const locMap = new Map(locations.map(location => [location.id, location]));
-  const filtered = staff.filter(person => `${person.name} ${person.email} ${person.phone ?? ''}`.toLocaleLowerCase().includes(search.trim().toLocaleLowerCase())
+  const filtered = staff.filter(person => `${person.name} ${person.email ?? ''} ${person.phone ?? ''}`.toLocaleLowerCase().includes(search.trim().toLocaleLowerCase())
     && (locationFilter === 'all' || (locationFilter === 'unassigned' ? person.locationId == null : person.locationId === Number(locationFilter)))
     && (accountFilter === 'all' || person.isActive === (accountFilter === 'active')));
   const timezone = (person: StaffMember) => locMap.get(person.locationId ?? -1)?.timezone ?? 'UTC';
@@ -93,7 +93,7 @@ function TeamDirectory() {
   const add = <button type="button" className="wx-team-button wx-team-primary" onClick={() => setDialogOpen(true)} disabled={!canCreate}><Plus size={16} aria-hidden="true" />{t('Add team member')}</button>;
   const columns: Column<StaffMember>[] = [
     { key: 'name', header: 'Team member', sortValue: person => person.name, render: person => <div className="wx-team-identity"><PersonAvatar name={person.name} /><Link to={`/staff/${person.id}`}><bdi>{person.name}</bdi></Link></div> },
-    { key: 'contact', header: 'Contact', render: person => <div className="wx-team-contact"><bdi dir="ltr">{person.phone || '—'}</bdi><small><bdi dir="ltr">{person.email}</bdi></small></div> },
+    { key: 'contact', header: 'Contact', render: person => <div className="wx-team-contact"><bdi dir="ltr">{person.phone || '—'}</bdi><small>{person.email ? <bdi dir="ltr">{person.email}</bdi> : t('No email')}</small></div> },
     { key: 'location', header: 'Location & shift', sortValue: person => locMap.get(person.locationId ?? -1)?.name ?? '', render: person => {
       const site = locMap.get(person.locationId ?? -1);
       const name = person.locationId == null ? t('Unassigned') : site?.name ?? `#${person.locationId}`;

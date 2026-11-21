@@ -120,7 +120,7 @@ function StaffProfile({ id }: { id: string }) {
           </div>
           <div className="wx-profile-meta">
             <span><Phone size={15} aria-hidden="true" /><span className="wx-profile-sr">{t('Phone Number')}: </span><bdi dir="ltr">{staff.phone || '—'}</bdi></span>
-            <span><Mail size={15} aria-hidden="true" /><bdi dir="ltr">{staff.email}</bdi></span>
+            <span><Mail size={15} aria-hidden="true" />{staff.email ? <bdi dir="ltr">{staff.email}</bdi> : t('No email')}</span>
           </div>
         </div>
       </div>

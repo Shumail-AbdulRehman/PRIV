@@ -137,8 +137,8 @@ model Staff {
   credentialTokens   CredentialToken[]       @relation("StaffCredentialTokens")
   id                 Int                     @id @default(autoincrement())
   name               String
-  email              String                  @unique
-  phone              String?
+  email              String?                 @unique
+  phone              String?                 @unique
   password           String
   role               Role                    @default(STAFF)
   isActive           Boolean                 @default(true)
@@ -157,6 +157,7 @@ model Staff {
   areaSubmissions    TaskAreaSubmission[]
   notifications      StaffNotification[]
   pushDevices        StaffPushDevice[]
+  loginCodes         StaffLoginCode[]
   createdAt          DateTime                @default(now())
   updatedAt          DateTime                @updatedAt
 
@@ -164,6 +165,23 @@ model Staff {
   @@index([locationId])
   @@index([isActive])
   @@unique([id, companyId])
+}
+
+model StaffLoginCode {
+  id         Int       @id @default(autoincrement())
+  staffId    Int
+  companyId  Int
+  staff      Staff     @relation(fields: [staffId, companyId], references: [id, companyId], onDelete: Cascade)
+  phone      String
+  codeHash   String    @db.Char(64)
+  attempts   Int       @default(0)
+  expiresAt  DateTime
+  consumedAt DateTime?
+  createdAt  DateTime  @default(now())
+
+  @@index([phone, createdAt])
+  @@index([createdAt])
+  @@index([staffId])
 }
 
 model Location {

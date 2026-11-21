@@ -4,8 +4,10 @@ import { operationalLog } from '../utils/operationalLog.js';
 
 const LOGIN_WINDOW_MS = 15 * 60_000;
 const SIGNUP_WINDOW_MS = 60 * 60_000;
+const STAFF_CODE_WINDOW_MS = 15 * 60_000;
 type Bucket = { until: number; count: number };
 type Rule = { key: string; limit: number; windowMs: number };
+type Area = 'login' | 'signup' | 'staffCodeRequest' | 'staffCodeVerify';
 
 /** Limits are per process: the app runs on one dyno today. No shared store. */
 export function createAuthRateLimit(deps: {
@@ -54,19 +56,29 @@ export function createAuthRateLimit(deps: {
         return retryAfter;
     }
 
-    function middleware(area: 'login' | 'signup'): RequestHandler {
+    function rulesFor(area: Area, ip: string, email: unknown): Rule[] {
+        switch (area) {
+            case 'signup':
+                return [{ key: key('signup', ip), limit: 10, windowMs: SIGNUP_WINDOW_MS }];
+            case 'login':
+                return [
+                    { key: key('login', ip), limit: 50, windowMs: LOGIN_WINDOW_MS },
+                    { key: key('login-email', ip, typeof email === 'string'
+                        ? email.trim().toLowerCase() : ''), limit: 10, windowMs: LOGIN_WINDOW_MS },
+                ];
+            case 'staffCodeRequest':
+                return [{ key: key('staffCode', 'request', ip), limit: 20, windowMs: STAFF_CODE_WINDOW_MS }];
+            case 'staffCodeVerify':
+                return [{ key: key('staffCode', 'verify', ip), limit: 30, windowMs: STAFF_CODE_WINDOW_MS }];
+        }
+    }
+
+    function middleware(area: Area): RequestHandler {
         return (req, res, next) => {
             // req.ip is resolved by Express's configured trusted-proxy policy.
             // Never read X-Forwarded-For directly; unknown IPs share one bucket.
             const ip = req.ip ?? 'unknown';
-            const rules: Rule[] = area === 'signup'
-                ? [{ key: key('signup', ip), limit: 10, windowMs: SIGNUP_WINDOW_MS }]
-                : [
-                    { key: key('login', ip), limit: 50, windowMs: LOGIN_WINDOW_MS },
-                    { key: key('login-email', ip, typeof req.body?.email === 'string'
-                        ? req.body.email.trim().toLowerCase() : ''), limit: 10, windowMs: LOGIN_WINDOW_MS },
-                ];
-            const retryAfter = consume(rules, now());
+            const retryAfter = consume(rulesFor(area, ip, req.body?.email), now());
             if (!retryAfter) { next(); return; }
             log({ event: 'AUTH_RATE_LIMITED', status: 429 }, { level: 'warn' });
             res.setHeader('Retry-After', String(retryAfter));
@@ -77,6 +89,8 @@ export function createAuthRateLimit(deps: {
     return {
         login: middleware('login'),
         signup: middleware('signup'),
+        staffCodeRequest: middleware('staffCodeRequest'),
+        staffCodeVerify: middleware('staffCodeVerify'),
         /** Bounded aggregate only, for diagnostics; keys are never exposed. */
         get keyCount() { return buckets.size; },
     };

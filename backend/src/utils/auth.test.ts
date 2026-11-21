@@ -7,6 +7,10 @@ beforeEach(() => {
 });
 afterEach(() => vi.unstubAllEnvs());
 describe("tenant JWT contracts", () => {
+  it("signs a staff access token with a null email", () => {
+    const token = generateAccessToken({ id: 1, email: null, name: "Test" }, "STAFF");
+    expect(verifySessionToken(token, "access")).toMatchObject({ id: 1, email: null, role: "STAFF" });
+  });
   it.each(["ADMIN", "MANAGER", "STAFF"] as const)("issues distinct same-second refresh tokens for %s", role => {
     const first = generateRefreshToken({ id: 1 }, role), second = generateRefreshToken({ id: 1 }, role);
     expect(first).not.toBe(second);

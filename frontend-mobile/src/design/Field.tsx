@@ -1,12 +1,12 @@
 import * as React from 'react';
-import { Pressable, StyleSheet, TextInput, View, type TextInputProps } from 'react-native';
+import { Platform, Pressable, StyleSheet, TextInput, View, type TextInputProps } from 'react-native';
 import { NativeFontsReady, fontFor } from '../fonts';
 import { useLanguage } from '../i18n/LanguageProvider';
 import { Icon } from '../components/ui/icon';
 import { StaffText } from './StaffText';
 import { colors, radius, space, tokens } from './tokens';
 
-export type FieldKind = 'email' | 'password' | 'code' | 'url' | 'text';
+export type FieldKind = 'email' | 'password' | 'code' | 'url' | 'text' | 'phone' | 'otp';
 
 export interface FieldProps {
   /** English key. */
@@ -28,6 +28,18 @@ export interface FieldProps {
 }
 
 const secretKinds: ReadonlySet<FieldKind> = new Set<FieldKind>(['password', 'code']);
+const keyboards: Partial<Record<FieldKind, TextInputProps['keyboardType']>> = {
+  email: 'email-address',
+  url: 'url',
+  phone: 'phone-pad',
+  otp: 'number-pad',
+};
+const autofill: Partial<Record<FieldKind, Pick<TextInputProps, 'autoComplete' | 'textContentType'>>> = {
+  phone: Platform.OS === 'ios' ? { textContentType: 'telephoneNumber' } : { autoComplete: 'tel' },
+  otp: Platform.OS === 'ios' ? { textContentType: 'oneTimeCode' } : {
+    autoComplete: Platform.OS === 'android' ? 'sms-otp' : 'one-time-code',
+  },
+};
 
 /** One large labelled text box with an optional show-password button and an inline error. */
 export function Field({
@@ -82,9 +94,10 @@ export function Field({
           onSubmitEditing={onSubmitEditing}
           autoCapitalize="none"
           autoCorrect={false}
-          keyboardType={kind === 'email' ? 'email-address' : kind === 'url' ? 'url' : 'default'}
+          keyboardType={keyboards[kind] ?? 'default'}
+          {...autofill[kind]}
           secureTextEntry={hidden}
-          maxLength={maxLength ?? (secret ? 128 : undefined)}
+          maxLength={kind === 'otp' ? Math.min(maxLength ?? 6, 6) : maxLength ?? (secret ? 128 : undefined)}
           allowFontScaling
           style={[
             styles.input,
@@ -94,7 +107,7 @@ export function Field({
               lineHeight: inputType.lineHeight,
               color: colors.ink,
               writingDirection: 'ltr',
-              textAlign: isRTL ? 'right' : 'left',
+              textAlign: isRTL && kind !== 'phone' && kind !== 'otp' ? 'right' : 'left',
             },
           ]}
         />

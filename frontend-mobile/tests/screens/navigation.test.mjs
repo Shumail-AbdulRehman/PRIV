@@ -38,7 +38,6 @@ function TasksProbe() {
 
 installMocks({
   'react-native': {
-    KeyboardAvoidingView: 'KeyboardAvoidingView',
     useWindowDimensions: () => ({ width: 360, height: 700, scale: 1, fontScale: state.fontScale }),
     AccessibilityInfo: {
       announceForAccessibility() {}, isScreenReaderEnabled: async () => false,
@@ -54,7 +53,6 @@ installMocks({
   '/i18n/LanguageProvider': { useLanguage },
   '/auth/AuthContext': { useAuth: () => state.auth },
   '/queries/staff': { useTodaysTasksQuery: () => ({ data: [], counts: undefined }) },
-  '/launchApi': { replaceOwnPassword: async () => {}, completeStaffHandoff: async () => {} },
   '/screens/HomeScreen': { HomeScreen: probe('Shift') },
   '/screens/TasksScreen': { TasksScreen: TasksProbe },
   '/screens/profile/ProfileScreen': { ProfileScreen: probe('Profile') },
@@ -63,7 +61,6 @@ installMocks({
   '/screens/HelpScreen': { HelpScreen: probe('HelpGuide') },
   '/screens/LoginScreen': { LoginScreen: probe('Login') },
   '/screens/StartTaskScreen': { StartTaskScreen: probe('StartTask') },
-  '/screens/profile/ChangePasswordScreen': { ChangePasswordScreen: probe('ChangePassword') },
   '/screens/profile/TaskAlertsScreen': { TaskAlertsScreen: probe('TaskAlerts') },
   '/screens/task/TaskDetailScreen': { TaskDetailScreen: probe('TaskDetail') },
   '/screens/verification/SpatialDiagnosticScreen': { SpatialDiagnosticScreen: probe('SpatialDiagnostic') },
@@ -161,11 +158,11 @@ test('tab bar style: white bar with a top hairline, active blueDeep on a blueWas
 test('signed in, the stack declares the tabs and every Part 1 screen; new screens hide the navigator header', async () => {
   const r = await render(h(AppNavigator));
   const declared = names(r, 'Stack');
-  assert.deepEqual(declared, ['StaffTabs', 'TaskDetail', 'HelpGuide', 'TaskAlerts', 'ChangePassword', 'HistoryTask', 'Verification', 'StartTask']);
+  assert.deepEqual(declared, ['StaffTabs', 'TaskDetail', 'HelpGuide', 'TaskAlerts', 'HistoryTask', 'Verification', 'StartTask']);
   assert.ok(!declared.includes('Login'));
   assert.ok(!declared.includes('SpatialDiagnostic'), 'diagnostic only in dev builds');
   const byName = Object.fromEntries(screens(r, 'Stack').map(n => [n.props.name, n.props]));
-  for (const name of ['StaffTabs', 'TaskDetail', 'HelpGuide', 'TaskAlerts', 'ChangePassword']) {
+  for (const name of ['StaffTabs', 'TaskDetail', 'HelpGuide', 'TaskAlerts']) {
     assert.equal(byName[name].options.headerShown, false, name);
   }
   assert.deepEqual(byName.Verification.initialParams, { requirePhotoQr: true });
@@ -219,17 +216,16 @@ test('session restore shows the mark, "Loading your day" and one spinner, in Eng
   assert.ok(allText(r).includes(translate('Loading your day', 'ur')));
 });
 
-test('forced password change shows the replacement form (not the access code) and Sign out, without the app', async () => {
+test('a legacy session shows only the sign-in notice and Sign out, without the app', async () => {
   state.auth = { ...state.auth, passwordChangeRequired: true };
   const r = await render(h(AppNavigator));
   const text = allText(r);
-  assert.ok(text.includes('Change password'), 'heading');
-  assert.ok(text.includes('Replace your password'), 'replacement form');
-  assert.ok(text.includes('Current password'));
-  assert.ok(!text.includes('Access code'), 'not the manager handoff');
+  assert.ok(text.includes('Sign in again'), 'heading');
+  assert.ok(text.includes('Your sign-in has changed. Sign out, then sign in with your phone number and a new code.'));
+  assert.doesNotMatch(text, /password|access code/i);
   assert.ok(!text.includes('Back to sign in'));
   assert.equal(r.root.findAll(n => n.type === 'StackNavigator').length, 0);
-  assert.equal(r.root.findAll(n => n.type === 'KeyboardAvoidingView').length, 1);
+  assert.equal(r.root.findAll(n => n.type === 'TextInput').length, 0);
   assert.equal(r.root.findAll(n => n.type === 'ScrollView').length, 1);
   assert.equal(findPressable(r, 'Back'), undefined, 'no back button');
 
@@ -237,12 +233,13 @@ test('forced password change shows the replacement form (not the access code) an
   assert.equal(state.logouts, 1);
 });
 
-test('forced password change in Urdu: translated heading and Sign out, heading row right to left', async () => {
+test('the legacy session notice translates into Urdu with a right-to-left heading row', async () => {
   setLanguage('ur');
   state.auth = { ...state.auth, passwordChangeRequired: true };
   const r = await render(h(AppNavigator));
   const text = allText(r);
-  assert.ok(text.includes(translate('Change password', 'ur')));
+  assert.ok(text.includes('دوبارہ سائن ان کریں'));
+  assert.ok(text.includes('آپ کا سائن ان بدل گیا ہے۔ سائن آؤٹ کریں، پھر اپنے فون نمبر اور نئے کوڈ سے سائن ان کریں۔'));
   assert.ok(text.includes(translate('Sign out', 'ur')));
   const heading = r.root.findAll(n => n.type === 'View' && StyleSheet.flatten(n.props.style)?.height === 56)[0];
   assert.equal(StyleSheet.flatten(heading.props.style).flexDirection, 'row-reverse');

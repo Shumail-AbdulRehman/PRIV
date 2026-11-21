@@ -22,7 +22,7 @@ vi.mock('../Location/queries',()=>({useGetLocations:()=>m.locations}));
 vi.mock('./StaffPerformanceIssues',()=>({default:()=>null}));
 vi.mock('@/pages/Attendance/AttendanceContext',()=>({default:()=>null}));
 vi.mock('@/components/common/ProtectedAttendancePhoto',()=>({default:()=>null}));
-const person={id:7,name:'Fixture worker',email:'worker@example.invalid',phone:'123456789',isActive:true,locationId:20,shiftStart:'1970-01-01T04:00:00Z',shiftEnd:'1970-01-01T12:00:00Z'};
+const person={id:7,name:'Fixture worker',email:'worker@example.invalid',phone:'03001234567',isActive:true,locationId:20,shiftStart:'1970-01-01T04:00:00Z',shiftEnd:'1970-01-01T12:00:00Z'};
 const site={id:20,name:'Assigned site',timezone:'Asia/Karachi',isActive:true};
 function Path(){return <output aria-label="Current route">{useLocation().pathname+useLocation().search}</output>;}
 function mount(node:React.ReactNode,role:AuthUser['role']='ADMIN',path='/staff',language='en'){
@@ -84,10 +84,10 @@ it('loading and failed site lookup never present fabricated empty or zero-count 
 it('staff edit preserves draft on conflict and submits contact fields without unsafe site change',async()=>{
  m.edit.mockRejectedValueOnce({response:{status:409,data:{message:'private internal detail'}}});
  mount(<StaffEditDialog person={person} timezone={site.timezone} onClose={()=>{}}/>);
- fireEvent.change(screen.getByLabelText('Name'),{target:{value:'Edited worker'}});
+ fireEvent.change(screen.getByLabelText('Full Name'),{target:{value:'Edited worker'}});
  fireEvent.click(screen.getByRole('button',{name:'Save changes'}));
  expect(await screen.findByRole('alert')).toHaveTextContent('Your draft is kept');
- expect(screen.getByLabelText('Name')).toHaveValue('Edited worker');
+ expect(screen.getByLabelText('Full Name')).toHaveValue('Edited worker');
  expect(screen.queryByText('private internal detail')).not.toBeInTheDocument();
  expect(m.edit).toHaveBeenCalledWith({id:7,data:{name:'Edited worker'}});
 });
@@ -95,11 +95,11 @@ it('switching person clears old draft and a late save cannot close the new perso
  let finish!:(value:unknown)=>void;m.edit.mockReturnValue(new Promise(resolve=>{finish=resolve;}));
  const saved=vi.fn(),close=vi.fn();
  const view=mount(<StaffEditDialog person={person} timezone={site.timezone} onClose={close} onSaved={saved}/>);
- fireEvent.change(screen.getByLabelText('Name'),{target:{value:'Old draft'}});
+ fireEvent.change(screen.getByLabelText('Full Name'),{target:{value:'Old draft'}});
  fireEvent.click(screen.getByRole('button',{name:'Save changes'}));
  const next={...person,id:9,name:'Next worker'};
  view.rerenderNode(<StaffEditDialog person={next} timezone={site.timezone} onClose={close} onSaved={saved}/>);
- expect(screen.getByLabelText('Name')).toHaveValue('Next worker');
+ expect(screen.getByLabelText('Full Name')).toHaveValue('Next worker');
  await act(async()=>finish({}));
  expect(saved).not.toHaveBeenCalled();expect(close).not.toHaveBeenCalled();
  expect(m.edit).toHaveBeenCalledWith({id:7,data:{name:'Old draft'}});
@@ -107,10 +107,10 @@ it('switching person clears old draft and a late save cannot close the new perso
 it('switching principal clears staff edit draft and ignores old-principal feedback',async()=>{
  let finish!:(value:unknown)=>void;m.edit.mockReturnValue(new Promise(resolve=>{finish=resolve;}));
  const saved=vi.fn(),close=vi.fn();const view=mount(<StaffEditDialog person={person} timezone={site.timezone} onClose={close} onSaved={saved}/>);
- fireEvent.change(screen.getByLabelText('Name'),{target:{value:'Prior account draft'}});
+ fireEvent.change(screen.getByLabelText('Full Name'),{target:{value:'Prior account draft'}});
  fireEvent.click(screen.getByRole('button',{name:'Save changes'}));
  act(()=>view.store.dispatch(setUser({id:88,companyId:99,role:'ADMIN',name:'Different owner',email:'other@example.invalid'})));
- expect(screen.getByLabelText('Name')).toHaveValue(person.name);
+ expect(screen.getByLabelText('Full Name')).toHaveValue(person.name);
  await act(async()=>finish({}));expect(saved).not.toHaveBeenCalled();expect(close).not.toHaveBeenCalled();
 });
 it('detail rejects invalid date range without replacing the applied API filters',()=>{
@@ -137,13 +137,13 @@ it('Urdu directory and detail sections translate while preserving user identity 
  expect(screen.getByText('اس دورانیے میں حاضری کا کوئی ریکارڈ نہیں۔')).toBeInTheDocument();
 });
 
-it('inline hiring changes scope without retaining a prior site password or draft',()=>{
+it('inline hiring clears its draft when the site changes',()=>{
  const onOpenChange=vi.fn();const view=mount(<StaffCreateDialog open inline location={site} locations={[site]} onOpenChange={onOpenChange}/>);
  fireEvent.change(screen.getByLabelText('Full Name'),{target:{value:'Old site draft'}});
- fireEvent.change(screen.getByLabelText('Password'),{target:{value:'private old draft'}});
+ fireEvent.change(screen.getByLabelText('Phone Number'),{target:{value:'03007654321'}});
  const next={...site,id:30,name:'New site'};
  view.rerenderNode(<StaffCreateDialog open inline location={next} locations={[site,next]} onOpenChange={onOpenChange}/>);
- expect(screen.getByLabelText('Full Name')).toHaveValue('');expect(screen.getByLabelText('Password')).toHaveValue('');
+ expect(screen.getByLabelText('Full Name')).toHaveValue('');expect(screen.getByLabelText('Phone Number')).toHaveValue('');expect(screen.queryByLabelText('Password')).not.toBeInTheDocument();
  expect(screen.getByRole('combobox',{name:/^Location$/})).toHaveValue('30');
  expect(m.create).not.toHaveBeenCalled();
 });

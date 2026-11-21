@@ -25,8 +25,13 @@ export async function changeApiServerAddress(input: string): Promise<string> {
 const isFormData = (value: unknown): value is FormData =>
   typeof FormData !== "undefined" && value instanceof FormData;
 
+export const staffSignInPaths = {
+  request: '/common/staff-login/request-code',
+  verify: '/common/staff-login/verify-code',
+} as const;
+
 const isLoginRequest = (url?: string) =>
-  ['/staff/staff-login', '/common/security/handoff/complete'].some(path => url?.split('?')[0].replace(/\/+$/, '').endsWith(path) === true);
+  Object.values(staffSignInPaths).some(path => url?.split('?')[0].replace(/\/+$/, '').endsWith(path) === true);
 
 const setHeader = (
   config: InternalAxiosRequestConfig,

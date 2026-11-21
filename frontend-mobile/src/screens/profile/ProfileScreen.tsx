@@ -119,11 +119,11 @@ export function ProfileScreen({ companyName, topSlot, workSlot }: ProfileScreenP
   const summaryFailed = !summaryLoading && !summary.data;
   const [confirming, setConfirming] = React.useState(false);
 
-  const details = profile.data ?? null;
+  const details = profile.data ?? (summary.data ? { ...summary.data, createdAt: summary.data.joinedAt } : null);
   const loading = profile.isPending && !details;
   const failed = !loading && !details;
   const name = details?.name ?? user?.name ?? '';
-  const email = details?.email ?? user?.email ?? '';
+  const email = details ? details.email : user?.email;
   const company = companyName ?? summary.data?.company.name;
   const dir = { flexDirection: isRTL ? 'row-reverse' : 'row' } as const;
 
@@ -169,7 +169,7 @@ export function ProfileScreen({ companyName, topSlot, workSlot }: ProfileScreenP
                 </DetailRow>
               ) : null}
               <DetailRow icon="Mail" label="Email">
-                <Value text={email} />
+                {email ? <Value text={email} /> : <StaffText role="rowTitle" color="muted">No email</StaffText>}
               </DetailRow>
               {details ? (
                 <>
@@ -213,7 +213,6 @@ export function ProfileScreen({ companyName, topSlot, workSlot }: ProfileScreenP
             <LanguageToggle appearance="onWhite" />
           </View>
           <LinkRow icon="Bell" label="Task alerts" onPress={() => navigation.navigate(stackRoutes.taskAlerts)} />
-          <LinkRow icon="KeyRound" label="Change password" onPress={() => navigation.navigate(stackRoutes.changePassword)} />
           <LinkRow icon="CircleQuestionMark" label="Help" onPress={() => navigation.navigate(stackRoutes.helpGuide)} />
           <PressRow label="Sign out" onPress={() => setConfirming(true)}>
             <Icon name="LogOut" size={22} color={colors.bad} />
@@ -233,7 +232,7 @@ export function ProfileScreen({ companyName, topSlot, workSlot }: ProfileScreenP
       <ConfirmDialog
         visible={confirming}
         title="Sign out of this phone?"
-        body="You will need your email and password to sign in again."
+        body="You will need your phone number and a new code to sign in again."
         confirmLabel="Sign out"
         destructive
         onCancel={() => setConfirming(false)}

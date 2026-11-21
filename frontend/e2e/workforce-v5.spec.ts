@@ -67,7 +67,8 @@ test('V5 access forms and actual open-shift conflict preserve reason and destina
     const page = await context.newPage();
     await enter(page, `/staff/${fixture.staff.openShift.id}`, 'ownerA', lang);
     const dialog = await access(page, lang); const select = dialog.getByRole('combobox').first();
-    for (const action of ['deactivate', 'archive', 'transfer', 'handoff']) {
+    await expect(select.getByRole('option', { name: copy('Sign out of all devices', lang), exact: true })).toBeAttached();
+    for (const action of ['deactivate', 'archive', 'transfer', 'signOut']) {
       await select.selectOption(action); await capture(page, `app-access-${action}-${width}-${lang}`);
     }
     await select.selectOption('transfer');
@@ -106,16 +107,21 @@ test('Team search location and manager boundaries use actual API reads', async (
   await capture(page, 'app-detail-foreign-denied-1366-en');
 });
 
-test('V5 hire edit and manager forms render empty credentials and actual scoped sites', async ({ browser }) => {
+test('V5 staff and manager forms render the current fields and actual scoped sites', async ({ browser }) => {
   test.setTimeout(150000);
   for (const width of [1366, 390]) for (const lang of ['en', 'ur']) {
     const context = await browser.newContext({ viewport: { width, height: 900 } }); const page = await context.newPage();
     await enter(page, '/staff?create=1', 'managerA', lang);
-    await expect(page.getByLabel(ui('Full Name'), { exact: true })).toBeVisible(); await capture(page, `app-team-hire-${width}-${lang}`);
+    await expect(page.getByLabel(ui('Full Name'), { exact: true })).toBeVisible();
+    await expect(page.getByLabel(ui('Phone Number'), { exact: true })).toHaveValue('');
+    await expect(page.getByLabel(ui('Email (optional)'), { exact: true })).toHaveValue('');
+    await expect(page.getByLabel(ui('Password'), { exact: true })).toHaveCount(0);
+    await capture(page, `app-team-hire-${width}-${lang}`);
     await page.getByRole('dialog').getByRole('button', { name: new RegExp('^' + copy('Location', lang) + ':') }).click();await expect(page.getByRole('menuitemradio', {name:'E2E site B',exact:true})).toHaveCount(0);await page.keyboard.press('Escape');
     await page.goto(`/staff/${fixture.staff.transfer.id}`);
     await page.getByRole('button', { name: lang === 'ur' ? 'ترمیم کریں' : 'Edit', exact: true }).click();
-    await expect(page.getByLabel(ui('Name'), { exact: true })).toBeVisible(); await capture(page, `app-staff-edit-${width}-${lang}`);
+    await expect(page.getByRole('dialog').getByLabel(ui('Full Name'), { exact: true })).toHaveValue('E2E staff transfer');
+    await capture(page, `app-staff-edit-${width}-${lang}`);
     await page.goto('/managers'); await expect(page).toHaveURL(/\/dashboard(?:[?#]|$)/);
     await enter(page, '/managers', 'ownerA', lang);
     const row = page.getByRole('row').filter({ hasText: 'E2E manager A' });
@@ -155,22 +161,25 @@ test('V5 Team loading and network error recover using actual forwarded reads', a
 
 test('V5 inline hire and detail edit persist through reload without changing assigned location', async ({ page }) => {
   await enter(page, '/staff?create=1', 'ownerB');
-  await page.getByLabel(ui('Full Name'), { exact: true }).fill('V5 newly hired staff'); await page.getByLabel(ui('Email'), { exact: true }).fill('v5-hired@example.invalid');
-  await page.getByLabel(ui('Phone Number'), { exact: true }).fill('+923001234567'); await page.getByLabel(ui('Password'), { exact: true }).fill(fixture.password);
+  await page.getByLabel(ui('Full Name'), { exact: true }).fill('Newly Hired Worker'); await page.getByLabel(ui('Email (optional)'), { exact: true }).fill('v5-hired@example.invalid');
+  await page.getByLabel(ui('Phone Number'), { exact: true }).fill('+923001234567');
   await choose(page, 'Location (optional)', 'E2E site foreign');
   await page.getByLabel(ui('Shift Start'), { exact: true }).fill('09:00'); await page.getByLabel(ui('Shift End'), { exact: true }).fill('17:00');
   const created = page.waitForResponse(r => r.url().endsWith('/staff/create-staff') && r.request().method() === 'POST');
   await page.getByRole('button', { name: 'Create staff', exact: true }).click(); expect((await created).status()).toBe(201);
+  await expect(page.getByRole('dialog')).toHaveCount(0);
+  await page.reload();
+  await expect(exactPerson(page, 'Newly Hired Worker')).toBeVisible();
   const record = await sql('SELECT id,"locationId" FROM "Staff" WHERE email=$1', ['v5-hired@example.invalid']);
   expect(record).toHaveLength(1); expect(record[0].locationId).toBe(fixture.site.foreign);
-  await page.goto(`/staff/${record[0].id}`); await expect(page.getByRole('heading', { name: 'V5 newly hired staff', exact: true })).toBeVisible();
+  await page.goto(`/staff/${record[0].id}`); await expect(page.getByRole('heading', { name: 'Newly Hired Worker', exact: true })).toBeVisible();
   await page.getByRole('button', { name: 'Edit', exact: true }).click(); const dialog = page.getByRole('dialog');
-  await dialog.getByLabel(ui('Name'), { exact: true }).fill('V5 persisted staff edit'); await dialog.getByLabel(ui('Phone Number'), { exact: true }).fill('+923007654321');
+  await dialog.getByLabel(ui('Full Name'), { exact: true }).fill('Renamed Worker'); await dialog.getByLabel(ui('Phone Number'), { exact: true }).fill('+923007654321');
   const edited = page.waitForResponse(r => r.url().endsWith(`/staff/${record[0].id}`) && r.request().method() === 'PATCH');
   await dialog.getByRole('button', { name: 'Save changes', exact: true }).click(); expect((await edited).status()).toBe(200);
   await expect(dialog).not.toBeVisible(); await page.reload();
-  await expect(page.getByRole('heading', { name: 'V5 persisted staff edit', exact: true })).toBeVisible();
-  expect((await sql('SELECT name,phone,"locationId" FROM "Staff" WHERE id=$1', [record[0].id]))[0]).toMatchObject({ name: 'V5 persisted staff edit', phone: '+923007654321', locationId: fixture.site.foreign });
+  await expect(page.getByRole('heading', { name: 'Renamed Worker', exact: true })).toBeVisible();
+  expect((await sql('SELECT name,phone,"locationId" FROM "Staff" WHERE id=$1', [record[0].id]))[0]).toMatchObject({ name: 'Renamed Worker', phone: '+923007654321', locationId: fixture.site.foreign });
 });
 
 test('V5 real empty workforce differs from filtered no matches', async ({ browser }) => {
@@ -188,10 +197,9 @@ test('V5 real empty workforce differs from filtered no matches', async ({ browse
 
 test('actual exhausted plan rejects a hire without losing the form or inserting staff', async ({ page }) => {
   await enter(page, '/staff?create=1');
-  await page.getByLabel(ui('Full Name'), { exact: true }).fill('V5 over-capacity hire');
-  await page.getByLabel(ui('Email'), { exact: true }).fill('v5-capacity-denied@example.invalid');
+  await page.getByLabel(ui('Full Name'), { exact: true }).fill('Over Capacity Worker');
+  await page.getByLabel(ui('Email (optional)'), { exact: true }).fill('v5-capacity-denied@example.invalid');
   await page.getByLabel(ui('Phone Number'), { exact: true }).fill('+923001234567');
-  await page.getByLabel(ui('Password'), { exact: true }).fill(fixture.password);
   await choose(page, 'Location (optional)', 'E2E site A');
   await page.getByLabel(ui('Shift Start'), { exact: true }).fill('09:00');
   await page.getByLabel(ui('Shift End'), { exact: true }).fill('17:00');
@@ -199,10 +207,8 @@ test('actual exhausted plan rejects a hire without losing the form or inserting 
   await page.getByRole('button', { name: 'Create staff', exact: true }).click();
   expect((await response).status()).toBe(403);
   await expect(page.getByRole('alert')).toContainText('capacity has been reached');
-  await expect(page.getByLabel(ui('Full Name'), { exact: true })).toHaveValue('V5 over-capacity hire');
+  await expect(page.getByLabel(ui('Full Name'), { exact: true })).toHaveValue('Over Capacity Worker');
   expect(await sql('SELECT id FROM "Staff" WHERE email=$1', ['v5-capacity-denied@example.invalid'])).toHaveLength(0);
-  // Evidence intentionally clears the secret field; all non-secret draft remains.
-  await page.getByLabel(ui('Password'), { exact: true }).fill('');
   await capture(page, 'app-hire-capacity-denied-1366-en');
 });
 
@@ -215,7 +221,7 @@ test('hiring validation exposes associated errors in English Urdu without sendin
     await enter(page, '/staff?create=1', 'ownerA', lang);
     await page.getByRole('button', { name: lang === 'ur' ? 'عملہ شامل کریں' : 'Create staff', exact: true }).click();
     await expect(page.getByLabel(ui('Full Name'), { exact: true })).toHaveAttribute('aria-invalid', 'true');
-    await expect(page.getByLabel(ui('Full Name'), { exact: true })).toHaveAccessibleDescription(lang === 'ur' ? 'نام ضروری ہے' : 'Name is required');
+    await expect(page.getByLabel(ui('Full Name'), { exact: true })).toHaveAccessibleDescription(copy('Full name is required.', lang));
     await capture(page, `app-hire-validation-${width}-${lang}`);
     await page.goto('/managers');
     await page.getByRole('button', { name: lang === 'ur' ? 'مینیجر شامل کریں' : 'Add manager', exact: true }).click();

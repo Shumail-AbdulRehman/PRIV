@@ -2,7 +2,6 @@ import { accountAccess } from '../middlewares/accountAccess.middleware.js';
 import { getStaffSelfProfile } from "../controllers/staffSelf.controller.js";
 import { Router } from "express";
 import {
-  loginStaff,
   createStaff,
   getStaff,
   deleteStaff,
@@ -13,10 +12,15 @@ import {
 } from "../controllers/staff.controller.js";
 import { verifyJwt } from "../middlewares/auth.middleware.js";
 import authorize from "../middlewares/authorize.middleware.js";
+import { ApiError } from "../utils/ApiError.js";
 
 const router = Router();
 
-router.post("/staff-login", loginStaff);
+router.post("/staff-login", () => {
+  throw new ApiError(410, "Update the Hygene Ops app to sign in with your phone number.", [
+    { code: "APP_UPDATE_REQUIRED" },
+  ]);
+});
 router.post(
   "/create-staff",
   verifyJwt,

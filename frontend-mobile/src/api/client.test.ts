@@ -2,7 +2,7 @@ import assert from "node:assert/strict";
 import test from "node:test";
 import axios, { AxiosError, AxiosHeaders } from "axios";
 import AsyncStorage from '@react-native-async-storage/async-storage';
-import { client, configureApiAuth, configureNativeAppVersion } from "./client";
+import { client, configureApiAuth, configureNativeAppVersion, staffSignInPaths } from "./client";
 import { uploadFormData } from "./client";
 import { changeApiServerAddress, refreshApiTokens } from './client';
 import { validateServerAddress } from './serverAddress';
@@ -41,7 +41,7 @@ test('a saved server address drives login, ordinary requests, refresh and upload
   try {
     const address = await changeApiServerAddress('http://10.54.199.4:8080/api');
     assert.equal(address, 'http://10.54.199.4:8080/api');
-    await client.post('/staff/staff-login',{});
+    await client.post(staffSignInPaths.request, {});
     await client.get('/common/get-current-user');
     await refreshApiTokens();
     await uploadFormData('/capture-session/test/attempts',()=>new FormData());
@@ -88,14 +88,14 @@ test('native version reaches session requests and uploads consistently, includin
   }
 });
 
-test("login rejection preserves the server error without refreshing a session", async () => {
+test("phone sign-in requests stay public and preserve errors without refreshing a session", async () => {
   const savedAdapter = client.defaults.adapter;
   const savedPost = axios.post;
   let refreshCalls = 0;
   let accessToken: string | null = null;
   configureApiAuth({
     getScope: () => null,
-    getTokens: async () => ({ accessToken, refreshToken: null }),
+    getTokens: async () => ({ accessToken, refreshToken: "stale-refresh-token" }),
     setTokens: async () => { throw new Error("Login must not refresh tokens"); },
     clearSession: async () => { throw new Error("Login must not clear a session"); },
   });
@@ -107,16 +107,18 @@ test("login rejection preserves the server error without refreshing a session", 
     assert.equal(AxiosHeaders.from(config.headers).get("Authorization"), undefined);
     throw new AxiosError("Request failed with status code 401", "ERR_BAD_REQUEST", config, {}, {
       status: 401, statusText: "Unauthorized", config,
-      headers: {}, data: { message: "Invalid email or password" },
+      headers: {}, data: { message: "Sign-in request rejected" },
     });
   };
   try {
     for (const token of [null, "stale-access-token"]) {
       accessToken = token;
-      for (const path of ['/staff/staff-login', '/common/security/handoff/complete']) await assert.rejects(client.post(path, {}), error => {
+      for (const path of Object.values(staffSignInPaths)) await assert.rejects(client.post(path, {}, {
+        headers: { Authorization: "Bearer explicit-stale-token" },
+      }), error => {
         assert.ok(axios.isAxiosError(error));
         assert.equal(error.response?.status, 401);
-        assert.equal(error.response?.data.message, "Invalid email or password");
+        assert.equal(error.response?.data.message, "Sign-in request rejected");
         return true;
       });
     }

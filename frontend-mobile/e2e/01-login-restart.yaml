@@ -4,13 +4,15 @@ name: Staff session survives app restart on an approved physical test device
 - launchApp:
     clearState: false
 - assertVisible: "Staff sign in"
-- tapOn: "Email"
-- inputText: ${E2E_EMAIL}
-- tapOn: "Password"
-- inputText: ${E2E_PASSWORD}
+- tapOn: "Phone number"
+- inputText: ${E2E_PHONE}
 - hideKeyboard
-- tapOn: "Sign in"
-- assertVisible: "My day"
+- tapOn: "Send code"
+- tapOn: "6-digit code"
+# Enter the received code and tap Sign in by hand while Maestro waits.
+- extendedWaitUntil:
+    visible: "My day"
+    timeout: 120000
 - stopApp
 - launchApp:
     clearState: false

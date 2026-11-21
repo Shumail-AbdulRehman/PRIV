@@ -1,4 +1,4 @@
-export type TaskWorker = { id?: number; name: string; email?: string };
+export type TaskWorker = { id?: number; name: string; email?: string | null };
 export type WorkerAssignment = {
   id?: number;
   staffId?: number;

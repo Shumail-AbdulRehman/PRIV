@@ -1,30 +1,44 @@
 import { beforeEach, describe, expect, it, vi } from "vitest";
-const mock = vi.hoisted(() => ({ transaction: vi.fn(), raw: vi.fn(), managerFind: vi.fn(), staffFind: vi.fn(), managerUpdate: vi.fn(), staffUpdate: vi.fn(), push: vi.fn(), tokens: vi.fn(), createToken: vi.fn(), count: vi.fn(), token: vi.fn(), password: vi.fn(), audit: vi.fn(), location: vi.fn() }));
+import { ApiError } from "../utils/ApiError.js";
+const mock = vi.hoisted(() => ({ transaction: vi.fn(), raw: vi.fn(), managerFind: vi.fn(), staffFind: vi.fn(), managerUpdate: vi.fn(), staffUpdate: vi.fn(), push: vi.fn(), tokens: vi.fn(), password: vi.fn(), audit: vi.fn(), location: vi.fn() }));
 vi.mock("../prisma/prisma.js", () => ({ prisma: { $transaction: mock.transaction } }));
 vi.mock("../utils/auth.js", () => ({ isPasswordCorrect: mock.password }));
 vi.mock("./auditLog.service.js", () => ({ writeAuditLog: mock.audit }));
 vi.mock("./verification-v2/authorization.service.js", () => ({ requireLocationAccess: mock.location }));
-import { changeOwnPassword, issueStaffHandoff, completeStaffHandoff, credentialTokenHash } from "./credentialHandoff.service.js";
+import { changeOwnPassword, signOutStaffEverywhere } from "./credentialHandoff.service.js";
 const actor = { id: 1, companyId: 42, role: "ADMIN" as const };
-const tx = { $queryRaw: mock.raw, manager: { findFirst: mock.managerFind, update: mock.managerUpdate }, staff: { findFirst: mock.staffFind, update: mock.staffUpdate }, staffPushDevice: { updateMany: mock.push }, credentialToken: { updateMany: mock.tokens, create: mock.createToken, count: mock.count, findUnique: mock.token } };
-const now = new Date("2026-10-20T12:00:00Z");
-const rawToken = "t".repeat(43);
+const manager = { id: 2, companyId: 42, role: "MANAGER" as const };
+const staff = { id: 7, companyId: 42, role: "STAFF", isActive: true, locationId: 20 };
+const tx = {
+  $queryRaw: mock.raw,
+  manager: { findFirst: mock.managerFind, update: mock.managerUpdate },
+  staff: { findFirst: mock.staffFind, update: mock.staffUpdate },
+  staffPushDevice: { updateMany: mock.push },
+  credentialToken: { updateMany: mock.tokens },
+};
 beforeEach(() => {
   vi.resetAllMocks(); mock.transaction.mockImplementation(async work => work(tx));
   mock.managerFind.mockResolvedValue({ id: 1, companyId: 42, password: "stored-hash", role: "ADMIN" });
-  mock.staffFind.mockResolvedValue({ id: 7, companyId: 42, password: "stored-hash", locationId: 20, mustChangePassword: true });
+  mock.staffFind.mockResolvedValue(staff);
   mock.password.mockImplementation(async plain => plain === "correct-current" || plain === "same-password");
-  mock.count.mockResolvedValue(0); mock.tokens.mockResolvedValue({ count: 1 }); mock.raw.mockResolvedValue([]); mock.location.mockResolvedValue({});
-  mock.token.mockResolvedValue({ id: "token-id", staffId: 7, companyId: 42, purpose: "STAFF_ACCESS_HANDOFF", consumedAt: null, expiresAt: new Date(+now+60_000) });
+  mock.tokens.mockResolvedValue({ count: 1 }); mock.raw.mockResolvedValue([]); mock.location.mockResolvedValue({});
 });
 describe("self password change", () => {
-  it.each(["ADMIN", "MANAGER", "STAFF"] as const)("requires current password and revokes %s credentials without leaking them to audit", async role => {
-    const principal = { ...actor, role, id: role === "STAFF" ? 7 : 1 };
+  it.each(["ADMIN", "MANAGER"] as const)("requires current password and revokes %s credentials without leaking them to audit", async role => {
+    const principal = { ...actor, role };
     expect(await changeOwnPassword(principal, { currentPassword: "correct-current", newPassword: "new-test-password" })).toEqual({ passwordChanged: true, signInRequired: true });
-    expect(role === "STAFF" ? mock.staffUpdate : mock.managerUpdate).toHaveBeenCalledWith({ where: { id: principal.id }, data: { password: "new-test-password", refreshToken: null, credentialVersion: { increment: 1 }, mustChangePassword: false } });
-    expect(mock.push).toHaveBeenCalledTimes(role === "STAFF" ? 1 : 0);
+    expect(mock.managerUpdate).toHaveBeenCalledWith({ where: { id: principal.id }, data: { password: "new-test-password", refreshToken: null, credentialVersion: { increment: 1 }, mustChangePassword: false } });
+    expect(mock.push).not.toHaveBeenCalled();
     expect(JSON.stringify(mock.audit.mock.calls)).not.toContain("new-test-password"); expect(JSON.stringify(mock.audit.mock.calls)).not.toContain("correct-current");
   });
+  it("refuses staff password changes before reading or locking anything", async () => {
+    await expect(changeOwnPassword({ ...actor, id: staff.id, role: "STAFF" }, undefined)).rejects.toMatchObject({
+      statusCode: 403, message: "Staff sign in with their phone number.", errors: [{ code: "STAFF_PASSWORDS_RETIRED" }],
+    });
+    expect(mock.transaction).not.toHaveBeenCalled();
+    expect(mock.password).not.toHaveBeenCalled();
+  });
+
   it("denies wrong current password or changed tenant/role before any writes", async () => {
     await expect(changeOwnPassword(actor, { currentPassword: "wrong", newPassword: "new-test-password" })).rejects.toMatchObject({ statusCode: 403 });
     mock.managerFind.mockResolvedValue(null);
@@ -38,57 +52,100 @@ describe("self password change", () => {
     expect(mock.managerUpdate).not.toHaveBeenCalled();
   });
 });
-describe("assisted staff access handoff", () => {
-  it("persists only a one-use token hash, invalidates former password/sessions and returns the code once", async () => {
-    const result = await issueStaffHandoff(actor, 7, { currentPassword: "correct-current", reason: "Worker requested access recovery" }, undefined, now);
-    expect(result.token).toMatch(/^[A-Za-z0-9_-]{43}$/); expect(result.expiresAt).toEqual(new Date(+now+30*60_000));
-    expect(mock.createToken).toHaveBeenCalledWith({ data: { tokenHash: credentialTokenHash(result.token), companyId: 42, staffId: 7, purpose: "STAFF_ACCESS_HANDOFF", expiresAt: result.expiresAt } });
-    expect(JSON.stringify(mock.createToken.mock.calls)).not.toContain(result.token); expect(JSON.stringify(mock.audit.mock.calls)).not.toContain(result.token);
-    const changed = mock.staffUpdate.mock.calls[0]![0].data;
-    expect(changed).toMatchObject({ refreshToken: null, credentialVersion: { increment: 1 }, mustChangePassword: true });
-    expect(changed.password).not.toBe(result.token); expect(changed.password).not.toBe("correct-current"); expect(mock.push).toHaveBeenCalledOnce();
+
+describe("staff sign-out everywhere", () => {
+  const reason = "Phone reported lost";
+
+  it("locks the staff row and revokes sessions and push devices with a trimmed audit reason", async () => {
+    expect(await signOutStaffEverywhere(actor, staff.id, { reason: `  ${reason}  ` })).toEqual({ signedOut: true });
+    expect(mock.transaction).toHaveBeenCalledOnce();
+    expect(mock.raw).toHaveBeenCalledWith(expect.arrayContaining(['SELECT id FROM "Staff" WHERE id=', ' FOR UPDATE']), staff.id);
+    expect(mock.raw.mock.invocationCallOrder[0]).toBeLessThan(mock.staffFind.mock.invocationCallOrder[0]!);
+    expect(mock.staffFind).toHaveBeenCalledWith({
+      where: { id: staff.id, companyId: actor.companyId, role: "STAFF", isActive: true, company: { isActive: true } },
+      select: { locationId: true },
+    });
+    expect(mock.staffUpdate).toHaveBeenCalledWith({
+      where: { id: staff.id }, data: { credentialVersion: { increment: 1 }, refreshToken: null },
+    });
+    expect(mock.push).toHaveBeenCalledWith({
+      where: { staffId: staff.id, companyId: actor.companyId }, data: { enabled: false },
+    });
+    expect(mock.audit).toHaveBeenCalledWith({
+      companyId: actor.companyId, actorType: "ADMIN", actorId: actor.id, entityType: "STAFF", entityId: staff.id,
+      action: "STAFF_SIGNED_OUT_EVERYWHERE", reason, newValue: { sessionsRevoked: true },
+    }, tx);
+    expect(mock.location).not.toHaveBeenCalled();
+    expect(mock.password).not.toHaveBeenCalled();
   });
-  it("checks the issuer's own current password and manager's current site scope", async () => {
-    await issueStaffHandoff({ ...actor, role: "MANAGER" }, 7, { currentPassword: "correct-current", reason: "Reset requested" }, undefined, now);
-    expect(mock.managerFind).toHaveBeenCalledWith({ where: { id: 1, companyId: 42, role: "MANAGER", isActive: true, company: { isActive: true, operationalStatus: "ACTIVE" } } });
-    expect(mock.location).toHaveBeenCalledWith({ ...actor, role: "MANAGER" }, 20, tx);
+
+  it("allows an assigned manager after checking location access in the transaction", async () => {
+    expect(await signOutStaffEverywhere(manager, staff.id, { reason })).toEqual({ signedOut: true });
+    expect(mock.location).toHaveBeenCalledWith(manager, staff.locationId, tx);
+    expect(mock.location.mock.invocationCallOrder[0]).toBeLessThan(mock.staffUpdate.mock.invocationCallOrder[0]!);
+    expect(mock.audit).toHaveBeenCalledWith(expect.objectContaining({ actorType: "MANAGER", actorId: manager.id }), tx);
   });
-  it("denies cross-tenant/staff/owner targeting and sibling-site reset without changing credentials", async () => {
-    await expect(issueStaffHandoff({ ...actor, role: "STAFF" }, 7, { currentPassword: "correct-current", reason: "x" })).rejects.toMatchObject({ statusCode: 403 });
-    mock.staffFind.mockResolvedValueOnce(null);
-    await expect(issueStaffHandoff(actor, 99, { currentPassword: "correct-current", reason: "x" })).rejects.toMatchObject({ statusCode: 404 });
-    mock.location.mockRejectedValue({ statusCode: 403 });
-    await expect(issueStaffHandoff({ ...actor, role: "MANAGER" }, 7, { currentPassword: "correct-current", reason: "x" })).rejects.toMatchObject({ statusCode: 403 });
-    expect(mock.staffUpdate).not.toHaveBeenCalled(); expect(mock.createToken).not.toHaveBeenCalled();
+
+  it.each([
+    new ApiError(403, "Location access denied"),
+    new ApiError(404, "Location not found"),
+  ])("returns an indistinguishable 404 for manager scope denial: %s", async error => {
+    mock.location.mockRejectedValueOnce(error);
+    await expect(signOutStaffEverywhere(manager, staff.id, { reason })).rejects.toMatchObject({
+      statusCode: 404, message: "Staff account not found",
+    });
+    expect(mock.staffUpdate).not.toHaveBeenCalled();
+    expect(mock.push).not.toHaveBeenCalled();
+    expect(mock.audit).not.toHaveBeenCalled();
   });
-  it("bounds repeated issued handoffs before invalidating the current credentials", async () => {
-    mock.count.mockResolvedValue(3);
-    await expect(issueStaffHandoff(actor, 7, { currentPassword: "correct-current", reason: "x" }, undefined, now)).rejects.toMatchObject({ statusCode: 429 });
-    expect(mock.staffUpdate).not.toHaveBeenCalled(); expect(mock.createToken).not.toHaveBeenCalled();
-  });
-});
-describe("one-use handoff completion", () => {
-  it("consumes a live correct-purpose token and sets the required new password with revocation", async () => {
-    expect(await completeStaffHandoff({ token: rawToken, newPassword: "replacement-password" }, undefined, now)).toEqual({ passwordChanged: true, signInRequired: true });
-    expect(mock.token).toHaveBeenCalledWith(expect.objectContaining({ where: { tokenHash: credentialTokenHash(rawToken) } }));
-    expect(mock.tokens).toHaveBeenCalledWith({ where: { id: "token-id", consumedAt: null, expiresAt: { gt: now } }, data: { consumedAt: now } });
-    expect(mock.staffUpdate).toHaveBeenCalledWith({ where: { id: 7 }, data: { password: "replacement-password", mustChangePassword: false, credentialVersion: { increment: 1 }, refreshToken: null } });
-    expect(JSON.stringify(mock.audit.mock.calls)).not.toContain(rawToken);
-  });
-  it.each([{ consumedAt: now }, { expiresAt: now }, { purpose: "RESET_OWNER_PASSWORD" }, { staffId: null }])("denies used/expired/wrong-purpose/wrong-target token %j", async extra => {
-    mock.token.mockResolvedValue({ id: "token-id", staffId: 7, companyId: 42, purpose: "STAFF_ACCESS_HANDOFF", consumedAt: null, expiresAt: new Date(+now+60_000), ...extra });
-    await expect(completeStaffHandoff({ token: rawToken, newPassword: "replacement-password" }, undefined, now)).rejects.toMatchObject({ statusCode: 400 });
+
+  it("propagates unexpected authorization failures before writing", async () => {
+    const error = new Error("Location lookup failed");
+    mock.location.mockRejectedValueOnce(error);
+    await expect(signOutStaffEverywhere(manager, staff.id, { reason })).rejects.toBe(error);
     expect(mock.staffUpdate).not.toHaveBeenCalled();
   });
-  it("rejects a changed/deactivated target and never accepts caller-selected identity", async () => {
-    mock.staffFind.mockResolvedValue(null);
-    await expect(completeStaffHandoff({ token: rawToken, newPassword: "replacement-password" }, undefined, now)).rejects.toMatchObject({ statusCode: 400 });
-    await expect(completeStaffHandoff({ token: rawToken, newPassword: "replacement-password", staffId: 99 }, undefined, now)).rejects.toMatchObject({ statusCode: 400 });
+
+  it("treats staff with no site as out of scope for a manager", async () => {
+    mock.staffFind.mockResolvedValueOnce({ ...staff, locationId: null });
+    await expect(signOutStaffEverywhere(manager, staff.id, { reason })).rejects.toMatchObject({
+      statusCode: 404, message: "Staff account not found",
+    });
+    expect(mock.location).not.toHaveBeenCalled();
     expect(mock.staffUpdate).not.toHaveBeenCalled();
   });
-  it("has one credential-changing winner under competing consumption requests", async () => {
-    let used = false; mock.tokens.mockImplementation(async () => { if (used) return { count: 0 }; used = true; return { count: 1 }; });
-    const outcomes = await Promise.allSettled([completeStaffHandoff({ token: rawToken, newPassword: "replacement-password" }, undefined, now), completeStaffHandoff({ token: rawToken, newPassword: "replacement-password" }, undefined, now)]);
-    expect(outcomes.filter(r => r.status === "fulfilled")).toHaveLength(1); expect(mock.staffUpdate).toHaveBeenCalledTimes(1);
+
+  it.each([
+    ["missing", { ...staff, id: 8 }],
+    ["inactive", { ...staff, isActive: false }],
+    ["other-company", { ...staff, companyId: 43 }],
+  ] as const)("does not revoke sessions for %s staff", async (_label, row) => {
+    mock.staffFind.mockImplementationOnce(async ({ where }) => (
+      row.id === where.id && row.companyId === where.companyId && row.isActive === where.isActive ? row : null
+    ));
+    await expect(signOutStaffEverywhere(actor, staff.id, { reason })).rejects.toMatchObject({
+      statusCode: 404, message: "Staff account not found",
+    });
+    expect(mock.staffUpdate).not.toHaveBeenCalled();
+  });
+
+  it("rejects a staff actor before any transaction", async () => {
+    await expect(signOutStaffEverywhere({ ...actor, role: "STAFF" }, staff.id, { reason })).rejects.toMatchObject({ statusCode: 403 });
+    expect(mock.transaction).not.toHaveBeenCalled();
+  });
+
+  it.each([
+    ["blank reason", { reason: " 	 " }],
+    ["missing reason", {}],
+    ["long reason", { reason: "x".repeat(1001) }],
+    ["unknown key", { reason, companyId: 43 }],
+  ] as const)("rejects %s before any transaction", async (_label, body) => {
+    await expect(signOutStaffEverywhere(actor, staff.id, body)).rejects.toMatchObject({ statusCode: 400 });
+    expect(mock.transaction).not.toHaveBeenCalled();
+  });
+
+  it("rejects an invalid staff identifier before any transaction", async () => {
+    await expect(signOutStaffEverywhere(actor, 0, { reason })).rejects.toMatchObject({ statusCode: 400 });
+    expect(mock.transaction).not.toHaveBeenCalled();
   });
 });

@@ -1,8 +1,9 @@
-import { at, button, expect, tab, test, words } from './support/test';
+import { at, button, expect, tab, test, ur, words } from './support/test';
 import { fixture, ok } from './support/api';
 
-// Profile: details, settings rows and sign out (specs 37, 48); Task alerts, Help and Change password
-// open from it and return (specs 38, 39, 40); This month and My work sections (specs 44, 51).
+test.afterEach(async ({ page }) => {
+  await expect(page.getByText(/Request failed with status code/i)).toHaveCount(0);
+});
 
 async function openProfile({ page, open }: { page: import('@playwright/test').Page; open: (o?: { now?: string }) => Promise<void> }) {
   await open({ now: at('06:00') });
@@ -23,14 +24,15 @@ test.describe('profile', () => {
     await expect(page.getByText('March 2026')).toBeVisible();
     await expect(page.getByText('Ask your manager to change these.')).toBeVisible();
     await expect(page.getByRole('heading', { name: 'Settings and help' })).toBeVisible();
-    for (const name of ['Task alerts', 'Change password', 'Help', 'Sign out']) await expect(button(page, name)).toBeVisible();
+    for (const name of ['Task alerts', 'Help', 'Sign out']) await expect(button(page, name)).toBeVisible();
+    await expect(button(page, 'Change password')).toHaveCount(0);
     await expect(page.getByRole('tab', { name: 'English' }).last()).toBeVisible();
   });
 
   test('sign out: Cancel keeps the session', async ({ page, api }) => {
     await button(page, 'Sign out').click();
     await expect(page.getByText('Sign out of this phone?')).toBeVisible();
-    await expect(page.getByText('You will need your email and password to sign in again.')).toBeVisible();
+    await expect(page.getByText('You will need your phone number and a new code to sign in again.')).toBeVisible();
     await button(page, 'Cancel').click();
     await expect(page.getByText('Sign out of this phone?')).toBeHidden();
     await expect(page.getByRole('heading', { name: 'My details' })).toBeVisible();
@@ -62,22 +64,13 @@ test.describe('profile', () => {
 
   test('Help opens from Profile and returns', async ({ page }) => {
     await button(page, 'Help').click();
-    for (const question of ['How to check in', 'How to finish a task', 'The QR will not scan', 'I forgot my password', 'Permissions']) {
+    for (const question of ['How to check in', 'How to finish a task', 'The QR will not scan', 'I did not get the code', 'Permissions']) {
       await expect(page.getByRole('heading', { name: question, exact: true })).toBeVisible();
     }
+    await expect(page.getByText('Wait one minute and tap Send a new code. If it still does not come, ask your manager to check your phone number.')).toBeVisible();
+    await expect(page.getByRole('heading', { name: 'I forgot my password', exact: true })).toHaveCount(0);
     await button(page, 'Back').click();
     await expect(page.getByRole('heading', { name: 'How to check in' })).toBeHidden();
-    await expect(page.getByRole('heading', { name: 'My details' })).toBeVisible();
-  });
-
-  test('Change password opens from Profile and returns', async ({ page }) => {
-    await button(page, 'Change password').click();
-    await expect(page.getByRole('heading', { name: 'Replace your password' })).toBeVisible();
-    await expect(page.getByLabel('Current password')).toBeVisible();
-    await expect(page.getByLabel('New password', { exact: true })).toBeVisible();
-    await expect(page.getByLabel('Confirm new password')).toBeVisible();
-    await button(page, 'Back').click();
-    await expect(page.getByRole('heading', { name: 'Replace your password' })).toBeHidden();
     await expect(page.getByRole('heading', { name: 'My details' })).toBeVisible();
   });
 
@@ -112,3 +105,19 @@ test('Joined uses the month in the staff member\'s own time zone', async ({ page
   await expect(page.getByText('March 2026')).toBeVisible();
 });
 
+
+for (const language of ['en', 'ur'] as const) {
+  test(`a legacy session offers phone sign-in after signing out (${language})`, async ({ page, api, open }) => {
+    const say = (key: string) => language === 'ur' ? ur(key) : key;
+    api.on('GET', '/common/get-current-user', {
+      status: 403,
+      body: { success: false, errors: [{ code: 'PASSWORD_CHANGE_REQUIRED' }] },
+    });
+    await open({ language });
+    await expect(page.getByRole('heading', { name: say('Sign in again') })).toBeVisible();
+    await expect(page.getByText(say('Your sign-in has changed. Sign out, then sign in with your phone number and a new code.'))).toBeVisible();
+    await expect(button(page, say('Change password'))).toHaveCount(0);
+    await button(page, say('Sign out')).click();
+    await expect(page.getByLabel(say('Phone number'), { exact: true })).toBeVisible();
+  });
+}

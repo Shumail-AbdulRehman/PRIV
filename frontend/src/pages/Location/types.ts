@@ -37,7 +37,7 @@ export type LocationWithCounts = {
 export interface LocationStaff {
   id: number;
   name: string;
-  email: string;
+  email: string | null;
   shiftStart: string | null;
   shiftEnd: string | null;
   isActive: boolean;

@@ -1,6 +1,6 @@
 import assert from 'node:assert/strict';
 import test from 'node:test';
-import { attendanceResult, reconcileAttendance, reconcileSubmission, photoAuthority, passwordChangeRequired, photoResultAction, validReplacementPassword } from './recoveryPolicy';
+import { attendanceResult, reconcileAttendance, reconcileSubmission, photoAuthority, passwordChangeRequired, photoResultAction } from './recoveryPolicy';
 import { translate } from '../i18n/translations';
 import type { AttendanceRecord } from '../types';
 import type { Manifest } from '../verification/types';
@@ -58,10 +58,7 @@ test('only structured server password replacement denial enables replacement gat
   assert.equal(passwordChangeRequired({response:{status:403,data:{errors:[{code:'PASSWORD_CHANGE_REQUIRED'}]}}}),true);
   for(const value of [null,new Error('PASSWORD_CHANGE_REQUIRED'),{response:{status:401,data:{errors:[{code:'PASSWORD_CHANGE_REQUIRED'}]}}},{response:{status:403,data:{errors:[{code:'ACCOUNT_SUSPENDED'}]}}}])assert.equal(passwordChangeRequired(value),false);
 });
-test('replacement password preserves Unicode within server bcrypt byte limit', () => {
-  assert.equal(validReplacementPassword('abcdefgh'),true);assert.equal(validReplacementPassword('a'.repeat(72)),true);assert.equal(validReplacementPassword('a'.repeat(73)),false);assert.equal(validReplacementPassword('پ'.repeat(36)),true);assert.equal(validReplacementPassword('پ'.repeat(37)),false);assert.equal(validReplacementPassword('short'),false);
-});
 test('recovery and authority copy translates into Urdu without changing task IDs', () => {
-  for(const key of ['Use manager access code','Submission receipt','Task photos are unavailable','Replace your password','Retry phone alerts','Open camera settings','Allow camera','Allow camera access in Settings to take task photos.','Camera or task access could not be checked. Refresh results and try again.'])assert.notEqual(translate(key,'ur'),key);
+  for(const key of ['Submission receipt','Task photos are unavailable','Retry phone alerts','Open camera settings','Allow camera','Allow camera access in Settings to take task photos.','Camera or task access could not be checked. Refresh results and try again.'])assert.notEqual(translate(key,'ur'),key);
   assert.equal(translate('Task {id}','ur',{id:41}),'کام 41');
 });

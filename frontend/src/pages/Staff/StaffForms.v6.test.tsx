@@ -17,7 +17,7 @@ const otherSite = { id: 30, name: 'Another saved site', timezone: 'America/New_Y
 const person = { id: 7, name: 'Saved worker', email: 'worker@example.invalid', phone: '03001234567', isActive: true, locationId: 20, location: site, shiftStart: '1970-01-01T04:00:00Z', shiftEnd: '1970-01-01T12:00:00Z' };
 const requests: { url?: string; method?: string; data: Record<string, unknown> }[] = [];
 const originalAdapter = client.defaults.adapter;
-let failure: { status: number; code?: string } | undefined;
+let failure: { status: number; code?: string; field?: string; message?: string } | undefined;
 let hold = false;
 let release: (() => void) | undefined;
 function CurrentPath() { return <output aria-label="Current route">{useLocation().pathname}</output>; }
@@ -41,7 +41,7 @@ function edit(record: EditableStaff = person) {
 }
 function field(label: string, value: string) { fireEvent.change(screen.getByLabelText(label), { target: { value } }); }
 function fill() {
-  field('Full Name', 'New worker'); field('Email', 'new@example.invalid'); field('Phone Number', '03007654321'); field('Password', 'synthetic password'); field('Shift Start', '22:00'); field('Shift End', '06:00');
+  field('Full Name', 'New worker'); field('Email (optional)', 'new@example.invalid'); field('Phone Number', '03007654321'); field('Shift Start', '22:00'); field('Shift End', '06:00');
 }
 function submit(label = 'Create staff') { fireEvent.click(screen.getByRole('button', { name: label })); }
 function forceSubmit(label: string) { fireEvent.submit((screen.getByRole('button', { name: label }) as HTMLButtonElement).form!); }
@@ -50,7 +50,7 @@ beforeEach(() => {
   client.defaults.adapter = async config => {
     requests.push({ url: config.url, method: config.method, data: JSON.parse(config.data || '{}') });
     if (hold) await new Promise<void>(resolve => { release = resolve; });
-    if (failure) throw { config, response: { status: failure.status, data: { message: 'Private backend detail', errors: [{ code: failure.code }] } } };
+    if (failure) throw { config, response: { status: failure.status, data: { message: 'Private backend detail', errors: [{ code: failure.code, field: failure.field, message: failure.message }] } } };
     return { config, data: { data: { id: 7 } }, status: 200, statusText: 'OK', headers: {} };
   };
 });
@@ -64,31 +64,76 @@ it('names both dialogs and keeps the footer submit associated with its form', ()
   expect(screen.getByRole('dialog', { name: 'Edit team member' })).toHaveAccessibleDescription('Times use the assigned site’s timezone.');
   expect((screen.getByRole('button', { name: 'Save changes' }) as HTMLButtonElement).form).toBeInTheDocument();
 });
-it('blocks an empty create with six associated errors and focuses the name', async () => {
+it('creates with name and phone only and shows the phone sign-in hint', async () => {
+  const view = create();
+  expect(screen.queryByLabelText('Password')).not.toBeInTheDocument();
+  expect(screen.getByLabelText('Email (optional)')).not.toBeRequired();
+  expect(screen.getByLabelText('Phone Number')).toHaveAccessibleDescription('Staff sign in with this phone number and a code sent by SMS.');
+  field('Full Name', 'New worker');
+  field('Phone Number', '03007654321');
+  submit();
+  await waitFor(() => expect(view.saved).toHaveBeenCalledOnce());
+  expect(requests).toEqual([{ url: '/staff/create-staff', method: 'post', data: { name: 'New worker', phone: '03007654321' } }]);
+});
+it('blocks an empty create and focuses the first invalid field', async () => {
   create(); submit();
-  expect(await screen.findAllByRole('alert')).toHaveLength(6);
-  for (const label of ['Full Name', 'Email', 'Phone Number', 'Password', 'Shift Start', 'Shift End']) {
-    expect(screen.getByLabelText(label)).toHaveAttribute('aria-invalid', 'true');
-    expect(screen.getByLabelText(label)).toHaveAccessibleDescription();
+  expect(await screen.findAllByRole('alert')).toHaveLength(2);
+  expect(screen.getByLabelText('Full Name')).toHaveAccessibleDescription('Full name is required.');
+  expect(screen.getByLabelText('Full Name')).toHaveFocus();
+  expect(screen.getByLabelText('Phone Number')).toHaveAccessibleDescription(/Phone number is required/);
+  expect(requests).toHaveLength(0);
+});
+const invalidFields = [
+  ['Full Name', 'A', 'Full Name', 'Enter a name between 2 and 150 characters.'],
+  ['Full Name', '', 'Full Name', 'Full name is required.'],
+  ['Phone Number', '123456', 'Phone Number', 'Enter a Pakistan mobile number, like 03001234567.'],
+  ['Phone Number', 'wrong phone', 'Phone Number', 'Enter a Pakistan mobile number, like 03001234567.'],
+  ['Email (optional)', 'invalid-email', 'Email (optional)', 'Enter a valid email, like name@example.com.'],
+  ['Shift Start', '', 'Shift Start', 'Enter both shift start and shift end.'],
+  ['Shift End', '', 'Shift End', 'Enter both shift start and shift end.'],
+  ['Shift End', '09:00', 'Shift End', 'Shift start and end must be different.'],
+] as const;
+it.each(['create', 'edit'] as const)('validates %s fields on blur and blocks invalid submissions', async mode => {
+  for (const [label, value, invalidLabel, message] of invalidFields) {
+    const view = mode === 'create' ? create() : edit();
+    if (mode === 'create') fill();
+    if (mode === 'create' && message === 'Shift start and end must be different.') field('Shift Start', value);
+    field(label, value);
+    fireEvent.blur(screen.getByLabelText(label));
+    expect(await screen.findByRole('alert')).toHaveTextContent(message);
+    const invalid = screen.getByLabelText(invalidLabel);
+    expect(invalid).toHaveAttribute('aria-invalid', 'true');
+    expect(invalid).toHaveAccessibleDescription(expect.stringContaining(message));
+    await act(async () => submit(mode === 'create' ? 'Create staff' : 'Save changes'));
+    expect(invalid).toHaveFocus();
+    expect(requests).toHaveLength(0);
+    view.unmount();
   }
-  expect(screen.getByLabelText('Full Name')).toHaveFocus(); expect(requests).toHaveLength(0);
 });
 it.each([
-  ['Full Name', 'A', 'Name must be at least 2 characters'],
-  ['Phone Number', '123456', 'Phone number must be at least 7 characters'],
-  ['Phone Number', '1'.repeat(21), 'Phone number must be at most 20 characters'],
-  ['Password', 'short', 'Use at least 8 characters'],
-])('preserves %s validation for %s', async (label, value, message) => {
-  create(); fill(); field(label, value); submit(); expect(await screen.findByRole('alert')).toHaveTextContent(message); expect(requests).toHaveLength(0);
-});
-it('preserves native email validity before create', () => {
-  create(); fill(); field('Email', 'invalid-email'); submit(); expect(screen.getByLabelText('Email')).toBeInvalid(); expect(requests).toHaveLength(0);
+  ['PHONE_IN_USE', 'Phone Number', 'This phone number is already used by another staff member.', 409],
+  ['EMAIL_IN_USE', 'Email (optional)', 'This email is already used by another staff member.', 409],
+  ['INVALID_PHONE', 'Phone Number', 'Enter a Pakistan mobile number, like 03001234567.', 400],
+  ['INVALID_REQUEST', 'Full Name', 'Full name is required.', 400],
+] as const)('maps %s to the right field on create and edit', async (code, label, message, status) => {
+  failure = { status, code, ...(code === 'INVALID_REQUEST' ? { field: 'name', message } : {}) };
+  const view = create(); fill(); submit();
+  expect(await screen.findByRole('alert')).toHaveTextContent(message);
+  expect(screen.getByLabelText(label)).toHaveAttribute('aria-invalid', 'true');
+  expect(screen.getByLabelText(label)).toHaveAccessibleDescription(expect.stringContaining(message));
+  expect(screen.queryByText(/Request failed with status code/)).not.toBeInTheDocument();
+  view.unmount();
+  edit(); field('Full Name', 'Changed worker'); submit('Save changes');
+  expect(await screen.findByRole('alert')).toHaveTextContent(message);
+  expect(screen.getByLabelText(label)).toHaveAttribute('aria-invalid', 'true');
+  expect(screen.getByLabelText(label)).toHaveAccessibleDescription(expect.stringContaining(message));
+  expect(screen.queryByText(/Request failed with status code/)).not.toBeInTheDocument();
 });
 it('keeps owner unassigned hires, trimming and the original UTC payload', async () => {
   const view = create(); fill(); field('Full Name', '  New worker  '); field('Phone Number', ' 03007654321 '); submit();
   await waitFor(() => expect(view.saved).toHaveBeenCalledOnce());
-  expect(requests).toEqual([{ url: '/staff/create-staff', method: 'post', data: { name: 'New worker', email: 'new@example.invalid', phone: '03007654321', password: 'synthetic password', shiftStart: '1970-01-01T22:00:00.000Z', shiftEnd: '1970-01-01T06:00:00.000Z' } }]);
-  expect(view.changed).toHaveBeenCalledWith(false); expect(screen.getByLabelText('Password')).toHaveValue('');
+  expect(requests).toEqual([{ url: '/staff/create-staff', method: 'post', data: { name: 'New worker', email: 'new@example.invalid', phone: '03007654321', shiftStart: '1970-01-01T22:00:00.000Z', shiftEnd: '1970-01-01T06:00:00.000Z' } }]);
+  expect(view.changed).toHaveBeenCalledWith(false); expect(screen.getByLabelText('Phone Number')).toHaveValue('');
 });
 it('uses the fixed location and its timezone without allowing changes', async () => {
   const view = create({ location: site }); fill();
@@ -103,7 +148,12 @@ it('uses SelectMenu to save the selected location timezone', async () => {
 });
 it('requires managers to select an assigned site before hiring', async () => {
   const view = create({ locations: [site] }, 'MANAGER'); fill(); submit();
-  expect(await screen.findByRole('alert')).toHaveTextContent('Select assigned site'); expect(requests).toHaveLength(0);
+  expect(await screen.findByRole('alert')).toHaveTextContent('Choose a site.');
+  const location = screen.getByRole('button', { name: 'Location: Select assigned site' });
+  expect(location).toHaveAccessibleDescription('Choose a site.');
+  expect(location).toHaveAttribute('aria-invalid', 'true');
+  expect(location).toHaveFocus();
+  expect(requests).toHaveLength(0);
   fireEvent.keyDown(screen.getByRole('button', { name: 'Location: Select assigned site' }), { key: 'ArrowDown' });
   expect(screen.queryByRole('menuitemradio', { name: otherSite.name })).not.toBeInTheDocument();
   fireEvent.click(screen.getByRole('menuitemradio', { name: site.name })); submit(); await waitFor(() => expect(view.saved).toHaveBeenCalledOnce()); expect(requests[0].data.locationId).toBe(20);
@@ -120,14 +170,14 @@ it('allows a manager fixed-location hire inside the assigned locations', async (
   expect(requests[0].data).toMatchObject({ locationId: 20, shiftStart: '1970-01-01T17:00:00.000Z', shiftEnd: '1970-01-01T01:00:00.000Z' });
 });
 it('keeps an empty manager scope blocked without inventing a location', async () => {
-  create({ locations: [] }, 'MANAGER'); fill(); submit(); expect(await screen.findByRole('alert')).toHaveTextContent('Select assigned site'); expect(requests).toHaveLength(0);
+  create({ locations: [] }, 'MANAGER'); fill(); submit(); expect(await screen.findByRole('alert')).toHaveTextContent('Choose a site.'); expect(requests).toHaveLength(0);
 });
 it('keeps inline mode without a dialog and resets on Cancel', async () => {
   const changed = vi.fn(); const view = create({ inline: true, location: site, onOpenChange: changed }); fill();
   expect(screen.queryByRole('dialog')).not.toBeInTheDocument(); expect(screen.getByRole('region', { name: 'Add team member' })).toBeInTheDocument();
   submit('Cancel'); expect(changed).toHaveBeenCalledWith(false);
   view.rerenderNode(<StaffCreateDialog open inline location={site} onOpenChange={changed} />);
-  await waitFor(() => expect(screen.getByLabelText('Password')).toHaveValue('')); expect(requests).toHaveLength(0);
+  await waitFor(() => expect(screen.getByLabelText('Phone Number')).toHaveValue('')); expect(requests).toHaveLength(0);
 });
 it.each(['CAPACITY_REACHED', 'SUBSCRIPTION_REQUIRED'])('retains the create draft and server %s guidance', async code => {
   failure = { status: 403, code }; create(); fill(); submit();
@@ -135,7 +185,9 @@ it.each(['CAPACITY_REACHED', 'SUBSCRIPTION_REQUIRED'])('retains the create draft
   expect(screen.getByLabelText('Full Name')).toHaveValue('New worker'); expect(screen.queryByText('Private backend detail')).not.toBeInTheDocument();
 });
 it.each([403, 409, 503])('preserves a create draft after HTTP %i and allows a deliberate retry', async status => {
-  failure = { status }; create({ inline: true }); fill(); submit(); await screen.findByRole('alert');
+  failure = { status }; create({ inline: true }); fill(); submit();
+  const alert = await screen.findByRole('alert');
+  if (status === 409) expect(alert).toHaveTextContent('The phone number or email is already in use, or the available capacity changed. Your draft is kept.');
   expect(screen.getByLabelText('Phone Number')).toHaveValue('03007654321'); expect(screen.queryByText('Private backend detail')).not.toBeInTheDocument();
   failure = undefined; submit(); await waitFor(() => expect(requests).toHaveLength(2));
 });
@@ -147,8 +199,9 @@ it('protects a pending create from duplicate submits and every dismissal', async
   await act(async () => release!()); await waitFor(() => expect(view.saved).toHaveBeenCalledOnce());
 });
 it('shows the edit session warning, read-only location and existing Staff access destination', () => {
-  const view = edit(); expect(screen.getByText('Updating the login email ends existing staff sessions.')).toBeVisible();
-  expect(screen.getByLabelText('Email')).toHaveAccessibleDescription('Updating the login email ends existing staff sessions.');
+  const view = edit();
+  expect(screen.getByLabelText('Phone Number')).toHaveAccessibleDescription('Changing the phone number signs this person out on every phone.');
+  expect(screen.getByLabelText('Email (optional)')).not.toBeRequired();
   expect(screen.getByLabelText('Location')).toHaveValue(site.name); expect(screen.getByLabelText('Location')).toHaveAttribute('readonly');
   expect(screen.getByRole('link', { name: 'Staff access' })).toHaveAttribute('href', '/staff/7');
   fireEvent.click(screen.getByRole('link', { name: 'Staff access' })); expect(view.close).toHaveBeenCalledOnce(); expect(screen.getByLabelText('Current route')).toHaveTextContent('/staff/7');
@@ -157,43 +210,50 @@ it('uses a saved location ID when the caller supplies no name, and Unassigned fo
   const view = edit({ ...person, location: undefined }); expect(screen.getByLabelText('Location')).toHaveValue('#20'); view.unmount();
   edit({ ...person, location: null, locationId: null }); expect(screen.getByLabelText('Location')).toHaveValue('Unassigned');
 });
-it.each(['Name', 'Email'])('blocks edit when required %s is empty', label => {
-  edit(); field(label, ''); expect(screen.getByLabelText(label)).toBeInvalid(); expect(screen.getByRole('button', { name: 'Save changes' })).toBeDisabled(); forceSubmit('Save changes'); expect(requests).toHaveLength(0);
-});
-it('retains native edit email and phone constraints', () => {
-  edit(); field('Email', 'invalid-email'); submit('Save changes'); expect(screen.getByLabelText('Email')).toBeInvalid(); expect(requests).toHaveLength(0);
-  expect(screen.getByLabelText('Name')).toHaveAttribute('minlength', '2'); expect(screen.getByLabelText('Phone Number')).toHaveAttribute('minlength', '7'); expect(screen.getByLabelText('Phone Number')).toHaveAttribute('maxlength', '20');
+it('clears an existing email with null and allows a record without an email to be edited', async () => {
+  const view = edit();
+  field('Email (optional)', '');
+  submit('Save changes');
+  await waitFor(() => expect(view.saved).toHaveBeenCalledOnce());
+  expect(requests).toEqual([{ url: '/staff/7', method: 'patch', data: { email: null } }]);
+
+  view.unmount();
+  const second = edit({ ...person, email: null });
+  field('Full Name', 'Changed worker');
+  submit('Save changes');
+  await waitFor(() => expect(second.saved).toHaveBeenCalledOnce());
+  expect(requests[1]).toEqual({ url: '/staff/7', method: 'patch', data: { name: 'Changed worker' } });
 });
 it('submits only changed edit fields, preserving shift dates and timezone conversion', async () => {
-  const view = edit(); field('Name', '  Changed worker  '); field('Email', 'updated@example.invalid'); field('Phone Number', ''); field('Shift Start', '22:00'); field('Shift End', '06:00'); submit('Save changes');
-  await waitFor(() => expect(view.saved).toHaveBeenCalledOnce()); expect(requests).toEqual([{ url: '/staff/7', method: 'patch', data: { name: 'Changed worker', email: 'updated@example.invalid', phone: '', shiftStart: '1970-01-01T17:00:00.000Z', shiftEnd: '1970-01-01T01:00:00.000Z' } }]); expect(view.close).toHaveBeenCalledOnce();
+  const view = edit(); field('Full Name', '  Changed worker  '); field('Email (optional)', 'updated@example.invalid'); field('Phone Number', '03007654321'); field('Shift Start', '22:00'); field('Shift End', '06:00'); submit('Save changes');
+  await waitFor(() => expect(view.saved).toHaveBeenCalledOnce()); expect(requests).toEqual([{ url: '/staff/7', method: 'patch', data: { name: 'Changed worker', email: 'updated@example.invalid', phone: '03007654321', shiftStart: '1970-01-01T17:00:00.000Z', shiftEnd: '1970-01-01T01:00:00.000Z' } }]); expect(view.close).toHaveBeenCalledOnce();
 });
 it('does not mutate an unchanged edit or clear saved shifts when optional clocks are blank', async () => {
   const view = edit(); field('Shift Start', ''); field('Shift End', ''); submit('Save changes'); await waitFor(() => expect(view.saved).toHaveBeenCalledOnce()); expect(requests).toHaveLength(0);
 });
 it('cannot edit an inactive account even with a synthetic form submission', async () => {
-  edit({ ...person, isActive: false }); field('Name', 'Changed worker'); expect(screen.getByRole('button', { name: 'Save changes' })).toBeDisabled(); forceSubmit('Save changes'); await act(async () => {}); expect(requests).toHaveLength(0);
+  edit({ ...person, isActive: false }); field('Full Name', 'Changed worker'); expect(screen.getByRole('button', { name: 'Save changes' })).toBeDisabled(); forceSubmit('Save changes'); await act(async () => {}); expect(requests).toHaveLength(0);
 });
 it.each([400, 403, 409, 503])('keeps edit drafts and safe guidance after HTTP %i', async status => {
-  failure = { status }; edit(); field('Name', 'Changed worker'); submit('Save changes');
-  expect(await screen.findByRole('alert')).not.toHaveTextContent('Private backend detail'); expect(screen.getByLabelText('Name')).toHaveValue('Changed worker');
+  failure = { status }; edit(); field('Full Name', 'Changed worker'); submit('Save changes');
+  expect(await screen.findByRole('alert')).not.toHaveTextContent('Private backend detail'); expect(screen.getByLabelText('Full Name')).toHaveValue('Changed worker');
   if (status === 409) expect(screen.getByRole('alert')).toHaveTextContent('record changed');
 });
 it('protects pending edit and Staff access navigation without changing its payload', async () => {
-  hold = true; const view = edit(); field('Name', 'Changed worker'); submit('Save changes'); await waitFor(() => expect(release).toBeDefined());
+  hold = true; const view = edit(); field('Full Name', 'Changed worker'); submit('Save changes'); await waitFor(() => expect(release).toBeDefined());
   expect(screen.getByRole('button', { name: 'Saving…' })).toBeDisabled(); expect(screen.getByRole('button', { name: 'Cancel' })).toBeDisabled();
   forceSubmit('Saving…'); fireEvent.keyDown(screen.getByRole('dialog'), { key: 'Escape' }); submit('Close'); fireEvent.click(screen.getByRole('link', { name: 'Staff access' }));
   expect(screen.getByLabelText('Current route')).toHaveTextContent('/staff'); expect(view.close).not.toHaveBeenCalled(); expect(requests).toHaveLength(1);
   await act(async () => release!()); await waitFor(() => expect(view.saved).toHaveBeenCalledOnce());
 });
-it('preserves a create draft through hide/reopen, then resets secrets on location or principal change', async () => {
+it('preserves a create draft through hide/reopen, then resets contact details on location or principal change', async () => {
   const changed = vi.fn(); const view = create({ onOpenChange: changed }); fill();
   view.rerenderNode(<StaffCreateDialog open={false} locations={[site]} onOpenChange={changed} />);
   expect(screen.queryByRole('dialog')).not.toBeInTheDocument(); view.rerenderNode(<StaffCreateDialog open locations={[site]} onOpenChange={changed} />);
   expect(screen.getByLabelText('Full Name')).toHaveValue('New worker');
-  view.rerenderNode(<StaffCreateDialog open location={site} locations={[site]} onOpenChange={changed} />); expect(screen.getByLabelText('Password')).toHaveValue('');
-  field('Password', 'prior draft'); act(() => view.store.dispatch(setUser({ id: 88, companyId: 99, role: 'ADMIN', name: 'Another owner', email: 'other@example.invalid' })));
-  expect(screen.getByLabelText('Password')).toHaveValue('');
+  view.rerenderNode(<StaffCreateDialog open location={site} locations={[site]} onOpenChange={changed} />); expect(screen.getByLabelText('Phone Number')).toHaveValue('');
+  field('Phone Number', '03007654321'); act(() => view.store.dispatch(setUser({ id: 88, companyId: 99, role: 'ADMIN', name: 'Another owner', email: 'other@example.invalid' })));
+  expect(screen.getByLabelText('Phone Number')).toHaveValue('');
 });
 it('restores opener focus on Escape and supports keyboard focus containment', async () => {
   function Harness() { const [open, setOpen] = useState(false); return <><button onClick={() => setOpen(true)}>Open hire</button><StaffCreateDialog open={open} locations={[site]} onOpenChange={setOpen} /></>; }
@@ -204,6 +264,6 @@ it('restores opener focus on Escape and supports keyboard focus containment', as
 it('translates and scopes Urdu panels while preserving record data', () => {
   mount(<StaffEditDialog person={person} timezone={site.timezone} onClose={() => {}} />, 'ADMIN', 'ur');
   const dialog = screen.getByRole('dialog', { name: translate('Edit team member', 'ur') }); expect(dialog).toHaveAttribute('dir', 'rtl');
-  expect(screen.getByLabelText(translate('Name', 'ur'))).toHaveValue(person.name); expect(screen.getByLabelText(translate('Location', 'ur'))).toHaveValue(site.name);
-  expect(screen.getByLabelText(translate('Email', 'ur'))).toHaveAttribute('dir', 'ltr'); expect(screen.getByText(translate('Updating the login email ends existing staff sessions.', 'ur'))).toBeVisible();
+  expect(screen.getByLabelText(translate('Full Name', 'ur'))).toHaveValue(person.name); expect(screen.getByLabelText(translate('Location', 'ur'))).toHaveValue(site.name);
+  expect(screen.getByLabelText(translate('Email (optional)', 'ur'))).toHaveAttribute('dir', 'ltr'); expect(screen.getByText(translate('Changing the phone number signs this person out on every phone.', 'ur'))).toBeVisible();
 });

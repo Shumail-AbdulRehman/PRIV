@@ -50,6 +50,17 @@ it('zero unassigned stays zero without attention treatment', () => {
 it.each([['saved WORKER', worker.name], ['hire@example', hire.name], ['0300765', hire.name]])('search matches name email and phone: %s', (search, name) => {
   mount(); fireEvent.change(screen.getByRole('searchbox', { name: 'Search team' }), { target: { value: search } }); expect(row(name)).toBeInTheDocument(); expect(screen.getAllByRole('row')).toHaveLength(2);
 });
+it('shows No email and searches the worker by phone without indexing null', () => {
+  m.staff.data = { data: [{ ...worker, email: null }, hire] };
+  mount();
+  expect(within(row()).getByText('No email')).toBeVisible();
+  const search = screen.getByRole('searchbox', { name: 'Search team' });
+  fireEvent.change(search, { target: { value: '0300123' } });
+  expect(row()).toBeInTheDocument();
+  expect(screen.getAllByRole('row')).toHaveLength(2);
+  fireEvent.change(search, { target: { value: 'null' } });
+  expect(screen.queryByRole('row', { name: new RegExp(worker.name) })).not.toBeInTheDocument();
+});
 it('location and account filters compose with search, preserving unrelated URLs', async () => {
   mount('ADMIN', '/staff?source=setup'); await select('Filter by location', site.name); await select('Account status', 'Inactive'); fireEvent.change(screen.getByRole('searchbox'), { target: { value: 'worker' } }); expect(row(inactive.name)).toBeInTheDocument(); expect(screen.getAllByRole('row')).toHaveLength(2); expect(screen.getByLabelText('Current route')).toHaveTextContent('source=setup&locationId=20');
 });
@@ -70,7 +81,7 @@ it('row menu View details retains its real destination', async () => {
   mount(); const actions = await menu(); expect(actions.getByRole('menuitem', { name: 'View details' })).toHaveAttribute('href', '/staff/7'); expect(screen.getByLabelText('Current route')).toHaveTextContent('/staff');
 });
 it('row menu Edit opens the real panel without navigating and saves the unchanged API payload', async () => {
-  mount(); const actions = await menu(); fireEvent.click(actions.getByRole('menuitem', { name: 'Edit' })); expect(await screen.findByRole('dialog', { name: 'Edit team member' })).toBeInTheDocument(); expect(screen.getByLabelText('Location')).toHaveValue(site.name); expect(screen.getByLabelText('Current route')).toHaveTextContent(/^\/staff$/); fireEvent.change(screen.getByLabelText('Name'), { target: { value: 'Edited name' } }); fireEvent.click(screen.getByRole('button', { name: 'Save changes' })); expect(await screen.findByText('Team member changes saved.')).toHaveAttribute('role', 'status'); expect(m.edit).toHaveBeenCalledWith({ id: 7, data: { name: 'Edited name' } });
+  mount(); const actions = await menu(); fireEvent.click(actions.getByRole('menuitem', { name: 'Edit' })); expect(await screen.findByRole('dialog', { name: 'Edit team member' })).toBeInTheDocument(); expect(screen.getByLabelText('Location')).toHaveValue(site.name); expect(screen.getByLabelText('Current route')).toHaveTextContent(/^\/staff$/); fireEvent.change(screen.getByLabelText('Full Name'), { target: { value: 'Edited name' } }); fireEvent.click(screen.getByRole('button', { name: 'Save changes' })); expect(await screen.findByText('Team member changes saved.')).toHaveAttribute('role', 'status'); expect(m.edit).toHaveBeenCalledWith({ id: 7, data: { name: 'Edited name' } });
 });
 it('row menu Staff access opens the real reason panel without navigating', async () => {
   mount(); fireEvent.click((await menu()).getByRole('menuitem', { name: 'Staff access' })); expect(await screen.findByRole('dialog', { name: 'Staff access' })).toBeInTheDocument(); expect(screen.getByLabelText('Reason')).toBeInTheDocument(); expect(screen.getByLabelText('Current route')).toHaveTextContent(/^\/staff$/); expect(screen.getByRole('button', { name: 'Confirm access change' })).toBeDisabled();

@@ -1,4 +1,4 @@
-import { test, expect, enter, fixture, sql } from './fixtures';
+import { test, expect, enter, fixture, sql, openShiftAttendancePath } from './fixtures';
 import { choose, noOverflow, taskPanel } from './workspace-helpers';
 import { createRequire } from 'node:module';
 test.use({ trace: 'off', screenshot: 'off', video: 'off' });
@@ -74,12 +74,16 @@ test('W42 Today hourly figures and by-location counts agree with real overview t
 });
 
 test('W42 task QR opens on demand and task photo requirements remain inspectable', async ({ page }) => {
-  const qrReads: string[] = []; page.on('request', request => { if (/\/task-instance\/\d+\/qr$/.test(new URL(request.url()).pathname)) qrReads.push(request.url()); });
+  const qrPath = `/api/task-instance/${fixture.review.taskId}/qr`;
+  const qrReads: string[] = [];
+  page.on('request', request => { if (/\/task-instance\/\d+\/qr$/.test(new URL(request.url()).pathname)) qrReads.push(request.url()); });
   await enter(page, `/today-status?taskId=${fixture.review.taskId}`);
   const panel = taskPanel(page); await expect(panel).toBeVisible(); expect(qrReads).toHaveLength(0);
+  const loaded = page.waitForResponse(response => new URL(response.url()).pathname === qrPath && response.request().method() === 'GET' && response.ok());
   await panel.getByRole('button', { name: 'Task QR', exact: true }).click();
+  await loaded;
   const qr = panel.getByRole('region', { name: 'Task QR', exact: true }); await expect(qr).toBeVisible();
-  await expect(qr.getByLabel(`QR for task ${fixture.review.taskId}`, { exact: true })).toBeVisible(); expect(qrReads).toHaveLength(1);
+  await expect(qr.getByRole('img', { name: `QR for task ${fixture.review.taskId}`, exact: true })).toBeVisible();
   await page.goto(`/verification/${fixture.task.photos}`);
   await expect(page.getByRole('heading', { name: 'Task photos', exact: true })).toBeVisible();
   const views = page.getByRole('region', { name: 'Required photo views', exact: true });
@@ -120,7 +124,7 @@ test('W42 attendance media stays lazy until a record opens and zoom closes befor
     reads.push(route.request().url());
     return route.fulfill({ contentType: 'image/jpeg', body: bytes });
   });
-  await enter(page, '/attendance');
+  await enter(page, openShiftAttendancePath);
   const opener = page.getByRole('button', { name: 'Attendance context: E2E staff openShift', exact: true });
   await expect(opener).toBeVisible(); expect(reads).toHaveLength(0);
   await opener.click(); const record = page.getByRole('dialog', { name: /^Attendance context/ });
@@ -220,14 +224,15 @@ for (const overnight of [false, true]) test(`W42 cleaning schedule ${overnight ?
 
 test('W42 add a team member then transfer site preserves their attendance and task history', async ({ page }) => {
   await capacity(); await enter(page, '/staff?create=1'); const dialog = page.getByRole('dialog');
-  await dialog.getByLabel('Full Name', { exact: true }).fill('W42 new team member');
-  await dialog.getByLabel('Email', { exact: true }).fill('w42-member@example.invalid');
+  await dialog.getByLabel('Full Name', { exact: true }).fill('New Transfer Worker');
+  await dialog.getByLabel('Email (optional)', { exact: true }).fill('w42-member@example.invalid');
   await dialog.getByLabel('Phone Number', { exact: true }).fill('+923001234567');
-  await dialog.getByLabel('Password', { exact: true }).fill(fixture.password);
   await choose(page, 'Location (optional)', 'E2E site A', 'en', dialog);
   await dialog.getByLabel('Shift Start', { exact: true }).fill('09:00');
   await dialog.getByLabel('Shift End', { exact: true }).fill('17:00');
   await dialog.getByRole('button', { name: 'Create staff', exact: true }).click(); await expect(dialog).toHaveCount(0);
+  await page.reload();
+  await expect(page.getByText('New Transfer Worker', { exact: true }).filter({ visible: true }).first()).toBeVisible();
   const [person] = await sql('SELECT id FROM "Staff" WHERE email=$1', ['w42-member@example.invalid']);
   const [history] = await sql('INSERT INTO "TaskInstance" (title,date,"shiftStart","shiftEnd","staffId","locationId","updatedAt") VALUES (\'W42 retained history\',NOW(),NOW(),NOW()+interval \'1 hour\',$1,$2,NOW()) RETURNING id', [person.id, fixture.site.A]);
   const [attendance] = await sql('INSERT INTO "Attendance" ("staffId","locationId",date,"expectedStart","expectedEnd","checkInTime","checkOutTime",status,"updatedAt") VALUES ($1,$2,NOW(),NOW()-interval \'1 hour\',NOW(),NOW()-interval \'1 hour\',NOW()-interval \'30 minutes\',\'CHECKED_OUT\',NOW()) RETURNING id', [person.id, fixture.site.A]);

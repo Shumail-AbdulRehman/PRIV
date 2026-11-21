@@ -38,6 +38,19 @@ export const workforceUrdu: Record<string, string> = {
   'Assigned to {name}': '{name} کو مقرر',
   'Assign at least one location': 'کم از کم ایک مقام مقرر کریں',
   'Use at least 8 characters': 'کم از کم آٹھ حروف استعمال کریں',
+
+  // Staff phone sign-in
+  'Email (optional)': 'ای میل (اختیاری)',
+  'Staff sign in with this phone number and a code sent by SMS.': 'کارکن اس فون نمبر اور SMS سے بھیجے گئے کوڈ کے ذریعے سائن ان کرتے ہیں۔',
+  'Enter a Pakistan mobile number, like 03001234567.': 'پاکستانی موبائل نمبر درج کریں، مثلاً \u206603001234567\u2069۔',
+  'This phone number is already used by another staff member.': 'یہ فون نمبر پہلے ہی کسی دوسرے کارکن کے استعمال میں ہے۔',
+  'This email is already used by another staff member.': 'یہ ای میل پہلے ہی کسی دوسرے کارکن کے استعمال میں ہے۔',
+  'The phone number or email is already in use, or the available capacity changed. Your draft is kept.': 'فون نمبر یا ای میل پہلے سے استعمال میں ہے، یا دستیاب گنجائش بدل گئی ہے۔ مسودہ برقرار ہے۔',
+  'Changing the phone number signs this person out on every phone.': 'فون نمبر بدلنے سے یہ کارکن ہر فون سے سائن آؤٹ ہو جائے گا۔',
+  'No email': 'ای میل درج نہیں',
+  'Sign out of all devices': 'تمام ڈیوائسز سے سائن آؤٹ کریں',
+  'This signs the staff member out on every phone. They sign in again with their phone number and a new code.': 'اس سے کارکن ہر فون سے سائن آؤٹ ہو جائے گا۔ وہ اپنے فون نمبر اور نئے کوڈ سے دوبارہ سائن ان کرے گا۔',
+  'Signed out of all devices.': 'تمام ڈیوائسز سے سائن آؤٹ ہو گیا ہے۔',
 };
 
 Object.assign(workforceUrdu, {

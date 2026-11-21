@@ -27,7 +27,7 @@ interface AttendanceRecord {
   expectedStart: string; expectedEnd: string; checkInTime: string | null; checkOutTime: string | null;
   status: string; isLateCheckIn: boolean; lateMinutes: number | null;
   checkInPhoto?: AttendancePhoto; checkOutPhoto?: AttendancePhoto;
-  staff: { id: number; name: string; email: string };
+  staff: { id: number; name: string; email: string | null };
   location: { id: number; name: string; timezone?: string };
 }
 interface Site { id: number; name: string; timezone: string }

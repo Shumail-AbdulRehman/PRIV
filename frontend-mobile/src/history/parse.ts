@@ -225,7 +225,7 @@ export function parseProfileSummary(value: unknown): ProfileSummary | null {
   const summary = {
     id: id(value.id),
     name: text(value.name),
-    email: text(value.email),
+    email: value.email === null ? null : text(value.email),
     phone: nullable(value.phone, (phone) => (typeof phone === 'string' ? phone : undefined)),
     joinedAt: instant(value.joinedAt),
     company: company(value.company),

@@ -209,6 +209,11 @@ test('unknown task fields such as photo URLs or scores are not carried through',
   assert.equal('extra' in (parsed as object), false);
 });
 
+test('a profile with no email parses field for field', () => {
+  const body = profileBody({ email: null });
+  assert.deepEqual(parseProfileSummary(body), body);
+});
+
 test('a profile without a manager parses with manager: null', () => {
   const { manager: _manager, ...body } = profileBody();
   const parsed = parseProfileSummary(body);
@@ -231,6 +236,7 @@ test('a profile with no location, shift or phone keeps nulls and drops unknown m
 });
 
 test('a profile with malformed fields returns null', () => {
+  assert.equal(parseProfileSummary(profileBody({ email: 12 })), null);
   assert.equal(parseProfileSummary(profileBody({ company: null })), null);
   assert.equal(parseProfileSummary(profileBody({ usualShift: { start: '9am', end: '17:00' } })), null);
   assert.equal(parseProfileSummary(profileBody({ month: { month: '2026-11', shiftsScheduled: -1 } })), null);

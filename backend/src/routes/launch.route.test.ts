@@ -21,7 +21,7 @@ vi.mock('../services/billingLifecycle.service.js',()=>({createBillingCheckout:m.
 vi.mock('../services/billingCheckout.service.js',()=>({createBillingCheckout:m.api}));
 vi.mock('../controllers/subscription.controller.js',()=>({getPricingContext:(_req:any,res:any)=>res.json({public:true}),getSubscription:(_req:any,res:any)=>res.json({subscription:true}),createCustomerPortalSession:(_req:any,res:any)=>res.json({portal:true})}));
 vi.mock('../controllers/enterpriseInquiry.controller.js',()=>({createEnterpriseInquiry:(_req:any,res:any)=>res.status(201).json({accepted:true})}));
-vi.mock('../services/credentialHandoff.service.js',()=>({changeOwnPassword:m.change,issueStaffHandoff:m.api,completeStaffHandoff:m.api}));
+vi.mock('../services/credentialHandoff.service.js',()=>({changeOwnPassword:m.change,signOutStaffEverywhere:m.api}));
 vi.mock('../controllers/common.controller.js',()=>({getCurrentUser:(req:any,res:any)=>res.json({user:req.user}),refreshToken:(_req:any,res:any)=>res.json({refresh:true}),logOut:(_req:any,res:any)=>res.json({logout:true})}));
 import router,{configureTrustProxy,createListenCallback,launchErrorHandler} from './launch.route.js';
 import {ApiError} from '../utils/ApiError.js';
@@ -115,8 +115,7 @@ it.each([
  ['/owner-identity/email/request','tenant','POST',202],
  ['/subscription/manage/checkout','tenant','POST',201],
  ['/subscription/manage/managed-portal','tenant','POST',201],
- ['/common/security/staff/7/handoff','tenant','POST',200],
- ['/common/security/handoff/complete','anonymous','POST',200],
+ ['/common/security/staff/7/sign-out-everywhere','tenant','POST',200],
  ['/platform/companies/1','operator','GET',200],
  ['/platform/companies/1/status','operator','PATCH',200],
  ['/platform/service/inquiries/fixture','operator','GET',200],

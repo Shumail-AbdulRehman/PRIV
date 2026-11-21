@@ -41,6 +41,31 @@ test('email kind sets keyboard and capitalisation; box is 60 high with the idle 
   assert.equal(s.backgroundColor, colors.surface);
 });
 
+test('phone uses the phone keypad and telephone autofill in an Urdu layout', async () => {
+  setLanguage('ur');
+  const r = await render(h(Field, { ...base, label: 'Phone number', kind: 'phone' }));
+  const { props } = input(r);
+  assert.equal(props.keyboardType, 'phone-pad');
+  assert.equal(props.autoComplete, 'tel');
+  assert.equal(props.autoCorrect, false);
+  assert.equal(styleOf(input(r)).writingDirection, 'ltr');
+  assert.equal(styleOf(input(r)).textAlign, 'left');
+  assert.equal(r.root.findAllByType('Pressable').length, 0);
+});
+
+test('otp uses SMS autofill, stays visible and caps input at six characters', async () => {
+  setLanguage('ur');
+  const r = await render(h(Field, { ...base, label: '6-digit code', kind: 'otp', maxLength: 128 }));
+  const { props } = input(r);
+  assert.equal(props.keyboardType, 'number-pad');
+  assert.equal(props.autoComplete, 'sms-otp');
+  assert.equal(props.maxLength, 6);
+  assert.equal(props.secureTextEntry, false);
+  assert.equal(styleOf(input(r)).writingDirection, 'ltr');
+  assert.equal(styleOf(input(r)).textAlign, 'left');
+  assert.equal(r.root.findAllByType('Pressable').length, 0);
+});
+
 test('focus gives a 2 blue border', async () => {
   const r = await render(h(Field, base));
   await act(async () => { input(r).props.onFocus(); });

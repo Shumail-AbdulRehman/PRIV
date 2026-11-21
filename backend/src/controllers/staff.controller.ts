@@ -1,27 +1,21 @@
-import { insertStaff } from "../services/staffProvisioning.service.js";
+import { insertStaff, lockStaffIdentities } from "../services/staffProvisioning.service.js";
 import { requireLocationAccess } from '../services/verification-v2/authorization.service.js';
 import { withAccountCapacity } from '../services/accountAccess.service.js';
 import { deactivateWorkforce } from '../services/workforceLifecycle.service.js';
 import { attendancePhotoPresentation } from "../services/attendanceMedia.service.js";
 import {staffPerformanceReports} from '../services/verification-v2/reviewClosure.service.js';
 import { Request, Response } from "express";
+import type { ZodIssue } from "zod";
 import {
   managerTaskPresentation,
   operationalTaskStatus,
 } from "../services/verification-v2/sequentialPolicy.js";
-import {
-  createStaffSchema,
-  editStaffSchema,
-  staffLoginSchema,
-} from "../validations/staff.validation.js";
+import { editStaffSchema } from "../validations/staff.validation.js";
+import { staffRecordSchema } from "../validations/staffRecord.validation.js";
 import { prisma } from "../prisma/prisma.js";
 import { ApiResponse } from "../utils/ApiResponse.js";
 import { ApiError } from "../utils/ApiError.js";
-import {
-  generateAccessToken,
-  generateRefreshToken,
-  isPasswordCorrect,
-} from "../utils/auth.js";
+import { INVALID_PAKISTAN_PHONE_MESSAGE } from "../utils/pakistanPhone.js";
 import {
   DEFAULT_TIME_ZONE,
   getZonedClockMinutes,
@@ -29,86 +23,26 @@ import {
   getZonedMonthRange,
 } from "../utils/dateTime.js";
 import { syncTodaysOpenAttendanceWindow } from "../utils/syncAttendanceWindow.js";
-import { getCookieOptions } from "../utils/cookies.js";
 import { getScopedLocationIds, assertLocationAccess } from "../utils/scope.js";
 
-export const loginStaff = async (req: Request, res: Response) => {
-  const result = staffLoginSchema.safeParse(req.body);
-
-  if (!result.success) {
-    const errors = result.error.issues.map((e: any) => ({
-      field: e.path.join("."),
-      message: e.message,
-    }));
-    throw new ApiError(400, "Validation failed", errors);
-  }
-  const { email, password } = result.data;
-
-  const staff = await prisma.staff.findUnique({
-    where: { email },
-  });
-
-  if (!staff) {
-    throw new ApiError(401, "Invalid email or password");
+function staffValidationError(issues: readonly ZodIssue[]) {
+  if (issues.some((issue) => issue.code === "custom" && issue.params?.code === "INVALID_PHONE")) {
+    return new ApiError(400, INVALID_PAKISTAN_PHONE_MESSAGE, [
+      { field: "phone", message: INVALID_PAKISTAN_PHONE_MESSAGE, code: "INVALID_PHONE" },
+    ]);
   }
 
-  if (!staff.isActive) {
-    throw new ApiError(403, "Your account has been deactivated");
-  }
-
-  const isValid = await isPasswordCorrect(password, staff.password);
-  if (!isValid) {
-    throw new ApiError(401, "Invalid email or password");
-  }
-
-  const accessToken = generateAccessToken(staff, staff.role);
-  const refreshToken = generateRefreshToken(staff, staff.role);
-
-  await prisma.staff.update({
-    where: { id: staff.id },
-    data: { refreshToken },
-  });
-
-  const cookieOptions = getCookieOptions();
-
-  res
-    .status(200)
-    .cookie("accessToken", accessToken, cookieOptions)
-    .cookie("refreshToken", refreshToken, cookieOptions)
-    .json(
-      new ApiResponse(
-        200,
-        {
-          id: staff.id,
-          name: staff.name,
-          email: staff.email,
-          role: staff.role,
-          companyId: staff.companyId,
-          locationId: staff.locationId,
-          accessToken,
-          refreshToken,
-        },
-        "Login successful",
-      ),
-    );
-};
+  return new ApiError(400, "Validation failed", issues.map((issue) => ({
+    field: issue.path.join("."),
+    message: issue.message,
+  })));
+}
 
 export const createStaff = async (req: Request, res: Response) => {
-  const result = createStaffSchema.safeParse(req.body);
+  const result = staffRecordSchema.safeParse(req.body);
+  if (!result.success) throw staffValidationError(result.error.issues);
 
-  if (!result.success) {
-    const errors = result.error.issues.map((e) => ({
-      field: e.path.join("."),
-      message: e.message,
-    }));
-    throw new ApiError(400, "Validation failed", errors);
-  }
-
-  const { email, locationId } = result.data;
-
-  const existingStaff = await prisma.staff.findUnique({ where: { email } });
-  if (existingStaff)
-    throw new ApiError(409, "Staff with this email already exists");
+  const { locationId } = result.data;
 
   if (req.user!.role === "MANAGER" && !locationId) throw new ApiError(403, "Choose an assigned site when creating staff");
 
@@ -245,101 +179,120 @@ export const editStaff = async (req: Request, res: Response) => {
   if (isNaN(staffId)) throw new ApiError(400, "Invalid staff id");
 
   const result = editStaffSchema.safeParse(req.body);
+  if (!result.success) throw staffValidationError(result.error.issues);
 
-  if (!result.success) {
-    const errors = result.error.issues.map((e) => ({
-      field: e.path.join("."),
-      message: e.message,
-    }));
-    throw new ApiError(400, "Validation failed", errors);
-  }
+  const actor = req.user!;
+  const { phone, email, shiftStart, shiftEnd } = result.data;
+  const shiftChanged = shiftStart !== undefined || shiftEnd !== undefined;
 
-  const staff = await prisma.staff.findUnique({
-    where: { id: staffId },
-    include: { location: { select: { timezone: true } } },
-  });
-
-  if (!staff || staff.companyId !== req.user!.companyId) {
-    throw new ApiError(404, "Staff not found in your company");
-  }
-
-  if (!staff.isActive) {
-    throw new ApiError(400, "Cannot edit deactivated staff");
-  }
-
-  if (staff.locationId) {
-    assertLocationAccess(req.user!, staff.locationId);
-  }
-
-  if (result.data.email && result.data.email !== staff.email) {
-    const existing = await prisma.staff.findUnique({
-      where: { email: result.data.email },
+  const updated = await prisma.$transaction(async (tx) => {
+    // Read the current identity and shift after locking the row against concurrent edits.
+    await tx.$queryRaw`SELECT id FROM "Staff" WHERE id = ${staffId} AND "companyId" = ${actor.companyId} FOR UPDATE`;
+    const staff = await tx.staff.findUnique({
+      where: { id: staffId, companyId: actor.companyId },
+      include: { location: { select: { timezone: true } } },
     });
-    if (existing) {
-      throw new ApiError(409, "A staff member with this email already exists");
+
+    if (!staff) {
+      throw new ApiError(404, "Staff not found in your company");
     }
-  }
 
+    if (!staff.isActive) {
+      throw new ApiError(400, "Cannot edit deactivated staff");
+    }
 
-  const shiftChanged =
-    result.data.shiftStart !== undefined || result.data.shiftEnd !== undefined;
+    if (staff.locationId) {
+      assertLocationAccess(actor, staff.locationId);
+    }
 
-  if (result.data.shiftStart || result.data.shiftEnd) {
-    const newStart = result.data.shiftStart ?? staff.shiftStart;
-    const newEnd = result.data.shiftEnd ?? staff.shiftEnd;
+    const newPhone = phone !== staff.phone ? phone : undefined;
+    const newEmail = email && email !== staff.email ? email : undefined;
+    if (newPhone) {
+      await lockStaffIdentities(tx, [{ phone: newPhone, email: newEmail }]);
+    } else if (newEmail) {
+      // Use provisioning's email lock for email-only edits, including legacy rows without a phone.
+      await tx.$queryRaw`SELECT pg_advisory_xact_lock(hashtextextended(lower(${newEmail}), 1542))::text`;
+    }
 
-    if (newStart && newEnd) {
-      const staffTemplates = await prisma.taskTemplate.findMany({
-        where: {
-          staffId,
-          isActive: true,
-        },
-        include: { location: { select: { timezone: true } } },
-      });
+    if (newPhone && await tx.staff.findUnique({ where: { phone: newPhone }, select: { id: true } })) {
+      throw new ApiError(409, "This phone number is already used by another staff member.", [{ code: "PHONE_IN_USE" }]);
+    }
+    if (newEmail && await tx.staff.findFirst({
+      where: { id: { not: staffId }, email: { equals: newEmail, mode: "insensitive" } },
+      select: { id: true },
+    })) {
+      throw new ApiError(409, "This email is already used by another staff member.", [{ code: "EMAIL_IN_USE" }]);
+    }
 
-      const locationTimeZone = staff.location?.timezone ?? DEFAULT_TIME_ZONE;
-      const newStartMin = getZonedClockMinutes(newStart, locationTimeZone);
-      const newEndMin = getZonedClockMinutes(newEnd, locationTimeZone);
-      const isOvernightShift = newEndMin < newStartMin;
+    if (result.data.shiftStart || result.data.shiftEnd) {
+      const newStart = result.data.shiftStart ?? staff.shiftStart;
+      const newEnd = result.data.shiftEnd ?? staff.shiftEnd;
 
-      const conflicts = staffTemplates.filter((t) => {
-        const templateTimeZone = t.location.timezone;
-        const tStartMin = getZonedClockMinutes(t.shiftStart, templateTimeZone);
-        const tEndMin = getZonedClockMinutes(t.shiftEnd, templateTimeZone);
+      if (newStart && newEnd) {
+        const staffTemplates = await tx.taskTemplate.findMany({
+          where: {
+            staffId,
+            isActive: true,
+          },
+          include: { location: { select: { timezone: true } } },
+        });
 
-        if (isOvernightShift) {
-          return !(tStartMin >= newStartMin || tEndMin <= newEndMin);
+        const locationTimeZone = staff.location?.timezone ?? DEFAULT_TIME_ZONE;
+        const newStartMin = getZonedClockMinutes(newStart, locationTimeZone);
+        const newEndMin = getZonedClockMinutes(newEnd, locationTimeZone);
+        const isOvernightShift = newEndMin < newStartMin;
+
+        const conflicts = staffTemplates.filter((t) => {
+          const templateTimeZone = t.location.timezone;
+          const tStartMin = getZonedClockMinutes(t.shiftStart, templateTimeZone);
+          const tEndMin = getZonedClockMinutes(t.shiftEnd, templateTimeZone);
+
+          if (isOvernightShift) {
+            return !(tStartMin >= newStartMin || tEndMin <= newEndMin);
+          }
+          return !(tStartMin >= newStartMin && tEndMin <= newEndMin);
+        });
+
+        if (conflicts.length > 0) {
+          const names = conflicts.map((c) => `"${c.title}"`).join(", ");
+          throw new ApiError(
+            400,
+            `Cannot update shift: ${names} task template(s) fall outside the new shift window. Remove or reassign them first.`,
+          );
         }
-        return !(tStartMin >= newStartMin && tEndMin <= newEndMin);
-      });
-
-      if (conflicts.length > 0) {
-        const names = conflicts.map((c) => `"${c.title}"`).join(", ");
-        throw new ApiError(
-          400,
-          `Cannot update shift: ${names} task template(s) fall outside the new shift window. Remove or reassign them first.`,
-        );
       }
     }
-  }
 
-  const updated = await prisma.staff.update({
-    where: { id: staffId },
-    data: { ...result.data, ...(result.data.email && result.data.email !== staff.email ? { credentialVersion: { increment: 1 }, refreshToken: null } : {}) },
-    select: {
-      id: true,
-      name: true,
-      email: true,
-      phone: true,
-      role: true,
-      isActive: true,
-      companyId: true,
-      locationId: true,
-      shiftStart: true,
-      shiftEnd: true,
-      createdAt: true,
-      updatedAt: true,
-    },
+    const staffRecord = await tx.staff.update({
+      where: { id: staffId },
+      data: {
+        ...result.data,
+        ...(newPhone ? { credentialVersion: { increment: 1 }, refreshToken: null } : {}),
+      },
+      select: {
+        id: true,
+        name: true,
+        email: true,
+        phone: true,
+        role: true,
+        isActive: true,
+        companyId: true,
+        locationId: true,
+        shiftStart: true,
+        shiftEnd: true,
+        createdAt: true,
+        updatedAt: true,
+      },
+    });
+
+    if (newPhone) {
+      await tx.staffPushDevice.updateMany({
+        where: { staffId, companyId: actor.companyId },
+        data: { enabled: false },
+      });
+    }
+
+    return staffRecord;
   });
 
   if (shiftChanged) {

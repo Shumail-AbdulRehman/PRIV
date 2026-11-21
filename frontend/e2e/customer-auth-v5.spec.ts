@@ -19,12 +19,24 @@ test('S42 real rejected login permits a corrected retry', async ({ page }) => {
   await expect(page.getByLabel('Email', { exact: true })).toHaveValue('no-account@example.invalid');
   await expect(page.getByLabel('Password', { exact: true })).toHaveValue('');
 });
-test('S42-13 staff unified login reaches app handoff', async ({ page }) => {
-  await page.goto('/login'); await page.getByLabel('Email', { exact: true }).fill(fixture.staff.transfer.email);
-  await page.getByLabel('Password', { exact: true }).fill(fixture.password); await page.getByRole('button', { name: 'Sign in', exact: true }).click();
-  await expect(page.getByRole('heading', { name: 'Your work is in the app' })).toBeVisible(); await page.reload();
-  await expect(page.getByRole('heading', { name: 'Your work is in the app' })).toBeVisible();
-  await page.getByRole('button', { name: 'Sign out', exact: true }).click(); await expect(page).toHaveURL(/login/);
+test('staff web password login is rejected and the owner can still sign in', async ({ page }) => {
+  await page.goto('/login');
+  const email = page.getByLabel('Email', { exact: true });
+  const password = page.getByLabel('Password', { exact: true });
+  const signIn = page.getByRole('button', { name: 'Sign in', exact: true });
+  await email.fill(fixture.staff.transfer.email);
+  await password.fill(fixture.password);
+  await signIn.click();
+  await expect(page.getByRole('alert')).toContainText('Email or password is incorrect.');
+  await expect(page).toHaveURL(/\/login$/);
+  await expect(page.getByRole('heading', { name: 'Your work is in the app' })).toHaveCount(0);
+  await expect(page.getByText(/Request failed with status code/i)).toHaveCount(0);
+  await email.fill(fixture.users.ownerA.email);
+  await password.fill(fixture.password);
+  await signIn.click();
+  await expect(page).toHaveURL(/dashboard/);
+  await page.reload();
+  await expect(page.getByRole('navigation', { name: 'Workspace navigation' })).toBeVisible();
 });
 test('S42 login pending prevents repeat submits', async ({ page }) => {
   let posts = 0;

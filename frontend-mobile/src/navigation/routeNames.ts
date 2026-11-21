@@ -18,7 +18,6 @@ export const stackRoutes = {
   verification: "Verification",
   helpGuide: "HelpGuide",
   taskAlerts: "TaskAlerts",
-  changePassword: "ChangePassword",
   historyTask: "HistoryTask",
 } as const satisfies Record<string, keyof RootStackParamList>;
 

@@ -12,7 +12,6 @@ type LoginAccount = {
   companyId: number;
   credentialVersion: number;
   isActive: boolean;
-  locationId?: number | null;
 };
 
 type LoginModel = {
@@ -20,7 +19,7 @@ type LoginModel = {
   findMany(args: { where: { email: { equals: string; mode: "insensitive" } }; take: number }): Promise<LoginAccount[]>;
   update(args: { where: { id: number }; data: { refreshToken: string } }): Promise<unknown>;
 };
-type LoginDb = { manager: LoginModel; staff: LoginModel };
+type LoginDb = { manager: LoginModel };
 
 const loginSchema = managerLoginSchema.strict();
 // Valid cost-10 bcrypt hash, matching the existing password hashing cost. Never
@@ -30,42 +29,28 @@ const invalidCredentials = () => new ApiError(401, "Invalid email or password");
 
 async function findAccount(model: LoginModel, email: string) {
   const exact = await model.findUnique({ where: { email } });
-  if (exact) return { account: exact, ambiguous: false };
+  if (exact) return exact;
   const matches = await model.findMany({ where: { email: { equals: email, mode: "insensitive" } }, take: 2 });
-  return { account: matches.length === 1 ? matches[0]! : null, ambiguous: matches.length > 1 };
+  return matches.length === 1 ? matches[0]! : null;
 }
 
-/** Manager/owner credentials take precedence; staff credentials remain usable
- * when a same-email manager has a different password. No tenant comes from input.
- */
 export async function login(input: unknown, db: LoginDb = prisma) {
   const parsed = loginSchema.safeParse(input);
   if (!parsed.success) {
     throw new ApiError(400, "Validation failed", parsed.error.issues.map(issue => ({ field: issue.path.join("."), message: issue.message })));
   }
   const { email, password } = parsed.data;
-  let compared = false;
-  for (const kind of ["manager", "staff"] as const) {
-    const { account, ambiguous } = await findAccount(db[kind], email);
-    if (ambiguous) {
-      if (!compared) await isPasswordCorrect(password, DUMMY_PASSWORD_HASH);
-      throw invalidCredentials();
-    }
-    if (!account) continue;
-    compared = true;
-    if (!await isPasswordCorrect(password, account.password)) continue;
-    if (!account.isActive) throw new ApiError(403, kind === "manager" ? "Account is deactivated" : "Your account has been deactivated", [{ code: "ACCOUNT_DEACTIVATED" }]);
-
-    const accessToken = generateAccessToken(account, account.role);
-    const refreshToken = generateRefreshToken(account, account.role);
-    await db[kind].update({ where: { id: account.id }, data: { refreshToken } });
-    const user = { id: account.id, name: account.name, email: account.email, role: account.role, companyId: account.companyId };
-    return {
-      accessToken,
-      refreshToken,
-      user: kind === "staff" ? { ...user, locationId: account.locationId, accessToken, refreshToken } : user,
-    };
+  const account = await findAccount(db.manager, email);
+  if (!account || account.role === "STAFF") {
+    await isPasswordCorrect(password, DUMMY_PASSWORD_HASH);
+    throw invalidCredentials();
   }
-  if (!compared) await isPasswordCorrect(password, DUMMY_PASSWORD_HASH);
-  throw invalidCredentials();
+  if (!await isPasswordCorrect(password, account.password)) throw invalidCredentials();
+  if (!account.isActive) throw new ApiError(403, "Account is deactivated", [{ code: "ACCOUNT_DEACTIVATED" }]);
+
+  const accessToken = generateAccessToken(account, account.role);
+  const refreshToken = generateRefreshToken(account, account.role);
+  await db.manager.update({ where: { id: account.id }, data: { refreshToken } });
+  const user = { id: account.id, name: account.name, email: account.email, role: account.role, companyId: account.companyId };
+  return { accessToken, refreshToken, user };
 }

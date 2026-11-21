@@ -10,14 +10,44 @@ const preview={total:1,valid:1,token:'signed-preview',location:{name:'Centaurus 
 beforeEach(()=>{vi.clearAllMocks();localStorage.clear();});
 afterEach(()=>vi.unstubAllGlobals());
 it('opens at selected location, downloads template and cancels',async()=>{mount();fireEvent.click(screen.getByRole('button',{name:'Import Staff'}));expect(screen.getByRole('dialog')).toHaveTextContent('Centaurus Mall');m.get.mockRejectedValue(Error('offline'));fireEvent.click(screen.getByRole('button',{name:'Download Excel Template'}));await waitFor(()=>expect(m.get).toHaveBeenCalledWith('/location/3/staff-import/template',{responseType:'blob'}));expect(await screen.findByRole('alert')).toBeVisible();fireEvent.click(screen.getByRole('button',{name:'Cancel'}));expect(screen.queryByRole('dialog')).not.toBeInTheDocument();});
-it('previews without creating, confirms same file/token, and explains direct password login',async()=>{mount();fireEvent.click(screen.getByRole('button',{name:'Import Staff'}));m.post.mockResolvedValueOnce({data:{data:preview}}).mockResolvedValueOnce({data:{data:{count:1}}});const file=new File(['csv'],'staff.csv');fireEvent.change(screen.getByLabelText(/Completed spreadsheet/),{target:{files:[file]}});expect(await screen.findByText('Ahmed Khan')).toBeVisible();expect(m.post).toHaveBeenCalledTimes(1);fireEvent.click(screen.getByRole('button',{name:'Confirm Import'}));expect(await screen.findByText(/Staff can now sign in/)).toBeVisible();expect(m.post.mock.calls[1]![0]).toBe('/location/3/staff-import/confirm');expect(m.post.mock.calls[1]![1].get('token')).toBe('signed-preview');});
+it('previews without creating, confirms the same file and token, and explains SMS sign-in', async () => {
+  mount();
+  open();
+  m.post.mockResolvedValueOnce({data:{data:preview}}).mockResolvedValueOnce({data:{data:{count:1}}});
+  const file = upload();
+  expect(await screen.findByText('Ahmed Khan')).toBeVisible();
+  expect(m.post).toHaveBeenCalledTimes(1);
+  fireEvent.click(screen.getByRole('button', {name:'Confirm Import'}));
+  const message = await screen.findByText('Staff can now sign in with their phone number and a code sent by SMS.');
+  expect(message).toBeVisible();
+  expect(screen.getByRole('status')).toContainElement(message);
+  const [path, body] = m.post.mock.calls[1]!;
+  expect(path).toBe('/location/3/staff-import/confirm');
+  expect(body.get('file')).toBe(file);
+  expect(body.get('token')).toBe('signed-preview');
+});
 it('displays row errors and disables confirmation',async()=>{mount();fireEvent.click(screen.getByRole('button',{name:'Import Staff'}));m.post.mockResolvedValue({data:{data:{...preview,valid:0,rows:[{...preview.rows[0],errors:['Email is already in use.']}]}}});fireEvent.change(screen.getByLabelText(/Completed spreadsheet/),{target:{files:[new File(['csv'],'staff.csv')]}});expect((await screen.findAllByText('Email is already in use.'))[0]).toBeVisible();expect(screen.getByRole('button',{name:'Confirm Import'})).toBeDisabled();});
 it('renders Urdu RTL entry and workflow',()=>{mount('ur');fireEvent.click(screen.getByRole('button',{name:'عملہ درآمد کریں'}));expect(screen.getByRole('dialog')).toHaveAttribute('dir','rtl');expect(screen.getByRole('button',{name:'ایکسل سانچہ ڈاؤن لوڈ کریں'})).toBeVisible();});
 
-it('explains the password column without rendering any passwords in preview',async()=>{
- mount();fireEvent.click(screen.getByRole('button',{name:'Import Staff'}));expect(screen.getByText(/passwords stay hidden/i)).toBeVisible();
- m.post.mockResolvedValue({data:{data:preview}});fireEvent.change(screen.getByLabelText(/Completed spreadsheet/),{target:{files:[new File(['csv'],'staff.csv')]}});
- await screen.findByText('Ahmed Khan');expect(screen.queryByRole('columnheader',{name:'Password'})).not.toBeInTheDocument();
+it('explains the phone sign-in template and previews phone before email', async () => {
+  mount();
+  open();
+  expect(screen.getByText('Full name, phone, shift start and shift end are required. Email is optional. Staff sign in with their phone number and a code sent by SMS. Format phones as Text and use HH:mm shift times, such as 22:00–06:00.')).toBeVisible();
+  m.post.mockResolvedValue({data:{data:preview}});
+  upload();
+  const person = await screen.findByRole('cell', {name:/Ahmed Khan.*Phone: 03001234567.*Email: ahmed@example\.com/});
+  expect(person).toBeVisible();
+  expect(screen.queryByRole('columnheader', {name:/password/i})).not.toBeInTheDocument();
+  expect(screen.getByRole('dialog')).not.toHaveTextContent(/password/i);
+});
+
+it.each(['', null])('shows No email and allows confirmation with email %j', async email => {
+  m.post.mockResolvedValue({data:{data:{...preview,rows:[{...preview.rows[0],email}]}}});
+  mount();
+  open();
+  upload();
+  expect(await screen.findByText('No email')).toBeVisible();
+  expect(screen.getByRole('button', {name:'Confirm Import'})).toBeEnabled();
 });
 
 function open() { const trigger=screen.getByRole('button',{name:'Import Staff'});trigger.focus();fireEvent.click(trigger);return trigger; }
@@ -94,4 +124,23 @@ it('preserves a checked draft on Cancel and returns keyboard focus to its opener
 it('translates per-row validation and preserves record data under Urdu',async()=>{
  m.post.mockResolvedValue({data:{data:{...preview,valid:0,rows:[{...preview.rows[0],errors:['Email is already in use.']}]}}});mount('ur');fireEvent.click(screen.getByRole('button',{name:'عملہ درآمد کریں'}));
  fireEvent.change(screen.getByLabelText(/مکمل شیٹ/),{target:{files:[new File(['csv'],'staff.csv')]}});expect(await screen.findByText('ای میل پہلے سے استعمال میں ہے۔')).toBeVisible();expect(screen.getByText('Ahmed Khan')).toBeVisible();expect(screen.getByRole('button',{name:'درآمد کی تصدیق'})).toBeDisabled();expect(screen.getByRole('dialog')).toHaveAttribute('dir','rtl');
+});
+
+it('translates phone errors and a missing email in Urdu and preserves unknown errors', async () => {
+  const errors = [
+    'This phone number is already used.',
+    'Duplicate phone in this spreadsheet.',
+    'Enter a Pakistan mobile number, like 03001234567.',
+    'Unknown row error.',
+  ];
+  m.post.mockResolvedValue({data:{data:{...preview,valid:0,rows:[{...preview.rows[0],email:null,errors}]}}});
+  mount('ur');
+  fireEvent.click(screen.getByRole('button', {name:'عملہ درآمد کریں'}));
+  fireEvent.change(screen.getByLabelText(/مکمل شیٹ/), {target:{files:[new File(['csv'],'staff.csv')]}});
+  const row = await screen.findByRole('row', {name:/Ahmed Khan/});
+  expect(row).toHaveTextContent('کوئی ای میل نہیں');
+  expect(row).toHaveTextContent('یہ فون نمبر پہلے سے استعمال میں ہے۔');
+  expect(row).toHaveTextContent('شیٹ میں فون نمبر دوبارہ درج ہے۔');
+  expect(row).toHaveTextContent('پاکستانی موبائل نمبر درج کریں، جیسے 03001234567۔');
+  expect(row).toHaveTextContent('Unknown row error.');
 });

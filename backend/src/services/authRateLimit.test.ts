@@ -107,6 +107,30 @@ describe('authentication rate limits', () => {
         blocked(f.request(f.limiter.signup), 2700);
     });
 
+    it.each([['staffCodeRequest', 20], ['staffCodeVerify', 30]] as const)(
+        'caps %s at %i attempts per IP for 15 minutes', (area, limit) => {
+            const f = fixture();
+            const handler = f.limiter[area];
+            for (let i = 0; i < limit; i++) allowed(f.request(handler, '192.0.2.1', { phone: i }));
+            blocked(f.request(handler), 900);
+            allowed(f.request(handler, '192.0.2.2'));
+            f.time(LOGIN_WINDOW - 1);
+            blocked(f.request(handler), 1);
+            f.time(LOGIN_WINDOW);
+            allowed(f.request(handler));
+        },
+    );
+
+    it('keeps staff code requests, verification, login and signup in separate buckets', () => {
+        const f = fixture();
+        for (let i = 0; i < 20; i++) f.request(f.limiter.staffCodeRequest);
+        blocked(f.request(f.limiter.staffCodeRequest), 900);
+        for (let i = 0; i < 30; i++) allowed(f.request(f.limiter.staffCodeVerify));
+        blocked(f.request(f.limiter.staffCodeVerify), 900);
+        allowed(f.request(f.limiter.login));
+        allowed(f.request(f.limiter.signup));
+    });
+
     it('holds the key cap under a flood without evicting live limits', () => {
         const f = fixture(3);
         for (let i = 0; i < 10; i++) f.request(f.limiter.login);
@@ -155,5 +179,7 @@ describe('authentication rate limits', () => {
     it('exports shared middleware without wiring routes', () => {
         expect(authRateLimit.login).toBeTypeOf('function');
         expect(authRateLimit.signup).toBeTypeOf('function');
+        expect(authRateLimit.staffCodeRequest).toBeTypeOf('function');
+        expect(authRateLimit.staffCodeVerify).toBeTypeOf('function');
     });
 });

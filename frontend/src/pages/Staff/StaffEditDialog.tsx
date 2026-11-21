@@ -1,18 +1,20 @@
-import { useEffect, useId, useRef, useState } from 'react';
+import { useEffect, useId, useRef } from 'react';
+import { useForm } from 'react-hook-form';
 import { Link } from 'react-router-dom';
 import { formatInTimeZone, fromZonedTime } from 'date-fns-tz';
 import useAuth from '@/hooks/useAuth';
 import { useLanguage } from '@/i18n/context';
 import { Input } from '@/components/ui/input';
-import SidePanel, { SidePanelFooter } from '@/components/workspace/SidePanel';
+import SidePanel, { SidePanelFieldError, SidePanelFooter } from '@/components/workspace/SidePanel';
 import { useEditStaff } from './queries';
 import type { EditStaffInput } from './api';
+import { checkStaffName, getStaffFormError, staffEmailRules, staffPhoneRules, staffShiftEndRules, staffShiftInputEvents, staffShiftStartRules } from './staffFieldRules';
 import './staff-forms-v6.css';
 
 export interface EditableStaff {
   id: number;
   name: string;
-  email: string;
+  email: string | null;
   phone?: string | null;
   shiftStart: string | null;
   shiftEnd: string | null;
@@ -21,6 +23,7 @@ export interface EditableStaff {
   location?: { id?: number; name?: string | null } | null;
 }
 type Props = { person: EditableStaff; timezone: string; onClose: () => void; onSaved?: () => void };
+type EditStaffForm = { name: string; email: string; phone: string; shiftStart: string; shiftEnd: string; locationId?: string };
 const timeValue = (date: string | null, timezone: string) => date ? formatInTimeZone(new Date(date), timezone, 'HH:mm') : '';
 
 export default function StaffEditDialog(props: Props) {
@@ -36,17 +39,26 @@ function ScopedStaffEditDialog({ person, timezone, onClose, onSaved }: Props) {
   const formId = useId();
   const id = (field: string) => `${formId}-${field}`;
   useEffect(() => { mounted.current = true; return () => { mounted.current = false; }; }, []);
-  const [error, setError] = useState('');
-  const [form, setForm] = useState({ name: person.name, email: person.email, phone: person.phone ?? '', shiftStart: timeValue(person.shiftStart, timezone), shiftEnd: timeValue(person.shiftEnd, timezone) });
+  const { register, handleSubmit, setError, formState: { errors } } = useForm<EditStaffForm>({
+    mode: 'onBlur',
+    defaultValues: {
+      name: person.name,
+      email: person.email ?? '',
+      phone: person.phone ?? '',
+      shiftStart: timeValue(person.shiftStart, timezone),
+      shiftEnd: timeValue(person.shiftEnd, timezone),
+    },
+  });
+  const shiftStartMessage = errors.shiftStart?.message;
+  const shiftEndMessage = errors.shiftEnd?.message;
   const close = () => { if (!edit.isPending && !inFlight.current) onClose(); };
-  const save = async (event: React.FormEvent) => {
-    event.preventDefault();
-    if (inFlight.current || !person.isActive || !form.name.trim() || !form.email.trim()) return;
+  const save = async (form: EditStaffForm) => {
+    if (inFlight.current || !person.isActive) return;
     inFlight.current = true;
-    setError('');
     const payload: EditStaffInput = {};
-    if (form.name.trim() !== person.name) payload.name = form.name.trim();
-    if (form.email.trim() !== person.email) payload.email = form.email.trim();
+    const name = form.name.trim();
+    if (form.name !== person.name && name !== person.name) payload.name = name;
+    if (form.email.trim() !== (person.email ?? '')) payload.email = form.email.trim() || null;
     if (form.phone.trim() !== (person.phone ?? '')) payload.phone = form.phone.trim();
     for (const field of ['shiftStart', 'shiftEnd'] as const) if (form[field] && form[field] !== timeValue(person[field], timezone)) {
       const date = formatInTimeZone(person[field] ? new Date(person[field]!) : new Date(), timezone, 'yyyy-MM-dd');
@@ -59,53 +71,71 @@ function ScopedStaffEditDialog({ person, timezone, onClose, onSaved }: Props) {
       onClose();
     } catch (cause) {
       if (!mounted.current) return;
+      const issue = getStaffFormError(cause);
+      if (issue && issue.field !== 'reason') {
+        setError(issue.field, { type: 'server', message: issue.message });
+        return;
+      }
       const status = (cause as { response?: { status?: number } }).response?.status;
-      setError(status === 409 ? 'The record changed. Check the email and shift details before saving again. Your draft is kept.'
+      const message = status === 409 ? 'The record changed. Check the email and shift details before saving again. Your draft is kept.'
         : status === 403 ? 'You do not have access to this action. Refresh your assigned sites.'
           : status === 400 ? 'Check the contact and shift details. Existing schedules must fit the shift.'
-            : 'The action could not be confirmed. Refresh the record before retrying. Your draft is kept.');
+            : 'The action could not be confirmed. Refresh the record before retrying. Your draft is kept.';
+      setError('root.server', { type: 'server', message });
     } finally { inFlight.current = false; }
   };
   const locationId = person.locationId ?? person.location?.id;
   const locationName = person.location?.name || (locationId != null ? `#${locationId}` : t('Unassigned'));
   const actions = <SidePanelFooter className="wx-staff-form-actions">
     <button type="button" className="wx-staff-form-button" disabled={edit.isPending} onClick={close}>{t('Cancel')}</button>
-    <button type="submit" form={formId} className="wx-staff-form-button wx-staff-form-primary" disabled={edit.isPending || !person.isActive || !form.name.trim() || !form.email.trim()} aria-busy={edit.isPending}>{t(edit.isPending ? 'Saving…' : 'Save changes')}</button>
+    <button type="submit" form={formId} className="wx-staff-form-button wx-staff-form-primary" disabled={edit.isPending || !person.isActive} aria-busy={edit.isPending}>{t(edit.isPending ? 'Saving…' : 'Save changes')}</button>
   </SidePanelFooter>;
   return <SidePanel open title="Edit team member" description="Times use the assigned site’s timezone." onOpenChange={value => { if (!value) close(); }} footer={actions}>
     <p className="wx-staff-form-person"><bdi>{person.name}</bdi></p>
-    <form id={formId} className="wx-staff-form" onSubmit={event => void save(event)} aria-busy={edit.isPending}>
+    <form noValidate id={formId} className="wx-staff-form" onSubmit={event => void handleSubmit(save)(event)} aria-busy={edit.isPending}>
       <fieldset className="wx-staff-form-fields" disabled={edit.isPending}>
         <div className="wx-staff-form-field">
-          <label htmlFor={id('name')}>{t('Name')}</label>
-          <Input id={id('name')} required minLength={2} autoComplete="name" value={form.name} onChange={event => setForm({ ...form, name: event.target.value })} />
+          <label htmlFor={id('name')}>{t('Full Name')}</label>
+          <Input id={id('name')} autoComplete="name" required aria-invalid={!!errors.name} aria-describedby={errors.name ? id('name-error') : undefined}
+            {...register('name', { validate: value => value === person.name || checkStaffName(value) })} />
+          <SidePanelFieldError id={id('name-error')}>{errors.name?.message}</SidePanelFieldError>
         </div>
         <div className="wx-staff-form-pair">
           <div className="wx-staff-form-field">
-            <label htmlFor={id('email')}>{t('Email')}</label>
-            <Input id={id('email')} type="email" dir="ltr" required autoComplete="email" aria-describedby={id('email-hint')} value={form.email} onChange={event => setForm({ ...form, email: event.target.value })} />
+            <label htmlFor={id('email')}>{t('Email (optional)')}</label>
+            <Input id={id('email')} type="email" dir="ltr" autoComplete="email" aria-invalid={!!errors.email} aria-describedby={errors.email ? id('email-error') : undefined}
+              {...register('email', staffEmailRules)} />
+            <SidePanelFieldError id={id('email-error')}>{errors.email?.message}</SidePanelFieldError>
           </div>
           <div className="wx-staff-form-field">
             <label htmlFor={id('phone')}>{t('Phone Number')}</label>
-            <Input id={id('phone')} type="tel" dir="ltr" minLength={7} maxLength={20} autoComplete="tel" value={form.phone} onChange={event => setForm({ ...form, phone: event.target.value })} />
+            <Input id={id('phone')} type="tel" dir="ltr" autoComplete="tel" required aria-invalid={!!errors.phone} aria-describedby={`${id('phone-hint')}${errors.phone ? ` ${id('phone-error')}` : ''}`}
+              {...register('phone', staffPhoneRules)} />
+            <p id={id('phone-hint')} className="wx-staff-form-help">{t('Changing the phone number signs this person out on every phone.')}</p>
+            <SidePanelFieldError id={id('phone-error')}>{errors.phone?.message}</SidePanelFieldError>
           </div>
         </div>
-        <p id={id('email-hint')} className="wx-staff-form-help">{t('Updating the login email ends existing staff sessions.')}</p>
         <div className="wx-staff-form-field">
           <label htmlFor={id('location')}>{t('Location')}</label>
-          <Input id={id('location')} readOnly value={locationName} aria-describedby={id('location-hint')} />
+          <Input id={id('location')} readOnly value={locationName} aria-invalid={!!errors.locationId} aria-describedby={`${id('location-hint')}${errors.locationId ? ` ${id('location-error')}` : ''}`} />
           <p id={id('location-hint')} className="wx-staff-form-help">{t('Use Staff access to transfer sites with a reason and open-shift checks.')}</p>
+          <SidePanelFieldError id={id('location-error')}>{errors.locationId?.message}</SidePanelFieldError>
           <Link className="wx-staff-form-access" to={`/staff/${person.id}`} aria-disabled={edit.isPending || undefined} onClick={event => { if (edit.isPending || inFlight.current) event.preventDefault(); else onClose(); }}>{t('Staff access')}</Link>
         </div>
         <div className="wx-staff-form-pair">
-          {(['shiftStart', 'shiftEnd'] as const).map(field => <div className="wx-staff-form-field" key={field}>
-            <label htmlFor={id(field)}>{t(field === 'shiftStart' ? 'Shift Start' : 'Shift End')}</label>
-            <Input id={id(field)} type="time" dir="ltr" value={form[field]} aria-describedby={id('timezone-hint')} onChange={event => setForm({ ...form, [field]: event.target.value })} />
-          </div>)}
+          {(['shiftStart', 'shiftEnd'] as const).map(field => {
+            const message = field === 'shiftStart' ? shiftStartMessage : shiftEndMessage;
+            return <div className="wx-staff-form-field" key={field}>
+              <label htmlFor={id(field)}>{t(field === 'shiftStart' ? 'Shift Start' : 'Shift End')}</label>
+              <Input id={id(field)} type="time" dir="ltr" aria-invalid={!!message} aria-describedby={`${id('timezone-hint')}${message ? ` ${id(`${field}-error`)}` : ''}`}
+                {...staffShiftInputEvents(register(field, field === 'shiftStart' ? staffShiftStartRules : staffShiftEndRules))} />
+              <SidePanelFieldError id={id(`${field}-error`)}>{message}</SidePanelFieldError>
+            </div>;
+          })}
         </div>
         <p id={id('timezone-hint')} className="wx-staff-form-help">{t('Times use the assigned site’s timezone.')} <bdi>{timezone}</bdi></p>
       </fieldset>
-      {error && <p className="wx-staff-form-error" role="alert">{t(error)}</p>}
+      {errors.root?.server?.message && <p className="wx-staff-form-error" role="alert">{t(errors.root.server.message)}</p>}
     </form>
   </SidePanel>;
 }

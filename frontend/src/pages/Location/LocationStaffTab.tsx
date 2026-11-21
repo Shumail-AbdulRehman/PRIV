@@ -42,7 +42,12 @@ export default function LocationStaffTab({ locationInfo, locationTz, staffAdded,
           { key: "name", header: "Staff", sortValue: s => s.name, render: s => <div className="wx-location-tab-person"><PersonAvatar name={s.name} /><div><strong><bdi>{s.name}</bdi></strong><small><span>{t("Phone")}: </span><span aria-label={t("Not available")}>—</span></small></div></div> },
           // The canonical location response does not select phone or attendance.
           // Keep unknown facts explicit rather than deriving attendance from isActive.
-          { key: "email", header: "Email", sortValue: s => s.email, render: s => <bdi>{s.email}</bdi> },
+          {
+            key: "email",
+            header: "Email",
+            sortValue: s => s.email ?? "",
+            render: s => s.email ? <bdi>{s.email}</bdi> : <span className="text-muted-foreground">{t("No email")}</span>,
+          },
           { key: "shift", header: "Shift", render: s => <bdi>{fmtTime(s.shiftStart, locationTz)} – {fmtTime(s.shiftEnd, locationTz)}</bdi> },
           { key: "today", header: "Today", render: () => <StatusPill>{t("Not available")}</StatusPill> },
           { key: "status", header: "Status", sortValue: s => s.isActive ? 1 : 0, render: s => <StatusPill tone={s.isActive ? "ok" : "neutral"} status={s.isActive ? "ACTIVE" : "INACTIVE"} /> },

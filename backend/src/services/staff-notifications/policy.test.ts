@@ -142,7 +142,7 @@ describe("staff notification eligibility", () => {
   });
 });
 describe("staff session duration", () => {
-  it("uses a 30-day staff refresh token without changing manager or access expiry", () => {
+  it("uses a 14-day staff refresh token without changing manager or access expiry", () => {
     vi.stubEnv("REFRESH_TOKEN_SECRET", "test-refresh-only");
     vi.stubEnv("ACCESS_TOKEN_SECRET", "test-access-only");
     vi.stubEnv("REFRESH_TOKEN_EXPIRY", "7d");
@@ -153,7 +153,7 @@ describe("staff session duration", () => {
       return t.exp! - t.iat!;
     };
     const staff = generateRefreshToken({ id: 2 }, "STAFF");
-    expect(duration(staff)).toBe(30 * 86400);
+    expect(duration(staff)).toBe(14 * 86400);
     expect(duration(generateRefreshToken({ id: 2 }, "MANAGER"))).toBe(
       7 * 86400,
     );

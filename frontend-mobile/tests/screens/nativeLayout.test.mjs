@@ -178,7 +178,7 @@ for (const language of ['en', 'ur']) {
     const r = await assertBand(h(ProfileScreen), 'Profile');
     assert.equal(flat(r.root.findByProps({ testID: 'status-band' }).props.style).backgroundColor, colors.surface);
     assertPlainStyles(r, 'Profile');
-    for (const name of ['Task alerts', 'Change password', 'Help', 'Sign out']) {
+    for (const name of ['Task alerts', 'Help', 'Sign out']) {
       const node = findPressable(r, label(name));
       assert.ok(node, name);
       assert.equal(flat(node.props.style).flexDirection, row, name);

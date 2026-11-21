@@ -19,7 +19,6 @@ test("stack routes name every redesign screen", () => {
     verification: "Verification",
     helpGuide: "HelpGuide",
     taskAlerts: "TaskAlerts",
-    changePassword: "ChangePassword",
     historyTask: "HistoryTask",
   });
 });

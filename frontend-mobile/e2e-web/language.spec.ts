@@ -48,7 +48,7 @@ test('the sign in screen switches to Urdu too', async ({ page, open }) => {
   await open({ signedIn: false });
   await page.getByRole('tab', { name: 'اردو', exact: true }).click();
   await expect(page.getByRole('heading', { name: ur('Staff sign in') })).toBeVisible();
-  await expect(button(page, ur('Sign in'))).toBeVisible();
+  await expect(button(page, ur('Send code'))).toBeVisible();
   await page.reload();
   await expect(page.getByRole('heading', { name: ur('Staff sign in') })).toBeVisible();
 });

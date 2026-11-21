@@ -14,14 +14,13 @@ globalThis.loginKeyboardMocks={Keyboard:{addListener:(event,fn)=>{listeners.set(
 const mocks={
  'react-native':'{Keyboard:globalThis.loginKeyboardMocks.Keyboard,Platform:{OS:"android"},Alert:{alert(){}},Image:"Image",KeyboardAvoidingView:"KeyboardAvoidingView",ScrollView:"ScrollView",View:"View",StyleSheet:{create:v=>v}}',
  'react-native-safe-area-context':'{useSafeAreaInsets:()=>({top:24,bottom:16})}',
- '../auth/AuthContext':'{useAuth:()=>({login:async()=>{}})}',
+ '../auth/AuthContext':'{useAuth:()=>({requestCode:async()=>{},signInWithCode:async()=>{}})}',
  '../api/client':'{changeApiServerAddress:async x=>x}',
  '../api/serverAddress':'{getServerAddress:()=>"https://example.test/api",loadServerAddress:async()=>"https://example.test/api"}',
  '../config':'{API_BASE_URL:"https://example.test/api"}',
  '../i18n/LanguageProvider':'{useLanguage:()=>({t:x=>x,isRTL:false})}',
  '../design/ActionButton':'{ActionButton:"ActionButton"}', '../design/Field':'{Field:"Field"}',
  '../design/LanguageToggle':'{LanguageToggle:"LanguageToggle"}', '../design/StaffText':'{StaffText:"StaffText"}',
-  '../launch/LaunchRecovery':'{LaunchRecovery:"LaunchRecovery"}',
  '.png':'1',
 };
 const urls=Object.fromEntries(Object.entries(mocks).map(([key,value],i)=>{const path=join(directory,`${i}.cjs`);writeFileSync(path,`module.exports=${value};`);return [key,pathToFileURL(path).href];}));
@@ -38,7 +37,7 @@ test('Android login reserves scroll space for the keyboard and keeps sign-in rea
   assert.equal(scroll().props.keyboardShouldPersistTaps,'handled');
   await act(async()=>listeners.get('keyboardDidShow')({endCoordinates:{height:280}}));
   assert.equal(scroll().props.contentContainerStyle.paddingBottom,normal+280);
-  assert.ok(renderer.root.findAllByType('ActionButton').some(b=>b.props.label==='Sign in'&&b.props.kind==='form'));
+  assert.ok(renderer.root.findAllByType('ActionButton').some(b=>b.props.label==='Send code'&&b.props.kind==='form'));
   await act(async()=>listeners.get('keyboardDidHide')());
   assert.equal(scroll().props.contentContainerStyle.paddingBottom,normal);
   await act(async()=>renderer.unmount());renderer=undefined;

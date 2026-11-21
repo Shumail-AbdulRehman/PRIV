@@ -123,77 +123,50 @@ test("annotation UI persists an immutable note without changing captured attenda
     )[0].n,
   ).toBe(1);
 });
-test("staff recovery UI issues a one-use credential, clears its display and revokes old access", async ({
+test("sign out of all devices requires a reason and revokes the live staff refresh", async ({
   page,
-  browser,
+  request,
 }) => {
-  const [savedStaff]=await sql('SELECT password,"mustChangePassword" FROM "Staff" WHERE id=$1',[fixture.staff.recovery.id]);
-  const staff = await browser.newContext();
-  try {
-    await login(staff.request, "recovery");
-    await enter(page, `/staff/${fixture.staff.recovery.id}`);
-    await page
-      .getByRole("button", { name: "Staff access", exact: true })
-      .click();
-    const dialog = page.getByRole("dialog");
-    await dialog
-      .getByRole("combobox", { name: "Action", exact: true })
-      .selectOption("handoff");
-    await dialog
-      .getByLabel("Reason", { exact: true })
-      .fill("E2E direct staff recovery");
-    await dialog.getByLabel("Your current password").fill(fixture.password);
-    await dialog.getByRole("button", { name: "Confirm access change" }).click();
-    let code = "";
-    try {
-      code = await dialog
-        .getByLabel("One-use recovery code", { exact: true })
-        .inputValue();
-    } finally {
-      await dialog
-        .getByRole("button", { name: "Close and clear code" })
-        .click();
-    }
-    expect(/^[A-Za-z0-9_-]{43}$/.test(code)).toBe(true);
-    expect(
-      (await staff.request.get(backend + "/api/staff/profile/me")).status(),
-    ).toBe(401);
-    const body = { token: code, newPassword: fixture.password + "Reset" };
-    expect(
-      (
-        await staff.request.post(
-          backend + "/api/common/security/handoff/complete",
-          { data: body },
-        )
-      ).status(),
-    ).toBe(200);
-    expect(
-      (
-        await staff.request.post(
-          backend + "/api/common/security/handoff/complete",
-          { data: body },
-        )
-      ).status(),
-    ).toBe(400);
-    expect(
-      (
-        await staff.request.post(backend + "/api/staff/staff-login", {
-          data: {
-            email: fixture.staff.recovery.email,
-            password: fixture.password + "Reset",
-          },
-        })
-      ).status(),
-    ).toBe(200);
-    expect(
-      await page.getByLabel("One-use recovery code", { exact: true }).count(),
-    ).toBe(0);
-  } finally {
-    // Restore only this disposable fixture credential; keep revocation version advanced.
-    await sql('UPDATE "Staff" SET password=$2,"mustChangePassword"=$3,"refreshToken"=NULL,"credentialVersion"="credentialVersion"+1 WHERE id=$1',[fixture.staff.recovery.id,savedStaff.password,savedStaff.mustChangePassword]);
-    await staff.close();
-  }
+  const { id } = fixture.staff.recovery;
+  await login(request, "recovery");
+  expect((await request.get(backend + "/api/staff/profile/me")).status()).toBe(200);
+  await enter(page, `/staff/${id}`);
+  const endpoint = `/api/common/security/staff/${id}/sign-out-everywhere`;
+  const dialog = page.getByRole("dialog");
+  const confirm = dialog.getByRole("button", { name: "Confirm access change" });
+  const reason = dialog.getByLabel("Reason", { exact: true });
+  let writes = 0;
+  page.on("request", incoming => {
+    if (incoming.method() === "POST" && incoming.url().endsWith(endpoint)) writes++;
+  });
+
+  await page.getByRole("button", { name: "Staff access", exact: true }).click();
+  await dialog.getByRole("combobox", { name: "Action", exact: true })
+    .selectOption({ label: "Sign out of all devices" });
+  await expect(dialog.getByText("This signs the staff member out on every phone. They sign in again with their phone number and a new code.")).toBeVisible();
+  await reason.focus();
+  await reason.press("Tab");
+  await expect(reason).toHaveAccessibleDescription("Enter a reason.");
+  await expect(confirm).toBeDisabled();
+  expect(writes).toBe(0);
+
+  const explanation = "E2E sign-out after staff report";
+  await reason.fill(`  ${explanation}  `);
+  const saved = page.waitForResponse(response => response.request().method() === "POST" && response.url().endsWith(endpoint));
+  await confirm.click();
+  const response = await saved;
+  expect(response.status()).toBe(200);
+  expect(response.request().postDataJSON()).toEqual({ reason: explanation });
+  expect((await response.json()).data).toEqual({ signedOut: true });
+  await expect(dialog).toBeHidden();
+  await expect(page.getByRole("status").filter({ hasText: "Signed out of all devices." })).toBeVisible();
+  await page.reload();
+  await expect(page.getByRole("heading", { name: "E2E staff recovery" })).toBeVisible();
+  await expect(page.getByText(/Request failed with status code/i)).toHaveCount(0);
+  expect(await sql('SELECT "refreshToken" IS NULL AS revoked FROM "Staff" WHERE id = $1', [id])).toEqual([{ revoked: true }]);
+  expect((await request.post(backend + "/api/common/refresh-token")).status()).toBe(401);
 });
+
 test("manager UI deactivation releases a site and real edit assigns its replacement", async ({
   page,
   browser,

@@ -1,6 +1,6 @@
 import { readFileSync, writeFileSync, existsSync } from "node:fs";
 import { join } from "node:path";
-import { randomUUID } from "node:crypto";
+import { createHmac, randomUUID } from "node:crypto";
 import { createRequire } from "node:module";
 import {
   test as base,
@@ -20,13 +20,15 @@ export type Fixture = {
   company: Record<string, number>;
   site: Record<string, number>;
   users: Record<string, { id: number; email: string }>;
-  staff: Record<string, { id: number; email: string }>;
+  staff: Record<string, { id: number; email: string; phone: string }>;
   attendance: Record<string, number>;
+  openShiftDate: string;
   task: Record<string, number>;
 };
 export const fixture: Fixture = JSON.parse(
   readFileSync(process.env.HYGENE_E2E_MANIFEST!, "utf8"),
 );
+export const openShiftAttendancePath = `/attendance?from=${fixture.openShiftDate}&to=${fixture.openShiftDate}`;
 export const backend = process.env.HYGENE_E2E_BACKEND_ORIGIN!;
 function managedDatabase() {
   const target = new URL(process.env.HYGENE_E2E_DATABASE_URL!);
@@ -50,6 +52,20 @@ export async function sql(text: string, values: unknown[] = []) {
 }
 const contexts = new WeakMap<APIRequestContext, BrowserContext>();
 const sessions = new Map<string, Awaited<ReturnType<APIRequestContext['storageState']>>>();
+export async function verifySeededStaffCode(request: APIRequestContext, who: string, wrong = false) {
+  const { phone } = fixture.staff[who];
+  const signingKey = process.env.REFRESH_TOKEN_SECRET!;
+  // Same per-run derivation as seed.mjs. Neither fixture file contains the code.
+  const seed = createHmac("sha256", signingKey).update(`e2e-staff-code:${phone}`).digest();
+  const code = String((seed.readUInt32BE() + Number(wrong)) % 1_000_000).padStart(6, "0");
+  return request.post(backend + '/api/common/staff-login/verify-code', { data: { phone, code } });
+}
+
+export async function renewSeededStaffCode(who: string) {
+  await sql('UPDATE "StaffLoginCode" SET "expiresAt" = now() + interval \'5 minutes\' WHERE phone = $1 AND "consumedAt" IS NULL',
+    [fixture.staff[who].phone]);
+}
+
 export async function login(request: APIRequestContext, who = "ownerA") {
   const person = fixture.users[who] ?? fixture.staff[who];
   const context = contexts.get(request);
@@ -77,10 +93,16 @@ export async function login(request: APIRequestContext, who = "ownerA") {
       }
     }
   }
-  const response = await request.post(
-    `${backend}/api/common/login`,
-    { data: { email: person.email, password: fixture.password } },
-  );
+  let response;
+  if (fixture.staff[who]) {
+    await renewSeededStaffCode(who);
+    response = await verifySeededStaffCode(request, who);
+  } else {
+    response = await request.post(
+      `${backend}/api/common/login`,
+      { data: { email: person.email, password: fixture.password } },
+    );
+  }
   expect(response.status()).toBe(200);
   const state = await request.storageState();
   sessions.set(who, state);

@@ -26,7 +26,7 @@ export type StaffTabId = "Shift" | "Tasks" | "History" | "Profile";
 export type StaffUser = {
   id: number;
   name: string;
-  email: string;
+  email: string | null;
   role: "STAFF";
   companyId: number;
   locationId: number | null;

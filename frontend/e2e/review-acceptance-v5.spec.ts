@@ -1,5 +1,5 @@
 import { ui } from './workspace-helpers';
-import {test,expect,fixture,enter,backend,sql} from './fixtures';
+import {test,expect,fixture,enter,backend,sql,renewSeededStaffCode,verifySeededStaffCode} from './fixtures';
 import {mkdir,writeFile} from 'node:fs/promises';
 import {fileURLToPath} from 'node:url';
 import {join} from 'node:path';
@@ -59,8 +59,12 @@ test('real persistence rejects public evidence and private review keeps site and
  await sql(insert,[id,fixture.company.A,fixture.site.A,fixture.review.taskId,'authenticated']);
  const results:unknown[]=[];
  for(const [who,status]of [['managerA',409],['ownerA',409],['managerB',403],['ownerB',404],['recovery',403]] as const){
-  const person=fixture.users[who]??fixture.staff[who];
-  expect((await request.post(backend+`/api/${fixture.users[who]?'manager/manager-login':'staff/staff-login'}`,{data:{email:person.email,password:fixture.password}})).status()).toBe(200);
+  if (who === 'recovery') {
+   await renewSeededStaffCode(who);
+   expect((await verifySeededStaffCode(request, who)).status()).toBe(200);
+  } else {
+   expect((await request.post(backend+'/api/manager/manager-login',{data:{email:fixture.users[who].email,password:fixture.password}})).status()).toBe(200);
+  }
   const response=await request.get(backend+`/api/evidence/${id}/content?variant=review`);expect(response.status()).toBe(status);
   const body=await response.text();expect(body).not.toContain('synthetic-no-original');expect(body).not.toContain('synthetic-no-review');
   expect((await request.get(backend+`/api/evidence/${id}/content?variant=original`)).status()).toBe(who==='ownerB'?404:403);

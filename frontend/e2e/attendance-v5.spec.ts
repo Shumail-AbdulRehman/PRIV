@@ -1,4 +1,4 @@
-import { test, expect, enter, fixture, backend, sql } from './fixtures';
+import { test, expect, enter, fixture, backend, sql, openShiftAttendancePath } from './fixtures';
 import { mkdir, writeFile } from 'node:fs/promises';
 import { fileURLToPath } from 'node:url';
 import { join } from 'node:path';
@@ -23,7 +23,7 @@ test('V5 attendance register and context render actual records in desktop phone 
   for (const width of [1366, 390]) for (const lang of ['en', 'ur']) {
     const context = await browser.newContext({ viewport: { width, height: 900 } }); const page = await context.newPage();
     const errors: string[] = []; page.on('pageerror', error => errors.push(error.message));
-    await enter(page, '/attendance', 'ownerA', lang);
+    await enter(page, openShiftAttendancePath, 'ownerA', lang);
     await expect(page.getByText('E2E staff openShift', { exact: true }).filter({ visible: true }).first()).toBeVisible();
     await capture(page, `app-attendance-${width}-${lang}`);
     await page.getByRole('region', { name: ui('Attendance records') }).evaluate(element => element.scrollIntoView({ block: 'start' }));
@@ -51,7 +51,7 @@ test('attendance loading and error preserve the filter frame and manager context
       if (new URL(route.request().url()).pathname === '/api/attendance/') await heldRead;
       await route.continue();
     });
-    await enter(page, '/attendance', 'managerA', lang);
+    await enter(page, openShiftAttendancePath, 'managerA', lang);
     await expect(page.getByLabel(ui('Attendance summary'))).toHaveAttribute('aria-busy', 'true');
     await capture(page, `app-attendance-forwarded-loading-390-${lang}`); release();
     await expect(page.getByText('E2E staff openShift', { exact: true }).filter({ visible: true }).first()).toBeVisible();

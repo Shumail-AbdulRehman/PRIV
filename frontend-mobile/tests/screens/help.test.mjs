@@ -21,9 +21,9 @@ test('English help shows the four answers, the permissions answer and the manage
   assert.match(text, /How to check in Go to your location\. Tap the yellow button\. Take a selfie\./);
   assert.match(text, /How to finish a task Scan the QR\. Clean\. Scan the same QR\. Take every photo\. Submit\./);
   assert.match(text, /The QR will not scan Turn on the light and hold the phone steady\. If it still fails, ask your manager\./);
-  assert.match(text, /I forgot my password Ask your manager for a one-use access code\./);
+  assert.match(text, /I did not get the code Wait one minute and tap Send a new code\. If it still does not come, ask your manager to check your phone number\./);
   assert.match(text, /Permissions Camera and location are required for attendance\. Task photos also require current server authority\. Turning on permissions does not renew expired authority\./);
-  assert.match(text, /Ask your manager about your shift, task QR or an access code\./);
+  assert.match(text, /Ask your manager about your shift, task QR or your phone number\./);
   const rules = r.root.findAll(n => n.type === 'View' && StyleSheet.flatten(n.props.style)?.height === 1);
   assert.equal(rules.length, 4);
 });
@@ -31,13 +31,13 @@ test('English help shows the four answers, the permissions answer and the manage
 test('help has no sign-out, alerts, password or account controls; its only action is Back', async () => {
   const r = await render(h(HelpScreen));
   const text = allText(r);
-  for (const phrase of ['Sign out', 'Task alerts', 'Retry phone alerts', 'Open settings', 'Replace your password', 'Your account', 'Call']) {
+  assert.doesNotMatch(text, /password|access code/i);
+  for (const phrase of ['Sign out', 'Task alerts', 'Retry phone alerts', 'Open settings', 'Your account', 'Call']) {
     assert.doesNotMatch(text, new RegExp(phrase));
   }
   const pressables = r.root.findAll(n => n.type === 'Pressable' && typeof n.props.onPress === 'function');
   assert.equal(pressables.length, 1);
   assert.equal(pressables[0].props.accessibilityLabel, 'Back');
-  assert.equal(r.root.findAllByType('LaunchRecovery').length, 0);
 });
 
 test('Back calls goBack once and the screen makes no other navigation', async () => {
@@ -53,9 +53,9 @@ test('Urdu translates the title, questions, answers and note, and the note row r
   assert.match(text, /مدد/);
   assert.match(text, /کام کیسے مکمل کریں/);
   assert.match(text, /کیو آر اسکین نہیں ہو رہا/);
-  assert.match(text, /میں پاس ورڈ بھول گیا/);
-  assert.match(text, /منیجر سے ایک بار استعمال والا کوڈ لیں۔/);
-  assert.match(text, /شفٹ، کیو آر یا کوڈ کے بارے میں منیجر سے پوچھیں۔/);
+  assert.match(text, /مجھے کوڈ نہیں ملا/);
+  assert.match(text, /ایک منٹ انتظار کریں اور نیا کوڈ بھیجیں دبائیں۔ اگر پھر بھی کوڈ نہ ملے تو اپنے منیجر سے فون نمبر چیک کروائیں۔/);
+  assert.match(text, /اپنی شفٹ، کام کے کیو آر یا فون نمبر کے بارے میں اپنے منیجر سے پوچھیں۔/);
   assert.equal(StyleSheet.flatten(noteRow(r).props.style).flexDirection, 'row-reverse');
   const question = r.root.findAll(n => n.type === 'Text' && n.props.children === 'کام کیسے مکمل کریں')[0];
   assert.equal(StyleSheet.flatten(question.props.style).writingDirection, 'rtl');

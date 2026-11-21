@@ -11,7 +11,7 @@ export async function isPasswordCorrect(
 }
 
 export function generateAccessToken(
-  user: { id: number; email: string; name: string; credentialVersion?: number },
+  user: { id: number; email: string | null; name: string; credentialVersion?: number },
   role: "ADMIN" | "MANAGER" | "STAFF",
 ) {
   return jwt.sign(
@@ -31,7 +31,7 @@ export function generateRefreshToken(
     {
       expiresIn:
         role === "STAFF"
-          ? process.env.STAFF_REFRESH_TOKEN_EXPIRY || "30d"
+          ? process.env.STAFF_REFRESH_TOKEN_EXPIRY || "14d"
           : process.env.REFRESH_TOKEN_EXPIRY,
       algorithm: "HS256",
       jwtid: randomUUID(),

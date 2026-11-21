@@ -4,13 +4,13 @@ import { client } from '@/api/client';
 import useAuth from '@/hooks/useAuth';
 import { useLanguage } from '@/i18n/context';
 import { invalidateWorkspace } from '@/lib/invalidateWorkspace';
-import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
 import SelectMenu from '@/components/workspace/SelectMenu';
-import SidePanel, { SidePanelFooter } from '@/components/workspace/SidePanel';
+import SidePanel, { SidePanelFieldError, SidePanelFooter } from '@/components/workspace/SidePanel';
+import { checkStaffReason } from './staffFieldRules';
 import './staff-access-v6.css';
 
-type Action = 'deactivate' | 'archive' | 'transfer' | 'handoff';
+type Action = 'deactivate' | 'archive' | 'transfer' | 'signOut';
 export interface WorkforceRecord { id: number; name: string; isActive: boolean; locationId?: number | null; role?: string }
 export interface WorkforceSite { id: number; name: string; isActive?: boolean }
 type PersonProps = { person: WorkforceRecord; locations?: WorkforceSite[]; entity?: 'staff' | 'manager' };
@@ -32,7 +32,7 @@ function DraftWorkforceActions(props: WorkforceActionsProps) {
   const [destination, setDestination] = useState('');
   const open = props.open ?? selfOpen;
   const setOpen = props.onOpenChange ?? setSelfOpen;
-  // Draft survives a scope refresh; secrets remain bound to the exact scope.
+  // Draft survives a scope refresh while pending feedback belongs to the old scope.
   const scope = `${props.person.locationId}:${props.person.isActive}:${props.locations?.map(site => `${site.id}:${site.isActive}`).join(',')}`;
   return <ScopedWorkforceActions key={scope} {...props} controlled={props.open !== undefined} open={open} setOpen={setOpen}
     action={action} setAction={setAction} reason={reason} setReason={setReason} destination={destination} setDestination={setDestination} />;
@@ -46,29 +46,26 @@ type DraftProps = PersonProps & {
 };
 function ScopedWorkforceActions({ person, locations = [], entity = 'staff', controlled, open, setOpen, action, setAction, reason, setReason, destination, setDestination }: DraftProps) {
   const { user } = useAuth();
-  const { t, language } = useLanguage();
+  const { t } = useLanguage();
   const qc = useQueryClient();
   const inFlight = useRef(false);
   const lifetime = useRef(0);
   const formId = useId();
   const id = (field: string) => `${formId}-${field}`;
-  const [password, setPassword] = useState('');
+  const [reasonTouched, setReasonTouched] = useState(false);
   const [busy, setBusy] = useState(false);
   const [refreshing, setRefreshing] = useState(false);
   const [error, setError] = useState('');
-  const [saved, setSaved] = useState(false);
-  const [handoff, setHandoff] = useState<{ token: string; expiresAt: string } | null>(null);
+  const [saved, setSaved] = useState<Action | null>(null);
   const [previousOpen, setPreviousOpen] = useState(open);
-  // A parent can close a controlled panel directly. Clear secrets before that
-  // closed render commits, while leaving the stable SidePanel to return focus.
+  // A parent can close the panel directly. Keep SidePanel mounted to return focus.
   if (previousOpen !== open) {
     setPreviousOpen(open);
-    setHandoff(null);
-    setPassword('');
+    setReasonTouched(false);
     setError('');
     setBusy(false);
     setRefreshing(false);
-    if (open) setSaved(false);
+    if (open) setSaved(null);
   }
   useEffect(() => {
     inFlight.current = false;
@@ -80,10 +77,12 @@ function ScopedWorkforceActions({ person, locations = [], entity = 'staff', cont
   if (!permitted || person.role === 'ADMIN') return null;
   const sites = locations.filter(site => site.isActive !== false && site.id !== person.locationId);
   const pending = busy || refreshing;
+  const trimmedReason = reason.trim();
+  const reasonCheck = checkStaffReason(trimmedReason);
+  const reasonError = reasonCheck !== true && (reasonTouched || trimmedReason !== '') ? reasonCheck : null;
+  const destinationValid = action !== 'transfer' || sites.some(site => String(site.id) === destination);
   const close = () => {
     if (inFlight.current || pending) return;
-    setHandoff(null);
-    setPassword('');
     setReason('');
     setError('');
     setDestination('');
@@ -110,82 +109,68 @@ function ScopedWorkforceActions({ person, locations = [], entity = 'staff', cont
   };
   const save = async (event: React.FormEvent) => {
     event.preventDefault();
-    if (!open || inFlight.current || pending || !reason.trim() || !person.isActive) return;
-    if (action === 'transfer' && !sites.some(site => String(site.id) === destination)) return;
-    if (action === 'handoff' && !password) return;
+    if (!open || inFlight.current || pending || !person.isActive) return;
+    setReasonTouched(true);
+    if (reasonCheck !== true || !destinationValid) return;
+    const payload = { reason: trimmedReason };
     const requestLifetime = lifetime.current;
     inFlight.current = true;
     setBusy(true);
     setError('');
     try {
-      if (action === 'handoff') {
-        // Direct request: credentials never enter Query/Mutation caches or storage.
-        const response = await client.post(`/common/security/staff/${person.id}/handoff`, { reason: reason.trim(), currentPassword: password });
-        if (lifetime.current !== requestLifetime) return;
-        setHandoff(response.data.data);
+      if (action === 'signOut') {
+        await client.post(`/common/security/staff/${person.id}/sign-out-everywhere`, payload);
       } else if (action === 'transfer') {
-        await client.post(`/workforce/staff/${person.id}/transfer/${destination}`, { reason: reason.trim(), expectedLocationId: person.locationId ?? null });
+        await client.post(`/workforce/staff/${person.id}/transfer/${destination}`, { ...payload, expectedLocationId: person.locationId ?? null });
       } else if (action === 'archive') {
-        await client.post(`/${entity}/${person.id}/archive`, { reason: reason.trim() });
-      } else await client.post(`/workforce/${entity}/${person.id}/deactivate`, { reason: reason.trim() });
+        await client.post(`/${entity}/${person.id}/archive`, payload);
+      } else await client.post(`/workforce/${entity}/${person.id}/deactivate`, payload);
       if (lifetime.current !== requestLifetime) return;
-      setSaved(true);
-      // Keep recovery's one-time result mounted; a detail refresh may unmount it.
-      if (action !== 'handoff') {
+      setSaved(action);
+      if (action !== 'signOut') {
         qc.removeQueries({ queryKey: ['staff', 'details', person.id] });
         qc.removeQueries({ queryKey: ['attendance'] });
         void invalidateWorkspace(qc);
-        setOpen(false);
-        setReason('');
-        setDestination('');
       }
+      setOpen(false);
+      setReason('');
+      setDestination('');
     } catch (cause) {
       if (lifetime.current !== requestLifetime) return;
       const status = (cause as { response?: { status?: number } })?.response?.status;
-      setError(status === 409 ? 'The record changed or a shift is open. Finish checkout, refresh the record, then try again. Your draft is kept.'
+      setError(status === 404 || status === 409 ? 'The record changed or a shift is open. Finish checkout, refresh the record, then try again. Your draft is kept.'
         : status === 403 ? 'You do not have access to this action. Refresh your assigned sites.'
-          : status === 429 ? 'Too many recovery requests. Try again later.'
-            : status === 400 ? 'Check the reason and your current password.'
-              : 'The action could not be confirmed. Refresh the record before retrying. Your draft is kept.');
+          : 'The action could not be confirmed. Refresh the record before retrying. Your draft is kept.');
     } finally {
-      if (lifetime.current === requestLifetime) { inFlight.current = false; setPassword(''); setBusy(false); }
+      if (lifetime.current === requestLifetime) { inFlight.current = false; setBusy(false); }
     }
   };
   const actions = <SidePanelFooter className="wx-access-actions">
-    {handoff ? <button type="button" className="wx-access-button wx-access-primary" onClick={close}>{t('Close and clear code')}</button> : <>
-      <button type="button" className="wx-access-button" disabled={pending} onClick={close}>{t('Cancel')}</button>
-      <button type="submit" form={formId} className="wx-access-button wx-access-primary" aria-busy={busy}
-        disabled={pending || !person.isActive || !reason.trim() || (action === 'transfer' && !sites.some(site => String(site.id) === destination)) || (action === 'handoff' && !password)}>
-        {t(busy ? 'Saving…' : 'Confirm access change')}
-      </button>
-    </>}
+    <button type="button" className="wx-access-button" disabled={pending} onClick={close}>{t('Cancel')}</button>
+    <button type="submit" form={formId} className="wx-access-button wx-access-primary" aria-busy={busy}
+      disabled={pending || !person.isActive || reasonCheck !== true || !destinationValid}>
+      {t(busy ? 'Saving…' : 'Confirm access change')}
+    </button>
   </SidePanelFooter>;
   return <span onClick={event => event.stopPropagation()} onKeyDown={event => event.stopPropagation()} className="wx-access-launcher">
-    {!person.isActive ? <span>{t('Archived / inactive')}</span> : !controlled && <button type="button" className="wx-access-button" onClick={() => { setSaved(false); setOpen(true); }}>{t(entity === 'manager' ? 'Manage access' : 'Staff access')}</button>}
-    {saved && !open && <span className="wx-access-success" role="status">{t('Access change saved. History preserved.')}</span>}
+    {!person.isActive ? <span>{t('Archived / inactive')}</span> : !controlled && <button type="button" className="wx-access-button" onClick={() => { setSaved(null); setOpen(true); }}>{t(entity === 'manager' ? 'Manage access' : 'Staff access')}</button>}
+    {saved && !open && <span className="wx-access-success" role="status">{t(saved === 'signOut' ? 'Signed out of all devices.' : 'Access change saved. History preserved.')}</span>}
     <SidePanel open={open && person.isActive} onOpenChange={value => { if (!value) close(); }} title={entity === 'manager' ? 'Manager access' : 'Staff access'}
       description="Attendance, tasks and evidence are preserved. Access changes revoke existing sessions. No general restore is available." footer={actions}>
       <div className="wx-access-content">
         <p className="wx-access-person"><bdi>{person.name}</bdi></p>
-        {handoff ? <div className="wx-access-result">
-          <p role="status">{t('One-use recovery code created. Share it directly with this staff member. It sets a new password; it is not a login password.')}</p>
-          <div className="wx-access-field">
-            <label htmlFor={id('code')}>{t('One-use recovery code')}</label>
-            <Input id={id('code')} dir="ltr" autoComplete="off" readOnly value={handoff.token} aria-describedby={id('clear-hint')} />
-          </div>
-          <p>{t('Expires at')}: <bdi><time dateTime={handoff.expiresAt}>{new Date(handoff.expiresAt).toLocaleString(language === 'ur' ? 'ur-PK' : 'en-PK')}</time></bdi></p>
-          <p id={id('clear-hint')} className="wx-access-help">{t('Closing this dialog clears the code. It cannot be displayed again.')}</p>
-        </div> : <form id={formId} onSubmit={event => void save(event)} className="wx-access-form" aria-busy={pending}>
+        <form id={formId} onSubmit={event => void save(event)} className="wx-access-form" aria-busy={pending} noValidate>
           <fieldset className="wx-access-fields" disabled={pending}>
             <div className="wx-access-field">
               <label htmlFor={id('action')}>{t('Action')}</label>
-              <select id={id('action')} value={action} onChange={event => { setAction(event.target.value as Action); setPassword(''); setError(''); }}>
+              <select id={id('action')} value={action} onChange={event => { setAction(event.target.value as Action); setError(''); }}>
                 <option value="deactivate">{t(entity === 'manager' ? 'Deactivate and release sites' : 'Deactivate access')}</option>
                 <option value="archive">{t('Archive and preserve history')}</option>
-                {entity === 'staff' && <><option value="transfer" disabled={!sites.length}>{t('Transfer site')}</option><option value="handoff">{t('Issue one-use recovery code')}</option></>}
+                {entity === 'staff' && <><option value="transfer" disabled={!sites.length}>{t('Transfer site')}</option><option value="signOut">{t('Sign out of all devices')}</option></>}
               </select>
             </div>
             {entity === 'manager' && <p className="wx-access-help">{t('For a handover, deactivate this manager first. After the sites are released, edit the active replacement manager and assign those sites. The previous manager loses access immediately.')}</p>}
+            {action === 'signOut' && <p className="wx-access-help">{t('This signs the staff member out on every phone. They sign in again with their phone number and a new code.')}</p>}
             {action === 'transfer' && <div className="wx-access-field" role="group" aria-labelledby={id('destination-label')} aria-describedby={id('transfer-hint')}>
               <span id={id('destination-label')} className="wx-access-label">{t('Destination site')}</span>
               <SelectMenu label="Destination site" value={destination} disabled={pending} onChange={setDestination}
@@ -194,18 +179,17 @@ function ScopedWorkforceActions({ person, locations = [], entity = 'staff', cont
             </div>}
             <div className="wx-access-field">
               <label htmlFor={id('reason')}>{t('Reason')}</label>
-              <Textarea id={id('reason')} rows={3} required maxLength={1000} value={reason} onChange={event => setReason(event.target.value)} />
+              <Textarea id={id('reason')} rows={3} required value={reason}
+                aria-invalid={Boolean(reasonError)} aria-describedby={reasonError ? id('reason-error') : undefined}
+                onBlur={() => setReasonTouched(true)} onChange={event => setReason(event.target.value)} />
+              <SidePanelFieldError id={id('reason-error')}>{reasonError}</SidePanelFieldError>
             </div>
-            {action === 'handoff' && <div className="wx-access-field">
-              <label htmlFor={id('password')}>{t('Your current password')}</label>
-              <Input id={id('password')} type="password" dir="ltr" autoComplete="current-password" required value={password} onChange={event => setPassword(event.target.value)} />
-            </div>}
           </fieldset>
           {error && <div className="wx-access-error">
             <p role="alert">{t(error)}</p>
             <button type="button" className="wx-access-button" disabled={pending} aria-busy={refreshing} onClick={() => void refresh()}>{t(refreshing ? 'Refreshing…' : 'Refresh access context')}</button>
           </div>}
-        </form>}
+        </form>
       </div>
     </SidePanel>
   </span>;

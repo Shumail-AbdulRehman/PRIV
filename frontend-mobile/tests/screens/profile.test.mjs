@@ -9,7 +9,7 @@ const useLanguage = () => {
   const language = globalThis.__nativeHarness.language;
   return { language, isRTL: language === 'ur', t: (text, values) => translate(text, language, values), setLanguage() {} };
 };
-const state = { data: undefined, isPending: false, isError: false, refetches: 0, logouts: 0 };
+const state = { data: undefined, summary: undefined, isPending: false, isError: false, refetches: 0, logouts: 0 };
 installMocks({
   '/components/ui/icon': { Icon: props => React.createElement('Icon', props) },
   '/i18n/LanguageProvider': { useLanguage },
@@ -19,7 +19,7 @@ installMocks({
     useStaffProfileQuery: () => ({ data: state.data, isPending: state.isPending, isError: state.isError, refetch: async () => { state.refetches += 1; } }),
   },
   '/queries/history': {
-    useProfileSummary: () => ({ data: undefined, isPending: true, isError: false, refetch: async () => {} }),
+    useProfileSummary: () => ({ data: state.summary, isPending: !state.summary, isError: false, refetch: async () => {} }),
   },
   '/auth/AuthContext': {
     useAuth: () => ({ user: { id: 2, companyId: 7, name: 'Auth Name', email: 'auth@example.invalid' }, logout: async () => { state.logouts += 1; } }),
@@ -34,7 +34,7 @@ const profile = (extra = {}) => ({
   companyId: 7, locationId: 1, createdAt: '2025-03-14T08:00:00.000Z', updatedAt: '2026-01-01T00:00:00.000Z', shiftStart: null, shiftEnd: null, ...extra,
 });
 test.beforeEach(() => {
-  Object.assign(state, { data: profile(), isPending: false, isError: false, refetches: 0, logouts: 0 });
+  Object.assign(state, { data: profile(), summary: undefined, isPending: false, isError: false, refetches: 0, logouts: 0 });
   resetCalls(); setLanguage('en');
 });
 const FSI = '⁨';
@@ -64,6 +64,27 @@ test('a null phone shows "Not recorded"', async () => {
   assert.ok(allText(r).includes('Not recorded'));
 });
 
+test('a profile with no email uses summary details in English and Urdu', async () => {
+  Object.assign(state, {
+    data: null,
+    summary: {
+      id: 41, name: 'Amina Khan', email: null, phone: '+92 300 1234567', joinedAt: '2025-03-14T08:00:00.000Z',
+      company: { name: 'Acme Cleaning' }, location: null, usualShift: null, manager: null,
+      month: { month: '2026-11', shiftsScheduled: 0, shiftsAttended: 0, onTime: 0, tasksAssigned: 0, tasksSubmitted: 0 },
+    },
+  });
+  const r = await render(h(ProfileScreen));
+  const text = allText(r);
+  for (const value of ['Amina Khan', 'No email', '+92 300 1234567', 'Staff number', '41', 'March 2025']) assert.ok(text.includes(value), value);
+  assert.doesNotMatch(text, /Details could not load|auth@example\.invalid/);
+
+  setLanguage('ur');
+  const urdu = await render(h(ProfileScreen));
+  assert.ok(allText(urdu).includes('ای میل نہیں ہے'));
+  await press(findPressable(urdu, translate('Sign out', 'ur')));
+  assert.ok(allText(urdu).includes('دوبارہ سائن ان کے لیے آپ کا فون نمبر اور ایک نیا کوڈ درکار ہوگا۔'));
+});
+
 test('phone and email are isolated left-to-right values, in English and in Urdu', async () => {
   for (const lang of ['en', 'ur']) {
     setLanguage(lang);
@@ -80,11 +101,12 @@ test('company line only when companyName is given', async () => {
   assert.ok(allText(await render(h(ProfileScreen, { companyName: 'Acme Cleaning' }))).includes('Acme Cleaning'));
 });
 
-test('each settings row navigates to its route', async () => {
+test('Task alerts and Help navigate to their routes, with no Change password row', async () => {
   const r = await render(h(ProfileScreen));
-  for (const label of ['Task alerts', 'Change password', 'Help']) await press(findPressable(r, label));
-  assert.deepEqual(navigationCalls().map(c => c.name), ['navigate', 'navigate', 'navigate']);
-  assert.deepEqual(navigationCalls().map(c => c.args[0]), ['TaskAlerts', 'ChangePassword', 'HelpGuide']);
+  assert.ok(!allText(r).includes('Change password'));
+  for (const label of ['Task alerts', 'Help']) await press(findPressable(r, label));
+  assert.deepEqual(navigationCalls().map(c => c.name), ['navigate', 'navigate']);
+  assert.deepEqual(navigationCalls().map(c => c.args[0]), ['TaskAlerts', 'HelpGuide']);
 });
 
 test('language row shows the English and Urdu toggle', async () => {
@@ -98,7 +120,7 @@ test('sign out opens the dialog; cancel does not log out; only confirm does', as
   assert.ok(!allText(r).includes('Sign out of this phone?'));
   await press(sign(r));
   assert.ok(allText(r).includes('Sign out of this phone?'));
-  assert.ok(allText(r).includes('You will need your email and password to sign in again.'));
+  assert.ok(allText(r).includes('You will need your phone number and a new code to sign in again.'));
   await press(findPressable(r, 'Cancel'));
   assert.equal(state.logouts, 0);
   assert.ok(!allText(r).includes('Sign out of this phone?'));
@@ -144,10 +166,11 @@ test('Urdu translates labels but not the name; rows run right to left', async ()
   setLanguage('ur');
   const r = await render(h(ProfileScreen));
   const text = allText(r);
-  for (const word of ['صفائی عملہ', 'میری تفصیل', 'فون', 'عملہ نمبر', 'شمولیت', 'پاس ورڈ بدلیں', 'ورژن 1.4.2']) assert.ok(text.includes(word), word);
+  for (const word of ['صفائی عملہ', 'میری تفصیل', 'فون', 'عملہ نمبر', 'شمولیت', 'مدد', 'ورژن 1.4.2']) assert.ok(text.includes(word), word);
+  assert.ok(!text.includes('پاس ورڈ بدلیں'));
   assert.ok(text.includes('Amina Khan'));
   assert.ok(text.includes('نومبر') === false && text.includes('مارچ 2025'));
-  const row = findPressable(r, 'پاس ورڈ بدلیں');
+  const row = findPressable(r, 'مدد');
   assert.equal(StyleSheet.flatten(row.props.style).flexDirection, 'row-reverse');
   assert.ok(row.findAll(n => n.type === 'Icon' && n.props.name === 'ChevronLeft').length === 1);
 });

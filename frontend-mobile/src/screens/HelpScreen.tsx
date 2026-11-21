@@ -12,14 +12,14 @@ const ANSWERS: ReadonlyArray<{ question: string; answer: string }> = [
   { question: 'How to check in', answer: 'Go to your location. Tap the yellow button. Take a selfie.' },
   { question: 'How to finish a task', answer: 'Scan the QR. Clean. Scan the same QR. Take every photo. Submit.' },
   { question: 'The QR will not scan', answer: 'Turn on the light and hold the phone steady. If it still fails, ask your manager.' },
-  { question: 'I forgot my password', answer: 'Ask your manager for a one-use access code.' },
+  { question: 'I did not get the code', answer: 'Wait one minute and tap Send a new code. If it still does not come, ask your manager to check your phone number.' },
   {
     question: 'Permissions',
     answer: 'Camera and location are required for attendance. Task photos also require current server authority. Turning on permissions does not renew expired authority.',
   },
 ];
 
-const NOTE = 'Ask your manager about your shift, task QR or an access code.';
+const NOTE = 'Ask your manager about your shift, task QR or your phone number.';
 
 /** Plain help answers reached from Profile. Static: no data, no actions besides going back. */
 export function HelpScreen() {

@@ -1,5 +1,5 @@
 import { writeFile } from "node:fs/promises";
-import { randomBytes, randomUUID } from "node:crypto";
+import { createHmac, randomBytes, randomUUID } from "node:crypto";
 import { createRequire } from "node:module";
 // Reuse the real Prisma adapter; dotenv sees only the clean worktree and sanitized child env.
 const require = createRequire(
@@ -15,6 +15,7 @@ const password = randomBytes(20).toString("base64url"),
   encrypted = await hash.hash(password, 10),
   now = new Date(),
   yesterday = new Date(+now - 86400000);
+const siteTimeZone = "Asia/Karachi";
 const fixture = {
   password,
   company: {},
@@ -22,6 +23,7 @@ const fixture = {
   users: {},
   staff: {},
   attendance: {},
+  openShiftDate: new Intl.DateTimeFormat("sv-SE", { timeZone: siteTimeZone }).format(now),
   task: {},
 };
 try {
@@ -82,7 +84,7 @@ try {
         address: "Synthetic test location",
         latitude: "31",
         longitude: "74",
-        timezone: "Asia/Karachi",
+        timezone: siteTimeZone,
       },
     });
     fixture.site[key] = location.id;
@@ -100,7 +102,7 @@ try {
     });
     fixture.users["manager" + key] = { id: user.id, email: user.email };
   }
-  for (const [key, site] of [
+  const staffSeeds = [
     ["transfer", "A"],
     ["deactivate", "A"],
     ["archive", "A"],
@@ -108,18 +110,29 @@ try {
     ["recovery", "A"],
     ["legacy", "A"],
     ["foreign", "foreign"],
-  ]) {
+  ];
+  for (const [index, [key, site]] of staffSeeds.entries()) {
     const companyId = key === "foreign" ? fixture.company.B : fixture.company.A;
+    const phone = `+92398000${String(index).padStart(4, "0")}`;
     const row = await db.staff.create({
       data: {
         name: `E2E staff ${key}`,
         email: `staff-${key.toLowerCase()}@example.invalid`,
+        phone,
         password: encrypted,
         companyId,
         locationId: fixture.site[site],
       },
     });
-    fixture.staff[key] = { id: row.id, email: row.email };
+    fixture.staff[key] = { id: row.id, email: row.email, phone };
+    const signingKey = process.env.REFRESH_TOKEN_SECRET;
+    const codeSeed = createHmac("sha256", signingKey).update(`e2e-staff-code:${phone}`).digest();
+    const codeHash = createHmac("sha256", signingKey)
+      .update(`${phone}:${String(codeSeed.readUInt32BE() % 1_000_000).padStart(6, "0")}`)
+      .digest("hex");
+    await db.staffLoginCode.create({
+      data: { staffId: row.id, companyId, phone, codeHash, expiresAt: new Date(+now + 300_000) },
+    });
     const attendance = await db.attendance.create({
       data: {
         staffId: row.id,

@@ -40,3 +40,40 @@ test("Part 2 history and profile strings are translated", () => {
     assert.notEqual(translate(k, "ur"), k, k);
   }
 });
+
+test("phone sign-in and recovery strings are translated", () => {
+  const keys = [
+    "Staff sign in",
+    "Phone number",
+    "Send code",
+    "Enter your phone number.",
+    "Enter the 6-digit code we sent to {phone}.",
+    "6-digit code",
+    "Sign in",
+    "Enter the 6-digit code.",
+    "Change number",
+    "Send a new code",
+    "You can ask for a new code in {seconds} seconds.",
+    "Enter a Pakistan mobile number, like 03001234567.",
+    "This number is not registered. Ask your manager to add you.",
+    "Wait {seconds} seconds before asking for a new code.",
+    "This number has reached today's code limit. Try again tomorrow or ask your manager.",
+    "Sign-in codes are used up for today. Ask your manager.",
+    "The code could not be sent. Try again in a few minutes.",
+    "Too many attempts. Try again later.",
+    "That code is not right. {n} tries left.",
+    "This code has expired. Ask for a new code.",
+    "Too many wrong tries. Ask for a new code.",
+    "Update the Hygene Ops app to sign in with your phone number.",
+    "Unable to sign in.",
+    "Unable to sign in.\n\nServer: {address}\nCheck that your phone and server are on the same network, or change the server address below.",
+    "You will need your phone number and a new code to sign in again.",
+    "I did not get the code",
+    "Wait one minute and tap Send a new code. If it still does not come, ask your manager to check your phone number.",
+    "Ask your manager about your shift, task QR or your phone number.",
+    "Sign in again",
+    "Your sign-in has changed. Sign out, then sign in with your phone number and a new code.",
+    "No email",
+  ];
+  for (const key of keys) assert.notEqual(translate(key, "ur"), key, key);
+});

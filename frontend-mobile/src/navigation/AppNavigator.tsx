@@ -3,8 +3,6 @@ import {
   AccessibilityInfo,
   ActivityIndicator,
   Image,
-  KeyboardAvoidingView,
-  Platform,
   ScrollView,
   StyleSheet,
   View,
@@ -17,12 +15,10 @@ import { SnackbarProvider } from "../design/Feedback";
 import { StaffText } from "../design/StaffText";
 import { colors, space } from "../design/tokens";
 import { useLanguage } from "../i18n/LanguageProvider";
-import { LaunchRecovery } from "../launch/LaunchRecovery";
 import { HelpScreen } from "../screens/HelpScreen";
 import { LoginScreen } from "../screens/LoginScreen";
 import { HistoryTaskScreen } from "../screens/history/HistoryTaskScreen";
 import { StartTaskScreen } from "../screens/StartTaskScreen";
-import { ChangePasswordScreen } from "../screens/profile/ChangePasswordScreen";
 import { TaskAlertsScreen } from "../screens/profile/TaskAlertsScreen";
 import { TaskDetailScreen } from "../screens/task/TaskDetailScreen";
 import { SpatialDiagnosticScreen } from "../screens/verification/SpatialDiagnosticScreen";
@@ -61,24 +57,22 @@ function SessionRestore() {
   );
 }
 
-/** The server requires a new password before any work; the only other way out is signing out. */
-function ForcedPasswordChange({ logout }: { logout: () => Promise<void> }) {
+function SignInAgain({ logout }: { logout: () => Promise<void> }) {
   const insets = useSafeAreaInsets();
   const { isRTL } = useLanguage();
   const signOut = () => { void logout().catch(() => {}); };
   return (
-    <KeyboardAvoidingView style={styles.page} behavior={Platform.OS === "ios" ? "padding" : "height"}>
+    <View style={styles.page}>
       <View style={[styles.heading, { paddingTop: insets.top, height: HEADING_HEIGHT + insets.top, flexDirection: isRTL ? "row-reverse" : "row" }]}>
-        <StaffText role="barTitle" numberOfLines={1} accessibilityRole="header">Change password</StaffText>
+        <StaffText role="barTitle" numberOfLines={1} accessibilityRole="header">Sign in again</StaffText>
       </View>
       <ScrollView
-        keyboardShouldPersistTaps="handled"
-        contentContainerStyle={[styles.form, { paddingBottom: insets.bottom + space.gutter }]}
+        contentContainerStyle={[styles.notice, { paddingBottom: insets.bottom + space.gutter }]}
       >
-        <LaunchRecovery onComplete={async () => { await logout().catch(() => {}); }} />
+        <StaffText role="body">Your sign-in has changed. Sign out, then sign in with your phone number and a new code.</StaffText>
         <ActionButton kind="outline" label="Sign out" icon="LogOut" onPress={signOut} />
       </ScrollView>
-    </KeyboardAvoidingView>
+    </View>
   );
 }
 
@@ -91,7 +85,7 @@ export function AppNavigator() {
   if (isBootstrapping) {
     content = <SessionRestore />;
   } else if (user && passwordChangeRequired) {
-    content = <ForcedPasswordChange logout={logout} />;
+    content = <SignInAgain logout={logout} />;
   } else {
     content = (
       <Stack.Navigator
@@ -110,7 +104,6 @@ export function AppNavigator() {
             <Stack.Screen name={stackRoutes.taskDetail} component={TaskDetailScreen} options={{ headerShown: false }} />
             <Stack.Screen name={stackRoutes.helpGuide} component={HelpScreen} options={{ headerShown: false }} />
             <Stack.Screen name={stackRoutes.taskAlerts} component={TaskAlertsScreen} options={{ headerShown: false }} />
-            <Stack.Screen name={stackRoutes.changePassword} component={ChangePasswordScreen} options={{ headerShown: false }} />
             <Stack.Screen name={stackRoutes.historyTask} component={HistoryTaskScreen} options={{ headerShown: false }} />
             {__DEV__ ? (
               <Stack.Screen
@@ -160,5 +153,5 @@ const styles = StyleSheet.create({
   mark: { width: 56, height: 56 },
   page: { flex: 1, backgroundColor: colors.surface },
   heading: { alignItems: "center", paddingHorizontal: space.gutter, backgroundColor: colors.surface },
-  form: { padding: space.gutter, gap: 24, flexGrow: 1 },
+  notice: { padding: space.gutter, gap: 24, flexGrow: 1 },
 });

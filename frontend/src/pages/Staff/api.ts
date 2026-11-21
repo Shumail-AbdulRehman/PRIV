@@ -4,9 +4,8 @@ export { assignStaffToLocation } from "../Assignment/api";
 
 export interface CreateStaffInput {
   name: string;
-  email: string;
+  email?: string;
   phone: string;
-  password: string;
   locationId?: number;
   shiftStart?: string;
   shiftEnd?: string;
@@ -14,7 +13,7 @@ export interface CreateStaffInput {
 
 export interface EditStaffInput {
   name?: string;
-  email?: string;
+  email?: string | null;
   phone?: string;
   shiftStart?: string;
   shiftEnd?: string;

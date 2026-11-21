@@ -52,7 +52,7 @@ for (const language of ['en', 'ur'] as const) {
     await tab(page, say(language, 'Profile')).click();
     await expect(page.getByRole('heading', { name: say(language, 'My details') })).toBeVisible();
     await fits('Profile');
-    for (const row of ['Task alerts', 'Help', 'Change password']) {
+    for (const row of ['Task alerts', 'Help']) {
       await button(page, say(language, row)).click();
       await expect(button(page, say(language, 'Back'))).toBeVisible();
       await fits(row);
@@ -64,8 +64,9 @@ for (const language of ['en', 'ur'] as const) {
     await open({ signedIn: false, language });
     await expect(page.getByRole('heading', { name: say(language, 'Staff sign in') })).toBeVisible();
     await expectNoHorizontalOverflow(page);
-    await button(page, say(language, 'Use manager access code')).click();
-    await expect(page.getByRole('heading', { name: say(language, 'Set your new password') })).toBeVisible();
+    await page.getByLabel(say(language, 'Phone number'), { exact: true }).fill('0399 0000041');
+    await button(page, say(language, 'Send code')).click();
+    await expect(page.getByLabel(say(language, '6-digit code'), { exact: true })).toBeVisible();
     await expectNoHorizontalOverflow(page);
   });
 }

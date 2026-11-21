@@ -43,7 +43,6 @@ installMocks({
   '/screens/HelpScreen': { HelpScreen: probe('HelpGuide') },
   '/screens/LoginScreen': { LoginScreen: probe('Login') },
   '/screens/StartTaskScreen': { StartTaskScreen: probe('StartTask') },
-  '/screens/profile/ChangePasswordScreen': { ChangePasswordScreen: probe('ChangePassword') },
   '/screens/profile/TaskAlertsScreen': { TaskAlertsScreen: probe('TaskAlerts') },
   '/screens/task/TaskDetailScreen': { TaskDetailScreen: probe('TaskDetail') },
   '/screens/verification/SpatialDiagnosticScreen': { SpatialDiagnosticScreen: probe('SpatialDiagnostic') },

@@ -108,7 +108,7 @@ export type ProfileMonthFigures = {
 export type ProfileSummary = {
   id: number;
   name: string;
-  email: string;
+  email: string | null;
   phone: string | null;
   joinedAt: string;
   company: { name: string };

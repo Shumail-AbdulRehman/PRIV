@@ -18,13 +18,15 @@ import { STORAGE_KEY } from "../config";
 import { loadServerAddress,getServerAddress } from '../api/serverAddress';
 import { staffLogoutQueue } from './pendingLogout';
 import { createSessionStorage } from './sessionStorage';
+import { requestStaffCode, verifyStaffCode, type StaffCodeRequest } from './staffSignInApi';
 import type { ApiEnvelope, AuthSession, AuthTokens, StaffUser } from "../types";
 
 type AuthContextValue = {
   user: StaffUser | null;
   isBootstrapping: boolean;
   passwordChangeRequired: boolean;
-  login: (email: string, password: string) => Promise<void>;
+  requestCode: (phone: string) => Promise<StaffCodeRequest>;
+  signInWithCode: (phone: string, code: string) => Promise<void>;
   logout: () => Promise<void>;
   refreshCurrentUser: () => Promise<void>;
 };
@@ -143,21 +145,9 @@ export function AuthProvider({ children }: PropsWithChildren) {
     })();
   }, []);
 
-  const login = async (email: string, password: string) => {
+  const signInWithCode = async (phone: string, code: string) => {
     await staffLogoutQueue.flush().catch(() => {});
-    const response = await client.post<
-      ApiEnvelope<
-        StaffUser & {
-          accessToken: string;
-          refreshToken: string;
-        }
-      >
-    >("/staff/staff-login", {
-      email,
-      password,
-    });
-
-    const { accessToken, refreshToken, ...user } = response.data.data;
+    const { accessToken, refreshToken, ...user } = await verifyStaffCode(phone, code);
     if (user.role !== 'STAFF') throw new Error('Use a staff account in this app.');
     setIsBootstrapping(true);
     setCaptureAccount(null);
@@ -191,7 +181,8 @@ export function AuthProvider({ children }: PropsWithChildren) {
         user: session.user,
         isBootstrapping,
         passwordChangeRequired,
-        login,
+        requestCode: requestStaffCode,
+        signInWithCode,
         logout,
         refreshCurrentUser,
       }}

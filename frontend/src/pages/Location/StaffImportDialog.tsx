@@ -11,8 +11,23 @@ import { Button } from '@/components/ui/button';
 import DataTable from '@/components/common/DataTable';
 import './staff-import-v6.css';
 
-type Row = { row:number; name:string; email:string; phone:string; start:string; end:string; errors:string[] };
+type Row = { row:number; name:string; email:string|null; phone:string; start:string; end:string; errors:string[] };
 type Preview = { total:number; valid:number; rows:Row[]; token:string; location:{name:string;timezone:string} };
+
+const rowErrorsUrdu = new Map([
+  ['Unsupported formula, link or cell content.', 'فارمولا، لنک یا مواد قابل قبول نہیں۔'],
+  ['Enter a name between 2 and 150 characters.', 'نام ۲ سے ۱۵۰ حروف میں درج کریں۔'],
+  ['Enter a valid email.', 'درست ای میل درج کریں۔'],
+  ['Enter a valid phone as text, including any leading zero.', 'ابتدائی صفر سمیت درست فون متن میں درج کریں۔'],
+  ['Enter different shift times in HH:mm format.', 'شفٹ کے مختلف اوقات HH:mm میں درج کریں۔'],
+  ['Duplicate email in this spreadsheet.', 'شیٹ میں ای میل دوبارہ درج ہے۔'],
+  ['Email is already in use.', 'ای میل پہلے سے استعمال میں ہے۔'],
+  ['Enter a password with at least 6 characters and at most 72 UTF-8 bytes.', 'پاس ورڈ کم از کم ۶ حروف اور زیادہ سے زیادہ ۷۲ UTF-8 بائٹس کا درج کریں۔'],
+  ['This phone number is already used.', 'یہ فون نمبر پہلے سے استعمال میں ہے۔'],
+  ['Duplicate phone in this spreadsheet.', 'شیٹ میں فون نمبر دوبارہ درج ہے۔'],
+  ['Enter a Pakistan mobile number, like 03001234567.', 'پاکستانی موبائل نمبر درج کریں، جیسے 03001234567۔'],
+]);
+
 export default function StaffImportDialog({location}:{location:{id:number;name:string}}) {
   const {language,t}=useLanguage(), ur=language==='ur';
   const say=(en:string,urdu:string)=>ur?urdu:t(en);
@@ -37,7 +52,7 @@ export default function StaffImportDialog({location}:{location:{id:number;name:s
     const url=URL.createObjectURL(response.data), link=document.createElement('a');
     link.href=url;link.download='staff-template.xlsx';link.click();setTimeout(()=>URL.revokeObjectURL(url),1000);
   }});
-  const rowError=(message:string)=>ur?({'Unsupported formula, link or cell content.':'فارمولا، لنک یا مواد قابل قبول نہیں۔','Enter a name between 2 and 150 characters.':'نام ۲ سے ۱۵۰ حروف میں درج کریں۔','Enter a valid email.':'درست ای میل درج کریں۔','Enter a valid phone as text, including any leading zero.':'ابتدائی صفر سمیت درست فون متن میں درج کریں۔','Enter different shift times in HH:mm format.':'شفٹ کے مختلف اوقات HH:mm میں درج کریں۔','Duplicate email in this spreadsheet.':'شیٹ میں ای میل دوبارہ درج ہے۔','Email is already in use.':'ای میل پہلے سے استعمال میں ہے۔','Enter a password with at least 6 characters and at most 72 UTF-8 bytes.':'پاس ورڈ کم از کم ۶ حروف اور زیادہ سے زیادہ ۷۲ UTF-8 بائٹس کا درج کریں۔'} as Record<string,string>)[message]??'یہ قطار درست کریں۔':message;
+  const rowError = (message: string) => ur ? rowErrorsUrdu.get(message) ?? message : message;
   const pending=previewMutation.isPending||confirm.isPending;
   const error=previewMutation.error||confirm.error||template.error;
   const canConfirm=!!file&&!!preview&&preview.total>0&&preview.total<=500&&preview.valid===preview.total&&preview.rows.every(row=>row.errors.length===0);
@@ -57,13 +72,16 @@ export default function StaffImportDialog({location}:{location:{id:number;name:s
         {count!==null?<div role="status" className="wx-staff-import-success">
           <span className="wx-staff-import-success-icon" aria-hidden="true"><Check size={24}/></span>
           <p className="wx-staff-import-result"><bdi>{number(count)}</bdi> {say('employees imported into','ملازمین درآمد ہوئے:')} <bdi>{location.name}</bdi>.</p>
-          <p>{say('Staff can now sign in using their email and the password you entered in the spreadsheet. Share each password privately with its employee.','عملہ اب اپنی ای میل اور شیٹ میں درج پاس ورڈ سے داخل ہو سکتا ہے۔ ہر ملازم کو اس کا پاس ورڈ نجی طور پر دیں۔')}</p>
+          <p>{say('Staff can now sign in with their phone number and a code sent by SMS.', 'عملہ اب اپنے فون نمبر اور ایس ایم ایس سے ملنے والے کوڈ سے سائن ان کر سکتا ہے۔')}</p>
         </div>:<>
           <section className="wx-staff-import-step" aria-labelledby={`staff-template-${location.id}`}>
             <h3 id={`staff-template-${location.id}`}>{t('Download the template')}</h3>
             <p>{t('Use local shift times.')}</p>
             <Button type="button" variant="outline" className="wx-staff-import-button" disabled={template.isPending||pending} aria-busy={template.isPending} onClick={()=>template.mutate()}><Download size={16} aria-hidden="true"/>{say('Download Excel Template','ایکسل سانچہ ڈاؤن لوڈ کریں')}</Button>
-            <p>{say('Name, email, phone, shift start, shift end and password are required. Enter a password of at least 6 characters for each employee. Staff use it to sign in after import. Passwords stay hidden in the preview. Format phones as Text and use HH:mm shift times, such as 22:00–06:00.','نام، ای میل، فون، شفٹ کا آغاز، اختتام اور پاس ورڈ ضروری ہیں۔ ہر ملازم کے لیے کم از کم ۶ حروف کا پاس ورڈ درج کریں جس سے وہ درآمد کے بعد داخل ہو سکے گا۔ پیش نظارے میں پاس ورڈ پوشیدہ رہیں گے۔ فون متن میں اور اوقات 22:00–06:00 کی طرح لکھیں۔')}</p>
+            <p>{say(
+              'Full name, phone, shift start and shift end are required. Email is optional. Staff sign in with their phone number and a code sent by SMS. Format phones as Text and use HH:mm shift times, such as 22:00–06:00.',
+              'پورا نام، فون نمبر اور شفٹ کے آغاز اور اختتام کے اوقات ضروری ہیں۔ ای میل اختیاری ہے۔ عملہ اپنے فون نمبر اور ایس ایم ایس سے ملنے والے کوڈ سے سائن ان کرتا ہے۔ فون نمبر متن (Text) میں اور شفٹ کے اوقات HH:mm کی صورت میں لکھیں، جیسے 22:00–06:00۔',
+            )}</p>
           </section>
           <section className="wx-staff-import-step" aria-labelledby={`staff-upload-${location.id}`}>
             <h3 id={`staff-upload-${location.id}`}>{t('Upload your file')}</h3>
@@ -94,7 +112,13 @@ export default function StaffImportDialog({location}:{location:{id:number;name:s
             <p>{t('{count} of {total} rows are ready to import.',{count:number(preview.valid),total:number(preview.total)})}</p>
             <DataTable data={preview.rows} rowKey={row=>row.row} pageSize={20} mobileCards columns={[
               {key:'row',header:say('Row','قطار'),render:row=>number(row.row)},
-              {key:'name',header:say('Name','نام'),render:row=><div className="wx-staff-import-person"><strong><bdi>{row.name}</bdi></strong><span>{say('Email','ای میل')}: <bdi>{row.email}</bdi></span><span>{say('Phone','فون')}: <bdi>{row.phone}</bdi></span></div>},
+              {key:'name',header:say('Name','نام'),render:row=>(
+                <div className="wx-staff-import-person">
+                  <strong><bdi>{row.name}</bdi></strong>
+                  <span>{say('Phone','فون')}: <bdi>{row.phone}</bdi></span>
+                  <span>{row.email?.trim() ? <>{say('Email','ای میل')}: <bdi>{row.email}</bdi></> : say('No email','کوئی ای میل نہیں')}</span>
+                </div>
+              )},
               {key:'shift',header:say('Shift','شفٹ'),render:row=><bdi>{row.start}–{row.end}</bdi>},
               {key:'errors',header:t('Check'),render:row=><div className="wx-staff-import-row-status"><StatusPill tone={row.errors.length?'bad':'ok'}>{row.errors.length?'Check':'Ready'}</StatusPill>{row.errors.map(message=><p key={message}>{rowError(message)}</p>)}</div>},
             ]}/>
