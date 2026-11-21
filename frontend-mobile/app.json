@@ -2,7 +2,7 @@
   "expo": {
     "name": "Hygene Ops Staff",
     "slug": "cleanops-staff",
-    "version": "2.2.2",
+    "version": "2.3.0",
     "orientation": "portrait",
     "icon": "./assets/hygene-ops-icon.png",
     "userInterfaceStyle": "light",
@@ -25,7 +25,7 @@
       "bundleIdentifier": "com.hygeneops.staff"
     },
     "android": {
-      "versionCode": 14,
+      "versionCode": 15,
       "adaptiveIcon": {
         "foregroundImage": "./assets/hygene-ops-adaptive.png",
         "backgroundColor": "#ffffff"
