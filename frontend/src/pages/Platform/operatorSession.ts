@@ -40,19 +40,19 @@ export { localSessionKey };
 
 function operatorTarget(path: string, local: boolean) {
   const origin = window.location.origin;
-  const base = import.meta.env.VITE_API_BASE_URL?.trim().replace(/\/+$/, '') || '/api';
   const suffix = '/' + path.replace(/^\//, '');
   if (local) {
+    const base = import.meta.env.VITE_API_BASE_URL?.trim().replace(/\/+$/, '') || '/api';
     const target = new URL(base + suffix, origin);
     if (['localhost', '127.0.0.1', '[::1]'].includes(target.hostname)) return target;
   } else {
+    // Live mode always stays on this site's own /api path, which the host forwards to the API
+    // (frontend/public/_redirects), even when tenant pages call the API origin directly.
+    // The operator cookie is SameSite=Strict, so it only works same-origin.
     try {
-      const configured = new URL(base, origin);
-      if (configured.href === origin + '/api') {
-        const target = new URL('/api' + suffix, origin);
-        if (target.pathname.startsWith('/api/')) return target;
-      }
-    } catch { /* Invalid API bases are unavailable. */ }
+      const target = new URL('/api' + suffix, origin);
+      if (target.origin === origin && target.pathname.startsWith('/api/')) return target;
+    } catch { /* Invalid paths are unavailable. */ }
   }
   throw new OperatorUnavailableError();
 }

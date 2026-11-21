@@ -9,7 +9,7 @@ import authReducer, { setUser, type AuthUser } from '@/store/slices/authSlice';
 import { LanguageProvider } from '@/i18n/LanguageProvider';
 import { platformRoutes } from './platformRoutes';
 import { OperatorBoundary } from './OperatorLogin';
-import { clearOperatorSession, operatorQueryScope, operatorRequest, operatorSessionStatus, OperatorUnavailableError } from './operatorSession';
+import { clearOperatorSession, operatorQueryScope, operatorRequest, operatorSessionStatus } from './operatorSession';
 import { getConsoleOverview } from './console/api/consoleApi';
 import { setCompanyStatus } from './companyApi';
 import { saveInquiry } from './serviceApi';
@@ -80,13 +80,18 @@ for (const response of ['?code=untrusted&state=wrong&nonce=wrong', '?code=untrus
   });
 }
 
-it('refuses a cross-origin API base for both status and operator requests', async () => {
+it('keeps live operator requests on the site origin when tenant pages use a cross-origin API base', async () => {
   vi.stubEnv('VITE_API_BASE_URL', 'https://foreign.example.test/api');
+  vi.mocked(fetch).mockImplementation(async target => target === liveBase + '/platform/session'
+    ? sessionResponse(true) : Response.json({ data: {} }));
   mount();
-  expect(await screen.findByRole('heading', { name: 'Sign-in provider unavailable' })).toBeVisible();
-  await expect(operatorRequest('/platform/companies')).rejects.toBeInstanceOf(OperatorUnavailableError);
-  await expect(operatorRequest('/platform/service/leads', { method: 'POST', body: { fixture: true } })).rejects.toMatchObject({ code: 'OPERATOR_SIGN_IN_UNAVAILABLE' });
-  expect(fetch).not.toHaveBeenCalled();
+  expect(await screen.findByLabelText('Platform email')).toBeVisible();
+  await operatorRequest('/platform/companies');
+  await operatorRequest('/platform/service/leads', { method: 'POST', body: { fixture: true } });
+  const targets = vi.mocked(fetch).mock.calls.map(([target]) => String(target));
+  expect(targets).toContain(liveBase + '/platform/companies');
+  expect(targets).toContain(liveBase + '/platform/service/leads');
+  expect(targets.every(target => target.startsWith(liveBase + '/'))).toBe(true);
 });
 
 it('local session cleanup removes only operator cache, leaving tenant identity and cached operations intact', async () => {
