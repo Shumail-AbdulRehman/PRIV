@@ -5,7 +5,7 @@ import { beforeEach,afterEach,expect,it,vi } from 'vitest';
 import { LanguageProvider } from '@/i18n/LanguageProvider';
 import LocalOperatorLogin,{LocalOperatorBoundary} from './LocalOperatorLogin';
 const mocks=vi.hoisted(()=>({status:vi.fn(),login:vi.fn(),logout:vi.fn()}));
-vi.mock('./operatorSession',()=>({operatorQueryScope:['platform-operator'],localSessionKey:['platform-operator','local-session'],getLocalOperatorSession:mocks.status,signInLocalOperator:mocks.login,signOutLocalOperator:mocks.logout}));
+vi.mock('./operatorSession',()=>({operatorQueryScope:['platform-operator'],localSessionKey:['platform-operator','local-session'],localOperatorLoginEnabled:()=>true,getLocalOperatorSession:mocks.status,signInLocalOperator:mocks.login,signOutLocalOperator:mocks.logout}));
 function mount(node:React.ReactNode=<LocalOperatorLogin/>){const client=new QueryClient({defaultOptions:{queries:{retry:false},mutations:{retry:false}}});return render(<QueryClientProvider client={client}><LanguageProvider><MemoryRouter><Routes><Route path="/" element={node}/><Route path="/platform/overview" element={<h1>Overview</h1>}/><Route path="/platform/login" element={<LocalOperatorLogin/>}/></Routes></MemoryRouter></LanguageProvider></QueryClientProvider>);}
 beforeEach(()=>{vi.clearAllMocks();localStorage.clear();mocks.status.mockResolvedValue({enabled:true,authenticated:false});});
 afterEach(()=>vi.unstubAllEnvs());

@@ -1,5 +1,4 @@
 import LocalOperatorLogin, { LocalOperatorBoundary } from './LocalOperatorLogin';
-import { localOperatorLoginEnabled } from './operatorSession';
 import { useEffect, useState, type ReactNode } from 'react';
 import { Link, Navigate, useLocation } from 'react-router-dom';
 import { useQueryClient } from '@tanstack/react-query';
@@ -35,8 +34,7 @@ export function OperatorShell({ title, children }: { title: string; children: Re
 }
 
 export default function OperatorLogin() {
-  if (localOperatorLoginEnabled()) return <LocalOperatorLogin/>;
-  return <ProviderOperatorLogin/>;
+  return <LocalOperatorLogin unavailable={<ProviderOperatorLogin />} />;
 }
 
 function ProviderOperatorLogin() {
@@ -83,8 +81,7 @@ export function OperatorCallback() {
 }
 
 export function OperatorSecurity() {
-  if (localOperatorLoginEnabled()) return <LocalOperatorLogin security/>;
-  return <ProviderOperatorSecurity/>;
+  return <LocalOperatorLogin security unavailable={<ProviderOperatorSecurity />} />;
 }
 function ProviderOperatorSecurity() {
   const queryClient = useQueryClient();
@@ -115,6 +112,5 @@ function ProviderOperatorSecurity() {
 
 /** No tenant role/Redux state can enter an operator surface. */
 export function OperatorBoundary(props: { children: ReactNode }) {
-  if (localOperatorLoginEnabled()) return <LocalOperatorBoundary>{props.children}</LocalOperatorBoundary>;
-  return <OperatorLogin />;
+  return <LocalOperatorBoundary unavailable={<ProviderOperatorLogin />}>{props.children}</LocalOperatorBoundary>;
 }

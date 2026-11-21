@@ -15,20 +15,6 @@ export class OperatorUnavailableError extends Error {
   }
 }
 
-/**
- * The approved backend accepts separately verified MFA API bearer identities.
- * No browser OIDC provider/PKCE/session adapter has been selected or qualified.
- * Deliberately perform no network request and accept no caller-provided token.
- * Specs33/35 consume this boundary without falling back to the tenant client.
- */
-export async function operatorRequest<T>(
-  _path: string,
-  _options?: { method?: 'GET' | 'POST' | 'PATCH'; body?: unknown; signal?: AbortSignal },
-): Promise<T> {
-  if (localOperatorLoginEnabled()) return localPlatformRequest<T>('/' + _path.replace(/^\//,''), _options);
-  throw new OperatorUnavailableError();
-}
-
 /** Local cleanup only: it cannot claim to revoke an unconfigured IdP session. */
 export async function clearOperatorSession(queryClient: QueryClient): Promise<void> {
   try {
@@ -51,25 +37,55 @@ export function localOperatorLoginEnabled() {
 }
 const localSessionKey = [...operatorQueryScope, 'local-session'];
 export { localSessionKey };
-export async function localPlatformRequest<T>(path: string, options?: {method?: string;body?: unknown;signal?: AbortSignal}): Promise<T> {
-  if (!localOperatorLoginEnabled()) throw new OperatorUnavailableError();
-  const base = import.meta.env.VITE_API_BASE_URL?.trim().replace(/\/+$/,'') || '/api';
-  const target = new URL(base + path, window.location.origin);
-  if (!['localhost','127.0.0.1','[::1]'].includes(target.hostname)) throw new OperatorUnavailableError();
-  const response = await fetch(target.toString(), {method:options?.method??'GET',credentials:'include',cache:'no-store',signal:options?.signal,
-    headers: options?.body === undefined ? undefined : {'Content-Type':'application/json'},body: options?.body === undefined ? undefined : JSON.stringify(options.body)});
+
+function operatorTarget(path: string, local: boolean) {
+  const origin = window.location.origin;
+  const base = import.meta.env.VITE_API_BASE_URL?.trim().replace(/\/+$/, '') || '/api';
+  const suffix = '/' + path.replace(/^\//, '');
+  if (local) {
+    const target = new URL(base + suffix, origin);
+    if (['localhost', '127.0.0.1', '[::1]'].includes(target.hostname)) return target;
+  } else {
+    try {
+      const configured = new URL(base, origin);
+      if (configured.href === origin + '/api') {
+        const target = new URL('/api' + suffix, origin);
+        if (target.pathname.startsWith('/api/')) return target;
+      }
+    } catch { /* Invalid API bases are unavailable. */ }
+  }
+  throw new OperatorUnavailableError();
+}
+
+/** Cookie transport shared by the operator session and console APIs. */
+export async function operatorRequest<T>(
+  path: string,
+  options?: { method?: 'GET' | 'POST' | 'PATCH'; body?: unknown; signal?: AbortSignal },
+): Promise<T> {
+  const local = localOperatorLoginEnabled();
+  const target = operatorTarget(path, local);
+  const body = options?.body === undefined ? undefined : JSON.stringify(options.body);
+  const response = await fetch(target.toString(), {
+    method: options?.method ?? 'GET',
+    credentials: 'include',
+    cache: 'no-store',
+    ...(local ? {} : { redirect: 'error' }),
+    signal: options?.signal,
+    headers: body === undefined ? undefined : { 'Content-Type': 'application/json' },
+    body,
+  });
   if (!response.ok) {
     const error = Object.assign(new Error('Platform request failed'),{status:response.status});
     throw error;
   }
   return response.json() as Promise<T>;
 }
-export async function getLocalOperatorSession() {
-  return (await localPlatformRequest<{data:{enabled:boolean;authenticated:boolean;email?:string}}>('/platform/session')).data;
+export async function getLocalOperatorSession({ signal }: { signal?: AbortSignal } = {}) {
+  return (await operatorRequest<{data:{enabled:boolean;authenticated:boolean;email?:string}}>('/platform/session', { signal })).data;
 }
 export async function signInLocalOperator(email:string,password:string) {
-  return (await localPlatformRequest<{data:{authenticated:boolean;email:string}}>('/platform/session/login',{method:'POST',body:{email,password}})).data;
+  return (await operatorRequest<{data:{authenticated:boolean;email:string}}>('/platform/session/login',{method:'POST',body:{email,password}})).data;
 }
 export async function signOutLocalOperator() {
-  await localPlatformRequest('/platform/session/logout',{method:'POST'});
+  await operatorRequest('/platform/session/logout',{method:'POST'});
 }

@@ -98,6 +98,7 @@ it.each([
   ['/platform/unknown/route', 'Platform operator sign-in'],
 ])('keeps %s outside the console shell', async (path, heading) => {
   mocks.localLoginEnabled.mockReturnValue(false);
+  mocks.session.mockResolvedValue({ enabled: false, authenticated: false });
   const router = mount(path);
   expect(await screen.findByRole('heading', { name: heading })).toBeVisible();
   expect(screen.queryByRole('navigation', { name: 'Main navigation' })).not.toBeInTheDocument();
@@ -111,4 +112,12 @@ it('keeps console requests and layout behind the local operator session check', 
   expect(await screen.findByRole('heading', { name: 'Platform owner sign-in' })).toBeVisible();
   expect(screen.queryByRole('navigation', { name: 'Main navigation' })).not.toBeInTheDocument();
   expect(mocks.request).not.toHaveBeenCalled();
+});
+
+it('mounts a live authenticated operator in the same console shell', async () => {
+  mocks.localLoginEnabled.mockReturnValue(false);
+  mount('/platform/companies');
+  expect(await screen.findByRole('navigation', { name: 'Main navigation' })).toBeVisible();
+  expect(screen.getByText(email)).toBeVisible();
+  expect(mocks.request).toHaveBeenCalledWith(expect.stringMatching(/^\/platform\/companies/), expect.anything());
 });
