@@ -117,6 +117,7 @@ function refusal(status: number, code: string, field: string, message: string) {
 function openEdit() {
   mount(<LocationTemplatesTab locationId={20} locationName="Main site" timeZone={timeZone}
     templates={[template]} staffList={[worker, replacement]} />);
+  fireEvent.click(screen.getByRole("button", { name: new RegExp(template.title) }));
   fireEvent.click(screen.getByRole("button", { name: "Edit schedule" }));
   return within(screen.getByRole("dialog", { name: "Edit cleaning schedule" }));
 }

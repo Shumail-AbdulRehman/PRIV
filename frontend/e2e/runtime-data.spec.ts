@@ -1,4 +1,4 @@
-import { ui, choose, calendar } from './workspace-helpers';
+import { addScheduleButton, ui, choose, calendar } from './workspace-helpers';
 import type { Page } from '@playwright/test';
 import { test, expect, enter, fixture, sql, backend } from './fixtures';
 
@@ -148,7 +148,7 @@ test('Locations and every implemented location tab load persisted API records', 
         await expect(page.getByRole('heading', { name: ui('Week at a glance') })).toBeVisible();
       }
       if (tab === 'staff') await expect(page.getByRole('tabpanel', { name: ui('Staff and shifts') })).toContainText('E2E staff openShift');
-      if (tab === 'templates') await expect(page.getByRole('button', { name: 'Add cleaning schedule', exact: true }).first()).toBeVisible();
+      if (tab === 'templates') await expect(addScheduleButton(page)).toBeVisible();
       await healthy(page);
     });
   }

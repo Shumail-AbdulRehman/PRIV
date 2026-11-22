@@ -60,8 +60,9 @@ function locationTab(template: TaskTemplate) {
   return <LocationTemplatesTab templates={[template]} staffList={[staff]} locationId={20} timeZone="Asia/Karachi" locationName="Saved site" />;
 }
 
-function openEditor() {
-  fireEvent.click(screen.getByRole("button", { name: chosen.title }));
+function openEditor(editLabel = "Edit schedule") {
+  fireEvent.click(screen.getByRole("button", { name: /Hall cleaning/ }));
+  fireEvent.click(screen.getByRole("button", { name: editLabel }));
   return within(screen.getByRole("dialog"));
 }
 
@@ -72,9 +73,9 @@ beforeEach(() => {
 });
 
 it.each([
-  { language: "en", weekName: "Week at a glance", summary: "Mon, Wed" },
-  { language: "ur", weekName: "ہفتے کا جائزہ", summary: "پیر، بدھ" },
-] as const)("shows the chosen days in the grid and both tables in $language", ({ language, weekName, summary }) => {
+  { language: "en", weekName: "Week", summary: "Mon, Wed" },
+  { language: "ur", weekName: "ہفتہ", summary: "پیر، بدھ" },
+] as const)("shows the chosen days in the location list and week and in the staff table in $language", ({ language, weekName, summary }) => {
   mount(
     <>
       {locationTab(chosen)}
@@ -82,31 +83,33 @@ it.each([
     </>,
     language,
   );
-  const week = screen.getByRole("table", { name: weekName });
-  const grid = within(week);
+  expect(screen.getByRole("button", { name: /Hall cleaning/ })).toHaveTextContent(summary);
+  expect(screen.getAllByRole("table")).toHaveLength(1);
+  expect(within(screen.getByRole("table")).getByText(summary)).toBeInTheDocument();
+
+  fireEvent.click(screen.getByRole("button", { name: weekName }));
+  const grid = within(screen.getByRole("table", { name: weekName }));
   expect(grid.getByRole("rowheader")).toHaveTextContent(summary);
   const cells = grid.getAllByRole("cell");
   expect(cells).toHaveLength(7);
   for (const [index, cell] of cells.entries()) {
     const day = within(cell);
     if (index === 0 || index === 2) {
-      expect(day.getByRole("button", { name: /Hall cleaning/ })).toHaveTextContent("09:00–10:00");
+      expect(day.getByRole("button", { name: /Hall cleaning/ })).toHaveTextContent("09:00");
     } else {
       expect(day.queryByRole("button")).not.toBeInTheDocument();
-      expect(day.getByText("—")).toBeInTheDocument();
     }
   }
-  const registers = screen.getAllByRole("table").filter(table => table !== week);
-  expect(registers).toHaveLength(2);
-  for (const register of registers) expect(within(register).getByText(summary)).toBeInTheDocument();
 });
 
-it.each([{ repeatDays: undefined }, { repeatDays: [...WEEKDAYS] }, { repeatDays: [] }])("keeps the Daily label and seven bars for every-day data (%j)", ({ repeatDays }) => {
-  mount(locationTab({ ...chosen, repeatDays }));
-  const grid = within(screen.getByRole("table", { name: "Week at a glance" }));
-  expect(grid.getByRole("rowheader")).toHaveTextContent("Daily");
-  expect(grid.getAllByRole("button", { name: /09:00–10:00/ })).toHaveLength(7);
-  expect(within(screen.getByRole("region", { name: "Cleaning schedule table" })).getByText("Daily")).toBeInTheDocument();
+it.each([{ repeatDays: undefined }, { repeatDays: [...WEEKDAYS] }, { repeatDays: [] }])("keeps the Every day label and seven occurrences for every-day data (%j)", ({ repeatDays }) => {
+  const everyDayStaff = { ...staff, workDays: [...WEEKDAYS] };
+  mount(<LocationTemplatesTab templates={[{ ...chosen, repeatDays }]} staffList={[everyDayStaff]}
+    locationId={20} timeZone="Asia/Karachi" locationName="Saved site" />);
+  expect(screen.getByRole("button", { name: /Hall cleaning/ })).toHaveTextContent("Every day");
+  fireEvent.click(screen.getByRole("button", { name: "Week" }));
+  const grid = within(screen.getByRole("table", { name: "Week" }));
+  expect(grid.getAllByRole("button", { name: /09:00 Hall cleaning/ })).toHaveLength(7);
 });
 
 it("opens on the saved chosen days and leaves them out of an unrelated edit", async () => {
@@ -155,10 +158,10 @@ it("can switch to Once without sending repeat days", async () => {
 
 it("keeps the Once label and one bar even when repeat days are present", () => {
   mount(locationTab({ ...chosen, recurringType: "ONCE", repeatDays: ["FRI"] }));
-  const grid = within(screen.getByRole("table", { name: "Week at a glance" }));
-  expect(grid.getByRole("rowheader")).toHaveTextContent("Once");
-  expect(grid.getAllByRole("button", { name: /09:00–10:00/ })).toHaveLength(1);
-  expect(within(screen.getByRole("region", { name: "Cleaning schedule table" })).getByText("Once")).toBeInTheDocument();
+  expect(screen.getByRole("button", { name: /Hall cleaning/ })).toHaveTextContent("Once");
+  fireEvent.click(screen.getByRole("button", { name: "Week" }));
+  const grid = within(screen.getByRole("table", { name: "Week" }));
+  expect(grid.getAllByRole("button", { name: /09:00 Hall cleaning/ })).toHaveLength(1);
 });
 
 it("shows all seven previous days when entering Chosen days from Daily", () => {
@@ -191,7 +194,7 @@ it.each([
     response: { status, data: { message: raw, errors: [{ code, field: "repeatDays", message: raw }] } },
   }));
   mount(locationTab(chosen), "ur");
-  const editor = openEditor();
+  const editor = openEditor("شیڈول بدلیں");
   fireEvent.click(editor.getByRole("button", { name: "منگل", pressed: false }));
   fireEvent.click(editor.getByRole("button", { name: "تبدیلیاں محفوظ کریں" }));
   expect(await editor.findByRole("alert")).toHaveTextContent(message);

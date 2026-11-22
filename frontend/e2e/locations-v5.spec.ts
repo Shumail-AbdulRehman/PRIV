@@ -1,4 +1,4 @@
-import { ui } from './workspace-helpers';
+import { addScheduleButton, cleaningSchedules, scheduleButton, scheduleDetails, ui } from './workspace-helpers';
 import {test,expect,enter,fixture,sql,backend} from './fixtures';
 import {mkdir,writeFile} from 'node:fs/promises';
 import {fileURLToPath} from 'node:url';
@@ -17,7 +17,7 @@ test('V5 locations register and detail tabs render actual API data desktop phone
    if(tab==='overview'){await expect(page.getByText(ui('Tasks submitted'), { exact: true }).first()).toBeVisible();await expect(page.getByRole('region', { name: ui('Daily summary') }).getByRole('img')).toBeVisible();}
    else if(tab==='areas')await expect(page.getByRole('heading', { name: ui('Area template'), exact: true })).toBeVisible();
    else if(tab==='schedule')await expect(page.getByRole('heading', { name: ui('Week at a glance') })).toBeVisible();
-   else if(tab==='templates')await expect(page.getByRole('button',{name:lang==='ur'?'صفائی کا شیڈول شامل کریں':'Add cleaning schedule',exact:true}).first()).toBeVisible();
+   else if(tab==='templates')await expect(addScheduleButton(page,lang)).toBeVisible();
    else await expect(page.getByRole('tabpanel')).toBeVisible();
    await expect(page.getByRole('main').getByRole('status')).toHaveCount(0);await page.evaluate(()=>document.fonts.ready);await page.screenshot({animations:'disabled',path:join(out,`app-${tab}-${width}-${lang}.png`),fullPage:true});
    const overflow=await page.evaluate(()=>document.documentElement.scrollWidth>innerWidth+1);expect(overflow).toBe(false);expect(errors).toEqual([]);results.push({tab,width,lang,overflow,errors:[...errors],route:page.url(),source:'actual React/API, migrated synthetic SQL'});
@@ -91,7 +91,9 @@ test('persisted cleaning schedule editor uses saved fields and preserves a faile
   await prep.close();
   for(const width of [1366,390])for(const lang of ['en','ur']){
    const context=await browser.newContext({viewport:{width,height:900}});const page=await context.newPage();await enter(page,`/locations/${fixture.site.A}?tab=templates`,'ownerA',lang);
-   await page.getByRole('button',{name:lang==='ur'?'شیڈول بدلیں':'Edit schedule',exact:true}).click();await expect(page.getByRole('dialog')).toBeVisible();await page.evaluate(()=>document.fonts.ready);await page.screenshot({animations:'disabled',path:join(out,`app-edit-schedule-${width}-${lang}.png`),fullPage:true});
+   const title=width===1366&&lang==='en'?'V5 persisted schedule':'V5 edited schedule';
+   await scheduleButton(cleaningSchedules(page,lang),title).click();
+   await scheduleDetails(page,title).getByRole('button',{name:ui('Edit schedule')}).click();await expect(page.getByRole('dialog')).toBeVisible();await page.evaluate(()=>document.fonts.ready);await page.screenshot({animations:'disabled',path:join(out,`app-edit-schedule-${width}-${lang}.png`),fullPage:true});
    expect(await page.evaluate(()=>document.documentElement.scrollWidth>innerWidth+1)).toBe(false);
    if(width===1366&&lang==='en'){
     await page.getByLabel(ui('Schedule title'), {exact:true}).fill('V5 edited schedule');await page.getByRole('button',{name:'Save changes',exact:true}).click();await expect(page.getByRole('dialog')).toHaveCount(0);expect((await sql('SELECT title FROM "TaskTemplate" WHERE id=$1',[id]))[0].title).toBe('V5 edited schedule');

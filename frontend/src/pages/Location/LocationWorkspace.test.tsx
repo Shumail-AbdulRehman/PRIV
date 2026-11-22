@@ -107,7 +107,8 @@ it('schedule editor retains translated draft on failed save and prevents unsuppo
  mocks.templateEdit.mockImplementation((_input,callbacks)=>callbacks.onError(new Error('sensitive internal detail')));
  const template={id:8,title:'Saved schedule',staffId:7,staff:{name:'Saved worker'},shiftStart:'2026-10-28T04:00:00Z',shiftEnd:'2026-10-28T05:00:00Z',recurringType:'DAILY' as const,isActive:true};
  mount(<Schedules templates={[template]} staffList={[{id:7,name:'Saved worker',email:'worker@example.invalid',shiftStart:template.shiftStart,shiftEnd:template.shiftEnd,isActive:true}]} locationId={20} timeZone="Asia/Karachi" locationName={site.name}/>,'ADMIN','/locations/20?tab=templates','ur');
- fireEvent.click(screen.getAllByRole('button',{name:'شیڈول بدلیں'})[0]);
+ fireEvent.click(screen.getByRole('button',{name:/Saved schedule/}));
+ fireEvent.click(screen.getByRole('button',{name:'شیڈول بدلیں'}));
  expect(screen.getByRole('dialog',{name:'صفائی کا شیڈول بدلیں'})).toBeInTheDocument();
  expect(screen.getByRole('option',{name:'کوئی مقرر نہیں'})).toBeDisabled();
  expect(screen.getByLabelText('تفصیل')).toBeInTheDocument();expect(screen.getByRole('option',{name:'ایک بار'})).toBeInTheDocument();
@@ -123,7 +124,8 @@ it('schedule editor blocks duplicate submission until the whole save resolves',a
  const {default:Schedules}=await vi.importActual<typeof import('./components/LocationTemplatesTab')>('./components/LocationTemplatesTab');
  let finish!:()=>void;mocks.templateEdit.mockImplementation((_input,callbacks)=>{finish=()=>callbacks.onSuccess({});});
  mount(<Schedules templates={[{id:8,title:'Saved schedule',shiftStart:null,shiftEnd:null,isActive:true}]} staffList={[]} locationId={20} timeZone="Asia/Karachi" locationName={site.name}/>);
- fireEvent.click(screen.getAllByRole('button',{name:'Edit schedule'})[0]);fireEvent.change(screen.getByLabelText('Schedule title'),{target:{value:'Changed title'}});fireEvent.click(screen.getByRole('button',{name:'Save changes'}));
+ fireEvent.click(screen.getByRole('button',{name:/Saved schedule/}));
+ fireEvent.click(screen.getByRole('button',{name:'Edit schedule'}));fireEvent.change(screen.getByLabelText('Schedule title'),{target:{value:'Changed title'}});fireEvent.click(screen.getByRole('button',{name:'Save changes'}));
  expect(screen.getByLabelText('Schedule title')).toBeDisabled();expect(screen.getByRole('button',{name:'Saving...'})).toBeDisabled();expect(mocks.templateEdit).toHaveBeenCalledTimes(1);
  await act(async()=>finish());expect(screen.queryByRole('dialog')).not.toBeInTheDocument();
 });
@@ -142,7 +144,8 @@ it('partial schedule save reports persisted details and retries only the unresol
  mocks.templateAssign.mockImplementationOnce((_input,callbacks)=>callbacks.onError(new Error('transport uncertainty'))).mockImplementationOnce((_input,callbacks)=>callbacks.onSuccess({}));
  const staff=[7,8].map(id=>({id,name:'Saved worker '+id,email:'worker'+id+'@example.invalid',shiftStart:null,shiftEnd:null,isActive:true}));
  mount(<Schedules templates={[{id:8,title:'Saved schedule',staffId:7,staff:{name:staff[0].name},shiftStart:null,shiftEnd:null,isActive:true}]} staffList={staff} locationId={20} timeZone="Asia/Karachi" locationName={site.name}/>);
- fireEvent.click(screen.getAllByRole('button',{name:'Edit schedule'})[0]);fireEvent.change(screen.getByLabelText('Schedule title'),{target:{value:'Persisted details'}});fireEvent.change(screen.getByLabelText('Assigned staff'),{target:{value:'8'}});fireEvent.click(screen.getByRole('button',{name:'Save changes'}));
+ fireEvent.click(screen.getByRole('button',{name:/Saved schedule/}));
+ fireEvent.click(screen.getByRole('button',{name:'Edit schedule'}));fireEvent.change(screen.getByLabelText('Schedule title'),{target:{value:'Persisted details'}});fireEvent.change(screen.getByLabelText('Assigned staff'),{target:{value:'8'}});fireEvent.click(screen.getByRole('button',{name:'Save changes'}));
  expect(await screen.findByRole('alert')).toHaveTextContent('Schedule details were saved. Staff assignment could not be confirmed.');expect(screen.getByLabelText('Schedule title')).toHaveValue('Persisted details');expect(mocks.templateEdit).toHaveBeenCalledTimes(1);
  fireEvent.click(screen.getByRole('button',{name:'Retry staff assignment'}));await act(async()=>{});expect(screen.queryByRole('dialog')).not.toBeInTheDocument();expect(mocks.templateEdit).toHaveBeenCalledTimes(1);expect(mocks.templateAssign).toHaveBeenCalledTimes(2);
 });

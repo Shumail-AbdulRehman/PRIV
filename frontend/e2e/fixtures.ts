@@ -31,6 +31,11 @@ export type Fixture = {
   attendance: Record<string, number>;
   openShiftDate: string;
   workDays: { today: string; week: string; area: string };
+  cleaningSchedules: {
+    locationId: number;
+    week: string;
+    records: Array<{ id: number; title: string; worker: string | null; repeatDays: string[] }>;
+  };
   reliability: {
     effectiveDate: string;
     overlapTitle: string;

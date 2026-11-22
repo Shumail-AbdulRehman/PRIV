@@ -1,5 +1,5 @@
 import { test, expect, enter, fixture, sql, openShiftAttendancePath } from './fixtures';
-import { choose, noOverflow, taskPanel } from './workspace-helpers';
+import { choose, cleaningSchedules, noOverflow, scheduleButton, scheduleDetails, taskPanel } from './workspace-helpers';
 import { createRequire } from 'node:module';
 test.use({ trace: 'off', screenshot: 'off', video: 'off' });
 
@@ -209,9 +209,18 @@ for (const overnight of [false, true]) test(`W42 cleaning schedule ${overnight ?
   expect(savedResponse.status(), JSON.stringify(await savedResponse.json())).toBe(201);
   await expect(dialog).toHaveCount(0);
   await page.reload();
-  const week = page.getByRole('table', { name: 'Week at a glance', exact: true });
-  await expect(week.getByRole('row', { name: new RegExp(title) })).toBeVisible();
-  if (overnight) await expect(week.getByRole('button', { name: new RegExp(title + '.*Continues into next day') }).first()).toBeVisible();
+  const tab = cleaningSchedules(page);
+  await tab.getByRole('group', { name: 'View', exact: true }).getByRole('button', { name: 'Week', exact: true }).click();
+  const week = tab.getByRole('table', { name: 'Week', exact: true });
+  const worker = week.getByRole('row').filter({ has: page.getByRole('rowheader', { name: /^E2E staff recovery/ }) });
+  const occurrence = scheduleButton(worker, title).first();
+  await expect(occurrence).toBeVisible();
+  if (overnight) {
+    await occurrence.click();
+    await expect(scheduleDetails(page, title)).toContainText('22:00–06:00 · 8 h');
+    await page.goto(`/locations/${fixture.site.A}?tab=schedule`);
+    await expect(page.getByRole('button', { name: new RegExp(title + '.*Continues into next day') }).first()).toBeVisible();
+  }
   const [saved] = await sql('SELECT "shiftStart","shiftEnd" FROM "TaskTemplate" WHERE title=$1', [title]);
   // Templates retain local clock fields; occurrence generation interprets an
   // end clock before the start clock as the following day.

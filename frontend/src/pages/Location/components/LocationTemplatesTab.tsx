@@ -1,23 +1,18 @@
-import DataTable from "@/components/common/DataTable";
 import { useLocationLanguage } from "../locationTranslations";
 import { SidePanel, SidePanelFooter } from "@/components/workspace/SidePanel";
-import EmptyState from "@/components/common/EmptyState";
-import StatusPill from "@/components/workspace/StatusPill";
 import { WeekdayPicker } from "@/components/workspace/WeekdayPicker";
-import { formatDays, isEveryDay, normalizeDays, scheduleOccursOn, WEEKDAYS, type Weekday } from "@/lib/workDays";
-import PersonAvatar from "@/components/workspace/PersonAvatar";
+import { formatDays, isEveryDay, normalizeDays, WEEKDAYS, WEEKDAY_LABELS, type Weekday } from "@/lib/workDays";
 import { moveWeek, normalizeWeek } from "../scheduleTypes";
 import "@/pages/Task/schedule-v6.css";
 import { useSetupFormText } from "@/pages/Area/areaFormText";
 import TemplateInventoryEditor from "@/pages/Area/TemplateInventoryEditor";
 import { useAreas } from "@/pages/Area/queries";
-import { Link, useLocation, useSearchParams } from "react-router-dom";
-import { useEffect, useRef, useState } from "react";
+import { useLocation, useSearchParams } from "react-router-dom";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { formatInTimeZone } from "date-fns-tz";
-import DeleteButton from "@/components/common/DeleteButton";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { Pencil, Plus } from "lucide-react";
+import { Plus } from "lucide-react";
 import {
   useDeleteTaskTemplate,
   useEditTaskTemplate,
@@ -28,64 +23,31 @@ import type { LocationStaff, TaskTemplate } from "../types";
 import { buildDateTimeIso, emptyRepeatDaysMessage, type RecurrenceChoice } from "@/pages/Task/taskScheduleForm";
 import TaskScheduleWizard, { SchedulePlanFeatures, translateScheduleWorkerError } from "@/pages/Task/components/TaskScheduleWizard";
 
-/** Calendar arithmetic uses UTC as a container for location-local date fields. */
-function addDay(day: string, offset: number) {
-  const date = new Date(`${day}T12:00:00Z`);
-  date.setUTCDate(date.getUTCDate() + offset);
-  return date.toISOString().slice(0, 10);
-}
+import {
+  buildDayAgenda,
+  buildScheduleCoverage,
+  buildScheduleDetails,
+  buildScheduleList,
+  buildStaffWeek,
+  type ScheduleFilters,
+  type ScheduleGroupBy,
+} from "../schedulePageModel";
+import { ScheduleCoverageRow } from "./schedule-page/ScheduleCoverageRow";
+import { ScheduleToolbar } from "./schedule-page/ScheduleToolbar";
+import { ScheduleList } from "./schedule-page/ScheduleList";
+import { ScheduleStaffWeek } from "./schedule-page/ScheduleStaffWeek";
+import { ScheduleDetailsPanel } from "./schedule-page/ScheduleDetailsPanel";
+import "./schedule-page/schedule-page.css";
 
-export interface ScheduleWeekProps {
-  templates: TaskTemplate[];
-  timeZone: string;
-  week: string;
-  onSelect: (template: TaskTemplate) => void;
+const exampleDays = ["MON", "WED", "FRI"] as const;
+
+function dateForLabel(date: string) {
+  return new Date(`${date}T00:00:00Z`);
 }
 
 function hasChosenRepeatDays(template: TaskTemplate) {
   return template.recurringType === "DAILY" && !!template.repeatDays?.length && !isEveryDay(template.repeatDays);
 }
-
-/** Read-only projection of already loaded templates; never creates occurrences. */
-export function ScheduleWeek({ templates, timeZone, week, onSelect }: ScheduleWeekProps) {
-  const { t, language } = useLocationLanguage();
-  const days = Array.from({ length: 7 }, (_, index) => addDay(week, index));
-  const label = (day: string) => new Intl.DateTimeFormat(language === 'ur' ? 'ur-PK' : 'en-PK', { timeZone: 'UTC', weekday: 'short', day: 'numeric', month: 'short' }).format(new Date(`${day}T12:00:00Z`));
-  const time = (value: string | null) => value && Number.isFinite(Date.parse(value)) ? formatInTimeZone(value, timeZone, 'HH:mm') : '';
-  return <table className="wx-schedule-week" role="table" aria-label={t('Week at a glance')}>
-    <thead role="rowgroup"><tr role="row"><th scope="col" role="columnheader">{t('Cleaning schedule')}</th>{days.map(day => <th role="columnheader" scope="col" key={day}>{label(day)}</th>)}</tr></thead>
-    <tbody role="rowgroup">{templates.map(template => {
-      const start = time(template.shiftStart), end = time(template.shiftEnd);
-      const hasShiftWindow = !!start && !!end;
-      const overnight = hasShiftWindow && end <= start;
-      const occurrence = {
-        ...template,
-        recurringType: template.recurringType ?? "ONCE",
-        effectiveDate: template.effectiveDate || (template.shiftStart && start ? formatInTimeZone(template.shiftStart, timeZone, 'yyyy-MM-dd') : null),
-      } as const;
-      const recurrence = hasChosenRepeatDays(template)
-        ? formatDays(template.repeatDays, t, language)
-        : t(template.recurringType === "DAILY" ? "Daily" : "Once");
-      return <tr role="row" key={template.id}>
-        <th role="rowheader" scope="row"><button type="button" onClick={() => onSelect(template)}><bdi>{template.title}</bdi></button><small><bdi>{recurrence}</bdi></small></th>
-        {days.map(day => {
-          const carry = overnight && end !== '00:00' && scheduleOccursOn(occurrence, addDay(day, -1));
-          const begins = hasShiftWindow && scheduleOccursOn(occurrence, day);
-          return <td role="cell" key={day} aria-label={label(day)}><span className="wx-schedule-day-label" aria-hidden="true">{label(day)}</span>
-            {carry && <button type="button" className="wx-schedule-bar wx-schedule-bar-night wx-schedule-bar-carry" onClick={() => onSelect(template)} aria-label={`${template.title} · ${label(day)} · ${t('Continues from previous day')} · 00:00–${end}`}><span>{t('Continues from previous day')}</span><bdi dir="ltr">00:00–{end}</bdi></button>}
-            {begins && <button type="button" className={`wx-schedule-bar${overnight ? ' wx-schedule-bar-night wx-schedule-bar-start' : ''}`} onClick={() => onSelect(template)} aria-label={`${template.title} · ${label(day)} · ${start}–${end}${overnight ? ' · ' + t('Continues into next day') : ''}`}><bdi dir="ltr">{start}–{overnight ? '24:00' : end}</bdi>{overnight && <span>{t('Continues into next day')}</span>}</button>}
-            {!carry && !begins && <span className="wx-schedule-no-slot">—</span>}
-          </td>;
-        })}
-      </tr>;
-    })}</tbody>
-  </table>;
-}
-
-const fmtTimeWithTz = (d: string | null, timeZone = "UTC") => {
-  if (!d) return "—";
-  return formatInTimeZone(new Date(d), timeZone, "HH:mm (zzz)");
-};
 
 export default function LocationTemplatesTab({
   templates,
@@ -106,12 +68,19 @@ export default function LocationTemplatesTab({
   const [assignmentRetry,setAssignmentRetry]=useState(false);
   const inFlight=useRef(false);
   const { hash } = useLocation();
-  useEffect(() => {
-    if (hash.startsWith("#schedule-"))
-      document
-        .getElementById(hash.slice(1))
-        ?.scrollIntoView({ block: "center" });
-  }, [hash, templates]);
+  const [selection, setSelection] = useState<{ hash: string; id: number | null }>();
+  const linkedId = /^#schedule-([1-9]\d*)$/.exec(hash)?.[1];
+  const selectedId = selection?.hash === hash ? selection.id : linkedId ? Number(linkedId) : null;
+  const selectedTemplate = templates.find(template => template.id === selectedId);
+  const detailsOpener = useRef<HTMLElement | null>(null);
+  const editReturnFocus = useRef<HTMLElement | null>(null);
+  const [search, setSearch] = useState("");
+  const [staffFilter, setStaffFilter] = useState<ScheduleFilters["staff"]>();
+  const [areaFilter, setAreaFilter] = useState<ScheduleFilters["areaId"]>();
+  const [groupBy, setGroupBy] = useState<ScheduleGroupBy>("time");
+  const [chip, setChip] = useState<NonNullable<ScheduleFilters["chip"]>>("all");
+  const [selectedWeekday, setSelectedWeekday] = useState<Weekday | null>(null);
+  const [agendaSelection, setAgendaSelection] = useState<{ week: string; weekday: Weekday }>();
   const areasQuery = useAreas(locationId);
   const deleteTemplate = useDeleteTaskTemplate();
   const editTemplate = useEditTaskTemplate();
@@ -119,6 +88,12 @@ export default function LocationTemplatesTab({
   const [editingTemplate, setEditingTemplate] = useState<TaskTemplate | null>(
     null,
   );
+  useEffect(() => {
+    if (!editingTemplate && editReturnFocus.current) {
+      editReturnFocus.current.focus();
+      editReturnFocus.current = null;
+    }
+  }, [editingTemplate]);
   const [dateTouched, setDateTouched] = useState(false);
   const [editError, setEditError] = useState<string | null>(null);
   const [workerError, setWorkerError] = useState<ReturnType<typeof translateScheduleWorkerError>>();
@@ -318,167 +293,180 @@ export default function LocationTemplatesTab({
     return next;
   });
 
+  const view = params.get("view") === "week" ? "week" : "list";
+  const [renderedView, setRenderedView] = useState({ view, animate: false });
+  if (renderedView.view !== view) setRenderedView({ view, animate: true });
+  const changeView = (nextView: "list" | "week") => {
+    if (nextView === view) return;
+    setParams(previous => {
+      const next = new URLSearchParams(previous);
+      if (nextView === "week") next.set("view", "week"); else next.delete("view");
+      return next;
+    });
+  };
+
+  const areas = areasQuery.data;
+  const context = useMemo(() => ({ timeZone, today: todayDate, areas }), [timeZone, todayDate, areas]);
+  const list = useMemo(() => {
+    const filters = { search, staff: staffFilter, areaId: areaFilter };
+    return buildScheduleList(templates, staffList, context, view === "list"
+      ? { ...filters, chip, weekday: selectedWeekday ?? undefined }
+      : filters, view === "list" ? groupBy : "time");
+  }, [templates, staffList, context, search, staffFilter, areaFilter, view, chip, selectedWeekday, groupBy]);
+  const coverage = useMemo(() => templates.length ? buildScheduleCoverage(templates, staffList, context, week) : [],
+    [templates, staffList, context, week]);
+  const locale = language === "ur" ? "ur-PK" : "en-GB";
+  const weekLabel = useMemo(() => {
+    if (!coverage.length) return "";
+    return new Intl.DateTimeFormat(locale, {
+      day: "numeric", month: "short", year: "numeric", timeZone: "UTC",
+    }).formatRange(dateForLabel(coverage[0].date), dateForLabel(coverage[coverage.length - 1].date));
+  }, [coverage, locale]);
+
+  const agendaWeekday = agendaSelection?.week === week ? agendaSelection.weekday : null;
+  const agendaDay = coverage.find(day => day.weekday === agendaWeekday)
+    ?? coverage.find(day => day.isToday) ?? coverage[0];
+  const weekView = useMemo(() => {
+    if (view !== "week" || !agendaDay) return null;
+    const dayFormat = new Intl.DateTimeFormat(locale, {
+      weekday: "short", day: "numeric", month: "short", timeZone: "UTC",
+    });
+    const matchingIds = new Set(list.groups.flatMap(group => group.rows.map(row => row.id)));
+    const matchingTemplates = templates.filter(template => matchingIds.has(template.id));
+    const rows = buildStaffWeek(matchingTemplates, staffList, context, week);
+    return {
+      rows: staffFilter === undefined ? rows : rows.filter(row => (row.worker?.id ?? "unassigned") === staffFilter),
+      days: coverage.map(day => ({ ...day, label: dayFormat.format(dateForLabel(day.date)) })),
+      agenda: buildDayAgenda(matchingTemplates, staffList, context, agendaDay.date),
+      agendaLabel: dayFormat.format(dateForLabel(agendaDay.date)),
+    };
+  }, [view, agendaDay, list.groups, templates, staffList, context, week, staffFilter, coverage, locale]);
+
+  const unassignedCount = templates.filter(template => template.staffId == null).length;
+  const clearFilters = () => {
+    setSearch("");
+    setStaffFilter(undefined);
+    setAreaFilter(undefined);
+    setChip("all");
+    setSelectedWeekday(null);
+  };
+  const openDetails = (id: number) => {
+    detailsOpener.current = document.activeElement instanceof HTMLElement ? document.activeElement : null;
+    setSelection({ hash, id });
+  };
+  const closeDetails = () => setSelection({ hash, id: null });
+
   return (
-    <section className="wx-schedule" aria-label={translate("Cleaning schedules")}>
-      <div className="wx-schedule-heading">
+    <section className="schedule-page" aria-label={translate("Cleaning schedules")}>
+      <header className="schedule-page__header">
         <div>
-          <h2>
-            {translate("Cleaning schedules")}
-          </h2>
-          <p className="text-sm text-muted-foreground">
-            {translate("Create schedules for this location and optionally choose a team member.")}
+          <h2>{translate("Cleaning schedules")}</h2>
+          <p className="schedule-page__summary">
+            {templates.length > 0 && <>{translate("{count} schedules", { count: templates.length })} · </>}
+            {translate("{count} staff at this location", { count: staffList.length })}
+            {unassignedCount > 0 && <>
+              {" · "}
+              <button type="button" className="schedule-page__attention" onClick={() => {
+                setChip("needsAttention");
+                changeView("list");
+              }}>
+                {translate("{count} need a worker", { count: unassignedCount })}
+              </button>
+            </>}
           </p>
         </div>
-        <Button
-          className="wx-schedule-primary"
-          onClick={() => setCreateDialogOpen(true)}
-        >
-          <Plus className="size-4" /> {translate("Add cleaning schedule")}
-        </Button>
-        {createDialogOpen && (
-          <TaskScheduleWizard
-            locationId={locationId}
-            locationName={locationName}
-            timeZone={timeZone}
-            staffOptions={staffList}
-            open={createDialogOpen}
-            onOpenChange={setCreateDialogOpen}
-            onCreated={() => undefined}
-          />
+        {templates.length > 0 && (
+          <Button type="button" className="schedule-page__add schedule-page__primary"
+            aria-label={translate("Add cleaning schedule")} onClick={() => setCreateDialogOpen(true)}>
+            <Plus aria-hidden="true" />
+            <span>{translate("Add cleaning schedule")}</span>
+          </Button>
         )}
-      </div>
+      </header>
+      {createDialogOpen && (
+        <TaskScheduleWizard
+          locationId={locationId}
+          locationName={locationName}
+          timeZone={timeZone}
+          staffOptions={staffList}
+          open={createDialogOpen}
+          onOpenChange={setCreateDialogOpen}
+          onCreated={() => undefined}
+        />
+      )}
 
-      <p className="wx-schedule-help">{translate('Daily schedules include every day, including weekends.')}</p>
       {templates.length > 0 ? <>
-        <div className="wx-schedule-week-nav"><p><bdi>{new Intl.DateTimeFormat(language === 'ur' ? 'ur-PK' : 'en-PK', { timeZone: 'UTC', dateStyle: 'medium' }).format(new Date(week + 'T12:00:00Z'))}</bdi> · <bdi>{timeZone}</bdi></p><div className="wx-schedule-actions">
-          <Button variant="outline" onClick={() => changeWeek(moveWeek(week, -1))}>{translate('Previous week')}</Button>
-          <Button variant="outline" onClick={() => changeWeek()}>{translate('This week')}</Button>
-          <Button variant="outline" onClick={() => changeWeek(moveWeek(week, 1))}>{translate('Next week')}</Button>
-        </div></div>
-        <ScheduleWeek templates={templates} week={week} timeZone={timeZone} onSelect={handleEditOpen} />
-        <h3 className="wx-schedule-register-title">{translate('Cleaning schedules')}</h3>
-      <DataTable mobileCards
-        data={templates}
-        rowKey={(row) => row.id}
-        emptyMessage={translate("No cleaning schedules for this location.")}
-        columns={[
-          {
-            key: "schedule",
-            header: "Cleaning schedule",
-            sortValue: (row) => row.title,
-            render: (row) => (
-              <div id={"schedule-" + row.id}>
-                <strong>{row.title}</strong>
-                {row.description ? <p>{row.description}</p> : null}
-                {row.setupStatus === "NEEDS_REVIEW" ? (
-                  <Link
-                    className="wx-schedule-attention"
-                    to={"/locations/" + locationId + "?tab=areas"}
-                  >
-                    {translate("Inventory needs review")}
-                  </Link>
-                ) : null}
-                {row.referenceImages?.length ? (
-                  <p>
-                    {row.referenceImages.length} {translate("reference areas")}
-                  </p>
-                ) : row.referenceImageUrl ? (
-                  <p>{translate("Reference set")}</p>
-                ) : null}
-              </div>
-            ),
-          },
-          {
-            key: "area",
-            header: "Area",
-            sortValue: (row) => row.area?.name ?? "",
-            render: (row) =>
-              row.areaId ? (
-                <div>
-                  <Link className="text-primary" to={"/areas/" + row.areaId}>
-                    {row.area?.name ??
-                      areasQuery.data?.find((area) => area.id === row.areaId)
-                        ?.name ??
-                      "Area " + row.areaId}
-                  </Link>
-                  <p>
-                    {translate(
-                      row.inventorySelection === "SUBSET"
-                        ? "Selected fixtures"
-                        : "All active fixtures",
-                    )}
-                  </p>
-                </div>
-              ) : (
-                "—"
-              ),
-          },
-          {
-            key: "staff",
-            header: "Assigned to",
-            sortValue: (row) => row.staff?.name ?? "",
-            render: (row) => <div className="wx-schedule-person"><PersonAvatar name={row.staff?.name}/><bdi>{row.staff?.name ?? translate("Unassigned")}</bdi></div>,
-          },
-          {
-            key: "shift",
-            header: "Shift",
-            className: "wx-schedule-shift-cell",
-            render: (row) => (
-              <div>
-                {fmtTimeWithTz(row.shiftStart, timeZone)}
-                <p>{fmtTimeWithTz(row.shiftEnd, timeZone)}</p>
-                {row.effectiveDate ? (
-                  <p>
-                    {translate("Effective")}:{" "}
-                    {new Date(row.effectiveDate).toLocaleDateString(language === "ur" ? "ur-PK" : "en-PK", {
-                      timeZone: "UTC",
-                    })}
-                  </p>
-                ) : null}
-              </div>
-            ),
-          },
-          {
-            key: "recurrence",
-            header: "Recurrence",
-            className: "wx-schedule-state-cell",
-            render: (row) => (
-              <StatusPill tone="neutral" status={row.recurringType ?? "ONCE"}>
-                {hasChosenRepeatDays(row) ? formatDays(row.repeatDays, translate, language) : undefined}
-              </StatusPill>
-            ),
-          },
-          {
-            key: "status",
-            header: "Status",
-            className: "wx-schedule-state-cell",
-            render: (row) => (
-              <StatusPill tone={row.isActive ? "ok" : "neutral"} status={row.isActive ? "ACTIVE" : "INACTIVE"} />
-            ),
-          },
-          {
-            key: "actions",
-            header: "Actions",
-            className: "wx-schedule-action-cell",
-            render: (row) => (
-              <div className="flex flex-wrap gap-2">
-                <Button variant="outline" onClick={() => handleEditOpen(row)}>
-                  <Pencil size={14} />
-                  {translate("Edit schedule")}
-                </Button>
-                <DeleteButton
-                  name={row.title}
-                  preserveHistory
-                  description="This removes the schedule and today's and future tasks from active work. Past task history and recorded evidence are kept."
-                  onDelete={() => deleteTemplate.mutateAsync(row.id)}
-                />
-              </div>
-            ),
-          },
-        ]}
-      />
+        <ScheduleCoverageRow
+          coverage={coverage}
+          weekLabel={weekLabel}
+          selectedWeekday={view === "list" ? selectedWeekday : agendaWeekday}
+          onChooseDay={weekday => {
+            if (view === "week") setAgendaSelection({ week, weekday });
+            else setSelectedWeekday(previous => previous === weekday ? null : weekday);
+          }}
+          onPreviousWeek={() => changeWeek(moveWeek(week, -1))}
+          onNextWeek={() => changeWeek(moveWeek(week, 1))}
+          onThisWeek={() => changeWeek()}
+        />
+        <ScheduleToolbar
+          view={view}
+          search={search}
+          staffFilter={staffFilter}
+          areaFilter={areaFilter}
+          groupBy={groupBy}
+          chip={chip}
+          selectedWeekday={selectedWeekday}
+          counts={list.counts}
+          staffOptions={staffList}
+          areaOptions={areasQuery.data ?? []}
+          onViewChange={changeView}
+          onSearchChange={setSearch}
+          onStaffFilterChange={setStaffFilter}
+          onAreaFilterChange={setAreaFilter}
+          onGroupByChange={setGroupBy}
+          onChipChange={setChip}
+          onClearDay={() => setSelectedWeekday(null)}
+        />
+        <div key={view} className="schedule-page__view" data-switched={renderedView.animate || undefined}>
+          {weekView ? <ScheduleStaffWeek {...weekView} onOpen={openDetails} /> : (
+            <ScheduleList groups={list.groups} selectedId={selectedId} onOpen={openDetails} onClearFilters={clearFilters} />
+          )}
+        </div>
+      </> : (
+        <div className="schedule-page__empty">
+          <div className="schedule-page__tiles" aria-hidden="true">
+            {WEEKDAYS.map(day => (
+              <span key={day} data-active={exampleDays.some(example => example === day) || undefined}>
+                {translate(WEEKDAY_LABELS[day].short).slice(0, 1)}
+              </span>
+            ))}
+          </div>
+          <h3>{translate("No cleaning schedules yet")}</h3>
+          <p>{translate("A schedule says what gets cleaned, by whom, at what time and on which days. Tasks are then created for each day automatically.")}</p>
+          <Button type="button" className="schedule-page__primary" onClick={() => setCreateDialogOpen(true)}>
+            <Plus aria-hidden="true" />
+            {translate("Add the first schedule")}
+          </Button>
+        </div>
+      )}
 
-      </> : <EmptyState title={translate('No cleaning schedules for this location.')} message={translate('Create schedules for this location and optionally choose a team member.')} action={<Button onClick={() => setCreateDialogOpen(true)}>{translate('Add cleaning schedule')}</Button>} />}
+      <ScheduleDetailsPanel
+        details={selectedTemplate ? buildScheduleDetails(selectedTemplate, staffList, context) : null}
+        areaHref={"/locations/" + locationId + "?tab=areas"}
+        onClose={closeDetails}
+        onEdit={() => {
+          if (!selectedTemplate) return;
+          editReturnFocus.current = detailsOpener.current;
+          closeDetails();
+          handleEditOpen(selectedTemplate);
+        }}
+        deleteDisabled={deleteTemplate.isPending}
+        onDelete={async () => {
+          if (!selectedTemplate) return;
+          await deleteTemplate.mutateAsync(selectedTemplate.id);
+          closeDetails();
+        }}
+      />
 
       <SidePanel wide title={translate('Edit cleaning schedule')} description={translate('Changes apply to the schedule. Recorded task history stays unchanged.')} open={!!editingTemplate} onOpenChange={open=>{if(!open&&!inFlight.current)setEditingTemplate(null);}} footer={<SidePanelFooter className="wx-schedule-footer"><Button type="button" variant="outline" disabled={saving} onClick={()=>setEditingTemplate(null)}>{translate('Cancel')}</Button><Button type="submit" form="location-schedule-edit" disabled={saving||!editForm.title.trim()} aria-busy={saving}>{translate(saving?'Saving...':assignmentRetry?'Retry staff assignment':'Save changes')}</Button></SidePanelFooter>}>
         {editingTemplate?<div className="wx-schedule-form" aria-busy={saving}><p className="wx-schedule-help"><bdi>{locationName}</bdi> · <bdi>{timeZone}</bdi></p><form id="location-schedule-edit" onChange={()=>{setAssignmentRetry(false);setRepeatError(null);setWorkerError(undefined);}} onSubmit={event=>{event.preventDefault();void handleEditSave();}}><fieldset disabled={saving} className="wx-schedule-stack">

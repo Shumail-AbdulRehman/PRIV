@@ -7,7 +7,7 @@ import { MemoryRouter, useLocation } from 'react-router-dom';
 import { LanguageProvider } from '@/i18n/LanguageProvider';
 import { WorkspaceTheme } from '@/components/common/WorkspaceTheme';
 import authReducer, { setUser } from '@/store/slices/authSlice';
-import Templates, { ScheduleWeek } from '@/pages/Location/components/LocationTemplatesTab';
+import Templates from '@/pages/Location/components/LocationTemplatesTab';
 import LocationScheduleTab from '@/pages/Location/components/LocationScheduleTab';
 import type { TaskTemplate } from '@/pages/Location/types';
 import type { LocationSchedule } from '@/pages/Location/scheduleTypes';
@@ -19,78 +19,120 @@ vi.mock('@/pages/Location/api', async importOriginal => ({ ...await importOrigin
 const base: TaskTemplate = { id: 1, title: 'Saved daily', shiftStart: '2026-11-09T04:00:00Z', shiftEnd: '2026-11-09T05:00:00Z', effectiveDate: '2026-11-09T00:00:00Z', recurringType: 'DAILY', isActive: true };
 const staff = [7, 8].map(id => ({ id, name: `Saved worker ${id}`, email: `${id}@example.invalid`, shiftStart: null, shiftEnd: null, isActive: true }));
 function Path() { return <output aria-label="Route">{useLocation().search}</output>; }
-function mount(node: React.ReactNode, language = 'en') {
+function mount(node: React.ReactNode, language = 'en', route = '/locations/20?tab=templates&week=2026-11-09&source=setup') {
   localStorage.setItem('hygene-ops.language', language);
   const store = configureStore({ reducer: { auth: authReducer } });
   store.dispatch(setUser({ id: 2, companyId: 42, role: 'ADMIN', name: 'Saved owner', email: 'owner@example.invalid' }));
   const queryClient = new QueryClient({ defaultOptions: { queries: { retry: false } } });
-  return { ...render(<Provider store={store}><QueryClientProvider client={queryClient}><LanguageProvider><WorkspaceTheme.Provider value><MemoryRouter initialEntries={['/locations/20?tab=templates&week=2026-11-09&source=setup']}><div className="workspace">{node}<Path /></div></MemoryRouter></WorkspaceTheme.Provider></LanguageProvider></QueryClientProvider></Provider>), queryClient };
+  return { ...render(<Provider store={store}><QueryClientProvider client={queryClient}><LanguageProvider><WorkspaceTheme.Provider value><MemoryRouter initialEntries={[route]}><div className="workspace">{node}<Path /></div></MemoryRouter></WorkspaceTheme.Provider></LanguageProvider></QueryClientProvider></Provider>), queryClient };
 }
-function grid(template = base, zone = 'Asia/Karachi', week = '2026-11-09') {
-  const select = vi.fn(); mount(<ScheduleWeek templates={[template]} timeZone={zone} week={week} onSelect={select} />);
-  return { cells: within(screen.getAllByRole('row')[1]).getAllByRole('cell'), select };
+function grid(template = base, zone = 'Asia/Karachi', week = '2026-11-09', language = 'en') {
+  mount(
+    <Templates templates={[template]} staffList={staff} timeZone={zone} locationId={20} locationName="Saved site" />,
+    language,
+    `/locations/20?tab=templates&week=${week}&view=week`,
+  );
+  const table = within(screen.getByRole('table', { name: language === 'ur' ? 'ہفتہ' : 'Week' }));
+  const row = table.getByRole('row', { name: /Saved worker 7/ });
+  return { cells: within(row).getAllByRole('cell'), table };
 }
 function schedules(templates = [base]) { return mount(<Templates templates={templates} staffList={staff} locationId={20} timeZone="Asia/Karachi" locationName="Saved site" />); }
+function openEditor() {
+  const opener = screen.getByRole('button', { name: /Saved daily/ });
+  opener.focus();
+  fireEvent.click(opener);
+  fireEvent.click(screen.getByRole('button', { name: 'Edit schedule' }));
+  return opener;
+}
 beforeEach(() => {
   vi.clearAllMocks(); m.schedule.mockReset(); localStorage.clear(); m.areas.mockResolvedValue([]);
   m.edit.mockImplementation((_input, cb) => cb.onSuccess({})); m.assign.mockImplementation((_input, cb) => cb.onSuccess({}));
 });
-it('places daily bars on all seven local days, including both weekend days', () => {
-  const { cells } = grid(); expect(cells).toHaveLength(7);
-  for (const cell of cells) expect(within(cell).getByRole('button')).toHaveTextContent('09:00–10:00');
-  expect(cells[5]).toHaveAccessibleName('Sat, 14 Nov'); expect(cells[6]).toHaveAccessibleName('Sun, 15 Nov');
+it('places daily blocks on all seven local days, including both weekend days', () => {
+  const { cells, table } = grid({ ...base, staffId: 7 });
+  expect(cells).toHaveLength(7);
+  for (const cell of cells) expect(within(cell).getByRole('button')).toHaveTextContent('09:00');
+  expect(table.getByRole('columnheader', { name: /Sat,? 14 Nov/ })).toBeInTheDocument();
+  expect(table.getByRole('columnheader', { name: /Sun,? 15 Nov/ })).toBeInTheDocument();
 });
-it('starts daily bars at the inclusive effective date', () => {
-  const { cells } = grid({ ...base, effectiveDate: '2026-11-12T00:00:00Z' });
+it('starts daily blocks at the inclusive effective date', () => {
+  const { cells } = grid({ ...base, staffId: 7, effectiveDate: '2026-11-12T00:00:00Z' });
   expect(cells.slice(0, 3).every(cell => !within(cell).queryByRole('button'))).toBe(true);
   expect(cells.slice(3).every(cell => within(cell).queryByRole('button'))).toBe(true);
 });
 it('honors an available inclusive recurrence end without adding later occurrences', () => {
-  const template = { ...base, recurringEndDate: '2026-11-11T00:00:00Z' };
+  const template = { ...base, staffId: 7, recurringEndDate: '2026-11-11T00:00:00Z' };
   const { cells } = grid(template); expect(cells.filter(cell => within(cell).queryByRole('button'))).toHaveLength(3);
 });
-it('places a one-time bar only on its effective local day', () => {
-  const { cells } = grid({ ...base, recurringType: 'ONCE', effectiveDate: '2026-11-14T00:00:00Z' });
-  expect(cells.filter(cell => within(cell).queryByRole('button'))).toHaveLength(1); expect(within(cells[5]).getByRole('button')).toHaveTextContent('09:00–10:00');
+it('places a one-time block only on its effective local day', () => {
+  const { cells } = grid({ ...base, staffId: 7, recurringType: 'ONCE', effectiveDate: '2026-11-14T00:00:00Z' });
+  expect(cells.filter(cell => within(cell).queryByRole('button'))).toHaveLength(1);
+  expect(within(cells[5]).getByRole('button')).toHaveTextContent('09:00');
 });
 it('does not repeat a one-time schedule in a later week', () => {
-  const { cells } = grid({ ...base, recurringType: 'ONCE' }, 'Asia/Karachi', '2026-11-16'); expect(cells.every(cell => !within(cell).queryByRole('button'))).toBe(true);
+  const { cells } = grid({ ...base, staffId: 7, recurringType: 'ONCE' }, 'Asia/Karachi', '2026-11-16');
+  expect(cells.every(cell => !within(cell).queryByRole('button'))).toBe(true);
 });
-it('splits a Friday overnight occurrence between Friday and Saturday', () => {
-  const { cells } = grid({ ...base, recurringType: 'ONCE', effectiveDate: '2026-11-13T00:00:00Z', shiftStart: '2026-11-13T17:00:00Z', shiftEnd: '2026-11-13T01:00:00Z' });
-  expect(within(cells[4]).getByRole('button', { name: /Continues into next day/ })).toHaveTextContent('22:00–24:00');
-  expect(within(cells[5]).getByRole('button', { name: /Continues from previous day/ })).toHaveTextContent('00:00–06:00'); expect(within(cells[6]).queryByRole('button')).not.toBeInTheDocument();
+it('places a Friday overnight occurrence on Friday and shows its end time in details', () => {
+  const { cells } = grid({ ...base, staffId: 7, recurringType: 'ONCE', effectiveDate: '2026-11-13T00:00:00Z', shiftStart: '2026-11-13T17:00:00Z', shiftEnd: '2026-11-13T01:00:00Z' });
+  const block = within(cells[4]).getByRole('button', { name: /22:00 Saved daily/ });
+  expect(within(cells[5]).queryByRole('button')).not.toBeInTheDocument();
+  expect(within(cells[6]).queryByRole('button')).not.toBeInTheDocument();
+  fireEvent.click(block);
+  expect(within(screen.getByRole('dialog')).getByText('22:00–06:00', { exact: true })).toBeInTheDocument();
 });
-it('includes Sunday carry-in from the previous week without inventing a Monday start', () => {
-  const { cells } = grid({ ...base, recurringType: 'ONCE', effectiveDate: '2026-11-08T00:00:00Z', shiftStart: '2026-11-08T17:00:00Z', shiftEnd: '2026-11-08T01:00:00Z' });
-  expect(within(cells[0]).getByRole('button')).toHaveAccessibleName(/Continues from previous day/); expect(cells.slice(1).every(cell => !within(cell).queryByRole('button'))).toBe(true);
+it('keeps an overnight Sunday schedule in the previous week', () => {
+  const { cells } = grid({ ...base, staffId: 7, recurringType: 'ONCE', effectiveDate: '2026-11-08T00:00:00Z', shiftStart: '2026-11-08T17:00:00Z', shiftEnd: '2026-11-08T01:00:00Z' });
+  expect(cells.every(cell => !within(cell).queryByRole('button'))).toBe(true);
 });
-it('shows both daily carry-over and the next start, but none before the first effective date', () => {
-  const { cells } = grid({ ...base, shiftStart: '2026-11-09T17:00:00Z', shiftEnd: '2026-11-09T01:00:00Z' });
-  expect(within(cells[0]).getAllByRole('button')).toHaveLength(1); expect(within(cells[1]).getAllByRole('button')).toHaveLength(2); expect(within(cells[6]).getAllByRole('button')).toHaveLength(2);
+it('shows one start per day for daily overnight shifts from the effective date', () => {
+  const { cells } = grid({ ...base, staffId: 7, effectiveDate: '2026-11-10T00:00:00Z', shiftStart: '2026-11-09T17:00:00Z', shiftEnd: '2026-11-09T01:00:00Z' });
+  expect(within(cells[0]).queryByRole('button')).not.toBeInTheDocument();
+  for (const cell of cells.slice(1)) {
+    expect(within(cell).getByRole('button')).toHaveTextContent('22:00');
+  }
 });
-it('carries a chosen-days overnight shift into a skipped day without starting a new shift', () => {
+it('keeps a chosen-days overnight shift on its scheduled start day', () => {
   const { cells } = grid({
-    ...base, repeatDays: ['MON'], shiftStart: '2026-11-09T17:00:00Z', shiftEnd: '2026-11-09T01:00:00Z',
+    ...base, staffId: 7, repeatDays: ['MON'], shiftStart: '2026-11-09T17:00:00Z', shiftEnd: '2026-11-09T01:00:00Z',
   });
-  expect(within(cells[0]).getByRole('button', { name: /Continues into next day/ })).toHaveTextContent('22:00–24:00');
-  expect(within(cells[1]).getByRole('button', { name: /Continues from previous day/ })).toHaveTextContent('00:00–06:00');
-  expect(within(cells[1]).queryByRole('button', { name: /Continues into next day/ })).not.toBeInTheDocument();
-  expect(within(cells[2]).getByText('—')).toBeInTheDocument();
+  expect(within(cells[0]).getByRole('button')).toHaveTextContent('22:00');
+  expect(cells.slice(1).every(cell => !within(cell).queryByRole('button'))).toBe(true);
 });
-it('ends midnight occurrences without a zero-length next-day bar', () => {
-  const { cells } = grid({ ...base, recurringType: 'ONCE', shiftStart: '2026-11-09T17:00:00Z', shiftEnd: '2026-11-09T19:00:00Z' });
-  expect(within(cells[0]).getByRole('button')).toHaveTextContent('22:00–24:00'); expect(within(cells[1]).queryByRole('button')).not.toBeInTheDocument();
+it('shows the midnight end in details without a next-day block', () => {
+  const { cells } = grid({ ...base, staffId: 7, recurringType: 'ONCE', shiftStart: '2026-11-09T17:00:00Z', shiftEnd: '2026-11-09T19:00:00Z' });
+  expect(within(cells[1]).queryByRole('button')).not.toBeInTheDocument();
+  fireEvent.click(within(cells[0]).getByRole('button', { name: /22:00 Saved daily/ }));
+  expect(within(screen.getByRole('dialog')).getByText('22:00–00:00', { exact: true })).toBeInTheDocument();
 });
-it.each([{ isActive: false }, { shiftStart: null }, { shiftEnd: null }])('keeps inactive or unavailable schedules readable without fabricated bars: %j', change => {
-  const { cells } = grid({ ...base, ...change }); expect(screen.getByRole('rowheader')).toHaveTextContent('Saved daily'); expect(cells.every(cell => !within(cell).queryByRole('button'))).toBe(true);
+it('keeps inactive schedules readable without week occurrences', () => {
+  const { cells } = grid({ ...base, staffId: 7, isActive: false });
+  expect(cells.every(cell => !within(cell).queryByRole('button'))).toBe(true);
+  fireEvent.click(screen.getByRole('button', { name: 'List' }));
+  expect(screen.getByRole('button', { name: /Saved daily/ })).toHaveTextContent('Inactive');
+});
+it.each([{ shiftStart: null, savedTime: '10:00' }, { shiftEnd: null, savedTime: '09:00' }])('keeps schedules with partial times readable without fabricating a range: %j', ({ savedTime, ...change }) => {
+  const { cells } = grid({ ...base, staffId: 7, ...change });
+  fireEvent.click(within(cells[0]).getByRole('button', { name: /Saved daily/ }));
+  const details = within(screen.getByRole('dialog'));
+  expect(details.getByText(savedTime, { selector: 'strong > bdi' })).toBeInTheDocument();
+  expect(details.queryByText('09:00–10:00')).not.toBeInTheDocument();
 });
 it('uses the location clock rather than UTC for times and date fallback', () => {
-  const { cells } = grid({ ...base, effectiveDate: null, recurringType: 'ONCE', shiftStart: '2026-11-10T01:00:00Z', shiftEnd: '2026-11-10T02:00:00Z' }, 'America/Los_Angeles');
-  expect(within(cells[0]).getByRole('button')).toHaveTextContent('17:00–18:00');
+  const { cells } = grid({ ...base, staffId: 7, effectiveDate: null, recurringType: 'ONCE', shiftStart: '2026-11-10T01:00:00Z', shiftEnd: '2026-11-10T02:00:00Z' }, 'America/Los_Angeles');
+  expect(within(cells[0]).getByRole('button')).toHaveTextContent('17:00');
+  expect(within(cells[1]).queryByRole('button')).not.toBeInTheDocument();
+  fireEvent.click(within(cells[0]).getByRole('button'));
+  expect(within(screen.getByRole('dialog')).getByText('17:00–18:00', { exact: true })).toBeInTheDocument();
 });
-it('opens the saved template from its bar without mutating its record', () => {
-  const before = structuredClone(base); const { cells, select } = grid(); fireEvent.click(within(cells[0]).getByRole('button')); expect(select).toHaveBeenCalledWith(base); expect(base).toEqual(before);
+it('opens the saved template from its block without mutating its record', () => {
+  const template = { ...base, staffId: 7 };
+  const before = structuredClone(template);
+  const { cells } = grid(template);
+  fireEvent.click(within(cells[0]).getByRole('button'));
+  expect(screen.getByRole('dialog', { name: /Saved daily/ })).toBeInTheDocument();
+  expect(template).toEqual(before);
+  expect(m.edit).not.toHaveBeenCalled();
 });
 it('week navigation preserves the tab, source and unrelated URL values', () => {
   schedules(); fireEvent.click(screen.getByRole('button', { name: 'Next week' })); expect(screen.getByLabelText('Route')).toHaveTextContent('week=2026-11-16'); expect(screen.getByLabelText('Route')).toHaveTextContent('source=setup');
@@ -98,21 +140,21 @@ it('week navigation preserves the tab, source and unrelated URL values', () => {
   fireEvent.click(screen.getByRole('button', { name: 'This week' })); expect(screen.getByLabelText('Route')).not.toHaveTextContent('week='); expect(screen.getByLabelText('Route')).toHaveTextContent('tab=templates');
 });
 it('empty schedules teach creation through the existing URL-backed wizard', async () => {
-  schedules([]); expect(screen.getByRole('heading', { name: 'No cleaning schedules for this location.' })).toBeInTheDocument();
-  fireEvent.click(screen.getAllByRole('button', { name: 'Add cleaning schedule' })[0]); expect(await screen.findByRole('dialog', { name: 'Create cleaning schedule' })).toBeInTheDocument(); expect(screen.getByLabelText('Route')).toHaveTextContent('newSchedule=1');
+  schedules([]); expect(screen.getByRole('heading', { name: 'No cleaning schedules yet' })).toBeInTheDocument();
+  fireEvent.click(screen.getByRole('button', { name: 'Add the first schedule' })); expect(await screen.findByRole('dialog', { name: 'Create cleaning schedule' })).toBeInTheDocument(); expect(screen.getByLabelText('Route')).toHaveTextContent('newSchedule=1');
 });
 it.each([
-  { language: 'en', title: 'No cleaning schedules for this location.', message: 'Create schedules for this location and optionally choose a team member.', action: 'Add cleaning schedule', panel: 'Create cleaning schedule', close: 'Close' },
-  { language: 'ur', title: 'اس مقام کے لیے کوئی صفائی کا شیڈول نہیں۔', message: 'اس مقام کے لیے شیڈول بنائیں اور چاہیں تو ٹیم کا رکن منتخب کریں۔', action: 'صفائی کا شیڈول شامل کریں', panel: 'صفائی کا شیڈول بنائیں', close: 'بند کریں' },
+  { language: 'en', title: 'No cleaning schedules yet', message: 'A schedule says what gets cleaned, by whom, at what time and on which days. Tasks are then created for each day automatically.', action: 'Add the first schedule', panel: 'Create cleaning schedule', close: 'Close' },
+  { language: 'ur', title: 'ابھی صفائی کا کوئی شیڈول نہیں ہے', message: 'شیڈول میں طے ہوتا ہے کہ کس چیز کی صفائی کون کرے گا، کس وقت اور کن دنوں میں۔ پھر ہر مقررہ دن کے کام خود بخود بن جاتے ہیں۔', action: 'پہلا شیڈول شامل کریں', panel: 'صفائی کا شیڈول بنائیں', close: 'بند کریں' },
 ])('empty schedule guidance and its scoped creation action work in $language', async ({ language, title, message, action, panel, close }) => {
   mount(<Templates templates={[]} staffList={staff} locationId={20} timeZone="Asia/Karachi" locationName="Saved site" />, language);
-  const heading = screen.getByRole('heading', { level: 2, name: title });
+  const heading = screen.getByRole('heading', { level: 3, name: title });
   const emptyState = within(heading.parentElement!);
   expect(emptyState.getByText(message)).toBeInTheDocument();
   expect(screen.queryByRole('table')).not.toBeInTheDocument();
   if (language === 'ur') {
-    expect(screen.queryByText('No cleaning schedules for this location.')).not.toBeInTheDocument();
-    expect(screen.queryByText('Create schedules for this location and optionally choose a team member.')).not.toBeInTheDocument();
+    expect(screen.queryByText('No cleaning schedules yet')).not.toBeInTheDocument();
+    expect(screen.queryByText('A schedule says what gets cleaned, by whom, at what time and on which days. Tasks are then created for each day automatically.')).not.toBeInTheDocument();
   }
   const opener = emptyState.getByRole('button', { name: action });
   opener.focus();
@@ -129,16 +171,16 @@ it.each([
   expect(opener).toHaveFocus();
 });
 it('edit serializes changed times through wallTimeToIso in the saved location timezone', async () => {
-  schedules(); fireEvent.click(screen.getByRole('button', { name: 'Edit schedule' }));
+  schedules(); openEditor();
   fireEvent.change(screen.getByLabelText('Shift start'), { target: { value: '11:30' } }); fireEvent.change(screen.getByLabelText('Shift end'), { target: { value: '12:30' } }); fireEvent.click(screen.getByRole('button', { name: 'Save changes' }));
   await waitFor(() => expect(m.edit).toHaveBeenCalledTimes(1)); expect(m.edit.mock.calls[0][0]).toEqual({ id: 1, data: { shiftStart: '2026-11-09T06:30:00.000Z', shiftEnd: '2026-11-09T07:30:00.000Z' } });
 });
 it('validates changed effective dates inline while keeping the draft', () => {
-  schedules(); fireEvent.click(screen.getByRole('button', { name: 'Edit schedule' })); fireEvent.change(screen.getByLabelText('Effective from'), { target: { value: '2020-01-01' } });
+  schedules(); openEditor(); fireEvent.change(screen.getByLabelText('Effective from'), { target: { value: '2020-01-01' } });
   expect(screen.getByLabelText('Effective from')).toHaveAttribute('aria-invalid', 'true'); expect(screen.getByRole('alert')).toBeInTheDocument(); expect(m.edit).not.toHaveBeenCalled(); expect(screen.getByLabelText('Schedule title')).toHaveValue(base.title);
 });
 it('keeps the saved historical effective date valid for unrelated edits', async () => {
-  schedules(); fireEvent.click(screen.getByRole('button', { name: 'Edit schedule' }));
+  schedules(); openEditor();
   expect(screen.getByLabelText('Effective from')).not.toHaveAttribute('min');
   fireEvent.change(screen.getByLabelText('Schedule title'), { target: { value: 'Updated saved title' } });
   fireEvent.click(screen.getByRole('button', { name: 'Save changes' }));
@@ -146,7 +188,7 @@ it('keeps the saved historical effective date valid for unrelated edits', async 
   expect(m.edit.mock.calls[0][0]).toEqual({ id: base.id, data: { title: 'Updated saved title' } });
 });
 it('saves a changed effective date as a UTC calendar date rather than a local instant', async () => {
-  schedules(); fireEvent.click(screen.getByRole('button', { name: 'Edit schedule' }));
+  schedules(); openEditor();
   fireEvent.change(screen.getByLabelText('Effective from'), { target: { value: '2099-01-02' } });
   fireEvent.click(screen.getByRole('button', { name: 'Save changes' }));
   await waitFor(() => expect(m.edit).toHaveBeenCalledTimes(1));
@@ -154,7 +196,7 @@ it('saves a changed effective date as a UTC calendar date rather than a local in
 });
 it('preserves partial-save guidance and retries only the unresolved staff assignment', async () => {
   m.assign.mockImplementationOnce((_input, cb) => cb.onError(new Error('unconfirmed')));
-  schedules([{ ...base, staffId: 7 }]); fireEvent.click(screen.getByRole('button', { name: 'Edit schedule' }));
+  schedules([{ ...base, staffId: 7 }]); openEditor();
   expect(screen.getByRole('option', { name: 'Unassigned' })).toBeDisabled();
   fireEvent.change(screen.getByLabelText('Schedule title'), { target: { value: 'Updated saved title' } });
   fireEvent.change(screen.getByLabelText('Assigned staff'), { target: { value: '8' } });
@@ -169,7 +211,7 @@ it('preserves partial-save guidance and retries only the unresolved staff assign
 });
 it('retains the edit draft after a details failure without assigning staff', async () => {
   m.edit.mockImplementationOnce((_input, cb) => cb.onError(new Error('private transport details')));
-  schedules([{ ...base, staffId: 7 }]); fireEvent.click(screen.getByRole('button', { name: 'Edit schedule' }));
+  schedules([{ ...base, staffId: 7 }]); openEditor();
   fireEvent.change(screen.getByLabelText('Schedule title'), { target: { value: 'Unconfirmed title' } });
   fireEvent.change(screen.getByLabelText('Assigned staff'), { target: { value: '8' } });
   fireEvent.click(screen.getByRole('button', { name: 'Save changes' }));
@@ -189,7 +231,7 @@ it('retains the edit draft after a details failure without assigning staff', asy
 it('blocks duplicate edit writes and panel dismissal while saving', async () => {
   let finish!: () => void;
   m.edit.mockImplementationOnce((_input, cb) => { finish = () => cb.onSuccess({}); });
-  schedules(); fireEvent.click(screen.getByRole('button', { name: 'Edit schedule' }));
+  schedules(); openEditor();
   fireEvent.change(screen.getByLabelText('Schedule title'), { target: { value: 'Pending saved title' } });
   fireEvent.click(screen.getByRole('button', { name: 'Save changes' }));
   expect(screen.getByRole('button', { name: 'Saving...' })).toBeDisabled();
@@ -199,12 +241,14 @@ it('blocks duplicate edit writes and panel dismissal while saving', async () => 
   finish(); await waitFor(() => expect(screen.queryByRole('dialog')).not.toBeInTheDocument());
 });
 it('Escape dismisses the edit panel and returns focus to the actual opener', async () => {
-  schedules(); const opener = screen.getByRole('button', { name: 'Edit schedule' }); opener.focus(); fireEvent.click(opener); fireEvent.keyDown(screen.getByRole('dialog'), { key: 'Escape' });
+  schedules(); const opener = openEditor(); fireEvent.keyDown(screen.getByRole('dialog'), { key: 'Escape' });
   await waitFor(() => expect(screen.queryByRole('dialog')).not.toBeInTheDocument()); expect(opener).toHaveFocus();
 });
-it('Urdu preserves saved names and translates continuation labels in mirrored direction', () => {
-  mount(<ScheduleWeek templates={[{ ...base, shiftStart: '2026-11-09T17:00:00Z', shiftEnd: '2026-11-09T01:00:00Z' }]} timeZone="Asia/Karachi" week="2026-11-09" onSelect={vi.fn()} />, 'ur');
-  expect(document.documentElement.dir).toBe('rtl'); expect(screen.getByRole('rowheader')).toHaveTextContent(base.title); expect(screen.getAllByRole('button', { name: /پچھلے دن سے جاری/ })).toHaveLength(6);
+it('Urdu preserves saved names and translates the week heading in mirrored direction', () => {
+  const { cells, table } = grid({ ...base, staffId: 7, shiftStart: '2026-11-09T17:00:00Z', shiftEnd: '2026-11-09T01:00:00Z' }, 'Asia/Karachi', '2026-11-09', 'ur');
+  expect(document.documentElement.dir).toBe('rtl');
+  expect(table.getByRole('columnheader', { name: 'عملہ' })).toBeInTheDocument();
+  for (const cell of cells) expect(within(cell).getByRole('button')).toHaveTextContent('22:00 Saved daily');
 });
 
 function actualWeek(): LocationSchedule {

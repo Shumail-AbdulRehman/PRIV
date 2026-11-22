@@ -2,7 +2,7 @@ import { existsSync } from 'node:fs';
 import { mkdir, writeFile } from 'node:fs/promises';
 import type { Page } from '@playwright/test';
 import { enter, expect, fixture, sql, test } from './fixtures';
-import { copy, ui, uiStarts } from './workspace-helpers';
+import { addScheduleButton, copy, ui, uiStarts } from './workspace-helpers';
 
 const { starter, enterprise, dirty, effectiveDate, overlapTitle } = fixture.reliability;
 const widths = [1440, 390] as const;
@@ -34,9 +34,8 @@ async function capture(page: Page, screen: string, width: number, language: Lang
 }
 
 async function openTeam(page: Page, data: ScheduleFixture, title: string, language: Language = 'en') {
-  const t = (key: string) => copy(key, language);
   await enter(page, `/locations/${data.locationId}?tab=templates`, data.ownerKey, language);
-  await page.getByRole('button', { name: t('Add cleaning schedule'), exact: true }).first().click();
+  await addScheduleButton(page, language).click();
   const wizard = page.getByRole('dialog');
   await wizard.getByLabel(ui('Task title')).fill(title);
   await wizard.getByLabel(ui('Area template')).selectOption({ label: data.areaName });

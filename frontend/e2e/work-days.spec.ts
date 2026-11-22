@@ -1,7 +1,8 @@
 import type { Locator, Page, Request } from '@playwright/test';
+import { mkdir } from 'node:fs/promises';
 import { fileURLToPath } from 'node:url';
 import { enter, expect, fixture, test } from './fixtures';
-import { choose, copy, ui } from './workspace-helpers';
+import { addScheduleButton, choose, cleaningSchedules, copy, scheduleButton, scheduleDetails, ui } from './workspace-helpers';
 import { translate } from '../src/i18n/translations';
 
 type Language = 'en' | 'ur';
@@ -18,7 +19,7 @@ type Day = typeof weekdays[number];
 const location = `/locations/${fixture.site.workDays}`;
 const templates = `${location}?tab=templates&week=${fixture.workDays.week}`;
 const today = `/today-status?tab=staff&locationId=${fixture.site.workDays}&date=${fixture.workDays.today}#daily-records`;
-const screens = new URL('../../docs/plan-project/staff-work-days/screens/', import.meta.url);
+const screens = new URL('./.artifacts/evidence/work-days/', import.meta.url);
 
 test.use({ timezoneId: 'Asia/Karachi', viewport: { width: 1440, height: 900 } });
 
@@ -92,7 +93,7 @@ async function showConflict(page: Page, language: Language = 'en') {
 
 async function openRepeatStep(page: Page, title: string, language: Language, staffId?: number) {
   await enter(page, templates, owner, language);
-  await button(page, ui('Add cleaning schedule')).click();
+  await addScheduleButton(page, language).click();
   const dialog = pane(page);
   await dialog.getByLabel(ui('Task title')).fill(title);
   await dialog.getByLabel(ui('Area template')).selectOption({ label: fixture.workDays.area });
@@ -112,21 +113,20 @@ async function fillScheduleWindow(dialog: Locator, language: Language) {
 }
 
 async function expectWeek(page: Page, title: string, occupied: readonly number[]) {
-  const week = page.getByRole('table', { name: ui('Week at a glance') });
-  const row = namedRow(week, title);
+  const tab = cleaningSchedules(page);
+  await button(tab.getByRole('group', { name: 'View', exact: true }), 'Week').click();
+  const week = tab.getByRole('table', { name: 'Week', exact: true });
+  const row = week.getByRole('row').filter({ has: page.getByRole('rowheader', { name: /^Unassigned/ }) });
   const cells = row.getByRole('cell');
   await expect(cells).toHaveCount(7);
   for (const [day, cell] of (await cells.all()).entries()) {
-    if (occupied.includes(day)) {
-      await expect(cell.getByRole('button')).toHaveCount(1);
-    } else {
-      await expect(cell.getByText('—', { exact: true })).toBeVisible();
-      await expect(cell.getByRole('button')).toHaveCount(0);
-    }
+    await expect(scheduleButton(cell, title)).toHaveCount(occupied.includes(day) ? 1 : 0);
   }
+  await button(tab.getByRole('group', { name: 'View', exact: true }), 'List').click();
 }
 
 async function capture(page: Page, anchor: Locator, screen: string, width: number, language: Language) {
+  await mkdir(screens, { recursive: true });
   await anchor.scrollIntoViewIfNeeded();
   await page.evaluate(() => document.fonts.ready);
   await page.screenshot({
@@ -228,16 +228,16 @@ test('the wizard rejects Tuesday for a Monday-only fixed worker without saving',
 
 test('editing a Daily schedule to Tuesday updates the week and recurrence pill', async ({ page }) => {
   await enter(page, templates, owner);
-  const week = page.getByRole('table', { name: ui('Week at a glance') });
-  await button(namedRow(week, dailySchedule), dailySchedule).click();
-  const dialog = pane(page);
+  const row = scheduleButton(cleaningSchedules(page), dailySchedule);
+  await row.click();
+  await button(scheduleDetails(page, dailySchedule), 'Edit schedule').click();
+  const dialog = page.getByRole('dialog', { name: 'Edit cleaning schedule', exact: true });
   await dialog.getByLabel('Recurrence', { exact: true }).selectOption('CHOSEN');
   await selectDays(dayGroup(dialog, 'Repeat on', 'en'), ['Tuesday'], 'en');
   await button(dialog, 'Save changes').click();
   await expect(dialog).toBeHidden();
   await expectWeek(page, dailySchedule, [1]);
-  const registerRow = namedRow(page, dailySchedule).filter({ has: button(page, 'Edit schedule') });
-  await expect(registerRow.getByText('Tue', { exact: true })).toBeVisible();
+  await expect(row.getByText('Tue', { exact: true })).toBeVisible();
 });
 
 test('Today displays and filters staff who are off separately from missing attendance', async ({ page }) => {
@@ -313,8 +313,8 @@ test('default data keeps the shift without a suffix and the Daily schedule has s
   await expect(row).toContainText('09:00–17:00 · Asia/Karachi');
   await page.goto(templates);
   await expectWeek(page, dailySchedule, [0, 1, 2, 3, 4, 5, 6]);
-  const registerRow = namedRow(page, dailySchedule).filter({ has: button(page, 'Edit schedule') });
-  await expect(registerRow.getByText('Daily', { exact: true })).toBeVisible();
+  const registerRow = scheduleButton(cleaningSchedules(page), dailySchedule);
+  await expect(registerRow.getByText('Every day', { exact: true })).toBeVisible();
 });
 
 for (const width of [1440, 390]) {
@@ -338,9 +338,12 @@ for (const width of [1440, 390]) {
       await capture(page, repeatDays, 'schedule-wizard', width, language);
 
       await page.goto(templates);
-      const scheduleRow = namedRow(page.getByRole('table', { name: ui('Week at a glance') }), fixedTuesday);
-      await expect(scheduleRow.getByRole('cell').getByRole('button')).toHaveCount(1);
-      await capture(page, scheduleRow, 'templates', width, language);
+      const tab = cleaningSchedules(page, language);
+      await button(tab.getByRole('group', { name: copy('View', language), exact: true }), copy('Week', language)).click();
+      if (width === 390) await tab.getByRole('button', { name: new RegExp(`^${copy('Tuesday', language)} `) }).click();
+      const occurrence = scheduleButton(tab, fixedTuesday);
+      await expect(occurrence).toHaveCount(1);
+      await capture(page, occurrence, 'templates', width, language);
 
       await page.goto(today);
       const status = namedRow(page, dayOffWorker).getByText(copy('Day off', language), { exact: true });

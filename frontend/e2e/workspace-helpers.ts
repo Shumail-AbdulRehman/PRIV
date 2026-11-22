@@ -48,3 +48,18 @@ export async function noOverflow(page: Page) {
 
 export const attendanceRegister = (page: Page, language = 'en') => page.getByRole('region', { name: copy('Attendance records', language), exact: true });
 export const taskPanel = (page: Page, language = 'en') => page.getByRole('region', { name: copy('Task details', language), exact: true });
+
+export const cleaningSchedules = (page: Page, language = 'en') =>
+  page.getByRole('region', { name: copy('Cleaning schedules', language), exact: true });
+
+export function scheduleButton(scope: Page | Locator, title: string) {
+  const page = 'page' in scope ? scope.page() : scope;
+  return scope.getByRole('button').filter({ has: page.getByText(title, { exact: true }) });
+}
+
+export const scheduleDetails = (page: Page, title: string) =>
+  page.getByRole('dialog', { name: `\u2068${title}\u2069`, exact: true });
+
+export const addScheduleButton = (page: Page, language = 'en') =>
+  cleaningSchedules(page, language).getByRole('button', { name: ui('Add cleaning schedule') })
+    .or(cleaningSchedules(page, language).getByRole('button', { name: ui('Add the first schedule') }));

@@ -29,9 +29,10 @@ const fixture = {
   task: {},
 };
 try {
-  for (const key of ["A", "B", "Return0", "Return1", "Return2", "Return3", "workDays"]) {
+  for (const key of ["A", "B", "Return0", "Return1", "Return2", "Return3", "workDays", "cleaningSchedules"]) {
+    const advanced = key === "workDays" || key === "cleaningSchedules";
     const company = await db.company.create({
-      data: { name: `E2E company ${key}`, ...(key === "workDays" ? { plan: "ADVANCED" } : {}) },
+      data: { name: `E2E company ${key}`, ...(advanced ? { plan: "ADVANCED" } : {}) },
     });
     fixture.company[key] = company.id;
     const customerId = `ctm_e2e_${key}`,
@@ -51,7 +52,7 @@ try {
         customerId,
         companyId: company.id,
         status: "active",
-        priceId: key === "workDays"
+        priceId: advanced
           ? "pri_00000000000000000000000003"
           : "pri_00000000000000000000000001",
         productId: "pro_e2e",
@@ -364,6 +365,7 @@ try {
       },
     });
   }
+  await seedCleaningSchedules(weekStart);
   fixture.reliability = { effectiveDate: week };
   for (const [key, plan, priceId] of [
     ["starter", "STARTER", "pri_00000000000000000000000001"],
@@ -497,4 +499,108 @@ try {
   await writeFile(new URL('./seed-snapshot.json', 'file://' + process.env.HYGENE_E2E_MANIFEST), JSON.stringify({ tables: tableSnapshot, sequences }), { mode: 0o600 });
 } finally {
   await db.$disconnect();
+}
+
+async function seedCleaningSchedules(nextMonday) {
+  const companyId = fixture.company.cleaningSchedules;
+  const location = await db.location.create({
+    data: {
+      companyId,
+      name: "E2E cleaning schedules site",
+      address: "Synthetic test location",
+      latitude: "31",
+      longitude: "74",
+      timezone: siteTimeZone,
+    },
+  });
+  const areas = {};
+  for (const [key, name, roomType] of [
+    ["washroom", "North washroom", "WASHROOM"],
+    ["lobby", "Ground-floor lobby", "OTHER"],
+  ]) {
+    const area = await db.area.create({
+      data: { locationId: location.id, name, roomType, status: "ACTIVE" },
+    });
+    areas[key] = area.id;
+  }
+  await db.areaItem.create({
+    data: {
+      areaId: areas.washroom,
+      stableCode: "E2E-CLEANING-SCHEDULES-SINK",
+      displayName: "Wash basin",
+      fixtureType: "SINK",
+      sequence: 1,
+      rubricKey: "sink",
+      requiredViews: [{ key: "basin", instructions: "Show the sink basin", mandatory: true }],
+    },
+  });
+
+  const monday = new Date(+nextMonday - 7 * 86400000);
+  const week = new Intl.DateTimeFormat("sv-SE", { timeZone: siteTimeZone }).format(monday);
+  const at = time => new Date(`${week}T${time}:00+05:00`);
+  const weekdays = ["MON", "TUE", "WED", "THU", "FRI", "SAT", "SUN"];
+  const workers = [
+    { name: "Ayesha Noor", days: weekdays.slice(0, 5), start: "06:00", end: "14:00" },
+    { name: "Bilal Ahmed", days: weekdays.slice(0, 6), start: "06:00", end: "14:00" },
+    { name: "Sana Javed", days: ["MON", "WED", "FRI"], start: "08:00", end: "16:00" },
+    { name: "Hina Saleem", days: weekdays.slice(1), start: "12:00", end: "20:00" },
+    { name: "Imran Qureshi", days: weekdays, start: "14:00", end: "22:00" },
+    { name: "Usman Tariq", days: weekdays.slice(4), start: "20:00", end: "04:00" },
+  ];
+  const assignments = {};
+  for (const [index, { name, days, start, end }] of workers.entries()) {
+    const worker = await db.staff.create({
+      data: {
+        companyId, locationId: location.id, name,
+        email: `schedule-worker-${index}@example.invalid`,
+        phone: `+92398300000${index}`,
+        password: encrypted,
+        workDays: days,
+        shiftStart: at(start),
+        shiftEnd: at(end),
+      },
+    });
+    assignments[name] = { id: worker.id, days };
+  }
+
+  const scheduleSeeds = [
+    ["Morning washroom reset", "washroom", "Ayesha Noor", "06:00", "06:45"],
+    ["Lobby floor sweep", "lobby", "Bilal Ahmed", "06:15", "07:00"],
+    ["Washroom deep clean", "washroom", "Ayesha Noor", "07:00", "08:00"],
+    ["Entrance glass polish", "lobby", "Bilal Ahmed", "07:15", "07:45"],
+    ["Mirror and counter wipe", "washroom", "Ayesha Noor", "08:05", "08:35"],
+    ["Lobby seating wipe", "lobby", "Bilal Ahmed", "08:00", "08:30"],
+    ["Basin descaling", "washroom", "Sana Javed", "09:00", "10:00"],
+    ["Touchpoint disinfection", "lobby", "Sana Javed", "10:15", "11:00"],
+    ["Morning supply check", "washroom", "Ayesha Noor", "11:00", "11:30"],
+    ["Midday washroom check", "washroom", "Hina Saleem", "12:00", "12:30"],
+    ["Midday lobby tidy", "lobby", null, "12:30", "13:00"],
+    ["Washroom bin change", "washroom", "Sana Javed", "13:00", "13:30"],
+    ["Lobby door tracks", "lobby", "Imran Qureshi", "14:00", "14:30"],
+    ["Afternoon floor mop", "lobby", "Hina Saleem", "14:30", "15:15"],
+    ["Washroom restock", "washroom", "Hina Saleem", "16:00", "16:30", ["TUE", "THU", "SAT"], "NEEDS_REVIEW"],
+    ["Evening entrance clean", "lobby", "Imran Qureshi", "17:00", "17:45"],
+    ["Evening washroom reset", "washroom", "Hina Saleem", "18:00", "18:45"],
+    ["Lobby close-down sweep", "lobby", "Imran Qureshi", "19:00", "19:30"],
+    ["Evening supply check", "washroom", null, "20:00", "20:30", ["TUE", "THU", "SAT"]],
+    ["Entrance mat wash", "lobby", "Imran Qureshi", "21:00", "21:30"],
+    ["Late lobby mop", "lobby", "Usman Tariq", "22:00", "23:00"],
+    ["Overnight washroom clean", "washroom", "Usman Tariq", "23:30", "00:30"],
+  ];
+  const records = [];
+  for (const [title, area, worker, start, end, days, setupStatus = "READY"] of scheduleSeeds) {
+    const assignment = assignments[worker];
+    const repeatDays = days ?? assignment?.days ?? weekdays;
+    const schedule = await db.taskTemplate.create({
+      data: {
+        title, locationId: location.id, areaId: areas[area], staffId: assignment?.id,
+        verificationVersion: 2, setupStatus, recurringType: "DAILY", repeatDays,
+        effectiveDate: new Date(`${week}T00:00:00Z`),
+        shiftStart: at(start),
+        shiftEnd: at(end),
+      },
+    });
+    records.push({ id: schedule.id, title, worker, repeatDays });
+  }
+  fixture.cleaningSchedules = { locationId: location.id, week, records };
 }
