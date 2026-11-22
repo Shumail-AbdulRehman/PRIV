@@ -12,8 +12,28 @@ const body = {
 test('a full profile body parses and drops unknown fields', () => {
   const parsed = parseStaffProfile(body);
   const { extraField: _extra, ...expected } = body;
+  assert.equal(parsed?.offToday, undefined);
   assert.deepEqual(parsed, expected);
   assert.equal('extraField' in (parsed as object), false);
+});
+
+test('the optional work days, day-off flag and shift instant parse', () => {
+  const nextShiftStart = '2026-11-11T04:00:00.000Z';
+  const parsed = parseStaffProfile({ ...body, workDays: ['WED', 'MON'], offToday: true, nextShiftStart });
+  assert.deepEqual(parsed?.workDays, ['MON', 'WED']);
+  assert.equal(parsed?.offToday, true);
+  assert.equal(parsed?.nextShiftStart, nextShiftStart);
+  const withoutNextShift = parseStaffProfile({ ...body, offToday: false, nextShiftStart: null });
+  assert.equal(withoutNextShift?.offToday, false);
+  assert.equal(withoutNextShift?.nextShiftStart, null);
+});
+
+test('invalid optional work-day fields are ignored without discarding the profile', () => {
+  for (const workDays of [[], ['NODAY'], ['MON', 'MON'], 'MON']) {
+    const parsed = parseStaffProfile({ ...body, workDays, offToday: 'true', nextShiftStart: '2026-02-30T09:00:00Z' });
+    assert.deepEqual(parsed, parseStaffProfile(body));
+  }
+  assert.equal(parseStaffProfile({ ...body, nextShiftStart: '2026-11-11' })?.nextShiftStart, undefined);
 });
 
 test('nullable fields keep null', () => {

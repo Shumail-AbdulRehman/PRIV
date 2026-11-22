@@ -1,12 +1,83 @@
+import { formatInTimeZone } from 'date-fns-tz';
 import { prisma } from '../prisma/prisma.js';
 import { ApiError } from '../utils/ApiError.js';
-import { getZonedClockMinutes, getZonedDayRange } from '../utils/dateTime.js';
+import { getZonedDayRange } from '../utils/dateTime.js';
+import { findOverlappingSchedule, fitsStaffShift, type ScheduleWindow } from '../utils/scheduleFit.js';
+import { formatWeekdays, isDaySubset, readDayList, weekdayOfLocalDay, type WeekdayList } from '../utils/workDays.js';
 import { writeAuditLog } from './auditLog.service.js';
 import { requireLocationAccess, requireOperationalRole, type VerificationActor } from './verification-v2/authorization.service.js';
+import type { VerificationTransaction } from './verification-v2/transaction.js';
 
-function ranges(start: Date, end: Date, zone: string) {
-  const a=getZonedClockMinutes(start,zone),b=getZonedClockMinutes(end,zone);
-  return b>a?[[a,b]]:[[a,1440],[0,b]];
+type TemplateDays = {
+  recurringType?: string | null;
+  effectiveDate: Date;
+  repeatDays?: WeekdayList;
+};
+
+export function getTemplateWeekdays(template: TemplateDays, timeZone: string) {
+  if (template.recurringType === 'ONCE') {
+    const { start } = getZonedDayRange(template.effectiveDate, timeZone);
+    return [weekdayOfLocalDay(start, timeZone)];
+  }
+  return readDayList(template.recurringType === 'DAILY' ? template.repeatDays : undefined);
+}
+
+export function assertTemplateFitsWorkDays(
+  template: TemplateDays,
+  staff: { name: string; workDays?: WeekdayList },
+  timeZone: string,
+) {
+  if (template.recurringType !== 'DAILY' && template.recurringType !== 'ONCE') return;
+  if (!isDaySubset(getTemplateWeekdays(template, timeZone), staff.workDays)) {
+    throw new ApiError(422, `${staff.name} works ${formatWeekdays(staff.workDays)}. Choose days within those, or use automatic assignment.`, [
+      { code: 'SCHEDULE_OUTSIDE_WORK_DAYS', field: 'repeatDays' },
+    ]);
+  }
+}
+
+type TemplateSchedule = Omit<ScheduleWindow, 'recurringType'> & {
+  recurringType?: ScheduleWindow['recurringType'] | null;
+};
+
+// Match scheduleOccursOnDay: only explicit ONCE schedules are limited to one day.
+function withScheduleRecurrence<T extends TemplateSchedule>({ recurringType, ...schedule }: T) {
+  return { ...schedule, recurringType: recurringType ?? 'DAILY' };
+}
+
+export async function assertFixedWorkerScheduleFits(
+  tx: Pick<VerificationTransaction, 'taskTemplate'>,
+  schedule: TemplateSchedule & { locationId: number },
+  staff: { id: number; name: string; shiftStart: Date | null; shiftEnd: Date | null },
+  timeZone: string,
+  excludeTemplateId?: number,
+) {
+  if (!fitsStaffShift(schedule, staff, timeZone)) {
+    const start = staff.shiftStart ? formatInTimeZone(staff.shiftStart, timeZone, 'HH:mm') : '—';
+    const end = staff.shiftEnd ? formatInTimeZone(staff.shiftEnd, timeZone, 'HH:mm') : '—';
+    throw new ApiError(422, `This time falls outside ${staff.name}'s shift (${start}–${end}). Choose a time inside the shift or update the shift.`, [
+      { code: 'SHIFT_MISMATCH', field: 'shiftStart' },
+    ]);
+  }
+
+  const others = await tx.taskTemplate.findMany({
+    where: {
+      id: excludeTemplateId === undefined ? undefined : { not: excludeTemplateId },
+      staffId: staff.id,
+      isActive: true,
+      locationId: schedule.locationId,
+    },
+    select: { title: true, shiftStart: true, shiftEnd: true, recurringType: true, effectiveDate: true, recurringEndDate: true, repeatDays: true },
+  });
+  const conflict = findOverlappingSchedule(
+    withScheduleRecurrence(schedule),
+    others.map(withScheduleRecurrence),
+    timeZone,
+  );
+  if (conflict) {
+    throw new ApiError(409, `${staff.name} already has an overlapping schedule: ${conflict.title}. Choose a different time or worker.`, [
+      { code: 'WORKER_OVERLAP', field: 'staffId' },
+    ]);
+  }
 }
 
 /** Template and its eligible existing instances receive one atomic assignment. */
@@ -25,14 +96,8 @@ export async function assignTemplateStaff(actor: VerificationActor, templateId: 
     if(!template.isActive||!location.isActive)throw new ApiError(400,'Task template or location is inactive');
     const staff=await tx.staff.findFirst({where:{id:staffId,companyId:actor.companyId,isActive:true,locationId:location.id}});
     if(!staff)throw new ApiError(404,'Choose active staff at this location in your company');
-    if(staff.shiftStart&&staff.shiftEnd){
-      const staffRanges=ranges(staff.shiftStart,staff.shiftEnd,location.timezone);
-      if(!ranges(template.shiftStart,template.shiftEnd,location.timezone).every(([a,b])=>staffRanges.some(([x,y])=>a!>=x!&&b!<=y!)))
-        throw new ApiError(400,"Task falls outside staff's attendance shift. Update the staff shift or choose another time.");
-    }
-    const others=await tx.taskTemplate.findMany({where:{id:{not:templateId},staffId,isActive:true,locationId:location.id},select:{title:true,shiftStart:true,shiftEnd:true}});
-    if(others.some(other=>ranges(template.shiftStart,template.shiftEnd,location.timezone).some(([a,b])=>ranges(other.shiftStart,other.shiftEnd,location.timezone).some(([x,y])=>a!<y!&&x!<b!))))
-      throw new ApiError(400,'Staff already has an overlapping schedule. Choose a different time or staff member.');
+    assertTemplateFitsWorkDays(template, staff, location.timezone);
+    await assertFixedWorkerScheduleFits(tx, template, staff, location.timezone, templateId);
     const dayStart=getZonedDayRange(now,location.timezone).start;
     const locked=await tx.$queryRaw<{id:number}[]>`SELECT id FROM "TaskInstance" WHERE "templateId"=${templateId} AND "locationId"=${location.id} AND "isActive"=true AND status='PENDING' AND "startedAt" IS NULL AND date>=${dayStart} AND "shiftEnd">${now} ORDER BY id FOR UPDATE`;
     const candidates=await tx.taskInstance.findMany({where:{id:{in:locked.map(t=>t.id)},status:'PENDING',startedAt:null,completedAt:null,hasManualOverride:false},include:{assignments:{where:{isCurrent:true}},_count:{select:{captureSessions:true,evidenceAssets:true,completionAttempts:true,areaSubmissions:true}}}});

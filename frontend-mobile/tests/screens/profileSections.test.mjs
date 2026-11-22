@@ -9,17 +9,19 @@ const useLanguage = () => {
   const language = globalThis.__nativeHarness.language;
   return { language, isRTL: language === 'ur', t: (text, values) => translate(text, language, values), setLanguage() {} };
 };
+let profile;
 installMocks({
   '/components/ui/icon': { Icon: props => React.createElement('Icon', props) },
   '@react-native-community/netinfo': { default: { addEventListener: () => () => {} } },
   '/i18n/LanguageProvider': { useLanguage },
+  '/queries/profile': { useStaffProfileQuery: () => ({ data: profile }) },
 });
 const { StyleSheet } = await import('react-native');
 const { ProfileMonth } = await import('../../src/screens/profile/ProfileMonth.tsx');
 const { ProfileWork } = await import('../../src/screens/profile/ProfileWork.tsx');
 
 const h = React.createElement;
-test.afterEach(() => { setLanguage('en'); setWindowSize(390, 844); });
+test.afterEach(() => { profile = undefined; setLanguage('en'); setWindowSize(390, 844); });
 
 const month = (extra = {}) => ({ month: '2026-11', shiftsScheduled: 8, shiftsAttended: 8, onTime: 7, tasksAssigned: 42, tasksSubmitted: 38, ...extra });
 const fills = r => r.root.findAll(n => n.props?.testID === 'meter-fill');
@@ -77,9 +79,25 @@ const work = (extra = {}) => ({
 test('work shows location, address, usual shift and manager', async () => {
   const r = await render(h(ProfileWork, { summary: work() }));
   const text = allText(r);
-  for (const s of ['My work', 'Assigned location', 'Harbour Mall', '12 Dock Road', 'Usual shift', '9:00 AM – 5:00 PM', 'Manager', 'Sana Iqbal']) {
+  for (const s of ['My work', 'Assigned location', 'Harbour Mall', '12 Dock Road', 'Usual shift', '9:00 AM – 5:00 PM', 'Work days', 'Every day', 'Manager', 'Sana Iqbal']) {
     assert.ok(text.includes(s), s);
   }
+  assert.ok(text.indexOf('Work days') > text.indexOf('Usual shift'));
+});
+
+test('work shows chosen summary days and describes the full week as every day', async () => {
+  profile = { workDays: ['TUE', 'FRI'] };
+  const shift = work().usualShift;
+  const chosen = await render(h(ProfileWork, { summary: work({ usualShift: { ...shift, days: ['MON', 'WED'] } }) }));
+  assert.ok(allText(chosen).includes('Mon, Wed'));
+  const full = await render(h(ProfileWork, { summary: work({ usualShift: { ...shift, days: ['MON', 'TUE', 'WED', 'THU', 'FRI', 'SAT', 'SUN'] } }) }));
+  assert.ok(allText(full).includes('Every day'));
+});
+
+test('work uses the cached profile work days if the summary omits them', async () => {
+  profile = { workDays: ['TUE', 'FRI'] };
+  const r = await render(h(ProfileWork, { summary: work() }));
+  assert.ok(allText(r).includes('Tue, Fri'));
 });
 
 test('nulls show the empty wording and nothing offers a call', async () => {
@@ -107,9 +125,11 @@ test('Urdu translates labels, mirrors rows and keeps names', async () => {
   const rowsRtl = r.root.findAll(n => n.type === 'View' && StyleSheet.flatten(n.props.style)?.flexDirection === 'row-reverse');
   assert.ok(rowsRtl.length > 0);
   assert.ok(r.root.findAll(n => n.type === 'Icon' && n.props.name === 'ArrowLeft').length === 1);
-  const w = await render(h(ProfileWork, { summary: work() }));
+  const w = await render(h(ProfileWork, { summary: work({ usualShift: { ...work().usualShift, days: ['MON', 'WED'] } }) }));
   const wt = allText(w);
   assert.ok(wt.includes('Harbour Mall') && wt.includes('Sana Iqbal'));
   assert.ok(wt.includes(translate('Assigned location', 'ur')));
   assert.ok(!wt.includes('Assigned location'));
+  assert.ok(wt.includes(translate('Work days', 'ur')));
+  assert.ok(wt.includes('پیر، بدھ'));
 });

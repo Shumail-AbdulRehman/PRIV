@@ -1,4 +1,5 @@
 import { z } from "zod";
+import { repeatDaysSchema } from "../utils/workDays.js";
 
 const taskBaseSchema = z.object({
   title: z.string({ message: "Title is required" }),
@@ -7,6 +8,7 @@ const taskBaseSchema = z.object({
   shiftStart: z.coerce.date({ message: "Shift start is required" }),
   shiftEnd: z.coerce.date({ message: "Shift end is required" }),
   recurringType: z.enum(["DAILY", "ONCE"]).optional(),
+  repeatDays: repeatDaysSchema.optional(),
   effectiveDate: z.coerce.date({ message: "Effective date is required" }),
   recurringEndDate: z.coerce.date().optional(),
 });
@@ -21,6 +23,7 @@ export const createTaskMultipartSchema = z.object({
   shiftStart: z.coerce.date({ message: "Shift start is required" }),
   shiftEnd: z.coerce.date({ message: "Shift end is required" }),
   recurringType: z.enum(["DAILY", "ONCE"]).optional(),
+  repeatDays: repeatDaysSchema.optional(),
   effectiveDate: z.coerce.date({ message: "Effective date is required" }),
   recurringEndDate: z.coerce.date().optional().or(z.literal("")).transform((v) =>
     v === "" ? undefined : v

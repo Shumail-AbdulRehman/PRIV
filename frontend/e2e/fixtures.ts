@@ -14,6 +14,13 @@ const require = createRequire(
 );
 const { Client } = require("pg");
 base.use({ actionTimeout: 10000 });
+type ReliabilityScheduleFixture = {
+  ownerKey: string;
+  locationId: number;
+  areaName: string;
+  workerId: number;
+  workerName: string;
+};
 export type Fixture = {
   password: string;
   review: { id: number; taskId: number };
@@ -23,6 +30,14 @@ export type Fixture = {
   staff: Record<string, { id: number; email: string; phone: string }>;
   attendance: Record<string, number>;
   openShiftDate: string;
+  workDays: { today: string; week: string; area: string };
+  reliability: {
+    effectiveDate: string;
+    overlapTitle: string;
+    starter: ReliabilityScheduleFixture;
+    enterprise: ReliabilityScheduleFixture;
+    dirty: { reviewerKey: string; reviewId: number; requirementId: string; assetId: string };
+  };
   task: Record<string, number>;
 };
 export const fixture: Fixture = JSON.parse(

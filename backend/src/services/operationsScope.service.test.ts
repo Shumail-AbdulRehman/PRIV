@@ -7,6 +7,10 @@ import {
   operationsQuery,
 } from "./operationsScope.service.js";
 describe("operational local-day contract", () => {
+  it("accepts the off attendance filter and rejects unknown filters", () => {
+    expect(operationsQuery.parse({ attendance: "off" }).attendance).toBe("off");
+    expect(operationsQuery.safeParse({ attendance: "unknown" }).success).toBe(false);
+  });
   it("uses Karachi midnight rather than the UTC date, including carry-over windows", () => {
     const day = locationDay(
       { id: 2, timezone: "Asia/Karachi" },

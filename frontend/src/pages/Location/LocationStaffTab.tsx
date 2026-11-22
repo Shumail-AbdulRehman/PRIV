@@ -7,12 +7,15 @@ import { Button } from "@/components/ui/button";
 import { Link } from "react-router-dom";
 import { Plus, ArrowUpRight } from "lucide-react";
 import { formatInTimeZone } from "date-fns-tz";
+import { formatDays, isEveryDay, type Weekday } from "@/lib/workDays";
 import { useLocationLanguage } from "./locationTranslations";
 import type { LocationStaff } from "./types";
 import "./location-tabs-v6.css";
 
+type LocationStaffRow = LocationStaff & { workDays?: Weekday[] };
+
 export interface LocationStaffTabProps {
-  locationInfo: { id: number; name: string; timezone: string; isActive: boolean; staff: LocationStaff[] };
+  locationInfo: { id: number; name: string; timezone: string; isActive: boolean; staff: LocationStaffRow[] };
   locationTz: string;
   staffAdded: boolean;
   setStaffAdded: (value: boolean) => void;
@@ -22,7 +25,7 @@ export interface LocationStaffTabProps {
 const fmtTime = (d: string | null, timeZone: string) => d ? formatInTimeZone(new Date(d), timeZone, "HH:mm") : "—";
 
 export default function LocationStaffTab({ locationInfo, locationTz, staffAdded, setStaffAdded, staffDialogOpen, setStaffDialogOpen }: LocationStaffTabProps) {
-  const { t } = useLocationLanguage();
+  const { t, language } = useLocationLanguage();
   return (
     <section className="wx-location-tab wx-location-staff" aria-label={t("Staff and shifts")}>
       <div className="wx-location-tab-heading">
@@ -48,7 +51,10 @@ export default function LocationStaffTab({ locationInfo, locationTz, staffAdded,
             sortValue: s => s.email ?? "",
             render: s => s.email ? <bdi>{s.email}</bdi> : <span className="text-muted-foreground">{t("No email")}</span>,
           },
-          { key: "shift", header: "Shift", render: s => <bdi>{fmtTime(s.shiftStart, locationTz)} – {fmtTime(s.shiftEnd, locationTz)}</bdi> },
+          { key: "shift", header: "Shift", render: s => <>
+            <bdi>{fmtTime(s.shiftStart, locationTz)} – {fmtTime(s.shiftEnd, locationTz)}</bdi>
+            {s.workDays?.length && !isEveryDay(s.workDays) ? <> · <bdi>{formatDays(s.workDays, t, language)}</bdi></> : null}
+          </> },
           { key: "today", header: "Today", render: () => <StatusPill>{t("Not available")}</StatusPill> },
           { key: "status", header: "Status", sortValue: s => s.isActive ? 1 : 0, render: s => <StatusPill tone={s.isActive ? "ok" : "neutral"} status={s.isActive ? "ACTIVE" : "INACTIVE"} /> },
           { key: "action", header: "Action", render: s => <Link className="wx-location-tab-button wx-location-tab-button--link" to={"/staff/" + s.id}>{t("View worker")}<ArrowUpRight size={15} aria-hidden="true" /></Link> },

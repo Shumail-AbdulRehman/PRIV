@@ -7,6 +7,7 @@ const db = vi.hoisted(() => ({
 }));
 vi.mock('../../prisma/prisma.js', () => ({ prisma: db }));
 import { staffProfileSummary } from './staffProfileSummary.service.js';
+import { WEEKDAYS } from '../../utils/workDays.js';
 
 const actor = { id: 7, companyId: 42, role: 'STAFF' as const };
 // 2026-11-20T10:00Z is 15:00 on 20 November in Karachi (UTC+5).
@@ -14,12 +15,13 @@ const now = new Date('2026-11-20T10:00:00Z');
 const karachiNovember = { gte: new Date('2026-10-31T19:00:00Z'), lt: new Date('2026-11-30T19:00:00Z') };
 const location = { id: 3, name: 'Main hall', address: '12 Mall Road', timezone: 'Asia/Karachi', isActive: true };
 const createdAt = new Date('2025-01-01T00:00:00Z');
+const workDays = ['MON', 'WED'];
 const monthRow = (loc: typeof location | null) => ({ id: 7, companyId: 42, createdAt, locationId: loc?.id ?? null, location: loc });
 const profileRow = (loc: typeof location | null, overrides: Record<string, unknown> = {}) => ({
   id: 7, name: 'Ayesha Khan', email: 'ayesha@example.com', phone: '+92 300 0000000', createdAt,
   // 04:00Z and 12:00Z are 09:00 and 17:00 in Karachi.
   shiftStart: new Date('1970-01-01T04:00:00Z'), shiftEnd: new Date('1970-01-01T12:00:00Z'),
-  company: { name: 'Clean Co' }, location: loc,
+  workDays, company: { name: 'Clean Co' }, location: loc,
   ...overrides,
 });
 /** `staffMonthContext` reads first with its own select; the profile read selects `name`. */
@@ -44,7 +46,7 @@ describe('staffProfileSummary', () => {
     await staffProfileSummary(actor, now);
     const { where, select } = profileCall();
     expect(where).toEqual({ id: 7, companyId: 42, role: 'STAFF', isActive: true, company: { isActive: true } });
-    expect(Object.keys(select).sort()).toEqual(['company', 'createdAt', 'email', 'id', 'location', 'name', 'phone', 'shiftEnd', 'shiftStart'].sort());
+    expect(Object.keys(select).sort()).toEqual(['company', 'createdAt', 'email', 'id', 'location', 'name', 'phone', 'shiftEnd', 'shiftStart', 'workDays']);
     for (const field of ['password', 'refreshToken', 'credentialVersion', 'credentialTokens', 'mustChangePassword', 'pushDevices']) {
       expect(select).not.toHaveProperty(field);
     }
@@ -59,7 +61,7 @@ describe('staffProfileSummary', () => {
       joinedAt: '2025-01-01T00:00:00.000Z',
       company: { name: 'Clean Co' },
       location: { id: 3, name: 'Main hall', address: '12 Mall Road', timezone: 'Asia/Karachi' },
-      usualShift: { start: '09:00', end: '17:00' },
+      usualShift: { start: '09:00', end: '17:00', days: workDays },
       manager: { name: 'Bilal Ahmed' },
       month: { month: '2026-11', shiftsScheduled: 0, shiftsAttended: 0, onTime: 0, tasksAssigned: 0, tasksSubmitted: 0 },
     });
@@ -90,7 +92,7 @@ describe('staffProfileSummary', () => {
     expect(result.manager).toBeNull();
     expect(db.managerLocation.findFirst).not.toHaveBeenCalled();
     expect(result.month.month).toBe('2026-12');
-    expect(result.usualShift).toEqual({ start: '09:00', end: '17:00' });
+    expect(result.usualShift).toEqual({ start: '09:00', end: '17:00', days: workDays });
     expect(attendanceWheres()[0].date).toEqual({ gte: new Date('2026-11-30T19:00:00Z'), lt: new Date('2026-12-31T19:00:00Z') });
   });
 
@@ -99,8 +101,15 @@ describe('staffProfileSummary', () => {
     givenStaff({ ...location, timezone: 'Europe/London' },
       { shiftStart: new Date('2026-11-02T08:30:00Z'), shiftEnd: new Date('2026-11-02T16:45:00Z') });
     const result = await staffProfileSummary(actor, now);
-    expect(result.usualShift).toEqual({ start: '08:30', end: '16:45' });
+    expect(result.usualShift).toEqual({ start: '08:30', end: '16:45', days: workDays });
     expect(result.location!.timezone).toBe('Europe/London');
+  });
+
+  it('returns canonical days and defaults a missing list to all seven days', async () => {
+    givenStaff(location, { workDays: ['WED', 'MON', 'WED'] });
+    expect((await staffProfileSummary(actor, now)).usualShift?.days).toEqual(workDays);
+    givenStaff(location, { workDays: undefined });
+    expect((await staffProfileSummary(actor, now)).usualShift?.days).toEqual(WEEKDAYS);
   });
 
   it('returns a null usual shift when either end is missing, and a null phone', async () => {

@@ -6,13 +6,15 @@ vi.mock('./verification-v2/authorization.service.js',()=>({requireLocationAccess
 import { assignTemplateStaff } from './templateAssignment.service.js';
 const actor={id:1,companyId:1,role:'ADMIN' as const};
 const now=new Date('2026-10-08T06:00:00Z');
-const template={id:178,locationId:28,areaId:6,isActive:true,staffId:null,shiftStart:now,shiftEnd:new Date('2026-10-08T07:00:00Z'),location:{companyId:1}};
+const template={id:178,locationId:28,areaId:6,isActive:true,staffId:null,shiftStart:now,shiftEnd:new Date('2026-10-08T07:00:00Z'),location:{companyId:1},recurringType:'DAILY',effectiveDate:now,repeatDays:['MON']};
+const worker={id:65,name:'Ayesha',shiftStart:new Date('2026-10-08T04:00:00Z'),shiftEnd:new Date('2026-10-08T12:00:00Z')};
+const otherSchedule={...template,id:179,title:'Other'};
 const task=(overrides={})=>({id:2,staffId:61,assignments:[{id:3,staffId:61,status:'ASSIGNED',isCurrent:true}],_count:{captureSessions:0,evidenceAssets:0,completionAttempts:0,areaSubmissions:0},...overrides});
 describe('template assignment synchronizes existing task authority',()=>{
  beforeEach(()=>{
   vi.resetAllMocks();m.transaction.mockImplementation(work=>work(m.tx));m.tx.$queryRaw.mockResolvedValue([{id:2}]);
   m.tx.taskTemplate.findFirst.mockResolvedValue({locationId:28,areaId:6});m.tx.taskTemplate.findUniqueOrThrow.mockResolvedValue(template);
-  m.access.mockResolvedValue({id:28,isActive:true,timezone:'Asia/Karachi'});m.tx.staff.findFirst.mockResolvedValue({id:65});
+  m.access.mockResolvedValue({id:28,isActive:true,timezone:'Asia/Karachi'});m.tx.staff.findFirst.mockResolvedValue(worker);
   m.tx.taskTemplate.findMany.mockResolvedValue([]);m.tx.taskTemplate.update.mockResolvedValue({...template,staffId:65});
   m.tx.taskInstance.findMany.mockResolvedValue([task()]);m.tx.taskAssignment.create.mockResolvedValue({id:4});
  });
@@ -41,8 +43,59 @@ describe('template assignment synchronizes existing task authority',()=>{
   m.tx.staff.findFirst.mockResolvedValue(null);await expect(assignTemplateStaff(actor,178,65,now)).rejects.toMatchObject({statusCode:404});
   expect(m.tx.taskTemplate.update).not.toHaveBeenCalled();expect(m.tx.taskInstance.update).not.toHaveBeenCalled();
  });
- it('rejects overlap without reassigning existing work',async()=>{
-  m.tx.taskTemplate.findMany.mockResolvedValue([{title:'Other',shiftStart:now,shiftEnd:template.shiftEnd}]);
-  await expect(assignTemplateStaff(actor,178,65,now)).rejects.toMatchObject({statusCode:400});expect(m.tx.taskInstance.update).not.toHaveBeenCalled();
+ it('rejects assigning a Monday-only worker to a Monday and Tuesday schedule', async () => {
+  m.tx.taskTemplate.findUniqueOrThrow.mockResolvedValue({
+   ...template, recurringType: 'DAILY', repeatDays: ['MON', 'TUE'],
+  });
+  m.tx.staff.findFirst.mockResolvedValue({ ...worker, workDays: ['MON'] });
+  await expect(assignTemplateStaff(actor, 178, 65, now)).rejects.toMatchObject({
+   statusCode: 422,
+   message: 'Ayesha works Mon. Choose days within those, or use automatic assignment.',
+   errors: [{ code: 'SCHEDULE_OUTSIDE_WORK_DAYS', field: 'repeatDays' }],
+  });
+  expect(m.tx.taskTemplate.update).not.toHaveBeenCalled();
+  expect(m.tx.taskInstance.findMany).not.toHaveBeenCalled();
+  expect(m.audit).not.toHaveBeenCalled();
+ });
+ it('rejects an overlap on shared repeat days without reassigning existing work', async () => {
+  m.tx.taskTemplate.findMany.mockResolvedValue([otherSchedule]);
+  await expect(assignTemplateStaff(actor, 178, 65, now)).rejects.toMatchObject({
+   statusCode: 409,
+   message: 'Ayesha already has an overlapping schedule: Other. Choose a different time or worker.',
+   errors: [{ code: 'WORKER_OVERLAP', field: 'staffId' }],
+  });
+  expect(m.tx.taskTemplate.update).not.toHaveBeenCalled();
+  expect(m.tx.taskInstance.update).not.toHaveBeenCalled();
+ });
+ it('checks a schedule with omitted recurrence after its effective date', async () => {
+  m.tx.taskTemplate.findMany.mockResolvedValue([{
+   ...otherSchedule, recurringType: null, effectiveDate: new Date('2026-09-01T00:00:00Z'), repeatDays: undefined,
+  }]);
+  await expect(assignTemplateStaff(actor, 178, 65, now)).rejects.toMatchObject({
+   statusCode: 409,
+   errors: [{ code: 'WORKER_OVERLAP', field: 'staffId' }],
+  });
+  expect(m.tx.taskTemplate.update).not.toHaveBeenCalled();
+ });
+ it.each([
+  { repeatDays: ['TUE'] },
+  { effectiveDate: new Date('2026-09-01T00:00:00Z'), recurringEndDate: new Date('2026-09-30T00:00:00Z') },
+ ])('allows assignment at the same clock time when there is no shared schedule date (%j)', async change => {
+  m.tx.taskTemplate.findMany.mockResolvedValue([{ ...otherSchedule, ...change }]);
+  await assignTemplateStaff(actor, 178, 65, now);
+  expect(m.tx.taskTemplate.update).toHaveBeenCalledWith({ where: { id: 178 }, data: { staffId: 65 } });
+ });
+ it('uses the shared shift mismatch code before reassigning work', async () => {
+  m.tx.taskTemplate.findUniqueOrThrow.mockResolvedValue({
+   ...template,
+   shiftStart: new Date('2026-10-08T11:00:00Z'),
+   shiftEnd: new Date('2026-10-09T05:00:00Z'),
+  });
+  await expect(assignTemplateStaff(actor, 178, 65, now)).rejects.toMatchObject({
+   statusCode: 422,
+   message: "This time falls outside Ayesha's shift (09:00–17:00). Choose a time inside the shift or update the shift.",
+   errors: [{ code: 'SHIFT_MISMATCH', field: 'shiftStart' }],
+  });
+  expect(m.tx.taskTemplate.update).not.toHaveBeenCalled();
  });
 });

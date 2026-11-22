@@ -9,8 +9,9 @@ import {
   getRecommendedCheckoutAt,
   hasOpenCheckout,
 } from "../../utils/attendance";
-import { clock } from "../../design/format";
+import { clock, localDate, type FormatLanguage } from "../../design/format";
 import { compareByStart, taskDisplay, type TaskDisplayKind } from "../../design/taskState";
+import { translate } from "../../i18n/translations";
 
 export type NowTone = "blue" | "quiet" | "bad" | "ok";
 
@@ -73,6 +74,9 @@ export type NowInput = {
   photosAvailable: boolean;
   /** IANA zone for times; defaults to the device zone. A task's own location zone wins for its times. */
   timeZone?: string;
+  offToday?: boolean;
+  nextShiftStart?: string | null;
+  language?: FormatLanguage;
 };
 
 const text = (key: string, values: Record<string, string> = {}, name?: string): NowText =>
@@ -229,6 +233,25 @@ const noShift = () =>
     text("Pull down to refresh. If it is still missing, ask your manager."),
   );
 
+const DAY_KEYS = ["Sunday", "Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday"];
+const localCalendarDay = (instant: string | Date, timeZone?: string) =>
+  new Date(`${localDate(instant, timeZone)}T00:00:00Z`);
+const getDayKey = (localDay: Date) => DAY_KEYS[localDay.getUTCDay()];
+
+function dayOffState({ now, nextShiftStart, timeZone, language = "en" }: NowInput): NowState {
+  const title = text("Day off today");
+  if (!nextShiftStart) return state("quiet", title, text("Ask your manager if you should be working today."));
+
+  const nextDayInZone = localCalendarDay(nextShiftStart, timeZone);
+  const tomorrowInZone = localCalendarDay(now, timeZone);
+  tomorrowInZone.setUTCDate(tomorrowInZone.getUTCDate() + 1);
+  const key = nextDayInZone.getTime() === tomorrowInZone.getTime() ? "tomorrow" : getDayKey(nextDayInZone);
+  return state("quiet", title, text("Your next shift is {day} at {time}.", {
+    day: translate(key, language),
+    time: clock(nextShiftStart, timeZone),
+  }));
+}
+
 /** Decide My day's sentence and next step. First matching rule wins. */
 export function nowState(input: NowInput): NowState {
   const { hasLocation, record, now, failed, timeZone } = input;
@@ -241,7 +264,7 @@ export function nowState(input: NowInput): NowState {
   if (!hasLocation) {
     return state("quiet", text("No location assigned"), text("Ask your manager to give you a location and shift."));
   }
-  if (!record) return noShift();
+  if (!record) return input.offToday === true ? dayOffState(input) : noShift();
 
   if (record.checkOutTime || record.status === "CHECKED_OUT") {
     return state(

@@ -123,7 +123,7 @@ it.each([
 it('a dirty Indian toilet still requires cleaning',async()=>{
   Object.assign(choices,{toilet_style:'SQUAT',squat_surface_0:'DIRTY',squat_surface_1:'CLEAN',squat_surface_2:'CLEAN'});mock();
   const result=await new BufferedClefProvider().evaluate(Buffer.from('sanitized'),toiletRubric,'bowl_seat','TOILET');
-  expect(bufferedDecision(result,true,true)).toMatchObject({state:'CLEANING_REQUIRED',keep:false});
+  expect(bufferedDecision(result,true,true)).toMatchObject({state:'CLEANING_REQUIRED',keep:true});
   expect(result.cleanliness?.surfaces[0]).toEqual({surface:'pan',verdict:'DIRTY'});
 });
 
@@ -173,7 +173,7 @@ it('a selected squat-toilet match with visible dirt requests cleaning even with 
  }));
  const result=await new BufferedClefProvider().evaluate(Buffer.from('sanitized'),toiletRubric,'bowl_seat','TOILET');
  expect(result.toiletStyle).toBe('SQUAT');
- expect(bufferedDecision(result,true,true)).toEqual({state:'CLEANING_REQUIRED',reason:'CLEANING_REQUIRED',keep:false});
+ expect(bufferedDecision(result,true,true)).toEqual({state:'CLEANING_REQUIRED',reason:'CLEANING_REQUIRED',keep:true});
 });
 
 it('preserves a wrong-object category with the recorded diagnostic scores',async()=>{

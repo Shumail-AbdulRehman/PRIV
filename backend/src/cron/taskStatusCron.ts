@@ -67,4 +67,4 @@ cron.schedule("7-59/15 * * * *", async () => {
   } catch (error) {
     console.error("Task status cron error:", error);
   }
-});
+}, { noOverlap: true });

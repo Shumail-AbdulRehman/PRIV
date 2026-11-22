@@ -29,6 +29,16 @@ test("lookup order and fallback", () => {
   assert.equal(translate("See my history", "en"), "See my history");
 });
 
+test("day-off and work-day keys have Urdu translations", () => {
+  for (const key of [
+    "Day off today", "Your next shift is {day} at {time}.", "Ask your manager if you should be working today.",
+    "tomorrow", "Work days", "Every day", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun",
+    "Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday", "Sunday",
+  ]) {
+    assert.match(translate(key, "ur"), /[؀-ۿ]/, key);
+  }
+});
+
 test("required extra strings exist", () => {
   for (const k of ["Uploaded, checking", "Connection settings", "Server address", "Change server address", "Save address", "Hide connection settings", "Show connection settings", "Restart scanner", "Torch on", "Torch off", "Refresh results", "Results updated"]) {
     assert.notEqual(translate(k, "ur"), k, k);

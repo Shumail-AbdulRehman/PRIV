@@ -1,10 +1,12 @@
 import { formatInTimeZone } from "date-fns-tz";
 import { getZonedDayRangeFromDateInput } from "../utils/dateTime.js";
+import { scheduleOccursOnDay, weekdayOfLocalDay, WEEKDAYS, type WeekdayList } from "../utils/workDays.js";
 import { resolveTaskInstanceWindow } from "../cron/taskInstanceWindow.js";
 
 export type ScheduleTemplate = {
   id: number; title: string; shiftStart: Date; shiftEnd: Date; effectiveDate: Date;
   recurringType: "DAILY" | "ONCE" | null; recurringEndDate: Date | null;
+  repeatDays?: WeekdayList;
   staff: { id: number; name: string; shiftStart: Date | null; shiftEnd: Date | null } | null;
 };
 export type ScheduleInstance = {
@@ -32,8 +34,9 @@ export const addCalendarDays = (value: string, days: number) => {
 export function normalizeMonday(input: string | undefined, now: Date, timezone: string): string | null {
   const day = input ?? formatInTimeZone(now, timezone, "yyyy-MM-dd");
   if (!ISO_DAY.test(day) || !getZonedDayRangeFromDateInput(day, timezone)) return null;
-  const weekday = dayDate(day).getUTCDay();
-  return addCalendarDays(day, -(weekday === 0 ? 6 : weekday - 1));
+  // The date label already represents the location's calendar day. Encode it in UTC for calendar arithmetic.
+  const weekday = weekdayOfLocalDay(dayDate(day), "UTC");
+  return addCalendarDays(day, -WEEKDAYS.indexOf(weekday));
 }
 
 export function projectWeek({ weekStart, timezone, now, templates, instances }: {
@@ -60,19 +63,16 @@ export function projectWeek({ weekStart, timezone, now, templates, instances }: 
   }
 
   for (const template of templates) {
-    if (template.recurringType !== "DAILY" && template.recurringType !== "ONCE") continue;
+    const { recurringType } = template;
+    if (recurringType !== "DAILY" && recurringType !== "ONCE") continue;
+    const schedule = { ...template, recurringType, isActive: true };
     // The scheduler can move an occurrence into the following local day for an overnight staff shift.
     for (let offset = -2; offset < 7; offset++) {
       const baseDay = addCalendarDays(weekStart, offset);
       const range = getZonedDayRangeFromDateInput(baseDay, timezone)!;
-      const localToday = range.start;
-      const localTomorrow = range.end;
-      if (template.recurringType === "DAILY") {
-        if (template.effectiveDate > localTomorrow) continue;
-        if (template.recurringEndDate && template.recurringEndDate < localToday) continue;
-      } else if (template.effectiveDate < localToday || template.effectiveDate >= localTomorrow) continue;
+      if (!scheduleOccursOnDay(schedule, range, timezone)) continue;
       const resolved = resolveTaskInstanceWindow({
-        baseDate: localToday, taskShiftStart: template.shiftStart, taskShiftEnd: template.shiftEnd,
+        baseDate: range.start, taskShiftStart: template.shiftStart, taskShiftEnd: template.shiftEnd,
         staffShiftStart: template.staff?.shiftStart, staffShiftEnd: template.staff?.shiftEnd, timeZone: timezone,
       });
       if (!(resolved.shiftStart < windowEnd && resolved.shiftEnd > windowStart)) continue;

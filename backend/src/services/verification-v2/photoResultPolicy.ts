@@ -12,7 +12,7 @@ export function bufferedDecision(assessment: BufferedAssessment, automaticAccept
   if (requiresObjectMatch && assessment.viewMatch === 'MISSING_SURFACE') return {state:'RECAPTURE_REQUIRED',reason:'MISSING_SURFACE',keep:false};
   if (requiresObjectMatch && assessment.viewMatch !== 'MATCH') return {state:'REVIEW_REQUIRED',reason:'VIEW_UNCERTAIN',keep:true};
   if (requiresObjectMatch && !assessment.cleanliness) return {state:'REVIEW_REQUIRED',reason:'CANNOT_ASSESS',keep:true};
-  if (assessment.cleanliness?.surfaces.some(s => s.verdict === 'DIRTY')) return { state: 'CLEANING_REQUIRED', reason: 'CLEANING_REQUIRED', keep: false };
+  if (assessment.cleanliness?.surfaces.some(s => s.verdict === 'DIRTY')) return { state: 'CLEANING_REQUIRED', reason: 'CLEANING_REQUIRED', keep: true };
   if (assessment.originality === 'UNCERTAIN') return { state: 'REVIEW_REQUIRED', reason: 'PHOTO_ORIGIN_UNCERTAIN', keep: true };
   if (assessment.cleanliness?.details?.assessmentStatus === 'THRESHOLD_UNCONFIGURED') return { state: 'REVIEW_REQUIRED', reason: 'CLEF_CALIBRATION_REQUIRED', keep: true };
   if (assessment.cleanliness?.verdict === 'CANNOT_ASSESS') return { state: 'REVIEW_REQUIRED', reason: 'CANNOT_ASSESS', keep: true };

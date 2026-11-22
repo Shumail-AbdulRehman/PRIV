@@ -7,6 +7,7 @@ import { fromZonedTime } from 'date-fns-tz';
 import { prisma } from '../prisma/prisma.js';
 import { ApiError } from '../utils/ApiError.js';
 import { normalizePakistanPhone } from '../utils/pakistanPhone.js';
+import { WEEKDAYS, type Weekday } from '../utils/workDays.js';
 import { staffRecordSchema } from '../validations/staffRecord.validation.js';
 import { requireLocationAccess, requireOperationalRole, type VerificationActor } from './verification-v2/authorization.service.js';
 import { withAccountCapacity, assertAccountAction, readAccountState } from './accountAccess.service.js';
@@ -16,11 +17,11 @@ import { insertStaff, lockStaffIdentities } from './staffProvisioning.service.js
 import { writeAuditLog } from './auditLog.service.js';
 import type { VerificationTransaction } from './verification-v2/transaction.js';
 
-export const HEADERS = ['Full Name', 'Phone', 'Email', 'Shift Start', 'Shift End'];
+export const HEADERS = ['Full Name', 'Phone', 'Email', 'Shift Start', 'Shift End', 'Work days'];
 export const MAX_IMPORT_BYTES = 1024 * 1024;
 const MAX_ROWS = 500;
 const bad = (message: string) => new ApiError(400, message);
-export type ImportRow = { row: number; name: string; email: string; phone: string; start: string; end: string; errors: string[] };
+export type ImportRow = { row: number; name: string; email: string; phone: string; start: string; end: string; workDays?: Weekday[]; errors: string[] };
 const importSecret = () => {
   const value = process.env.ACCESS_TOKEN_SECRET;
   if (!value) throw new ApiError(503, 'Staff import is unavailable.');
@@ -73,13 +74,21 @@ export async function parseStaffFile(bytes: Buffer, filename: string): Promise<I
   } catch (error) { if (error instanceof ApiError) throw error; throw bad('The spreadsheet could not be read. Download the template and try again.'); }
   if (book.worksheets.length !== 1) throw bad('Use one worksheet with the template columns.');
   const sheet = book.worksheets[0]!;
-  if (sheet.rowCount > MAX_ROWS + 1 || sheet.columnCount !== HEADERS.length) throw bad('Use the five template columns and at most 500 employees.');
-  if (HEADERS.some((name, index) => sheet.getRow(1).getCell(index + 1).value !== name)) throw bad('Use the exact template headers, once each and in their original order.');
+  const columnCount = sheet.columnCount;
+  const headers = HEADERS.slice(0, columnCount);
+  if (
+    (columnCount !== HEADERS.length && columnCount !== HEADERS.length - 1) ||
+    headers.some((name, index) => sheet.getRow(1).getCell(index + 1).value !== name)
+  ) {
+    throw bad('Use the exact template headers, once each and in their original order. The sixth column, Work days, is optional.');
+  }
+  if (sheet.rowCount > MAX_ROWS + 1) throw bad('Use at most 500 employees.');
   const rows: ImportRow[] = [];
   const seenEmails = new Set<string>();
   const seenPhones = new Set<string>();
   for (let index = 2; index <= sheet.rowCount; index++) {
-    const cells = HEADERS.map((_, column) => sheet.getRow(index).getCell(column + 1).value);
+    const sheetRow = sheet.getRow(index);
+    const cells = headers.map((_, column) => sheetRow.getCell(column + 1).value);
     if (cells.every(value => value === null || value === '')) continue;
     const name = textCell(cells[0]!);
     const phoneText = textCell(cells[1]!);
@@ -88,7 +97,7 @@ export async function parseStaffFile(bytes: Buffer, filename: string): Promise<I
     const row: ImportRow = { row: index, name, email, phone: phone.success ? phone.data : phoneText, start: clock(cells[3]!), end: clock(cells[4]!), errors: [] };
     if (cells.some((value, column) => {
       if (typeof value === 'string') return /^[=+@\-]/.test(value) && (column !== 1 || !phone.success);
-      if (value instanceof Date) return column < 3 || value.getUTCFullYear() > 1904;
+      if (value instanceof Date) return (column !== 3 && column !== 4) || value.getUTCFullYear() > 1904;
       return value !== null && typeof value === 'object';
     })) row.errors.push('Unsupported formula, link or cell content.');
     const nameResult = staffRecordSchema.shape.name.safeParse(name);
@@ -98,6 +107,19 @@ export async function parseStaffFile(bytes: Buffer, filename: string): Promise<I
     }
     if (cells[2] !== null && typeof cells[2] !== 'string' && emailResult.success) row.errors.push('Enter a valid email.');
     if (![row.start,row.end].every(value => /^([01]\d|2[0-3]):[0-5]\d$/.test(value)) || row.start === row.end) row.errors.push('Enter different shift times in HH:mm format.');
+    const workDaysCell = cells[5];
+    if (workDaysCell !== undefined) {
+      let days: unknown = workDaysCell;
+      if (typeof workDaysCell === 'string') {
+        const text = workDaysCell.trim();
+        days = text ? text.toUpperCase().split(/ *, *| +/) : WEEKDAYS;
+      } else if (workDaysCell === null) {
+        days = WEEKDAYS;
+      }
+      const workDays = staffRecordSchema.shape.workDays.safeParse(days);
+      if (workDays.success) row.workDays = workDays.data;
+      else row.errors.push('Enter work days like Mon,Wed using Mon to Sun.');
+    }
     if (email) {
       if (seenEmails.has(email)) row.errors.push('Duplicate email in this spreadsheet.');
       seenEmails.add(email);
@@ -178,6 +200,7 @@ export async function confirmStaffImport(actor: VerificationActor, locationId: n
         name: row.name, email: row.email, phone: row.phone, locationId,
         shiftStart: fromZonedTime(`1970-01-01T${row.start}:00`, location.timezone),
         shiftEnd: fromZonedTime(`1970-01-01T${row.end}:00`, location.timezone),
+        ...(row.workDays !== undefined ? { workDays: row.workDays } : {}),
       }));
       if (inputs.length > 1) await lockStaffIdentities(tx, inputs);
       const ids: number[] = [];

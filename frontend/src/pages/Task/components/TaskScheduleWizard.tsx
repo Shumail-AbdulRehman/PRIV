@@ -1,4 +1,5 @@
-import { useRef, useState } from "react";
+import { useContext, useRef, useState, type ReactNode } from "react";
+import { ReactReduxContext } from "react-redux";
 import { formatInTimeZone } from "date-fns-tz";
 import { useQueryClient } from "@tanstack/react-query";
 import { ArrowLeft, ArrowRight } from "lucide-react";
@@ -6,6 +7,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { SidePanel, SidePanelFooter } from "@/components/workspace/SidePanel";
+import { WeekdayPicker } from "@/components/workspace/WeekdayPicker";
 import OperationsState from "@/pages/Manager/OperationsState";
 import "../schedule-v6.css";
 import { setupErrorKey, useSetupFormText } from '@/pages/Area/areaFormText';
@@ -15,8 +17,11 @@ import { inventorySummary, validateInventorySelection } from "@/pages/Area/types
 import { Link } from "react-router-dom";
 import { createTaskTemplate, getTaskTemplate } from "@/pages/Task/api";
 import { assignStaffToTaskTemplate } from "@/pages/Assignment/api";
+import { useSubscription } from "@/pages/Subscription/queries";
 import { invalidateWorkspace } from "@/lib/invalidateWorkspace";
-import { blankCreateForm, buildDateTimeIso, buildEffectiveDate, validateScheduleStep, type ScheduleStep, type TemplateCreateForm } from "@/pages/Task/taskScheduleForm";
+import { useLanguage } from "@/i18n/context";
+import { formatDays, isEveryDay, normalizeDays, WEEKDAYS, type Weekday } from "@/lib/workDays";
+import { blankCreateForm, buildDateTimeIso, buildEffectiveDate, emptyRepeatDaysMessage, validateScheduleStep, type RecurrenceChoice, type ScheduleStep, type TemplateCreateForm } from "@/pages/Task/taskScheduleForm";
 import type { LocationStaff } from "@/pages/Location/types";
 
 export type CreatedSchedule = {
@@ -28,7 +33,7 @@ type Props = {
   locationId: number;
   locationName: string;
   timeZone: string;
-  staffOptions: LocationStaff[];
+  staffOptions: Array<LocationStaff & { workDays?: Weekday[] }>;
   open: boolean;
   onOpenChange: (open: boolean) => void;
   onCreated: (outcome: CreatedSchedule) => void;
@@ -39,22 +44,84 @@ type Phase = "editing" | "creating" | "assigning" | "assignment-failed" | "unkno
 const fieldClass = "wx-schedule-input";
 const labelClass = "wx-schedule-label";
 const labels = ["Task", "Team", "Schedule", "Review"] as const;
+const outsideWorkDays = "{name} works {days}. Choose days within those, or use automatic assignment.";
+const workerRequiredMessage = "Your plan does not assign staff automatically. Choose a worker for this schedule.";
+type RepeatDaysError = "INVALID_REPEAT_DAYS" | "SCHEDULE_OUTSIDE_WORK_DAYS";
+type WorkerError = { field: "staffId" | "shiftStart"; message: string };
 
-function errorDetails(error: unknown): { message: string; field?: string } {
-  const value = error as { response?: { data?: { message?: string; errors?: Array<{ field?: string; message?: string }> } }; message?: string };
-  const first = value.response?.data?.errors?.[0];
-  return { message: first?.message || value.response?.data?.message || value.message || "Could not save the schedule.", field: first?.field };
+function errorResponse(error: unknown) {
+  return (error as { response?: { status?: number; data?: {
+    message?: string;
+    errors?: { field?: string; code?: string; message?: string }[];
+  } } } | null)?.response;
 }
 
-export default function TaskScheduleWizard({ locationId, locationName, timeZone, staffOptions, open, onOpenChange, onCreated }: Props) {
+// eslint-disable-next-line react-refresh/only-export-components -- Shared with the schedule edit form.
+export function translateScheduleWorkerError(
+  error: unknown,
+  t: ReturnType<typeof useSetupFormText>,
+  workerName?: string,
+): WorkerError | undefined {
+  const data = errorResponse(error)?.data;
+  const detail = data?.errors?.[0];
+  const messages = [detail?.message, data?.message].filter((message): message is string => typeof message === "string");
+  const fallback = "Could not save the schedule. Check the fields and try again.";
+
+  switch (detail?.code) {
+    case "WORKER_REQUIRED":
+      return { field: "staffId", message: t(workerRequiredMessage) };
+    case "WORKER_OVERLAP": {
+      const match = messages.map(message =>
+        /^(.+) already has an overlapping schedule: ([\s\S]+)\. Choose a different time or worker\.$/.exec(message)
+      ).find(Boolean);
+      return { field: "staffId", message: match
+        ? t("{name} already has an overlapping schedule: {title}. Choose a different time or worker.", {
+          name: workerName ?? match[1], title: match[2],
+        })
+        : t(fallback) };
+    }
+    case "SHIFT_MISMATCH": {
+      const match = messages.map(message =>
+        /^This time falls outside (.+)'s shift \((\d{2}:\d{2})–(\d{2}:\d{2})\)\. Choose a time inside the shift or update the shift\.$/.exec(message)
+      ).find(Boolean);
+      return { field: "shiftStart", message: match
+        ? t("This time falls outside {name}'s shift ({start}–{end}). Choose a time inside the shift or update the shift.", {
+          name: workerName ?? match[1], start: match[2], end: match[3],
+        })
+        : t(fallback) };
+    }
+  }
+}
+
+type PlanFeaturesProps = { children: (requiresWorker: boolean) => ReactNode };
+
+function ScheduleSubscription({ children }: PlanFeaturesProps) {
+  const subscription = useSubscription();
+  return children(subscription.isSuccess && subscription.data.plan.features.automaticAssignment === false);
+}
+
+export function SchedulePlanFeatures({ children }: PlanFeaturesProps) {
+  const authContext = useContext(ReactReduxContext);
+  return authContext ? <ScheduleSubscription>{children}</ScheduleSubscription> : children(false);
+}
+
+export default function TaskScheduleWizard(props: Props) {
+  return <SchedulePlanFeatures>{requiresWorker => <ScheduleWizardForm {...props} requiresWorker={requiresWorker} />}</SchedulePlanFeatures>;
+}
+
+function ScheduleWizardForm({ locationId, locationName, timeZone, staffOptions, open, onOpenChange, onCreated, requiresWorker }: Props & { requiresWorker: boolean }) {
   const qc = useQueryClient();
   const t = useSetupFormText();
+  const { language } = useLanguage();
   const areasQuery = useAreas(locationId);
   const areas = areasQuery.data?.filter(area => area.status === "ACTIVE") ?? [];
   const [form, setForm] = useState<TemplateCreateForm>(() => ({ ...blankCreateForm(), effectiveDate: formatInTimeZone(new Date(), timeZone, "yyyy-MM-dd") }));
   const [step, setStep] = useState<ScheduleStep>(0);
   const [phase, setPhase] = useState<Phase>("editing");
   const [error, setError] = useState<string | null>(null);
+  const [workerError, setWorkerError] = useState<WorkerError | null>(null);
+  const [repeatError, setRepeatError] = useState<RepeatDaysError | null>(null);
+  const [matchedWorkDays, setMatchedWorkDays] = useState(false);
   const savedId = useRef<number | null>(null);
   const inFlight = useRef(false);
   const assignmentInFlight = useRef(false);
@@ -64,12 +131,30 @@ export default function TaskScheduleWizard({ locationId, locationName, timeZone,
   const chosenArea = areas.find(area => String(area.id) === form.areaId);
   const summary = chosenArea && inventorySummary(chosenArea, form.inventorySelection, form.selectedItems);
   const chosenStaff = staffOptions.find((staff) => String(staff.id) === form.staffId);
+  const missingWorker = requiresWorker && !chosenStaff?.isActive;
+  const staffError = workerError?.field === "staffId" ? workerError.message : null;
+  const shiftError = workerError?.field === "shiftStart" ? workerError.message : null;
+  const staffHelp = t(requiresWorker
+    ? workerRequiredMessage
+    : "Automatic assignment remains available. You can choose a specific person who works at this location.");
+  const workerDays = normalizeDays(chosenStaff?.workDays?.length ? chosenStaff.workDays : undefined);
+  const chosenDays = form.recurringType === "CHOSEN";
+  const repeating = form.recurringType !== "ONCE";
+  const repeatErrorMessage = repeatError === "SCHEDULE_OUTSIDE_WORK_DAYS"
+    ? chosenStaff
+      ? t(outsideWorkDays, { name: chosenStaff.name, days: formatDays(workerDays, t, language) })
+      : t("Could not save the schedule. Check the fields and try again.")
+    : t(emptyRepeatDaysMessage);
+  const repeatErrorText = repeatError && <p id="schedule-repeat-error" role="alert" className="wx-schedule-error">{repeatErrorMessage}</p>;
 
   const reset = () => {
     setForm({ ...blankCreateForm(), effectiveDate: formatInTimeZone(new Date(), timeZone, "yyyy-MM-dd") });
     setStep(0);
     setPhase("editing");
     setError(null);
+    setWorkerError(null);
+    setRepeatError(null);
+    setMatchedWorkDays(false);
     savedId.current = null;
     inFlight.current = false;
     assignmentInFlight.current = false;
@@ -82,8 +167,47 @@ export default function TaskScheduleWizard({ locationId, locationName, timeZone,
   };
 
   const focusFirst = () => requestAnimationFrame(() => firstField.current?.focus());
+  const showRepeatError = (problem: RepeatDaysError, showPicker = chosenDays) => {
+    setError(null);
+    setRepeatError(problem);
+    setStep(2);
+    requestAnimationFrame(() => document.getElementById(showPicker ? "schedule-repeat-days" : "schedule-repeat")?.focus());
+  };
+
+  const pickStaff = (staffId: string) => {
+    const days = staffOptions.find(staff => String(staff.id) === staffId)?.workDays;
+    const match = form.recurringType === "DAILY" && !!days?.length && !isEveryDay(days);
+    setForm(match
+      ? { ...form, staffId, recurringType: "CHOSEN", repeatDays: normalizeDays(days) }
+      : { ...form, staffId });
+    setMatchedWorkDays(match);
+    setWorkerError(null);
+    setRepeatError(null);
+  };
+
+  const pickRecurrence = (recurringType: RecurrenceChoice) => {
+    setForm({ ...form, recurringType, recurringEndDate: recurringType === "ONCE" ? "" : form.recurringEndDate });
+    setMatchedWorkDays(false);
+    setRepeatError(null);
+  };
+
   const validate = (which: ScheduleStep) => {
+    if (which === 1 && missingWorker) {
+      setStep(1);
+      return false;
+    }
     const problem = (which === 0 && areasQuery.isError ? "Area inventory could not load. Retry before continuing." : null) ?? validateScheduleStep(form, which) ?? (which === 0 ? chosenArea ? validateInventorySelection(chosenArea, form.inventorySelection, form.selectedItems) : "Choose an active area from the latest inventory." : null);
+    if (which === 2) {
+      if (problem === emptyRepeatDaysMessage) {
+        showRepeatError("INVALID_REPEAT_DAYS");
+        return false;
+      }
+      if (repeating && (chosenDays ? form.repeatDays : WEEKDAYS).some(day => !workerDays.includes(day))) {
+        showRepeatError("SCHEDULE_OUTSIDE_WORK_DAYS");
+        return false;
+      }
+      setRepeatError(null);
+    }
     if (problem) {
       setError(problem);
       setStep(which);
@@ -146,6 +270,7 @@ export default function TaskScheduleWizard({ locationId, locationName, timeZone,
     inFlight.current = true;
     setPhase("creating");
     setError(null);
+    setWorkerError(null);
     try {
       const created = await createTaskTemplate({
         title: form.title.trim(),
@@ -154,9 +279,10 @@ export default function TaskScheduleWizard({ locationId, locationName, timeZone,
         staffId: form.staffId ? Number(form.staffId) : undefined,
         shiftStart: new Date(buildDateTimeIso(timeZone, form.effectiveDate, form.shiftStart)),
         shiftEnd: new Date(buildDateTimeIso(timeZone, form.effectiveDate, form.shiftEnd)),
-        recurringType: form.recurringType,
+        recurringType: repeating ? "DAILY" : "ONCE",
+        ...(chosenDays && !isEveryDay(form.repeatDays) ? { repeatDays: normalizeDays(form.repeatDays) } : {}),
         effectiveDate: buildEffectiveDate(form.effectiveDate),
-        recurringEndDate: form.recurringType === "DAILY" && form.recurringEndDate ? buildEffectiveDate(form.recurringEndDate) : undefined,
+        recurringEndDate: repeating && form.recurringEndDate ? buildEffectiveDate(form.recurringEndDate) : undefined,
         areaId: Number(form.areaId),
         inventorySelection: form.inventorySelection,
         selectedItems: form.selectedItems,
@@ -170,17 +296,31 @@ export default function TaskScheduleWizard({ locationId, locationName, timeZone,
       else finish("automatic");
     } catch (err) {
       if (!savedId.current) {
-        const detail = errorDetails(err);
-        const definitive = Boolean((err as { response?: { status?: number } }).response?.status && (err as { response: { status: number } }).response.status < 500);
-        if (definitive) {
+        const response = errorResponse(err);
+        const status = response?.status;
+        const detail = response?.data?.errors?.[0];
+        if (status && status < 500) {
           setPhase("editing");
+          const refusal = translateScheduleWorkerError(err, t, chosenStaff?.name);
+          if (refusal) {
+            setWorkerError(refusal);
+            setStep(refusal.field === "staffId" ? 1 : 2);
+            requestAnimationFrame(() => document.getElementById(refusal.field === "staffId" ? "schedule-staff" : "schedule-start")?.focus());
+            return;
+          }
+          const code = detail?.code;
+          if ((status === 400 && code === "INVALID_REPEAT_DAYS") || (status === 422 && code === "SCHEDULE_OUTSIDE_WORK_DAYS")) {
+            if (form.recurringType === "DAILY") setForm({ ...form, recurringType: "CHOSEN", repeatDays: [...WEEKDAYS] });
+            showRepeatError(code, repeating);
+            return;
+          }
           setError(setupErrorKey(err, 'Could not save the schedule. Check the fields and try again.'));
-          if ((err as {response?: {status?: number}}).response?.status === 409) {
+          if (status === 409) {
             const refreshed = await areasQuery.refetch();
             setStep(0);
             setError(refreshed.isError ? 'Inventory could not refresh. Your draft is preserved. Retry loading areas.' : 'Inventory refreshed. Review the selected fixtures before retrying. Your draft is preserved.');
           }
-          const field = detail.field ?? "";
+          const field = detail?.field ?? "";
           if (/area|inventory|selected|title|description/.test(field)) setStep(0);
           else if (/staff/.test(field)) setStep(1);
           else if (/shift|date|recurr/.test(field)) setStep(2);
@@ -196,7 +336,7 @@ export default function TaskScheduleWizard({ locationId, locationName, timeZone,
 
   return (
     <SidePanel open={open} onOpenChange={changeOpen} wide title={t('Create cleaning schedule')} description={t('Set up the work, team, and time before saving.')} footer={phase !== 'unknown' && phase !== 'assignment-failed' ? (
-            <SidePanelFooter className="wx-schedule-footer"><Button type="button" variant="outline" disabled={busy} onClick={() => step === 0 ? changeOpen(false) : setStep((step - 1) as ScheduleStep)}>{step === 0 ? t('Cancel') : <><ArrowLeft size={15} aria-hidden="true" />{t('Back')}</>}</Button>{step < 3 ? <Button type="button" onClick={goNext} disabled={busy || (step === 0 && (areasQuery.isPending || areasQuery.isError))}>{t('Next')}<ArrowRight size={15} aria-hidden="true" /></Button> : <Button type="button" onClick={() => void submit()} disabled={busy} aria-busy={busy}>{t(busy ? (phase === 'creating' ? 'Creating…' : 'Assigning…') : 'Create schedule')}</Button>}</SidePanelFooter>
+            <SidePanelFooter className="wx-schedule-footer"><Button type="button" variant="outline" disabled={busy} onClick={() => step === 0 ? changeOpen(false) : setStep((step - 1) as ScheduleStep)}>{step === 0 ? t('Cancel') : <><ArrowLeft size={15} aria-hidden="true" />{t('Back')}</>}</Button>{step < 3 ? <Button type="button" onClick={goNext} disabled={busy || (step === 0 && (areasQuery.isPending || areasQuery.isError)) || (step === 1 && missingWorker)}>{t('Next')}<ArrowRight size={15} aria-hidden="true" /></Button> : <Button type="button" onClick={() => void submit()} disabled={busy} aria-busy={busy}>{t(busy ? (phase === 'creating' ? 'Creating…' : 'Assigning…') : 'Create schedule')}</Button>}</SidePanelFooter>
     ) : undefined}>
       <div className="wx-schedule-form" aria-busy={busy}>
         <p className="wx-schedule-help"><bdi>{locationName}</bdi> · <bdi>{timeZone}</bdi></p>
@@ -223,17 +363,76 @@ export default function TaskScheduleWizard({ locationId, locationName, timeZone,
               {!areasQuery.isPending && !areasQuery.isError && !areas.length && <p className="wx-schedule-help">{t('Set up and activate an area first.')} <Link to={`/locations/${locationId}?tab=areas&newArea=1`} className="text-primary underline">{t('Add area')}</Link></p>}
               {chosenArea && <InventorySelector area={chosenArea} mode={form.inventorySelection} selected={form.selectedItems} onChange={(inventorySelection, selectedItems) => setForm({ ...form, inventorySelection, selectedItems })} />}
             </div>}
-            {step === 1 && <div className="wx-schedule-stack"><p className="wx-schedule-help">{t('Automatic assignment remains available. You can choose a specific person who works at this location.')}</p><label htmlFor="schedule-staff" className={labelClass}>{t('Assign staff')}</label><select id="schedule-staff" className={fieldClass} value={form.staffId} onChange={event => setForm({ ...form, staffId: event.target.value })}><option value="">{t('Use automatic assignment')}</option>{staffOptions.filter(staff => staff.isActive).map(staff => <option key={staff.id} value={staff.id}>{staff.name}</option>)}</select></div>}
+            {step === 1 && <div className="wx-schedule-stack">
+              {staffError !== t(workerRequiredMessage) && <p id="schedule-staff-help" className="wx-schedule-help">{staffHelp}</p>}
+              <label htmlFor="schedule-staff" className={labelClass}>{t('Assign staff')}</label>
+              <select
+                id="schedule-staff"
+                className={fieldClass}
+                value={form.staffId}
+                required={requiresWorker}
+                aria-invalid={staffError ? true : undefined}
+                aria-describedby={staffError ? "schedule-staff-error" : "schedule-staff-help"}
+                onChange={event => pickStaff(event.target.value)}
+              >
+                <option value="" disabled={requiresWorker}>{requiresWorker ? "—" : t('Use automatic assignment')}</option>
+                {staffOptions.filter(staff => staff.isActive).map(staff => <option key={staff.id} value={staff.id}>{staff.name}</option>)}
+              </select>
+              {staffError && <p id="schedule-staff-error" role="alert" className="wx-schedule-error">{staffError}</p>}
+            </div>}
             {step === 2 && <div className="wx-schedule-pair">
-              <div className="wx-schedule-field"><label htmlFor="schedule-repeat" className={labelClass}>{t('Recurrence')}</label><select id="schedule-repeat" className={fieldClass} value={form.recurringType} onChange={event => setForm({ ...form, recurringType: event.target.value as 'DAILY' | 'ONCE', recurringEndDate: '' })}><option value="DAILY">{t('Daily')}</option><option value="ONCE">{t('Once')}</option></select></div>
+              <div className="wx-schedule-field">
+                <label htmlFor="schedule-repeat" className={labelClass}>{t('Recurrence')}</label>
+                <select
+                  id="schedule-repeat"
+                  className={fieldClass}
+                  value={form.recurringType}
+                  onChange={event => pickRecurrence(event.target.value as RecurrenceChoice)}
+                  aria-invalid={!chosenDays && !!repeatError}
+                  aria-describedby={!chosenDays && repeatError ? "schedule-repeat-error" : undefined}
+                >
+                  <option value="DAILY">{t('Daily')}</option>
+                  <option value="CHOSEN">{t('Chosen days')}</option>
+                  <option value="ONCE">{t('Once')}</option>
+                </select>
+                {!chosenDays && repeatErrorText}
+              </div>
               <div className="wx-schedule-field"><label htmlFor="schedule-date" className={labelClass}>{t('Effective from')}</label><Input id="schedule-date" ref={firstField} type="date" dir="ltr" min={siteToday} value={form.effectiveDate} onChange={event => setForm({ ...form, effectiveDate: event.target.value })} aria-invalid={!!error} aria-describedby={error ? 'schedule-error' : undefined} />{error && <p id="schedule-error" role="alert" className="wx-schedule-error">{t(error)}</p>}</div>
-              <p className="wx-schedule-help wx-schedule-full">{t('Daily schedules include every day, including weekends.')}</p>
-              <div><label htmlFor="schedule-start" className={labelClass}>{t('Start time')} (<bdi>{timeZone}</bdi>)</label><Input id="schedule-start" type="time" dir="ltr" value={form.shiftStart} onChange={event => setForm({ ...form, shiftStart: event.target.value })} /></div>
-              <div><label htmlFor="schedule-end" className={labelClass}>{t('End time')} (<bdi>{timeZone}</bdi>)</label><Input id="schedule-end" type="time" dir="ltr" value={form.shiftEnd} onChange={event => setForm({ ...form, shiftEnd: event.target.value })} /></div>
-              {form.recurringType === 'DAILY' && <div className="wx-schedule-full"><label htmlFor="schedule-repeat-end" className={labelClass}>{t('Repeat until (optional)')}</label><Input id="schedule-repeat-end" type="date" dir="ltr" min={form.effectiveDate} value={form.recurringEndDate} onChange={event => setForm({ ...form, recurringEndDate: event.target.value })} /></div>}
+              {!chosenDays && <p className="wx-schedule-help wx-schedule-full">{t('Daily schedules include every day, including weekends.')}</p>}
+              <div>
+                <label htmlFor="schedule-start" className={labelClass}>{t('Start time')} (<bdi>{timeZone}</bdi>)</label>
+                <Input id="schedule-start" type="time" dir="ltr" value={form.shiftStart}
+                  aria-invalid={shiftError ? true : undefined} aria-describedby={shiftError ? "schedule-shift-error" : undefined}
+                  onChange={event => { setForm({ ...form, shiftStart: event.target.value }); setWorkerError(null); }} />
+                {shiftError && <p id="schedule-shift-error" role="alert" className="wx-schedule-error">{shiftError}</p>}
+              </div>
+              <div><label htmlFor="schedule-end" className={labelClass}>{t('End time')} (<bdi>{timeZone}</bdi>)</label><Input id="schedule-end" type="time" dir="ltr" value={form.shiftEnd} onChange={event => { setForm({ ...form, shiftEnd: event.target.value }); setWorkerError(null); }} /></div>
+              {repeating && <div className="wx-schedule-full">
+                {chosenDays && <>
+                  <p className={labelClass} aria-hidden="true">{t('Repeat on')}</p>
+                  <WeekdayPicker
+                    id="schedule-repeat-days"
+                    label="Repeat on"
+                    summaryKind="schedule"
+                    value={form.repeatDays}
+                    onChange={repeatDays => {
+                      setForm({ ...form, repeatDays });
+                      setMatchedWorkDays(false);
+                      setRepeatError(null);
+                    }}
+                    errorId={repeatError ? "schedule-repeat-error" : undefined}
+                  />
+                  {repeatErrorText}
+                  {matchedWorkDays && chosenStaff && <p className="wx-schedule-help">{t("Matched to {name}'s work days.", { name: chosenStaff.name })}</p>}
+                </>}
+                <label htmlFor="schedule-repeat-end" className={labelClass}>{t('Repeat until (optional)')}</label>
+                <Input id="schedule-repeat-end" type="date" dir="ltr" min={form.effectiveDate} value={form.recurringEndDate} onChange={event => setForm({ ...form, recurringEndDate: event.target.value })} />
+              </div>}
               <p className="wx-schedule-help wx-schedule-full"><bdi>{timeZone}</bdi></p>
             </div>}
-            {step === 3 && <div className="wx-schedule-stack"><dl className="wx-schedule-facts"><dt>{t('Task')}</dt><dd><bdi>{form.title.trim()}</bdi></dd><dt>{t('Location')}</dt><dd><bdi>{locationName}</bdi></dd><dt>{t('Area template')}</dt><dd><bdi>{chosenArea?.name}</bdi></dd><dt>{t('Fixtures')}</dt><dd>{form.inventorySelection === 'ALL' ? t('All active items') : t('{count} selected items', { count: form.selectedItems.length })}. {summary && t('{mandatory} mandatory fixtures, {optional} optional fixtures, {photos} required photos.', { ...summary, photos: summary.requiredViews })} {t('Mandatory items require every mandatory evidence view to pass.')}</dd><dt>{t('Team')}</dt><dd>{chosenStaff ? <bdi>{chosenStaff.name}</bdi> : t('Use automatic assignment')}</dd><dt>{t('Schedule')}</dt><dd>{t('{repeat} from {start}', { repeat: t(form.recurringType === 'DAILY' ? 'Daily' : 'Once'), start: form.effectiveDate })}{form.recurringEndDate ? <> · {t('Until {date}', { date: form.recurringEndDate })}</> : null} · <bdi>{form.shiftStart}–{form.shiftEnd} ({timeZone})</bdi></dd></dl><p className="wx-schedule-help">{t('A task QR is available only after an occurrence exists. Previewing a future slot does not generate a task.')}</p></div>}
+            {step === 3 && <div className="wx-schedule-stack"><dl className="wx-schedule-facts"><dt>{t('Task')}</dt><dd><bdi>{form.title.trim()}</bdi></dd><dt>{t('Location')}</dt><dd><bdi>{locationName}</bdi></dd><dt>{t('Area template')}</dt><dd><bdi>{chosenArea?.name}</bdi></dd><dt>{t('Fixtures')}</dt><dd>{form.inventorySelection === 'ALL' ? t('All active items') : t('{count} selected items', { count: form.selectedItems.length })}. {summary && t('{mandatory} mandatory fixtures, {optional} optional fixtures, {photos} required photos.', { ...summary, photos: summary.requiredViews })} {t('Mandatory items require every mandatory evidence view to pass.')}</dd><dt>{t('Team')}</dt><dd>{chosenStaff ? <bdi>{chosenStaff.name}</bdi> : t('Use automatic assignment')}</dd><dt>{t('Schedule')}</dt><dd>{chosenDays
+                ? <bdi>{t('Repeats on {days} from {start}', { days: formatDays(form.repeatDays, t, language), start: form.effectiveDate })}</bdi>
+                : t('{repeat} from {start}', { repeat: t(repeating ? 'Daily' : 'Once'), start: form.effectiveDate })}{form.recurringEndDate ? <> · {t('Until {date}', { date: form.recurringEndDate })}</> : null} · <bdi>{form.shiftStart}–{form.shiftEnd} ({timeZone})</bdi></dd></dl><p className="wx-schedule-help">{t('A task QR is available only after an occurrence exists. Previewing a future slot does not generate a task.')}</p></div>}
             </fieldset>
             {error && step !== 2 && <p id="schedule-error" role="alert" className="wx-schedule-error">{t(error)}</p>}
 

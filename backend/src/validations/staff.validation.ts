@@ -11,6 +11,7 @@ export const editStaffSchema = z.object({
   phone: staffRecordSchema.shape.phone.optional(),
   shiftStart: z.coerce.date({ message: "Shift start must be a valid date" }).optional(),
   shiftEnd: z.coerce.date({ message: "Shift end must be a valid date" }).optional(),
+  workDays: staffRecordSchema.shape.workDays,
 }).superRefine((data, ctx) => {
   if (data.shiftStart !== undefined && data.shiftEnd !== undefined) {
     const startMin = data.shiftStart.getUTCHours() * 60 + data.shiftStart.getUTCMinutes();

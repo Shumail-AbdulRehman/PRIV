@@ -149,6 +149,8 @@ model Staff {
   locationId         Int?
   shiftStart         DateTime?
   shiftEnd           DateTime?
+  /// Weekdays on which the staff member's shift starts.
+  workDays           Weekday[]               @default([MON, TUE, WED, THU, FRI, SAT, SUN])
   taskTemplates      TaskTemplate[]
   taskInstances      TaskInstance[]
   taskAssignments    TaskAssignment[]
@@ -227,6 +229,8 @@ model TaskTemplate {
   locationId             Int
   shiftStart             DateTime
   shiftEnd               DateTime
+  /// Weekdays on which a DAILY schedule repeats.
+  repeatDays             Weekday[]                    @default([MON, TUE, WED, THU, FRI, SAT, SUN])
   recurringType          RecurringType?
   recurringEndDate       DateTime?
   referenceImageUrl      String?
@@ -486,6 +490,16 @@ enum AssignmentStatus {
 enum RecurringType {
   DAILY
   ONCE
+}
+
+enum Weekday {
+  MON
+  TUE
+  WED
+  THU
+  FRI
+  SAT
+  SUN
 }
 
 enum Role {

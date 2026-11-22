@@ -27,12 +27,30 @@ beforeEach(() => {
 });
 const job = () => ({ id: 'job', attemptId: 'attempt', companyId: 1, stage: 'PHOTO', evaluatorVersion: bufferedEvaluatorVersion(), leaseToken: 'lease' } as any);
 function io() { return { read: vi.fn(async () => Buffer.from('bytes')), remove: vi.fn(async () => {}), store: vi.fn(async () => ({ asset_id: 'cloud-id' } as any)) }; }
-it.each(['DIRTY', 'SCREEN'] as const)('%s is reported without any Cloudinary upload and temporary bytes are deleted after commit', async outcome => {
-  const storage = io(), value = outcome === 'DIRTY' ? assessment('DIRTY') : assessment('CLEAN', 'SCREEN_RECAPTURE');
-  const provider = { evaluate: vi.fn(async () => value) };
+it('a dirty photo is kept for review and temporary bytes are deleted after publication', async () => {
+  const storage = io();
+  const provider = { evaluate: vi.fn(async () => assessment('DIRTY')) };
+  expect(await processBufferedPhoto(job(), provider, storage)).toBe(true);
+  expect(storage.store.mock.calls).toEqual([
+    [Buffer.from('bytes'), 'verification/1/attempts/attempt/original', 'hash'],
+    [Buffer.from('sanitized'), 'verification/1/attempts/attempt/review', 'hash'],
+  ]);
+  expect(tx.evidenceAsset.update).toHaveBeenCalledWith(expect.objectContaining({
+    data: expect.objectContaining({
+      deliveryType: 'authenticated', privacyState: 'NOT_REQUIRED',
+      sanitizedPublicId: 'verification/1/attempts/attempt/review',
+    }),
+  }));
+  expect(applyDecision).toHaveBeenCalledWith(tx, 'attempt', 'CLEANING_REQUIRED', 'CLEANING_REQUIRED', expect.anything());
+  expect(storage.remove).toHaveBeenCalledOnce();
+  expect(storage.remove.mock.invocationCallOrder[0]).toBeGreaterThan(vi.mocked(publishJobResult).mock.invocationCallOrder[0]!);
+});
+it('a screen photo is reported without any Cloudinary upload and temporary bytes are deleted after commit', async () => {
+  const storage = io();
+  const provider = { evaluate: vi.fn(async () => assessment('CLEAN', 'SCREEN_RECAPTURE')) };
   expect(await processBufferedPhoto(job(), provider, storage)).toBe(true);
   expect(storage.store).not.toHaveBeenCalled(); expect(storage.remove).toHaveBeenCalledOnce();
-  expect(applyDecision).toHaveBeenCalledWith(tx, 'attempt', outcome === 'DIRTY' ? 'CLEANING_REQUIRED' : 'RECAPTURE_REQUIRED', outcome === 'DIRTY' ? 'CLEANING_REQUIRED' : 'PHOTO_OF_SCREEN', expect.anything());
+  expect(applyDecision).toHaveBeenCalledWith(tx, 'attempt', 'RECAPTURE_REQUIRED', 'PHOTO_OF_SCREEN', expect.anything());
 });
 it.each(['CLEAN', 'CANNOT_ASSESS'] as const)('%s uploads only after one completed AI call and deletes the buffer after publication', async verdict => {
   const storage = io(); const provider = { evaluate: vi.fn(async () => assessment(verdict)) };
@@ -67,8 +85,8 @@ it('lost publication retains the temporary buffer', async () => {
   const storage = io(); expect(await processBufferedPhoto(job(), { evaluate: async () => assessment('DIRTY') }, storage)).toBe(false);
   expect(storage.remove).not.toHaveBeenCalled();
 });
-it('known visible dirt takes precedence over an uncertain origin and never enters storage', () => {
-  expect(bufferedDecision(assessment('DIRTY', 'UNCERTAIN'), false)).toMatchObject({ state: 'CLEANING_REQUIRED', keep: false });
+it('known visible dirt takes precedence over an uncertain origin and keeps the photo', () => {
+  expect(bufferedDecision(assessment('DIRTY', 'UNCERTAIN'), false)).toMatchObject({ state: 'CLEANING_REQUIRED', keep: true });
   expect(bufferedDecision(assessment('CLEAN'), false)).toMatchObject({ state: 'REVIEW_REQUIRED', keep: true });
 });
 

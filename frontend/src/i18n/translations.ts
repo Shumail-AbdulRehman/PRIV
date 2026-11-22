@@ -6,6 +6,7 @@ import { billingUrdu } from "./billingTranslations.ts";
 import { reviewUrdu } from "./reviewTranslations.ts";
 import { workforceUrdu } from "./workforceTranslations.ts";
 import { staffFormUrdu } from "./staffFormTranslations.ts";
+import { workDaysUrdu } from "./workDaysTranslations.ts";
 import { accountUrdu } from "./accountTranslations.ts";
 import { attendanceContextUrdu } from "./attendanceContextTranslations.ts";
 import { setupUrdu } from "./setupTranslations.ts";
@@ -13,6 +14,7 @@ import { launchUrdu } from "./launchTranslations.ts";
 import { attendancePhotoUrdu } from "./attendancePhotoTranslations.ts";
 import { managerUrdu } from "./managerTranslations.ts";
 import { workspaceRedesignUrdu } from "./workspaceRedesignTranslations.ts";
+import { reliabilityUrdu } from "./reliabilityTranslations.ts";
 // Shared English/Urdu vocabulary. Keep web and native copies in parity.
 export type Language = "en" | "ur";
 export const urdu: Record<string, string> = {
@@ -623,7 +625,7 @@ export function translate(
   values: Record<string, string | number> = {},
 ): string {
   const template =
-    language === "ur" ? (onboardingUrdu[text] ?? serviceUrdu[text] ?? platformServiceUrdu[text] ?? platformCompanyUrdu[text] ?? billingUrdu[text] ?? reviewUrdu[text] ?? staffFormUrdu[text] ?? workforceUrdu[text] ?? accountUrdu[text] ?? attendanceContextUrdu[text] ?? setupUrdu[text] ?? launchUrdu[text] ?? attendancePhotoUrdu[text] ?? managerUrdu[text] ?? urdu[text] ?? workspaceRedesignUrdu[text] ?? text) : text;
+    language === "ur" ? (onboardingUrdu[text] ?? serviceUrdu[text] ?? platformServiceUrdu[text] ?? platformCompanyUrdu[text] ?? billingUrdu[text] ?? reviewUrdu[text] ?? staffFormUrdu[text] ?? workforceUrdu[text] ?? accountUrdu[text] ?? attendanceContextUrdu[text] ?? setupUrdu[text] ?? launchUrdu[text] ?? attendancePhotoUrdu[text] ?? managerUrdu[text] ?? urdu[text] ?? workspaceRedesignUrdu[text] ?? workDaysUrdu[text] ?? reliabilityUrdu[text] ?? text) : text;
   return template.replace(/\{(\w+)\}/g, (token, key: string) =>
     String(values[key] ?? token),
   );

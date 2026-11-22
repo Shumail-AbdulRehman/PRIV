@@ -1,6 +1,7 @@
 import { jobAccountAllowed } from './launchJobs.service.js';
 import { prisma } from "../prisma/prisma.js";
-import { getZonedClockMinutes } from "../utils/dateTime.js";
+import { fitsStaffShift } from "../utils/scheduleFit.js";
+import { worksCoveringShift } from "../utils/workDays.js";
 import { writeAuditLog } from "./auditLog.service.js";
 import { companyHasFeature } from "./subscription.service.js";
 
@@ -22,32 +23,6 @@ type TaskForAssignment = {
     companyId: number;
     timezone: string;
   };
-};
-
-const normalizeEnd = (startMin: number, endMin: number) =>
-  endMin <= startMin ? endMin + 24 * 60 : endMin;
-
-const shiftCoversTask = (
-  staffShiftStart: Date | null,
-  staffShiftEnd: Date | null,
-  taskStart: Date,
-  taskEnd: Date,
-  timeZone: string
-) => {
-  if (!staffShiftStart || !staffShiftEnd) return false;
-
-  const staffStartMin = getZonedClockMinutes(staffShiftStart, timeZone);
-  const staffEndMin = normalizeEnd(staffStartMin, getZonedClockMinutes(staffShiftEnd, timeZone));
-  const taskStartMin = getZonedClockMinutes(taskStart, timeZone);
-  let normalizedTaskStartMin = taskStartMin;
-  let taskEndMin = normalizeEnd(taskStartMin, getZonedClockMinutes(taskEnd, timeZone));
-
-  if (normalizedTaskStartMin < staffStartMin && staffEndMin > 24 * 60) {
-    normalizedTaskStartMin += 24 * 60;
-    taskEndMin += 24 * 60;
-  }
-
-  return normalizedTaskStartMin >= staffStartMin && taskEndMin <= staffEndMin;
 };
 
 const taskWindowsOverlap = (
@@ -90,6 +65,14 @@ const getCurrentAssignment = async (taskInstanceId: number, client: DbClient = p
     },
     orderBy: { assignedAt: "desc" },
   });
+};
+
+const isUsableWorker = async (staffId: number, task: TaskForAssignment, client: Pick<DbClient, "staff"> = prisma) => {
+  const worker = await client.staff.findFirst({
+    where: { id: staffId, isActive: true, locationId: task.locationId, companyId: task.location.companyId },
+    select: { id: true },
+  });
+  return Boolean(worker);
 };
 
 const getAttendanceForTaskWindow = async (
@@ -182,6 +165,7 @@ export const findBestStaffForTask = async (
   const client = options.client ?? prisma;
   const now = options.now ?? new Date();
   const excludeStaffIds = options.excludeStaffIds ?? [];
+  const { timezone: timeZone } = task.location;
 
   const staffMembers = await client.staff.findMany({
     where: {
@@ -197,6 +181,7 @@ export const findBestStaffForTask = async (
       name: true,
       shiftStart: true,
       shiftEnd: true,
+      workDays: true,
     },
     orderBy: { id: "asc" },
   });
@@ -204,7 +189,11 @@ export const findBestStaffForTask = async (
   const candidates = [];
 
   for (const staff of staffMembers) {
-    if (!shiftCoversTask(staff.shiftStart, staff.shiftEnd, task.shiftStart, task.shiftEnd, task.location.timezone)) {
+    const { shiftStart, shiftEnd, workDays } = staff;
+    if (!shiftStart || !shiftEnd || !fitsStaffShift(task, staff, timeZone)) {
+      continue;
+    }
+    if (!worksCoveringShift({ shiftStart, shiftEnd, instant: task.shiftStart, timeZone, workDays })) {
       continue;
     }
 
@@ -239,66 +228,78 @@ export const ensureCurrentAssignmentForTask = async (
   }
 
   const existing = await getCurrentAssignment(taskInstanceId);
-  if (existing) {
-    return existing;
-  }
-
-  return ensureAssignmentForTask(task, reason);
+  return ensureAssignmentForTask(task, reason, existing);
 };
 
-const ensureAssignmentForTask = async (task: TaskForAssignment, reason: string) => {
+const ensureAssignmentForTask = async (
+  task: TaskForAssignment,
+  reason: string,
+  existing: Awaited<ReturnType<typeof getCurrentAssignment>>,
+) => {
+  if (existing && await isUsableWorker(existing.staffId, task)) return existing;
   if (!await jobAccountAllowed(task.location.companyId,'MANAGE_WORK')) return null;
-  if (!task.staffId) {
-    const automaticAssignmentEnabled = await companyHasFeature(
-      task.location.companyId,
-      "automaticAssignment"
-    );
-    if (!automaticAssignmentEnabled) return null;
-  }
 
-  const staffId = task.staffId ?? (await findBestStaffForTask(task))?.id ?? null;
-
-  if (!staffId) {
-    await writeAuditLog({
-      companyId: task.location.companyId,
-      actorType: "SYSTEM",
-      entityType: "TASK_INSTANCE",
-      entityId: task.id,
-      action: "AUTO_ASSIGNMENT_SKIPPED",
-      reason: "NO_ELIGIBLE_STAFF",
-      newValue: { taskInstanceId: task.id },
-    });
-    return null;
+  let staffId = task.staffId;
+  if (staffId !== null && (staffId === existing?.staffId || !await isUsableWorker(staffId, task))) {
+    staffId = null;
   }
+  const automaticAssignmentEnabled = staffId === null &&
+    await companyHasFeature(task.location.companyId, "automaticAssignment");
+  if (!automaticAssignmentEnabled && task.staffId === null && !existing) return null;
+  if (automaticAssignmentEnabled) staffId = (await findBestStaffForTask(task))?.id ?? null;
 
   try {
     return await prisma.$transaction(async (tx) => {
       await tx.$queryRaw`SELECT id FROM "TaskInstance" WHERE id=${task.id} FOR UPDATE`;
-      const fresh=await getTaskWithCompany(task.id,tx as DbClient);
-      if(!fresh||!isTaskAssignable(fresh)||fresh.staffId!==task.staffId)return null;
-      if(!await tx.staff.findFirst({where:{id:staffId,isActive:true,locationId:fresh.locationId,companyId:fresh.location.companyId}}))return null;
-      if (!await jobAccountAllowed(fresh.location.companyId,'MANAGE_WORK',tx)) return null;
+      const fresh = await getTaskWithCompany(task.id, tx as DbClient);
+      if (!fresh || !isTaskAssignable(fresh) || fresh.staffId !== task.staffId || fresh.locationId !== task.locationId) return null;
+      if (!await jobAccountAllowed(fresh.location.companyId, 'MANAGE_WORK', tx)) return null;
       const current = await getCurrentAssignment(task.id, tx as DbClient);
+      if (current && await isUsableWorker(current.staffId, fresh, tx)) return current;
+      if (staffId !== null && !await isUsableWorker(staffId, fresh, tx)) return null;
+      if (fresh.staffId !== null && fresh.staffId !== staffId && fresh.staffId !== current?.staffId &&
+        await isUsableWorker(fresh.staffId, fresh, tx)) return null;
+
       if (current) {
-        return current;
+        await tx.taskAssignment.update({
+          where: { id: current.id },
+          data: { status: "CANCELLED", reason: "WORKER_UNAVAILABLE", isCurrent: false },
+        });
       }
 
-      if (task.staffId !== staffId) {
+      if (fresh.staffId !== staffId) {
         await tx.taskInstance.update({
           where: { id: task.id },
           data: { staffId },
         });
       }
 
+      if (staffId === null) {
+        if (automaticAssignmentEnabled) {
+          const skipped = { entityType: "TASK_INSTANCE", entityId: task.id, action: "AUTO_ASSIGNMENT_SKIPPED" };
+          const previous = await tx.auditLog.findFirst({ where: skipped, select: { id: true } });
+          if (!previous) {
+            await writeAuditLog({
+              ...skipped,
+              companyId: fresh.location.companyId,
+              actorType: "SYSTEM",
+              reason: "NO_ELIGIBLE_STAFF",
+              newValue: { taskInstanceId: task.id },
+            }, tx);
+          }
+        }
+        return null;
+      }
+
       const createResult = await tx.taskAssignment.createMany({
         data: [{
           taskInstanceId: task.id,
           staffId,
-          status: mapTaskStatusToAssignmentStatus(task.status),
+          status: mapTaskStatusToAssignmentStatus(fresh.status),
           reason,
           isCurrent: true,
-          startedAt: task.status === "IN_PROGRESS" ? task.startedAt : null,
-          completedAt: task.status === "COMPLETED" ? task.completedAt : null,
+          startedAt: fresh.status === "IN_PROGRESS" ? fresh.startedAt : null,
+          completedAt: fresh.status === "COMPLETED" ? fresh.completedAt : null,
         }],
         skipDuplicates: true,
       });
@@ -331,7 +332,7 @@ const ensureAssignmentForTask = async (task: TaskForAssignment, reason: string) 
     });
   } catch (error) {
     const current = await getCurrentAssignment(task.id);
-    if (current) {
+    if (current && await isUsableWorker(current.staffId, task)) {
       return current;
     }
     throw error;
@@ -363,14 +364,12 @@ export const ensureAssignmentsForToday = async () => {
   let ensured = 0;
 
   for (const task of tasks) {
-    const existing = task.assignments[0] ?? null;
-    if (existing) {
-      ensured += 1;
-      continue;
+    try {
+      const assignment = await ensureAssignmentForTask(task, "SCHEDULER_SYNC", task.assignments[0] ?? null);
+      if (assignment) ensured += 1;
+    } catch (error) {
+      console.error("Task assignment failed", { taskId: task.id, error });
     }
-
-    const assignment = await ensureAssignmentForTask(task, "SCHEDULER_SYNC");
-    if (assignment) ensured += 1;
   }
 
   return ensured;
@@ -480,93 +479,98 @@ export const reassignExpiredAssignments = async (graceMinutes: number) => {
 
   for (const assignment of expiredAssignments) {
     const task = assignment.taskInstance;
-    const automaticReassignmentEnabled = await companyHasFeature(
-      task.location.companyId,
-      "automaticReassignment"
-    );
-    if (!automaticReassignmentEnabled) continue;
+    try {
+      const automaticReassignmentEnabled = await companyHasFeature(
+        task.location.companyId,
+        "automaticReassignment"
+      );
+      if (!automaticReassignmentEnabled) continue;
 
-    const previousAssignmentCount = await prisma.taskAssignment.count({
-      where: { taskInstanceId: task.id },
-    });
-    const hasReachedLimit = Math.max(previousAssignmentCount - 1, 0) >= reassignmentLimit;
-
-    if (hasReachedLimit) {
-      // Stop transferring the task, but keep it visible to its current worker.
-      failedWithoutReplacement += 1;
-      continue;
-    }
-
-    const replacement = await findBestStaffForTask(task, {
-      excludeStaffIds: [assignment.staffId],
-      now,
-    });
-
-    // A missed start is not a cancellation. Keep the current worker's task
-    // until a replacement can take it or the task's actual end window passes.
-    if (!replacement) {
-      failedWithoutReplacement += 1;
-      continue;
-    }
-
-    await prisma.$transaction(async (tx) => {
-      await tx.$queryRaw`SELECT id FROM "TaskInstance" WHERE id=${task.id} FOR UPDATE`;
-      if (!await jobAccountAllowed(task.location.companyId,'MANAGE_WORK',tx,now)) return;
-      const stillCurrent = await tx.taskAssignment.findFirst({
-        where: {
-          id: assignment.id,
-          isCurrent: true,
-          status: "ASSIGNED",
-          taskInstance: {
-            status: "PENDING",
-          },
-        },
+      const previousAssignmentCount = await prisma.taskAssignment.count({
+        where: { taskInstanceId: task.id },
       });
+      const hasReachedLimit = Math.max(previousAssignmentCount - 1, 0) >= reassignmentLimit;
 
-      if (!stillCurrent) {
-        return;
+      if (hasReachedLimit) {
+        // Stop transferring the task, but keep it visible to its current worker.
+        failedWithoutReplacement += 1;
+        continue;
       }
 
-      await tx.taskAssignment.update({
-        where: { id: assignment.id },
-        data: {
-          status: "REASSIGNED",
-          reason: "MISSED_START_GRACE_PERIOD",
-          failedAt: now,
-          isCurrent: false,
-        },
+      const replacement = await findBestStaffForTask(task, {
+        excludeStaffIds: [assignment.staffId],
+        now,
       });
 
-      const newAssignment = await tx.taskAssignment.create({
-        data: {
-          taskInstanceId: task.id,
-          staffId: replacement.id,
-          status: "ASSIGNED",
-          reason: "AUTO_REASSIGNED_AFTER_MISSED_START",
-          isCurrent: true,
-        },
-      });
+      // A missed start is not a cancellation. Keep the current worker's task
+      // until a replacement can take it or the task's actual end window passes.
+      if (!replacement) {
+        failedWithoutReplacement += 1;
+        continue;
+      }
 
-      await tx.taskInstance.update({
-        where: { id: task.id },
-        data: { staffId: replacement.id },
-      });
+      const transferred = await prisma.$transaction(async (tx) => {
+        await tx.$queryRaw`SELECT id FROM "TaskInstance" WHERE id=${task.id} FOR UPDATE`;
+        if (!await jobAccountAllowed(task.location.companyId,'MANAGE_WORK',tx,now)) return false;
+        const stillCurrent = await tx.taskAssignment.findFirst({
+          where: {
+            id: assignment.id,
+            isCurrent: true,
+            status: "ASSIGNED",
+            taskInstance: {
+              status: "PENDING",
+            },
+          },
+        });
 
-      await writeAuditLog(
-        {
-          companyId: task.location.companyId,
-          actorType: "SYSTEM",
-          entityType: "TASK_ASSIGNMENT",
-          entityId: newAssignment.id,
-          action: "TASK_REASSIGNED",
-          reason: "MISSED_START_GRACE_PERIOD",
-          oldValue: { assignmentId: assignment.id, staffId: assignment.staffId },
-          newValue: { assignmentId: newAssignment.id, staffId: replacement.id },
-        },
-        tx as DbClient
-      );
-      reassigned += 1;
-    });
+        if (!stillCurrent) {
+          return false;
+        }
+
+        await tx.taskAssignment.update({
+          where: { id: assignment.id },
+          data: {
+            status: "REASSIGNED",
+            reason: "MISSED_START_GRACE_PERIOD",
+            failedAt: now,
+            isCurrent: false,
+          },
+        });
+
+        const newAssignment = await tx.taskAssignment.create({
+          data: {
+            taskInstanceId: task.id,
+            staffId: replacement.id,
+            status: "ASSIGNED",
+            reason: "AUTO_REASSIGNED_AFTER_MISSED_START",
+            isCurrent: true,
+          },
+        });
+
+        await tx.taskInstance.update({
+          where: { id: task.id },
+          data: { staffId: replacement.id },
+        });
+
+        await writeAuditLog(
+          {
+            companyId: task.location.companyId,
+            actorType: "SYSTEM",
+            entityType: "TASK_ASSIGNMENT",
+            entityId: newAssignment.id,
+            action: "TASK_REASSIGNED",
+            reason: "MISSED_START_GRACE_PERIOD",
+            oldValue: { assignmentId: assignment.id, staffId: assignment.staffId },
+            newValue: { assignmentId: newAssignment.id, staffId: replacement.id },
+          },
+          tx as DbClient
+        );
+        return true;
+      });
+      if (transferred) reassigned += 1;
+    } catch (error) {
+      console.error("Task reassignment failed", { taskId: task.id, error });
+    }
   }
 
   return {

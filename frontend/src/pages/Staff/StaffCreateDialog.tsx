@@ -6,8 +6,10 @@ import { useLanguage } from '@/i18n/context';
 import { Input } from '@/components/ui/input';
 import SidePanel, { SidePanelFieldError, SidePanelFooter } from '@/components/workspace/SidePanel';
 import SelectMenu from '@/components/workspace/SelectMenu';
+import { WeekdayPicker } from '@/components/workspace/WeekdayPicker';
+import { isEveryDay, normalizeDays, type Weekday } from '@/lib/workDays';
 import { useCreateStaff } from './queries';
-import { getStaffFormError, staffEmailRules, staffNameRules, staffPhoneRules, staffShiftEndRules, staffShiftInputEvents, staffShiftStartRules, staffSiteRules } from './staffFieldRules';
+import { getStaffFormError, staffEmailRules, staffNameRules, staffPhoneRules, staffShiftEndRules, staffShiftInputEvents, staffShiftStartRules, staffSiteRules, staffWorkDaysRules } from './staffFieldRules';
 import './staff-forms-v6.css';
 
 type LocationOption = { id: number; name: string; timezone: string };
@@ -18,6 +20,7 @@ interface CreateStaffForm {
   locationId?: string;
   shiftStart: string;
   shiftEnd: string;
+  workDays: Weekday[];
 }
 type StaffCreateProps = {
   open: boolean;
@@ -45,7 +48,7 @@ function ScopedStaffCreateDialog({ open, onOpenChange, locations = [], location,
   useEffect(() => { mounted.current = true; return () => { mounted.current = false; }; }, []);
   const { register, control, handleSubmit, reset, setError, formState: { errors } } = useForm<CreateStaffForm>({
     mode: 'onBlur',
-    defaultValues: { name: '', email: '', phone: '', locationId: location ? String(location.id) : '', shiftStart: '', shiftEnd: '' },
+    defaultValues: { name: '', email: '', phone: '', locationId: location ? String(location.id) : '', shiftStart: '', shiftEnd: '', workDays: normalizeDays() },
   });
   // React Hook Form can update errors in place. Read the messages before mapping the shift inputs.
   const shiftStartMessage = errors.shiftStart?.message;
@@ -77,12 +80,14 @@ function ScopedStaffCreateDialog({ open, onOpenChange, locations = [], location,
       locationId: location?.id ?? (formData.locationId ? Number(formData.locationId) : undefined),
       shiftStart: formData.shiftStart ? fromZonedTime(`1970-01-01T${formData.shiftStart}:00`, tz).toISOString() : undefined,
       shiftEnd: formData.shiftEnd ? fromZonedTime(`1970-01-01T${formData.shiftEnd}:00`, tz).toISOString() : undefined,
+      ...(!isEveryDay(formData.workDays) ? { workDays: formData.workDays } : {}),
     }, {
       onSettled: () => { inFlight.current = false; },
       onError: error => {
         const issue = getStaffFormError(error);
         if (mounted.current && issue && issue.field !== 'reason') {
-          setError(issue.field, { type: 'server', message: issue.message });
+          const message = issue.values ? t(issue.message, issue.values) : issue.message;
+          setError(issue.field, { type: 'server', message }, { shouldFocus: issue.field === 'workDays' });
         }
       },
       onSuccess: () => {
@@ -165,6 +170,19 @@ function ScopedStaffCreateDialog({ open, onOpenChange, locations = [], location,
         })}
       </div>
       <p id={id('timezone-hint')} className="wx-staff-form-help">{t('Times use the assigned site’s timezone.')}</p>
+      <Controller control={control} name="workDays" rules={staffWorkDaysRules} render={({ field, fieldState: { error } }) =>
+        <div className="wx-staff-form-field" onBlur={field.onBlur} ref={wrapper => {
+          const group = wrapper?.querySelector('[role="group"]');
+          field.ref(group);
+          group?.setAttribute('aria-labelledby', id('work-days-label'));
+        }}>
+          <label id={id('work-days-label')}>{t('Work days')}</label>
+          <WeekdayPicker id={id('workDays')} label="Work days" value={field.value} onChange={field.onChange}
+            summaryKind="staff" errorId={error ? id('work-days-error') : undefined} />
+          <SidePanelFieldError id={id('work-days-error')}>{error?.message}</SidePanelFieldError>
+          <p className="wx-staff-form-help">{t('Days this person comes to work. Shift times are the same on each day.')}</p>
+        </div>
+      } />
     </fieldset>
     {createStaff.isError && (!fieldFailure || fieldFailure.field === 'reason') && <p role="alert" className="wx-staff-form-error">{t(failureMessage)}</p>}
   </form>;

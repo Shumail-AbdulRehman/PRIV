@@ -69,6 +69,15 @@ it('shows both daily carry-over and the next start, but none before the first ef
   const { cells } = grid({ ...base, shiftStart: '2026-11-09T17:00:00Z', shiftEnd: '2026-11-09T01:00:00Z' });
   expect(within(cells[0]).getAllByRole('button')).toHaveLength(1); expect(within(cells[1]).getAllByRole('button')).toHaveLength(2); expect(within(cells[6]).getAllByRole('button')).toHaveLength(2);
 });
+it('carries a chosen-days overnight shift into a skipped day without starting a new shift', () => {
+  const { cells } = grid({
+    ...base, repeatDays: ['MON'], shiftStart: '2026-11-09T17:00:00Z', shiftEnd: '2026-11-09T01:00:00Z',
+  });
+  expect(within(cells[0]).getByRole('button', { name: /Continues into next day/ })).toHaveTextContent('22:00–24:00');
+  expect(within(cells[1]).getByRole('button', { name: /Continues from previous day/ })).toHaveTextContent('00:00–06:00');
+  expect(within(cells[1]).queryByRole('button', { name: /Continues into next day/ })).not.toBeInTheDocument();
+  expect(within(cells[2]).getByText('—')).toBeInTheDocument();
+});
 it('ends midnight occurrences without a zero-length next-day bar', () => {
   const { cells } = grid({ ...base, recurringType: 'ONCE', shiftStart: '2026-11-09T17:00:00Z', shiftEnd: '2026-11-09T19:00:00Z' });
   expect(within(cells[0]).getByRole('button')).toHaveTextContent('22:00–24:00'); expect(within(cells[1]).queryByRole('button')).not.toBeInTheDocument();

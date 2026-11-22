@@ -18,4 +18,4 @@ cron.schedule("* * * * *", async () => {
   } catch (error) {
     console.error("Task reassignment cron error:", error);
   }
-});
+}, { noOverlap: true });

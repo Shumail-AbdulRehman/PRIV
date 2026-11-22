@@ -1,6 +1,7 @@
 import { useLanguage } from '@/i18n/context';
 import DataTable from '@/components/common/DataTable';
 import StatusPill from '@/components/workspace/StatusPill';
+import { formatDays, isEveryDay, type Weekday } from '@/lib/workDays';
 import './staff-tabs-v6.css';
 import { formatInTimeZone } from 'date-fns-tz';
 export interface StaffTaskTemplateRow {
@@ -8,6 +9,7 @@ export interface StaffTaskTemplateRow {
   title: string;
   description?: string | null;
   recurringType?: string | null;
+  repeatDays?: Weekday[];
   isActive: boolean;
   location?: { name?: string | null; timezone?: string | null } | null;
   shiftStart: string | null;
@@ -58,7 +60,11 @@ return <section className="wx-staff-tab wx-staff-tab-schedule" aria-label={t('Cl
               key: "recurrence",
               header: "Recurrence",
               render: (row) => (
-                <StatusPill status={row.recurringType ?? "ONCE"} />
+                <StatusPill status={row.recurringType ?? "ONCE"}>
+                  {row.recurringType === "DAILY" && row.repeatDays?.length && !isEveryDay(row.repeatDays)
+                    ? formatDays(row.repeatDays, t, language)
+                    : undefined}
+                </StatusPill>
               ),
             },
             {

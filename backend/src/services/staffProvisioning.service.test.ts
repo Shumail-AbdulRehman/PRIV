@@ -55,6 +55,12 @@ it('skips the email lock and lookup when email is absent', async () => {
   expect(create).toHaveBeenCalledWith({ data: expect.objectContaining({ email: null, mustChangePassword: false }) });
 });
 
+it('passes validated work days through to the staff insert', async () => {
+  const { tx, create } = mockTransaction();
+  await insertStaff(tx, 1, { ...input, workDays: ['MON', 'WED'] });
+  expect(create.mock.calls[0]![0].data.workDays).toEqual(['MON', 'WED']);
+});
+
 it('rejects an invalid phone from the legacy caller before accessing Prisma', async () => {
   const { tx, lock, create } = mockTransaction();
   await expect(insertStaff(tx, 1, { ...input, phone: '02112345678' })).rejects.toMatchObject({

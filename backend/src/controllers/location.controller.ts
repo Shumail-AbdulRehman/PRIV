@@ -7,6 +7,7 @@ import { prisma } from "../prisma/prisma.js";
 import { ApiResponse } from "../utils/ApiResponse.js";
 import { ApiError } from "../utils/ApiError.js";
 import { addUtcDays, getZonedDayRange, getZonedDayRangeFromDateInput } from "../utils/dateTime.js";
+import { readDayList } from "../utils/workDays.js";
 import { permanentlyDelete } from "../services/deletion.service.js";
 import { getScopedLocationIds, assertLocationAccess } from "../utils/scope.js";
 
@@ -219,7 +220,7 @@ export const getLocationStatsById = async (req: Request, res: Response) => {
           isActive:true
         },
         select: {
-          id: true, name: true, email: true, shiftStart: true, shiftEnd: true, isActive: true,
+          id: true, name: true, email: true, shiftStart: true, shiftEnd: true, isActive: true, workDays: true,
         },
       },
       taskTemplates: {where:{
@@ -258,7 +259,11 @@ export const getLocationStatsById = async (req: Request, res: Response) => {
     if (remaining) counts.set(group.status, (counts.get(group.status) ?? 0) + remaining);
     if (submitted) counts.set("COMPLETED", (counts.get("COMPLETED") ?? 0) + submitted);
   }
-  const presentedLocation = locationInfo ? {...locationInfo, taskInstances: locationInfo.taskInstances.map(managerTaskPresentation)} : null;
+  const presentedLocation = locationInfo ? {
+    ...locationInfo,
+    staff: locationInfo.staff.map(staff => ({ ...staff, workDays: readDayList(staff.workDays) })),
+    taskInstances: locationInfo.taskInstances.map(managerTaskPresentation),
+  } : null;
   const presentedStats = [...counts].map(([status, count]) => ({status, _count: {status: count}}));
   res.status(200).json(new ApiResponse(200, {locationInfo: presentedLocation, taskStats: presentedStats}, "Location stats fetched successfully"));
 };

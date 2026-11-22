@@ -1,3 +1,5 @@
+import type { Weekday } from "@/lib/workDays";
+
 export type CreateTaskInput = {
   title: string;
   description?: string;
@@ -11,6 +13,7 @@ export type CreateTaskInput = {
 };
 
 export type CreateTaskTemplateFormData = CreateTaskInput & {
+  repeatDays?: Weekday[];
   areaId: number;
   inventorySelection: "ALL" | "SUBSET";
   selectedItems: Array<{areaItemId: number; mandatory: boolean}>;

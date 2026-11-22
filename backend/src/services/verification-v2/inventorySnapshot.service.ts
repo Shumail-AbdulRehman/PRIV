@@ -9,6 +9,7 @@ import {resolveTaskInstanceWindow} from '../../cron/taskInstanceWindow.js';
 import type {VerificationTransaction} from './transaction.js';
 import {writeAuditLog} from '../auditLog.service.js';
 import {getZonedDayRange} from '../../utils/dateTime.js';
+import {matchesScheduleWeekday} from '../../utils/workDays.js';
 export type InventorySelectionInput={areaId:number;inventorySelection:'ALL'|'SUBSET';selectedItems:{areaItemId:number;mandatory:boolean}[];expectedInventoryVersion:number};
 export async function validateInventorySelection(tx:VerificationTransaction,locationId:number,input:InventorySelectionInput) {
  await tx.$queryRaw`SELECT id FROM "Area" WHERE id=${input.areaId} FOR UPDATE`;
@@ -51,13 +52,21 @@ export async function createTaskInstanceWithSnapshotInTransaction(tx:Verificatio
   await tx.$queryRaw`SELECT id FROM "TaskTemplate" WHERE id=${data.templateId} FOR UPDATE`;
   const template=await tx.taskTemplate.findUniqueOrThrow({where:{id:data.templateId!},include:{inventoryItems:true,location:{include:{company:true}}}});
   if(initial.areaId!==template.areaId)throw new ApiError(409,'Template area changed during generation; retry');
-  const staff=template.staffId?await tx.staff.findUnique({where:{id:template.staffId},select:{shiftStart:true,shiftEnd:true}}):null;
+  const staff = template.staffId ? await tx.staff.findUnique({
+    where: {
+      id: template.staffId,
+      isActive: true,
+      locationId: template.locationId,
+      companyId: template.location.companyId,
+    },
+    select: { id: true, shiftStart: true, shiftEnd: true },
+  }) : null;
   const window=data.baseDate?resolveTaskInstanceWindow({baseDate:data.baseDate,taskShiftStart:template.shiftStart,taskShiftEnd:template.shiftEnd,staffShiftStart:staff?.shiftStart,staffShiftEnd:staff?.shiftEnd,timeZone:template.location.timezone}):{date:new Date(data.date),shiftStart:new Date(data.shiftStart),shiftEnd:new Date(data.shiftEnd)};
   const existing=await tx.taskInstance.findUnique({where:{templateId_date:{templateId:template.id,date:window.date}}});
   if(existing)return {...existing,created:false};
   if(!template.isActive||!template.location.isActive||!template.location.company.isActive)return null;
   if(!await jobAccountAllowed(template.location.companyId,'MANAGE_WORK',tx))return null;
-  const common={templateId:template.id,title:template.title,locationId:template.locationId,staffId:template.staffId,...window};
+  const common={templateId:template.id,title:template.title,locationId:template.locationId,staffId:staff?.id??null,...window};
   async function blockGeneration(reason:string) {
    await tx.taskTemplate.update({where:{id:template.id},data:{setupStatus:'NEEDS_REVIEW'}});
    const key=`setup:template:${template.id}`;
@@ -86,10 +95,23 @@ export async function createTodaysTaskForNewTemplate(tx:VerificationTransaction,
  if(template.effectiveDate>=end)return null;
  if(template.recurringType==='ONCE'&&template.effectiveDate<start)return null;
  if(template.recurringEndDate&&template.recurringEndDate<start)return null;
+ const {recurringType,repeatDays}=template;
+ if(recurringType==='DAILY'){
+  if(!matchesScheduleWeekday({recurringType,repeatDays},start,template.location.timezone))return null;
+ }
  return createTaskInstanceWithSnapshotInTransaction(tx,{templateId:template.id,title:template.title,locationId:template.locationId,date:start,baseDate:start,shiftStart:template.shiftStart,shiftEnd:template.shiftEnd});
 }
 export async function generateTaskInstances(data:InstanceGenerationInput[]) {
- let count=0;for(const row of data){const instance=await createTaskInstanceWithSnapshot(row);if(instance?.created)count++;}return {count};
+  let count = 0;
+  for (const row of data) {
+    try {
+      const instance = await createTaskInstanceWithSnapshot(row);
+      if (instance?.created) count++;
+    } catch (error) {
+      console.error('Task generation failed', { templateId: row.templateId, error });
+    }
+  }
+  return { count };
 }
 
 /** Explicit, single-task repair only. Schedule edits and cron never invoke this. */

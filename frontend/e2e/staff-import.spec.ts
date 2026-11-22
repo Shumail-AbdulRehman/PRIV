@@ -55,7 +55,7 @@ test('location import uses the phone-first template and persists XLSX and CSV wi
         expect(template.status()).toBe(200);
         const book = new ExcelJS.Workbook();
         await book.xlsx.load(await template.body());
-        expect(book.worksheets[0].getRow(1).values.slice(1)).toEqual(headers);
+        expect(book.worksheets[0].getRow(1).values.slice(1)).toEqual([...headers, 'Work days']);
 
         const name = `Imported Worker ${index + 1}`;
         const cells = row(name, index, email, '22:00', '06:00');

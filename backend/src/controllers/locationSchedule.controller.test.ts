@@ -32,6 +32,7 @@ describe("GET location week schedule read contract", () => {
     const res = response();
     await getLocationSchedule(request("MANAGER"), res as unknown as Response);
     expect(db.location).toHaveBeenCalledWith(expect.objectContaining({ where: { id: 2, companyId: 3, isActive: true } }));
+    expect(db.templates).toHaveBeenCalledWith(expect.objectContaining({ select: expect.objectContaining({ repeatDays: true }) }));
     expect(db.instances).toHaveBeenCalledWith(expect.objectContaining({ where: expect.objectContaining({ locationId: 2, isActive: true }) }));
     const payload = res.json.mock.calls[0][0];
     expect(payload.data.weekStart).toBe("2026-09-14");

@@ -144,3 +144,22 @@ it('translates phone errors and a missing email in Urdu and preserves unknown er
   expect(row).toHaveTextContent('پاکستانی موبائل نمبر درج کریں، جیسے 03001234567۔');
   expect(row).toHaveTextContent('Unknown row error.');
 });
+
+it('shows the optional Work days column guidance in English', () => {
+  mount();
+  open();
+  expect(screen.getByText('Optional Work days column, for example Mon,Wed. Leave it empty for every day.')).toBeVisible();
+});
+
+it('shows the Work days guidance and translates the server row error in Urdu', async () => {
+  const errors = ['Enter work days like Mon,Wed using Mon to Sun.'];
+  m.post.mockResolvedValue({data:{data:{...preview,valid:0,rows:[{...preview.rows[0],errors}]}}});
+  mount('ur');
+  fireEvent.click(screen.getByRole('button', {name:'عملہ درآمد کریں'}));
+  expect(screen.getByText('کام کے دنوں کا خانہ اختیاری ہے، مثلاً \u2066Mon,Wed\u2069۔ اگر کام ہر روز ہوتا ہے تو اسے خالی چھوڑ دیں۔')).toBeVisible();
+
+  fireEvent.change(screen.getByLabelText(/مکمل شیٹ/), {target:{files:[new File(['csv'],'staff.csv')]}});
+  const row = await screen.findByRole('row', {name:/Ahmed Khan/});
+  expect(row).toHaveTextContent('کام کے دن \u2066Mon\u2069 سے \u2066Sun\u2069 تک کے مختصر ناموں سے درج کریں، مثلاً \u2066Mon,Wed\u2069۔');
+  expect(screen.getByRole('button', {name:'درآمد کی تصدیق'})).toBeDisabled();
+});

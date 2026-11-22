@@ -32,6 +32,8 @@ import {
 } from "./operations";
 import "./today-v6.css";
 
+type TodayStaffRow = OperationStaff & { offToday?: boolean };
+
 function Assignee({ task }: { task: OperationTask }) {
   const { t } = useLanguage();
   const { worker } = taskAssignee(task);
@@ -140,7 +142,7 @@ export default function TodayStatusPage() {
   };
   const search = useDebouncedValue(params.get("q") ?? "");
   const appliedFilters = { ...filters, q: search };
-  const staff = useOperations<OperationsPage<OperationStaff>>("staff", appliedFilters, tab === "staff");
+  const staff = useOperations<OperationsPage<TodayStaffRow>>("staff", appliedFilters, tab === "staff");
   const tasks = useOperations<OperationsPage<OperationTask>>("tasks", appliedFilters, tab === "tasks");
   const query = tab === "staff" ? staff : tasks;
   const data = query.data;
@@ -208,6 +210,7 @@ export default function TodayStatusPage() {
     { value: "all", label: "All staff" }, { value: "present", label: "Present" },
     { value: "absent", label: "Not checked in" }, { value: "upcoming", label: "Shift not started" },
     { value: "missing", label: "No attendance record" },
+    { value: "off", label: "Day off" },
   ];
   const refresh = () => { void query.refetch(); void overview.refetch(); };
   const number = (value: number) => value.toLocaleString(language === "ur" ? "ur-PK" : "en-PK");
@@ -223,9 +226,15 @@ export default function TodayStatusPage() {
         action={emptyScope ? <Link className="wx-today-button wx-today-button--primary" to="/setup">{t("Continue setup")}</Link> : <button className="wx-today-button wx-today-button--primary" type="button" onClick={() => setParams(new URLSearchParams(scopeParams(params)).toString() + (tab === "staff" ? "&tab=staff" : ""))}>{t("Clear filters")}</button>} /> : tab === "staff" ? <DataTable mobileCards data={staff.data?.rows ?? []} rowKey={r => r.id} emptyMessage="No workers match these filters." columns={[
         { key: "staff", header: "Worker", render: r => <div className="wx-today-person"><PersonAvatar name={r.name} /><strong><bdi>{r.name}</bdi></strong></div> },
         { key: "shift", header: "Location and shift", render: r => <div><div className="wx-today-site"><SiteAvatar name={r.location.name} size="small" /><bdi>{r.location.name}</bdi></div><p><bdi>{r.attendance ? `${localTime(r.attendance.expectedStart, r.location.timezone, language)} – ${localTime(r.attendance.expectedEnd, r.location.timezone, language)}` : t("No attendance record")}</bdi></p>{r.carryOver ? <small>{t("Started yesterday · overnight shift")}</small> : null}</div> },
-        { key: "checkin", header: "Check-in", render: r => r.attendance?.checkInTime ? <time dateTime={r.attendance.checkInTime}><bdi>{localTime(r.attendance.checkInTime, r.location.timezone, language)}</bdi></time> : t("Not recorded") },
-        { key: "attendance", header: "Attendance", render: r => <OperationStatus state={r.attendance?.checkOutTime ? "CHECKED_OUT" : r.attendance?.checkInTime ? r.attendance.status : r.attendance?.status === "ABSENT" && Date.parse(r.attendance.expectedStart) <= Date.parse(data.asOf) ? "ABSENT" : "PENDING"}
-          label={r.attendance?.checkInTime ? r.attendance.checkOutTime ? "Checked out" : r.attendance.status === "LATE" ? "Late check-in" : r.attendance.status === "MISSED_CHECKOUT" ? "Missed checkout" : "Present" : r.attendance?.status === "ABSENT" ? Date.parse(r.attendance.expectedStart) > Date.parse(data.asOf) ? "Shift not started" : "Not checked in" : "No attendance record"} /> },
+        { key: "checkin", header: "Check-in", render: r => {
+          if (r.offToday && !r.attendance) return null;
+          return r.attendance?.checkInTime ? <time dateTime={r.attendance.checkInTime}><bdi>{localTime(r.attendance.checkInTime, r.location.timezone, language)}</bdi></time> : t("Not recorded");
+        } },
+        { key: "attendance", header: "Attendance", render: r => {
+          if (r.offToday && !r.attendance) return <OperationStatus label="Day off" />;
+          return <OperationStatus state={r.attendance?.checkOutTime ? "CHECKED_OUT" : r.attendance?.checkInTime ? r.attendance.status : r.attendance?.status === "ABSENT" && Date.parse(r.attendance.expectedStart) <= Date.parse(data.asOf) ? "ABSENT" : "PENDING"}
+            label={r.attendance?.checkInTime ? r.attendance.checkOutTime ? "Checked out" : r.attendance.status === "LATE" ? "Late check-in" : r.attendance.status === "MISSED_CHECKOUT" ? "Missed checkout" : "Present" : r.attendance?.status === "ABSENT" ? Date.parse(r.attendance.expectedStart) > Date.parse(data.asOf) ? "Shift not started" : "Not checked in" : "No attendance record"} />;
+        } },
         { key: "progress", header: "Current work", render: r => <div>{r.tasks.filter(task => task.status === "IN_PROGRESS" && !task.staffSubmittedAt).map(task => <Link className="wx-today-work-link" key={task.id} to={taskDestination(task.id)} onClick={event => { opener.current = event.currentTarget; }} preventScrollReset><bdi>{task.areaNameSnapshot ?? task.title}</bdi></Link>)}<p>{t("Work submitted")}: <bdi>{number(r.submittedCount)} / {number(r.taskCount)}</bdi></p></div> },
         { key: "action", header: "Next action", className: "wx-today-worker-action", render: r => <Link className="wx-today-button" to={`/staff/${r.id}?dateFrom=${r.localDate}&dateTo=${r.localDate}&tab=overview&focus=today`}>{t("View worker")}</Link> },
       ]} /> : <DataTable mobileCards data={tasks.data?.rows ?? []} rowKey={r => r.id} onRowClick={r => openTask(r.id)} selectedRowKey={hasTask ? taskId : null} emptyMessage="No tasks match these filters." columns={[

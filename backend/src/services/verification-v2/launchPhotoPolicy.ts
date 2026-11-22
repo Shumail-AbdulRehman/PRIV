@@ -45,8 +45,11 @@ function authority(task: TaskAuthority, session: SessionAuthority, staffId: numb
         session.captureExpiresAt <= now || session.uploadExpiresAt <= now)
         throw new ApiError(409, 'Photo replacement is unavailable for this task.', [{ code: 'REPLACEMENT_UNAVAILABLE' }]);
 }
-export function assertFailedViewReplacement(input: { task: TaskAuthority; session: SessionAuthority; staffId: number; now: Date;
-    requirement: Requirement & { mandatory: boolean; item: { mandatory: boolean } }; attempt: FailedAttempt | null; expectedGeneration: number; cleaning?: boolean }) {
+type ViewReplacement = { task: TaskAuthority; session: SessionAuthority; staffId: number; now: Date;
+    requirement: Requirement & { mandatory: boolean; item: { mandatory: boolean } }; attempt: FailedAttempt | null; expectedGeneration: number; cleaning?: boolean };
+const unprovenViewReplacement = () => new ApiError(409, 'A current server-confirmed failed view is required for replacement.', [{ code: 'REPLACEMENT_UNPROVEN' }]);
+
+function assertViewReplacement(input: ViewReplacement, failureGeneration: number) {
     const { task, session, staffId, requirement: row, attempt, expectedGeneration, cleaning = false, now } = input;
     authority(task, session, staffId, now);
     const binding = { taskId: task.id, staffId, assignmentEpoch: session.assignmentEpoch, assignmentId: session.assignmentId };
@@ -54,8 +57,41 @@ export function assertFailedViewReplacement(input: { task: TaskAuthority; sessio
         : row.state === 'RECAPTURE_REQUIRED' && attempt?.state === 'RECAPTURE_REQUIRED' || row.state === 'REVIEW_REQUIRED' && attempt?.state === 'PRIVACY_HOLD';
     if (!row.mandatory || !row.item.mandatory || row.decisionVersion !== expectedGeneration || !attempt || row.currentAttemptId !== attempt.id ||
         attempt.requirementId !== row.id || !attempt.receivedAt || attempt.session.state === 'REVOKED' || !sameAssignment(attempt, binding) ||
-        attempt.slot.generation !== row.decisionVersion - 1 || !failure)
-        throw new ApiError(409, 'A current server-confirmed failed view is required for replacement.', [{ code: 'REPLACEMENT_UNPROVEN' }]);
+        attempt.slot.generation !== failureGeneration || !failure)
+        throw unprovenViewReplacement();
+}
+
+export function assertFailedViewReplacement(input: ViewReplacement) {
+    assertViewReplacement(input, input.requirement.decisionVersion - 1);
+}
+
+/** Use only after verifying the task QR under the task and area locks. */
+export async function assertLegacyRetakeRenewal(tx: VerificationTransaction, input: Omit<ViewReplacement, 'cleaning' | 'session'> & {
+    session: SessionAuthority & { areaId: number; qrVersion: number };
+}) {
+    const { requirement, session } = input;
+    assertViewReplacement(input, requirement.decisionVersion - 2);
+    if (requirement.state !== 'RECAPTURE_REQUIRED') throw unprovenViewReplacement();
+
+    const unusedSlot = await tx.captureSlot.findFirst({
+        where: {
+            requirementId: requirement.id,
+            contextKey: null,
+            generation: requirement.decisionVersion,
+            attemptId: null,
+            session: {
+                taskInstanceId: session.taskInstanceId,
+                areaId: session.areaId,
+                qrVersion: session.qrVersion,
+                staffId: session.staffId,
+                assignmentId: session.assignmentId,
+                assignmentEpoch: session.assignmentEpoch,
+                state: { not: 'REVOKED' },
+            },
+        },
+        select: { id: true },
+    });
+    if (!unusedSlot) throw unprovenViewReplacement();
 }
 
 export function assertFailedContextReplacement(input: { task: TaskAuthority; session: SessionAuthority; staffId: number; now: Date;

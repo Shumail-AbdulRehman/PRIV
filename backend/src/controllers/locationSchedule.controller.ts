@@ -27,7 +27,7 @@ export const getLocationSchedule = async (req: Request, res: Response) => {
     prisma.taskTemplate.findMany({
       where: { locationId, isActive: true, recurringType: { in: ["DAILY", "ONCE"] } },
       select: { id: true, title: true, shiftStart: true, shiftEnd: true, effectiveDate: true,
-        recurringType: true, recurringEndDate: true,
+        recurringType: true, recurringEndDate: true, repeatDays: true,
         staff: { select: { id: true, name: true, shiftStart: true, shiftEnd: true } } },
     }),
     prisma.taskInstance.findMany({

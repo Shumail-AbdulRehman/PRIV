@@ -1,6 +1,7 @@
 import { describe, it, expect, vi, afterEach } from "vitest";
 import jwt from "jsonwebtoken";
 import { generateAccessToken, generateRefreshToken } from "../../utils/auth.js";
+import { WEEKDAYS } from "../../utils/workDays.js";
 import {
   notificationCurrent,
   notificationMessage,
@@ -139,6 +140,56 @@ describe("staff notification eligibility", () => {
     expect(() => notificationMessage("REVIEW_RESOLVED", undefined)).toThrow();
     expect(retryDelayMs(1)).toBe(30000);
     expect(retryDelayMs(30)).toBe(3600000);
+  });
+});
+describe("scheduled shift reminder windows", () => {
+  const staff = {
+    id: 2,
+    companyId: 1,
+    locationId: 1,
+    location: { timezone: "Asia/Karachi" },
+    shiftStart: new Date("1970-01-01T03:00:00Z"),
+    shiftEnd: new Date("1970-01-01T11:00:00Z"),
+  };
+  const tuesday = new Date("2026-11-23T20:00:00Z");
+  const tuesdayStart = new Date("2026-11-24T03:00:00Z");
+  const wednesdayStart = new Date("2026-11-25T03:00:00Z");
+
+  it("keeps Wednesday's window and skips Tuesday for Monday and Wednesday staff", () => {
+    const windows = scheduledWindows(
+      { ...staff, workDays: ["MON", "WED"] },
+      tuesday,
+    );
+
+    expect(windows.map((window) => window.expectedStart)).toEqual([
+      wednesdayStart,
+    ]);
+  });
+
+  it.each([
+    { label: "all seven work days", workDays: WEEKDAYS },
+    { label: "a missing work-day list", workDays: undefined },
+    { label: "an empty work-day list", workDays: [] },
+  ])("keeps both windows with $label", ({ workDays }) => {
+    const windows = scheduledWindows({ ...staff, workDays }, tuesday);
+
+    expect(windows.map((window) => window.expectedStart)).toEqual([
+      tuesdayStart,
+      wednesdayStart,
+    ]);
+  });
+
+  it("uses the local start day of an overnight shift across the DST change", () => {
+    const windows = scheduledWindows(
+      { ...staff, location: { timezone: "America/New_York" }, workDays: ["SAT"] },
+      new Date("2026-10-31T20:00:00Z"),
+    );
+
+    expect(windows).toHaveLength(1);
+    expect(windows[0]).toMatchObject({
+      expectedStart: new Date("2026-11-01T02:00:00Z"),
+      expectedEnd: new Date("2026-11-01T11:00:00Z"),
+    });
   });
 });
 describe("staff session duration", () => {

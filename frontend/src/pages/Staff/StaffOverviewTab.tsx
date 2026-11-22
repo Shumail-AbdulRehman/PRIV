@@ -4,6 +4,7 @@ import { Activity, AlertTriangle, CheckCircle2, ClipboardList, XCircle } from 'l
 import { Bar, BarChart, CartesianGrid, ResponsiveContainer, Tooltip, XAxis, YAxis } from 'recharts';
 import { formatInTimeZone } from 'date-fns-tz';
 import { useLanguage } from '@/i18n/context';
+import { formatDays, isEveryDay } from '@/lib/workDays';
 import DataTable from '@/components/common/DataTable';
 import StatCard from '@/components/common/StatCard';
 import StatusPill from '@/components/workspace/StatusPill';
@@ -49,11 +50,17 @@ export default function StaffOverviewTab({ staff, staffTz, displayPeriod, isFetc
   const chartData = chart.filter(item => item.value > 0);
   const time = (value: string | null, timezone = staffTz) => value ? formatInTimeZone(new Date(value), timezone, 'HH:mm') : '—';
   const date = (value: string | null) => value ? new Date(value).toLocaleDateString(locale, { timeZone: 'UTC' }) : '—';
+  const days = staff.workDays?.length ? staff.workDays : undefined;
+  const daySummary = formatDays(days, t, language);
+  const shift = <>
+    <bdi dir="ltr">{time(staff.shiftStart)} – {time(staff.shiftEnd)} ({staffTz})</bdi>
+    {!isEveryDay(days) && <> · <bdi>{daySummary}</bdi></>}
+  </>;
   const facts = [
     ['Name', staff.name], ['Email', staff.email || t('No email')], ['Phone Number', staff.phone || '—'], ['Role', t(staff.role)],
     ['Location', staff.location?.name ?? t('Unassigned')], ['Address', staff.location?.address ?? '—'],
-    ['Shift', `${time(staff.shiftStart)} – ${time(staff.shiftEnd)} (${staffTz})`], ['Joined', date(staff.createdAt)],
-  ];
+    ['Shift', shift], ['Work days', daySummary], ['Joined', date(staff.createdAt)],
+  ] as const;
 
   return <div className="wx-profile-overview">
     <dl className="wx-profile-figures">
@@ -92,7 +99,9 @@ export default function StaffOverviewTab({ staff, staffTz, displayPeriod, isFetc
       </section>
       <section className="wx-profile-facts" aria-labelledby={`staff-${staff.id}-profile`}>
         <h2 id={`staff-${staff.id}-profile`}>{t('Profile')}</h2><p>{t('Core staff identity and assignment details.')}</p>
-        <dl>{facts.map(([label, value]) => <div key={label}><dt>{t(label)}</dt><dd><bdi dir={label === 'Phone Number' || label === 'Shift' || (label === 'Email' && staff.email) ? 'ltr' : undefined}>{value}</bdi></dd></div>)}</dl>
+        <dl>{facts.map(([label, value]) => <div key={label}><dt>{t(label)}</dt><dd>{typeof value === 'string'
+          ? <bdi dir={label === 'Phone Number' || (label === 'Email' && staff.email) ? 'ltr' : undefined}>{value}</bdi>
+          : value}</dd></div>)}</dl>
       </section>
       <section className="wx-profile-totals" aria-label={t('Task totals')}>
         <StatCard label="Scheduled tasks" value={number(taskStats.totalInstances)} icon={ClipboardList} />

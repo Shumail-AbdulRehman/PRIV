@@ -99,6 +99,7 @@ export function VerificationScreen({route,navigation}:Props) {
   const [cameraReady,setCameraReady]=useState(false),[cameraKey,setCameraKey]=useState(0),[torch,setTorch]=useState(false);
   const [lastUpdated,setLastUpdated]=useState<number|null>(null),[seconds,setSeconds]=useState<number|null>(null);
   const camera=useRef<CameraView>(null),mounted=useRef(true),inFlight=useRef(false),loading=useRef(false),activation=useRef<string|null>(null);
+  const openedSession=useRef<{taskId:number;scope:string;id:string}|null>(null);
   // After a failed scan the scanner stays paused until the person taps Scan again, so the QR still in view cannot retrigger it.
   const scanHeldRef=useRef(false),[scanHeld,setScanHeld]=useState(false);
   // A new photo's first send keeps the camera open; `done` names the item just confirmed over the camera.
@@ -180,16 +181,24 @@ export function VerificationScreen({route,navigation}:Props) {
     holdScan(false);setMode('scan');
   });}
   async function scanned(qr:string){await action(async()=>{let opened=false;try{
-    if(!photoAuthority(await load()).capture)throw new Error('Task photos are unavailable. Your received results are kept. Ask your manager for help.');
+    const current=await load();
+    if(!current||!photoAuthority(current).capture)throw new Error('Task photos are unavailable. Your received results are kept. Ask your manager for help.');
     if(!online)throw new Error('Internet needed to confirm the room. Reconnect, then scan this task’s QR code.');
     setMode('locating');
-    const targets=manifest?.items.flatMap(i=>i.requirements).filter(r=>r.state==='CLEANING_REQUIRED').map(r=>({requirementId:r.id,expectedGeneration:r.decisionVersion}));
-    const session=await openCaptureSession(taskId,qr,local?.session.id??manifest?.sessions?.find(s=>s.state==='ACTIVE'||s.state==='PAUSED')?.id,label=>{if(valid())setBusyLabel(label);},targets?.length?targets:undefined);
-    const current=await verificationManifest(taskId),clock=captureClock();
+    const targets=current.items.flatMap(i=>i.requirements).filter(r=>r.state==='CLEANING_REQUIRED').map(r=>({requirementId:r.id,expectedGeneration:r.decisionVersion}));
+    const remembered=openedSession.current;
+    const previousSessionId=remembered?.taskId===taskId&&remembered.scope===scope?remembered.id
+      :local?.session.id??current.sessions?.find(s=>s.state==='ACTIVE'||s.state==='PAUSED')?.id;
+    const session=await openCaptureSession(taskId,qr,previousSessionId,label=>{if(valid())setBusyLabel(label);},targets.length?targets:undefined);
+    if(!scope||!valid())return;
+    // Renew this session on retry even if the follow-up read cannot finish setting up the camera.
+    openedSession.current={taskId,scope,id:session.id};
+    const updated=await verificationManifest(taskId),clock=captureClock();
     if(!valid())return;
     if(pendingRef.current){removeTemporary(pendingRef.current.uri);rememberPending(null);}
-    setLocal({session,manifest:current,anchorElapsedMs:clock.elapsedMs,anchorBootId:clock.bootId,savedAt:Date.now(),paused:false});
-    setCapturePictureSize(chosenPictureSize??undefined);setManifest(current);setLastUpdated(Date.now());setMode('capture');opened=true;
+    setLocal({session,manifest:updated,anchorElapsedMs:clock.elapsedMs,anchorBootId:clock.bootId,savedAt:Date.now(),paused:false});
+    openedSession.current=null;
+    setCapturePictureSize(chosenPictureSize??undefined);setManifest(updated);setLastUpdated(Date.now());setMode('capture');opened=true;
   }finally{if(!opened)holdScan(true);}});if(mounted.current)setMode(previous=>previous==='locating'?'scan':previous);}
   async function refreshAfterUpload(){
     // The manifest supplies current results and session state. Uploading does

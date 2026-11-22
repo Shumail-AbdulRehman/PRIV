@@ -1,5 +1,6 @@
 import { z } from 'zod';
 import { INVALID_PAKISTAN_PHONE_MESSAGE, normalizePakistanPhone } from '../utils/pakistanPhone.js';
+import { workDaysSchema } from '../utils/workDays.js';
 
 const phone = z.unknown().transform((value, ctx) => {
   const normalized = normalizePakistanPhone(value);
@@ -18,6 +19,7 @@ export const staffRecordSchema = z.object({
   locationId: z.number().int().positive().optional(),
   shiftStart: z.coerce.date({ message: 'Shift start must be a valid date' }).optional(),
   shiftEnd: z.coerce.date({ message: 'Shift end must be a valid date' }).optional(),
+  workDays: workDaysSchema.optional(),
 }).superRefine(({ shiftStart, shiftEnd }, ctx) => {
   if (!shiftStart || !shiftEnd) {
     if (shiftStart || shiftEnd) {

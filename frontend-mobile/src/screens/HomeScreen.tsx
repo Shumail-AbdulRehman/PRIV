@@ -14,6 +14,8 @@ import { isolate } from "../design/StaffText";
 import { displayFor, taskDisplay } from "../design/taskState";
 import { colors } from "../design/tokens";
 import { stackRoutes, tabRoutes } from "../navigation/routeNames";
+import { useProfileSummary } from "../queries/history";
+import { useStaffProfileQuery } from "../queries/profile";
 import { useMyAttendanceQuery, useTodaysTasksQuery } from "../queries/staff";
 import type { RootStackParamList, StaffTabsParamList, TaskInstance } from "../types";
 import { getRecommendedCheckoutAt, getRelevantAttendanceRecord, hasOpenCheckout } from "../utils/attendance";
@@ -57,7 +59,7 @@ const isOpen = (task: TaskInstance) => displayFor(taskDisplay(task)).open;
 /** My day: one sentence, today's work and one button. The `Shift` tab. */
 export function HomeScreen() {
   const { user } = useAuth();
-  const { t } = useLanguage();
+  const { language, t } = useLanguage();
   const online = useOnline();
   const snackbar = useSnackbar();
   const navigation = useNavigation<NavigationProp>();
@@ -80,22 +82,33 @@ export function HomeScreen() {
   /** The shift the running check-in or check-out is for, so the receipt shows that record. */
   const actionRecordId = React.useRef<number | null>(null);
 
+  const hasLocation = Boolean(user?.locationId);
+  const record = getRelevantAttendanceRecord(records, now);
+  const needsProfile = !record && hasLocation;
+  const profileQuery = useStaffProfileQuery(staffId, focused && needsProfile);
+  const { offToday, nextShiftStart } = profileQuery.data ?? {};
+  const needsShiftZone = needsProfile && offToday === true && Boolean(nextShiftStart);
+  const summaryQuery = useProfileSummary(staffId, focused && needsShiftZone);
   const loading =
     online &&
-    ((attendanceQuery.isPending && !attendanceQuery.data) || (tasksQuery.isPending && !tasksQuery.data));
+    ((attendanceQuery.isPending && !attendanceQuery.data) || (tasksQuery.isPending && !tasksQuery.data) ||
+      (needsShiftZone && summaryQuery.isPending && summaryQuery.fetchStatus === "fetching"));
   const failed =
     (attendanceQuery.isError && !attendanceQuery.data) || (tasksQuery.isError && !tasksQuery.data);
-  const record = getRelevantAttendanceRecord(records, now);
   // The task feed does not carry the photo authority (it lives in each task's manifest),
   // so My day never hides photo actions; the photo screen still enforces it.
   const state = nowState({
-    hasLocation: Boolean(user?.locationId),
+    hasLocation,
     record,
     tasks,
     now,
     online,
     failed,
     photosAvailable: true,
+    offToday,
+    nextShiftStart,
+    timeZone: needsShiftZone ? summaryQuery.data?.location?.timezone ?? "Asia/Karachi" : undefined,
+    language,
   });
   const place = record?.location?.name?.trim() || null;
   const firstName = user?.name?.trim().split(/\s+/)[0] ?? "";
@@ -112,7 +125,7 @@ export function HomeScreen() {
 
   const refetchAll = () => Promise.all([attendanceQuery.refetch(), tasksQuery.refetch()]);
   const onRefresh = async () => {
-    const [attendance, work] = await refetchAll();
+    const [[attendance, work]] = await Promise.all([refetchAll(), needsProfile ? profileQuery.refetch() : undefined]);
     if (attendance.error ?? work.error) snackbar.show("Today could not refresh. Try again.", undefined, "failure");
   };
 
@@ -243,7 +256,7 @@ export function HomeScreen() {
         contentContainerStyle={styles.content}
         refreshControl={
           <RefreshControl
-            refreshing={attendanceQuery.isRefetching || tasksQuery.isRefetching}
+            refreshing={attendanceQuery.isRefetching || tasksQuery.isRefetching || (needsProfile && profileQuery.isRefetching)}
             onRefresh={() => void onRefresh()}
           />
         }

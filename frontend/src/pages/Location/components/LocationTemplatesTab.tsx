@@ -3,6 +3,8 @@ import { useLocationLanguage } from "../locationTranslations";
 import { SidePanel, SidePanelFooter } from "@/components/workspace/SidePanel";
 import EmptyState from "@/components/common/EmptyState";
 import StatusPill from "@/components/workspace/StatusPill";
+import { WeekdayPicker } from "@/components/workspace/WeekdayPicker";
+import { formatDays, isEveryDay, normalizeDays, scheduleOccursOn, WEEKDAYS, type Weekday } from "@/lib/workDays";
 import PersonAvatar from "@/components/workspace/PersonAvatar";
 import { moveWeek, normalizeWeek } from "../scheduleTypes";
 import "@/pages/Task/schedule-v6.css";
@@ -23,8 +25,8 @@ import {
 import { useAssignStaffToTemplate } from "@/pages/Assignment/queries";
 import type { EditTaskTemplateInput } from "@/pages/Task/api";
 import type { LocationStaff, TaskTemplate } from "../types";
-import { buildDateTimeIso } from "@/pages/Task/taskScheduleForm";
-import TaskScheduleWizard from "@/pages/Task/components/TaskScheduleWizard";
+import { buildDateTimeIso, emptyRepeatDaysMessage, type RecurrenceChoice } from "@/pages/Task/taskScheduleForm";
+import TaskScheduleWizard, { SchedulePlanFeatures, translateScheduleWorkerError } from "@/pages/Task/components/TaskScheduleWizard";
 
 /** Calendar arithmetic uses UTC as a container for location-local date fields. */
 function addDay(day: string, offset: number) {
@@ -40,6 +42,10 @@ export interface ScheduleWeekProps {
   onSelect: (template: TaskTemplate) => void;
 }
 
+function hasChosenRepeatDays(template: TaskTemplate) {
+  return template.recurringType === "DAILY" && !!template.repeatDays?.length && !isEveryDay(template.repeatDays);
+}
+
 /** Read-only projection of already loaded templates; never creates occurrences. */
 export function ScheduleWeek({ templates, timeZone, week, onSelect }: ScheduleWeekProps) {
   const { t, language } = useLocationLanguage();
@@ -50,16 +56,21 @@ export function ScheduleWeek({ templates, timeZone, week, onSelect }: ScheduleWe
     <thead role="rowgroup"><tr role="row"><th scope="col" role="columnheader">{t('Cleaning schedule')}</th>{days.map(day => <th role="columnheader" scope="col" key={day}>{label(day)}</th>)}</tr></thead>
     <tbody role="rowgroup">{templates.map(template => {
       const start = time(template.shiftStart), end = time(template.shiftEnd);
-      const overnight = !!start && !!end && end <= start;
-      const effective = template.effectiveDate?.slice(0, 10) || (start ? formatInTimeZone(template.shiftStart!, timeZone, 'yyyy-MM-dd') : '');
-      // Older location DTOs omit the optional recurrence end; honor it if present.
-      const until = (template as TaskTemplate & { recurringEndDate?: string | null }).recurringEndDate?.slice(0, 10);
-      const occurs = (day: string) => template.isActive !== false && !!start && !!end && !!effective && day >= effective && (!until || day <= until) && (template.recurringType === 'DAILY' || day === effective);
+      const hasShiftWindow = !!start && !!end;
+      const overnight = hasShiftWindow && end <= start;
+      const occurrence = {
+        ...template,
+        recurringType: template.recurringType ?? "ONCE",
+        effectiveDate: template.effectiveDate || (template.shiftStart && start ? formatInTimeZone(template.shiftStart, timeZone, 'yyyy-MM-dd') : null),
+      } as const;
+      const recurrence = hasChosenRepeatDays(template)
+        ? formatDays(template.repeatDays, t, language)
+        : t(template.recurringType === "DAILY" ? "Daily" : "Once");
       return <tr role="row" key={template.id}>
-        <th role="rowheader" scope="row"><button type="button" onClick={() => onSelect(template)}><bdi>{template.title}</bdi></button><small>{t(template.recurringType === 'DAILY' ? 'Daily' : 'Once')}</small></th>
+        <th role="rowheader" scope="row"><button type="button" onClick={() => onSelect(template)}><bdi>{template.title}</bdi></button><small><bdi>{recurrence}</bdi></small></th>
         {days.map(day => {
-          const carry = overnight && end !== '00:00' && occurs(addDay(day, -1));
-          const begins = occurs(day);
+          const carry = overnight && end !== '00:00' && scheduleOccursOn(occurrence, addDay(day, -1));
+          const begins = hasShiftWindow && scheduleOccursOn(occurrence, day);
           return <td role="cell" key={day} aria-label={label(day)}><span className="wx-schedule-day-label" aria-hidden="true">{label(day)}</span>
             {carry && <button type="button" className="wx-schedule-bar wx-schedule-bar-night wx-schedule-bar-carry" onClick={() => onSelect(template)} aria-label={`${template.title} · ${label(day)} · ${t('Continues from previous day')} · 00:00–${end}`}><span>{t('Continues from previous day')}</span><bdi dir="ltr">00:00–{end}</bdi></button>}
             {begins && <button type="button" className={`wx-schedule-bar${overnight ? ' wx-schedule-bar-night wx-schedule-bar-start' : ''}`} onClick={() => onSelect(template)} aria-label={`${template.title} · ${label(day)} · ${start}–${end}${overnight ? ' · ' + t('Continues into next day') : ''}`}><bdi dir="ltr">{start}–{overnight ? '24:00' : end}</bdi>{overnight && <span>{t('Continues into next day')}</span>}</button>}
@@ -110,6 +121,8 @@ export default function LocationTemplatesTab({
   );
   const [dateTouched, setDateTouched] = useState(false);
   const [editError, setEditError] = useState<string | null>(null);
+  const [workerError, setWorkerError] = useState<ReturnType<typeof translateScheduleWorkerError>>();
+  const [repeatError, setRepeatError] = useState<string | null>(null);
   const [params,setParams]=useSearchParams();
   const createDialogOpen=params.get('newSchedule')==='1';
   const setCreateDialogOpen=(open:boolean)=>setParams(previous=>{const result=new URLSearchParams(previous);if(open)result.set('newSchedule','1');else result.delete('newSchedule');return result;},{replace:true});
@@ -119,7 +132,8 @@ export default function LocationTemplatesTab({
     staffId: "" as string,
     shiftStart: "",
     shiftEnd: "",
-    recurringType: "" as string,
+    recurringType: "" as RecurrenceChoice | "",
+    repeatDays: [...WEEKDAYS],
     effectiveDate: "",
   });
   const todayDate = formatInTimeZone(new Date(),timeZone,'yyyy-MM-dd');
@@ -145,7 +159,9 @@ export default function LocationTemplatesTab({
   };
 
   const handleEditOpen = (t: TaskTemplate) => {
-    setEditError(null);setAssignmentRetry(false);setDateTouched(false);
+    const usesChosenDays = hasChosenRepeatDays(t);
+    setEditError(null);setRepeatError(null);setAssignmentRetry(false);setDateTouched(false);
+    setWorkerError(undefined);
     setEditingTemplate(t);
     setEditForm({
       title: t.title,
@@ -153,29 +169,47 @@ export default function LocationTemplatesTab({
       staffId: t.staffId ? String(t.staffId) : "",
       shiftStart: toTimeValue(t.shiftStart),
       shiftEnd: toTimeValue(t.shiftEnd),
-      recurringType: t.recurringType || "",
+      recurringType: usesChosenDays ? "CHOSEN" : t.recurringType ?? "",
+      repeatDays: normalizeDays(usesChosenDays ? t.repeatDays : undefined),
       effectiveDate: toDateValue(t.effectiveDate),
     });
   };
 
+  const chosenDays = editForm.recurringType === "CHOSEN";
+  const staffError = workerError?.field === "staffId" ? workerError.message : null;
+  const shiftError = workerError?.field === "shiftStart" ? workerError.message : null;
+  const repeatErrorId = repeatError ? "edit-schedule-repeat-error" : undefined;
+  const repeatErrorText = repeatError && <p id={repeatErrorId} role="alert" className="wx-schedule-error">{repeatError}</p>;
   const dateInvalid = !!editForm.effectiveDate && editForm.effectiveDate !== toDateValue(editingTemplate?.effectiveDate) && editForm.effectiveDate < todayDate;
   const handleEditSave = async () => {
     if (dateInvalid) { setDateTouched(true); return; }
     if (!editingTemplate || inFlight.current) return;
+    setWorkerError(undefined);
+    if (chosenDays && !editForm.repeatDays.length) {
+      setEditError(null);
+      setRepeatError(translate(emptyRepeatDaysMessage));
+      return;
+    }
     inFlight.current=true;setSaving(true);
     setEditError(null);
+    setRepeatError(null);
 
-    const payload: EditTaskTemplateInput = {};
+    const payload: EditTaskTemplateInput & { repeatDays?: Weekday[] } = {};
     if (editForm.title !== editingTemplate.title)
       payload.title = editForm.title;
     if (editForm.description !== (editingTemplate.description || ""))
       payload.description = editForm.description || undefined;
-    if (
-      (editForm.recurringType === "DAILY" ||
-        editForm.recurringType === "ONCE") &&
-      editForm.recurringType !== editingTemplate.recurringType
-    ) {
-      payload.recurringType = editForm.recurringType;
+    const recurringType = editForm.recurringType === "CHOSEN" ? "DAILY" : editForm.recurringType;
+    if (recurringType && recurringType !== editingTemplate.recurringType) {
+      payload.recurringType = recurringType;
+    }
+    if (recurringType === "DAILY") {
+      const repeatDays = chosenDays ? editForm.repeatDays : WEEKDAYS;
+      const savedDays = normalizeDays(hasChosenRepeatDays(editingTemplate) ? editingTemplate.repeatDays : undefined);
+      if (repeatDays.length !== savedDays.length || repeatDays.some((day, index) => day !== savedDays[index])) {
+        payload.recurringType = "DAILY";
+        payload.repeatDays = [...repeatDays];
+      }
     }
     if (
       editForm.shiftStart &&
@@ -220,7 +254,11 @@ export default function LocationTemplatesTab({
           );
         });
         fieldsSaved=true;
-        setEditingTemplate({...editingTemplate,...payload});
+        setEditingTemplate({
+          ...editingTemplate,
+          ...payload,
+          repeatDays: payload.recurringType === "ONCE" ? undefined : payload.repeatDays ?? editingTemplate.repeatDays,
+        });
       }
 
       if (staffChanged && editForm.staffId) {
@@ -237,8 +275,32 @@ export default function LocationTemplatesTab({
       }
 
       setEditingTemplate(null);
-    } catch {
+    } catch (error) {
       setAssignmentRetry(assignmentAttempted);
+      const staffId = assignmentAttempted ? Number(editForm.staffId) : editingTemplate.staffId;
+      const worker = staffList.find(staff => staff.id === staffId);
+      const name = worker?.name ?? (assignmentAttempted ? undefined : editingTemplate.staff?.name);
+      const refusal = translateScheduleWorkerError(error, formText, name);
+      if (refusal) {
+        setWorkerError(refusal);
+        if (!fieldsSaved || !assignmentAttempted) return;
+      }
+      const response = (error as { response?: { status?: number; data?: { errors?: { code?: string }[] } } } | null)?.response;
+      const code = response?.data?.errors?.[0]?.code;
+      if (response?.status === 400 && code === "INVALID_REPEAT_DAYS") {
+        setRepeatError(translate(emptyRepeatDaysMessage));
+        return;
+      }
+      if (response?.status === 422 && code === "SCHEDULE_OUTSIDE_WORK_DAYS") {
+        const days = worker?.workDays?.length ? worker.workDays : undefined;
+        setRepeatError(name
+          ? translate("{name} works {days}. Choose days within those, or use automatic assignment.", {
+            name,
+            days: formatDays(days, translate, language),
+          })
+          : formText("Could not save the schedule. Check the fields and try again."));
+        if (!fieldsSaved || !assignmentAttempted) return;
+      }
       setEditError(translate(fieldsSaved&&staffChanged
        ? 'Schedule details were saved. Staff assignment could not be confirmed. Your draft is kept. Review the assignment before retrying.'
        : staffChanged&&!hasFieldChanges
@@ -381,7 +443,9 @@ export default function LocationTemplatesTab({
             header: "Recurrence",
             className: "wx-schedule-state-cell",
             render: (row) => (
-              <StatusPill tone="neutral" status={row.recurringType ?? "ONCE"} />
+              <StatusPill tone="neutral" status={row.recurringType ?? "ONCE"}>
+                {hasChosenRepeatDays(row) ? formatDays(row.repeatDays, translate, language) : undefined}
+              </StatusPill>
             ),
           },
           {
@@ -417,7 +481,7 @@ export default function LocationTemplatesTab({
       </> : <EmptyState title={translate('No cleaning schedules for this location.')} message={translate('Create schedules for this location and optionally choose a team member.')} action={<Button onClick={() => setCreateDialogOpen(true)}>{translate('Add cleaning schedule')}</Button>} />}
 
       <SidePanel wide title={translate('Edit cleaning schedule')} description={translate('Changes apply to the schedule. Recorded task history stays unchanged.')} open={!!editingTemplate} onOpenChange={open=>{if(!open&&!inFlight.current)setEditingTemplate(null);}} footer={<SidePanelFooter className="wx-schedule-footer"><Button type="button" variant="outline" disabled={saving} onClick={()=>setEditingTemplate(null)}>{translate('Cancel')}</Button><Button type="submit" form="location-schedule-edit" disabled={saving||!editForm.title.trim()} aria-busy={saving}>{translate(saving?'Saving...':assignmentRetry?'Retry staff assignment':'Save changes')}</Button></SidePanelFooter>}>
-        {editingTemplate?<div className="wx-schedule-form" aria-busy={saving}><p className="wx-schedule-help"><bdi>{locationName}</bdi> · <bdi>{timeZone}</bdi></p><form id="location-schedule-edit" onChange={()=>setAssignmentRetry(false)} onSubmit={event=>{event.preventDefault();void handleEditSave();}}><fieldset disabled={saving} className="wx-schedule-stack">
+        {editingTemplate?<div className="wx-schedule-form" aria-busy={saving}><p className="wx-schedule-help"><bdi>{locationName}</bdi> · <bdi>{timeZone}</bdi></p><form id="location-schedule-edit" onChange={()=>{setAssignmentRetry(false);setRepeatError(null);setWorkerError(undefined);}} onSubmit={event=>{event.preventDefault();void handleEditSave();}}><fieldset disabled={saving} className="wx-schedule-stack">
 
               <div>
                 <label htmlFor="schedule-title" className={formLabelCls}>{translate("Schedule title")}</label>
@@ -451,19 +515,24 @@ export default function LocationTemplatesTab({
                 <label htmlFor="schedule-staff" className={formLabelCls}>{translate("Assigned staff")}</label>
                 <select
                   id="schedule-staff" aria-label={translate("Assigned staff")}
+                  aria-invalid={staffError ? true : undefined}
+                  aria-describedby={staffError ? "edit-schedule-staff-error" : undefined}
                   value={editForm.staffId}
                   onChange={(e) =>
                     setEditForm({ ...editForm, staffId: e.target.value })
                   }
                   className={inputCls}
                 >
-                  <option value="" disabled={!!editingTemplate.staffId}>{translate("Unassigned")}</option>
+                  <SchedulePlanFeatures>{requiresWorker => (!requiresWorker || !editingTemplate.staffId) &&
+                    <option value="" disabled={!!editingTemplate.staffId}>{translate("Unassigned")}</option>}
+                  </SchedulePlanFeatures>
                   {staffList.map((s) => (
                     <option key={s.id} value={s.id}>
                       {s.name}
                     </option>
                   ))}
                 </select>
+                {staffError && <p id="edit-schedule-staff-error" role="alert" className="wx-schedule-error">{staffError}</p>}
               </div>
 
               <div className="wx-schedule-pair">
@@ -472,11 +541,14 @@ export default function LocationTemplatesTab({
                   <Input
                     type="time"
                     id="schedule-start" aria-label={translate("Shift start")}
+                    aria-invalid={shiftError ? true : undefined}
+                    aria-describedby={shiftError ? "edit-schedule-shift-error" : undefined}
                     value={editForm.shiftStart}
                     onChange={(e) =>
                       setEditForm({ ...editForm, shiftStart: e.target.value })
                     }
                   />
+                  {shiftError && <p id="edit-schedule-shift-error" role="alert" className="wx-schedule-error">{shiftError}</p>}
                 </div>
                 <div>
                   <label htmlFor="schedule-end" className={formLabelCls}>{translate("Shift end")}</label>
@@ -496,16 +568,20 @@ export default function LocationTemplatesTab({
                 <label htmlFor="schedule-recurrence" className={formLabelCls}>{translate("Recurrence")}</label>
                 <select
                   id="schedule-recurrence" aria-label={translate("Recurrence")}
+                  aria-invalid={!chosenDays && repeatErrorId ? true : undefined}
+                  aria-describedby={!chosenDays ? repeatErrorId : undefined}
                   value={editForm.recurringType}
                   onChange={(e) =>
-                    setEditForm({ ...editForm, recurringType: e.target.value })
+                    setEditForm({ ...editForm, recurringType: e.target.value as RecurrenceChoice | "" })
                   }
                   className={inputCls}
                 >
                   <option value="">{translate("Select type")}</option>
                   <option value="DAILY">{translate("Daily")}</option>
+                  <option value="CHOSEN">{translate("Chosen days")}</option>
                   <option value="ONCE">{translate("Once")}</option>
                 </select>
+                {!chosenDays && repeatErrorText}
               </div>
 
               <div className="wx-schedule-field">
@@ -524,7 +600,24 @@ export default function LocationTemplatesTab({
                 />
                 {dateTouched && dateInvalid && <p className="wx-schedule-error" role="alert" id="edit-schedule-date-error">{formText('Choose {date} or a later date for {location}.', { date: todayDate, location: locationName })}</p>}
               </div>
-              <p className="wx-schedule-help wx-schedule-full">{translate('Daily schedules include every day, including weekends.')}</p>
+              {editForm.recurringType === "DAILY" && <p className="wx-schedule-help wx-schedule-full">{translate('Daily schedules include every day, including weekends.')}</p>}
+              {chosenDays && (
+                <div className="wx-schedule-full">
+                  <p className={formLabelCls} aria-hidden="true">{translate('Repeat on')}</p>
+                  <WeekdayPicker
+                    label="Repeat on"
+                    value={editForm.repeatDays}
+                    onChange={repeatDays => {
+                      setEditForm({ ...editForm, repeatDays });
+                      setAssignmentRetry(false);
+                      setRepeatError(null);
+                    }}
+                    summaryKind="schedule"
+                    errorId={repeatErrorId}
+                  />
+                  {repeatErrorText}
+                </div>
+              )}
               </div>
 
               </fieldset></form>

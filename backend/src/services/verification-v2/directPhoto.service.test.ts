@@ -29,11 +29,38 @@ it('waits on AI and protected cloud storage together before returning, with no j
  expect(result).toMatchObject({attemptId:'a',state:'REVIEW_REQUIRED',storage:'cloud'});
  expect(m.decision).toHaveBeenCalledWith(expect.anything(),expect.objectContaining({id:'a'}),'REVIEW_REQUIRED','AUTO_PASS_NOT_VALIDATED',expect.anything());
 });
-it.each(['DIRTY','SCREEN'] as const)('rejects %s and deletes the copies uploaded alongside the AI',async kind=>{
- const assessment=kind==='DIRTY'?{...clean,cleanliness:{...clean.cleanliness,verdict:'DIRTY' as const,surfaces:[{surface:'basin',verdict:'DIRTY' as const}],reasonCode:'CLEANING_REQUIRED' as const}}:{...clean,originality:'SCREEN_RECAPTURE' as const};
+it('keeps the uploaded original and review copy when cleaning is required', async () => {
+ const photo = Buffer.from('photo');
+ const assessment = {
+  ...clean,
+  cleanliness: {
+   ...clean.cleanliness,
+   verdict: 'DIRTY' as const,
+   surfaces: [{surface: 'basin', verdict: 'DIRTY' as const}],
+   reasonCode: 'CLEANING_REQUIRED' as const,
+  },
+ };
+ const result = await processDirectPhoto(actor, 'a', photo, {evaluate: async () => assessment}, m.store);
+
+ expect(m.store).toHaveBeenCalledTimes(2);
+ expect(m.store).toHaveBeenCalledWith(photo, copies[0], 'hash', {lookup: false});
+ expect(m.store).toHaveBeenCalledWith(Buffer.from('sanitized'), copies[1], 'hash', {lookup: false});
+ expect(m.attempt.media).toMatchObject({
+  originalPublicId: copies[0],
+  sanitizedPublicId: copies[1],
+  cloudinaryAssetId: 'cloud',
+  deliveryType: 'authenticated',
+  privacyState: 'NOT_REQUIRED',
+ });
+ expect(m.discard).not.toHaveBeenCalled();
+ expect(m.decision).toHaveBeenCalledWith(expect.anything(), expect.objectContaining({id: 'a'}), 'CLEANING_REQUIRED', 'CLEANING_REQUIRED', expect.anything());
+ expect(result).toMatchObject({state: 'CLEANING_REQUIRED', storage: 'cloud'});
+});
+it('rejects a screen photo and deletes the copies uploaded alongside the AI',async()=>{
+ const assessment={...clean,originality:'SCREEN_RECAPTURE' as const};
  const result=await processDirectPhoto(actor,'a',Buffer.from('photo'),{evaluate:async()=>assessment},m.store);
  expect(result.storage).toBe('discarded');await vi.waitFor(()=>expect(m.discard).toHaveBeenCalledWith(copies));
- expect(result.state).toBe(kind==='DIRTY'?'CLEANING_REQUIRED':'RECAPTURE_REQUIRED');
+ expect(result.state).toBe('RECAPTURE_REQUIRED');
 });
 it('requires explicit retry after AI failure and does not accept missing evidence',async()=>{
  const evaluate=vi.fn().mockRejectedValue(new Error('AI unavailable'));

@@ -1,5 +1,6 @@
 import type { Prisma } from "@prisma/client";
 import { prisma } from "../prisma/prisma.js";
+import { readDayList, weekdayOfLocalDay, type Weekday } from "../utils/workDays.js";
 import { overviewAggregateSql, type OverviewSnapshot } from "./operationsOverviewAggregate.js";
 import {
   operationsScope,
@@ -8,6 +9,7 @@ import {
   taskStatusWhere,
   attendanceStatusWhere,
   pageBounds,
+  type OperationsDay,
   type operationsQuery,
 } from "./operationsScope.service.js";
 import { managerTaskPresentation } from "./verification-v2/sequentialPolicy.js";
@@ -45,6 +47,25 @@ const taskSelect = {
   verificationException: { select: { id: true, state: true } },
 } satisfies Prisma.TaskInstanceSelect;
 export type OperationTaskRow = Prisma.TaskInstanceGetPayload<{ select: typeof taskSelect }>;
+
+function staffDayOffWhere(days: OperationsDay[]): Prisma.StaffWhereInput {
+  const locationsByWeekday = new Map<Weekday, number[]>();
+  for (const day of days) {
+    const weekday = weekdayOfLocalDay(day.start, day.timezone);
+    const locationIds = locationsByWeekday.get(weekday) ?? [];
+    locationIds.push(day.locationId);
+    locationsByWeekday.set(weekday, locationIds);
+  }
+  return {
+    OR: Array.from(locationsByWeekday, ([weekday, locationIds]) => ({
+      locationId: { in: locationIds },
+      // Empty lists read as all seven days.
+      workDays: { isEmpty: false },
+      NOT: { workDays: { has: weekday } },
+    })),
+  };
+}
+
 export async function managerOperations(
   actor: VerificationActor,
   q: Query,
@@ -125,18 +146,20 @@ export async function managerOperations(
         return { ...scope, ...page, rows: rows.map(taskDto) };
       }
       if (kind === "staff") {
-        const attendanceMatch = {
-          AND: [attendanceBase, attendanceStatusWhere(q.attendance, now)],
-        };
         const where: Prisma.StaffWhereInput = {
           ...staffBase,
           ...(q.q ? { name: { contains: q.q, mode: "insensitive" } } : {}),
-          ...(q.attendance === "missing"
-            ? { attendances: { none: attendanceBase } }
-            : q.attendance !== "all"
-              ? { attendances: { some: attendanceMatch } }
-              : {}),
         };
+        if (q.attendance === "off") {
+          where.AND = staffDayOffWhere(scope.days);
+        } else if (q.attendance === "missing") {
+          where.attendances = { none: attendanceBase };
+          where.NOT = staffDayOffWhere(scope.days);
+        } else if (q.attendance !== "all") {
+          where.attendances = {
+            some: { AND: [attendanceBase, attendanceStatusWhere(q.attendance, now)] },
+          };
+        }
         const page = pageBounds(
           await tx.staff.count({ where }),
           q.page,
@@ -148,6 +171,7 @@ export async function managerOperations(
             id: true,
             name: true,
             locationId: true,
+            workDays: true,
             location: { select: { id: true, name: true, timezone: true } },
             attendances: {
               where: attendanceBase,
@@ -185,31 +209,34 @@ export async function managerOperations(
           },
           _count: { _all: true },
         });
+        const daysByLocation = new Map(scope.days.map((day) => [day.locationId, day]));
         return {
           ...scope,
           ...page,
-          rows: rows.map((r) => ({
-            ...r,
-            tasks: r.taskInstances.map(taskDto),
-            taskCount: r._count.taskInstances,
-            submittedCount:
-              submitted.find((s) => s.staffId === r.id)?._count._all ?? 0,
-            localDate: scope.days.find((d) => d.locationId === r.locationId)
-              ?.localDate,
-            attendance:
-              r.attendances.find(
-                (a) => a.expectedStart <= now && a.expectedEnd > now,
-              ) ??
-              r.attendances.find((a) => !!a.checkInTime && !a.checkOutTime) ??
-              r.attendances.at(-1) ??
-              null,
-            carryOver: r.attendances.some(
-              (a) =>
-                a.expectedStart <
-                (scope.days.find((d) => d.locationId === r.locationId)?.start ??
-                  a.expectedStart),
-            ),
-          })),
+          rows: rows.map((r) => {
+            const day = r.locationId === null ? undefined : daysByLocation.get(r.locationId);
+            const workDays = readDayList(r.workDays);
+            return {
+              ...r,
+              workDays,
+              offToday: !!day && !workDays.includes(weekdayOfLocalDay(day.start, day.timezone)),
+              tasks: r.taskInstances.map(taskDto),
+              taskCount: r._count.taskInstances,
+              submittedCount:
+                submitted.find((s) => s.staffId === r.id)?._count._all ?? 0,
+              localDate: day?.localDate,
+              attendance:
+                r.attendances.find(
+                  (a) => a.expectedStart <= now && a.expectedEnd > now,
+                ) ??
+                r.attendances.find((a) => !!a.checkInTime && !a.checkOutTime) ??
+                r.attendances.at(-1) ??
+                null,
+              carryOver: r.attendances.some(
+                (a) => a.expectedStart < (day?.start ?? a.expectedStart),
+              ),
+            };
+          }),
         };
       }
       const snapshot = scope.days.length

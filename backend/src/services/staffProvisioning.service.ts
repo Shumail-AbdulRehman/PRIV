@@ -1,7 +1,9 @@
 import { Prisma } from '@prisma/client';
 import { randomBytes } from 'node:crypto';
 import { ApiError } from '../utils/ApiError.js';
+import { getZonedDayRange } from '../utils/dateTime.js';
 import { INVALID_PAKISTAN_PHONE_MESSAGE, normalizePakistanPhone } from '../utils/pakistanPhone.js';
+import { readDayList, weekdayOfLocalDay, type WeekdayList } from '../utils/workDays.js';
 import type { StaffRecordInput } from '../validations/staffRecord.validation.js';
 import type { VerificationTransaction } from './verification-v2/transaction.js';
 
@@ -34,5 +36,44 @@ export async function insertStaff(tx: VerificationTransaction, companyId: number
     name: input.name, email: email ?? null, phone, password: randomBytes(32).toString('hex'),
     companyId, locationId: input.locationId ?? null, shiftStart: input.shiftStart ?? null,
     shiftEnd: input.shiftEnd ?? null, mustChangePassword: false,
+    ...(input.workDays !== undefined ? { workDays: input.workDays } : {}),
   } });
+}
+
+/** Reject removed days still used by an active schedule fixed to this staff member. */
+export async function assertNoWorkDayConflicts(
+  tx: VerificationTransaction,
+  staff: { id: number; name: string },
+  removed: WeekdayList,
+  now = new Date(),
+) {
+  const templates = await tx.taskTemplate.findMany({
+    where: { staffId: staff.id, isActive: true, recurringType: { in: ['DAILY', 'ONCE'] } },
+    orderBy: { id: 'asc' },
+    select: {
+      title: true,
+      recurringType: true,
+      repeatDays: true,
+      effectiveDate: true,
+      recurringEndDate: true,
+      location: { select: { timezone: true } },
+    },
+  });
+
+  const conflicts = templates.filter((template) => {
+    if (template.recurringType === 'DAILY') {
+      return (!template.recurringEndDate ||
+        template.recurringEndDate >= getZonedDayRange(now, template.location.timezone).start) &&
+        readDayList(template.repeatDays).some((day) => removed.includes(day));
+    }
+    const timeZone = template.location.timezone;
+    return template.effectiveDate >= getZonedDayRange(now, timeZone).start &&
+      removed.includes(weekdayOfLocalDay(template.effectiveDate, timeZone));
+  });
+
+  if (conflicts.length) {
+    const titles = conflicts.map(({ title }) => `"${title}"`).join(', ');
+    const message = `${staff.name} has schedules on the days you removed: ${titles}. Change those schedules first.`;
+    throw new ApiError(409, message, [{ code: 'WORK_DAYS_CONFLICT', field: 'workDays', message }]);
+  }
 }

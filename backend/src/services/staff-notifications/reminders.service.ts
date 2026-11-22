@@ -3,6 +3,7 @@ import {
   resolveZonedAttendanceWindow,
   addUtcDays,
 } from "../../utils/dateTime.js";
+import { isWorkDay, type WeekdayList } from "../../utils/workDays.js";
 import { formatInTimeZone, fromZonedTime } from "date-fns-tz";
 import type { Source } from "./policy.js";
 export type ShiftStaff = {
@@ -11,6 +12,7 @@ export type ShiftStaff = {
   locationId: number | null;
   shiftStart: Date | null;
   shiftEnd: Date | null;
+  workDays?: WeekdayList;
   location: { timezone: string } | null;
 };
 export type Window = Source & {
@@ -19,22 +21,26 @@ export type Window = Source & {
   expectedEnd: Date;
 };
 export function scheduledWindows(staff: ShiftStaff, now: Date): Window[] {
-  if (!staff.location || !staff.shiftStart || !staff.shiftEnd) return [];
-  const day = formatInTimeZone(now, staff.location.timezone, "yyyy-MM-dd");
-  return [0, 1].map((offset) => {
-    const label = addUtcDays(new Date(day + "T12:00:00Z"), offset)
-      .toISOString()
-      .slice(0, 10);
-    return {
-      staffId: staff.id,
-      ...resolveZonedAttendanceWindow({
-        baseDate: fromZonedTime(label + "T12:00:00", staff.location!.timezone),
-        shiftStart: staff.shiftStart!,
-        shiftEnd: staff.shiftEnd!,
-        timeZone: staff.location!.timezone,
-      }),
-    };
-  });
+  const { location, shiftStart, shiftEnd, workDays } = staff;
+  if (!location || !shiftStart || !shiftEnd) return [];
+  const { timezone: timeZone } = location;
+  const day = formatInTimeZone(now, timeZone, "yyyy-MM-dd");
+  return [0, 1]
+    .map((offset) => {
+      const label = addUtcDays(new Date(day + "T12:00:00Z"), offset)
+        .toISOString()
+        .slice(0, 10);
+      return {
+        staffId: staff.id,
+        ...resolveZonedAttendanceWindow({
+          baseDate: fromZonedTime(label + "T12:00:00", timeZone),
+          shiftStart,
+          shiftEnd,
+          timeZone,
+        }),
+      };
+    })
+    .filter((window) => isWorkDay(workDays, window.date, timeZone));
 }
 export function reminderKind(window: Window, now: Date, grace = 10) {
   if (window.checkOutTime || window.expectedEnd <= now) return null;
@@ -77,6 +83,7 @@ export async function collectAttendanceReminders(now = new Date()) {
         locationId: true,
         shiftStart: true,
         shiftEnd: true,
+        workDays: true,
         location: { select: { timezone: true } },
         attendances: {
           where: {

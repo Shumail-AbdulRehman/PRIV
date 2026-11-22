@@ -52,7 +52,10 @@ export default function StaffImportDialog({location}:{location:{id:number;name:s
     const url=URL.createObjectURL(response.data), link=document.createElement('a');
     link.href=url;link.download='staff-template.xlsx';link.click();setTimeout(()=>URL.revokeObjectURL(url),1000);
   }});
-  const rowError = (message: string) => ur ? rowErrorsUrdu.get(message) ?? message : message;
+  const rowError = (message: string) => {
+    if (message === 'Enter work days like Mon,Wed using Mon to Sun.') return t(message);
+    return ur ? rowErrorsUrdu.get(message) ?? message : message;
+  };
   const pending=previewMutation.isPending||confirm.isPending;
   const error=previewMutation.error||confirm.error||template.error;
   const canConfirm=!!file&&!!preview&&preview.total>0&&preview.total<=500&&preview.valid===preview.total&&preview.rows.every(row=>row.errors.length===0);
@@ -82,6 +85,7 @@ export default function StaffImportDialog({location}:{location:{id:number;name:s
               'Full name, phone, shift start and shift end are required. Email is optional. Staff sign in with their phone number and a code sent by SMS. Format phones as Text and use HH:mm shift times, such as 22:00–06:00.',
               'پورا نام، فون نمبر اور شفٹ کے آغاز اور اختتام کے اوقات ضروری ہیں۔ ای میل اختیاری ہے۔ عملہ اپنے فون نمبر اور ایس ایم ایس سے ملنے والے کوڈ سے سائن ان کرتا ہے۔ فون نمبر متن (Text) میں اور شفٹ کے اوقات HH:mm کی صورت میں لکھیں، جیسے 22:00–06:00۔',
             )}</p>
+            <p>{t('Optional Work days column, for example Mon,Wed. Leave it empty for every day.')}</p>
           </section>
           <section className="wx-staff-import-step" aria-labelledby={`staff-upload-${location.id}`}>
             <h3 id={`staff-upload-${location.id}`}>{t('Upload your file')}</h3>

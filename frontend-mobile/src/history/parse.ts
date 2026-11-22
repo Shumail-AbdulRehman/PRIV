@@ -4,6 +4,7 @@
 // A malformed list item is dropped and counted in `dropped`. Unknown fields
 // (for example image fields) are never copied. Absent nullable fields become
 // null; a nullable field that is present with the wrong type is malformed.
+import type { Weekday } from '../queries/profile';
 import {
   ATTENDANCE_DAY_STATES,
   REVIEW_STATES,
@@ -28,6 +29,7 @@ type Data = Record<string, unknown>;
 const MONTH = /^\d{4}-(0[1-9]|1[0-2])$/;
 const DATE = /^\d{4}-(0[1-9]|1[0-2])-(0[1-9]|[12]\d|3[01])$/;
 const CLOCK = /^([01]\d|2[0-3]):[0-5]\d$/;
+const WEEKDAYS = ['MON', 'TUE', 'WED', 'THU', 'FRI', 'SAT', 'SUN'] as const satisfies readonly Weekday[];
 
 const isObject = (value: unknown): value is Data =>
   typeof value === 'object' && value !== null && !Array.isArray(value);
@@ -200,12 +202,16 @@ const profileLocation = (value: unknown): ProfileSummary['location'] | undefined
   return has(...Object.values(location)) ? (location as NonNullable<ProfileSummary['location']>) : undefined;
 };
 
-const usualShift = (value: unknown): ProfileSummary['usualShift'] | undefined => {
+const usualShift = (value: unknown) => {
   if (!isObject(value)) return undefined;
   const start = clock(value.start);
   const end = clock(value.end);
   if (start === undefined || end === undefined) return undefined;
-  return { start, end };
+  const shift = { start, end };
+  const rawDays = value.days;
+  if (!Array.isArray(rawDays) || rawDays.length === 0) return shift;
+  const days = WEEKDAYS.filter(day => rawDays.includes(day));
+  return days.length === rawDays.length ? { ...shift, days } : shift;
 };
 
 const company = (value: unknown): ProfileSummary['company'] | undefined => {

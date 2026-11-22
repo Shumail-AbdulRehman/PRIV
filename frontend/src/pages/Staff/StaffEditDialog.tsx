@@ -1,14 +1,16 @@
 import { useEffect, useId, useRef } from 'react';
-import { useForm } from 'react-hook-form';
+import { Controller, useForm } from 'react-hook-form';
 import { Link } from 'react-router-dom';
 import { formatInTimeZone, fromZonedTime } from 'date-fns-tz';
 import useAuth from '@/hooks/useAuth';
 import { useLanguage } from '@/i18n/context';
 import { Input } from '@/components/ui/input';
 import SidePanel, { SidePanelFieldError, SidePanelFooter } from '@/components/workspace/SidePanel';
+import { WeekdayPicker } from '@/components/workspace/WeekdayPicker';
+import { normalizeDays, type Weekday } from '@/lib/workDays';
 import { useEditStaff } from './queries';
 import type { EditStaffInput } from './api';
-import { checkStaffName, getStaffFormError, staffEmailRules, staffPhoneRules, staffShiftEndRules, staffShiftInputEvents, staffShiftStartRules } from './staffFieldRules';
+import { checkStaffName, getStaffFormError, staffEmailRules, staffPhoneRules, staffShiftEndRules, staffShiftInputEvents, staffShiftStartRules, staffWorkDaysRules } from './staffFieldRules';
 import './staff-forms-v6.css';
 
 export interface EditableStaff {
@@ -18,12 +20,13 @@ export interface EditableStaff {
   phone?: string | null;
   shiftStart: string | null;
   shiftEnd: string | null;
+  workDays?: Weekday[];
   isActive: boolean;
   locationId?: number | null;
   location?: { id?: number; name?: string | null } | null;
 }
 type Props = { person: EditableStaff; timezone: string; onClose: () => void; onSaved?: () => void };
-type EditStaffForm = { name: string; email: string; phone: string; shiftStart: string; shiftEnd: string; locationId?: string };
+type EditStaffForm = { name: string; email: string; phone: string; shiftStart: string; shiftEnd: string; workDays: Weekday[]; locationId?: string };
 const timeValue = (date: string | null, timezone: string) => date ? formatInTimeZone(new Date(date), timezone, 'HH:mm') : '';
 
 export default function StaffEditDialog(props: Props) {
@@ -39,7 +42,7 @@ function ScopedStaffEditDialog({ person, timezone, onClose, onSaved }: Props) {
   const formId = useId();
   const id = (field: string) => `${formId}-${field}`;
   useEffect(() => { mounted.current = true; return () => { mounted.current = false; }; }, []);
-  const { register, handleSubmit, setError, formState: { errors } } = useForm<EditStaffForm>({
+  const { register, control, handleSubmit, setError, formState: { errors, defaultValues } } = useForm<EditStaffForm>({
     mode: 'onBlur',
     defaultValues: {
       name: person.name,
@@ -47,6 +50,7 @@ function ScopedStaffEditDialog({ person, timezone, onClose, onSaved }: Props) {
       phone: person.phone ?? '',
       shiftStart: timeValue(person.shiftStart, timezone),
       shiftEnd: timeValue(person.shiftEnd, timezone),
+      workDays: normalizeDays(person.workDays),
     },
   });
   const shiftStartMessage = errors.shiftStart?.message;
@@ -60,6 +64,7 @@ function ScopedStaffEditDialog({ person, timezone, onClose, onSaved }: Props) {
     if (form.name !== person.name && name !== person.name) payload.name = name;
     if (form.email.trim() !== (person.email ?? '')) payload.email = form.email.trim() || null;
     if (form.phone.trim() !== (person.phone ?? '')) payload.phone = form.phone.trim();
+    if (form.workDays.join(',') !== defaultValues?.workDays?.join(',')) payload.workDays = form.workDays;
     for (const field of ['shiftStart', 'shiftEnd'] as const) if (form[field] && form[field] !== timeValue(person[field], timezone)) {
       const date = formatInTimeZone(person[field] ? new Date(person[field]!) : new Date(), timezone, 'yyyy-MM-dd');
       payload[field] = fromZonedTime(`${date}T${form[field]}:00`, timezone).toISOString();
@@ -73,7 +78,8 @@ function ScopedStaffEditDialog({ person, timezone, onClose, onSaved }: Props) {
       if (!mounted.current) return;
       const issue = getStaffFormError(cause);
       if (issue && issue.field !== 'reason') {
-        setError(issue.field, { type: 'server', message: issue.message });
+        const message = issue.values ? t(issue.message, issue.values) : issue.message;
+        setError(issue.field, { type: 'server', message }, { shouldFocus: issue.field === 'workDays' });
         return;
       }
       const status = (cause as { response?: { status?: number } }).response?.status;
@@ -134,6 +140,19 @@ function ScopedStaffEditDialog({ person, timezone, onClose, onSaved }: Props) {
           })}
         </div>
         <p id={id('timezone-hint')} className="wx-staff-form-help">{t('Times use the assigned site’s timezone.')} <bdi>{timezone}</bdi></p>
+        <Controller control={control} name="workDays" rules={staffWorkDaysRules} render={({ field, fieldState: { error } }) =>
+          <div className="wx-staff-form-field" onBlur={field.onBlur} ref={wrapper => {
+            const group = wrapper?.querySelector('[role="group"]');
+            field.ref(group);
+            group?.setAttribute('aria-labelledby', id('work-days-label'));
+          }}>
+            <label id={id('work-days-label')}>{t('Work days')}</label>
+            <WeekdayPicker id={id('workDays')} label="Work days" value={field.value} onChange={field.onChange}
+              summaryKind="staff" errorId={error ? id('work-days-error') : undefined} />
+            <SidePanelFieldError id={id('work-days-error')}>{error?.message}</SidePanelFieldError>
+            <p className="wx-staff-form-help">{t('Days this person comes to work. Shift times are the same on each day.')}</p>
+          </div>
+        } />
       </fieldset>
       {errors.root?.server?.message && <p className="wx-staff-form-error" role="alert">{t(errors.root.server.message)}</p>}
     </form>

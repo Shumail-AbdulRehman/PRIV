@@ -1,4 +1,4 @@
-import {assertFailedViewReplacement,assertFailedContextReplacement,authorizedWaiverReceipts} from './launchPhotoPolicy.js';
+import {assertFailedViewReplacement,assertLegacyRetakeRenewal,assertFailedContextReplacement,authorizedWaiverReceipts} from './launchPhotoPolicy.js';
 import {releaseInterruptedPhotos} from './directProcessing.js';
 import {staffPhotoInstructions, type PhotoFeedbackContext} from './staffPhotoInstructions.js';
 import { retireContextPhotos } from "./retireContextPhotos.js";
@@ -68,12 +68,24 @@ export async function createCaptureSession(actor:VerificationActor,taskId:number
  const abandoned=await tx.verificationAttempt.findMany({where:{id:{in:processing.map(r=>r.currentAttemptId!)},state:{in:['RESERVED','STORING']},mediaAssetId:null,OR:[{session:{OR:[{uploadExpiresAt:{lt:now}},{state:'REVOKED'}]}},{qualityResult:{path:['workflow'],equals:'DIRECT_PHOTO_V1'}}]},select:{id:true}});
  const abandonedIds=new Set(abandoned.map(a=>a.id));
  for(const r of processing)if(abandonedIds.has(r.currentAttemptId!))await tx.taskEvidenceRequirement.update({where:{id:r.id},data:{state:'MISSING',currentAttemptId:null,decisionVersion:{increment:1}}});
- const requirements=await tx.taskEvidenceRequirement.findMany({where:{item:{taskInstanceId:taskId},...(rework?previousSession&&sequentialCapture(previousSession.locationCheck)?{OR:[{id:{in:reworkTargets.map(r=>r.requirementId)},state:'CLEANING_REQUIRED' as const},{state:'MISSING' as const}],state:undefined}:{id:{in:reworkTargets.map(r=>r.requirementId)},state:'CLEANING_REQUIRED' as const}:{state:{notIn:[...terminal,'PROCESSING','CLEANING_REQUIRED','REVIEW_REQUIRED']}})},include:{item:true},orderBy:[{item:{orderSnapshot:'asc'}},{viewKey:'asc'}]});for(const r of requirements){
- if(r.state==='RECAPTURE_REQUIRED'){
-  const failed=r.currentAttemptId?await tx.verificationAttempt.findUnique({where:{id:r.currentAttemptId},include:{session:true,slot:true}}):null;
-  assertFailedViewReplacement({task,session:s,staffId:actor.id,now,requirement:r,attempt:failed,expectedGeneration:r.decisionVersion});
+ const requirements=await tx.taskEvidenceRequirement.findMany({where:{item:{taskInstanceId:taskId},...(rework?previousSession&&sequentialCapture(previousSession.locationCheck)?{OR:[{id:{in:reworkTargets.map(r=>r.requirementId)},state:'CLEANING_REQUIRED' as const},{state:'MISSING' as const}],state:undefined}:{id:{in:reworkTargets.map(r=>r.requirementId)},state:'CLEANING_REQUIRED' as const}:{state:{notIn:[...terminal,'PROCESSING','CLEANING_REQUIRED','REVIEW_REQUIRED']}})},include:{item:true},orderBy:[{item:{orderSnapshot:'asc'}},{viewKey:'asc'}]});
+ for(const r of requirements){
+  const recapture=r.state==='RECAPTURE_REQUIRED';
+  if(recapture){
+   const failed=r.currentAttemptId?await tx.verificationAttempt.findUnique({where:{id:r.currentAttemptId},include:{session:true,slot:true}}):null;
+   const proof={task,session:s,staffId:actor.id,now,requirement:r,attempt:failed,expectedGeneration:r.decisionVersion};
+   if(failed?.slot.generation===r.decisionVersion-2)await assertLegacyRetakeRenewal(tx,proof);
+   else assertFailedViewReplacement(proof);
+  }
+  const advanceGeneration=!!previousSession||rework||recapture;
+  const generation=r.decisionVersion+(advanceGeneration?1:0);
+  if(advanceGeneration){
+   const replacement=recapture||reworkTargets.some(target=>target.requirementId===r.id);
+   // Retain the failed attempt pointer for supersedesAttemptId when the new slot is reserved.
+   await tx.taskEvidenceRequirement.update({where:{id:r.id},data:{decisionVersion:generation,...(replacement?{state:'MISSING' as const}:{})}});
+  }
+  await allocate(tx,s.id,{requirementId:r.id},sequence++,generation,s.captureExpiresAt);
  }
- const generation=r.decisionVersion+(previousSession||rework?1:0);if(previousSession||rework)await tx.taskEvidenceRequirement.update({where:{id:r.id},data:{decisionVersion:generation,...(reworkTargets.some(target=>target.requirementId===r.id)?{state:'MISSING' as const}:{})}});await allocate(tx,s.id,{requirementId:r.id},sequence++,generation,s.captureExpiresAt);}
  if(rework)await tx.auditLog.create({data:{companyId:actor.companyId,actorType:actor.role,actorId:actor.id,entityType:'TaskInstance',entityId:taskId,action:'DIRTY_REWORK_QR_AUTHORIZED',newValue:{sessionId:s.id,requirementIds:reworkTargets.map(r=>r.requirementId),assignmentEpoch:task.assignmentEpoch}}});
  await tx.taskInstance.update({where:{id:taskId},data:{verificationState:'CAPTURING',rowVersion:{increment:1}}});await tx.verificationRequest.create({data:{...key,bodyHash,resultEntityId:s.id}});return sessionResponse(tx,s.id);
  });}

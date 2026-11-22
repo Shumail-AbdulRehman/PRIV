@@ -5,6 +5,7 @@ import { ArrowRight, MapPin, MoreHorizontal, Plus, Users } from 'lucide-react';
 import { DropdownMenu } from 'radix-ui';
 import { useQueryClient } from '@tanstack/react-query';
 import { useLanguage } from '@/i18n/context';
+import { formatDays, isEveryDay } from '@/lib/workDays';
 import useAuth from '@/hooks/useAuth';
 import PageHeader from '@/components/common/PageHeader';
 import EmptyState from '@/components/common/EmptyState';
@@ -97,7 +98,12 @@ function TeamDirectory() {
     { key: 'location', header: 'Location & shift', sortValue: person => locMap.get(person.locationId ?? -1)?.name ?? '', render: person => {
       const site = locMap.get(person.locationId ?? -1);
       const name = person.locationId == null ? t('Unassigned') : site?.name ?? `#${person.locationId}`;
-      return <div className="wx-team-identity"><SiteAvatar name={person.locationId == null ? null : name} /><div><strong><bdi>{name}</bdi></strong><small><bdi dir="ltr">{shiftTime(person.shiftStart, timezone(person))}–{shiftTime(person.shiftEnd, timezone(person))}</bdi> · <bdi>{timezone(person)}</bdi></small></div></div>;
+      const days = person.workDays;
+      return <div className="wx-team-identity"><SiteAvatar name={person.locationId == null ? null : name} /><div><strong><bdi>{name}</bdi></strong><small>
+        <bdi dir="ltr">{shiftTime(person.shiftStart, timezone(person))}–{shiftTime(person.shiftEnd, timezone(person))}</bdi>
+        {days?.length && !isEveryDay(days) ? <> · <bdi>{formatDays(days, t, language)}</bdi></> : null}
+        {' · '}<bdi>{timezone(person)}</bdi>
+      </small></div></div>;
     } },
     { key: 'status', header: 'Account status', render: person => <StatusPill tone={person.isActive ? 'ok' : 'neutral'} status={person.isActive ? 'ACTIVE' : 'INACTIVE'} /> },
     { key: 'actions', header: 'Actions', className: 'wx-team-action-cell', render: person => <RowMenu person={person} canAccess={canAccess(person)} onEdit={() => setEditingStaff({ ...person, location: locMap.get(person.locationId ?? -1) ?? person.location })} onAccess={() => { setAccessStaff(person); setAccessOpen(true); }} /> },

@@ -1,4 +1,8 @@
 import { fromZonedTime } from "date-fns-tz";
+import { WEEKDAYS, type Weekday } from "../../lib/workDays.ts";
+
+export type RecurrenceChoice = "DAILY" | "CHOSEN" | "ONCE";
+export const emptyRepeatDaysMessage = "Choose at least one day for this schedule.";
 
 export interface TemplateCreateForm {
   title: string;
@@ -6,7 +10,8 @@ export interface TemplateCreateForm {
   staffId: string;
   shiftStart: string;
   shiftEnd: string;
-  recurringType: "DAILY" | "ONCE";
+  recurringType: RecurrenceChoice;
+  repeatDays: Weekday[];
   effectiveDate: string;
   recurringEndDate: string;
   areaId: string;
@@ -27,6 +32,7 @@ export const blankCreateForm = (): TemplateCreateForm => ({
   shiftStart: "",
   shiftEnd: "",
   recurringType: "DAILY",
+  repeatDays: [...WEEKDAYS],
   effectiveDate: toDateStr(new Date()),
   recurringEndDate: "",
 
@@ -50,8 +56,9 @@ export function validateScheduleStep(form: TemplateCreateForm, step: ScheduleSte
     if (new Set(form.selectedItems.map(item => item.areaItemId)).size !== form.selectedItems.length) return "An inventory item can only be selected once.";
   }
   if (step === 2) {
+    if (form.recurringType === "CHOSEN" && !form.repeatDays.length) return emptyRepeatDaysMessage;
     if (!/^\d{4}-\d{2}-\d{2}$/.test(form.effectiveDate) || !form.shiftStart || !form.shiftEnd) return "Choose a date, start time, and end time.";
-    if (form.recurringType === "DAILY" && form.recurringEndDate && form.recurringEndDate < form.effectiveDate) return "The repeat end date must be on or after the effective date.";
+    if (form.recurringType !== "ONCE" && form.recurringEndDate && form.recurringEndDate < form.effectiveDate) return "The repeat end date must be on or after the effective date.";
   }
   return null;
 }

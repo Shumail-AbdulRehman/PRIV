@@ -26,9 +26,11 @@ vi.mock("../services/verification-v2/inventorySnapshot.service.js", () => ({
 vi.mock("../services/verification-v2/authorization.service.js", () => ({ requireLocationAccess: db.access }));
 vi.mock("../services/auditLog.service.js", () => ({ writeAuditLog: db.audit }));
 vi.mock("../services/deletion.service.js", () => ({ permanentlyDelete: vi.fn() }));
+vi.mock("../services/subscription.service.js", () => ({ companyHasFeature: vi.fn() }));
 vi.mock("../utils/cloudinary.js", () => ({ uploadSingleImage: vi.fn() }));
 
 import { createTaskTemplate, mapTemplateInventory } from "./taskTemplate.controller.js";
+import { companyHasFeature } from "../services/subscription.service.js";
 
 const selection = { areaId: 2, inventorySelection: "ALL", selectedItems: [], expectedInventoryVersion: 1 };
 const request = () => ({
@@ -46,6 +48,7 @@ const timeout = (message: string) => new Prisma.PrismaClientKnownRequestError(me
 describe("inventory schedule save transactions", () => {
   beforeEach(() => {
     vi.resetAllMocks();
+    vi.mocked(companyHasFeature).mockResolvedValue(true);
     db.access.mockResolvedValue({ id: 28, isActive: true, timezone: "Asia/Karachi" });
     db.tx.location.findUnique.mockResolvedValue({ timezone: "Asia/Karachi" });
     db.tx.staff.findMany.mockResolvedValue([{ id: 61, shiftStart: new Date("2026-10-07T03:00:00Z"), shiftEnd: new Date("2026-10-07T14:00:00Z") }]);

@@ -22,6 +22,7 @@ const actor={id:1,companyId:1,role:'STAFF' as const};
 const copies=['verification/1/attempts/a/original','verification/1/attempts/a/review'];
 const clean={originality:'DIRECT' as const,objectMatch:'MATCH' as const,viewMatch:'MATCH' as const,cleanliness:{verdict:'CLEAN' as const,surfaces:[{surface:'basin',verdict:'CLEAN' as const}],confidence:.99,reasonCode:'CLEAN' as const},metadata:{} as any};
 const dirty={...clean,cleanliness:{...clean.cleanliness,verdict:'DIRTY' as const,surfaces:[{surface:'basin',verdict:'DIRTY' as const}],reasonCode:'CLEANING_REQUIRED' as const}};
+const screen={...clean,originality:'SCREEN_RECAPTURE' as const};
 function deferred<T>(){let resolve!:(v:T)=>void,reject!:(e:unknown)=>void;const promise=new Promise<T>((a,b)=>{resolve=a;reject=b;});return {promise,resolve,reject};}
 beforeEach(()=>{vi.resetAllMocks();
  m.attempt={id:'a',staffId:1,committedHash:'hash',state:'RESERVED',session:{taskInstanceId:7,task:{locationId:2}},requirement:{id:'r',viewKey:'basin',item:{typeSnapshot:'SINK',rubricSnapshot:{version:1}}},media:null,qualityResult:null,receivedAt:null};
@@ -42,10 +43,10 @@ describe('direct photo: storage alongside the AI',()=>{
   expect(await done).toMatchObject({state:'REVIEW_REQUIRED',storage:'cloud'});
   expect(m.attempt.media).toMatchObject({cloudinaryAssetId:'cloud',sanitizedPublicId:copies[1]});
  });
- it('records a dirty photo as discarded first, then deletes both copies once they finish uploading',async()=>{
+ it('records a screen photo as discarded first, then deletes both copies once they finish uploading',async()=>{
   const stored=deferred<{asset_id:string}>(),discard=vi.fn(async()=>{});
-  const result=await processDirectPhoto(actor,'a',Buffer.from('photo'),{evaluate:async()=>dirty},vi.fn(()=>stored.promise),discard);
-  expect(result).toMatchObject({state:'CLEANING_REQUIRED',storage:'discarded'});
+  const result=await processDirectPhoto(actor,'a',Buffer.from('photo'),{evaluate:async()=>screen},vi.fn(()=>stored.promise),discard);
+  expect(result).toMatchObject({state:'RECAPTURE_REQUIRED',storage:'discarded'});
   expect(m.attempt.media).toMatchObject({privacyState:'DISCARDED',sanitizedPublicId:null,cloudinaryAssetId:undefined});
   expect(discard).not.toHaveBeenCalled();
   stored.resolve({asset_id:'cloud'});
@@ -54,8 +55,8 @@ describe('direct photo: storage alongside the AI',()=>{
  });
  it('a failed storage upload does not fail a discard decision',async()=>{
   const discard=vi.fn(async()=>{});
-  const result=await processDirectPhoto(actor,'a',Buffer.from('photo'),{evaluate:async()=>dirty},vi.fn().mockRejectedValue(new Error('down')),discard);
-  expect(result.state).toBe('CLEANING_REQUIRED');await vi.waitFor(()=>expect(discard).toHaveBeenCalledWith(copies));
+  const result=await processDirectPhoto(actor,'a',Buffer.from('photo'),{evaluate:async()=>screen},vi.fn().mockRejectedValue(new Error('down')),discard);
+  expect(result.state).toBe('RECAPTURE_REQUIRED');await vi.waitFor(()=>expect(discard).toHaveBeenCalledWith(copies));
  });
  it('deletes the copies before handing the attempt back when the AI fails',async()=>{
   const discard=vi.fn(async()=>{expect(m.attempt.state).toBe('CLEANLINESS_CHECK');});
@@ -80,9 +81,9 @@ describe('direct photo: storage alongside the AI',()=>{
  });
  it('a cached AI answer that discards the photo uploads nothing',async()=>{
   const {bufferedEvaluatorVersion}=await import('./bufferedPhoto.provider.js');
-  m.attempt.receivedAt=new Date();m.attempt.directAssessment={assessment:dirty,evaluatorVersion:bufferedEvaluatorVersion()};
+  m.attempt.receivedAt=new Date();m.attempt.directAssessment={assessment:screen,evaluatorVersion:bufferedEvaluatorVersion()};
   const store=vi.fn(),discard=vi.fn(),evaluate=vi.fn();
-  expect((await processDirectPhoto(actor,'a',Buffer.from('photo'),{evaluate},store,discard)).state).toBe('CLEANING_REQUIRED');
+  expect((await processDirectPhoto(actor,'a',Buffer.from('photo'),{evaluate},store,discard)).state).toBe('RECAPTURE_REQUIRED');
   expect(store).not.toHaveBeenCalled();expect(evaluate).not.toHaveBeenCalled();expect(discard).not.toHaveBeenCalled();
  });
 });

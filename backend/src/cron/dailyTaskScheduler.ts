@@ -1,7 +1,6 @@
 import { generateTaskInstances } from "../services/verification-v2/inventorySnapshot.service.js";
 import { prisma } from "../prisma/prisma.js";
-import { resolveTaskInstanceWindow } from "./taskInstanceWindow.js";
-import { getZonedDayRange } from "../utils/dateTime.js";
+import { buildScheduleOccurrences } from "./scheduleOccurrences.js";
 import { ensureAssignmentsForToday } from "../services/taskAssignment.service.js";
 
 let isDailyTaskSchedulerRunning = false;
@@ -42,39 +41,7 @@ export const runDailyTaskScheduler = async (now = new Date()) => {
       },
     });
 
-    const instancesToCreate = [];
-
-
-    for (const template of dailyTemplates) {
-      const timeZone = template.location.timezone;
-      const { start: localToday, end: localTomorrow } = getZonedDayRange(now, timeZone);
-
-      if (template.effectiveDate > localTomorrow) continue;
-      if (template.recurringEndDate && template.recurringEndDate < localToday) continue;
-
-      const { date, shiftStart, shiftEnd } = resolveTaskInstanceWindow({
-        baseDate: localToday,
-        taskShiftStart: template.shiftStart,
-        taskShiftEnd: template.shiftEnd,
-        staffShiftStart: template.staff?.shiftStart,
-        staffShiftEnd: template.staff?.shiftEnd,
-        timeZone,
-      });
-
-      instancesToCreate.push({
-          templateId: template.id,
-          baseDate: localToday,
-          title: template.title,
-          date,
-          shiftStart,
-          shiftEnd,
-          staffId: template.staffId,
-          locationId: template.locationId,
-          referenceImageUrl: template.referenceImageUrl
-      });
-
-
-    }
+    const instancesToCreate = buildScheduleOccurrences(dailyTemplates, now);
 
     const { count: created } = instancesToCreate.length
       ? await generateTaskInstances(instancesToCreate)

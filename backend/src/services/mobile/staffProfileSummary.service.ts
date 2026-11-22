@@ -2,6 +2,7 @@ import { Prisma } from '@prisma/client';
 import { formatInTimeZone } from 'date-fns-tz';
 import { prisma } from '../../prisma/prisma.js';
 import { ApiError } from '../../utils/ApiError.js';
+import { readDayList } from '../../utils/workDays.js';
 import type { VerificationActor } from '../verification-v2/authorization.service.js';
 import { staffMonthContext } from './staffMonth.js';
 
@@ -11,7 +12,7 @@ import { staffMonthContext } from './staffMonth.js';
  * credential field.
  */
 export const profileSummaryStaffSelect = {
-  id: true, name: true, email: true, phone: true, createdAt: true, shiftStart: true, shiftEnd: true,
+  id: true, name: true, email: true, phone: true, createdAt: true, shiftStart: true, shiftEnd: true, workDays: true,
   company: { select: { name: true } },
   location: { select: { id: true, name: true, address: true, timezone: true, isActive: true } },
 } as const satisfies Prisma.StaffSelect;
@@ -86,7 +87,11 @@ export async function staffProfileSummary(actor: VerificationActor, now = new Da
   ]);
 
   const usualShift = staff.shiftStart && staff.shiftEnd
-    ? { start: formatInTimeZone(staff.shiftStart, context.timezone, 'HH:mm'), end: formatInTimeZone(staff.shiftEnd, context.timezone, 'HH:mm') }
+    ? {
+      start: formatInTimeZone(staff.shiftStart, context.timezone, 'HH:mm'),
+      end: formatInTimeZone(staff.shiftEnd, context.timezone, 'HH:mm'),
+      days: readDayList(staff.workDays),
+    }
     : null;
   const month: StaffProfileMonth = { month: context.month, shiftsScheduled, shiftsAttended, onTime, tasksAssigned, tasksSubmitted };
 

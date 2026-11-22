@@ -91,6 +91,20 @@ test('a full profile summary parses field for field', () => {
   assert.deepEqual(parseProfileSummary(body), body);
 });
 
+test('a profile summary keeps valid work days in canonical order', () => {
+  const shift = { start: '09:00', end: '17:00' };
+  const body = profileBody({ usualShift: { ...shift, days: ['WED', 'MON'] } });
+  assert.deepEqual(parseProfileSummary(body)?.usualShift, { ...shift, days: ['MON', 'WED'] });
+});
+
+test('a profile summary drops invalid work days and keeps the shift', () => {
+  const shift = { start: '09:00', end: '17:00' };
+  for (const days of [null, 'MON', [], ['MON', 'MON'], ['MON', 'FUNDAY'], ['MON', 3]]) {
+    const body = profileBody({ usualShift: { ...shift, days } });
+    assert.deepEqual(parseProfileSummary(body)?.usualShift, shift);
+  }
+});
+
 test('a body that is not an object returns null', () => {
   for (const hostile of [null, undefined, 'error', 42, [], true]) {
     assert.equal(parseTaskHistoryPage(hostile), null);

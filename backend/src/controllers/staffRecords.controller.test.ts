@@ -6,6 +6,7 @@ import { afterAll, beforeAll, beforeEach, describe, expect, it, vi } from "vites
 import { launchErrorHandler } from "../routes/launch.route.js";
 import staffRouter from "../routes/staff.route.js";
 import { ApiError } from "../utils/ApiError.js";
+import { WEEKDAYS } from "../utils/workDays.js";
 
 const { tx, db, insertStaff, lockStaffIdentities, withAccountCapacity, requireLocationAccess, syncShift } = vi.hoisted(() => ({
   tx: {
@@ -14,7 +15,14 @@ const { tx, db, insertStaff, lockStaffIdentities, withAccountCapacity, requireLo
     staffPushDevice: { updateMany: vi.fn() },
     taskTemplate: { findMany: vi.fn() },
   },
-  db: { $transaction: vi.fn() },
+  db: {
+    $transaction: vi.fn(),
+    staff: { findMany: vi.fn(), findUnique: vi.fn() },
+    location: { findUnique: vi.fn() },
+    taskTemplate: { findMany: vi.fn(), count: vi.fn() },
+    taskInstance: { findMany: vi.fn(), groupBy: vi.fn(), count: vi.fn() },
+    attendance: { findMany: vi.fn(), groupBy: vi.fn(), count: vi.fn() },
+  },
   insertStaff: vi.fn(),
   lockStaffIdentities: vi.fn(),
   withAccountCapacity: vi.fn(),
@@ -23,7 +31,11 @@ const { tx, db, insertStaff, lockStaffIdentities, withAccountCapacity, requireLo
 }));
 
 vi.mock("../prisma/prisma.js", () => ({ prisma: db }));
-vi.mock("../services/staffProvisioning.service.js", () => ({ insertStaff, lockStaffIdentities }));
+vi.mock("../services/staffProvisioning.service.js", async (importOriginal) => ({
+  ...await importOriginal<typeof import("../services/staffProvisioning.service.js")>(),
+  insertStaff,
+  lockStaffIdentities,
+}));
 vi.mock("../services/accountAccess.service.js", async (importOriginal) => ({
   ...await importOriginal<typeof import("../services/accountAccess.service.js")>(),
   withAccountCapacity,
@@ -33,6 +45,9 @@ vi.mock("../services/verification-v2/authorization.service.js", async (importOri
   requireLocationAccess,
 }));
 vi.mock("../utils/syncAttendanceWindow.js", () => ({ syncTodaysOpenAttendanceWindow: syncShift }));
+vi.mock("../services/verification-v2/reviewClosure.service.js", () => ({
+  staffPerformanceReports: async () => [],
+}));
 vi.mock("../middlewares/accountAccess.middleware.js", () => ({
   accountAccess: () => (_req: unknown, _res: unknown, next: () => void) => next(),
 }));
@@ -85,7 +100,7 @@ afterAll(async () => {
   });
 });
 
-async function call(method: "POST" | "PATCH", path: string, body?: object, role = "ADMIN") {
+async function call(method: "GET" | "POST" | "PATCH", path: string, body?: object, role = "ADMIN") {
   const response = await fetch(origin + path, {
     method,
     headers: { "Content-Type": "application/json", "X-Test-Role": role },
@@ -114,7 +129,7 @@ describe("create staff", () => {
     expect(response.status).toBe(201);
     expect(insertStaff.mock.calls[0]).toStrictEqual([tx, 42, { name: staff.name, phone: "+923001234567" }]);
     expect(withAccountCapacity).toHaveBeenCalledWith(expect.objectContaining({ companyId: 42 }), "staff", expect.any(Function));
-    expect(response.body.data).toEqual({ id: 7, name: staff.name, phone: "+923001234567", email: null });
+    expect(response.body.data).toEqual({ id: 7, name: staff.name, phone: "+923001234567", email: null, workDays: WEEKDAYS });
   });
 
   it("keeps field validation for malformed fields other than phone", async () => {
@@ -144,6 +159,67 @@ describe("create staff", () => {
     expect(response).toMatchObject({ status: 403, body: { message: "Location is inactive" } });
     expect(requireLocationAccess).toHaveBeenCalledWith(expect.objectContaining({ role: "MANAGER" }), 9, tx);
     expect(insertStaff).not.toHaveBeenCalled();
+  });
+});
+
+it.each([
+  ["POST", createPath, { name: staff.name, phone: staff.phone, workDays: [] }],
+  ["PATCH", editPath, { workDays: ["WED", "FRIDAY"] }],
+] as const)("%s %s returns INVALID_WORK_DAYS with a field error", async (method, path, body) => {
+  const message = "Choose at least one work day.";
+  expect(await call(method, path, body)).toMatchObject({
+    status: 400,
+    body: { success: false, code: "INVALID_WORK_DAYS", message, errors: [{ field: "workDays", message, code: "INVALID_WORK_DAYS" }] },
+  });
+  expect(withAccountCapacity).not.toHaveBeenCalled();
+  expect(db.$transaction).not.toHaveBeenCalled();
+});
+
+describe("read staff work days", () => {
+  it.each(["/api/staff", "/api/staff/location/9"])("returns canonical work days from %s", async (path) => {
+    db.staff.findMany.mockResolvedValue([{ ...staff, workDays: ["WED", "MON", "WED"] }]);
+    db.location.findUnique.mockResolvedValue({ id: 9, companyId: 42 });
+    expect(await call("GET", path)).toMatchObject({
+      status: 200, body: { data: [{ id: staff.id, workDays: ["MON", "WED"] }] },
+    });
+    expect(db.staff.findMany).toHaveBeenCalledWith(expect.objectContaining({
+      select: expect.objectContaining({ workDays: true }),
+    }));
+  });
+
+  it("returns all seven days for a legacy staff read without work days", async () => {
+    db.staff.findUnique.mockResolvedValue(staff);
+    expect(await call("GET", editPath)).toMatchObject({
+      status: 200, body: { data: { id: staff.id, workDays: WEEKDAYS } },
+    });
+    expect(db.staff.findUnique).toHaveBeenCalledWith(expect.objectContaining({
+      select: expect.objectContaining({ workDays: true }),
+    }));
+  });
+
+  it("returns canonical staff and schedule days in staff details", async () => {
+    db.staff.findUnique.mockResolvedValue({ ...staff, workDays: ["WED", "MON"] });
+    db.taskTemplate.findMany.mockResolvedValue([
+      { id: 1, recurringType: "DAILY", repeatDays: ["WED", "MON"] },
+      { id: 2, recurringType: "ONCE", repeatDays: [] },
+    ]);
+    db.taskInstance.findMany.mockResolvedValue([]);
+    db.taskInstance.groupBy.mockResolvedValue([]);
+    db.attendance.findMany.mockResolvedValue([]);
+    db.attendance.groupBy.mockResolvedValue([]);
+    expect(await call("GET", "/api/staff/details/7")).toMatchObject({
+      status: 200,
+      body: { data: {
+        workDays: ["MON", "WED"],
+        taskTemplates: [{ repeatDays: ["MON", "WED"] }, { repeatDays: WEEKDAYS }],
+      } },
+    });
+    expect(db.staff.findUnique).toHaveBeenCalledWith(expect.objectContaining({
+      select: expect.objectContaining({ workDays: true }),
+    }));
+    expect(db.taskTemplate.findMany).toHaveBeenCalledWith(expect.objectContaining({
+      select: expect.objectContaining({ repeatDays: true }),
+    }));
   });
 });
 

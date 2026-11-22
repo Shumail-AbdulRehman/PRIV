@@ -1,6 +1,8 @@
 import { writeFile } from "node:fs/promises";
 import { createHmac, randomBytes, randomUUID } from "node:crypto";
 import { createRequire } from "node:module";
+import { getZonedDayRange } from "../../backend/src/utils/dateTime.ts";
+import { weekdayOfLocalDay } from "../../backend/src/utils/workDays.ts";
 // Reuse the real Prisma adapter; dotenv sees only the clean worktree and sanitized child env.
 const require = createRequire(
   new URL("../../backend/package.json", import.meta.url),
@@ -27,9 +29,9 @@ const fixture = {
   task: {},
 };
 try {
-  for (const key of ["A", "B", "Return0", "Return1", "Return2", "Return3"]) {
+  for (const key of ["A", "B", "Return0", "Return1", "Return2", "Return3", "workDays"]) {
     const company = await db.company.create({
-      data: { name: `E2E company ${key}` },
+      data: { name: `E2E company ${key}`, ...(key === "workDays" ? { plan: "ADVANCED" } : {}) },
     });
     fixture.company[key] = company.id;
     const customerId = `ctm_e2e_${key}`,
@@ -49,7 +51,9 @@ try {
         customerId,
         companyId: company.id,
         status: "active",
-        priceId: "pri_00000000000000000000000001",
+        priceId: key === "workDays"
+          ? "pri_00000000000000000000000003"
+          : "pri_00000000000000000000000001",
         productId: "pro_e2e",
         currentBillingPeriodStart: new Date(+now - 86400000),
         currentBillingPeriodEnd: new Date(+now + 86400000),
@@ -76,11 +80,11 @@ try {
     });
     fixture.users["owner" + key] = { id: owner.id, email: owner.email };
   }
-  for (const key of ["A", "B", "foreign"]) {
+  for (const key of ["A", "B", "foreign", "workDays"]) {
     const location = await db.location.create({
       data: {
-        companyId: key === "foreign" ? fixture.company.B : fixture.company.A,
-        name: `E2E site ${key}`,
+        companyId: key === "foreign" ? fixture.company.B : fixture.company[key === "workDays" ? key : "A"],
+        name: key === "workDays" ? "E2E work days site" : `E2E site ${key}`,
         address: "Synthetic test location",
         latitude: "31",
         longitude: "74",
@@ -301,6 +305,176 @@ try {
       password: encrypted, companyId: company.id, role: 'ADMIN', isActive: key !== 'deactivatedOwner',
     } });
     fixture.users[key] = { id: owner.id, email: owner.email };
+  }
+  // Keep the work-days data outside the original companies and their suite baselines.
+  const locationId = fixture.site.workDays;
+  const companyId = fixture.company.workDays;
+  const tomorrow = new Date(+now + 86400000);
+  const dayRange = getZonedDayRange(tomorrow, siteTimeZone);
+  let weekStart = dayRange.start;
+  while (weekdayOfLocalDay(weekStart, siteTimeZone) !== "MON") {
+    weekStart = new Date(+weekStart + 86400000);
+  }
+  const week = new Intl.DateTimeFormat("sv-SE", { timeZone: siteTimeZone }).format(weekStart);
+  const workArea = await db.area.create({
+    data: { locationId, name: "E2E work days room", roomType: "WASHROOM", status: "ACTIVE" },
+  });
+  await db.areaItem.create({
+    data: {
+      areaId: workArea.id,
+      stableCode: "E2E-WORK-DAYS-SINK",
+      displayName: "Work days sink",
+      fixtureType: "SINK",
+      sequence: 1,
+      rubricKey: "sink",
+      requiredViews: [{ key: "basin", instructions: "Show the sink basin", mandatory: true }],
+    },
+  });
+  fixture.workDays = { today: fixture.openShiftDate, week, area: workArea.name };
+  const shiftStart = new Date(`${week}T09:00:00+05:00`);
+  const shiftEnd = new Date(`${week}T17:00:00+05:00`);
+  const staffWorkDays = {
+    everyDay: { name: "Every Day Worker", days: undefined },
+    mondayWednesday: { name: "Monday Wednesday Worker", days: ["MON", "WED"] },
+    monday: { name: "Monday Worker", days: ["MON"] },
+    dayOff: { name: "Day Off Worker", days: [weekdayOfLocalDay(dayRange.start, siteTimeZone)] },
+  };
+  for (const [index, [key, { name, days }]] of Object.entries(staffWorkDays).entries()) {
+    const row = await db.staff.create({
+      data: {
+        name, phone: `+92398100000${index}`, password: encrypted,
+        email: `work-days-${key.toLowerCase()}@example.invalid`,
+        companyId, locationId, shiftStart, shiftEnd, ...(days ? { workDays: days } : {}),
+      },
+    });
+    fixture.staff[key] = { id: row.id, email: row.email, phone: row.phone };
+  }
+  const schedules = [
+    { title: "E2E Fixed Tuesday", start: "14:00", end: "15:00", repeatDays: ["TUE"], staffId: fixture.staff.everyDay.id },
+    { title: "E2E Daily", start: "12:00", end: "13:00" },
+  ];
+  for (const { title, start, end, ...assignment } of schedules) {
+    await db.taskTemplate.create({
+      data: {
+        title, locationId, areaId: workArea.id, verificationVersion: 2, setupStatus: "READY",
+        recurringType: "DAILY", effectiveDate: new Date(`${week}T00:00:00Z`),
+        shiftStart: new Date(`${week}T${start}:00+05:00`),
+        shiftEnd: new Date(`${week}T${end}:00+05:00`),
+        ...assignment,
+      },
+    });
+  }
+  fixture.reliability = { effectiveDate: week };
+  for (const [key, plan, priceId] of [
+    ["starter", "STARTER", "pri_00000000000000000000000001"],
+    ["enterprise", "ADVANCED", "pri_00000000000000000000000003"],
+  ]) {
+    const company = await db.company.create({ data: { name: `Reliability ${key}`, plan } });
+    const customerId = `ctm_reliability_${key}`;
+    const subscriptionId = `sub_reliability_${key}`;
+    await db.paddleCustomer.create({ data: {
+      id: customerId, companyId: company.id, status: "active", paddleUpdatedAt: now, lastEventAt: now,
+    } });
+    await db.paddleSubscription.create({ data: {
+      id: subscriptionId, customerId, companyId: company.id, status: "active", priceId,
+      productId: "reliability_e2e", currentBillingPeriodStart: yesterday,
+      currentBillingPeriodEnd: tomorrow, paddleUpdatedAt: now, lastEventAt: now,
+    } });
+    await db.company.update({ where: { id: company.id }, data: {
+      billingCustomerId: customerId, billingSubscriptionId: subscriptionId,
+    } });
+    const owner = await db.manager.create({ data: {
+      name: `Reliability ${key} owner`, email: `reliability-${key}@example.invalid`,
+      password: encrypted, companyId: company.id, role: "ADMIN", emailVerifiedAt: now,
+    } });
+    const ownerKey = `reliability-${key}`;
+    fixture.users[ownerKey] = { id: owner.id, email: owner.email };
+    const location = await db.location.create({ data: {
+      companyId: company.id, name: `Reliability ${key} site`, address: "Synthetic test location",
+      latitude: "31", longitude: "74", timezone: siteTimeZone,
+    } });
+    const room = await db.area.create({ data: {
+      locationId: location.id, name: "Reliability washroom", roomType: "WASHROOM", status: "ACTIVE",
+    } });
+    const sink = await db.areaItem.create({ data: {
+      areaId: room.id, stableCode: "E2E-RELIABILITY-SINK", displayName: "Wash basin",
+      fixtureType: "SINK", sequence: 1, rubricKey: "sink",
+      requiredViews: [{ key: "basin", instructions: "Show the sink basin", mandatory: true }],
+    } });
+    const worker = await db.staff.create({ data: {
+      name: "Daytime Worker", phone: key === "starter" ? "+923982000001" : "+923982000002",
+      email: `reliability-staff-${key}@example.invalid`, password: encrypted,
+      companyId: company.id, locationId: location.id, shiftStart, shiftEnd,
+    } });
+    fixture.reliability[key] = { ownerKey, locationId: location.id, areaName: room.name, workerId: worker.id, workerName: worker.name };
+    if (key === "starter") {
+      const title = "Monday basin cleaning";
+      await db.taskTemplate.create({ data: {
+        title, locationId: location.id, areaId: room.id, staffId: worker.id,
+        verificationVersion: 2, setupStatus: "READY", recurringType: "DAILY", repeatDays: ["MON"],
+        effectiveDate: new Date(`${week}T00:00:00Z`),
+        shiftStart: new Date(`${week}T10:00:00+05:00`), shiftEnd: new Date(`${week}T11:00:00+05:00`),
+      } });
+      fixture.reliability.overlapTitle = title;
+    } else {
+      const manager = await db.manager.create({ data: {
+        name: "Reliability reviewer", email: "reliability-reviewer@example.invalid", password: encrypted,
+        companyId: company.id, role: "MANAGER", emailVerifiedAt: now,
+        assignedLocations: { create: { locationId: location.id } },
+      } });
+      const reviewerKey = "reliability-reviewer";
+      fixture.users[reviewerKey] = { id: manager.id, email: manager.email };
+      const bindings = { companyId: company.id, locationId: location.id };
+      const endsAt = new Date(+now + 3600000);
+      const dirtyTask = await db.taskInstance.create({ data: {
+        title: "Basin photo review", locationId: location.id, areaId: room.id, staffId: worker.id,
+        verificationVersion: 2, areaNameSnapshot: room.name, inventoryVersion: 1, policySnapshot: { version: 1 },
+        date: now, shiftStart: new Date(+now - 3600000), shiftEnd: endsAt, startedAt: new Date(+now - 1800000),
+        status: "IN_PROGRESS", verificationDeadline: endsAt, uploadDeadline: endsAt,
+      } });
+      const taskInstanceId = dirtyTask.id;
+      const taskItem = await db.taskVerificationItem.create({ data: {
+        taskInstanceId, areaId: room.id, sourceAreaItemId: sink.id, itemCodeSnapshot: sink.stableCode,
+        nameSnapshot: sink.displayName, typeSnapshot: sink.fixtureType, orderSnapshot: 1,
+        identificationSnapshot: {}, rubricSnapshot: { version: 1 }, state: "CLEANING_REQUIRED",
+      } });
+      const requirement = await db.taskEvidenceRequirement.create({ data: {
+        taskVerificationItemId: taskItem.id, viewKey: "basin", instructionsSnapshot: "Show the sink basin",
+        state: "CLEANING_REQUIRED", decisionVersion: 1,
+      } });
+      const assignment = await db.taskAssignment.create({ data: { taskInstanceId, staffId: worker.id } });
+      const session = await db.captureSession.create({ data: {
+        taskInstanceId, areaId: room.id, staffId: worker.id, assignmentId: assignment.id,
+        assignmentEpoch: 1, deviceId: "fixture-device", qrVersion: 1, policyVersion: 1,
+        captureExpiresAt: endsAt, uploadExpiresAt: endsAt, presenceStatus: "VERIFIED",
+        locationCheck: {}, serverTimeAnchor: now, clientBootId: "fixture-boot",
+      } });
+      const slot = await db.captureSlot.create({ data: {
+        sessionId: session.id, requirementId: requirement.id, sequence: 1,
+        nonceHash: "fixture-unused-nonce-hash", expiresAt: endsAt,
+      } });
+      const media = await db.evidenceAsset.create({ data: {
+        ...bindings, taskInstanceId, originalPublicId: "fixture/reliability/original",
+        sanitizedPublicId: "fixture/reliability/review", format: "png", bytes: 1,
+        width: 640, height: 480, sha256: "0".repeat(64), privacyState: "NOT_REQUIRED",
+      } });
+      const attempt = await db.verificationAttempt.create({ data: {
+        requirementId: requirement.id, sessionId: session.id, slotId: slot.id, staffId: worker.id,
+        assignmentEpoch: 1, mediaAssetId: media.id, clientCaptureId: "fixture-dirty-photo",
+        claimedCapturedAt: now, anchoredElapsedMs: 0n, receivedAt: now, timingEvidence: "ANCHORED",
+        state: "CLEANING_REQUIRED", cleanlinessResult: { verdict: "DIRTY" },
+      } });
+      await db.taskEvidenceRequirement.update({ where: { id: requirement.id }, data: { currentAttemptId: attempt.id } });
+      const dirtyReview = await db.verificationException.create({ data: {
+        ...bindings, areaId: room.id, taskInstanceId, kind: "TASK", dedupeKey: `task:${taskInstanceId}`,
+      } });
+      await db.verificationIssue.create({ data: {
+        exceptionId: dirtyReview.id, requirementId: requirement.id, dedupeKey: "dirty-basin",
+        reasonCode: "CLEANING_REQUIRED", recommendedAction: "SCAN_QR_FOR_REWORK",
+        firstAttemptId: attempt.id, latestAttemptId: attempt.id,
+      } });
+      fixture.reliability.dirty = { reviewerKey, reviewId: dirtyReview.id, requirementId: requirement.id, assetId: media.id };
+    }
   }
   fixture.review = { id: review.id, taskId: task.id };
   await writeFile(process.env.HYGENE_E2E_MANIFEST, JSON.stringify(fixture), {

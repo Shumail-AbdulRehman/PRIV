@@ -187,10 +187,10 @@ it("staff keeps location, shift, check-in, overnight, submitted figures and work
   expect(within(table).getByRole("link", { name: "Synthetic room" })).toHaveAttribute("href", expect.stringContaining("taskId=11"));
   request("staff", { attendance: "present", locationId: "1", date: "2026-10-20" });
 });
-it("all five attendance filters stay reachable and write the URL", async () => {
+it("all six attendance filters stay reachable and write the URL", async () => {
   const { router } = mount("/today-status?tab=staff&page=2");
   const group = await screen.findByRole("group", { name: "Attendance" });
-  expect(within(group).getAllByRole("button")).toHaveLength(5);
+  expect(within(group).getAllByRole("button")).toHaveLength(6);
   fireEvent.click(within(group).getByRole("button", { name: "No attendance record" }));
   await waitFor(() => request("staff", { attendance: "missing" }));
   expect(router.state.location.search).toContain("attendance=missing"); expect(router.state.location.search).not.toContain("page=");

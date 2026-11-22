@@ -35,4 +35,20 @@ describe('staff record validation', () => {
       error: { issues: [{ path: ['phone'], params: { code: 'INVALID_PHONE' } }] },
     });
   });
+
+  it('normalizes work days and keeps the field optional', () => {
+    expect(staffRecordSchema.parse(staff)).not.toHaveProperty('workDays');
+    expect(staffRecordSchema.parse({ ...staff, workDays: ['WED', 'MON', 'WED'] }).workDays).toEqual(['MON', 'WED']);
+  });
+
+  it.each([[[]], [['MON', 'FRIDAY']], [null], ['MON']])('tags the work days issue for %j', (workDays) => {
+    expect(staffRecordSchema.safeParse({ ...staff, workDays })).toMatchObject({
+      success: false,
+      error: { issues: [{
+        path: ['workDays'],
+        message: 'Choose at least one work day.',
+        params: { code: 'INVALID_WORK_DAYS' },
+      }] },
+    });
+  });
 });

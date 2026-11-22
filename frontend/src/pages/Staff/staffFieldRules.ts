@@ -1,5 +1,6 @@
 import type { ChangeEvent } from 'react';
 import type { RegisterOptions, UseFormRegisterReturn } from 'react-hook-form';
+import type { Weekday } from '@/lib/workDays';
 
 const messages = {
   nameRequired: 'Full name is required.',
@@ -11,6 +12,8 @@ const messages = {
   siteRequired: 'Choose a site.',
   shiftPair: 'Enter both shift start and shift end.',
   shiftDifferent: 'Shift start and end must be different.',
+  workDaysRequired: 'Choose at least one work day.',
+  workDaysConflict: 'This person has schedules on the days you removed: {titles}. Change those schedules first.',
   reasonRequired: 'Enter a reason.',
   reasonLength: 'Keep the reason under 1000 characters.',
   phoneInUse: 'This phone number is already used by another staff member.',
@@ -133,6 +136,10 @@ export const staffReasonRules = {
   setValueAs: trim,
 } satisfies RegisterOptions;
 
+export const staffWorkDaysRules = {
+  validate: (days: Weekday[]) => days.length > 0 || messages.workDaysRequired,
+};
+
 function isStaffFormField(field: unknown): field is 'name' | 'phone' | 'email' | 'locationId' | 'shiftStart' | 'shiftEnd' | 'reason' {
   return field === 'name' || field === 'phone' || field === 'email' || field === 'locationId' ||
     field === 'shiftStart' || field === 'shiftEnd' || field === 'reason';
@@ -141,6 +148,7 @@ function isStaffFormField(field: unknown): field is 'name' | 'phone' | 'email' |
 export function getStaffFormError(error: unknown) {
   const data = (error as { response?: { data?: {
     code?: string;
+    message?: string;
     errors?: Array<{ code?: string; field?: string; message?: string } | null>;
   } } } | null)?.response?.data;
   const issues = Array.isArray(data?.errors) ? data.errors : [];
@@ -148,6 +156,14 @@ export function getStaffFormError(error: unknown) {
     case 'PHONE_IN_USE': return { field: 'phone', message: messages.phoneInUse } as const;
     case 'EMAIL_IN_USE': return { field: 'email', message: messages.emailInUse } as const;
     case 'INVALID_PHONE': return { field: 'phone', message: messages.phoneFormat } as const;
+    case 'INVALID_WORK_DAYS': return { field: 'workDays', message: messages.workDaysRequired } as const;
+    case 'WORK_DAYS_CONFLICT': {
+      const message = issues[0]?.message ?? data?.message;
+      const titles = typeof message === 'string'
+        ? message.match(/ has schedules on the days you removed: ("[\s\S]*")\. Change those schedules first\.$/)?.[1]
+        : undefined;
+      return { field: 'workDays', message: messages.workDaysConflict, values: { titles: titles ?? '—' } } as const;
+    }
     case 'INVALID_REQUEST':
       for (const issue of issues) {
         if (isStaffFormField(issue?.field) && typeof issue.message === 'string' && issue.message.trim()) {

@@ -1,8 +1,7 @@
 import { generateTaskInstances } from "../services/verification-v2/inventorySnapshot.service.js";
 import cron from "node-cron";
 import { prisma } from "../prisma/prisma.js";
-import { resolveTaskInstanceWindow } from "./taskInstanceWindow.js";
-import { getZonedDayRange } from "../utils/dateTime.js";
+import { buildScheduleOccurrences } from "./scheduleOccurrences.js";
 import { ensureAssignmentsForToday } from "../services/taskAssignment.service.js";
 
 
@@ -37,38 +36,7 @@ export async function runOnceTaskScheduler(now = new Date())
       },
     });
 
-    const instancesToCreate = [];
-
-
-    for (const template of onceTemplates) {
-      const timeZone = template.location.timezone;
-      const { start: localToday, end: localTomorrow } = getZonedDayRange(now, timeZone);
-
-      if (template.effectiveDate < localToday || template.effectiveDate >= localTomorrow) continue;
-
-      const { date, shiftStart, shiftEnd } = resolveTaskInstanceWindow({
-        baseDate: localToday,
-        taskShiftStart: template.shiftStart,
-        taskShiftEnd: template.shiftEnd,
-        staffShiftStart: template.staff?.shiftStart,
-        staffShiftEnd: template.staff?.shiftEnd,
-        timeZone,
-      });
-
-      instancesToCreate.push({
-          templateId: template.id,
-          baseDate: localToday,
-          title: template.title,
-          date,
-          shiftStart,
-          shiftEnd,
-          staffId: template.staffId,
-          locationId: template.locationId,
-          referenceImageUrl: template.referenceImageUrl
-      });
-
-
-    }
+    const instancesToCreate = buildScheduleOccurrences(onceTemplates, now);
 
     const { count: created } = instancesToCreate.length
       ? await generateTaskInstances(instancesToCreate)
@@ -84,4 +52,4 @@ export async function runOnceTaskScheduler(now = new Date())
     }
 }
 
-if (process.env.NODE_ENV !== "test") cron.schedule("3-59/15 * * * *",()=>runOnceTaskScheduler());
+if (process.env.NODE_ENV !== "test") cron.schedule("3-59/15 * * * *", () => runOnceTaskScheduler(), { noOverlap: true });

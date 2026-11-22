@@ -1,5 +1,6 @@
 import * as React from 'react';
 import { StyleSheet, View, useWindowDimensions } from 'react-native';
+import { useAuth } from '../../auth/AuthContext';
 import { Icon, type LucideIconName } from '../../components/ui/icon';
 import { Skeleton } from '../../design/Feedback';
 import { timeRange } from '../../design/format';
@@ -7,9 +8,12 @@ import { NameLine, StaffText, isolate } from '../../design/StaffText';
 import { colors, gutterFor } from '../../design/tokens';
 import type { ProfileSummary } from '../../history/types';
 import { useLanguage } from '../../i18n/LanguageProvider';
+import { useStaffProfileQuery, type Weekday } from '../../queries/profile';
+
+type UsualShift = NonNullable<ProfileSummary['usualShift']> & { days?: readonly Weekday[] };
 
 export interface ProfileWorkProps {
-  summary?: Pick<ProfileSummary, 'location' | 'usualShift' | 'manager'> | null;
+  summary?: Pick<ProfileSummary, 'location' | 'manager'> & { usualShift: UsualShift | null } | null;
   loading?: boolean;
 }
 
@@ -51,11 +55,19 @@ function usualShiftText(shift: { start: string; end: string }): string {
 
 /** Profile "My work": where, when and with whom the person works. No call and no phone. */
 export function ProfileWork({ summary, loading = false }: ProfileWorkProps) {
+  const { user } = useAuth();
+  const { language, t } = useLanguage();
   const { width } = useWindowDimensions();
   const gutter = gutterFor(width);
   const location = summary?.location ?? null;
   const shift = summary?.usualShift ?? null;
   const manager = summary?.manager ?? null;
+  const summaryDays = shift?.days?.length ? shift.days : undefined;
+  const profile = useStaffProfileQuery(user?.id, !loading && !summaryDays);
+  const workDays = summaryDays ?? profile.data?.workDays;
+  const workDaysText = workDays && workDays.length < 7
+    ? workDays.map((day) => t(`${day[0]}${day.slice(1).toLowerCase()}`)).join(language === 'ur' ? '، ' : ', ')
+    : t('Every day');
 
   return (
     <View style={[styles.block, { paddingHorizontal: gutter }]}>
@@ -84,6 +96,9 @@ export function ProfileWork({ summary, loading = false }: ProfileWorkProps) {
             ) : (
               <StaffText role="rowTitle" color="muted">Not set</StaffText>
             )}
+          </Row>
+          <Row icon="Calendar" label="Work days">
+            <StaffText role="rowTitle" translate={false}>{workDaysText}</StaffText>
           </Row>
           <Row icon="UserRound" label="Manager">
             {manager ? <NameLine role="rowTitle" name={manager.name} /> : <StaffText role="rowTitle" color="muted">No manager assigned</StaffText>}

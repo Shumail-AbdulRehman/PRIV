@@ -10,7 +10,7 @@ import {
   useSearchParams,
   useLocation,
 } from "react-router-dom";
-import { useQuery, useQueryClient } from "@tanstack/react-query";
+import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import {
   ArrowLeft,
   ArrowRight,
@@ -34,7 +34,8 @@ import { localTime } from "../Manager/operations";
 import OperationsState from "../Manager/OperationsState";
 import DecisionForm from "./DecisionForm";
 import { useException } from "./queries";
-import { readException } from "./api";
+import { decideException, readException } from "./api";
+import { reviewActionLabels } from './reviewPresentation';
 import type {
   VerificationIssue,
 } from "./types";
@@ -83,6 +84,7 @@ export default function ReviewDetail({ id, backTo, returnState }: {
   const [guidanceOpen, setGuidanceOpen] = useState(false);
   const [contextOpen, setContextOpen] = useState(false);
   const root = useRef<HTMLDivElement>(null);
+  const pendingAcceptance = useRef<{ decision: string; requestId: string } | null>(null);
   const issueId = params.get('issueId');
   const requirementId = params.get('requirementId');
   const focusedRequirement = requirementId ?? detail?.issues.find(row => row.id === Number(issueId))?.requirementId;
@@ -158,6 +160,16 @@ export default function ReviewDetail({ id, backTo, returnState }: {
         );
     }
   }
+  const acceptPhoto = useMutation({
+    mutationFn: (input: Parameters<typeof decideException>[1]) => decideException(id, input),
+    onSuccess: async () => {
+      pendingAcceptance.current = null;
+      await done('Decision saved. The task status below reflects the server review.');
+    },
+    onError: async (error: { response?: { status?: number } }) => {
+      if (error.response?.status === 409) await done();
+    },
+  });
   const errorStatus = (query.error as {response?:{status?:number}})?.response?.status;
   const denied = [401,403,404,410].includes(errorStatus ?? 0);
   if (query.isPending || !detail || denied)
@@ -240,6 +252,16 @@ export default function ReviewDetail({ id, backTo, returnState }: {
   const contextPhotos = detail.attempts?.filter(attempt => attempt.contextKey) ?? [];
   const selectedRow = diagnosis.rows.find(row => row.id === requirement?.id);
   const photoName = `${item?.nameSnapshot ?? detail.area?.name ?? t('Room photo')} · ${requirement ? reviewViewLabel(requirement.viewKey, t) : t(plainReason(photo?.contextKey ?? 'Photo'))}`;
+  const keptDirtyPhoto = photo?.mediaAssetId && ['SAFE', 'NOT_REQUIRED'].includes(photo.privacyState ?? '') && (
+    selectedDiagnosis?.category === 'cleaning' ||
+    (selectedDiagnosis?.category === 'review' && !detail.requiresFollowUp &&
+      issue?.reasonCode === 'CLEANING_REQUIRED' && photo.state === 'CLEANING_REQUIRED') ||
+    (!selectedDiagnosis && (issue?.reasonCode === 'CLEANING_REQUIRED' || requirement?.state === 'CLEANING_REQUIRED' || photo.state === 'CLEANING_REQUIRED'))
+  );
+  const photoRequirementId = requirement?.id ?? issue?.requirementId;
+  const acceptanceAvailable = keptDirtyPhoto && photo && photoRequirementId &&
+    detail.state !== 'RESOLVED' && issue?.state !== 'RESOLVED' && issue?.allowedActions?.includes('ACCEPT_EVIDENCE');
+  const acceptanceError = acceptPhoto.isError && acceptPhoto.variables?.evidenceAttemptId === photo?.id;
   return (
     <div className="wx-review-detail" ref={root}>
       <nav className="wx-case-navigation" aria-label={t('Review navigation')}>
@@ -310,11 +332,49 @@ export default function ReviewDetail({ id, backTo, returnState }: {
         <section className="wx-case-inspection" id="review-evidence" tabIndex={-1} aria-label={t('Review photo')}>
           <div className="wx-case-inspection-heading"><div><h3>{item?.nameSnapshot ?? issue?.requirement?.item?.nameSnapshot ?? t('Task photos')}</h3>
             <p>{requirement ? reviewViewLabel(requirement.viewKey, t) : t('Room and fixture evidence')}</p></div>
-            <StatusPill tone={evidenceTone(selectedDiagnosis?.category ?? selectedRow?.category)}>{selectedDiagnosis?.title ?? selectedRow?.title ?? plainReason(photo?.state ?? requirement?.state ?? 'MISSING')}</StatusPill>
+            <StatusPill tone={evidenceTone(keptDirtyPhoto ? 'cleaning' : selectedDiagnosis?.category ?? selectedRow?.category)}>{keptDirtyPhoto ? plainReason('CLEANING_REQUIRED') : selectedDiagnosis?.title ?? selectedRow?.title ?? plainReason(photo?.state ?? requirement?.state ?? 'MISSING')}</StatusPill>
           </div>
           {(selectedDiagnosis ?? selectedRow) && <p className="wx-case-explanation">{(selectedDiagnosis ?? selectedRow)?.description}</p>}
           <EvidencePhoto photo={photo} name={photoName} missing={selectedDiagnosis?.category === 'missing' || selectedRow?.category === 'missing'} description={selectedDiagnosis?.description ?? selectedRow?.description ?? diagnosis.next} />
           {photo?.receivedAt && <p className="wx-case-photo-caption">{t('Received')} <time dateTime={photo.receivedAt}><bdi>{localTime(photo.receivedAt, timezone, language, true)}</bdi></time></p>}
+          {keptDirtyPhoto && <p className="wx-case-explanation">{t('AI result: more cleaning needed. You can accept this photo if it is clean.')}</p>}
+          {acceptanceAvailable && <div className="wx-decision">
+            <form key={`${id}:${issue.id}:${photo.id}`} className="wx-decision-form" aria-busy={acceptPhoto.isPending} onSubmit={event => {
+              event.preventDefault();
+              if (!online || query.isError || acceptPhoto.isPending) return;
+              const form = event.currentTarget;
+              const note = String(new FormData(form).get('note') ?? '').trim();
+              if (!note) return;
+              const input = {
+                expectedVersion: detail.rowVersion,
+                ...(issue.id > 0 ? { issueId: issue.id } : {}),
+                requirementId: photoRequirementId,
+                evidenceAttemptId: photo.id,
+                action: 'ACCEPT_EVIDENCE' as const,
+                reasonCode: 'CLEAN',
+                note,
+              };
+              const decision = JSON.stringify({ id, ...input });
+              if (pendingAcceptance.current?.decision !== decision) {
+                pendingAcceptance.current = { decision, requestId: crypto.randomUUID() };
+              }
+              acceptPhoto.mutate({ ...input, requestId: pendingAcceptance.current.requestId }, { onSuccess: () => form.reset() });
+            }}>
+              <label className="wx-decision-field">
+                {t('What did you check?')}
+                <textarea name="note" rows={2} required maxLength={1000} disabled={acceptPhoto.isPending}
+                  onChange={event => event.currentTarget.setCustomValidity(event.currentTarget.value.trim() ? '' : t('Add a note before saving.'))} />
+              </label>
+              {acceptanceError && <p role="alert" className="wx-decision-error">{t(acceptPhoto.error.response?.status === 409
+                ? 'This review changed. Refresh before saving. Your note is kept.'
+                : 'Could not save your decision. Check your connection and try again.')}</p>}
+              <div className="wx-decision-footer">
+                <Button type="submit" variant="outline" className="wx-decision-button" disabled={!online || query.isError || acceptPhoto.isPending}>
+                  {t(acceptPhoto.isPending ? 'Saving decision…' : reviewActionLabels.ACCEPT_EVIDENCE)}
+                </Button>
+              </div>
+            </form>
+          </div>}
           {requirement && <div className="wx-case-instructions"><h4>{t('What this photo must show')}</h4><p><bdi>{requirement.instructionsSnapshot}</bdi></p></div>}
           {guidance.length > 0 && <details className="wx-case-disclosure" onToggle={event => setGuidanceOpen(event.currentTarget.open)}>
             <summary>{t('Example guidance')}</summary>

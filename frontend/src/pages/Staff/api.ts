@@ -1,4 +1,5 @@
 import { client } from "@/api/client";
+import type { Weekday } from "@/lib/workDays";
 
 export { assignStaffToLocation } from "../Assignment/api";
 
@@ -9,6 +10,7 @@ export interface CreateStaffInput {
   locationId?: number;
   shiftStart?: string;
   shiftEnd?: string;
+  workDays?: Weekday[];
 }
 
 export interface EditStaffInput {
@@ -17,6 +19,7 @@ export interface EditStaffInput {
   phone?: string;
   shiftStart?: string;
   shiftEnd?: string;
+  workDays?: Weekday[];
 }
 
 export const getStaff = async () => {

@@ -1,3 +1,5 @@
+import type { Weekday } from "@/lib/workDays";
+
 export type CreateLocationInput = {
   name: string;
   address: string;
@@ -40,6 +42,7 @@ export interface LocationStaff {
   email: string | null;
   shiftStart: string | null;
   shiftEnd: string | null;
+  workDays?: Weekday[];
   isActive: boolean;
 }
 
@@ -64,7 +67,9 @@ export interface TaskTemplate {
   shiftStart: string | null;
   shiftEnd: string | null;
   recurringType?: "DAILY" | "ONCE";
+  repeatDays?: Weekday[];
   effectiveDate?: string | null;
+  recurringEndDate?: string | null;
   isActive?: boolean;
   qrToken?: string | null;
   referenceImageUrl?: string | null;

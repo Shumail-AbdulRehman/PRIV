@@ -1,4 +1,4 @@
-import { insertStaff, lockStaffIdentities } from "../services/staffProvisioning.service.js";
+import { assertNoWorkDayConflicts, insertStaff, lockStaffIdentities } from "../services/staffProvisioning.service.js";
 import { requireLocationAccess } from '../services/verification-v2/authorization.service.js';
 import { withAccountCapacity } from '../services/accountAccess.service.js';
 import { deactivateWorkforce } from '../services/workforceLifecycle.service.js';
@@ -18,14 +18,21 @@ import { ApiError } from "../utils/ApiError.js";
 import { INVALID_PAKISTAN_PHONE_MESSAGE } from "../utils/pakistanPhone.js";
 import {
   DEFAULT_TIME_ZONE,
-  getZonedClockMinutes,
   getZonedDayRangeFromDateInput,
   getZonedMonthRange,
 } from "../utils/dateTime.js";
+import { fitsStaffShift } from "../utils/scheduleFit.js";
 import { syncTodaysOpenAttendanceWindow } from "../utils/syncAttendanceWindow.js";
 import { getScopedLocationIds, assertLocationAccess } from "../utils/scope.js";
+import { readDayList, removedDays, type WeekdayList } from "../utils/workDays.js";
 
 function staffValidationError(issues: readonly ZodIssue[]) {
+  const workDaysIssue = issues.find((issue) => issue.code === "custom" && issue.params?.code === "INVALID_WORK_DAYS");
+  if (workDaysIssue) {
+    const { message } = workDaysIssue;
+    return new ApiError(400, message, [{ field: "workDays", message, code: "INVALID_WORK_DAYS" }]);
+  }
+
   if (issues.some((issue) => issue.code === "custom" && issue.params?.code === "INVALID_PHONE")) {
     return new ApiError(400, INVALID_PAKISTAN_PHONE_MESSAGE, [
       { field: "phone", message: INVALID_PAKISTAN_PHONE_MESSAGE, code: "INVALID_PHONE" },
@@ -36,6 +43,10 @@ function staffValidationError(issues: readonly ZodIssue[]) {
     field: issue.path.join("."),
     message: issue.message,
   })));
+}
+
+function withWorkDays<T extends { workDays?: WeekdayList }>(staff: T) {
+  return { ...staff, workDays: readDayList(staff.workDays) };
 }
 
 export const createStaff = async (req: Request, res: Response) => {
@@ -58,7 +69,7 @@ export const createStaff = async (req: Request, res: Response) => {
 
   res
     .status(201)
-    .json(new ApiResponse(201, safeStaff, "Staff created successfully"));
+    .json(new ApiResponse(201, withWorkDays(safeStaff), "Staff created successfully"));
 };
 
 export const getStaff = async (req: Request, res: Response) => {
@@ -83,12 +94,13 @@ export const getStaff = async (req: Request, res: Response) => {
       updatedAt: true,
       shiftStart: true,
       shiftEnd: true,
+      workDays: true,
     },
   });
 
   res
     .status(200)
-    .json(new ApiResponse(200, staff, "Staff fetched successfully"));
+    .json(new ApiResponse(200, staff.map(withWorkDays), "Staff fetched successfully"));
 };
 
 export const deleteStaff = async (req: Request, res: Response) => {
@@ -115,6 +127,7 @@ export const getStaffById = async (req: Request, res: Response) => {
       updatedAt: true,
       shiftStart: true,
       shiftEnd: true,
+      workDays: true,
     },
   });
 
@@ -131,7 +144,7 @@ export const getStaffById = async (req: Request, res: Response) => {
 
   res
     .status(200)
-    .json(new ApiResponse(200, staff, "Staff fetched successfully"));
+    .json(new ApiResponse(200, withWorkDays(staff), "Staff fetched successfully"));
 };
 
 export const getStaffByLocation = async (req: Request, res: Response) => {
@@ -163,12 +176,13 @@ export const getStaffByLocation = async (req: Request, res: Response) => {
       updatedAt: true,
       shiftStart: true,
       shiftEnd: true,
+      workDays: true,
     },
   });
 
   res
     .status(200)
-    .json(new ApiResponse(200, staff, "Staff fetched successfully"));
+    .json(new ApiResponse(200, staff.map(withWorkDays), "Staff fetched successfully"));
 };
 
 // Retain the legacy export for internal callers with the same actor-safe contract.
@@ -182,10 +196,10 @@ export const editStaff = async (req: Request, res: Response) => {
   if (!result.success) throw staffValidationError(result.error.issues);
 
   const actor = req.user!;
-  const { phone, email, shiftStart, shiftEnd } = result.data;
+  const { phone, email, shiftStart, shiftEnd, workDays } = result.data;
   const shiftChanged = shiftStart !== undefined || shiftEnd !== undefined;
 
-  const updated = await prisma.$transaction(async (tx) => {
+  const { updated, workDaysChanged } = await prisma.$transaction(async (tx) => {
     // Read the current identity and shift after locking the row against concurrent edits.
     await tx.$queryRaw`SELECT id FROM "Staff" WHERE id = ${staffId} AND "companyId" = ${actor.companyId} FOR UPDATE`;
     const staff = await tx.staff.findUnique({
@@ -237,21 +251,10 @@ export const editStaff = async (req: Request, res: Response) => {
           include: { location: { select: { timezone: true } } },
         });
 
-        const locationTimeZone = staff.location?.timezone ?? DEFAULT_TIME_ZONE;
-        const newStartMin = getZonedClockMinutes(newStart, locationTimeZone);
-        const newEndMin = getZonedClockMinutes(newEnd, locationTimeZone);
-        const isOvernightShift = newEndMin < newStartMin;
-
-        const conflicts = staffTemplates.filter((t) => {
-          const templateTimeZone = t.location.timezone;
-          const tStartMin = getZonedClockMinutes(t.shiftStart, templateTimeZone);
-          const tEndMin = getZonedClockMinutes(t.shiftEnd, templateTimeZone);
-
-          if (isOvernightShift) {
-            return !(tStartMin >= newStartMin || tEndMin <= newEndMin);
-          }
-          return !(tStartMin >= newStartMin && tEndMin <= newEndMin);
-        });
+        const newShift = { shiftStart: newStart, shiftEnd: newEnd };
+        const conflicts = staffTemplates.filter((template) =>
+          !fitsStaffShift(template, newShift, template.location.timezone),
+        );
 
         if (conflicts.length > 0) {
           const names = conflicts.map((c) => `"${c.title}"`).join(", ");
@@ -263,7 +266,15 @@ export const editStaff = async (req: Request, res: Response) => {
       }
     }
 
-    const staffRecord = await tx.staff.update({
+    const previousWorkDays = readDayList(staff.workDays);
+    const removed = workDays === undefined ? [] : removedDays(previousWorkDays, workDays);
+    if (removed.length) {
+      await assertNoWorkDayConflicts(tx, staff, removed);
+    }
+    const workDaysChanged = workDays !== undefined &&
+      (removed.length > 0 || workDays.length > previousWorkDays.length);
+
+    const updated = await tx.staff.update({
       where: { id: staffId },
       data: {
         ...result.data,
@@ -280,6 +291,7 @@ export const editStaff = async (req: Request, res: Response) => {
         locationId: true,
         shiftStart: true,
         shiftEnd: true,
+        workDays: true,
         createdAt: true,
         updatedAt: true,
       },
@@ -292,21 +304,28 @@ export const editStaff = async (req: Request, res: Response) => {
       });
     }
 
-    return staffRecord;
+    return { updated, workDaysChanged };
   });
 
-  if (shiftChanged) {
-    await syncTodaysOpenAttendanceWindow({
+  if (shiftChanged || workDaysChanged) {
+    const attendanceStaff = {
       staffId,
       locationId: updated.locationId,
       shiftStart: updated.shiftStart,
       shiftEnd: updated.shiftEnd,
-    });
+    };
+    if (workDaysChanged) {
+      const now = new Date();
+      await syncTodaysOpenAttendanceWindow(attendanceStaff, now);
+      await syncTodaysOpenAttendanceWindow(attendanceStaff, now, "next");
+    } else {
+      await syncTodaysOpenAttendanceWindow(attendanceStaff);
+    }
   }
 
   res
     .status(200)
-    .json(new ApiResponse(200, updated, "Staff updated successfully"));
+    .json(new ApiResponse(200, withWorkDays(updated), "Staff updated successfully"));
 };
 
 export const getStaffDetails = async (req: Request, res: Response) => {
@@ -333,6 +352,7 @@ export const getStaffDetails = async (req: Request, res: Response) => {
       locationId: true,
       shiftStart: true,
       shiftEnd: true,
+      workDays: true,
       createdAt: true,
       updatedAt: true,
       location: {
@@ -466,6 +486,7 @@ export const getStaffDetails = async (req: Request, res: Response) => {
         title: true,
         description: true,
         recurringType: true,
+        repeatDays: true,
         isActive: true,
         shiftStart: true,
         shiftEnd: true,
@@ -589,8 +610,11 @@ export const getStaffDetails = async (req: Request, res: Response) => {
     new ApiResponse(
       200,
       {
-        ...staff,
-        taskTemplates,
+        ...withWorkDays(staff),
+        taskTemplates: taskTemplates.map((template) => ({
+          ...template,
+          repeatDays: readDayList(template.repeatDays),
+        })),
         taskInstances: taskInstances.map(managerTaskPresentation),
         attendances: attendances.map(attendancePhotoPresentation),
         taskStats,

@@ -74,6 +74,57 @@ test("rule 3: no record", () => {
   assert.equal(s.wait, null);
 });
 
+test("a day off names the next shift's local weekday and time without an action", () => {
+  const s = nowState(input({
+    record: null,
+    offToday: true,
+    now: new Date("2026-11-09T04:00:00.000Z"),
+    nextShiftStart: "2026-11-11T04:00:00.000Z",
+  }));
+  assert.equal(s.tone, "quiet");
+  assert.equal(s.title.key, "Day off today");
+  assert.deepEqual(s.sub, {
+    key: "Your next shift is {day} at {time}.",
+    values: { day: "Wednesday", time: "9:00 AM" },
+  });
+  assert.equal(s.action, null);
+  assert.equal(s.wait, null);
+});
+
+test("tomorrow is the next local date even when both instants share a UTC date", () => {
+  const s = nowState(input({
+    record: null,
+    offToday: true,
+    now: new Date("2026-11-10T18:30:00.000Z"),
+    nextShiftStart: "2026-11-10T19:30:00.000Z",
+  }));
+  assert.deepEqual(s.sub.values, { day: "tomorrow", time: "12:30 AM" });
+});
+
+test("the next shift's weekday comes from its zone, not the UTC instant, and is translated", () => {
+  const s = nowState(input({
+    record: null,
+    offToday: true,
+    timeZone: "America/New_York",
+    language: "ur",
+    now: new Date("2026-11-09T14:00:00.000Z"),
+    nextShiftStart: "2026-11-12T03:00:00.000Z",
+  }));
+  assert.deepEqual(s.sub.values, { day: "بدھ", time: "10:00 PM" });
+});
+
+test("a day off without a next shift points to the manager", () => {
+  const s = nowState(input({ record: null, offToday: true, nextShiftStart: null }));
+  assert.equal(s.title.key, "Day off today");
+  assert.equal(s.sub.key, "Ask your manager if you should be working today.");
+  assert.equal(s.action, null);
+});
+
+test("a relevant attendance record takes priority over a day-off flag", () => {
+  const existing = input({ record: checkedIn(), now: at("12:00") });
+  assert.deepEqual(nowState({ ...existing, offToday: true }), nowState(existing));
+});
+
 test("rule 4: checked out says both times", () => {
   const s = nowState(
     input({ record: record({ status: "CHECKED_OUT", checkInTime: iso("08:58"), checkOutTime: iso("17:04") }), now: at("17:10") }),

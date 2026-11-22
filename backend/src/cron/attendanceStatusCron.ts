@@ -23,4 +23,4 @@ cron.schedule("5-59/10 * * * *", async () => {
   } catch (error) {
     console.error("Attendance status cron error:", error);
   }
-});
+}, { noOverlap: true });

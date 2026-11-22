@@ -4,6 +4,7 @@ import { ArrowLeft, Clock, Mail, MapPin, Pencil, Phone, RefreshCw, User } from '
 import { formatInTimeZone } from 'date-fns-tz';
 import useAuth from '@/hooks/useAuth';
 import { useLanguage } from '@/i18n/context';
+import { formatDays, isEveryDay } from '@/lib/workDays';
 import PageHeader from '@/components/common/PageHeader';
 import EmptyState from '@/components/common/EmptyState';
 import PersonAvatar from '@/components/workspace/PersonAvatar';
@@ -102,6 +103,7 @@ function StaffProfile({ id }: { id: string }) {
   if (!staff) return <div className="wx-staff-profile"><EmptyState icon={<User aria-hidden="true" />} title="Staff member not found." action={back} /></div>;
 
   const staffTz = staff.location?.timezone ?? 'UTC';
+  const days = staff.workDays;
   const displayPeriod = filters.month && /^\d{4}-(0[1-9]|1[0-2])$/.test(filters.month) ? new Date(`${filters.month}-15T12:00:00Z`).toLocaleDateString(locale, { month: 'long', year: 'numeric', timeZone: 'UTC' }) : t(staff.periodLabel);
   const sites: WorkforceSite[] = sitesQuery.data?.data ?? [];
   const canAccess = staff.isActive && (user?.role === 'ADMIN' || (user?.role === 'MANAGER' && !sitesQuery.isError && sites.some(site => site.id === (staff.locationId ?? staff.location?.id))));
@@ -116,7 +118,9 @@ function StaffProfile({ id }: { id: string }) {
           <h1 className="wx-page-title"><bdi>{staff.name}</bdi></h1>
           <div className="wx-profile-meta">
             <span><MapPin size={15} aria-hidden="true" /><bdi>{staff.location?.name ?? t('Unassigned')}</bdi></span>
-            <span><Clock size={15} aria-hidden="true" /><bdi dir="ltr">{shiftTime(staff.shiftStart, staffTz)} – {shiftTime(staff.shiftEnd, staffTz)}</bdi></span>
+            <span><Clock size={15} aria-hidden="true" /><bdi dir="ltr">{shiftTime(staff.shiftStart, staffTz)} – {shiftTime(staff.shiftEnd, staffTz)}</bdi>
+              {days?.length && !isEveryDay(days) ? <> · <bdi>{formatDays(days, t, language)}</bdi></> : null}
+            </span>
           </div>
           <div className="wx-profile-meta">
             <span><Phone size={15} aria-hidden="true" /><span className="wx-profile-sr">{t('Phone Number')}: </span><bdi dir="ltr">{staff.phone || '—'}</bdi></span>

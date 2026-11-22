@@ -7,6 +7,10 @@ it('keeps wrong-object correction even when the unrelated photo is also a screen
  expect(bufferedDecision({...base,objectMatch:'WRONG_ITEM',originality:'SCREEN_RECAPTURE'},false)).toEqual({state:'RECAPTURE_REQUIRED',reason:'WRONG_ITEM',keep:false});
 });
 
+it('requests a retake and discards a photo of a screen', () => {
+ expect(bufferedDecision({...base, originality:'SCREEN_RECAPTURE'}, false)).toEqual({state:'RECAPTURE_REQUIRED', reason:'PHOTO_OF_SCREEN', keep:false});
+});
+
 it.each(['WRONG_ITEM','MISSING_SURFACE'] as const)('a confirmed %s cannot be passed or sent to review even with clean surfaces',objectMatch=>{
  expect(bufferedDecision({...base,objectMatch,originality:'UNCERTAIN'},false)).toEqual({state:'RECAPTURE_REQUIRED',reason:objectMatch,keep:false});
 });
@@ -34,7 +38,7 @@ it.each([
 it('confirmed missing parts request a retake before any cleanliness verdict',()=>{
  expect(bufferedDecision({...base,viewMatch:'MISSING_SURFACE',cleanliness:{...base.cleanliness!,verdict:'DIRTY',surfaces:[{surface:'bowl',verdict:'DIRTY'}],reasonCode:'CLEANING_REQUIRED'}},true,true)).toEqual({state:'RECAPTURE_REQUIRED',reason:'MISSING_SURFACE',keep:false});
 });
-it('uncertain cleanliness is reviewed, while confirmed dirt requires cleaning',()=>{
+it('uncertain cleanliness is reviewed, while confirmed dirt keeps the photo and requires cleaning',()=>{
  expect(bufferedDecision({...base,cleanliness:{...base.cleanliness!,verdict:'CANNOT_ASSESS',surfaces:[{surface:'bowl',verdict:'CANNOT_ASSESS'}],reasonCode:'CANNOT_ASSESS'}},true,true)).toMatchObject({state:'REVIEW_REQUIRED',reason:'CANNOT_ASSESS'});
- expect(bufferedDecision({...base,cleanliness:{...base.cleanliness!,verdict:'DIRTY',surfaces:[{surface:'bowl',verdict:'DIRTY'}],reasonCode:'CLEANING_REQUIRED'}},true,true)).toMatchObject({state:'CLEANING_REQUIRED'});
+ expect(bufferedDecision({...base,cleanliness:{...base.cleanliness!,verdict:'DIRTY',surfaces:[{surface:'bowl',verdict:'DIRTY'}],reasonCode:'CLEANING_REQUIRED'}},true,true)).toEqual({state:'CLEANING_REQUIRED',reason:'CLEANING_REQUIRED',keep:true});
 });
