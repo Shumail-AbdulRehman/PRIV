@@ -27,7 +27,7 @@ const midnightStaff = {
     workDays: ['TUE'],
 };
 
-describe('hourly attendance preparation', () => {
+describe('attendance preparation every three minutes', () => {
     beforeEach(() => {
         m.list.mockReset().mockResolvedValue([midnightStaff]);
         m.staff.mockReset().mockResolvedValue(midnightStaff);
@@ -38,8 +38,8 @@ describe('hourly attendance preparation', () => {
     });
     afterEach(() => vi.restoreAllMocks());
 
-    it('schedules the job at minute 2 of each hour', () => {
-        expect(m.schedule).toHaveBeenCalledWith('2 * * * *', expect.any(Function), { noOverlap: true });
+    it('schedules the job every three minutes', () => {
+        expect(m.schedule).toHaveBeenCalledWith('*/3 * * * *', expect.any(Function), { noOverlap: true });
     });
 
     it('prepares Tuesday midnight at 22:02 Monday in Karachi', async () => {

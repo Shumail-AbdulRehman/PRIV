@@ -55,4 +55,4 @@ export async function runAttendanceCron(now = new Date()) {
     }
 }
 
-cron.schedule("2 * * * *", () => runAttendanceCron(), { noOverlap: true });
+cron.schedule("*/3 * * * *", () => runAttendanceCron(), { noOverlap: true });
